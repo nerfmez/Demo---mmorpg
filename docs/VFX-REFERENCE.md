@@ -60,3 +60,15 @@ Also inspected `CFXR2 Ground Hit (Alt) + Debris (Lit)`, `CFXR2 Debris Hit (Lit)`
 ### Monster strikes — 2026-10-08
 
 The gallery host was blocked by this session's network policy, so no gallery clip was inspected for this pass. A first version drew claw/fang/pincer shapes as camera-facing marks on the hero; the owner rejected it because it looked like images pasted on top and did not come from the monster. The current version follows the same rule as the hero's blade trail: thin ribbons recorded from the real tip of the striking limb (paw claws, jaws/tusks, crab claws, mantis blades), bright only while that tip moves fast, with the strike animations sweeping across the body so the trail reads from the game camera. No reference media was copied. Re-check against relevant gallery claw/bite/hit clips when the host is reachable.
+
+### Dodges: Blink and the Leap's slam — 2026-10-25
+
+The gallery could not be reached from the cloud session that rebuilt these (network policy), so the
+principles already recorded above were applied: `CFXR Magic Poof` (the reveal kept apart from its
+accents) for Blink, `CFXR2 Ground Hit (Alt) + Debris (Lit)` and `CFXR Impact Contrast` (an immediate
+compact contact, debris on its own gravity phase) for the landing. Original Frontier shapes in
+`src/render/skillfx/move-fx.js`: a violet gather ring and spiral wisps, a slit pinching shut, a
+flash-step streak and a slit opening with a ring; a single tapered leap ribbon (no bead trail), a
+compact flash, two shock rings sized to the landing radius, short ground cracks, a low dust skirt and
+a few chips.
+

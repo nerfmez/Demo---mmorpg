@@ -1162,16 +1162,17 @@ export class Vfx {
     this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
   }
 
+  // the body's fading afterimage where a blink left (skillfx/move-fx.js draws the rest)
+  blinkEcho(fromX, fromZ, rig) {
+    if(!rig)return;
+    const {ghost,release}=this.movementEchoAt(rig,0x9152ca);ghost.position.set(fromX,this.gy(fromX,fromZ),fromZ);
+    this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
+  }
+
   syncMovement(player,y,dt,rig) {
     const d=player.dash;
     if(!d){this.movementSource=null;return;}
-    if(d.kind==='blink'){
-      // the gather before the jump: violet motes drawn in to the body
-      if(this.movementSource!==d){this.movementSource=d;this.movementEcho=0;}
-      if(!d.moved)while(this.movementEcho<Math.floor(d.t/(1/120))){const a=this.movementEcho*2.4,r=.9;this.fx.add(player.x+Math.sin(a)*r,y+.5+(this.movementEcho%3)*.35,player.z+Math.cos(a)*r,-Math.sin(a)*r*5,.2,-Math.cos(a)*r*5,{color:0xc7b4ff,size:.34,sizeEnd:.06,life:.2,drag:1});this.movementEcho++;}
-      return;
-    }
-    if(d.kind==='leap')return;
+    if(d.kind==='blink'||d.kind==='leap')return; // drawn by skillfx/move-fx.js
     if(this.movementSource!==d){
       this.movementSource=d;this.movementEcho=0;this.movementDust=0;
       if(d.kind==='dash'){

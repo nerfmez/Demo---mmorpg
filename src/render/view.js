@@ -641,7 +641,7 @@ export class View {
       case 'movement':
         break;
       case 'blinkPlayer':
-        v.blink(e.fromX, e.fromZ, e.x, e.z,0xb4a2ff,this.hero);
+        if (!drawn) v.blink(e.fromX, e.fromZ, e.x, e.z,0xb4a2ff,this.hero);
         break;
       case 'surface':
         v.digDust(e.fromX, e.fromZ, 10);
@@ -895,7 +895,7 @@ export class View {
     setFlash(r.material, this.heroFlash > 0 ? 0.5 : 0, 0, p.statuses?.chill ? 0.25 : 0);
     updateScarf(r, dt, p.moving || p.dash ? 8 : 0);
     this.vfx.syncMovement(p,y,dt,r);
-    if(p.dash?.kind==='leap')this.vfx.dashTrail(p.x,y,p.z,'leap');
+    if(p.dash?.kind==='leap'&&!this.skillFx)this.vfx.dashTrail(p.x,y,p.z,'leap'); // else skillfx/move-fx.js
     this.vfx.updateWard(p.barrier, time);
     if (p.buffs?.war_cry) this.vfx.buffAura(p.x, p.z, 0xffc860, dt);
   }

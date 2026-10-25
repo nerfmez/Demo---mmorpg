@@ -245,3 +245,17 @@ Checked: screenshots after load (desktop and iPad viewports) show HP/MP text, th
 Tests:
 - core 611/611, with a new test that the low-quality upload links the canvas program;
 - render 48/49; the one failure (closed skirt edges, `terrain-domain`) also fails on main.
+
+## Hill Windmill on its hill (25 October 2026)
+
+Owner direction: scenes are not pinned flat; a scene that should be high is raised and the ground round it adapts; read the scene and the terrain, and where a form (cliff, terrace, upland) meets the edge, carry it on so nothing looks cut and pasted; never change the scene's content to do it.
+
+- **Lift:** the whole scene is 2.5 m higher (`acceptedScenes.lift`), its meshes, plants, sails and connector ends with it.
+- **Edges:** the factory's own ground past the bounds is exported (`outer`, 30 m ring) and continued outward, softened and faded into the map. The scene's upland and banks run on west, east and south as its design draws them.
+- **Seam:** the north edge is 4 m from Moonroot Grove. Matching seam `rises` on both maps carry the upland across as a ridge instead of flattening it into the border.
+- **Terrace faces:** the dry-stone block walls from the 24 October fidelity pass read as a fortress wall, not the concept's rock ledges. The windmill's terraces, stairs and boulders are back to the earlier rock-cliff version (pre `a9e074a`); scene layout, colliders and routes unchanged.
+- **Capture fix:** free-camera review shots had shown floating stairs and holes because cells were culled for the play camera; captures now attach every resident cell.
+
+Checked: views from all four sides, the owner's circled angle, oblique overviews and the Moonroot side; native layout hashes of both maps unchanged. Tests: core 613/613 (new: lifted surface, continued edges with no sheer step outside, matching seam rises and meeting heights, connector ends); render 48/49 (terrain-domain skirt failure also on main).
+
+Remaining: the scene's low gullies still paint grey on their steep sides; some stair courses fan on curves (scene geometry).

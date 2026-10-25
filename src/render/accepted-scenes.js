@@ -7,7 +7,7 @@ import {createAcceptedScene as shell} from './accepted-scenes/shell-beach.js';
 import {createAcceptedScene as mill} from './accepted-scenes/hill-windmill.js';
 import {createAcceptedScene as meadow} from './accepted-scenes/azure-meadow.js';
 import {createAcceptedScene as rose} from './accepted-scenes/rose-garden.js';
-import {acceptedScenes,connectorClear,sceneWeight,sceneSample} from '../core/accepted-scenes.js';
+import {acceptedScenes,connectorClear,sceneWeight,sceneSample,sceneLift} from '../core/accepted-scenes.js';
 import {distToPolyline} from '../core/math.js';
 import {timeUniform} from './patch.js';
 import {clipRegionGeometrySteps} from './region-ownership.js';
@@ -37,6 +37,8 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
   }
   // The rotor remains separate from the static scenery batches.
   if(result.landmark?.rotor){keep(result.landmark.rotor);result.landmark.rotor.userData.spatialDynamic=true;animations.push(result);}
+  // Animated parts are not baked: they move whole with the ground edit under them (lift).
+  for(const o of [result.landmark?.rotor,result.waypoint?.root])if(o)seatWhole(world,spec,o);
   const meshes=[];source.traverse(o=>{if(o.isMesh||o.isPoints)meshes.push(o);});
   // repair connectors pruned by their boxes (the check runs for every vertex)
   const repairs=world.data.acceptedScenes.connectors.filter(r=>r.repair).map(r=>{const pad=r.width/2+2.5,xs=r.points.map(p=>p[0]),zs=r.points.map(p=>p[1]);return {r,box:[Math.min(...xs)-pad,Math.max(...xs)+pad,Math.min(...zs)-pad,Math.max(...zs)+pad]};});
@@ -76,12 +78,13 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
     // Copy before baking: hulls may share a geometry with their visible surface.
     const original=mesh.geometry;mesh.geometry=original.clone().applyMatrix4(matrix);
     if(mesh.geometry.userData.rigidParts)yield* seatRigidParts(world,spec,mesh);
-    const positions=mesh.geometry.attributes.position,reach=acceptedEditReach(world.data,spec,world.heightfield.acceptedConnectors);
+    const positions=mesh.geometry.attributes.position,reach=acceptedEditReach(world.data,spec,world.heightfield.acceptedConnectors),lift=sceneLift(world.data,spec);
     if(!mesh.geometry.userData.rigidParts)for(let i=0;i<positions.count;i++){
      if(i%16384===16383)yield;
      const x=positions.getX(i),z=positions.getZ(i),w=sceneWeight(spec,x,z);const repair=nearRepair(x,z);
      // Inside, follow the world's later edits (connectors, seams, shore); they leave cliffs scaled with the ground.
-     if(w>=.999&&!repair){if(!reach(x,z))continue;const shift=acceptedGroundEdit(world.data,spec,x,z,world.heightfield.acceptedConnectors).shift;if(Math.abs(shift)>.002)positions.setY(i,positions.getY(i)+shift);continue;}
+     // Out of every edit's reach the ground differs from the scene only by its lift.
+     if(w>=.999&&!repair){if(!reach(x,z)){if(lift)positions.setY(i,positions.getY(i)+lift);continue;}const shift=acceptedGroundEdit(world.data,spec,x,z,world.heightfield.acceptedConnectors).shift;if(Math.abs(shift)>.002)positions.setY(i,positions.getY(i)+shift);continue;}
      const base=sceneSample(spec,'heights',x,z);positions.setY(i,world.groundY(x,z)+(positions.getY(i)-base)*w);
     }
     if(mesh.name==='accepted-cliffs')for(const road of world.data.acceptedScenes.connectors.filter(r=>r.repair))for(let i=0;i<positions.count;i++){const x=positions.getX(i),z=positions.getZ(i);if(distToPolyline(x,z,road.points)<road.width/2+1)positions.setY(i,Math.min(positions.getY(i),world.groundY(x,z)-.08));}
@@ -145,6 +148,11 @@ function splitInstances(mesh,size){
  mesh.dispose();
  return parts;
 }
+function seatWhole(world,spec,o){
+ const p=new THREE.Vector3().setFromMatrixPosition(o.matrixWorld),edit=acceptedGroundEdit(world.data,spec,p.x,p.z,world.heightfield.acceptedConnectors);
+ if(Math.abs(edit.shift)<.002)return;
+ p.y+=edit.shift;o.parent.worldToLocal(p);o.position.copy(p);o.updateMatrixWorld(true);
+}
 // Stones are separate parts (factory groups): each moves whole with the ground
 // under its centre, and one the feather or a later edit would squash below half
 // its height is left out instead of being flattened into a wedge.
@@ -153,7 +161,7 @@ function* seatRigidParts(world,spec,mesh){
  for(const group of g.groups){
   let cx=0,cz=0;for(let i=group.start;i<group.start+group.count;i++){cx+=pos.getX(i);cz+=pos.getZ(i);}
   cx/=group.count;cz/=group.count;
-  const w=sceneWeight(spec,cx,cz),edit=w>=.999?(reach(cx,cz)?acceptedGroundEdit(world.data,spec,cx,cz,world.heightfield.acceptedConnectors):{shift:0,keep:1}):null,share=edit?edit.keep:w;
+  const w=sceneWeight(spec,cx,cz),edit=w>=.999?(reach(cx,cz)?acceptedGroundEdit(world.data,spec,cx,cz,world.heightfield.acceptedConnectors):{shift:sceneLift(world.data,spec),keep:1}):null,share=edit?edit.keep:w;
   if(share<.5)continue;
   const shift=edit?edit.shift:world.groundY(cx,cz)-sceneSample(spec,'heights',cx,cz);
   if(Math.abs(shift)>.002)for(let i=group.start;i<group.start+group.count;i++)pos.setY(i,pos.getY(i)+shift);

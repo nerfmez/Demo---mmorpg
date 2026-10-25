@@ -2,7 +2,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {loadData} from '../../src/core/data-node.js';
 import {createWorld} from '../../src/core/world.js';
-import {acceptedSceneLayout,sceneWeight} from '../../src/core/accepted-scenes.js';
+import {acceptedSceneLayout,sceneWeight,sceneSample} from '../../src/core/accepted-scenes.js';
+import {acceptedGroundEdit} from '../../src/core/accepted-shift.js';
 import {createCharacter,migrateCharacter} from '../../src/core/character.js';
 import {OpenWorldGame} from '../../src/core/open-world-game.js';
 import {encounterLayout} from '../../src/core/encounters.js';
@@ -91,4 +92,37 @@ test('a ring of trees and shrubs carries each scene\'s woodland past its bounds 
  }
  const stones=world.circles.filter(c=>c.type==='waypoint');assert.equal(stones.length,data.world.waypoints.length);
  for(const w of stones)assert.ok(trees.every(t=>Math.hypot(t.x-w.x,t.z-w.z)>t.r+3),w.id+' waypoint stays open');
+});
+test('a lifted scene keeps its own forms: same relief higher, its outer ground continued, its hill carried over the seam',()=>{
+ const scene=acceptedSceneLayout.scenes.find(s=>s.id==='hill-windmill'),lift=data.world.acceptedScenes.lift['hill-windmill'];
+ assert.ok(lift>0);
+ // inside, away from connectors and the seam, the ground is the scene's own surface plus the lift
+ for(const [x,z] of [[126,-80],[140,-78],[118,-90]]){
+  const edit=acceptedGroundEdit(data.world,scene,x,z,world.heightfield.acceptedConnectors);
+  if(edit.keep<.999)continue;
+  assert.ok(Math.abs(world.terrainY(x,z)-(sceneSample(scene,'heights',x,z)+lift))<.6,'lifted surface at '+[x,z]);
+ }
+ // outside the west, east and south sides the scene's own outer ground runs on: no sheer step
+ // (a rock face only exists inside the bounds) and no drop straight back to the map
+ const b=scene.bounds;let steep=0,n=0;
+ for(let t=0;t<=1;t+=.05)for(const [x,z] of [[b[0]-6,b[2]+(b[3]-b[2])*t],[b[1]+6,b[2]+(b[3]-b[2])*t],[b[0]+(b[1]-b[0])*t,b[3]+6]]){
+  n++;if(world.slopeAt(x,z)>1.2)steep++;
+ }
+ assert.ok(steep/n<.05,`sheer ground outside the scene at ${steep}/${n} samples`);
+ assert.ok(world.terrainY(b[0]-6,-92)>world.terrainY(b[0]-40,-92)+2,'the west side slopes down from the scene, not cut at its bound');
+ // both maps list the same seam rise, so the hill meets itself across the border
+ const moon=data.maps['moonroot-grove-v1'],dx=moon.atlas.offset[0];
+ const mine=data.world.atlas.seams.find(s=>s.to===moon.id).rises,theirs=moon.atlas.seams.find(s=>s.to===data.world.id).rises;
+ assert.deepEqual(mine.map(r=>[r.span[0],r.span[1],r.height,r.ease]),theirs.map(r=>[r.span[0]+dx,r.span[1]+dx,r.height,r.ease]));
+ const other=createWorld(moon);
+ for(const x of [100,126,150])assert.ok(Math.abs(world.terrainY(x,data.world.bounds.minZ)-other.terrainY(x-dx,moon.bounds.maxZ))<.3,'seam heights meet at x '+x);
+});
+test('connectors from a lifted scene start on its lifted ground',()=>{
+ const scene=acceptedSceneLayout.scenes.find(s=>s.id==='hill-windmill'),lift=data.world.acceptedScenes.lift['hill-windmill'];
+ const raw=data.world.acceptedScenes.connectors.filter(c=>c.from?.startsWith('hill-windmill/')),applied=world.heightfield.acceptedConnectors;
+ assert.ok(raw.length);
+ for(const road of raw){
+  const now=applied.find(c=>c.id===road.id),p=road.points,k=sceneWeight(scene,...p[0])>sceneWeight(scene,...p.at(-1))?0:p.length-1;
+  assert.ok(Math.abs(now.heights[k]-(road.heights[k]+lift*sceneWeight(scene,...p[k])))<.05,road.id+' scene end follows the lift');
+ }
 });

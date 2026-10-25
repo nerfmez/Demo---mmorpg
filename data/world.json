@@ -16010,6 +16010,7 @@
         ],
         "band": 24,
         "quiet": 10,
+        "rises": [{"span": [96, 156], "height": 5.5, "ease": 28, "note": "the raised Hill Windmill (acceptedScenes.lift) continues as a ridge into Moonroot Grove; that map lists the same rise"}],
         "profile": [
           [
             -160,
@@ -16584,7 +16585,13 @@
       "inset": 0.5,
       "dryMargin": 0.4,
       "pondMargin": 12,
-      "sides": {"beach": "N", "forest": "NSWE", "rose-garden": "NWE", "azure-meadow": "WES", "hill-windmill": "WES"}
+      "sides": {"beach": "N", "forest": "NSWE", "rose-garden": "NWE", "azure-meadow": "WES", "hill-windmill": "WES"},
+      "scene": {"hill-windmill": {"continue": 28, "wobble": 0.15, "inland": true}},
+      "sceneDoc": "Per-scene overrides of k, min and max. continue: metres over which each side's edge profile (cliffs, terraces, banks meeting it) runs on outward unsmoothed and dies away, so the scene's forms carry on into the map instead of ending at the bound. wobble: the ring width varies by up to this share along each side (smooth noise). inland: no sea nearby, so low dry ground takes the apron too (only ponds stop it)."
+    },
+    "lift": {
+      "_doc": "Metres a whole scene is raised (or lowered, negative) above its authored surface (core/accepted-scenes.js acceptedTarget). Its meshes, plants and connector ends move with it; the apron and the seam rises bring the ground round it to meet it.",
+      "hill-windmill": 2.5
     },
     "foliage": {
       "_doc": "In the game the scenes' trees, shrubs and grass are the map's own (render/accepted-scenes.js): the game's geometry, palette and materials, crowns in the map's proportions and tint. Ordinary trees: each scene's authored sizes (world scale of the trunk's width) times treeScale[scene], which brings its typical tree near the map's (median 0.9; the forest's a little larger) and keeps its own variation. bigTrees stay big: the tree nearest 'at' (world x, z, within 1 m) takes 'size' (world scale; the map's largest ordinary tree is about 1.14). Colliders keep the scene data.",

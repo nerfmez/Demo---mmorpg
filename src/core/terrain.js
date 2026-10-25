@@ -127,6 +127,18 @@ export function seamPull(worldData, seam, x, z) {
   return (1 - smoothstep(0, band, Math.max(0, inside))) * (1 - smoothstep(0, band, past));
 }
 
+/** Extra height a seam carries over a stretch (data: seam.rises, in each map's local
+ *  `along`): a raised accepted scene's hill continues across the border, and both maps
+ *  list the same rise. Kept apart from the generated profile (scripts/atlas-seams.mjs). */
+export function seamRise(seam, along) {
+  let h = 0;
+  for (const r of seam.rises || []) {
+    const out = Math.max(r.span[0] - along, along - r.span[1], 0);
+    if (out < r.ease) h += r.height * (1 - smoothstep(0, r.ease, out));
+  }
+  return h;
+}
+
 /** Height of a seam profile ([[along, h], ...] sorted by along) at `along`. */
 export function seamHeight(profile, along) {
   if (along <= profile[0][0]) return profile[0][1];
@@ -398,7 +410,7 @@ export function buildHeightfield(worldData, zoneAt) {
       for (let i = 0; i < w; i++) {
         const m = seamPull(worldData, seam, X(i), Z(j));
         if (!m) continue;
-        const k = j * w + i, to = seamHeight(seam.profile, alongX ? X(i) : Z(j));
+        const k = j * w + i, to = seamHeight(seam.profile, alongX ? X(i) : Z(j)) + seamRise(seam, alongX ? X(i) : Z(j));
         hf[k] = hf[k] * (1 - m) + to * m;
         if (native) native[k] = native[k] * (1 - m) + to * m;
       }

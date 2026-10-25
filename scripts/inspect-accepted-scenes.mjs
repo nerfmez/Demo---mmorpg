@@ -12,7 +12,7 @@ const specs=[
  {id:'rose-garden',x:-100,z:20,s:.68,y:.4,box:[-60,60,-60,28]},
  {id:'shell-beach',x:-53,z:83,s:.60,y:-.44,box:[-70,70,-65,50]},
  {id:'azure-meadow',x:38,z:-85,s:.50,y:.4,box:[-65,65,-65,30]},
- {id:'hill-windmill',x:126,z:-85,s:.48,y:.4,box:[-65,65,-65,30]}
+ {id:'hill-windmill',x:126,z:-85,s:.48,y:.4,box:[-65,65,-65,30],outer:30}
 ];
 const round=n=>Math.round(n*1000)/1000,scenes=[];
 for(const spec of specs){
@@ -40,6 +40,11 @@ for(const spec of specs){
  for(const [i,t]of a.trails.entries())roads.push({id:spec.id+'/trail-'+i,width:round(t.reduce((v,p)=>v+(p.w??p.y),0)/t.length*2*spec.s),points:transform(t)});
  if(spec.id==='beach')roads.push({id:'beach/track',width:4.5,points:[[2.6,-38],[2.6,-27],[2.6,-15],[3,-7],[0,4]].map(([x,z])=>[round(spec.x+x*spec.s),round(spec.z+z*spec.s)])});
  const scene={landmark:a.landmark?{x:round(spec.x+a.landmark.x*spec.s),z:round(spec.z+a.landmark.z*spec.s)}:null,...spec,bounds,feather:5,grid:{ox:bounds[0],oz:bounds[2],res,w,h},heights,trails,colliders,roads};
+ // outer: the scene's own ground past its bounds (its banks, uplands and routes run on
+ // beyond the frame), so the world can continue the scene's forms instead of cutting them
+ if(spec.outer){const m=spec.outer,o=[bounds[0]-m,bounds[1]+m,bounds[2]-m,bounds[3]+m],r=1,ow=Math.ceil((o[1]-o[0])/r)+1,oh=Math.ceil((o[3]-o[2])/r)+1,oy=[];
+  for(let j=0;j<oh;j++)for(let i=0;i<ow;i++)oy.push(round(a.height((o[0]+i*r-spec.x)/spec.s,(o[2]+j*r-spec.z)/spec.s)*spec.s+spec.y));
+  scene.outer={grid:{ox:o[0],oz:o[2],res:r,w:ow,h:oh},heights:oy};}
  if(a.shore)scene.shore=Array.from({length:Math.ceil((bounds[1]-bounds[0])/2)+1},(_,i)=>{const x=bounds[0]+i*2;return[round(x),round(spec.z+a.shore((x-spec.x)/spec.s)*spec.s)];});
  scenes.push(scene);console.log(spec.id,{colliders:colliders.length,roads:roads.length,bounds,meshes:a.root.children.length});
 }

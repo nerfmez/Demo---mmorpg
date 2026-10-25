@@ -3,7 +3,7 @@
 // the open map-edge seams edit the heightfield again; render moves the scene's
 // meshes by this so they stay on the ground the player walks on.
 import {acceptedTarget,connectorPull,sceneSample} from './accepted-scenes.js';
-import {seamPull,seamHeight} from './terrain.js';
+import {seamPull,seamHeight,seamRise} from './terrain.js';
 import {polylineZAtX} from './math.js';
 
 const boxes=new WeakMap();
@@ -29,7 +29,8 @@ export function acceptedGroundEdit(data,scene,x,z,connectors=data.acceptedScenes
   for(const seam of data.atlas?.seams||[]){
     if(!seam.profile?.length)continue;
     const m=seamPull(data,seam,x,z);if(!m)continue;
-    h=h*(1-m)+seamHeight(seam.profile,seam.edge==='minZ'||seam.edge==='maxZ'?x:z)*m;keep*=1-m;
+    const along=seam.edge==='minZ'||seam.edge==='maxZ'?x:z;
+    h=h*(1-m)+(seamHeight(seam.profile,along)+seamRise(seam,along))*m;keep*=1-m;
   }
   return {height:h,shift:h-sceneSample(scene,'heights',x,z),keep};
 }

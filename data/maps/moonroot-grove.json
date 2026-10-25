@@ -1008,6 +1008,7 @@
         ],
         "band": 24,
         "quiet": 16,
+        "rises": [{"span": [71, 131], "height": 5.5, "ease": 28, "note": "Hill Windmill's ridge from Azure Coast (its seam lists the same rise, offset by 25 m)"}],
         "profile": [
           [
             -185,

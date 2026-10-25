@@ -145,3 +145,39 @@ Remaining limits:
 - The steep grey slope bands at the windmill's east side (a native plateau edge and a connector cut) are unchanged.
 - The Conch Coast cove is still drawn over sloping scene ground, inside the game's coastline.
 - iPad/WebKit frame rate is not measured here.
+
+## Owner round: scene colours and trees to match the map (25 October 2026)
+
+The owner asked for the scenes' colours to match the map: their trees were a different colour and bigger than the map's.
+
+Observable criteria: scene trees, shrubs and grass have the same colour, material and size range as the map's; scene ground grass has the map's zone colour; the forest's cherry stays the landmark.
+
+- **Foliage:** in the game the scenes' trees, shrubs and grass are the map's own:
+  - geometry, palette and lit material are the game's (previously each scene had its own brighter palette, an unlit cel material and a colour grade);
+  - crowns use the game's proportions and tint;
+  - trunks have the game's ink outline;
+  - grass takes the ground colour through the map's grass bake.
+- **Size:** scene trees now span world scale 0.63–1.15 with a median of 0.93; the map's trees span 0.68–1.14 with a median of 0.90. Before this round the scene trees reached 1.80, with crowns up to 3× the map's.
+- **Ground:** the grass inside the scenes, and in the ring round them, keeps the map's zone colours; the scenes' yellow-green tint is removed.
+- **Unchanged:**
+  - the forest's island cherry (its authored size and blossom);
+  - scene stones, walls, wood, flowers and water;
+  - scene data and colliders.
+
+Checks:
+- `npm test` 608/608.
+- Render tests 47 passed and 2 failed: the same 2 that also fail on the base commit. The new `tests/render/accepted-foliage.test.mjs` passes.
+- The scene data re-export is unchanged.
+- Per-stage construction CPU times match the base build. Startup (alternating, one at a time): this branch 74.5 and 70.6 s, base 67.0 and 72.1 s.
+
+Visual inspection: the game camera, 1180×820, HUD hidden. Compared before and after:
+- at zoom 1.4: the rose west, meadow west, forest east and windmill west borders;
+- at zoom 2: the centre of every scene, plus forest north and beach north.
+
+Faults found and fixed during the round:
+- The first build left scene trees at 0.78 because the cap was applied in scene units; it is now a world scale.
+- The cherry had shrunk; it keeps its landmark size.
+
+Remaining limits:
+- With map-sized trees the scenes are more open than the approved compositions, which counted on larger canopies.
+- iPad/WebKit frame rate is not measured here.

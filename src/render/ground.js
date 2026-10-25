@@ -197,16 +197,13 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const mix=animeStudy?Math.max(blend,.5):0; // zones keep half of their own tint outside the sample area
       const cl = mix?col(L).clone().lerp(col(animeConfig.palette.groundLight),mix):col(L);
       const cd = mix?col(D).clone().lerp(col(animeConfig.palette.groundDark),mix):col(D);
-      const accepted=acceptedAt(wd,x,z),scene=accepted?sceneWeight(accepted,x,z):0;
-      // Round the scenes (not in town) the zone tint leans toward the scenes' grass.
-      const aw=surround?Math.max(scene,surround.tintMix*sceneSurround(wd,x,z,surround.tintRing)*(1-planned[k])):scene;
-      const al=col(surround?.palette[0]||'#b3c540'),ad=col(surround?.palette[1]||'#5a8536');
-      lr[k] = cl.r+(al.r-cl.r)*aw;
-      lg[k] = cl.g+(al.g-cl.g)*aw;
-      lb[k] = cl.b+(al.b-cl.b)*aw;
-      dr[k] = cd.r+(ad.r-cd.r)*aw;
-      dg[k] = cd.g+(ad.g-cd.g)*aw;
-      db[k] = cd.b+(ad.b-cd.b)*aw;
+      // The accepted scenes keep the map's zone colours too, so their grass matches.
+      lr[k] = cl.r;
+      lg[k] = cl.g;
+      lb[k] = cl.b;
+      dr[k] = cd.r;
+      dg[k] = cd.g;
+      db[k] = cd.b;
     }
   }
   // Open seams: zone tints fade to the shared seam tint (atlas.seams profile), so the

@@ -236,15 +236,14 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
     }
     if (c.type === 'willow') willowLeaves.push({ x: c.x, z: c.z, y: y + 2.2 * s, s: 1.7 * s, sy: 1.35 * s, ry: c.rot, color: '#ceddc4' });
   }
-  // The ring planted round accepted scenes (core world.js plantSceneSurrounds):
-  // the same tree a shade lighter, toward the scenes' sunlit greens. It draws no
-  // numbers from rng, so the native trees keep their look.
+  // The ring planted round accepted scenes (core world.js plantSceneSurrounds): the
+  // map's own tree. It draws no numbers from rng, so the native trees keep their look.
   for (const c of world.circles) {
     if (c.type !== 'scene-tree') continue;
     if(visited++%8===0)yield;
     const s = c.scale * 0.85, y = gy(c.x, c.z) - 0.2;
     if(animeStudy)animeTrunks.push({x:c.x,z:c.z,y,sx:s,sy:s,sz:s,ry:c.rot});else trunks.push({x:c.x,z:c.z,y,s:1,sx:s,sy:s,sz:s,ry:c.rot});
-    cloudTrees.push({x:c.x,z:c.z,y:y+3.5*s,sx:s*2.5,sy:s*1.7,sz:s*2.25,ry:c.rot,color:'#fbfbe6'});
+    cloudTrees.push({x:c.x,z:c.z,y:y+3.5*s,sx:s*2.5,sy:s*1.7,sz:s*2.25,ry:c.rot,color:'#edf1e2'});
   }
   const trunkGeo = branchTrunk();
   root.add(yield* buildInstances(trunkGeo, paintSurface(mat('#85613f', {vertexColors:true}), 'bark'), trunks, { outline: '#564132', outlineWidth: 0.027 }));

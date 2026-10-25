@@ -1,6 +1,9 @@
 // Node-only source export. No renderer is substituted in the delivered game.
 import {createCanvas} from '@napi-rs/canvas';
 import {writeFileSync,readFileSync,mkdirSync} from 'node:fs';
+import {registerHooks} from 'node:module';
+// The factories use the game's foliage modules, which import data JSON as the bundler does.
+registerHooks({load(url,context,next){return next(url,url.endsWith('.json')?{...context,importAttributes:{...context.importAttributes,type:'json'}}:context);}});
 globalThis.document={createElement:type=>{if(type==='canvas')return createCanvas(512,512);throw Error(type);}};
 const renderer={domElement:{height:900},getRenderTarget(){return null;},setRenderTarget(){},render(){}};
 const specs=[

@@ -16586,22 +16586,25 @@
       "pondMargin": 12,
       "sides": {"beach": "N", "forest": "NSWE", "rose-garden": "NWE", "azure-meadow": "WES", "hill-windmill": "WES"}
     },
+    "foliage": {
+      "_doc": "In the game the scenes' trees, shrubs and grass are the map's own (render/accepted-scenes.js): the game's geometry, palette and materials, crowns in the map's proportions and tint. Scene tree sizes are scaled by treeScale and capped at treeMax (world scale, the map's largest tree); the forest's island cherry, the scene's landmark, keeps its authored size and crown. Colliders keep the scene data.",
+      "treeScale": 0.83,
+      "treeMax": 1.15,
+      "crownTint": "#edf1e2"
+    },
     "surround": {
-      "_doc": "The ring outside each accepted scene where native paint eases into the scene's look (render/ground.js, ui/mapimage.js). Distances in metres from the scene bounds; keep corridors leave routes and waypoint clearings earth.",
+      "_doc": "The ring outside each accepted scene where the town's earth clearing and soil patches give way to grass (render/ground.js, ui/mapimage.js); the grass keeps the map's own zone colours, in the scenes too. Distances in metres from the scene bounds; keep corridors leave routes and waypoint clearings earth.",
       "clearRing": 12,
       "soilRing": 22,
       "soilFade": 0.9,
-      "tintRing": 18,
-      "tintMix": 0.5,
       "wobble": 3,
       "keepWidth": 2.5,
       "connectorExtension": 14,
       "waypointKeep": [6, 10],
-      "palette": ["#b3c540", "#5a8536"],
       "plant": {
         "_doc": "Scene-surround planting (core/world.js plantSceneSurrounds): trees (collision circles of type scene-tree) and shrubs (decor.sceneShrubs) in a ring outside each accepted scene, kept off roads, waypoints, beaches and water, with one seed per scene placed after every native pass. Shrubs grow in clumps (clump: shrubs per clump, within clumpRadius m), treeBase of them at a ring tree's foot. Distances in metres outside the bounds.",
         "seed": 20261025,
-        "trees": {"perScene": 18, "inner": 1.5, "outer": 16, "spacing": 4.5, "scale": [1.0, 1.35], "slope": 0.6, "roadPad": 1.5},
+        "trees": {"perScene": 18, "inner": 1.5, "outer": 16, "spacing": 4.5, "scale": [0.85, 1.3], "slope": 0.6, "roadPad": 1.5},
         "shrubs": {"perScene": 90, "inner": 0.5, "outer": 12, "spacing": 0.9, "clump": [2, 4], "clumpRadius": 1.8, "treeBase": 0.5, "size": [0.75, 1.3], "slope": 1.4}
       }
     },

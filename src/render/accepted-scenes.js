@@ -13,14 +13,22 @@ import {timeUniform} from './patch.js';
 import {clipRegionGeometrySteps} from './region-ownership.js';
 import {acceptedAssetSteps} from './accepted-assets.js';
 import {acceptedGroundEdit,acceptedEditReach} from '../core/accepted-shift.js';
+import {animeConfig,animeFoliageMaterial,animeTrunkMaterial} from './anime-study.js';
+import {hullMaterial} from './patch.js';
+import {grassMaterial,attachGrassSurfaceSteps} from './grass.js';
 const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose};
 export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  const root=new THREE.Group();root.name='accepted-concept-scenes';adopt?.(root);
  const animations=[],waypoints=new Map(),textures=new Set(),depthMaterials=new Set();
+ // The scenes' trees, shrubs and grass are the map's own (factories tag them, data:
+ // acceptedScenes.foliage): one set of the game's materials for all six scenes.
+ const foliage=world.data.acceptedScenes?.foliage||null,gameMaterials={};
+ const gameMaterial=kind=>gameMaterials[kind]??=kind==='crown'?animeFoliageMaterial(false):kind==='shrub'?animeFoliageMaterial(true):kind==='trunk'?animeTrunkMaterial():kind==='hull'?hullMaterial(animeConfig.palette.trunkLine,animeConfig.trunk.outlineWidth,{see:true}):grassMaterial(world);
  for(const spec of acceptedScenes(world.data)){
   yield;
   const assets=spec.id==='shell-beach'?yield* acceptedAssetSteps():{};
-  const result=factories[spec.id]({renderer,time:timeUniform,clipBounds:spec.box,assets}),source=result.root;
+  // treeMax is a world size: the scene's own units are scaled by spec.s
+  const result=factories[spec.id]({renderer,time:timeUniform,clipBounds:spec.box,assets,foliage:foliage&&{...foliage,treeMax:foliage.treeMax/spec.s}}),source=result.root;
   source.name='accepted-'+spec.id;source.position.set(spec.x,spec.y,spec.z);source.scale.setScalar(spec.s);root.add(source);root.updateMatrixWorld(true);
   const dynamic=new Set();
   const keep=o=>o?.traverse(n=>dynamic.add(n));
@@ -40,6 +48,9 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
    for(const mat of[mesh.material,mesh.customDepthMaterial])if(mat){for(const v of Object.values(mat))if(v?.isTexture)textures.add(v);if(mat.uniforms)for(const u of Object.values(mat.uniforms))if(u.value?.isTexture)textures.add(u.value);}
    if(dynamic.has(mesh))continue;
    if(mesh.isPoints){mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();continue;}
+   const kind=foliage&&mesh.isInstancedMesh?mesh.geometry.userData.gameFoliage:null;
+   // a scene's own trunk outline gives way to the game's hull (added below)
+   if(kind==='trunk'&&mesh.material.side===THREE.BackSide){mesh.removeFromParent();mesh.material.dispose();continue;}
    const matrix=mesh.matrixWorld.clone();
    if(mesh.isInstancedMesh){
     const m=new THREE.Matrix4(),color=new THREE.Color(),p=new THREE.Vector3();let count=0;
@@ -56,6 +67,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
      mesh.setMatrixAt(count,m);if(mesh.instanceColor){mesh.getColorAt(i,color);mesh.setColorAt(count,color);}count++;
     }
     mesh.count=count;mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;
+    if(kind)yield* gameFoliageSteps(world,mesh,kind,gameMaterial,foliage,root);
    }else{
     // Copy before baking: hulls may share a geometry with their visible surface.
     const original=mesh.geometry;mesh.geometry=original.clone().applyMatrix4(matrix);
@@ -84,6 +96,25 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  root.userData.acceptedAnimations=animations;
  root.userData.disposeAcceptedTextures=()=>{for(const t of textures)t.dispose();textures.clear();for(const m of depthMaterials)m.dispose();depthMaterials.clear();};
  return {root,waypoints,animations};
+}
+// A tagged scene mesh takes the map's material: crowns the map's tint, trunks the
+// game's ink hull, grass the game's ground-coloured blades (baked with the map's grass).
+function* gameFoliageSteps(world,mesh,kind,gameMaterial,foliage,root){
+ mesh.material.dispose();mesh.material=gameMaterial(kind);
+ if(kind==='crown'&&mesh.instanceColor){
+  const tint=new THREE.Color(foliage.crownTint),c=new THREE.Color();
+  for(let i=0;i<mesh.count;i++){mesh.getColorAt(i,c);mesh.setColorAt(i,c.multiply(tint));}
+  mesh.instanceColor.needsUpdate=true;
+ }
+ if(kind==='trunk'){
+  const hull=new THREE.InstancedMesh(mesh.geometry,gameMaterial('hull'),mesh.count);
+  hull.instanceMatrix.copy(mesh.instanceMatrix);hull.instanceMatrix.needsUpdate=true;hull.computeBoundingSphere();root.add(hull);
+ }
+ if(kind==='grass'){
+  const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),items=[];
+  for(let i=0;i<mesh.count;i++){mesh.getMatrixAt(i,m);m.decompose(p,q,sc);items.push({x:p.x,z:p.z,sx:sc.x,sy:sc.y,sz:sc.z});}
+  mesh.castShadow=false;yield* attachGrassSurfaceSteps(mesh,items,world);
+ }
 }
 // Stones are separate parts (factory groups): each moves whole with the ground
 // under its centre, and one the feather or a later edit would squash below half

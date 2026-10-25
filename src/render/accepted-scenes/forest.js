@@ -2,8 +2,15 @@
 import * as THREE from 'three';
 import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
 import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
-export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={}}={}){
+import {animeFoliage as gameFoliage,animeTrunk as gameTrunk} from '../anime-study.js';
+import {meadowGrass as gameGrass} from '../nature.js';
+export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={},foliage=null}={}){
 const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=g=>{g.userData.rigidParts=true;return g;};
+const fitTree=s=>foliage?Math.min(s*foliage.treeScale,foliage.treeMax):s;
+const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};
+function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub),shrub?'shrub':'crown');}
+function animeTrunk(){return gamePart(gameTrunk(),'trunk');}
+function meadowGrass(){return gamePart(gameGrass(),'grass');}
 // ---------- helpers ----------
 let seed = 20261021;
 const rand = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -205,7 +212,7 @@ function foliageColor(point, normal, shrub, colors, result) {
   const s1 = THREE.MathUtils.smoothstep(lit, .26, .34), s2 = THREE.MathUtils.smoothstep(lit, .56, .64);
   return result.copy(dark).lerp(mid, s1).lerp(light, s2);
 }
-function animeFoliage(seed = 3, shrub = false) {
+function sceneFoliage(seed = 3, shrub = false) {
   const rng = mkRng(seed), p = [], n = [], c = [], uv = [];
   const clusters = shrub ? ANIME.shrubSprays : ANIME.treeSprays;
   const count = Math.round((shrub ? ANIME.shrubCardsPerSpray : ANIME.treeCardsPerSpray) * 1.0);
@@ -252,7 +259,7 @@ function animeFoliage(seed = 3, shrub = false) {
   g.computeBoundingSphere(); return g;
 }
 // the game's authored trunk: tapered spine, buttress roots, a branch to every spray, bark creases
-function animeTrunk() {
+function sceneTrunk() {
   const cfg = ANIME.trunk, p = [], n = [], c = [];
   const sun = new V3(-.6, .55, .55).normalize();
   const light = new THREE.Color(FOL.trunk.light), mid = new THREE.Color(FOL.trunk.mid), shadow = new THREE.Color(FOL.trunk.shadow), ink = new THREE.Color(FOL.trunk.line);
@@ -288,7 +295,7 @@ function animeTrunk() {
   const g = new THREE.BufferGeometry(); for (const [key, array] of [['position', p], ['normal', n], ['color', c]]) g.setAttribute(key, new THREE.Float32BufferAttribute(array, 3)); g.computeBoundingSphere(); return g;
 }
 // the game's meadow clump: six narrow three-segment blades, root dark, tip light
-function meadowGrass() {
+function sceneGrass() {
   const rng = mkRng(620), positions = [], B = { height: [0.5, 0.84], width: [0.026, 0.046], bend: [0.06, 0.17] };
   for (let i = 0; i < 6; i++) {
     const a = i * 2.39996 + rng.range(-.25, .25), h = rng.range(...B.height), width = rng.range(...B.width), bend = rng.range(...B.bend), pts = [];
@@ -326,7 +333,7 @@ function addBush(cx, cy, cz, r, { sy = 0.72, tint = 0 } = {}) {
 // a tree of the game's kind: the authored trunk and one of three crown variants
 function broadleaf(x, z, s, seed) {
   const y = height(x, z) - 0.05;
-  treeItems.push({ x, y, z, s, ry: R(0, Math.PI * 2), v: [3, 5, 9].indexOf(seed), k: R(0.94, 1.06) });
+  treeItems.push({ x, y, z, s: fitTree(s), s0: s, ry: R(0, Math.PI * 2), v: [3, 5, 9].indexOf(seed), k: R(0.94, 1.06) });
 }
 
 function glowTexture() {
@@ -883,7 +890,7 @@ function build() {
     const top = height(x, z) > 1 ? height(x, z) : 0;
     if (top > 1) [x, z] = P(u, v, top);
     broadleaf(x, z, s, seed); treeItems[treeItems.length - 1].h = h;
-    if (u === 0.565) treeItems[treeItems.length - 1].sakura = true;   // the island tree is a cherry in bloom
+    if (u === 0.565) Object.assign(treeItems[treeItems.length - 1], { sakura: true, s: treeItems[treeItems.length - 1].s0 });   // the island tree is a cherry in bloom
     COLLIDERS.push({ x, z, r: 0.6 * s }); trunkAt.push([x, z, 1.4 * s]);
   }
   // roots draped over the ledges: the left tree and the big tree on the island
@@ -1005,9 +1012,9 @@ function build() {
   addTrunks(animeTrunk(), green, FOL.trunk.line);
   // the cherry: the game's own trunk and crown, in cherry bark and blossom colours
   const keep = { leaf: FOL.leaf, trunk: FOL.trunk };
-  FOL.trunk = SAKURA.trunk; addTrunks(animeTrunk(), sakura, SAKURA.trunk.line);
+  FOL.trunk = SAKURA.trunk; addTrunks(gamePart(sceneTrunk(), 'trunk'), sakura, SAKURA.trunk.line);
   FOL.leaf = SAKURA.bloom;
-  const bloom = animeFoliage(9, false);
+  const bloom = gamePart(sceneFoliage(9, false), 'crown');
   Object.assign(FOL, keep);
   if (sakura.length) {
     const c = placeAll(new THREE.InstancedMesh(bloom, leafMat(false), sakura.length), sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s));
@@ -1016,7 +1023,7 @@ function build() {
   [3, 5, 9].forEach((seed, v) => {
     const items = [...green.filter(t => t.v === v).map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), ...crownOnly.filter(c => c.v === v)];
     if (!items.length) return;
-    const crown = placeAll(new THREE.InstancedMesh(animeFoliage(seed, false), leafMat(false), items.length), items, it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s));
+    const crown = placeAll(new THREE.InstancedMesh(animeFoliage(seed, false), leafMat(false), items.length), items, it => new V3(2.5 * it.s, 1.7 * it.s, 2.25 * it.s));
     crown.customDepthMaterial = leafDepth(false); crown.castShadow = crown.receiveShadow = true; scene.add(crown);
   });
   [11, 13, 19].forEach((seed, v) => {

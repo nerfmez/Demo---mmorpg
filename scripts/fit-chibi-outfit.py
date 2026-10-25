@@ -87,11 +87,39 @@ cut((C['cuff'], 0, 0), (1, 0, 0))
 cut((-C['cuff'], 0, 0), (1, 0, 0))
 cut((0, 0, C['bootTop']), (0, 0, 1))
 bmesh.ops.triangulate(bm, faces=bm.faces[:])
+collar = set()
+if 'collar' in C:
+    # a fur collar round the neck (`collar`: its pale, unsaturated faces between `from` and `top`,
+    # within `half` across and in front of `back`): kept whole above the neck cut and placed as one
+    # piece (below), since the chibi's big head leaves no room for the torso warp to bend it
+    K = C['collar']; cw, ch = img.size; cpx = np.array(img.pixels[:]).reshape(ch, cw, 4)[:, :, :3] * 255
+    for f in bm.faces:
+        c = f.calc_center_median()
+        if not (K['from'] < c.z < K['top'] and abs(c.x) < K['half'] and c.y < K.get('back', 0.03)): continue
+        u = sum(l[uvl].uv.x for l in f.loops) / len(f.loops); v = sum(l[uvl].uv.y for l in f.loops) / len(f.loops)
+        col = cpx[int(np.clip((v % 1) * ch, 0, ch - 1)), int(np.clip((u % 1) * cw, 0, cw - 1))]
+        if col.min() > K.get('light', 120) and col.max() - col.min() < K.get('grey', 50): collar.add(f)
+    # its shaded faces between (two of three neighbours in it), and no loose bits
+    for _ in range(3):
+        collar |= {f for f in bm.faces if f not in collar and K['from'] < f.calc_center_median().z < K['top']
+                   and sum(any(o in collar for o in e.link_faces if o is not f) for e in f.edges) >= 2}
+    seen = set()
+    for f in list(collar):
+        if f in seen: continue
+        comp, todo = {f}, [f]
+        while todo:
+            t = todo.pop()
+            for e in t.edges:
+                for o in e.link_faces:
+                    if o in collar and o not in comp: comp.add(o); todo.append(o)
+        seen |= comp
+        if len(comp) < K.get('minPiece', 12): collar -= comp
 drop = []
 for f in bm.faces:
     c = f.calc_center_median()
     # the sleeve cut is for the arms only (from the armpits up): lower down it would cut the outer
     # half off wide hips, trousers and boots
+    if f in collar: continue
     if (abs(c.x) > C['cuff'] and c.z > C.get('armpit', 0.66)) or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.16)) or c.z > C.get('top', C['neck'] + 0.03):
         drop.append(f)
 bmesh.ops.delete(bm, geom=drop, context='FACES')
@@ -100,6 +128,7 @@ bm.verts.index_update()
 src = bm.verts.layers.int.new('src')  # each vertex's index here, kept through the per-piece copies
 for v in bm.verts: v[src] = v.index
 P0 = np.array([tuple(v.co) for v in bm.verts])
+incollar = np.array([any(f in collar for f in v.link_faces) for v in bm.verts])
 
 
 # --- warp: landmark heights, leg centre lines and arm axis of the generated body onto the chibi's
@@ -242,6 +271,12 @@ else:
 A = np.stack([sx * armx(ax), y * sA, a1 + (z - a0) * sA], 1)
 wl = smooth01(crotchG + 0.02, crotchG - 0.03, z)[:, None]
 wa = (smooth01(0.10, 0.16, ax) * (z > a0 - 0.08))[:, None]
+if incollar.any():
+    # the collar as one piece: across and front to back as the torso, its foot on the torso's at
+    # that height, and its height scaled by `squash`
+    z0 = P0[incollar, 2].min()
+    wa[incollar] = 0
+    T[incollar, 2] = zmapT(np.full(incollar.sum(), z0)) + (z[incollar] - z0) * C['collar'].get('squash', 1) * sT
 P = T * (1 - wl) + L * wl
 P = P * (1 - wa) + A * wa
 
@@ -254,7 +289,7 @@ margin = np.where(piece == 0, C['margin']['boots'], C['margin']['armor'])
 # the cloth is pushed out of the body only from the chest up (`pushAbove`): lower down the body is
 # hidden under it (HIDE), and pushing the trousers over the chibi's fuller hips and thighs bulged
 # them; there the generated shape is kept as it was made
-pushed = P[:, 2] > C.get('pushAbove', 0.69)
+pushed = (P[:, 2] > C.get('pushAbove', 0.69)) & ~incollar
 
 
 def push(Q):
@@ -308,6 +343,8 @@ for i, p in enumerate(P):
     t = BT[idx]
     b = bary(np.array(loc), *BV[t]); b /= b.sum()
     W[i] = b @ BW[t]
+# the collar rides the upper chest: the shoulders' arm weights would tear it when the arms come down
+W[incollar] = 0; W[incollar, G.index('Spine02')] = 1
 hips = G.index('Hips')
 sk = C.get('skirt')
 if sk:

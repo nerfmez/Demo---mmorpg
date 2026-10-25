@@ -43,5 +43,11 @@
  },
  "chinCut": 0.07,
  "chinBack": 0.3,
- "top": 0.895
+ "top": 0.895,
+ "collar": {
+  "from": 0.82,
+  "top": 0.96,
+  "half": 0.24,
+  "squash": 0.8
+ }
 }

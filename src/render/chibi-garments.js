@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { garmentFrame, garmentUniforms, pieceUniforms, garmentMaterial, garmentHull } from './garments.js';
 import { regionShell, skirt } from './base-garments.js';
 import { toonCopy } from './vrm-body.js';
-import { chibiOutline } from './chibi-body.js';
+import { chibiOutline, paintedLight } from './chibi-body.js';
 
 const BONES = { arm: 'LeftArm', elbow: 'LeftForeArm', hand: 'LeftHand', foot: 'LeftFoot', toe: 'LeftToeBase', neck: 'neck', chest: 'Spine', hips: 'Hips', leg: 'LeftUpLeg', knee: 'LeftLeg' };
 /** HairSample metres per chibi metre (hips to ankle 0.89 m against 0.53 m). */
@@ -138,7 +138,7 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
         m.userData.garment = O.piece;
         return m;
       };
-      const part = make(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false));
+      const part = make(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight));
       part.name = 'Outfit-' + O.piece;
       part.castShadow = true;
       part.receiveShadow = true; // like the body it covers

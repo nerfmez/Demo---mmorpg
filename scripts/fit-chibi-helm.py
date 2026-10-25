@@ -125,7 +125,7 @@ bmesh.ops.transform(bm, matrix=Matrix.Translation(off) @ Matrix.Scale(k, 4), ver
 print(HELM, 'tris', len(bm.faces), 'scale %.3f' % k, 'move', np.round(off, 3), 'eyes', np.round(eyes[0], 3), np.round(eyes[1], 3))
 bm.to_mesh(g.data); bm.free()
 for p in g.data.polygons: p.use_smooth = True
-img.scale(C.get('tex', 1024), C.get('tex', 1024))
+img.scale(C.get('tex', 2048), C.get('tex', 2048))
 bpy.ops.object.select_all(action='DESELECT'); g.select_set(True)
 bpy.ops.export_scene.gltf(filepath=f'public/models/outfits/{HELM}.glb', use_selection=True, export_format='GLB',
                           export_image_format='JPEG', export_jpeg_quality=88, export_yup=True)

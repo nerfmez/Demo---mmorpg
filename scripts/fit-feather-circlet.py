@@ -13,7 +13,7 @@ Z_FRONT, Z_SIDE = 1.045, 1.06  # the cord's height over the forehead and over th
 SPAN = 1.25                    # how far round the head each end of the arc reaches (radians from the front)
 SIZE = 0.65                    # its feathers' height and depth for that length (1: the sheet's)
 GAP = 0.006                    # the arc's inside off the hair
-TRIS, TEX = 2000, 1024
+TRIS, TEX = 2000, 2048
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=HAIR)

@@ -31,6 +31,13 @@ test('the chibi head reshape stays a small, bounded change', () => {
   assert.ok(h.scale === undefined || (h.scale > 0.6 && h.scale <= 1.2), 'the head scale keeps a chibi head');
 });
 
+test('the chibi painted light only lifts its shading', () => {
+  const k = data.models.characters.hero_chibi.paintedLight;
+  // the Meshy textures carry their own shading: a fraction of the texture glows so the toon light
+  // does not darken it twice, but it never flattens the cel ramp away
+  assert.ok(k === undefined || (k >= 0 && k <= 0.6), 'paintedLight is a fraction up to 0.6');
+});
+
 test('the chibi torso flatten bands are bounded', () => {
   const bands = data.models.characters.hero_chibi.flatten;
   assert.ok(Array.isArray(bands) && bands.length, 'hero_chibi flattens its torso');

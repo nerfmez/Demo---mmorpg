@@ -407,7 +407,7 @@ for pc, name in names.items():
 #     legs move it shows, so paint it the trousers' own colour: a leg face whose outward ray meets
 #     the garment again within a few cm, or that faces down (the underside under the hem), was
 #     covered, and takes the median colour of the open trouser faces a little lower
-img.scale(C.get('tex', 1024), C.get('tex', 1024))
+img.scale(C.get('tex', 2048), C.get('tex', 2048))
 tw, th = img.size
 tex = np.array(img.pixels[:]).reshape(th, tw, 4)
 uvl = bm.loops.layers.uv.active

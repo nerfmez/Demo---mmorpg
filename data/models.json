@@ -656,6 +656,7 @@
       "source": "HairSample_Male-beta from approved live Character Studio V6; original SHA256 4af2194f90ba846f3b13c00b50b14262419062d2171d17de922bcce2f89979c7. Complete base skin/scalp; separate gear-controlled garments. VRoid source metadata CC0. See docs/HAIRSAMPLE-INTEGRATION.md."
     },
     "hero_chibi": {
+      "paintedLight": 0.4,
       "file": "models/hero_chibi.glb",
       "chibi": true,
       "tris": 4442,

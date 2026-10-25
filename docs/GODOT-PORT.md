@@ -425,7 +425,7 @@ enlarged in the texture by `scripts/chibi-eyes.py`. On the face the toon ramp fo
 head instead of the mesh normal (`faceShadow`: a per-vertex face mask and coordinates, the head
 bone's axes passed in each frame), so one shadow edge sweeps across the face as the light turns,
 as in anime games' face shadow maps; the hair has a jagged highlight band on its camera side
-(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. The chibi wears the same outfit base as the HairSample hero
+(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. The Meshy textures of the body, hair and outfits carry their own painted shading, so each also glows at `paintedLight` × its texture (emission = albedo texture) and the toon light only shapes it instead of darkening it twice. The chibi wears the same outfit base as the HairSample hero
 (`render/chibi-garments.js`): top, trousers, skirt, boots (with the feet) and glove shells cut from
 its own body (`regionShell`, morph targets kept so gloves close with the fists), painted by
 `garments.js` reading its bind position and landmarks times `SCALE` (1.7, the HairSample body's

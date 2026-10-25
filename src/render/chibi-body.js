@@ -427,7 +427,7 @@ export function prepareChibiBody(gltf, cfg) {
   const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(bones.Head.matrixWorld.clone().invert());
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], paintedLight: cfg.paintedLight ?? 0, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -533,7 +533,7 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
   const flash = rig.material.userData.flash;
   // a modelled helm (chibi-garments.js prepareChibiHelm) comes with its own hair, in the hair's frame
   const geometry = model ? model.geometry : helm && H.underHelm ? H.underHelm : H.geometry, src = model ? model.material : H.material;
-  const hair = new THREE.Mesh(geometry, toonCopy(src, flash, rim, false));
+  const hair = new THREE.Mesh(geometry, paintedLight(toonCopy(src, flash, rim, false), T.paintedLight));
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
   if (H.highlight && !model) hairHighlightMaterial(hair.material, H.box, H.highlight);
   hair.castShadow = true;
@@ -541,6 +541,19 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
   g.add(hair, hull);
   headBone.add(g);
   (rig.skin.hair ||= []).push(g);
+}
+
+/**
+ * Light a chibi material as its painted texture (`paintedLight`, data: characters.hero_chibi): the
+ * Meshy textures carry their own shading, so the texture also glows at that fraction and the toon
+ * light on top only shapes it, instead of darkening it a second time.
+ */
+export function paintedLight(material, k) {
+  if (k && material.map) {
+    material.emissive.setScalar(k);
+    material.emissiveMap = material.map;
+  }
+  return material;
 }
 
 function hairHull(src, width, darkness) {
@@ -575,7 +588,7 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
   const closed = [weapon ? 1 : 0, offhand || T.leftFistWith.includes(weapon) ? 1 : 0];
   for (const mesh of meshes) {
     const src = mesh.material;
-    mesh.material = toonCopy(src, flash, rim, false);
+    mesh.material = paintedLight(toonCopy(src, flash, rim, false), T.paintedLight);
     mesh.material.side = THREE.FrontSide; // Meshy marks it double-sided; the body is closed
     if (T.faceShadow) {
       const follow = faceShadowMaterial(mesh.material, body.getObjectByName('Head'), T.faceShadow.bind, T.faceShadow);

@@ -313,13 +313,19 @@ export function* compileRegionSteps(view,root){
   // compiler and its programs are immediately marked ready. Unknown capability
   // keeps the conservative original sequencing too.
   const overlapPolling=view.renderer.extensions?.has?.('KHR_parallel_shader_compile')===false;
+  // Compile the variant gameplay draws (view.drawTarget): through the screen grade,
+  // canvas programs would go unused and the resident upload would compile the real
+  // ones again, blocking.
+  const target=view.drawTarget?.()??null;
   const batch=new THREE.Group(),pending=[];
   try{
     for(let i=0;i<objects.length;i+=16){
       // Borrow actual objects so instancing/skinning/geometry variants are exact.
       // No reparenting, disposal, or world-matrix changes through this container.
       batch.children=objects.slice(i,i+16);
-      const ready=Promise.resolve(view.renderer.compileAsync(batch,view.camera,view.scene));
+      const previous=target&&view.renderer.getRenderTarget();if(target)view.renderer.setRenderTarget(target);
+      let compiling;try{compiling=view.renderer.compileAsync(batch,view.camera,view.scene);}finally{if(target)view.renderer.setRenderTarget(previous);}
+      const ready=Promise.resolve(compiling);
       if(!overlapPolling){yield ready;continue;}
       // Three captures its material set during the synchronous compile call;
       // its readiness poll does not revisit the borrowed scene's children.

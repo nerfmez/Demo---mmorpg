@@ -324,7 +324,7 @@ export class View {
     }
     if (fresh.length) {
       this.scene.add(tmp);
-      this.renderer.compile(this.scene, this.camera);
+      this.compileForDraw(this.scene);
       tmp.removeFromParent();
       for (const rig of fresh) this.releaseRig(rig);
     }
@@ -389,7 +389,7 @@ export class View {
       this.hero.root.scale.copy(previousRoot.scale);
     } else this.heroAnim = new HumanoidAnimator(this.hero);
     this.scene.add(this.hero.root);
-    this.vfx.prepareMovement(this.hero.root, this.renderer, this.camera);
+    this.vfx.prepareMovement(this.hero.root, this.renderer, this.camera, undefined, this.drawTarget());
     if (this.hero.scarf) this.scene.add(this.hero.scarf.mesh);
     this.heroLookKey = JSON.stringify([look, gear]);
     if (this.vfx.wardMesh) this.hero.root.add(this.vfx.wardMesh);
@@ -441,6 +441,21 @@ export class View {
     this.post ||= new PostFX(this.renderer, renderConfig.post);
     const size = this.renderer.getDrawingBufferSize(this._postSize ||= new THREE.Vector2());
     this.post.setSize(size.x, size.y);
+  }
+
+  /** The target the world is drawn into: the screen grade's, or the canvas (null). */
+  drawTarget() {
+    return this.post?.scene ?? null;
+  }
+
+  /** Compile the program variant the world is drawn with. Three keys programs for a
+   *  render target apart from canvas ones (no tone mapping, working colour space), so
+   *  canvas programs would go unused through the screen grade and the first frames
+   *  would compile the real ones, blocking. */
+  compileForDraw(scene, camera = this.camera, targetScene) {
+    const r = this.renderer, previous = r.getRenderTarget(), face = r.getActiveCubeFace(), mip = r.getActiveMipmapLevel();
+    r.setRenderTarget(this.drawTarget());
+    try { return r.compile(scene, camera, targetScene); } finally { r.setRenderTarget(previous, face, mip); }
   }
 
   /** Draw the scene to the canvas, through the screen grade when it is on. */
@@ -1086,7 +1101,7 @@ export class View {
     }
     v.fx.burst(x, y + 1, z, 3, {});
     v.dust.burst(x, y + 1, z, 3, {});
-    this.renderer.compile(this.scene, this.camera);
+    this.compileForDraw(this.scene);
     this.draw(); // also compiles the screen grade
     tmp.removeFromParent();
     for (const rig of rigs) this.releaseRig(rig); // compiled models start the pool

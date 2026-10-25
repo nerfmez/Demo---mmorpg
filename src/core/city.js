@@ -17,13 +17,15 @@ export function cityFloorHeight(city,hf,x,z,floor){
 }
 
 // Exact source street polygons; a paved plaza is walkable but is not a narrow road.
-export function cityRoadDistance(city,x,z){
+// Roads whose bounds lie farther than reach (metres) are not measured: a caller that
+// only asks "within reach?" passes its threshold and gets the same answer sooner.
+export function cityRoadDistance(city,x,z,reach=8){
   if(city.propertyBoundary&&!cityFloorAt(city,x,z))return Infinity;
   let best=Infinity;
   for(const road of city.roads){
     if(road.name.startsWith('Market '))continue;
     const b=road.bounds;
-    if(x<b[0]-8||x>b[1]+8||z<b[2]-8||z>b[3]+8)continue;
+    if(x<b[0]-reach||x>b[1]+reach||z<b[2]-reach||z>b[3]+reach)continue;
     let edge=Infinity,inside=false;
     for(const loop of road.loops){
     if(pointInPolygon(loop,x,z))inside=!inside;

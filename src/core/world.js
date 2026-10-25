@@ -54,10 +54,11 @@ export function createWorld(worldData) {
 
   // ---------- roads / water ----------
   const roads = worldData.roads || [];
-  /** Distance from the edge of the nearest road (negative = on the road). */
-  const roadDist = (x, z) => {
-    if(cityFloorAt(worldData.city,x,z))return cityRoadDistance(worldData.city,x,z);
-    let best = Infinity;
+  /** Distance from the edge of the nearest road (negative = on the road). With reach,
+   *  a road farther than that may be left out: compare only with thresholds <= reach. */
+  const roadDist = (x, z, reach) => {
+    if(cityFloorAt(worldData.city,x,z))return cityRoadDistance(worldData.city,x,z,reach);
+    let best = reach ?? Infinity;
     for (const r of roads) {
       if (distToPolylineBounds(x, z, r.points) - r.width / 2 >= best) continue;
       const d = distToPolyline(x, z, r.points) - r.width / 2;

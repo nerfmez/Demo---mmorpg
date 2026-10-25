@@ -44,7 +44,9 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
   const b=spec.bounds,clipWorld={bounds:{minX:b[0],maxX:b[1],minZ:b[2],maxZ:b[3]},seams:[{edge:'minX',outward:-1,alongX:false},{edge:'maxX',outward:1,alongX:false},{edge:'minZ',outward:-1,alongX:true},{edge:'maxZ',outward:1,alongX:true}]};
   for(const mesh of meshes){
    if(mesh.customDepthMaterial)depthMaterials.add(mesh.customDepthMaterial);
-   for(const mat of[mesh.material,mesh.customDepthMaterial])if(mat){for(const v of Object.values(mat))if(v?.isTexture)textures.add(v);if(mat.uniforms)for(const u of Object.values(mat.uniforms))if(u.value?.isTexture)textures.add(u.value);}
+   // the game's shared textures (the foliage leaf map) are not the scene's to free
+   const own=t=>t?.isTexture&&!t.userData?.shared;
+   for(const mat of[mesh.material,mesh.customDepthMaterial])if(mat){for(const v of Object.values(mat))if(own(v))textures.add(v);if(mat.uniforms)for(const u of Object.values(mat.uniforms))if(own(u.value))textures.add(u.value);}
    if(dynamic.has(mesh))continue;
    if(mesh.isPoints){mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();continue;}
    const kind=foliage&&mesh.isInstancedMesh?mesh.geometry.userData.gameFoliage:null;

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {loadData} from '../../src/core/data-node.js';
 import {createWorld} from '../../src/core/world.js';
 import {cityFloorAt,cityRoadDistance} from '../../src/core/city.js';
-import {outsideClearingWeight} from '../../src/core/ground-regions.js';
+import {outsideClearingWeight,outsideRoadDistance} from '../../src/core/ground-regions.js';
 import {fromBoxLocal} from '../../src/core/math.js';
 
 const data=loadData(),city=data.world.city,world=createWorld(data.world),repair=city.propertyBoundary;
@@ -68,4 +68,16 @@ test('outside ground connects existing destinations while retaining native tree 
     assert.equal(outsideClearingWeight(city,x,z),0,r.id+' retained native vegetation island');
   assert.equal(outsideClearingWeight(city,0,-116),0,'obsolete destinationless north stub');
   assert.equal(outsideClearingWeight(city,180,36),0,'retired old exterior warehouse spur');
+});
+test('road distance with a reach answers every threshold within it like the full search',()=>{
+  const roads=world.roads;let city=0,outside=0;
+  for(let x=-40;x<=200;x+=1.7)for(let z=-130;z<=60;z+=1.3){
+    if(cityFloorAt(data.world.city,x,z)){city++;
+      for(const t of[0,.8,2])assert.equal(cityRoadDistance(data.world.city,x,z,t)<t,cityRoadDistance(data.world.city,x,z)<t,'city '+[x,z,t]);
+      assert.equal(world.roadDist(x,z,.8)<.8,world.roadDist(x,z)<.8);
+    }else{outside++;
+      for(const t of[.1,.8])assert.equal(outsideRoadDistance(data.world.city,roads,x,z,t)<t,outsideRoadDistance(data.world.city,roads,x,z)<t,'outside '+[x,z,t]);
+    }
+  }
+  assert.ok(city>500&&outside>500,'both kinds of ground sampled');
 });

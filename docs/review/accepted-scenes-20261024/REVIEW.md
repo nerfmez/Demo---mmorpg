@@ -199,3 +199,22 @@ The owner added that trees should generally be the map's size, but trees that sh
 - **Correction:** the forest trunks are wide and short (a height factor). Their size is the trunk width, which the earlier measurement had missed.
 
 The render test now checks that ordinary trees stay within the map's range and that each big tree has its size. Inspected at zoom 2: every scene's centre, forest north, rose west, and close views of the gazebo, mill and well trees.
+
+## Load time (25 October 2026)
+
+The owner asked for the pre-existing over-60-second load to be fixed. CI's WebKit readiness waits (60–90 s) were timing out: smoke at about 70 s, workspaces and opening just past their waits. equipment-inactive is a separate red-border assertion that the owner excluded.
+
+A startup profile (Chromium, software GL) showed the main thread busy throughout. Most time went to blocking shader first use (13.7 s) on 207 programs, then the map image, terrain, ground paint and scene builds.
+
+Changes:
+- **Shader variants:** the high quality preset draws the world into the screen grade's render target, and Three builds those programs separately from canvas ones. The region compile stage, `view.warmup()`, the monster-model swap and the movement-VFX compile compiled canvas variants that were never used. The world upload then compiled the real ones, blocking. They now compile for `view.drawTarget()` (`view.compileForDraw`), which brings startup to about 115 programs.
+- **Road distance:** `cityRoadDistance`, `roadDist` and `outsideRoadDistance` take an optional reach, and the visible-road list is cached. The map image and meadow plants pass their thresholds. Seeded core calls are unchanged (the native layout hash is identical). The map image dropped from about 4.3 s to about 3 s.
+- **Scene factories:** they reuse the game's shared leaf texture instead of drawing their own.
+- **Tried and reverted:** drawing the portrait after loading. With software GL it then appeared about 20 s into play.
+
+Measured locally (Chromium, SwiftShader; three alternating runs each, one at a time): the previous head took 64.9, 62.1 and 65.2 s; this change took 59.3, 57.7 and 59.9 s. That is about 5 s, or 8%, faster. WebKit is measured by CI.
+
+Tests:
+- core 609/609, with new tests for compiling against the post target and for road-distance reach;
+- routes 0 failures;
+- render tests show the same 2 failures as the base commit.

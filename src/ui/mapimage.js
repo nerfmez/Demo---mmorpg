@@ -68,7 +68,7 @@ export function mapImage(world) {
         const beach = world.data.sea.beach || 14;
         if (world.isBeach(x, z)) c = mix(c, SAND, Math.min(1, (beach - d) / 5));
       }
-      const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z):outsideRoadDistance(world.data.city,world.roads,x,z);
+      const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z,.8):outsideRoadDistance(world.data.city,world.roads,x,z,.8);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));
       const water = world.isWater(x, z);
       // accepted scenes and the ring round them keep their own paths (as render/ground.js)
@@ -136,7 +136,7 @@ export function mapImage(world) {
   // Broken contour hatching identifies traversable hills vs steep rock.
   g.strokeStyle='#4d664c27'; g.lineWidth=.6;
   for(let z=b.minZ+2;z<b.maxZ-2;z+=2) for(let x=b.minX+2;x<b.maxX-2;x+=2){
-    if(world.isWater(x,z)||world.roadDist(x,z)<1) continue;
+    if(world.isWater(x,z)||world.roadDist(x,z,1)<1) continue;
     const h=world.terrainY(x,z), next=world.terrainY(x+2,z);
     if(Math.floor(h/1.5)!==Math.floor(next/1.5)){
       g.beginPath();g.moveTo(tx(x),tz(z));g.lineTo(tx(x-.6),tz(z+1.6));g.stroke();

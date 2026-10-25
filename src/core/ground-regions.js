@@ -42,9 +42,14 @@ export function outsideClearingWeight(city,x,z){
 export function outsideRoadVisible(city,id){
   return !(city?.outsideRoadReview?.replacedRoadIds||[]).includes(id);
 }
-export function outsideRoadDistance(city,roads,x,z){
-  let distance=Infinity;
-  for(const road of roads)if(outsideRoadVisible(city,road.id)&&distToPolylineBounds(x,z,road.points)-road.width/2<distance)
+// With reach, roads farther than that are left out (the result is then reach):
+// compare only with thresholds <= reach.
+const visibleRoads=new WeakMap();
+export function outsideRoadDistance(city,roads,x,z,reach=Infinity){
+  let list=visibleRoads.get(roads);
+  if(!list||list.city!==city){list=roads.filter(road=>outsideRoadVisible(city,road.id));list.city=city;visibleRoads.set(roads,list);}
+  let distance=reach;
+  for(const road of list)if(distToPolylineBounds(x,z,road.points)-road.width/2<distance)
     distance=Math.min(distance,distToPolyline(x,z,road.points)-road.width/2);
   return distance;
 }

@@ -7,7 +7,7 @@ root=Path(sys.argv[1]).resolve();out=root/'src/render/accepted-scenes';out.mkdir
 b=(root/'scenes/beach/src.html').read_text()
 helpers=b[b.index('// ---------- helpers'):b.index('// ---------- world layout')]
 cam=b[b.index('function placeCamera()'):b.index('// sun:')]
-imports="import * as THREE from 'three';\nimport {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';\nimport {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';\nimport {animeFoliage as gameFoliage,animeTrunk as gameTrunk} from '../anime-study.js';\nimport {meadowGrass as gameGrass} from '../nature.js';\n"
+imports="import * as THREE from 'three';\nimport {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';\nimport {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';\nimport {animeFoliage as gameFoliage,animeTrunk as gameTrunk,branchletTexture as gameBranchlet} from '../anime-study.js';\nimport {meadowGrass as gameGrass} from '../nature.js';\n"
 # In the game the scenes' trees, shrubs and grass are the map's own: the game's geometry and
 # palette, tagged so render/accepted-scenes.js gives them the map's materials. With the game's
 # foliage option the trees also take the map's crown proportions and size range.
@@ -16,9 +16,10 @@ gameFoliageHelpers=(
  "const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};\n"
  "function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub),shrub?'shrub':'crown');}\n"
  "function animeTrunk(){return gamePart(gameTrunk(),'trunk');}\n"
- "function meadowGrass(){return gamePart(gameGrass(),'grass');}\n")
+ "function meadowGrass(){return gamePart(gameGrass(),'grass');}\n"
+ "function branchletTexture(shrub=false){return gameBranchlet(shrub);}\n")
 def gameFoliageParts(name,src):
- for old,new in[('function animeFoliage(seed = 3, shrub = false) {','function sceneFoliage(seed = 3, shrub = false) {'),('function animeTrunk() {','function sceneTrunk() {'),('function meadowGrass() {','function sceneGrass() {'),('treeItems.push({ x, y, z, s, ','treeItems.push({ x, y, z, s: fitTree(s, x, z), ')]:
+ for old,new in[('function animeFoliage(seed = 3, shrub = false) {','function sceneFoliage(seed = 3, shrub = false) {'),('function animeTrunk() {','function sceneTrunk() {'),('function meadowGrass() {','function sceneGrass() {'),('function branchletTexture(shrub = false) {','function sceneBranchlet(shrub = false) {'),('treeItems.push({ x, y, z, s, ','treeItems.push({ x, y, z, s: fitTree(s, x, z), ')]:
   assert src.count(old)==1,(name,old);src=src.replace(old,new)
  if name=='forest':  # the cherries keep their own bark and blossom colours
   for old,new in[('const bloom = animeFoliage(9, false);',"const bloom = gamePart(sceneFoliage(9, false), 'crown');"),('addTrunks(animeTrunk(), sakura,',"addTrunks(gamePart(sceneTrunk(), 'trunk'), sakura,")]:

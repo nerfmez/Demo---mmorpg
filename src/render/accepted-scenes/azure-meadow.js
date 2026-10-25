@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
 import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
-import {animeFoliage as gameFoliage,animeTrunk as gameTrunk} from '../anime-study.js';
+import {animeFoliage as gameFoliage,animeTrunk as gameTrunk,branchletTexture as gameBranchlet} from '../anime-study.js';
 import {meadowGrass as gameGrass} from '../nature.js';
 export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={},foliage=null}={}){
 const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=g=>{g.userData.rigidParts=true;return g;};
@@ -11,6 +11,7 @@ const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};
 function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub),shrub?'shrub':'crown');}
 function animeTrunk(){return gamePart(gameTrunk(),'trunk');}
 function meadowGrass(){return gamePart(gameGrass(),'grass');}
+function branchletTexture(shrub=false){return gameBranchlet(shrub);}
 // ---------- helpers ----------
 let seed = 20261021;
 const rand = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -834,7 +835,7 @@ const FOL = {
 };
 const mkRng = s => { let a = s >>> 0; const next = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; return { range: (lo, hi) => lo + (hi - lo) * next() }; };
 const maps = new Map();
-function branchletTexture(shrub = false) {
+function sceneBranchlet(shrub = false) {
   if (maps.has(shrub)) return maps.get(shrub);
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 512;
   const ctx = canvas.getContext('2d'), rng = mkRng(shrub ? 708 : 391);

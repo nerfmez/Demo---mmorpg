@@ -1099,7 +1099,7 @@ export class Vfx {
     return { mesh, pool };
   }
 
-  prepareMovement(root, renderer, camera, lightingScene = this.scene) {
+  prepareMovement(root, renderer, camera, lightingScene = this.scene, drawTarget = null) {
     if (this.echoPool?.root === root) return;
     // A new appearance owns a new source rig. Retire any old snapshots before
     // the caller disposes that rig's geometry.
@@ -1115,9 +1115,11 @@ export class Vfx {
     const dust=this.config.skills.leap.dust;
     for(let i=0;i<dust.count;i++){const owner=this.movementPool('leap-dust:'+i,()=>groundDustVolume(dust,i*4.37));const object=owner.take();group.add(object);held.push([object,owner]);}
     // Compile off the input stack and keep the material references alive, so
-    // Three does not delete/relink the program after each effect expires.
-    try { renderer.compile(group,camera,lightingScene); }
-    finally { for (const [object,owner] of held) owner.release(object); }
+    // Three does not delete/relink the program after each effect expires. Compile
+    // for the target the world is drawn into (view.drawTarget).
+    const previous = renderer.getRenderTarget();
+    try { renderer.setRenderTarget(drawTarget); renderer.compile(group,camera,lightingScene); }
+    finally { renderer.setRenderTarget(previous); for (const [object,owner] of held) owner.release(object); }
   }
 
   clearMovementEchoes() {

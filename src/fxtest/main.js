@@ -313,8 +313,21 @@ function renderPanel() {
     tabs.append(b);
   }
   panel.append(tabs);
+  // the fusion recipes as their own tabs: one tap picks the main skill with its linked spell
+  if (FUSION.recipes?.length) {
+    panel.append(h('h2', '', 'สกิลผสาน'));
+    const ft = h('div', 'tabs');
+    for (const r of FUSION.recipes) {
+      if (!BENCH_SKILLS.includes(r.carrier)) continue;
+      const on = state.skill === r.carrier && state.fusion === r.payload;
+      const b = h('button', 'tab' + (on ? ' on' : ''), r.nameTh);
+      b.addEventListener('click', () => { if (on) return; state.skill = r.carrier; state.mods = []; state.fusion = r.payload; aimAngle = Math.PI / 2; rebuild(); });
+      ft.append(b);
+    }
+    panel.append(ft);
+  }
   const s = skillDef(), def = data.skills.combat[state.skill];
-  panel.append(h('p', 'desc', def.desc));
+  panel.append(h('p', 'desc', s.recipe ? s.recipe.desc : def.desc)); // a picked fusion recipe describes itself
 
   // weapons to try the stances and cuts with (the rules still use the skill's own weapon)
   const wb = h('section', 'mods');

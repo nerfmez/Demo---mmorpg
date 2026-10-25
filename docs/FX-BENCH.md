@@ -31,6 +31,9 @@ that they change the events the effects draw. Review hooks: `__fxtest.freeze()` 
 
 ## Skill fusion (prototype)
 
+The panel's **สกิลผสาน** row lists the recipes: one tap picks the main skill with its linked
+spell (the owner found the fusion chips, shown only once the main skill is picked, hard to find).
+
 Rules live in `data/fusion.json`; `src/fxtest/fusion.js` applies them on top of the real
 rules without changing `src/core`. A physical attack with a short cooldown (the carrier,
 e.g. Slash, Hunter's Shot) can link one fast damage spell (the payload: projectile spells such as

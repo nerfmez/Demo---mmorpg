@@ -536,10 +536,10 @@ export class Game {
       }
       p.facing = angle;
       if (mv.kind === 'blink') {
-        this.emit({ type: 'blinkPlayer', fromX: p.x, fromZ: p.z, x: nx, z: nz });
-        p.x = nx;
-        p.z = nz;
-        p.dash = { t: 0, dur: mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'blink' };
+        // a short gather in place (delay, invulnerable) before the body vanishes and reappears at the spot
+        const delay = mv.delay || 0;
+        p.dash = { t: 0, dur: delay + mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'blink', delay, toX: nx, toZ: nz, moved: false };
+        if (!delay) this.blinkPlayer(p);
       } else {
         p.dash = { t: 0, dur: mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'leap', fromX: p.x, fromZ: p.z, toX: nx, toZ: nz };
       }
@@ -553,6 +553,15 @@ export class Game {
     if (mv.momentum) p.momentum = { until: this.time + mv.duration + mv.momentum.window, speed: mv.momentum.speed };
     this.emit({ type: 'movement', kind: mv.id, angle });
     return true;
+  }
+
+  /** A blink's jump: the body leaves its spot for the aimed one (after the gather, dash.delay). */
+  blinkPlayer(p) {
+    const d = p.dash;
+    this.emit({ type: 'blinkPlayer', fromX: p.x, fromZ: p.z, x: d.toX, z: d.toZ });
+    p.x = d.toX;
+    p.z = d.toZ;
+    d.moved = true;
   }
 
   /** What the player can interact with right now. */
@@ -1360,6 +1369,7 @@ export class Game {
 
     if (p.dash) {
       p.dash.t += dt;
+      if (p.dash.kind === 'blink' && !p.dash.moved && p.dash.t >= p.dash.delay) this.blinkPlayer(p);
       if (p.dash.kind === 'leap') {
         const k = Math.min(1, p.dash.t / p.dash.dur);
         p.x = p.dash.fromX + (p.dash.toX - p.dash.fromX) * k;

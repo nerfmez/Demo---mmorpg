@@ -1165,7 +1165,13 @@ export class Vfx {
   syncMovement(player,y,dt,rig) {
     const d=player.dash;
     if(!d){this.movementSource=null;return;}
-    if(d.kind==='blink'||d.kind==='leap')return;
+    if(d.kind==='blink'){
+      // the gather before the jump: violet motes drawn in to the body
+      if(this.movementSource!==d){this.movementSource=d;this.movementEcho=0;}
+      if(!d.moved)while(this.movementEcho<Math.floor(d.t/(1/120))){const a=this.movementEcho*2.4,r=.9;this.fx.add(player.x+Math.sin(a)*r,y+.5+(this.movementEcho%3)*.35,player.z+Math.cos(a)*r,-Math.sin(a)*r*5,.2,-Math.cos(a)*r*5,{color:0xc7b4ff,size:.34,sizeEnd:.06,life:.2,drag:1});this.movementEcho++;}
+      return;
+    }
+    if(d.kind==='leap')return;
     if(this.movementSource!==d){
       this.movementSource=d;this.movementEcho=0;this.movementDust=0;
       if(d.kind==='dash'){
@@ -1178,6 +1184,9 @@ export class Vfx {
     if(d.kind==='dash'){
       while(this.movementEcho<2&&d.t>=(this.movementEcho===0?3/60:7/60)){const {ghost,release}=this.movementEchoAt(rig,0x83bdde);this.spawn(ghost,.2,t=>echoOpacity(ghost,.15*(1-t)),release);this.movementEcho++;}
     }else if(d.kind==='roll'){
+      // dust kicked up all along the roll, low on the ground
+      this.movementTrail=(this.movementTrail||0)+dt;
+      while(this.movementTrail>=1/30){this.movementTrail-=1/30;const j=Math.random()*6.283,r=Math.random()*.3;this.dust.add(player.x+Math.sin(j)*r,y+.08+Math.random()*.12,player.z+Math.cos(j)*r,Math.sin(j)*.9,.25+Math.random()*.4,Math.cos(j)*.9,{color:0xd8c7a0,size:.45+Math.random()*.3,sizeEnd:1.3+Math.random()*.5,life:.45+Math.random()*.25,drag:2.5});}
       while(this.movementDust<3&&d.t>=d.dur*(this.movementDust===0?.18:this.movementDust===1?.5:.78)){
         const {mesh:m,pool}=this.movementSurface([.5,.5,.5,.5],.45);faceGameCamera(m);m.position.set(player.x,y+.16,player.z);this.movementDust++;
         this.spawn(m,.25,t=>{m.scale.set(1.2*(.2+.95*t),1.2*(.15+.31*t),1);m.position.y=y+.12+.15*t;m.material.uniforms.uAlpha.value=.36*Math.sin(Math.PI*t);m.material.uniforms.uDissolve.value=t*.9;m.material.uniforms.uTime.value=t*.25;},object=>pool.release(object));

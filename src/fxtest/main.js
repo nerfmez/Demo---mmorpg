@@ -244,6 +244,9 @@ function drain() {
       if (e.element === 'cold') fx.frost.chipBurst(e.x, 1.0, e.z, 8, 2.5, 3, 0.8); else if (e.element === 'fire') fx.fire.impact(e.x, 1.0, e.z, true); else vfx.impact(e);
       continue;
     }
+    // the game's dodge effects (view.js): blink flashes and ghost, the leap's landing
+    if (e.type === 'blinkPlayer') vfx.blink(e.fromX, e.fromZ, e.x, e.z, 0xb4a2ff, hero);
+    if (e.type === 'burst' && e.kind === 'leap') vfx.burst(e);
     const drawn = fx.event(e);
     if (e.type === 'impact' && !drawn) vfx.impact(e);
     if (e.type === 'hit') {
@@ -520,6 +523,11 @@ function tick(real, draw = true) {
   castBtn.classList.toggle('ready', fx.counterReady);
   const recipeKind = skillDef().recipe?.id;
   flameSlash.update(dt, hero.bones?.weapon, fx.bladeBase, fx.bladeTip, game.projectiles, recipeKind);
+  // dodge effects as in the game (view.js): the dash streak and afterimages, roll dust, the leap's trail;
+  // the body is gone between the blink's jump and its end
+  vfx.syncMovement(p, hero.root.position.y, dt, hero);
+  if (p.dash?.kind === 'leap') vfx.dashTrail(p.x, hero.root.position.y, p.z, 'leap');
+  hero.root.visible = !(p.dash?.kind === 'blink' && p.dash.moved);
   vfx.updateCast(dt, hero, !p.cast, p);
   vfx.syncProjectiles(game, dt, simTime, recipeKind ? benchSkip(recipeKind) : OWN_PROJECTILES);
   vfx.update(dt);

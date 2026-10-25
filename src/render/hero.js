@@ -393,6 +393,10 @@ export class HumanoidAnimator {
       }
       if (roll) {
         pose.torso = [0.9, 0, 0]; pose.head = [0.4, 0, 0]; // curled over the turn (the reference's trunk carries its own pitch)
+        // knees pulled to the chest through the turn: the reference's legs swing up (the owner: legs pointing at
+        // the sky looked unnatural), so the curl folds them into a ball
+        const tuck = smoother(Math.min(1, t / 0.2, (1 - t) / 0.3));
+        for (const n in ROLL_TUCK) { const v = ROLL_TUCK[n], c = pose[n]; pose[n] = [c[0] + (v[0] - c[0]) * tuck, c[1] * (1 - tuck), c[2] * (1 - tuck)]; }
         hipsSpinX = t * Math.PI * 2;
         bodyY = -0.42 * Math.sin(Math.min(1, t * 1.15) * Math.PI);
       } else bodyY += ((mp.drop ? mp.drop[0] : 0) - bodyY) * k;
@@ -752,6 +756,7 @@ const MOVE_CLIPS = { dash: 'moveDash', roll: 'moveRoll', blink: 'moveBlink', lea
 // the roll takes only the limbs' tuck from its clip: the reference's trunk pitches over with the dive, and the
 // game turns the whole body itself (hipsSpinX)
 const ROLL_CONTACT = ['footL', 'footR', 'kneeL', 'kneeR', 'handL', 'handR', 'hips'], ROLL_P = new THREE.Vector3();
+const ROLL_TUCK = { legL: [-1.6, 0, 0], legR: [-1.45, 0, 0], kneeL: [2.2, 0, 0], kneeR: [2.25, 0, 0] };
 const ROLL_LIMBS = new Set(['armL', 'armR', 'elbowL', 'elbowR', 'legL', 'legR', 'kneeL', 'kneeR', 'weapon']);
 const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'sunderChop', 'sunderChop1H', 'staffCast', 'staffCastHeld', 'flankStab', 'shieldShove', 'breakbeatSlam', 'whirlSpin', 'warCryRoar', 'riposteGuard']);
 const IK_T = new THREE.Vector3();

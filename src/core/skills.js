@@ -240,6 +240,7 @@ export function movementSkill(ch, data, derived) {
     kind: def.kind,
     distance: def.distance,
     duration: def.duration,
+    delay: def.delay || 0, // a blink's gather in place before it jumps
     charges: ch.movement && ch.movementSkills.includes(ch.movement) ? def.charges + derived.extraMovementCharges : 0,
     recharge: def.recharge * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
     invulnerable: def.invulnerable,

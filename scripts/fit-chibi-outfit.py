@@ -408,8 +408,12 @@ names = {0: 'boots', 1: 'armor'}
 # trousers are not pushed over the fuller legs): the armour's legs from inside the boot tops, its
 # torso below the arms, and up to below the collar out to just inside the sleeve ends (boxes of
 # [z from, z to, |x| below] that overlap, so no band of skin is left between them)
-HIDE = {'armor': [[zmapL(C['bootTop']) - 0.04, crotchC, 1], [crotchC - 0.01, B(0.70), 0.22], [B(0.69), B(0.785), float(armx(np.array(C['cuff']))) - 0.02],
-                  [B(0.70), B(0.84), float(armx(np.array(C['cuff']))) - 0.02, 0.11]],  # the whole upper arm in a sleeve
+# where the sleeve really ends on this body (its fitted vertices out along the arm), so the arm under
+# it is hidden only as far as the sleeve reaches: past it torn edges of skin showed below the sleeve
+_arm = np.abs(P[(piece == 1) & (P[:, 2] > B(0.7)), 0])
+sleeveEnd = min(float(armx(np.array(C['cuff']))), float(np.percentile(_arm, 98)) if len(_arm) else 1) - 0.03
+HIDE = {'armor': [[zmapL(C['bootTop']) - 0.04, crotchC, 1], [crotchC - 0.01, B(0.70), 0.22], [B(0.69), B(0.83), sleeveEnd],
+                  [B(0.70), B(0.86), sleeveEnd, 0.11]],  # the whole upper arm in a sleeve
         'boots': [[-1, zmapL(C['bootTop']) + 0.01, 1]]}
 for pc, name in names.items():
     fs = [f for f in bm.faces if piece[f.verts[0].index] == pc]
@@ -425,6 +429,10 @@ for pc, name in names.items():
         regs = C.get('hideRegion', {}).get(name) or HIDE[name]  # boxes [z from, z to, |x| below(, |x| above)]
         if all(any(r[0] < q[2] < r[1] and (r[3] if len(r) > 3 else -1) < abs(q[0]) < r[2] for r in regs) for q in (a, b, c)):  # each corner in some box
             hid.append(ti); continue  # well inside what the piece covers (the armpits open in the T-pose)
+        # an arm past the sleeve's end is never hidden: in the T-pose its underside faces the torso, so
+        # its rays meet the coat, but with the arms down those holes showed as torn streaks
+        if name == 'armor' and BW[t][:, armg].sum(1).mean() > 0.5 and max(abs(a[0]), abs(b[0]), abs(c[0])) > sleeveEnd:
+            continue
         hits = 0
         for q in (cen, a * 0.8 + cen * 0.2, b * 0.8 + cen * 0.2, c * 0.8 + cen * 0.2):
             h = tree.ray_cast(Vector(q + n * 0.0005), Vector(n), C['cover'])

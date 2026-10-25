@@ -181,3 +181,21 @@ Faults found and fixed during the round:
 Remaining limits:
 - With map-sized trees the scenes are more open than the approved compositions, which counted on larger canopies.
 - iPad/WebKit frame rate is not measured here.
+
+### Follow-up: trees that should be big stay big
+
+The owner added that trees should generally be the map's size, but trees that should be big must be big (for example the cherry).
+
+- **Ordinary trees:** sizes are now fitted per scene (`treeScale`), not by one factor and a cap. Each scene's typical tree comes near the map's and the scene keeps its own variation.
+  - Beach, Conch Coast and Windmill were already about the map's size and barely change.
+  - Rose Garden and Meadow come down to the map's size.
+  - The forest giants come down to slightly above the map's (median 1.03).
+- **Big trees** (`bigTrees`, with an explicit world size):
+  - the forest's island cherry at its authored 2.16;
+  - the shade tree beside the meadow well at 1.5;
+  - the tree framing the rose gazebo at 1.5;
+  - the tree beside the windmill at 1.45.
+  The map's largest ordinary tree is 1.14. The three focal trees follow each concept's focal tree.
+- **Correction:** the forest trunks are wide and short (a height factor). Their size is the trunk width, which the earlier measurement had missed.
+
+The render test now checks that ordinary trees stay within the map's range and that each big tree has its size. Inspected at zoom 2: every scene's centre, forest north, rose west, and close views of the gazebo, mill and well trees.

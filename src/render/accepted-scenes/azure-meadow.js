@@ -6,7 +6,7 @@ import {animeFoliage as gameFoliage,animeTrunk as gameTrunk} from '../anime-stud
 import {meadowGrass as gameGrass} from '../nature.js';
 export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={},foliage=null}={}){
 const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=g=>{g.userData.rigidParts=true;return g;};
-const fitTree=s=>foliage?Math.min(s*foliage.treeScale,foliage.treeMax):s;
+const fitTree=(s,x,z)=>{if(!foliage)return s;const big=foliage.big.find(b=>Math.hypot(b.x-x,b.z-z)<b.r);return big?big.s:s*foliage.scale;};
 const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};
 function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub),shrub?'shrub':'crown');}
 function animeTrunk(){return gamePart(gameTrunk(),'trunk');}
@@ -991,7 +991,7 @@ function addBush(cx, cy, cz, r, { sy = 0.72, tint = 0 } = {}) {
 // a tree of the game's kind: the authored trunk and one of three crown variants
 function broadleaf(x, z, s, seed) {
   const y = height(x, z) - 0.05;
-  treeItems.push({ x, y, z, s: fitTree(s), s0: s, ry: R(0, Math.PI * 2), v: [3, 5, 9].indexOf(seed), k: R(0.94, 1.06) });
+  treeItems.push({ x, y, z, s: fitTree(s, x, z), ry: R(0, Math.PI * 2), v: [3, 5, 9].indexOf(seed), k: R(0.94, 1.06) });
 }
 
 

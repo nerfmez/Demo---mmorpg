@@ -27,10 +27,17 @@ test('scene trees, shrubs and grass are drawn with the map\'s own materials',()=
  assert.equal(hulls.length,trunks.length,'one game ink hull per trunk mesh, no scene outline left');
 });
 
-test('scene trees stay in the map\'s size range; only the forest cherry keeps its landmark size',()=>{
- const trunks=meshes.filter(m=>m.geometry.userData.gameFoliage==='trunk'&&m.material.side!==THREE.BackSide).flatMap(scales).sort((a,b)=>a-b);
+test('ordinary scene trees are the map\'s size; the listed big trees stay big',()=>{
+ const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),trees=[];
+ for(const mesh of meshes)if(mesh.geometry.userData.gameFoliage==='trunk'&&mesh.material.side!==THREE.BackSide)for(let i=0;i<mesh.count;i++){mesh.getMatrixAt(i,m);m.decompose(p,q,sc);trees.push({x:p.x,z:p.z,s:sc.x});}
+ const isBig=t=>foliage.bigTrees.some(b=>Math.hypot(b.at[0]-t.x,b.at[1]-t.z)<1);
+ for(const b of foliage.bigTrees){
+  const t=trees.find(t=>Math.hypot(b.at[0]-t.x,b.at[1]-t.z)<1);
+  assert.ok(t&&Math.abs(t.s-b.size)<.02,`${b.scene} big tree at ${b.at} has size ${b.size} (got ${t?.s})`);
+ }
  const map=world.circles.filter(c=>['tree','birch','willow'].includes(c.type)).map(c=>c.scale*.85).sort((a,b)=>a-b);
- assert.ok(trunks.filter(s=>s>foliage.treeMax+1e-6).length<=1,'every tree but the landmark is within treeMax');
- const median=a=>a[a.length>>1];
- assert.ok(Math.abs(median(trunks)-median(map))<.1,`scene median ${median(trunks)} near the map's ${median(map)}`);
+ const ordinary=trees.filter(t=>!isBig(t)).map(t=>t.s).sort((a,b)=>a-b),median=a=>a[a.length>>1];
+ assert.ok(ordinary.at(-1)<=map.at(-1)+.05,`largest ordinary scene tree ${ordinary.at(-1)} within the map's ${map.at(-1)}`);
+ assert.ok(Math.abs(median(ordinary)-median(map))<.1,`scene median ${median(ordinary)} near the map's ${median(map)}`);
+ assert.ok(foliage.bigTrees.every(b=>b.size>map.at(-1)),'big trees are bigger than any ordinary tree');
 });

@@ -12,13 +12,13 @@ imports="import * as THREE from 'three';\nimport {ConvexGeometry} from 'three/ad
 # palette, tagged so render/accepted-scenes.js gives them the map's materials. With the game's
 # foliage option the trees also take the map's crown proportions and size range.
 gameFoliageHelpers=(
- "const fitTree=s=>foliage?Math.min(s*foliage.treeScale,foliage.treeMax):s;\n"
+ "const fitTree=(s,x,z)=>{if(!foliage)return s;const big=foliage.big.find(b=>Math.hypot(b.x-x,b.z-z)<b.r);return big?big.s:s*foliage.scale;};\n"
  "const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};\n"
  "function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub),shrub?'shrub':'crown');}\n"
  "function animeTrunk(){return gamePart(gameTrunk(),'trunk');}\n"
  "function meadowGrass(){return gamePart(gameGrass(),'grass');}\n")
 def gameFoliageParts(name,src):
- for old,new in[('function animeFoliage(seed = 3, shrub = false) {','function sceneFoliage(seed = 3, shrub = false) {'),('function animeTrunk() {','function sceneTrunk() {'),('function meadowGrass() {','function sceneGrass() {'),('treeItems.push({ x, y, z, s, ','treeItems.push({ x, y, z, s: fitTree(s), s0: s, ')]:
+ for old,new in[('function animeFoliage(seed = 3, shrub = false) {','function sceneFoliage(seed = 3, shrub = false) {'),('function animeTrunk() {','function sceneTrunk() {'),('function meadowGrass() {','function sceneGrass() {'),('treeItems.push({ x, y, z, s, ','treeItems.push({ x, y, z, s: fitTree(s, x, z), ')]:
   assert src.count(old)==1,(name,old);src=src.replace(old,new)
  if name=='forest':  # the cherries keep their own bark and blossom colours
   for old,new in[('const bloom = animeFoliage(9, false);',"const bloom = gamePart(sceneFoliage(9, false), 'crown');"),('addTrunks(animeTrunk(), sakura,',"addTrunks(gamePart(sceneTrunk(), 'trunk'), sakura,")]:
@@ -27,10 +27,9 @@ def gameFoliageParts(name,src):
  src,n=re.subn(r'new V3\((\s*)(?:3\.6|3\.0|2\.5)(\s*)\*(\s*)it\.s(\s*),(\s*)(?:2\.4|2\.0|1\.7)(\s*)\*(\s*)it\.s(\s*),(\s*)(?:3\.25|2\.7|2\.25)(\s*)\*(\s*)it\.s(\s*)\)',lambda m:'new V3(%s2.5%s*%sit.s%s,%s1.7%s*%sit.s%s,%s2.25%s*%sit.s%s)'%m.groups(),src)
  assert n>=1,(name,'crown scale')
  src=re.sub(r'y:(\s*)t\.y(\s*)\+(\s*)3\.6(\s*)\*(\s*)t\.s',lambda m:'y:%st.y%s+%s3.5%s*%st.s'%m.groups(),src)
- if name=='forest':  # the island cherry is the scene's landmark: its authored size and crown
-  for old,new in[('treeItems[treeItems.length - 1].sakura = true;','Object.assign(treeItems[treeItems.length - 1], { sakura: true, s: treeItems[treeItems.length - 1].s0 });'),
-   ('sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(2.5 * it.s, 1.7 * it.s, 2.25 * it.s))','sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s))')]:
-   assert src.count(old)==1,(name,old);src=src.replace(old,new)
+ if name=='forest':  # the island cherry keeps its authored blossom crown (its size is a big tree's, in data)
+  old='sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(2.5 * it.s, 1.7 * it.s, 2.25 * it.s))'
+  assert src.count(old)==1,(name,old);src=src.replace(old,'sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s))')
  return src
 
 for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden']:

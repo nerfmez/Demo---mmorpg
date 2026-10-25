@@ -1,7 +1,7 @@
 // Thunder Arrow (bench fusion: Hunter's Shot + Chain Spark): its own look for the draw and the flight;
 // the chain on the hit is Chain Spark's own lightning, started at the struck target (skill-fx.js).
-// Draw: short jagged arcs crackle round the drawn arrow, more and brighter as the draw fills, with a
-// cold glow at the nock. Flight: three jagged strands of lightning wrap the arrow's shaft and trail
+// Cast: through Hunter's Shot's own short cast, jagged arcs crackle round the drawn arrow with a cold
+// glow at the nock (the fusion has no charge of its own). Flight: three jagged strands of lightning wrap the arrow's shaft and trail
 // behind its head, re-struck every few frames, with a bright head glow and sparks shed behind it.
 // Principles from docs/VFX-REFERENCE.md (lightning: a narrow bright core with a soft glow, short
 // crackling re-strikes, sparks as secondary accents). Cosmetic only.
@@ -51,7 +51,7 @@ export class ThunderArrowFx {
     }
     return view;
   }
-  /** tip: the drawn arrow's point (world, ground-relative like the ribbons); kind: the recipe's projectile kind */
+  /** tip: the drawn arrow's point (world); kind: the recipe id its arrows carry (pr.fusion) */
   update(dt, projectiles, kind, tip) {
     this.t += dt;
     this.restrike -= dt;
@@ -59,6 +59,7 @@ export class ThunderArrowFx {
     this.core.begin(); this.glow.begin();
     const r = this.rnd;
     // the draw: arcs crackle round the arrow at the bow, more and brighter as it fills
+    if (this.charge && this.charge.t >= this.charge.total) this.release();
     if (this.charge && tip) {
       const c = this.charge; c.t += dt;
       const k = Math.min(1, c.t / c.total), n = 2 + Math.floor(k * (ARCS - 2));
@@ -75,7 +76,7 @@ export class ThunderArrowFx {
     // the flight: strands wrapping the shaft and trailing behind the head
     let h = 0;
     for (const pr of projectiles) {
-      if (pr.kind !== kind) continue;
+      if (pr.fusion !== kind) continue;
       const sp = Math.hypot(pr.vx, pr.vz) || 1, dx = pr.vx / sp, dz = pr.vz / sp, y = pr.y ?? 1;
       const head = this.p.set(pr.x + dx * 0.35, y, pr.z + dz * 0.35);
       const back = this.q.set(pr.x - dx * 1.5, y, pr.z - dz * 1.5);

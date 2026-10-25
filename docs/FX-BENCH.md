@@ -60,16 +60,16 @@ an ice crescent, with ice chips on hits.
 
 ### Recipe: Thunder Arrow / ศรอัสนี (Hunter's Shot + Chain Spark)
 
-`type: arrow_chain`. Casting starts a 0.6 s draw (the bow drawn and held, `bowDrawHold`; aim
-follows the pointer); at its end one arrow is loosed (`bowLooseShot`; a real projectile: 30 m/s,
-16 m, radius 0.35, Hunter's Shot's damage). On its first hit Chain Spark's lightning bursts from
-the struck target: it and up to Chain Spark's chain count of the nearest others within its
-chain range each take `chainDamageMult` (0.6) of Chain Spark's damage with its falloff, once
-each; the `chain` event carries `from` so the chain starts at the target, not the hand.
-Cooldown 1.0 s, MP = both skills. Visuals in `src/fxtest/thunder-arrow-fx.js`: short jagged
-arcs crackling round the drawn arrow, more and brighter as the draw fills, and a cold nock glow;
-the arrow (drawn as an arrow by vfx.js) wrapped in three re-struck lightning strands trailing
-behind its head with a head glow and shed sparks; the hit is Chain Spark's own lightning.
+`type: arrow_chain`. Hunter's Shot keeps its own shape: its usual cast and arrows, as fast as
+ever (no draw: charging is Power Draw's role, the owner's call), cooldown 0.95 s (the average of
+both), MP of both. Each arrow it looses is wrapped in lightning; on its first hit Chain Spark's
+lightning bursts from the struck target: it and up to Chain Spark's chain count of the nearest
+others within its chain range each take `chainDamageMult` (0.6) of Chain Spark's damage with its
+falloff, once per cast however many arrows land; the `chain` event carries `from` so the chain
+starts at the target, not the hand. Visuals in `src/fxtest/thunder-arrow-fx.js`: arcs crackling
+round the arrow through the short cast and a cold nock glow; the arrow (Hunter's Shot's own,
+`pr.fusion` marks it) wrapped in three re-struck lightning strands trailing behind its head with
+a head glow and shed sparks; the hit is Chain Spark's own lightning.
 
 ## Slash (bench look and rule trial)
 

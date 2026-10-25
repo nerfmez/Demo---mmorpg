@@ -107,57 +107,43 @@ function installRecipe(g, recipe, slot, carrier, payload) {
   return { carrier, payload, recipe, waveElement: element };
 }
 
-// Thunder Arrow (type arrow_chain): draw the bow (a charge), loose one arrow wrapped in lightning; on its
-// first hit the payload's chain lightning bursts from the struck target and leaps on to the nearest others.
+// Thunder Arrow (type arrow_chain): the carrier keeps its own shape (Hunter's Shot fires as fast as
+// ever, no draw: a charge is Power Draw's role); each arrow it looses is wrapped in lightning and,
+// on its first hit, the payload's chain lightning bursts from the struck target and leaps on to the
+// nearest others. A target takes the lightning once per cast, however many arrows land.
 function installArrowChain(g, recipe, slot, carrier, payload) {
   carrier.cooldown = recipe.cooldown;
   carrier.cost += payload.cost;
   carrier.fusion = payload.id;
   carrier.recipe = recipe;
   const arrows = [];
-  const cast = g.castSlot;
-  g.castSlot = function (i, point) {
-    if (i !== slot) return cast.call(this, i, point);
-    const p = this.player;
-    if (p.dead || p.dash || p.fusionCharge || p.cooldowns[i] > 0 || p.mp < carrier.cost) return false;
-    p.fusionCharge = { t: 0, total: recipe.chargeTime };
-    this.emit({ type: 'fusionCharge', recipe: recipe.id, skill: carrier.id, total: recipe.chargeTime, angle: p.facing });
-    return true;
+  const run = g.executeSkill;
+  g.executeSkill = function (s, aim, opts = {}) {
+    if (s !== carrier) return run.call(this, s, aim, opts);
+    const before = new Set(this.projectiles);
+    run.call(this, s, aim, opts);
+    const struck = opts.struck || new Set(); // shared by the cast's arrows (split, repeats)
+    for (const pr of this.projectiles) if (!before.has(pr) && pr.owner === 'player') { pr.fusion = recipe.id; pr.struck = struck; arrows.push(pr); }
   };
-  g.updateFusion = function (dt) {
+  g.updateFusion = function () {
     // an arrow that struck since the last step: the chain bursts from what it hit
     for (let k = arrows.length - 1; k >= 0; k--) {
       const pr = arrows[k];
-      if (pr.hit.size) { arrows.splice(k, 1); const m = this.monsters.find((o) => pr.hit.has(o.id)); if (m) chainFrom(this, m); }
+      if (pr.hit.size) { arrows.splice(k, 1); const m = this.monsters.find((o) => pr.hit.has(o.id)); if (m && !pr.struck.has(m.id)) chainFrom(this, m, pr.struck); }
       else if (!this.projectiles.includes(pr)) arrows.splice(k, 1);
     }
-    const p = this.player, c = p.fusionCharge;
-    if (!c) return;
-    if (p.dead || p.dash) { p.fusionCharge = null; this.emit({ type: 'fusionCancel', recipe: recipe.id }); return; }
-    if (this.input.aimFromPointer) p.facing = this.input.aimAngle;
-    c.t += dt;
-    if (c.t < c.total) return;
-    p.fusionCharge = null;
-    p.cooldowns[slot] = carrier.cooldown;
-    p.mp -= carrier.cost;
-    const angle = p.facing, a = recipe.arrow;
-    arrows.push(this.spawnProjectile({
-      owner: 'player', kind: recipe.id, skill: carrier, x: p.x + Math.sin(angle) * 0.6, z: p.z + Math.cos(angle) * 0.6, y: 1.0, angle,
-      speed: a.speed, radius: a.radius, range: a.range, damage: carrier.damage * recipe.arrowDamageMult * this.playerDamageMult(), element: carrier.element, arrow: true,
-    }));
-    this.emit({ type: 'fusionRelease', recipe: recipe.id, x: p.x, z: p.z, angle, range: a.range, speed: a.speed });
   };
-  function chainFrom(game, first) {
-    const hit = new Set(), points = [[first.x, first.z]];
+  function chainFrom(game, first, struck) {
+    const points = [[first.x, first.z]];
     let cur = first, dmg = payload.damage * recipe.chainDamageMult * game.playerDamageMult();
     for (let i = 0; i <= payload.chain && cur; i++) {
       if (i) points.push([cur.x, cur.z]);
-      hit.add(cur.id);
+      struck.add(cur.id);
       game.hitMonster(cur, dmg, game.hitOpts(payload, { crit: game.rollCrit() }));
       dmg *= payload.chainFalloff;
       let next = null, nd = payload.chainRange || 6;
       for (const m of game.monsters) {
-        if (m.dead || hit.has(m.id)) continue;
+        if (m.dead || struck.has(m.id)) continue;
         const d = Math.hypot(m.x - cur.x, m.z - cur.z);
         if (d < nd) { nd = d; next = m; }
       }

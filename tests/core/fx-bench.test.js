@@ -138,18 +138,17 @@ test('Flame Wave Slash recipe: 1 s charge, then the slash and a piercing fire wa
   assert.ok(g.player.cooldowns[0] > 0);
 });
 
-test('Thunder Arrow recipe: a drawn arrow, then chain lightning bursts from the first target it strikes', () => {
+test('Thunder Arrow recipe: Hunter\'s Shot fires as usual (no charge) and chain lightning bursts from the first target its arrow strikes', () => {
   const g = createBench(data, 'hunter_shot', [], { fusion: 'chain_spark', fusionRules: FUSION });
   const recipe = FUSION.recipes.find((r) => r.id === 'thunder_arrow'), chain = g.skills[1];
   assert.equal(g.skills[0].recipe.id, recipe.id);
   assert.equal(g.skills[0].cooldown, recipe.cooldown);
+  assert.ok(!recipe.chargeTime, 'no draw of its own: the charge is Power Draw\'s');
   g.aimAt(Math.PI / 2);
   assert.ok(g.castSlot(0, null));
   const events = [];
-  for (let i = 0; i < Math.round(recipe.chargeTime * 60) - 3; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
-  assert.equal(g.projectiles.filter((q) => q.kind === recipe.id).length, 0, 'nothing flies during the draw');
-  for (let i = 0; i < 60; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
-  assert.equal(events.filter((e) => e.type === 'fusionRelease').length, 1);
+  for (let i = 0; i < 90; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+  assert.ok(events.some((e) => e.type === 'castStart' && e.skill === 'hunter_shot'), 'Hunter\'s Shot\'s own cast');
   const chains = events.filter((e) => e.type === 'chain' && e.from === recipe.id);
   assert.equal(chains.length, 1, 'one chain per arrow');
   const bolts = events.filter((e) => e.type === 'hit' && e.element === 'lightning');

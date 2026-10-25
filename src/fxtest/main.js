@@ -232,14 +232,8 @@ function drain() {
     // bench-only: the Riposte attacker's wind-up (the game's monsters telegraph their own)
     if (e.type === 'benchWindup') { fx.mace.windup(e.id, e.total); continue; }
     if (e.type === 'benchWindupEnd') { fx.mace.windupEnd(e.id); continue; }
-    if (e.type === 'fusionCharge' && arrowRecipe()) {
-      // Thunder Arrow: the bow drawn and held through the charge, lightning gathering on the arrow
-      heroAnim.play('bowDrawHold', e.total, heroWeapon, 0, e.total);
-      thunderArrow.beginCharge(e.total);
-      continue;
-    }
-    if (e.type === 'fusionRelease' && arrowRecipe()) { thunderArrow.release(); heroAnim.play('bowLooseShot', 0.3, heroWeapon, 0, 0.02); continue; }
-    if (e.type === 'fusionCancel' && arrowRecipe()) { thunderArrow.cancel(); heroAnim.action = null; continue; }
+    // Thunder Arrow: Hunter's Shot's own cast and shot, lightning crackling on the arrow while it is drawn
+    if (e.type === 'castStart' && arrowRecipe() && e.skill === game.fusion.carrier.id) thunderArrow.beginCharge(e.total);
     if (e.type === 'fusionCharge') {
       // the charge stance: the swing's wind-up stretched over the charge, the cut landing at its end
       heroAnim.play(e.skill, e.total + 0.3, heroWeapon, fx.nextSwingStep(), e.total, 'melee_arc');
@@ -393,7 +387,7 @@ function renderPanel() {
   line('ธาตุ', ELEMENT_TH[s.element] || s.element);
   line('คูลดาวน์', `${s.cooldown.toFixed(2)} วิ`);
   line('MP', `${s.cost}`);
-  if (s.recipe) { line('สกิลฟิวชั่น', s.recipe.nameTh); line('ชาร์จ', `${s.recipe.chargeTime} วิ`); if (s.recipe.wave) line('คลื่นไฟ', `${(game.fusion.payload.damage * s.recipe.wave.damageMult).toFixed(1)} · ${s.recipe.wave.range} ม. · ทะลุทุกตัว`); if (s.recipe.arrow) { line('ลูกธนู', `${(s.damage * s.recipe.arrowDamageMult).toFixed(1)} · ${s.recipe.arrow.range} ม.`); line('สายฟ้าเด้ง', `${(game.fusion.payload.damage * s.recipe.chainDamageMult).toFixed(1)} · ${game.fusion.payload.chain + 1} ตัว`); } }
+  if (s.recipe) { line('สกิลฟิวชั่น', s.recipe.nameTh); if (s.recipe.chargeTime) line('ชาร์จ', `${s.recipe.chargeTime} วิ`); if (s.recipe.wave) line('คลื่นไฟ', `${(game.fusion.payload.damage * s.recipe.wave.damageMult).toFixed(1)} · ${s.recipe.wave.range} ม. · ทะลุทุกตัว`); if (s.recipe.chainDamageMult) { line('สายฟ้าเด้ง', `${(game.fusion.payload.damage * s.recipe.chainDamageMult).toFixed(1)} · ${game.fusion.payload.chain + 1} ตัว`); } }
   else if (game.fusion) line('ลิงก์', `${game.fusion.payload.nameTh} ${(game.fusion.payload.damage * FUSION.payloadDamageMult).toFixed(1)} (${Math.round(FUSION.payloadDamageMult * 100)}%)`);
   if (s.kind === 'melee_arc') line('ระยะ / มุม', `${s.range} ม. × ${s.arc}°`);
   if (s.kind === 'projectile') line('ระยะ / ความเร็ว', `${s.range} ม. · ${s.speed} ม./วิ`);
@@ -437,7 +431,7 @@ function renderPanel() {
   renderStats();
 
   const castLabel = document.getElementById('castLabel');
-  castLabel.textContent = s.kind === 'channel_cone' ? 'กดค้าง' : s.recipe ? 'ชาร์จ' : 'ร่าย';
+  castLabel.textContent = s.kind === 'channel_cone' ? 'กดค้าง' : s.recipe?.chargeTime ? 'ชาร์จ' : 'ร่าย';
   document.getElementById('dodge').classList.toggle('hint', !!s.trigger);
 }
 function renderStats() {
@@ -537,10 +531,10 @@ function tick(real, draw = true) {
   vfx.syncMovement(p, hero.root.position.y, dt, hero);
   hero.root.visible = !(p.dash?.kind === 'blink' && p.dash.moved);
   vfx.updateCast(dt, hero, !p.cast, p);
-  // Thunder Arrow's arrow is drawn as an arrow (vfx.js) under its own lightning; a wave recipe draws its own projectile
+  // Thunder Arrow's arrows stay Hunter's Shot arrows (vfx.js) under their own lightning; a wave recipe draws its own projectile
   vfx.syncProjectiles(game, dt, simTime, recipeKind && !arrowRecipe() ? benchSkip(recipeKind) : OWN_PROJECTILES);
   if (hero.bones?.weapon) { hero.bones.weapon.getWorldPosition(nockAt); nockAt.y += 0.05; }
-  thunderArrow.update(dt, game.projectiles, recipeKind, game.player.fusionCharge ? nockAt : null);
+  thunderArrow.update(dt, game.projectiles, recipeKind, nockAt);
   vfx.update(dt);
   const cd = p.cooldowns[0] || 0;
   castBtn.classList.toggle('cooling', cd > 0.02);

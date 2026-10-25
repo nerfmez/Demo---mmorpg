@@ -1,5 +1,5 @@
 {
- "_doc": "scripts/fit-chibi-outfit.py settings for reference sheet 03 (Travel Tunic): heights in chibi metres after scale/lift; neck, cuff and bootTop are cut planes on the generated model; torsoZ maps its crotch, arm axis and neck onto the chibi; margin keeps the cloth off the body.",
+ "_doc": "scripts/fit-chibi-outfit.py settings for reference sheet 03 (Travel Tunic): heights in chibi metres after scale/lift; neck, cuff and bootTop are cut planes on the generated model; torsoZ maps its crotch, arm axis and neck onto the chibi (front to back the torso follows the hips); margin keeps the cloth off the body.",
  "id": "travel",
  "src": "assets/meshy/outfits/travel_meshy.glb",
  "scale": 0.6,
@@ -21,12 +21,8 @@
    0.83
   ]
  ],
- "torsoY": [
-  -0.025,
-  -0.015
- ],
  "torsoScale": 1.1,
- "legScale": 1.1,
+ "legScale": 1.0,
  "armAxis": [
   0.838,
   0.769

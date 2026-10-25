@@ -19,12 +19,8 @@
    0.83
   ]
  ],
- "torsoY": [
-  -0.025,
-  -0.015
- ],
  "torsoScale": 1.1,
- "legScale": 1.1,
+ "legScale": 1.0,
  "armAxis": [
   0.838,
   0.769

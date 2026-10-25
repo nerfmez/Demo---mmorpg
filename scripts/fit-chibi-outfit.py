@@ -215,7 +215,11 @@ x, y, z = P0.T
 ax = abs(x); sx = np.sign(x)
 # torso
 sT = C['torsoScale']
-T = np.stack([x * sT, (y - C['torsoY'][0]) * sT + C['torsoY'][1], zmapT(z)], 1)
+# front to back the torso goes where the legs go: the generated hips (the leg line's top) onto the
+# chibi's. Meshy centres the whole model in its box, so a hood or cape behind the body moves the
+# body forward by up to 10 cm; a fixed offset sheared the coat between the torso and the legs
+ty0, ty1 = cg[-1, 1], cc[-1, 1]
+T = np.stack([x * sT, (y - ty0) * sT + ty1, zmapT(z)], 1)
 # legs
 sL = C['legScale']
 L = np.stack([sx * (gx + np.interp(z, zs, dcx) + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
@@ -238,9 +242,10 @@ P = P * (1 - wa) + A * wa
 nbr = [[e.other_vert(v).index for e in v.link_edges] for v in bm.verts]
 piece = np.array([0 if v.co.z < C['bootTop'] else 1 for v in bm.verts])  # 0 boots, 1 armour
 margin = np.where(piece == 0, C['margin']['boots'], C['margin']['armor'])
-# the cloth is pushed out of the body everywhere (`pushAbove` limits it to above a height), so the
-# trousers follow the chibi's legs as they bend
-pushed = P[:, 2] > C.get('pushAbove', -1)
+# the cloth is pushed out of the body only from the chest up (`pushAbove`): lower down the body is
+# hidden under it (HIDE), and pushing the trousers over the chibi's fuller hips and thighs bulged
+# them; there the generated shape is kept as it was made
+pushed = P[:, 2] > C.get('pushAbove', 0.69)
 
 
 def push(Q):

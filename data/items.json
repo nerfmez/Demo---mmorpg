@@ -2291,7 +2291,7 @@
     },
     "projectile_pct": {
       "label": "+{v}% projectile damage",
-      "labelTh": "ดาเมจกระสุน +{v}%",
+      "labelTh": "ดาเมจยิง +{v}%",
       "stat": "projectileDamagePct",
       "min": 3,
       "max": 9

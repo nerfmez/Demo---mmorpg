@@ -374,7 +374,7 @@
         "extraMovementCharges": 1,
         "projectileSpeedPct": 20
       },
-      "descTh": "สายกระสุน/คล่องตัว: ชาร์จสกิลเคลื่อนที่ +1",
+      "descTh": "สายยิง/คล่องตัว: ชาร์จสกิลเคลื่อนที่ +1",
       "group": "ranger",
       "category": "specialist",
       "clusterPos": [
@@ -1782,7 +1782,7 @@
     },
     "p_dmg": {
       "name": "P Dmg",
-      "nameTh": "วิถีกระสุน",
+      "nameTh": "วิถีการยิง",
       "type": "minor",
       "group": "hybrid",
       "category": "projectile",
@@ -16994,7 +16994,7 @@
           {
             "id": "impact",
             "name": "แรงและระยะ",
-            "note": "จังหวะร่วม · กระสุนหรือพื้นที่",
+            "note": "จังหวะร่วม · ยิงหรือพื้นที่",
             "icon": "horizon",
             "nodes": [
               "path.impact",
@@ -17410,7 +17410,7 @@
           {
             "id": "power",
             "name": "ต่อยอดพลัง",
-            "note": "จังหวะร่วม · กระสุนหรือพื้นที่",
+            "note": "จังหวะร่วม · ยิงหรือพื้นที่",
             "icon": "camp",
             "nodes": [
               "advanced.power",
@@ -19347,7 +19347,7 @@
       {
         "id": "impact",
         "name": "แรงและระยะ",
-        "note": "จังหวะร่วม · กระสุนหรือพื้นที่",
+        "note": "จังหวะร่วม · ยิงหรือพื้นที่",
         "icon": "horizon",
         "nodes": [
           "path.impact",
@@ -19755,7 +19755,7 @@
       {
         "id": "power",
         "name": "ต่อยอดพลัง",
-        "note": "จังหวะร่วม · กระสุนหรือพื้นที่",
+        "note": "จังหวะร่วม · ยิงหรือพื้นที่",
         "icon": "camp",
         "nodes": [
           "advanced.power",

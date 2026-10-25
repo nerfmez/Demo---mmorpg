@@ -232,19 +232,56 @@ export function registerClip(name, c) {
 }
 for (const [name, c] of Object.entries(CLIPS)) if (name !== '_doc') registerClip(name, c);
 
+// The same action struck with the left hand (a dual carry alternates its hands): the body mirrored left
+// to right, the weapon channel moved to the left hand's weapon (offhand) and the right hand's weapon
+// left resting in its fist. A rotation mirrors as [x, -y, -z] (the driver hands share one rest frame);
+// the blade also turns half a turn about its length so its edge, not its back, still leads the cut.
+// A swing arc mirrors its angle and its lead, and sw[2] = 1 hands it to the left hand (hero.js).
+const SIDE = { armL: 'armR', armR: 'armL', elbowL: 'elbowR', elbowR: 'elbowL', handL: 'handR', handR: 'handL', legL: 'legR', legR: 'legL', kneeL: 'kneeR', kneeR: 'kneeL', footL: 'footR', footR: 'footL' };
+function mirrorPose(p) {
+  const o = {};
+  for (const n in p) {
+    const v = p[n];
+    if (n === 'weapon') o.offhand = [v[0], -v[1], -v[2] + Math.PI];
+    else if (n === 'ikL' || n === 'ikR') o[n === 'ikL' ? 'ikR' : 'ikL'] = [-v[0], v[1], v[2]]; // positions: x flips
+    else if (n === 'ikw') o.ikw = [v[1], v[0], v[2]]; // [left, right]
+    else if (n === 'spin' || n === 'swing') o[n] = [-v[0], v[1], v[2]];
+    else if (n === 'sw') o.sw = [v[0], -v[1], 1];
+    else if (['drop', 'grip', 'aim', 'gripSlide', 'staffAim'].includes(n)) o[n] = v;
+    else o[SIDE[n] || n] = [v[0], -v[1], -v[2]];
+  }
+  o.weapon = REST.weapon;
+  return o;
+}
+/** The left-hand version of action `name` (made once): eased in from the carry and back (ends 'carry'). */
+export function leftHanded(name) {
+  const m = name + '_L', a = ACTIONS[name];
+  if (!ACTIONS[m] && a) {
+    const swing = a.keys.some(([, p]) => p.swing);
+    ACTIONS[m] = { hit: a.hit, sweep: -(a.sweep ?? 1), own: a.own, ends: 'carry', mirrorOf: name, keys: a.keys.map(([t, p]) => [t, mirrorPose(p)]) };
+    if (swing) ACTIONS[m].own = false;
+  }
+  return ACTIONS[m] ? m : name;
+}
+
 /**
  * The action for a cast.
  * @param {string} skill skill id (castStart.skill), or an action name
  * @param {string} kind skill kind (castStart.kind)
  * @param {string} weapon weapon type
  * @param {number} step combo step for melee swings
+ * @param {boolean} dual a second weapon in the left hand: the basic cut alternates its hands
  */
-export function pickAction(skill, kind, weapon, step = 0) {
+export function pickAction(skill, kind, weapon, step = 0, dual = false) {
   if (ACTIONS[skill]) return skill;
   let a = BY_SKILL[skill] || BY_KIND[kind] || (kind === 'projectile' ? (skill === 'hunter_shot' ? 'shoot' : 'bolt') : 'cast');
   // the staff points its head at the target with the arm pushed out (owner: the release arm goes forward)
   if ((skill === 'firebolt' || skill === 'arcane_bolt') && weapon === 'staff') a = 'staffCast';
-  if (a === 'combo') { const c = COMBOS[weapon] || ['slashA', 'slashB']; a = c[step % c.length]; } // one plain strike, alternating
+  if (a === 'combo') {
+    const c = COMBOS[weapon] || ['slashA', 'slashB'];
+    // two weapons: the first cut, struck by the right and the left hand in turn; else one plain strike, alternating
+    a = dual ? (step % 2 ? leftHanded(c[0]) : c[0]) : c[step % c.length];
+  }
   if (a === 'shoot') a = weapon === 'bow' ? 'bowShot' : 'throw';
   if (a === 'boltCast' && weapon === 'bow') a = 'bolt';
   if (a === 'sunderChop' && weapon !== 'greatblade') a = 'sunderChop1H'; // an axe with a shield: the left arm stays on it (play() names a two-handed axe greatblade) // the wand's cast would turn the bow flat across the body

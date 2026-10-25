@@ -235,6 +235,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   rig.weaponKind = gear.weapon || 'sword';
   rig.weaponEdge = MODELS.weapons[weaponModel]?.edge ?? 1; // the imported blade's cutting side (+X or -X)
+  rig.offhandEdge = MODELS.weapons[offhandModel]?.edge ?? 1;
   rig.offhandKind = gear.offhand || null;
   return rig;
 }
@@ -281,7 +282,8 @@ export class HumanoidAnimator {
     const weapon = weaponKind || this.rig.weaponKind;
     // a heavy weapon held in both hands (nothing in the left) swings like the greatblade
     const twoHanded = HOLDS.holds[weapon]?.two && !this.rig.offhandKind;
-    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' ? 'greatblade' : weapon, step);
+    const off = this.rig.offhandKind, dual = !!off && off !== 'shield' && off !== 'quiver'; // a second weapon: cuts alternate hands
+    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' ? 'greatblade' : weapon, step, dual);
     this.combo = step + 1;
     dur = Math.max(0.25, dur);
     const hit = ACTIONS[name].hit;
@@ -372,6 +374,7 @@ export class HumanoidAnimator {
     let spin = 0;
     let ikL = null, ikR = null; // raw hand targets of the current action
     let swingW = 0, swingV = null, swingLead = 1, actionW = 0; // melee swing arc of the current action (actions.js swing/sw)
+    let offSwingW = 0, offSwingV = null, offLead = 1, offAp = null; // a left-handed action's arc or weapon channel (actions.js leftHanded)
 
     // ---- dashes, rolls, leaps override the whole body ----
     const dash = s.dash;
@@ -439,13 +442,17 @@ export class HumanoidAnimator {
       ikL = ap.ikL;
       ikR = ap.ikR;
       actionW = wA;
-      if (ap.sw && ap.swing) { swingW = ap.sw[0] * wA; swingV = ap.swing; swingLead = ap.sw[1] < 0 ? -1 : 1; }
+      if (ap.sw && ap.swing) {
+        if (ap.sw[2] > 0.5) { offSwingW = ap.sw[0] * wA; offSwingV = ap.swing; offLead = ap.sw[1] < 0 ? -1 : 1; }
+        else { swingW = ap.sw[0] * wA; swingV = ap.swing; swingLead = ap.sw[1] < 0 ? -1 : 1; }
+      }
+      if (ap.offhand && act.own) offAp = ap.offhand;
       // a clip cuts with the blade's +X side leading (scripts/pose-retarget/edge-roll.mjs): a model whose
       // cutting edge is its -X side (models.json edge -1) turns the blade half a turn about its length
       const flip = act.own && ap.weapon && this.rig.weaponEdge === -1 ? (this.buf.flipW ??= [0, 0, 0]) : null;
       if (flip) { flip[0] = ap.weapon[0]; flip[1] = ap.weapon[1]; flip[2] = ap.weapon[2] + Math.PI; }
       for (const n in ap) {
-        if (n === 'spin') continue;
+        if (n === 'spin' || n === 'offhand') continue;
         const lower = n.startsWith('leg') || n.startsWith('knee');
         const k = lower ? wA * (1 - w * 0.7) : wA;
         const cur = pose[n] || [0, 0, 0], v = flip && n === 'weapon' ? flip : ap[n];
@@ -531,6 +538,17 @@ export class HumanoidAnimator {
     if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW * armW, swingV, swingW, orientW * armW, swingLead);
     // a second weapon in the left hand (dual carry): its own palm and blade, handed back to the action
     if (hold?.left && b.offhand) this.solveOffhand(hold.left, (leftBusy ? 0 : holdW) * armW, hold.run?.socket, 1 - armW);
+    // a left-handed strike: the left weapon follows the action's own channel or the mirrored swing arc
+    if (b.offhand && (offSwingW > 0.01 || (offAp && actionW > 0.01))) {
+      const o = b.offhand;
+      o.userData.carryQ ??= o.quaternion.clone();
+      if (!hold?.left) o.quaternion.copy(o.userData.carryQ);
+      if (offSwingV) this.solveOffSwing(offSwingV, offSwingW, offLead);
+      else {
+        const flip = this.rig.offhandEdge === -1 ? Math.PI : 0; // a blade that cuts with its -X side
+        o.quaternion.slerp(SOCKET_Q.setFromEuler(SOCKET_E.set(offAp[0], offAp[1], offAp[2] + flip)), actionW);
+      }
+    }
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
     // a heavy weapon dragged one-handed on the run (hold.run.release) lets the left hand go
     let gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
@@ -653,6 +671,26 @@ export class HumanoidAnimator {
     o.quaternion.slerp(AIM_Q, w);
   }
 
+  /** The left palm and weapon on a mirrored swing arc (solveWeapon's arc for the left hand, weight w). */
+  solveOffSwing(swingV, w, lead) {
+    const b = this.b, body = b.body, o = b.offhand;
+    const [a, e, y] = swingV, r = HOLDS.swing.radius, ce = Math.cos(e);
+    W_A.set(Math.sin(a) * r, y, Math.cos(a) * r);
+    W_B.set(Math.sin(a) * ce, Math.sin(e), Math.cos(a) * ce);
+    W_T.set(Math.cos(a), 0, -Math.sin(a)).multiplyScalar(lead * (this.rig.offhandEdge ?? 1));
+    W_N.crossVectors(W_B, W_T).normalize();
+    this.rig.root.updateMatrixWorld(true);
+    reachArm(b, 'L', body.localToWorld(ikMap(IK_T.copy(W_A), this.rig.ikMap)), w);
+    W_X.crossVectors(W_N, W_B).normalize();
+    W_UP.crossVectors(W_B, W_X);
+    W_M.makeBasis(W_X, W_UP, W_B);
+    W_Q.setFromRotationMatrix(W_M);
+    body.getWorldQuaternion(AIM_R).multiply(W_Q);
+    b.handL.updateMatrixWorld(true);
+    b.handL.getWorldQuaternion(AIM_Q).invert().multiply(AIM_R);
+    o.quaternion.slerp(AIM_Q, w);
+  }
+
   /**
    * Put the right palm and the weapon's long axis where the carry (weight holdW) or the swing
    * arc (weight swingW) wants them, in body space so they follow the body's bob and spin. The
@@ -712,7 +750,7 @@ export class HumanoidAnimator {
     }
     if (s.dead) return 'blink';
     if (this.hurt > 0.35 || this.action?.name === 'hurt') return 'hurt';
-    if (this.action && FIERCE.has(this.action.name)) return 'attack';
+    if (this.action && FIERCE.has(ACTIONS[this.action.name]?.mirrorOf ?? this.action.name)) return 'attack';
     return this.blink > 0 ? 'blink' : 'open';
   }
 }

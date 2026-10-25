@@ -4,6 +4,7 @@
 //
 //   node scripts/pose-retarget/preview-action.mjs --action cand.json --weapon greatblade --cast 0.65 --out out/prev
 //   node scripts/pose-retarget/preview-action.mjs --action cand.json --skill frost_nova --bench --out out/prev
+//   node scripts/pose-retarget/preview-action.mjs --play slash --kind melee_arc --step 1 --weapon dagger --offhand dagger --cast 0.18
 //
 // cand.json is an action as data/action-clips.json holds one: {hit, sweep?, keys: [[t, pose], ...]}
 // (absolute channels over the resting pose). Like the game (skill-fx.js), the keys before `hit` play
@@ -18,7 +19,8 @@ import fs from 'node:fs';
 
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const flag = (k) => process.argv.includes('--' + k);
-const action = JSON.parse(fs.readFileSync(arg('action'), 'utf8'));
+// --play skill: play what the game picks for that skill (with --kind, --step, --offhand) instead of a file
+const play = arg('play', null), action = play ? null : JSON.parse(fs.readFileSync(arg('action'), 'utf8'));
 const o = {
   skill: arg('skill', 'slash'), weapon: arg('weapon', null), offhand: arg('offhand', null), cast: +arg('cast', '0.3'), post: +arg('post', '0.28'),
   kind: arg('kind', null), step: +arg('step', '0'), frames: +arg('frames', '10'), views: arg('views', 'game,q,side').split(','),
@@ -26,7 +28,7 @@ const o = {
 };
 const out = arg('out', 'tests/browser/out/preview'), site = arg('site', 'http://127.0.0.1:4190');
 fs.mkdirSync(out, { recursive: true });
-const tag = arg('tag', (o.bench ? o.skill : o.weapon || 'hero') + '-' + (arg('action').split('/').pop().replace(/\.json$/, '')));
+const tag = arg('tag', (o.bench ? o.skill : o.weapon || 'hero') + '-' + (play ? play + o.step : arg('action').split('/').pop().replace(/\.json$/, '')));
 
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 640, height: 640 } });
@@ -41,18 +43,18 @@ await page.evaluate((o) => {
   F.setSkill(o.bench ? o.skill : 'slash'); F.freeze(true); F.advance(0.1);
 }, o);
 await page.waitForTimeout(3500); // the rebuilt hero's models load
-const info = await page.evaluate(([o, action]) => {
+const info = await page.evaluate(([o, action, play]) => {
   const F = window.__fxtest;
   if (!o.dummies) F.hideDummies();
   F.advance(1);
   if (o.running) { F.game.setMove(1, 0); F.advance(1); }
-  const name = o.bench ? o.skill : '_preview';
-  F.registerClip(name, action);
+  const name = play || (o.bench ? o.skill : '_preview');
+  if (action) F.registerClip(name, action);
   if (o.bench) { F.castDown(); if (o.hold) { F.advance(o.hold); F.castUp(); } }
   else F.anim.play(name, o.cast + o.post, null, o.step, o.cast, o.kind);
   const a = F.anim.action;
   return { name: a?.name, dur: a?.dur, hitAt: a?.hitAt, weapon: F.hero.weaponKind };
-}, [o, action]);
+}, [o, action, play]);
 if (!info.name) throw new Error('the action did not start: ' + JSON.stringify(info) + ' ' + errors.join(' '));
 const dur = info.dur, hitT = info.dur * info.hitAt;
 // frame times: evenly over the action and the hit itself

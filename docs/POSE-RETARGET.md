@@ -65,7 +65,10 @@ planted) is Frontline Split; `bowShot`, `bowSkyShot`, `bowDrawHold` and `bowLoos
 Bow_Notch/Bow_Shoot/Bow_Aim_Neutral/Bow_RapidShoot_Loop and KayKit Ranged_Bow_Release/Draw_Up/Release_Up,
 mirrored: the hero draws with its left hand) are the bow skills; `boltCast` (Quaternius Spell_Simple_Enter
 and Spell_Simple_Shoot mirrored: the wand arm pushes straight out at the target on the release) is Arcane
-Bolt and Firebolt with any weapon but the staff and the bow. Each entry's `_from` records its clips, commands and edits.
+Bolt and Firebolt with any weapon but the staff and the bow. Each entry's `_from` records its clips, commands and edits. `heavyCutA`/`heavyCutB` (KayKit Melee_2H_Attack_Slice
+and its mirror, both hands on the haft) alternate as the basic attack of the greatblade and of the axe and
+mace held in both hands; `sunderChop`/`sunderChop1H` (KayKit Melee_1H_Attack_Slice_Diagonal, the
+left hand on the haft or kept on the shield) are Sunder Cut.
 
 ## Choosing a clip and previewing an action
 

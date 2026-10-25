@@ -28,7 +28,7 @@ const state = {
   mods: [], // [{id, level}]
   fusion: null, // linked payload skill id
   speed: 1,
-  cam: params.get('cam') === 'game' ? 'game' : 'close',
+  cam: ['game', 'close'].includes(params.get('cam')) ? params.get('cam') : 'hero', // hero: a close look at the hero's animation (the default)
   auto: false,
   holding: false,
 };
@@ -47,7 +47,10 @@ scene.background = new THREE.Color('#9fc6d8');
 scene.fog = new THREE.Fog('#9fc6d8', 26, 48);
 const camera = new THREE.PerspectiveCamera(36, 1, 0.3, 120);
 // 'game' = the game's 3/4 camera; 'close' = the lower angle the effects were first reviewed at
-const CAM_DIRS = { game: new THREE.Vector3(0, 19, 13.5).normalize(), close: new THREE.Vector3(0, 7.4, 8.6).normalize() };
+const CAM_DIRS = { game: new THREE.Vector3(0, 19, 13.5).normalize(), close: new THREE.Vector3(0, 7.4, 8.6).normalize(), hero: new THREE.Vector3(-0.15, 0.55, 0.82).normalize() };
+// 'hero' = from the hero's right side (it faces +X), a little behind so the dummies stand beyond it, framed
+// on the hero and following it
+const HERO_LOOK = new THREE.Vector3(0.9, 0.55, 0), HERO_HALF = 1.4;
 scene.add(new THREE.HemisphereLight('#dce9ff', '#4a6040', 1.1));
 const sun = new THREE.DirectionalLight('#fff0dc', 1.8);
 sun.position.set(-4, 10, 6);
@@ -404,7 +407,7 @@ function renderPanel() {
   }
   ctl.append(speed);
   const cams = h('div', 'seg');
-  for (const [k, label] of [['close', 'กล้องใกล้'], ['game', 'กล้องเกม']]) {
+  for (const [k, label] of [['hero', 'กล้องตัวละคร'], ['close', 'กล้องใกล้'], ['game', 'กล้องเกม']]) {
     const b = h('button', k === state.cam ? 'on' : '', label);
     b.addEventListener('click', () => { state.cam = k; layout(); renderPanel(); });
     cams.append(b);
@@ -444,9 +447,16 @@ function layout() {
   camera.aspect = w / Math.max(1, hgt);
   const v = VIEW[state.skill], half = THREE.MathUtils.degToRad(camera.fov / 2);
   const close = state.cam === 'close';
-  const dist = Math.max(v.w / (2 * Math.tan(half) * camera.aspect), v.d / (2 * Math.tan(half)) * (close ? 1.1 : 1.5), 7) * (close ? 0.92 : 1);
-  camera.position.set(v.cx, 0, v.cz + (close ? 0.6 : 0)).addScaledVector(CAM_DIRS[state.cam], dist);
-  camera.lookAt(v.cx, 0.6, v.cz);
+  if (state.cam === 'hero') {
+    // about 2.6 m around the hero fits the shorter side of the view
+    const dist = Math.max(HERO_HALF / Math.tan(half), (HERO_HALF * 1.25) / (Math.tan(half) * camera.aspect));
+    camera.position.copy(HERO_LOOK).addScaledVector(CAM_DIRS.hero, dist);
+    camera.lookAt(HERO_LOOK);
+  } else {
+    const dist = Math.max(v.w / (2 * Math.tan(half) * camera.aspect), v.d / (2 * Math.tan(half)) * (close ? 1.1 : 1.5), 7) * (close ? 0.92 : 1);
+    camera.position.set(v.cx, 0, v.cz + (close ? 0.6 : 0)).addScaledVector(CAM_DIRS[state.cam], dist);
+    camera.lookAt(v.cx, 0.6, v.cz);
+  }
   camBase.copy(camera.position);
   camQ.copy(camera.quaternion);
   camera.updateProjectionMatrix();

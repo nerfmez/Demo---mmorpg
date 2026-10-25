@@ -199,7 +199,7 @@ export const ACTIONS = {
 const BY_SKILL = {
   slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
   stone_burst: 'slam', frost_nova: 'nova', venom_mire: 'shoot', hex: 'hex', ward: 'ward',
-  arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', interrupt_slam: 'slam', weakpoint: 'thrust', shield_bash: 'shieldBash', riposte: 'guardBlock',
+  arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', armor_cleave: 'sunderChop', interrupt_slam: 'slam', weakpoint: 'thrust', shield_bash: 'shieldBash', riposte: 'guardBlock',
   war_cry: 'warcry', healing_spring: 'heal', spirit_wolf: 'summon',
 };
 // skill kind -> action, for skills without their own entry
@@ -212,7 +212,7 @@ const BY_KIND = {
 // left hand free they are held in both and play the greatblade combo (hero.js play).
 // The sword and the dagger cut with clips retargeted from reference animations (data/action-clips.json,
 // owner picks): one cut for every step, the slash effect following its sweep.
-const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], sword: ['swordCut', 'swordCut', 'swordCut'], dagger: ['daggerCut', 'daggerCut', 'daggerCut'] };
+const COMBOS = { greatblade: ['heavyCutA', 'heavyCutB'], sword: ['swordCut'], dagger: ['daggerCut'] };
 /**
  * Register an action from clip data ({hit, sweep?, keys: [[t, pose]]}, absolute channels over REST).
  * A clip moves the weapon itself (own, unless it says own: false): its weapon channel is not held at
@@ -235,9 +235,10 @@ export function pickAction(skill, kind, weapon, step = 0) {
   if (ACTIONS[skill]) return skill;
   let a = BY_SKILL[skill] || BY_KIND[kind] || (kind === 'projectile' ? (skill === 'hunter_shot' ? 'shoot' : 'bolt') : 'cast');
   if ((skill === 'firebolt' || skill === 'arcane_bolt') && weapon === 'staff') a = 'staffBolt';
-  if (a === 'combo') a = (COMBOS[weapon] || ['slashA', 'slashB', 'slashC'])[step % 3];
+  if (a === 'combo') { const c = COMBOS[weapon] || ['slashA', 'slashB']; a = c[step % c.length]; } // one plain strike, alternating
   if (a === 'shoot') a = weapon === 'bow' ? 'bowShot' : 'throw';
-  if (a === 'boltCast' && weapon === 'bow') a = 'bolt'; // the wand's cast would turn the bow flat across the body
+  if (a === 'boltCast' && weapon === 'bow') a = 'bolt';
+  if (a === 'sunderChop' && weapon !== 'greatblade') a = 'sunderChop1H'; // an axe with a shield: the left arm stays on it (play() names a two-handed axe greatblade) // the wand's cast would turn the bow flat across the body
   return a;
 }
 

@@ -97,8 +97,10 @@ export class SkillFx {
   nextSwingStep() { this.swingStep = this.time - this.lastSwingAt < 1.2 ? (this.swingStep + 1) % 2 : 0; this.lastSwingAt = this.time; return this.swingStep; }
   slashOpts(s, palette = null) {
     const p = this.game.player;
-    // a cut retargeted from a clip sweeps one way every step (its sweep); the others alternate
-    const sweep = ACTIONS[pickAction(s.id, 'melee_arc', this.host.weapon(), this.swingStep)]?.sweep;
+    // a cut retargeted from a clip sweeps its own way (its sweep): the action just played (a two-handed
+    // axe or mace plays the greatblade's cut), else the one picked for the weapon; the others alternate
+    const playing = this.host.anim()?.action?.name;
+    const sweep = ACTIONS[playing && ACTIONS[playing]?.sweep !== undefined ? playing : pickAction(s.id, 'melee_arc', this.host.weapon(), this.swingStep)]?.sweep;
     return { palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : null), range: s.range, arc: s.arc, dir: sweep ?? (this.swingStep === 0 ? 1 : -1), where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
   }
   play(action, dur, step, hit, kind) { this.host.anim().play(action, dur, this.host.weapon(), step, hit, kind); }

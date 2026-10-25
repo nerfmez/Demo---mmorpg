@@ -33,6 +33,7 @@
 - ร่างจัดระเบียบม็อด/สกิล และระบบผสานสกิล (รอเจ้าของตรวจ): [`SKILL-MOD-FUSION-DESIGN-TH.md`](SKILL-MOD-FUSION-DESIGN-TH.md)
 - แผนการเติบโตของสกิล อาชีพ (Job Lv 40) และสกิลผสาน (Lv 20) (ร่าง รอเจ้าของตรวจ): [`SKILL-PROGRESSION-PLAN-TH.md`](SKILL-PROGRESSION-PLAN-TH.md)
 - วิจัยสกิลทรีและแท็กสกิลจาก PoE/Undecember และข้อเสนอแท็ก 6 หมวด (ร่าง รอเจ้าของตรวจ): [`SKILL-TAXONOMY-RESEARCH-TH.md`](SKILL-TAXONOMY-RESEARCH-TH.md)
+- ร่างโครงสกิลทรีวงล้อ 6 ภาค 12 อาชีพ (ร่าง รอเจ้าของตรวจ): [`SKILL-TREE-WHEEL-DRAFT-TH.md`](SKILL-TREE-WHEEL-DRAFT-TH.md)
 - น้ำหนักการสุ่ม Grade และจำนวน Option อยู่ใน `items.json` → `grades`
 - ชื่อแมพ ชื่อ Job และชื่อมอน ทั้งหมดเป็นชื่อชั่วคราว
 

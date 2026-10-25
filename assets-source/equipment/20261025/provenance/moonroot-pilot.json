@@ -1,0 +1,91 @@
+{
+  "source_image": "exec-37229759-2b67-4a1f-afc5-7acf8e2acf88.png",
+  "source_sha256": "313877f7f93b2eecd309473b04d8c339a38f08649c304d4646d8f5b6b262f1dc",
+  "note": "Proposed item IDs; not integrated into game data. Original generated pixels cropped, scaled proportionally, and padded.",
+  "items": [
+    {
+      "proposed_id": "fernstep_gloves",
+      "name_th": "ถุงมือกระต่ายหูเฟิร์น",
+      "source_cell": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "source_content_bounds": [
+        37,
+        108,
+        623,
+        609
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "05069a806ecc5a49a82f43cb5293a7ea6159fb8acadb41513ae103132c2ad4e9"
+    },
+    {
+      "proposed_id": "mirrorwing_boots",
+      "name_th": "รองเท้าผีเสื้อปีกกระจก",
+      "source_cell": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "source_content_bounds": [
+        17,
+        82,
+        605,
+        603
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "2f163e7009134da689270ed5f24d437b12c4ec68d6bb514ed373cb027e121059"
+    },
+    {
+      "proposed_id": "burrowguard_helm",
+      "name_th": "หมวกตุ่นขุดราก",
+      "source_cell": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "source_content_bounds": [
+        59,
+        11,
+        586,
+        575
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "156607897b3c470abeb6529d77848027dbaa927cba703fb4dd26c9e1e62aafa0"
+    },
+    {
+      "proposed_id": "burrowguard_boots",
+      "name_th": "รองเท้าตุ่นขุดราก",
+      "source_cell": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "source_content_bounds": [
+        66,
+        34,
+        607,
+        584
+      ],
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "4a0d3c81eaf4242e23bbcd15c5166eee5776a3521b7fbe30b85ba48e8a520d69"
+    }
+  ]
+}

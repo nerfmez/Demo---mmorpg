@@ -21,7 +21,7 @@ mask = Image.new('L', (W, H), 0); dr = ImageDraw.Draw(mask)
 for t in I:
     c = P[t].mean(0)
     arm = abs(c[0]) > 0.17 and c[1] > 0.6
-    neck = 0.785 < c[1] < 0.86 and abs(c[0]) < 0.09
+    neck = 0.745 < c[1] < 0.86 and abs(c[0]) < 0.11  # down to the collar line: some necklines show it
     if arm or neck: dr.polygon([(UV[k][0] * W, UV[k][1] * H) for k in t], fill=255)
 m = np.asarray(mask.filter(ImageFilter.MaxFilter(5))) > 0
 mx, mn = a.max(2), a.min(2)

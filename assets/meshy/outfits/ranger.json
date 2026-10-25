@@ -40,5 +40,8 @@
  "out": {
   "armor": "public/models/outfits/ranger_coat.glb",
   "boots": "/tmp/claude-0/-home-user-Demo---mmorpg/ccb154d0-d7d4-5b0c-8f8d-38b000991840/scratchpad/bl/out/ranger_boots_unused.glb"
- }
+ },
+ "chinCut": 0.07,
+ "chinBack": 0.3,
+ "top": 0.895
 }

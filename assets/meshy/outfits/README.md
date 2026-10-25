@@ -21,6 +21,8 @@ fit settings for `scripts/fit-chibi-outfit.py` (see `docs/OUTFIT-BASE.md`, "Mode
 - Helms: `scripts/fit-chibi-helm.py assets/meshy/outfits/<set>.json <helm id>` makes
   `public/models/outfits/<helm id>.glb` from the same models: leather_cap (hide), beetle_helm (shell),
   spore_hood (spore), horned_helm (crag), ranger_hood (ranger), wardenstalker_hood (warden).
+  The ranger and warden hoods drop the collar under the chin (`chinCut`, `chinBack`): turning with
+  the head, it tore off the coat's.
 - The storm set's band was too coarse to cut out: `feather_circlet_meshy.glb` was generated (Meshy 6
   multi-image, 30 credits) from the owner's three-view sheet `feather_circlet_reference.png`, and
   `scripts/fit-feather-circlet.py` bends it round the hero's hair (`public/models/outfits/feather_circlet.glb`,

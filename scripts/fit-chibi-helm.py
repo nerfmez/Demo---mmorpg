@@ -91,6 +91,12 @@ def head(g, neck):
     # pieces out to the sides (the armour has them; the helm turns with the head)
     face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.07 and np.abs(cols[f] - skin).max() < 40)
     face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.09 and abs(f.calc_center_median().x) > 0.11)
+    if 'chinCut' in C:
+        # and the collar or scarf under the chin, in front of the neck (`chinCut` below the eyes, in
+        # front of `chinBack` behind them): the armour has its own, and this one, turning with the
+        # head, would tear off it; a hood's drape behind the neck stays
+        face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - C['chinCut']
+                    and f.calc_center_median().y < mid[1] + C.get('chinBack', 0.2))
     bmesh.ops.delete(bm, geom=list(face), context='FACES')
     # what is left on the face (eyes, brows, mouth) is small islands: keep the large pieces
     seen, keep = set(), set()

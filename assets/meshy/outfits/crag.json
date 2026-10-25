@@ -35,5 +35,6 @@
  "out": {
   "armor": "public/models/outfits/crag_plate.glb",
   "boots": "public/models/outfits/crag_greaves.glb"
- }
+ },
+ "weightSmooth": 4
 }

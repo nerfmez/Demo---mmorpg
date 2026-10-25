@@ -623,7 +623,8 @@
         "mp_flat",
         "hp_flat",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "shield_flat"
       ],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "VIT",
@@ -713,7 +714,9 @@
         "spell_pct",
         "cdr_pct",
         "move_pct",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "shield_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT",
@@ -801,7 +804,8 @@
         "mp_flat",
         "summon_pct",
         "regen_flat",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
@@ -824,7 +828,9 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "shield_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT",
@@ -980,7 +986,9 @@
         "area_pct",
         "heal_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "shield_flat",
+        "shield_pct"
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT",
@@ -1147,7 +1155,8 @@
         "heal_pct",
         "summon_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "shield_flat"
       ],
       "upgradeMaterial": "sea_pearl",
       "requirementStat": "INT",
@@ -1191,7 +1200,8 @@
         "hp_flat",
         "block_pct",
         "regen_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "shield_flat"
       ],
       "upgradeMaterial": "crab_shell",
       "requirementStat": "VIT",
@@ -2386,8 +2396,22 @@
     },
     "barrier_pct": {
       "label": "+{v}% barrier",
-      "labelTh": "เกราะเวท +{v}%",
+      "labelTh": "บาเรีย +{v}%",
       "stat": "barrierPct",
+      "min": 5,
+      "max": 13
+    },
+    "shield_flat": {
+      "label": "+{v} Spell Shield",
+      "labelTh": "เกราะเวท +{v}",
+      "stat": "maxShield",
+      "min": 50,
+      "max": 160
+    },
+    "shield_pct": {
+      "label": "+{v}% Spell Shield",
+      "labelTh": "เกราะเวท +{v}%",
+      "stat": "maxShieldPct",
       "min": 5,
       "max": 13
     },

@@ -37,7 +37,8 @@
         "meleeDamagePct": 0.3
       },
       "INT": {
-        "magic": 4.5
+        "magic": 4.5,
+        "maxShield": 8
       },
       "VIT": {
         "defense": 2.5,
@@ -94,6 +95,7 @@
         "dotDamagePct",
         "maxHpPct",
         "barrierPct",
+        "maxShieldPct",
         "healPct",
         "elementalDamagePct",
         "critMultPct",
@@ -272,6 +274,11 @@
       "_doc": "A shield block lets through only `taken` of a hit from within arcDeg in front of the hero. Ground hazards and hits from behind are never blocked.",
       "arcDeg": 120,
       "taken": 0.3
+    },
+    "spellShield": {
+      "_doc": "Spell shield (owner, 2026-10-25): a white pool over HP. Damage that gets through armour, block and a skill barrier takes the shield first, then HP (poison ticks too). It never heals; after rechargeDelay seconds without taking damage it refills rechargePctPerSecond of its maximum each second. Max = maxShield (INT, gear) x (1 + maxShieldPct). core/game-simulation.js damagePlayer / tick.",
+      "rechargeDelay": 3,
+      "rechargePctPerSecond": 20
     }
   },
   "power": {

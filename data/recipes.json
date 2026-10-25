@@ -259,7 +259,9 @@
         "spell_pct",
         "cdr_pct",
         "move_pct",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "shield_pct"
       ],
       "itemLevel": 16
     },
@@ -330,7 +332,8 @@
         "mp_flat",
         "summon_pct",
         "regen_flat",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat"
       ],
       "itemLevel": 6
     },
@@ -349,7 +352,9 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "shield_pct"
       ],
       "itemLevel": 16
     },
@@ -467,7 +472,9 @@
         "area_pct",
         "heal_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "shield_flat",
+        "shield_pct"
       ],
       "itemLevel": 16
     },
@@ -852,7 +859,8 @@
         "heal_pct",
         "summon_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "shield_flat"
       ],
       "itemLevel": 1
     },
@@ -889,7 +897,9 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "shield_pct"
       ],
       "itemLevel": 16
     },
@@ -941,7 +951,8 @@
         "hp_flat",
         "block_pct",
         "regen_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "shield_flat"
       ],
       "itemLevel": 1
     },

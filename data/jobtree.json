@@ -101,7 +101,7 @@
         "barrierPct": 13,
         "meleeHitBarrier": 30
       },
-      "descTh": "สายประชิด/แท็งก์: เกราะเวทแรงขึ้น ตีประชิดโดนแล้วได้เกราะ",
+      "descTh": "สายประชิด/แท็งก์: บาเรียแรงขึ้น ตีประชิดโดนแล้วได้บาเรีย",
       "group": "vanguard",
       "category": "specialist",
       "clusterPos": [
@@ -509,7 +509,7 @@
         "healGrantsBarrierPct": 40,
         "healPct": 6.5
       },
-      "descTh": "สายซัพพอร์ต: ฮีลแล้วให้เกราะเวทด้วย เหมาะกับปาร์ตี้",
+      "descTh": "สายซัพพอร์ต: ฮีลแล้วให้บาเรียด้วย เหมาะกับปาร์ตี้",
       "group": "warden",
       "category": "specialist",
       "clusterPos": [

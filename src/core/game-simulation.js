@@ -69,6 +69,9 @@ export class Game {
       mp: 1,
       barrier: 0,
       barrierT: 0,
+      shield: 0, // spell shield: taken before HP, recharges after progression.combat.spellShield.rechargeDelay
+      maxShield: 0,
+      shieldIdle: 0, // seconds since the hero last took damage
       reflect: 0,
       statuses: {},
       buffs: {},
@@ -150,19 +153,23 @@ export class Game {
     const p = this.player;
     this.cancelCharge();
     this.cancelChannel();
-    const oldMax = { hp: p.maxHp || 1, mp: p.maxMp || 1 };
+    const oldMax = { hp: p.maxHp || 1, mp: p.maxMp || 1, shield: p.maxShield || 0 };
     this.derived = derive(this.ch, this.data);
     this.refreshSkills();
     const oldMovementCharges = this.move?.charges || 0;
     this.move = movementSkill(this.ch, this.data, this.derived);
     p.maxHp = this.derived.maxHp;
     p.maxMp = this.derived.maxMp;
+    p.maxShield = this.derived.maxShield;
     if (full) {
       p.hp = p.maxHp;
       p.mp = p.maxMp;
+      p.shield = p.maxShield;
     } else {
       p.hp = Math.min(p.maxHp, Math.max(1, (p.hp / oldMax.hp) * p.maxHp));
       p.mp = Math.min(p.maxMp, (p.mp / oldMax.mp) * p.maxMp);
+      // a newly gained shield starts empty and recharges; an existing one keeps its share
+      p.shield = oldMax.shield > 0 ? Math.min(p.maxShield, (p.shield / oldMax.shield) * p.maxShield) : 0;
     }
     p.movement.charges = oldMovementCharges ? Math.min(p.movement.charges, this.move.charges) : this.move.charges;
     if (this.monsters) this.completeQuests(refreshQuests(this.ch, this.data));
@@ -825,6 +832,7 @@ export class Game {
     this.refresh();
     p.hp = p.maxHp;
     p.mp = p.maxMp;
+    p.shield = p.maxShield;
     this.emit({ type: 'levelup', level: this.ch.level });
   }
 
@@ -989,10 +997,12 @@ export class Game {
       if (p.reflect > 0 && source && source.kind === 'monster' && !source.dead) this.hitMonster(source, absorbed * p.reflect + 4, { element: 'physical' });
     }
     if(absorbed>0&&p.barrier<=0)breakBarrier(this,p);
+    const shielded = this.drainShield(dmg);
+    dmg -= shielded;
     p.hp -= dmg;
     if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;
-    this.emit({ type: 'playerHit', amount: dmg, absorbed, blocked, x: p.x, z: p.z });
+    this.emit({ type: 'playerHit', amount: dmg, absorbed, shielded, blocked, x: p.x, z: p.z });
     if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
     if (opts.knock && dmg > 0) {
       this.cancelCharge();
@@ -1014,6 +1024,20 @@ export class Game {
       this.emit({ type: 'playerDeath' });
     }
     return dmg;
+  }
+
+  /** The spell shield takes what it can of `amount` (after armour and barrier) and stops recharging for a while. */
+  drainShield(amount) {
+    const p = this.player;
+    p.shieldIdle = 0;
+    if (!(p.shield > 0) || amount <= 0) return 0;
+    const taken = Math.min(p.shield, amount);
+    p.shield -= taken;
+    if (p.shield <= 0) {
+      p.shield = 0;
+      this.emit({ type: 'shieldBreak', x: p.x, z: p.z });
+    }
+    return taken;
   }
 
   healPlayer(amount, quiet = false) {
@@ -1336,6 +1360,7 @@ export class Game {
         p.dead = false;
         p.hp = p.maxHp;
         p.mp = p.maxMp;
+        p.shield = p.maxShield;
         p.statuses = {};
         p.buffs = {};
         p.barrier = 0;
@@ -1347,6 +1372,9 @@ export class Game {
     const inTown = this.isSafe(p.x, p.z);
     p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen + (inTown ? p.maxHp * 0.08 : 0)) * dt);
     p.mp = Math.min(manaLimit(this), p.mp + (this.derived.mpRegen + (inTown ? p.maxMp * 0.08 : 0)) * dt);
+    const ss = this.data.progression.combat.spellShield;
+    p.shieldIdle += dt;
+    if (p.shield < p.maxShield && p.shieldIdle >= ss.rechargeDelay) p.shield = Math.min(p.maxShield, p.shield + (p.maxShield * ss.rechargePctPerSecond / 100) * dt);
     for (const k in p.itemCooldowns) p.itemCooldowns[k] = Math.max(0, p.itemCooldowns[k] - dt);
     for (let i = 0; i < p.cooldowns.length; i++) {
       p.cooldowns[i] = Math.max(0, p.cooldowns[i] - dt);
@@ -1503,8 +1531,9 @@ export class Game {
       if (st.acc >= 2) {
         const n = Math.floor(st.acc);
         st.acc -= n;
-        p.hp -= n;
-        this.emit({ type: 'playerHit', amount: n, absorbed: 0, dot: true, x: p.x, z: p.z });
+        const shielded = this.drainShield(n);
+        p.hp -= n - shielded;
+        this.emit({ type: 'playerHit', amount: n - shielded, absorbed: 0, shielded, dot: true, x: p.x, z: p.z });
         if (p.hp <= 0) p.hp = 1; // poison alone never kills
       }
       if (st.t <= 0) delete p.statuses.poison;

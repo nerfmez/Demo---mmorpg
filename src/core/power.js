@@ -15,11 +15,11 @@ export function skillDps(s, d) {
   return per / Math.max(s.cooldown || 0, s.castTime || 0, 0.35);
 }
 
-/** Effective HP: max HP over the share of a frontal hit that gets through armour and a shield. */
+/** Effective HP: max HP and spell shield over the share of a frontal hit that gets through armour and a shield. */
 export function effectiveHp(d, data) {
   const armour = defenseFactor(d.defense, data) * (1 + d.damageTakenPct / 100);
   const block = 1 - d.blockChance * (1 - data.progression.combat.block.taken);
-  return d.maxHp / Math.max(0.05, armour * block);
+  return (d.maxHp + (d.maxShield || 0)) / Math.max(0.05, armour * block);
 }
 
 export function powerOf(ch, data) {

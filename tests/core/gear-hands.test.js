@@ -114,6 +114,7 @@ test('gloves are their own slot and a shield blocks only frontal hits', () => {
   const front = { kind: 'monster', x: p.x, z: p.z + 2 }, back = { kind: 'monster', x: p.x, z: p.z - 2 };
   const full = Math.max(1, Math.round(100 * (1 - g.derived.defense / (g.derived.defense + data.progression.combat.defenseConstant))));
   p.hp = p.maxHp = 1e6;
+  p.shield = p.maxShield = 0; // measure HP only (the spell shield is tested in spell-shield.test.js)
   g.damagePlayer(100, back);
   assert.equal(1e6 - p.hp, full, 'from behind: never blocked');
   p.hp = 1e6;

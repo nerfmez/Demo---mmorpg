@@ -745,6 +745,8 @@ export function derive(ch, data) {
     maxHpPct: 0,
     maxMpPct: 0,
     barrierPct: 0,
+    maxShield: 0,
+    maxShieldPct: 0,
     healPct: 0,
     moveSpeedPct: 0,
     cooldownPct: 0,
@@ -807,6 +809,7 @@ export function derive(ch, data) {
     d[stat] = limit < 0 ? Math.max(d[stat], limit) : Math.min(d[stat], limit);
   d.maxHp = Math.round((base.hp + base.hpPerLevel * (ch.level - 1) + base.hpPerVit * ch.stats.VIT + d.maxHp) * (1 + d.maxHpPct / 100));
   d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * ch.stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
+  d.maxShield = Math.round(d.maxShield * (1 + d.maxShieldPct / 100)); // spell shield: INT and gear only
   d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
   d.critChance = Math.min(1, d.critChancePct / 100); // no design cap on crit chance (owner, 2026-10-25); 100% means every hit crits

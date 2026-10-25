@@ -25,7 +25,7 @@ import { MENU_GROUPS, MENU_PAGES, groupOf } from './menu-map.js';
 
 const LOADOUT_TABS = new Set(['bag', 'skills', 'mods', 'movement']);
 
-const STAT_TH = { STR: 'พลังกาย · พลังโจมตี/HP/ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/เกราะ', INT: 'สติปัญญา · พลังเวท/MP', DEX: 'ความแม่น · แรงคริ/ยิง', LUK: 'โชค · คริ/หลบ/ดรอปเล็กน้อย' };
+const STAT_TH = { STR: 'พลังกาย · พลังโจมตี/HP/ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/บาเรีย', INT: 'สติปัญญา · พลังเวท/MP/เกราะเวท', DEX: 'ความแม่น · แรงคริ/ยิง', LUK: 'โชค · คริ/หลบ/ดรอปเล็กน้อย' };
 const REASON_TH = { level: 'เลเวลตัวละครยังไม่ถึงขั้นที่กำหนด', invalid: 'การตั้งค่าคราฟต์ไม่ถูกต้อง', materials: 'วัตถุดิบไม่พอ', learned: 'เรียนแล้ว', max: 'สูงสุดแล้ว', full: 'ช่อง Mod เต็ม', duplicate: 'ใส่ Mod ซ้ำไม่ได้', requires: 'Stat ไม่ถึง', not_learned: 'ยังไม่ได้เรียน' };
 const TELEPORT_TH = { combat: 'กำลังต่อสู้อยู่ — ออกจากการต่อสู้ก่อนแล้วค่อยวาร์ป', locked: 'ยังไม่ได้ปลดล็อก — เดินไปแตะหินวาร์ปนั้นก่อน', dead: 'หมดสติอยู่', unknown: 'ไม่พบจุดวาร์ป' };
 const CRAFT_FILTERS = [
@@ -350,7 +350,7 @@ export class Panels {
       </section>
       <section class="pg-col">
         <h4>การโจมตี</h4>${kv([['พลังโจมตี', d.attack], ['พลังเวท', d.magic], ['โอกาสคริ', `${Math.round(d.critChance * 100)}%`], ['แรงคริ', `×${d.critMult.toFixed(2)}`], d.dodgeChancePct ? ['โอกาสหลบ', `${d.dodgeChancePct.toFixed(1)}%`] : null, pct('ดาเมจประชิด', d.meleeDamagePct), pct('ดาเมจยิง', d.projectileDamagePct), pct('ดาเมจเวท', d.spellDamagePct), pct('ดาเมจวงกว้าง', d.areaDamagePct), pct('ดาเมจอัญเชิญ', d.summonDamagePct), d.poisonChancePct ? ['โอกาสติดพิษ', `${d.poisonChancePct.toFixed(0)}%`] : null])}
-        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], pct('เกราะเวท', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null])}
+        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], d.maxShield ? ['เกราะเวท', d.maxShield] : null, pct('บาเรีย', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null])}
         <h4>อื่น ๆ</h4>${kv([['ความเร็วเดิน', `${d.moveSpeed.toFixed(1)} m/s`], ['คูลดาวน์เร็วขึ้น', `${d.cooldownPct.toFixed(0)}%`], ['Gold', ch.gold.toLocaleString()]])}
       </section></div>`;
   }
@@ -806,7 +806,9 @@ const EFFECT_TH = {
   summonDamagePct: 'ดาเมจอัญเชิญ %',
   maxHpPct: 'HP %',
   maxMpPct: 'MP %',
-  barrierPct: 'เกราะเวท %',
+  barrierPct: 'บาเรีย %',
+  maxShield: 'เกราะเวท',
+  maxShieldPct: 'เกราะเวท %',
   healPct: 'การฟื้นฟู %',
   moveSpeedPct: 'ความเร็วเดิน %',
   cooldownPct: 'คูลดาวน์เร็วขึ้น %',

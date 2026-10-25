@@ -48,5 +48,9 @@ w=w.replace('const d = st.inside ? -3 : Math.max(-4, Math.min(4, trailEdge(x, z)
 # Fewer lip shrubs; leave readable areas of stone between plant clusters.
 w=w.replace('%3===0','%7===0').replace('i%4===0','i%9===0')
 w=w.replace('const rr=.32*K;','const rr=.22*K;').replace('z,.55*K,{sy:.55','z,.36*K,{sy:.50')
+# No ravines: fill the narrow channels between terraces (fill.js); routes ride the filled ground.
+w=w.replace('// the shape of the land: height and how much of it is a raised top\nfunction field(x, z) {',(here/'fill.js').read_text()+'\n// the shape of the land: height and how much of it is a raised top\nfunction field(x, z) {',1)
+w=w.replace("  const court=polyAt(PLAZA,x,z);\n  if(court!==null&&court<0){y=PL;top=1;rock=0;}","  const fill=fillAt(x,z);if(fill>y+.01){y=fill;rock=0;}\n  const court=polyAt(PLAZA,x,z);\n  if(court!==null&&court<0){y=PL;top=1;rock=0;}",1)
+w=w.replace("    y=st.y+(y-st.y)*k;","    const ry=Math.max(st.y,fillAt(x,z));y=ry+(y-ry)*k;",1)
 a=w.index('function buildLedges(){');w=w[:a]+(here/'paving.js').read_text()+'\n'
 (here/'world.js').write_text(w.rstrip()+'\n')

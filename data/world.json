@@ -9545,6 +9545,7 @@
       "from": "hill-windmill/left",
       "acceptedScene": "connector"
     },
+    {"id": "accepted/join-ring-trail", "width": 3, "points": [[154.67,-119.5],[155.0,-116.5],[156.6,-113.6],[158.6,-111.0],[160.2,-109.3],[161.5,-108]], "heights": [5.58,5.577,5.546,5.411,5.761,5.774], "from": "hill-windmill/east-north connector", "acceptedScene": "connector"},
     {
       "id": "accepted/join-13",
       "width": 3.176,
@@ -16589,6 +16590,8 @@
       "scene": {"hill-windmill": {"continue": 28, "wobble": 0.15, "inland": true}},
       "sceneDoc": "Per-scene overrides of k, min and max. continue: metres over which each side's edge profile (cliffs, terraces, banks meeting it) runs on outward unsmoothed and dies away, so the scene's forms carry on into the map instead of ending at the bound. wobble: the ring width varies by up to this share along each side (smooth noise). inland: no sea nearby, so low dry ground takes the apron too (only ponds stop it)."
     },
+    "grassBanks": ["hill-windmill"],
+    "grassBanksDoc": "Scenes whose rock faces are their own meshes: the ground's slope paint keeps grass on their steep banks instead of painting grey strata (render/ground.js aBank).",
     "lift": {
       "_doc": "Metres a whole scene is raised (or lowered, negative) above its authored surface (core/accepted-scenes.js acceptedTarget). Its meshes, plants and connector ends move with it; the apron and the seam rises bring the ground round it to meet it.",
       "hill-windmill": 2.5
@@ -16624,6 +16627,7 @@
     },
     "source": "00bed638a57b6217f675e1a279fcc8fcf769dda7",
     "connectors": [
+      {"id": "accepted/join-ring-trail", "final": true, "width": 3, "points": [[154.62,-119.9],[155.0,-116.5],[156.6,-113.6],[158.6,-111.0],[160.2,-109.3],[161.5,-108]], "heights": [5.58,5.577,5.546,5.411,5.761,5.774], "note": "Moonroot ring_trail crosses the seam into Azure Coast here; this joins it to the windmill east paths (join-13, join-14)"},
       {
         "id": "accepted/join-0",
         "width": 3.606,

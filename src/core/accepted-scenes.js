@@ -116,6 +116,7 @@ export function apronConnectors(data,grid,apron){
  const sample=(x,z)=>{if(!apron)return 0;const fx=Math.max(0,Math.min(grid.w-1.00001,(x-grid.ox)/grid.res)),fz=Math.max(0,Math.min(grid.h-1.00001,(z-grid.oz)/grid.res)),i=Math.floor(fx),j=Math.floor(fz),u=fx-i,v=fz-j,k=j*grid.w+i;
   return apron[k]*(1-u)*(1-v)+apron[k+1]*u*(1-v)+apron[k+grid.w]*(1-u)*v+apron[k+grid.w+1]*u*v;};
  return (data.acceptedScenes?.connectors||[]).map(road=>{
+  if(road.final)return road; // its heights were taken from the finished ground
   const p=road.points,last=p.length-1,outer=weight(...p[0])<weight(...p[last])?0:last,inner=last-outer,lift=sample(...p[outer]);
   const host=scenes.find(s=>sceneWeight(s,...p[inner])>0),rise=host?sceneLift(data,host):0;
   // A raised scene's connector follows the ground's own change at every point: the

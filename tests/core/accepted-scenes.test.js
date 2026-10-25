@@ -126,3 +126,13 @@ test('connectors from a lifted scene start on its lifted ground',()=>{
   assert.ok(Math.abs(now.heights[k]-(road.heights[k]+lift*sceneWeight(scene,...p[k])))<.05,road.id+' scene end follows the lift');
  }
 });
+test('a final connector keeps the heights it was given, and its ground meets them',()=>{
+ const raw=data.world.acceptedScenes.connectors.filter(c=>c.final),applied=world.heightfield.acceptedConnectors;
+ assert.ok(raw.length);
+ for(const road of raw){
+  const now=applied.find(c=>c.id===road.id);
+  assert.deepEqual(now.heights,road.heights,road.id+' is not lifted again');
+  road.points.forEach((p,i)=>{if(world.isFree(...p,.45))assert.ok(Math.abs(world.groundY(...p)-road.heights[i])<.15,road.id+' ground at '+p);});
+  assert.ok(world.roads.some(r=>r.id===road.id),road.id+' is painted as a road');
+ }
+});

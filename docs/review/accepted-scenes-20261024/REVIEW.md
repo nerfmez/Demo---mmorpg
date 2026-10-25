@@ -259,3 +259,13 @@ Owner direction: scenes are not pinned flat; a scene that should be high is rais
 Checked: views from all four sides, the owner's circled angle, oblique overviews and the Moonroot side; native layout hashes of both maps unchanged. Tests: core 613/613 (new: lifted surface, continued edges with no sheer step outside, matching seam rises and meeting heights, connector ends); render 48/49 (terrain-domain skirt failure also on main).
 
 Remaining: the scene's low gullies still paint grey on their steep sides; some stair courses fan on curves (scene geometry).
+
+### Follow-up: no deep ravines, grass banks, the ring-trail path
+
+Owner review at the play camera: the stairs floated, and the ravines looked forced ("as if they were there only because they had to be"); the owner asked to remove the deep ravines entirely.
+
+- **Ravines filled:** the narrow channels between terraces (up to about 4.4 m deep, floor 0.4 m) are filled. In the generator (`scenes/hill-windmill/fill.js`, injected by `prepare.py`), the terrace ground is closed over 3.4 K, so any dip narrower than about 7 K rises toward its lower bank, stopping 0.9 K (about 1.5 m) below it, then is softened. Each terrace still ends in its rock face over a shallow grass floor. A first try filled to the bank and turned the cliffs into free-standing walls, so it was dropped. Routes ride the filled ground, so stairs no longer span gullies. Scene content and colliders are unchanged; only ground heights follow the fill.
+- **Grass banks:** in the game the windmill's slopes are painted grass, not grey strata (`acceptedScenes.grassBanks`; the `aBank` attribute in `render/ground.js` makes the ground shader treat them as level). The scene's own rock faces are unchanged.
+- **Ring-trail path:** Moonroot's ring trail met the seam north-east of the mill and stopped. A connector (`accepted/join-ring-trail`, `final`: its heights come from the finished ground, so the apron does not lift it again) and its painted road join it to the windmill's east paths.
+
+Visual inspection: the game camera, 1180×820, at the same 20 positions as the owner's sheet (W1–W4, E1–E4, S1–S5, N1–N3, C1–C4) plus the low south view.

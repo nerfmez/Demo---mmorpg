@@ -53,6 +53,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
   const mud = new Float32Array(n);
   const stone = new Float32Array(n);
   const dirt = new Float32Array(n);
+  const bank = new Float32Array(n), grassBanks = new Set(world.data.acceptedScenes?.grassBanks || []);
   const coast = new Float32Array(n * 2);
   // Planned town ground (streets, courts, lawns) instead of wild-meadow noise; blurred for the shader.
   const planned = new Float32Array(n), townZones = new Set(art.ground.townZones || []);
@@ -168,7 +169,9 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       }
       // Scene trails narrow to a point across the feather instead of fading out
       // square at the bounds; a connector or road that continues one paints itself.
-      if(accepted){const d=sceneSample(accepted,'trails',x,z),t=(1-aw)*1.8;road[k]=Math.max(road[k],(1-smooth(-.25-t,.45-t,d))*smooth(0,.25,aw));stone[k]*=1-aw;dirt[k]*=1-aw;}
+      if(accepted){const d=sceneSample(accepted,'trails',x,z),t=(1-aw)*1.8;road[k]=Math.max(road[k],(1-smooth(-.25-t,.45-t,d))*smooth(0,.25,aw));stone[k]*=1-aw;dirt[k]*=1-aw;
+        // scenes whose rock faces are their own meshes keep grass on their banks
+        if(grassBanks.has(accepted.id))bank[k]=aw;}
       road[k] *= 1 - stone[k] * .7;
     }
   }
@@ -249,7 +252,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
   const blur = function*(a){return yield* boxBlurSteps(yield* boxBlurSteps(a,w,h,6),w,h,4);};
   const blurred=[];for(const field of [lr,lg,lb,dr,dg,db])blurred.push(yield* blur(field));
   [lr,lg,lb,dr,dg,db]=blurred;
-  const result = { road, plantingRoad, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, town: yield* blur(planned) };
+  const result = { road, plantingRoad, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, bank, town: yield* blur(planned) };
   surfaceCache.set(world,result);
   return result;
 }
@@ -331,7 +334,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
       const tintL = new Float32Array(vw * vh * 3);
       const tintD = new Float32Array(vw * vh * 3);
       const coast = new Float32Array(vw * vh * 2);
-      const townMask = new Float32Array(vw * vh);
+      const townMask = new Float32Array(vw * vh), bankMask = new Float32Array(vw * vh);
       for (let j = 0; j < vh; j++)
         for (let i = 0; i < vw; i++) {
           const gi = ti + i;
@@ -352,6 +355,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
           splat[v * 4 + 2] = surf.mud[k];
           splat[v * 4 + 3] = surf.dirt[k];
           townMask[v] = surf.town[k];
+          bankMask[v] = surf.bank[k];
           coast[v * 2] = surf.coast[k * 2];
           coast[v * 2 + 1] = surf.coast[k * 2 + 1];
           tintL[v * 3] = surf.lr[k];
@@ -381,6 +385,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
       geo.setAttribute('aSplat', new THREE.BufferAttribute(splat, 4));
       geo.setAttribute('aCoast', new THREE.BufferAttribute(coast, 2));
       geo.setAttribute('aTown', new THREE.BufferAttribute(townMask, 1));
+      geo.setAttribute('aBank', new THREE.BufferAttribute(bankMask, 1));
       geo.setAttribute('aTintL', new THREE.BufferAttribute(tintL, 3));
       geo.setAttribute('aTintD', new THREE.BufferAttribute(tintD, 3));
       geo.setIndex(idx);
@@ -413,13 +418,13 @@ function terrainMaterial(world,mat,brush) {
       .replace(
         '#include <common>',
         `#include <common>
-attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; varying vec2 vCoast; varying float vTown;
+attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; attribute float aBank; varying vec2 vCoast; varying float vTown;
 varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; uniform vec3 uRegionShift;`
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y; vTown = aTown;`
+vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = mix(normal.y, 1.0, aBank); vTown = aTown;`
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(

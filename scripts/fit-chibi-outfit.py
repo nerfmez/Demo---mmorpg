@@ -284,7 +284,12 @@ if C.get('armX'):
     armx = lambda d: np.interp(d, ArmX[:, 0], ArmX[:, 1], left=None, right=None) + np.where(d > ArmX[-1, 0], (d - ArmX[-1, 0]) * (ArmX[-1, 1] - ArmX[-2, 1]) / (ArmX[-1, 0] - ArmX[-2, 0]), 0) + np.where(d < ArmX[0, 0], d - ArmX[0, 0], 0)
 else:
     armx = lambda d: d * C.get('armLen', 1.0)
-A = np.stack([sx * armx(ax), y * sA, a1 + (z - a0) * sA], 1)
+# the chibi's own arm centre line (its arm-weighted vertices, a straight fit out along the arm): the
+# sleeve's middle goes there (a fixed height left it below a sloping arm, so it hung off the arm)
+armV = BV[BW[:, armg].sum(1) > 0.6]; armV = armV[np.abs(armV[:, 0]) > 0.14]
+kz = np.polyfit(np.abs(armV[:, 0]), armV[:, 2], 1); ky = np.polyfit(np.abs(armV[:, 0]), armV[:, 1], 1)
+ac = armx(ax)
+A = np.stack([sx * ac, np.polyval(ky, ac) + y * sA, np.polyval(kz, ac) + (z - a0) * sA], 1)
 wl = smooth01(crotchG + 0.02, crotchG - 0.03, z)[:, None]
 wa = (smooth01(0.10, 0.16, ax) * (z > a0 - 0.08))[:, None]
 P = T * (1 - wl) + L * wl

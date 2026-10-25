@@ -58,7 +58,6 @@
     "baseCritChancePct": 5,
     "caps": {
       "cooldownPct": 25,
-      "critChancePct": 40,
       "moveSpeedPct": 30,
       "damageTakenPct": -25,
       "hpRegen": 50,

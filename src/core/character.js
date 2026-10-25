@@ -808,7 +808,7 @@ export function derive(ch, data) {
   d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * ch.stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
   d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
-  d.critChance = d.critChancePct / 100;
+  d.critChance = Math.min(1, d.critChancePct / 100); // no design cap on crit chance (owner, 2026-10-25); 100% means every hit crits
   d.critMult = pc.critMult * (1 + d.critMultPct / 100);
   d.attack = Math.round(d.attack * 10) / 10;
   d.magic = Math.round(d.magic * 10) / 10;

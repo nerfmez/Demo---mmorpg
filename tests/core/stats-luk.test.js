@@ -40,3 +40,12 @@ test('a save from before LUK gains the starting LUK and keeps everything else', 
   assert.equal(back.stats.DEX, ch.stats.DEX);
   assert.equal(back.statPoints, 4, 'no points taken or given');
 });
+
+test('crit chance has no design cap (owner): LUK can take it past the old 40%, up to every hit', () => {
+  assert.equal(data.progression.character.caps.critChancePct, undefined);
+  const ch = createCharacter(data);
+  ch.stats.LUK = 400;
+  assert.ok(derive(ch, data).critChance > 0.4, 'past the old 40% cap');
+  ch.stats.LUK = 5000;
+  assert.equal(derive(ch, data).critChance, 1, 'a chance stops at 100%');
+});

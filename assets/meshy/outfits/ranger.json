@@ -42,14 +42,16 @@
   "boots": "/tmp/claude-0/-home-user-Demo---mmorpg/ccb154d0-d7d4-5b0c-8f8d-38b000991840/scratchpad/bl/out/ranger_boots_unused.glb"
  },
  "chinCut": 0.07,
- "chinBack": 0.3,
+ "chinBack": 0.19,
  "top": 0.895,
  "collar": {
   "from": 0.82,
   "top": 0.96,
   "half": 0.24,
   "inflate": 0.006,
-  "spread": 1.35,
-  "lift": -0.03
- }
+  "spread": 1.0,
+  "lift": 0.0
+ },
+ "drape": 0.1,
+ "drapeY": -0.04
 }

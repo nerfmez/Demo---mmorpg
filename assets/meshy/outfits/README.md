@@ -18,7 +18,9 @@ fit settings for `scripts/fit-chibi-outfit.py` (see `docs/OUTFIT-BASE.md`, "Mode
   `scale`: the script sizes each model by its arm axis (Meshy fits hoods and horns into the unit box
   too) and maps its arm length onto the chibi's (`armX`). The neck, sleeve-end (`cuff`) and boot-top
   cuts were read off each model's colours along the neck, arm and leg.
-- Helms: `scripts/fit-chibi-helm.py assets/meshy/outfits/<set>.json <helm id>` makes
+- Helms: `scripts/fit-chibi-helm.py assets/meshy/outfits/<set>.json <helm id>` makes (headwear only:
+  the generated hair is dropped and the game draws the hero's own hair under it; a hood keeps its
+  drape behind the neck with `drape`/`drapeY`)
   `public/models/outfits/<helm id>.glb` from the same models: leather_cap (hide), beetle_helm (shell),
   spore_hood (spore), horned_helm (crag), ranger_hood (ranger), wardenstalker_hood (warden).
   The ranger and warden hoods drop the collar under the chin (`chinCut`, `chinBack`): turning with

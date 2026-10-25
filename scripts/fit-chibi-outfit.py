@@ -25,6 +25,8 @@ _old, _new = [0, 0.45, 0.769, 0.83, 1.2], [0, FIT.get('crotch', 0.45), FIT.get('
 B = lambda h: np.interp(h, _old, _new)
 C['torsoZ'] = [[g, float(B(c))] for g, c in C['torsoZ']]
 C['armAxis'] = [C['armAxis'][0], float(B(C['armAxis'][1]))]
+# this body's chest is slimmer across than the first one's: the torso's scale with it (`fit.torso`)
+C['torsoScale'] = C['torsoScale'] * FIT.get('torso', 1)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
 

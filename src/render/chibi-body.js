@@ -427,7 +427,7 @@ export function prepareChibiBody(gltf, cfg) {
   const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(bones.Head.matrixWorld.clone().invert());
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], paintedLight: cfg.paintedLight ?? 0, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -471,7 +471,7 @@ export function prepareChibiHair(gltf, cfg) {
   // is not drawn, so it cannot poke through the helm; the fringe in a hood's opening stays
   const u = cfg.underHelm;
   const underHelm = u ? cutAbove(geometry, box.min.y + u.above * (box.max.y - box.min.y), box.min.z + u.front * (box.max.z - box.min.z)) : null;
-  return { geometry, underHelm, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
+  return { geometry, underHelm, underShrink: u?.shrink ?? 1, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
 }
 
 /** The triangles of a geometry less those whose centre lies above height y and behind depth z (a shared copy). */
@@ -504,19 +504,23 @@ function keepPart(geometry, box, [side, at]) {
  * front-to-back (moved back by `fit.back` × head depth, and toward +X by `fit.side` × head width)
  * and its top `fit.lift` × head height above the head's. Toon material with a plain outline hull.
  * Under a `helm`, the hair drawn is its under-helm cut (`underHelm`), if it has one; a modelled helm
- * (`model`) is drawn in its place instead, with the hair it was made with, or over the whole hair
- * when it is a band worn on top of it (`withHair`).
+ * (`model`, headwear only) is drawn over that cut, or over the whole hair when it is a band worn on
+ * top of it (`withHair`).
  */
 export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null } = {}) {
   const headBone = rig.skin?.body.getObjectByName('Head');
   if (!headBone || !T.headBox) return;
-  // a band worn over the hair (a circlet's `withHair` model) goes on top of the hero's whole hair
-  if (model?.withHair) attachChibiHair(rig, T, H, { outline, darkness, rim });
+  // a modelled helm is headwear only: the hero's own hair goes under it (its under-helm cut), or
+  // whole under a band worn over the hair (a circlet's `withHair` model)
+  if (model) attachChibiHair(rig, T, H, { outline, darkness, rim, helm: !model.withHair });
   const hb = T.headBox, b = H.box, f = H.fit;
   const hw = hb.max.x - hb.min.x, hd = hb.max.z - hb.min.z, hh = hb.max.y - hb.min.y;
   // per axis: the chibi head is rounder than the head the hair was made on
-  const sx = (hw * (f.width ?? 1.15)) / (b.max.x - b.min.x), sz = (hd * (f.depth ?? 1.15)) / (b.max.z - b.min.z);
+  let sx = (hw * (f.width ?? 1.15)) / (b.max.x - b.min.x), sz = (hd * (f.depth ?? 1.15)) / (b.max.z - b.min.z);
   const sy = ((sx + sz) / 2) * (f.height ?? 1);
+  // under a helm the hair is drawn a little slimmer across and front to back (`underHelm.shrink`), so
+  // its side tips stay inside the helm
+  if (helm && !model) { const k = H.underShrink ?? 1; sx *= k; sz *= k; }
   const g = new THREE.Group();
   g.scale.set(sx, sy, sz);
   g.position.set((hb.min.x + hb.max.x) / 2 + hw * (f.side ?? 0) - sx * (b.min.x + b.max.x) / 2,
@@ -589,6 +593,8 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
   for (const mesh of meshes) {
     const src = mesh.material;
     mesh.material = paintedLight(toonCopy(src, flash, rim, false), T.paintedLight);
+    // `tint`: the base's pale painted skin warmed toward the sheet's peach under the cool scene light
+    if (T.tint) { mesh.material.color.setRGB(...T.tint); mesh.material.emissive.multiply(mesh.material.color); }
     mesh.material.side = THREE.FrontSide; // Meshy marks it double-sided; the body is closed
     if (T.faceShadow) {
       const follow = faceShadowMaterial(mesh.material, body.getObjectByName('Head'), T.faceShadow.bind, T.faceShadow);

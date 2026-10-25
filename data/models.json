@@ -657,15 +657,17 @@
     },
     "hero_chibi": {
       "paintedLight": 0.2,
+      "tint": [1, 0.9, 0.8],
       "file": "models/hero_chibi.glb",
       "chibi": true,
       "tris": 5200,
       "fit": {
-        "_doc": "The body's own landmarks (m) the modelled outfits are fitted to (scripts/fit-chibi-outfit.py): the crotch, the T-pose arm axis, the neck cut and the fingertips out from the middle.",
+        "_doc": "The body's own landmarks (m) the modelled outfits are fitted to (scripts/fit-chibi-outfit.py): the crotch, the T-pose arm axis, the neck cut, the fingertips out from the middle, and the torso's width against the first chibi body's.",
         "crotch": 0.49,
         "armAxis": 0.764,
         "neck": 0.852,
-        "tip": 0.523
+        "tip": 0.523,
+        "torso": 0.85
       },
       "armDrop": 1.3,
       "gearScale": 0.65,
@@ -853,14 +855,15 @@
       "chibiHair": true,
       "tris": 653,
       "underHelm": {
-        "_doc": "Under a helm (not a circlet) the hair above `above` of its height and behind `front` of its depth is not drawn (chibi-body.js cutAbove).",
+        "_doc": "Under a helm (not a circlet) the hair above `above` of its height and behind `front` of its depth is not drawn (chibi-body.js cutAbove), and the rest is drawn `shrink` as wide and deep.",
         "above": 0.55,
-        "front": 0.72
+        "front": 0.72,
+        "shrink": 0.85
       },
       "fit": {
-        "width": 1.46,
-        "depth": 1.4,
-        "height": 1,
+        "width": 1.31,
+        "depth": 1.26,
+        "height": 1.04,
         "lift": 0.24,
         "back": 0,
         "side": 0
@@ -982,20 +985,20 @@
     "outfit_leather_cap": {
       "file": "models/outfits/leather_cap.glb",
       "chibiOutfit": "helm",
-      "tris": 889,
-      "source": "The headwear of the hide set's model (assets/meshy/outfits/hide_meshy.glb) with the hair under it, the face cut away, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/hide.json leather_cap."
+      "tris": 734,
+      "source": "The headwear of the hide set's model (assets/meshy/outfits/hide_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/hide.json leather_cap."
     },
     "outfit_beetle_helm": {
       "file": "models/outfits/beetle_helm.glb",
       "chibiOutfit": "helm",
       "tris": 966,
-      "source": "The headwear of the shell set's model (assets/meshy/outfits/shell_meshy.glb) with the hair under it, the face cut away, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/shell.json beetle_helm."
+      "source": "The headwear of the shell set's model (assets/meshy/outfits/shell_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/shell.json beetle_helm."
     },
     "outfit_spore_hood": {
       "file": "models/outfits/spore_hood.glb",
       "chibiOutfit": "helm",
-      "tris": 825,
-      "source": "The headwear of the spore set's model (assets/meshy/outfits/spore_meshy.glb) with the hair under it, the face cut away, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/spore.json spore_hood."
+      "tris": 660,
+      "source": "The headwear of the spore set's model (assets/meshy/outfits/spore_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/spore.json spore_hood."
     },
     "outfit_feather_circlet": {
       "file": "models/outfits/feather_circlet.glb",
@@ -1007,20 +1010,20 @@
     "outfit_horned_helm": {
       "file": "models/outfits/horned_helm.glb",
       "chibiOutfit": "helm",
-      "tris": 1010,
-      "source": "The headwear of the crag set's model (assets/meshy/outfits/crag_meshy.glb) with the hair under it, the face cut away, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/crag.json horned_helm."
+      "tris": 723,
+      "source": "The headwear of the crag set's model (assets/meshy/outfits/crag_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/crag.json horned_helm."
     },
     "outfit_ranger_hood": {
       "file": "models/outfits/ranger_hood.glb",
       "chibiOutfit": "helm",
-      "tris": 686,
-      "source": "The headwear of the ranger set's model (assets/meshy/outfits/ranger_meshy.glb) with the hair under it, the face cut away, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/ranger.json ranger_hood."
+      "tris": 572,
+      "source": "The headwear of the ranger set's model (assets/meshy/outfits/ranger_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/ranger.json ranger_hood."
     },
     "outfit_wardenstalker_hood": {
       "file": "models/outfits/wardenstalker_hood.glb",
       "chibiOutfit": "helm",
-      "tris": 597,
-      "source": "The headwear of the warden set's model (assets/meshy/outfits/warden_meshy.glb) with the hair under it, the face cut away, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/warden.json wardenstalker_hood."
+      "tris": 414,
+      "source": "The headwear of the warden set's model (assets/meshy/outfits/warden_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/warden.json wardenstalker_hood."
     }
   },
   "monsters": {

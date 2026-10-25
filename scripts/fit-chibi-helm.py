@@ -34,9 +34,12 @@ def head(g, neck):
     w, h = img.size; px = np.array(img.pixels[:]).reshape(h, w, 4)[:, :, :3] * 255
     bm = bmesh.new(); bm.from_mesh(g.data)
     bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-5)
-    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, neck), plane_no=(0, 0, 1))
+    # a hood's drape hangs down behind the neck (`drape`: how far below the neck cut, behind `drapeY`)
+    dr = C.get('drape', 0) if g is not ref else 0
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, neck - dr), plane_no=(0, 0, 1))
     bmesh.ops.triangulate(bm, faces=bm.faces[:])
-    bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.calc_center_median().z < neck], context='FACES')
+    bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.calc_center_median().z < neck - dr or
+                               (f.calc_center_median().z < neck and f.calc_center_median().y < C.get('drapeY', 0))], context='FACES')
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
     bm.faces.ensure_lookup_table()
     uvl = bm.loops.layers.uv.active
@@ -90,13 +93,37 @@ def head(g, neck):
     # and the bare neck below the face (the chibi's own neck is there), and the tops of shoulder
     # pieces out to the sides (the armour has them; the helm turns with the head)
     face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.07 and np.abs(cols[f] - skin).max() < 40)
-    face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.09 and abs(f.calc_center_median().x) > 0.11)
+    face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.09 and abs(f.calc_center_median().x) > 0.11
+                and not (dr and f.calc_center_median().y > C.get('drapeY', 0)))
     if 'chinCut' in C:
         # and the collar or scarf under the chin, in front of the neck (`chinCut` below the eyes, in
         # front of `chinBack` behind them): the armour has its own, and this one, turning with the
         # head, would tear off it; a hood's drape behind the neck stays
         face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - C['chinCut']
                     and f.calc_center_median().y < mid[1] + C.get('chinBack', 0.2))
+    if C.get('helmNoHair', True):
+        # and the generated model's own hair (the game draws the hero's hair under the helm): its
+        # colour is read off the fringe on the forehead (the frontmost faces just above the eyes);
+        # faces of about that colour go when the helm covers them (a ray out from the head's middle
+        # through them meets it again) or when they hang in the face's opening; a brim or trim of
+        # that colour on the outside stays
+        fr = [f for f in bm.faces if f not in face and abs(f.calc_center_median().x - mid[0]) < 0.04
+              and mid[2] + 0.025 < f.calc_center_median().z < mid[2] + 0.07]
+        fr = sorted(fr, key=lambda f: f.calc_center_median().y)[:6]
+        hc = np.median([cols[f] for f in fr], 0) if fr else None
+        if hc is not None and hc.max() - hc.min() < 40 and hc.min() > 120:
+            tol = C.get('hairTol', 45)
+            tree = BVHTree.FromBMesh(bm)
+            ctr = Vector((mid[0], mid[1] + 0.1, mid[2] + 0.02))  # the head's middle, behind the eyes
+            hair = set()
+            for f in bm.faces:
+                if f in face or np.abs(cols[f] - hc).max() >= tol: continue
+                c = f.calc_center_median(); d = (c - ctr).normalized()
+                opening = abs(c.x - mid[0]) < half + 0.02 and c.z < mid[2] + 0.1 and c.y < mid[1] + 0.06
+                loc, n, i, dist = tree.ray_cast(c + d * 0.004, d, 0.3)
+                if opening or (i is not None and bm.faces[i] is not f): hair.add(f)
+            print('hair colour', np.round(hc), 'faces', len(hair))
+            face.update(hair)
     bmesh.ops.delete(bm, geom=list(face), context='FACES')
     # what is left on the face (eyes, brows, mouth) is small islands: keep the large pieces
     seen, keep = set(), set()

@@ -38,6 +38,8 @@ test('the chibi painted light only lifts its shading', () => {
   // the Meshy textures carry their own shading: a fraction of the texture glows so the toon light
   // does not darken it twice, but it never flattens the cel ramp away
   assert.ok(k === undefined || (k >= 0 && k <= 0.6), 'paintedLight is a fraction up to 0.6');
+  const t = data.models.characters.hero_chibi.tint;
+  assert.ok(t === undefined || (t.length === 3 && t.every((c) => c > 0.6 && c <= 1)), 'tint only warms the skin a little');
 });
 
 test('the chibi torso flatten bands are bounded', () => {

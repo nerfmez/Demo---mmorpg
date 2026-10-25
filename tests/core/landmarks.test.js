@@ -13,7 +13,9 @@ const BUILTIN = { wreck: (wd) => wd.wreck.at, lighthouse: (wd) => wd.harbor.ligh
 test('each zone has a landmark of its own kind, with a name in both languages', () => {
   const kinds = new Set(), ids = new Set();
   for (const [id, wd] of Object.entries(data.maps)) {
-    for (const zone of wd.zones) assert.ok(wd.landmarks.some((l) => l.zone === zone.id), `${id}/${zone.id} has a landmark`);
+    // a landmark carried over a seam with its scene still names the zone it left (serves)
+    const serving = Object.values(data.maps).flatMap((m) => m.landmarks).filter((l) => l.serves?.map === id);
+    for (const zone of wd.zones) assert.ok(wd.landmarks.some((l) => l.zone === zone.id) || serving.some((l) => l.serves.zone === zone.id), `${id}/${zone.id} has a landmark`);
     for (const l of wd.landmarks) {
       assert.ok(!kinds.has(l.kind), `${l.kind} is used once in the whole world`);
       assert.ok(!ids.has(l.id), l.id);

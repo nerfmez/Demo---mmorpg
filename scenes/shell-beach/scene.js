@@ -119,18 +119,6 @@ function placeCoastPlants(){
   }
 }
 FOL.leaf=['#2c6d55','#518f40','#a9bf48'];FOL.shrub=['#2e6750','#528c3c','#a4b942'];STONE.splice(0,STONE.length,...ruinPalette);
-// Clear what the seeded passes placed on the flattened headland (prepare.py, `ghost`), then
-// let the ground take its flattened shape. Large merged parts (path banks) are kept.
-function ghostClear(){
-  const drop=list=>{for(let i=list.length-1;i>=0;i--)if(inGhost(list[i].x,list[i].z))list.splice(i,1);};
-  for(const list of[shrubItems,treeItems,grassItems,flowerItems,frondItems,COLLIDERS])drop(list);
-  const box=new THREE.Box3();
-  for(const list of[stoneParts,stoneLines,woodParts,coconutParts])for(let i=list.length-1;i>=0;i--){
-    box.setFromBufferAttribute(list[i].getAttribute('position'));
-    if(box.max.x-box.min.x<6&&box.max.z-box.min.z<6&&inGhost((box.min.x+box.max.x)/2,(box.min.z+box.max.z)/2))list.splice(i,1);
-  }
-  GHOST_ON=true;
-}
 function build(){
   const[x,z]=P(.5,.752);HERO.x=x;HERO.z=z;HERO.face=-2.7;
   scene.add(buildGround());scene.add(buildCliffs());buildLedges();
@@ -138,7 +126,6 @@ function build(){
   for(const[u,v,r,c]of[[.40,.465,.8,true],[.51,.445,.9,false],[.665,.49,1,true],[.70,.50,.9,true],[.35,.60,.8,true],[.60,.78,.85,true],[.88,.79,.6,false],[.25,.62,.6,false],[.47,.70,.55,true],[.56,.55,.5,false],[.76,.66,.6,true],[.31,.74,.5,false]]){
     const[x,z]=P(u,v),s=scallop(r*1.6,c);s.position.set(x,height(x,z)+.04,z);s.rotation.y=R(-.6,.6);scene.add(s);
   }
-  ghostClear();
   const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
   clearConchPlants();placeCoastPlants();scene.add(giantConch());
   scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));scene.add(buildSea());setStatus();

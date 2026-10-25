@@ -91,7 +91,8 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
      if(w>=.999&&!repair){if(!reach(x,z)){if(lift)positions.setY(i,positions.getY(i)+lift);continue;}const shift=acceptedGroundEdit(world.data,spec,x,z,world.heightfield.acceptedConnectors).shift;if(Math.abs(shift)>.002)positions.setY(i,positions.getY(i)+shift);continue;}
      const base=sceneSample(spec,'heights',x,z);positions.setY(i,world.groundY(x,z)+(positions.getY(i)-base)*w);
     }
-    if(mesh.name==='accepted-cliffs'&&spec.id==='shell-beach')cliffLook={material:mesh.material,depth:mesh.customDepthMaterial};
+    // edge cliffs take a scene's cliff material: the Conch Coast's where it is in this region
+    if(mesh.name==='accepted-cliffs'&&(spec.id==='shell-beach'||!cliffLook))cliffLook={material:mesh.material,depth:mesh.customDepthMaterial};
     // nothing of the scene stands inside an edge cliff's plateau (core/edge-cliffs.js)
     if(world.data.acceptedScenes?.edgeCliffs?.length)mesh.geometry=dropInsideEdgeCliffs(world.data,mesh.geometry);
     if(mesh.name==='accepted-cliffs')for(const road of world.data.acceptedScenes.connectors.filter(r=>r.repair))for(let i=0;i<positions.count;i++){const x=positions.getX(i),z=positions.getZ(i);if(distToPolyline(x,z,road.points)<road.width/2+1)positions.setY(i,Math.min(positions.getY(i),world.groundY(x,z)-.08));}

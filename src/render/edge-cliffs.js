@@ -11,6 +11,16 @@ const MOSS = ['#a2c64a', '#b4d152', '#8fb843'];
 function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 /** One merged geometry (position, colour) for every cliff stretch of every edge cliff. */
+function insideParts(S, b) {
+  const inside = q => q.x >= b.minX && q.x <= b.maxX && q.z >= b.minZ && q.z <= b.maxZ, parts = [];
+  let a = -1;
+  for (let i = 0; i <= S.length; i++) {
+    const on = i < S.length && inside(S[i]);
+    if (on && a < 0) a = i;
+    if (!on && a >= 0) { parts.push(S.slice(Math.max(0, a - 1), Math.min(S.length, i + 1))); a = -1; }
+  }
+  return parts.filter(p => p.length > 1);
+}
 export function edgeCliffGeometry(world) {
   const pos = [], col = [], tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), nn = new THREE.Vector3(), shade = new THREE.Color();
   const quad = (a, b, c, d, out, color) => {
@@ -39,6 +49,11 @@ export function edgeCliffGeometry(world) {
         q.base = Math.min(ground(q.x + q.nx * 1.4, q.z + q.nz * 1.4), ground(q.x + q.nx * 2.4, q.z + q.nz * 2.4)) - .3;
         q.top = Math.min(cliff.top, ground(q.x - q.nx * (lean + .4), q.z - q.nz * (lean + .4)) + .08);
       });
+      // a cliff crossing into a neighbouring map is drawn by each map up to its own bound
+      // (one sample over, so the two halves meet)
+      for (const part of insideParts(S, world.data.bounds)) columns(part);
+    }
+    function columns(S) {
       const cols = []; let i0 = 0;
       while (i0 < S.length - 1) {
         const w = random() < .22 ? R(2.4, 3.6) : R(1.0, 1.9); let i1 = i0 + 1;

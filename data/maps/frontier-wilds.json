@@ -474,6 +474,574 @@
           156.8
         ]
       ]
+    },
+    {
+      "id": "shell-beach/stairs",
+      "width": 3.09,
+      "points": [
+        [
+          138.515,
+          169.883
+        ],
+        [
+          138.2,
+          169.547
+        ],
+        [
+          137.89,
+          169.197
+        ],
+        [
+          137.58,
+          168.845
+        ],
+        [
+          137.267,
+          168.5
+        ],
+        [
+          136.949,
+          168.175
+        ],
+        [
+          136.622,
+          167.879
+        ],
+        [
+          136.283,
+          167.625
+        ],
+        [
+          135.916,
+          167.439
+        ],
+        [
+          135.526,
+          167.301
+        ],
+        [
+          135.129,
+          167.185
+        ],
+        [
+          134.744,
+          167.063
+        ],
+        [
+          134.389,
+          166.91
+        ],
+        [
+          134.082,
+          166.699
+        ],
+        [
+          133.832,
+          166.404
+        ],
+        [
+          133.602,
+          166.016
+        ],
+        [
+          133.397,
+          165.569
+        ],
+        [
+          133.228,
+          165.099
+        ],
+        [
+          133.108,
+          164.641
+        ],
+        [
+          133.046,
+          164.232
+        ],
+        [
+          133.056,
+          163.909
+        ],
+        [
+          133.145,
+          163.719
+        ],
+        [
+          133.315,
+          163.614
+        ],
+        [
+          133.539,
+          163.557
+        ],
+        [
+          133.794,
+          163.515
+        ],
+        [
+          134.052,
+          163.457
+        ],
+        [
+          134.289,
+          163.348
+        ],
+        [
+          134.484,
+          163.15
+        ],
+        [
+          134.645,
+          162.797
+        ],
+        [
+          134.764,
+          162.344
+        ],
+        [
+          134.865,
+          161.835
+        ],
+        [
+          134.97,
+          161.311
+        ],
+        [
+          135.102,
+          160.813
+        ],
+        [
+          135.284,
+          160.383
+        ],
+        [
+          135.539,
+          160.056
+        ],
+        [
+          135.866,
+          159.816
+        ],
+        [
+          136.245,
+          159.636
+        ],
+        [
+          136.656,
+          159.492
+        ],
+        [
+          137.079,
+          159.361
+        ],
+        [
+          137.495,
+          159.219
+        ],
+        [
+          137.884,
+          159.043
+        ],
+        [
+          138.233,
+          158.824
+        ],
+        [
+          138.565,
+          158.585
+        ],
+        [
+          138.887,
+          158.331
+        ],
+        [
+          139.203,
+          158.069
+        ],
+        [
+          139.517,
+          157.802
+        ],
+        [
+          139.831,
+          157.537
+        ],
+        [
+          140.15,
+          157.278
+        ]
+      ],
+      "acceptedScene": "shell-beach"
+    },
+    {
+      "id": "shell-beach/trail-0",
+      "width": 3.315,
+      "points": [
+        [
+          135.622,
+          173.867
+        ],
+        [
+          136.258,
+          173.542
+        ],
+        [
+          136.891,
+          173.212
+        ],
+        [
+          137.523,
+          172.879
+        ],
+        [
+          138.158,
+          172.551
+        ],
+        [
+          138.796,
+          172.23
+        ],
+        [
+          139.442,
+          171.923
+        ],
+        [
+          140.096,
+          171.631
+        ],
+        [
+          140.757,
+          171.356
+        ],
+        [
+          141.423,
+          171.094
+        ],
+        [
+          142.094,
+          170.842
+        ],
+        [
+          142.767,
+          170.597
+        ],
+        [
+          143.441,
+          170.357
+        ],
+        [
+          144.117,
+          170.119
+        ],
+        [
+          144.793,
+          169.881
+        ],
+        [
+          145.468,
+          169.641
+        ],
+        [
+          146.142,
+          169.4
+        ],
+        [
+          146.817,
+          169.163
+        ],
+        [
+          147.493,
+          168.928
+        ],
+        [
+          148.169,
+          168.695
+        ],
+        [
+          148.845,
+          168.463
+        ],
+        [
+          149.521,
+          168.23
+        ],
+        [
+          150.197,
+          167.996
+        ]
+      ],
+      "acceptedScene": "shell-beach"
+    },
+    {
+      "id": "shell-beach/trail-1",
+      "width": 2.298,
+      "points": [
+        [
+          176.59,
+          164.333
+        ],
+        [
+          176.816,
+          163.663
+        ],
+        [
+          177.051,
+          162.996
+        ],
+        [
+          177.291,
+          162.33
+        ],
+        [
+          177.531,
+          161.665
+        ],
+        [
+          177.767,
+          160.999
+        ],
+        [
+          177.89,
+          160.3
+        ],
+        [
+          178.212,
+          159.656
+        ],
+        [
+          178.412,
+          158.978
+        ],
+        [
+          178.592,
+          158.294
+        ],
+        [
+          178.749,
+          157.605
+        ],
+        [
+          178.885,
+          156.911
+        ],
+        [
+          179.002,
+          156.213
+        ],
+        [
+          179.106,
+          155.514
+        ],
+        [
+          179.199,
+          154.813
+        ],
+        [
+          179.284,
+          154.111
+        ],
+        [
+          179.365,
+          153.408
+        ],
+        [
+          179.445,
+          152.706
+        ],
+        [
+          179.526,
+          152.003
+        ],
+        [
+          179.613,
+          151.301
+        ],
+        [
+          179.707,
+          150.601
+        ]
+      ],
+      "acceptedScene": "shell-beach"
+    },
+    {
+      "id": "shell-beach/trail-2",
+      "width": 2.33,
+      "points": [
+        [
+          134.416,
+          161.662
+        ],
+        [
+          134.743,
+          161.024
+        ],
+        [
+          135.061,
+          160.382
+        ],
+        [
+          135.375,
+          159.737
+        ],
+        [
+          135.691,
+          159.094
+        ],
+        [
+          136.014,
+          158.454
+        ],
+        [
+          136.348,
+          157.82
+        ],
+        [
+          136.7,
+          157.196
+        ],
+        [
+          137.073,
+          156.584
+        ],
+        [
+          137.47,
+          155.987
+        ],
+        [
+          137.888,
+          155.405
+        ],
+        [
+          138.321,
+          154.834
+        ],
+        [
+          138.766,
+          154.273
+        ],
+        [
+          139.219,
+          153.717
+        ],
+        [
+          139.675,
+          153.164
+        ],
+        [
+          140.131,
+          152.611
+        ],
+        [
+          140.583,
+          152.055
+        ],
+        [
+          141.029,
+          151.494
+        ]
+      ],
+      "acceptedScene": "shell-beach"
+    },
+    {
+      "id": "accepted/shell-upper-apron",
+      "width": 2.33,
+      "points": [
+        [
+          134.416,
+          161.662
+        ],
+        [
+          134.743,
+          161.024
+        ],
+        [
+          135.061,
+          160.382
+        ],
+        [
+          135.375,
+          159.737
+        ],
+        [
+          135.691,
+          159.094
+        ],
+        [
+          136.014,
+          158.454
+        ],
+        [
+          136.348,
+          157.82
+        ],
+        [
+          136.7,
+          157.196
+        ],
+        [
+          137.073,
+          156.584
+        ],
+        [
+          137.47,
+          155.987
+        ],
+        [
+          137.888,
+          155.405
+        ],
+        [
+          138.321,
+          154.834
+        ],
+        [
+          138.766,
+          154.273
+        ],
+        [
+          139.219,
+          153.717
+        ],
+        [
+          139.675,
+          153.164
+        ],
+        [
+          140.131,
+          152.611
+        ],
+        [
+          140.583,
+          152.055
+        ],
+        [
+          141.029,
+          151.494
+        ]
+      ],
+      "acceptedScene": "connector",
+      "heights": [
+        3.201,
+        3.579,
+        3.957,
+        4.335,
+        4.713,
+        5.091,
+        5.469,
+        5.847,
+        6.225,
+        6.603,
+        6.981,
+        7.359,
+        7.736,
+        8.114,
+        8.492,
+        8.87,
+        9.248,
+        9.626
+      ],
+      "repair": true
     }
   ],
   "river": {
@@ -1530,8 +2098,224 @@
         174.4
       ],
       [
+        98,
+        174.55
+      ],
+      [
+        100,
+        174.275
+      ],
+      [
+        102,
+        173.362
+      ],
+      [
+        104,
+        172.131
+      ],
+      [
+        106,
+        170.899
+      ],
+      [
+        108,
+        169.986
+      ],
+      [
+        110,
+        169.711
+      ],
+      [
+        112,
+        169.97
+      ],
+      [
+        114,
+        170.643
+      ],
+      [
+        116,
+        171.427
+      ],
+      [
+        118,
+        171.914
+      ],
+      [
+        120,
+        172.7
+      ],
+      [
+        122,
+        173.37
+      ],
+      [
+        124,
+        173.901
+      ],
+      [
+        126,
+        175.053
+      ],
+      [
+        128,
+        175.981
+      ],
+      [
+        130,
+        176.997
+      ],
+      [
+        132,
+        178.178
+      ],
+      [
+        134,
+        178.79
+      ],
+      [
+        136,
+        179.508
+      ],
+      [
+        138,
+        180.166
+      ],
+      [
+        140,
+        180.635
+      ],
+      [
+        142,
+        181.471
+      ],
+      [
+        144,
+        182.068
+      ],
+      [
+        146,
+        182.695
+      ],
+      [
+        148,
+        183.535
+      ],
+      [
+        150,
+        184.05
+      ],
+      [
+        152,
+        184.231
+      ],
+      [
+        154,
+        184.381
+      ],
+      [
+        156,
+        184.296
+      ],
+      [
+        158,
+        184.536
+      ],
+      [
         160,
-        179.2
+        184.733
+      ],
+      [
+        162,
+        184.976
+      ],
+      [
+        164,
+        185.473
+      ],
+      [
+        166,
+        185.648
+      ],
+      [
+        168,
+        185.86
+      ],
+      [
+        170,
+        186.033
+      ],
+      [
+        172,
+        185.934
+      ],
+      [
+        174,
+        186.152
+      ],
+      [
+        176,
+        186.204
+      ],
+      [
+        178,
+        186.168
+      ],
+      [
+        180,
+        186.419
+      ],
+      [
+        182,
+        186.362
+      ],
+      [
+        184,
+        186.443
+      ],
+      [
+        186,
+        186.566
+      ],
+      [
+        188,
+        186.389
+      ],
+      [
+        190,
+        186.51
+      ],
+      [
+        192,
+        186.52
+      ],
+      [
+        194,
+        186.386
+      ],
+      [
+        196,
+        185.402
+      ],
+      [
+        198,
+        183.241
+      ],
+      [
+        200,
+        180.493
+      ],
+      [
+        202,
+        177.745
+      ],
+      [
+        204,
+        175.584
+      ],
+      [
+        206,
+        174.6
       ],
       [
         224,
@@ -1547,7 +2331,9 @@
       "period": 7.5,
       "runup": 2.6,
       "retreat": 1.6,
-      "foamWidth": 0.075
+      "foamWidth": 0.075,
+      "filmTop": 1.5,
+      "filmTopDoc": "The beach swash film (render/ground.js) drapes over ground up to this many metres above the water; higher ground beside the shoreline (a headland, a terrace) keeps it underneath."
     }
   },
   "landmarks": [
@@ -1751,6 +2537,26 @@
         ]
       ],
       "clear": 5
+    },
+    {
+      "id": "giant_conch",
+      "kind": "giant_conch",
+      "zone": "coast",
+      "at": [162.4, 170.1],
+      "rot": 2.15,
+      "name": "The Singing Conch",
+      "nameTh": "หอยสังข์ยักษ์ขับขาน",
+      "colliders": [
+        [
+          0,
+          0,
+          1.9
+        ]
+      ],
+      "clear": 4.5,
+      "builtin": false,
+      "acceptedScene": "shell-beach",
+      "serves": {"map": "azure-harbor-v1", "zone": "coast", "note": "The Conch Coast moved west over the seam with its scene (owner, 25 October 2026); the shore runs on into Azure Coast's coast, which it still names."}
     }
   ],
   "atlas": {
@@ -2327,5 +3133,178 @@
         ]
       }
     ]
+  },
+  "acceptedScenes": {
+    "enabled": true,
+    "apron": {"_doc": "Outer apron (core/accepted-scenes.js acceptedApronOffsets): native ground in a ring outside these scene sides is raised or lowered to meet the scene's edge, so a high rim meets the world on a slope no steeper than 1/k instead of dropping inside the 5 m feather. Ring width = clamp(k*rise, min, max) m; the edge rise is smoothed smoothAlong m along the side. Sides left out face the map edge, the sea, the city or a neighbouring scene too close for a slope.", "k": 3, "min": 6, "max": 22, "smoothAlong": 3, "inset": 0.5, "dryMargin": 0.4, "pondMargin": 12, "sides": {"shell-beach": "NW"}, "scene": {"shell-beach": {"inland": true, "smoothAlong": 16}}, "sceneDoc": "Per-scene overrides (data/world.json apron.sceneDoc; smoothAlong too). The coast here lies within a metre of the water far inland, so the Conch Coast's back and west sides take the apron over low dry ground too (inland), smoothed over 16 m along each side so its 7 m terraces do not run on as steep ridges. Its east side meets the west headland's plateau."},
+    "source": "00bed638a57b6217f675e1a279fcc8fcf769dda7",
+    "_doc": "Accepted scenes placed in this region (data/accepted-scenes, scene.region): the Conch Coast west of the arrival beach (owner, 25 October 2026). Same settings as data/world.json acceptedScenes; coordinates are this map's local metres.",
+    "grassBanks": [
+      "shell-beach"
+    ],
+    "grassBanksDoc": "Scenes whose rock faces are their own meshes: the ground's slope paint keeps grass on their steep banks instead of painting grey strata (render/ground.js aBank).",
+    "edgeCliffs": [
+      {"id": "west-headland", "top": 6.5, "lean": 1.3, "ramp": 11, "points": [[190, 183, "open"], [190, 140, "ramp", 4.5], [199, 139.5, "ramp"], [214, 141, "ramp"], [224, 143, "ramp"], [231, 146.5], [233, 153], [233, 168], [231.5, 175], [227, 177.5], [218, 177], [208, 177.5], [200, 181], [194, 185], [190, 185.5]], "note": "The arrival beach ends on the left in a high rock headland (owner, 25 October 2026): from the Conch Coast's east headland (open edge, same height) across the Greenhollow Frontier seam to a cliff face over the beach and a sea cliff; its north side ramps down to the land. The same outline in world metres is kept by both maps (data/world.json and data/maps/frontier-wilds.json); each draws its own half."}
+    ],
+    "edgeCliffsDoc": "core/edge-cliffs.js: a plateau `top` m high inside a closed outline; points mark cliff edges (default, a face `lean` m deep, rock columns in render/edge-cliffs.js), ramp edges (a slope `ramp` m wide, or the point's 4th value) or open edges (full height up to the edge, where it meets ground as high). Local metres of this map; an outline crossing a seam is kept by both maps and each draws the faces inside its bounds. Applied after the scenes and seams as a floor under the ground; scene props and colliders inside are left out.",
+    "foliage": {
+      "_doc": "In the game the scenes' trees, shrubs and grass are the map's own (render/accepted-scenes.js): the game's geometry, palette and materials, crowns in the map's proportions and tint. Ordinary trees: each scene's authored sizes (world scale of the trunk's width) times treeScale[scene], which brings its typical tree near the map's (median 0.9; the forest's a little larger) and keeps its own variation. bigTrees stay big: the tree nearest 'at' (world x, z, within 1 m) takes 'size' (world scale; the map's largest ordinary tree is about 1.14). Colliders keep the scene data.",
+      "crownTint": "#edf1e2",
+      "chunk": 16,
+      "chunkDoc": "Each scene's instanced plants (crowns, trunks, shrubs, flowers, fronds) are split into chunk-metre square pieces, as the map's own plants are, so the camera and the sun's shadow box draw only the pieces they reach. Grass keeps its own per-clump culling.",
+      "treeScale": {
+        "shell-beach": 0.96
+      },
+      "bigTrees": []
+    },
+    "surround": {
+      "_doc": "The ring outside each accepted scene where the town's earth clearing and soil patches give way to grass (render/ground.js, ui/mapimage.js); the grass keeps the map's own zone colours, in the scenes too. Distances in metres from the scene bounds; keep corridors leave routes and waypoint clearings earth.",
+      "clearRing": 12,
+      "soilRing": 22,
+      "soilFade": 0.9,
+      "wobble": 3,
+      "keepWidth": 2.5,
+      "connectorExtension": 14,
+      "waypointKeep": [
+        6,
+        10
+      ],
+      "plant": {
+        "_doc": "Scene-surround planting (core/world.js plantSceneSurrounds): trees (collision circles of type scene-tree) and shrubs (decor.sceneShrubs) in a ring outside each accepted scene, kept off roads, waypoints, beaches and water, with one seed per scene placed after every native pass. Shrubs grow in clumps (clump: shrubs per clump, within clumpRadius m), treeBase of them at a ring tree's foot. Distances in metres outside the bounds.",
+        "seed": 20261025,
+        "trees": {
+          "perScene": 18,
+          "inner": 1.5,
+          "outer": 16,
+          "spacing": 4.5,
+          "scale": [
+            0.85,
+            1.3
+          ],
+          "slope": 0.6,
+          "roadPad": 1.5
+        },
+        "shrubs": {
+          "perScene": 90,
+          "inner": 0.5,
+          "outer": 12,
+          "spacing": 0.9,
+          "clump": [
+            2,
+            4
+          ],
+          "clumpRadius": 1.8,
+          "treeBase": 0.5,
+          "size": [
+            0.75,
+            1.3
+          ],
+          "slope": 1.4
+        }
+      }
+    },
+    "connectors": [
+      {
+        "id": "accepted/shell-upper-apron",
+        "width": 2.33,
+        "points": [
+          [
+            134.416,
+            161.662
+          ],
+          [
+            134.743,
+            161.024
+          ],
+          [
+            135.061,
+            160.382
+          ],
+          [
+            135.375,
+            159.737
+          ],
+          [
+            135.691,
+            159.094
+          ],
+          [
+            136.014,
+            158.454
+          ],
+          [
+            136.348,
+            157.82
+          ],
+          [
+            136.7,
+            157.196
+          ],
+          [
+            137.073,
+            156.584
+          ],
+          [
+            137.47,
+            155.987
+          ],
+          [
+            137.888,
+            155.405
+          ],
+          [
+            138.321,
+            154.834
+          ],
+          [
+            138.766,
+            154.273
+          ],
+          [
+            139.219,
+            153.717
+          ],
+          [
+            139.675,
+            153.164
+          ],
+          [
+            140.131,
+            152.611
+          ],
+          [
+            140.583,
+            152.055
+          ],
+          [
+            141.029,
+            151.494
+          ]
+        ],
+        "acceptedScene": "shell-beach",
+        "heights": [
+          3.201,
+          3.579,
+          3.957,
+          4.335,
+          4.713,
+          5.091,
+          5.469,
+          5.847,
+          6.225,
+          6.603,
+          6.981,
+          7.359,
+          7.736,
+          8.114,
+          8.492,
+          8.87,
+          9.248,
+          9.626
+        ],
+        "repair": true
+      }
+    ],
+    "clearanceRoads": []
   }
 }

@@ -4,16 +4,20 @@ import {loadData} from '../../src/core/data-node.js';
 import {createWorld} from '../../src/core/world.js';
 import {acceptedSceneLayout,sceneWeight,sceneSample} from '../../src/core/accepted-scenes.js';
 import {acceptedGroundEdit} from '../../src/core/accepted-shift.js';
-import {distToPolyline} from '../../src/core/math.js';
+import {distToPolyline,polylineZAtX as polylineZ} from '../../src/core/math.js';
 import {createCharacter,migrateCharacter} from '../../src/core/character.js';
 import {OpenWorldGame} from '../../src/core/open-world-game.js';
 import {encounterLayout} from '../../src/core/encounters.js';
 const data=loadData(),world=createWorld(data.world);
+// scenes lie in their own region (scene.region, Azure Coast when unset)
+const frontier=data.maps['frontier-wilds-v1'],worlds={[data.world.id]:world,[frontier.id]:createWorld(frontier)};
+const regionOf=s=>s.region||data.world.id,home=s=>worlds[regionOf(s)],homeData=s=>data.maps[regionOf(s)];
 test('all approved areas share real roads, collision and continuous edge heights',()=>{
  assert.equal(acceptedSceneLayout.scenes.length,6);
  for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){const a=acceptedSceneLayout.scenes[i].bounds,b=acceptedSceneLayout.scenes[j].bounds;assert.ok(Math.min(a[1],b[1])<=Math.max(a[0],b[0])||Math.min(a[3],b[3])<=Math.max(a[2],b[2]),'scene footprints must not overlap');}
- for(const road of world.roads)assert.ok(Number.isFinite(road.width)&&road.width>0,'finite road width '+road.id);
  let samples=0;
+ for(const world of Object.values(worlds)){
+ for(const road of world.roads)assert.ok(Number.isFinite(road.width)&&road.width>0,'finite road width '+road.id);
  for(const road of world.roads.filter(r=>r.acceptedScene))for(let i=0;i<road.points.length-1;i++){
   const a=road.points[i],b=road.points[i+1],length=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(length/.2));
   for(let k=0;k<n;k++){
@@ -23,9 +27,10 @@ test('all approved areas share real roads, collision and continuous edge heights
    samples++;
   }
  }
- assert.ok(samples>0);assert.equal(new Set(world.roads.filter(r=>r.acceptedScene&&!['connector','arrival'].includes(r.acceptedScene)).map(r=>r.acceptedScene)).size,6);
+ }
+ assert.ok(samples>0);assert.equal(new Set(Object.values(worlds).flatMap(w=>w.roads).filter(r=>r.acceptedScene&&!['connector','arrival'].includes(r.acceptedScene)).map(r=>r.acceptedScene)).size,6);
  for(const s of acceptedSceneLayout.scenes){
-  const b=s.bounds;
+  const b=s.bounds,world=home(s);
   for(let i=0;i<=20;i++)for(const p of[[b[0],b[2]+(b[3]-b[2])*i/20],[b[1],b[2]+(b[3]-b[2])*i/20],[b[0]+(b[1]-b[0])*i/20,b[2]],[b[0]+(b[1]-b[0])*i/20,b[3]]]){
    assert.equal(sceneWeight(s,...p),0);assert.ok(Number.isFinite(world.groundY(...p)));
   }
@@ -63,9 +68,9 @@ test('the owner\'s conch ships light: one reduced mesh and one 1024 colour map',
 });
 test('render can follow every height edit inside a scene (connectors, seams, shore)',async()=>{
  const {acceptedGroundEdit}=await import('../../src/core/accepted-shift.js');
- const hf=world.heightfield,data2=data.world;let checked=0,edited=0;
+ let checked=0,edited=0;
  for(const scene of acceptedSceneLayout.scenes){
-  const b=scene.bounds;
+  const b=scene.bounds,hf=home(scene).heightfield,data2=homeData(scene);
   for(let z=Math.ceil(b[2]);z<=b[3];z+=1)for(let x=Math.ceil(b[0]);x<=b[1];x+=1){
    const i=Math.round((x-hf.ox)/hf.res),j=Math.round((z-hf.oz)/hf.res),gx=hf.ox+i*hf.res,gz=hf.oz+j*hf.res;
    if(sceneWeight(scene,gx,gz)<.999||(data2.acceptedScenes.connectors||[]).some(r=>r.repair&&Math.hypot(...r.points.reduce((m,p)=>Math.hypot(gx-p[0],gz-p[1])<Math.hypot(gx-m[0],gz-m[1])?p:m).map((v,k)=>v-[gx,gz][k]))<r.width/2+12))continue;
@@ -77,22 +82,24 @@ test('render can follow every height edit inside a scene (connectors, seams, sho
 });
 
 test('a ring of trees and shrubs carries each scene\'s woodland past its bounds without touching routes',()=>{
- const plant=data.world.acceptedScenes.surround.plant,trees=world.circles.filter(c=>c.type==='scene-tree'),shrubs=world.decor.sceneShrubs;
  const outside=(b,x,z)=>Math.hypot(Math.max(b[0]-x,0,x-b[1]),Math.max(b[2]-z,0,z-b[3]));
- for(const s of acceptedSceneLayout.scenes){
+ for(const [id,world] of Object.entries(worlds)){
+ const plant=data.maps[id].acceptedScenes.surround.plant,trees=world.circles.filter(c=>c.type==='scene-tree'),shrubs=world.decor.sceneShrubs,mine=acceptedSceneLayout.scenes.filter(s=>regionOf(s)===id);
+ for(const s of mine){
   assert.ok(trees.filter(t=>outside(s.bounds,t.x,t.z)<=plant.trees.outer+1).length>=plant.trees.perScene/2,s.id+' ring trees');
   assert.ok(shrubs.filter(t=>outside(s.bounds,t.x,t.z)<=plant.shrubs.outer+1).length>=plant.shrubs.perScene/2,s.id+' ring shrubs');
  }
  for(const t of trees){
-  assert.ok(acceptedSceneLayout.scenes.every(s=>sceneWeight(s,t.x,t.z)===0),'ring trees stay outside every scene');
+  assert.ok(mine.every(s=>sceneWeight(s,t.x,t.z)===0),'ring trees stay outside every scene');
   assert.ok(!world.isWater(t.x,t.z,t.r)&&world.heightfield.slopeAt(t.x,t.z)<=plant.trees.slope,'dry, gentle ground');
   for(const r of world.roads)for(let i=1;i<r.points.length;i++){
    const [ax,az]=r.points[i-1],[bx,bz]=r.points[i],l=Math.hypot(bx-ax,bz-az)||1,u=Math.max(0,Math.min(1,((t.x-ax)*(bx-ax)+(t.z-az)*(bz-az))/l/l));
    assert.ok(Math.hypot(t.x-ax-(bx-ax)*u,t.z-az-(bz-az)*u)>r.width/2+t.r,r.id+' clear of ring tree '+[t.x,t.z]);
   }
  }
- const stones=world.circles.filter(c=>c.type==='waypoint');assert.equal(stones.length,data.world.waypoints.length);
+ const stones=world.circles.filter(c=>c.type==='waypoint');assert.equal(stones.length,data.maps[id].waypoints.length);
  for(const w of stones)assert.ok(trees.every(t=>Math.hypot(t.x-w.x,t.z-w.z)>t.r+3),w.id+' waypoint stays open');
+ }
 });
 test('a lifted scene keeps its own forms: same relief higher, its outer ground continued, its hill carried over the seam',()=>{
  const scene=acceptedSceneLayout.scenes.find(s=>s.id==='hill-windmill'),lift=data.world.acceptedScenes.lift['hill-windmill'];
@@ -137,18 +144,47 @@ test('a final connector keeps the heights it was given, and its ground meets the
   assert.ok(world.roads.some(r=>r.id===road.id||road.points.every(p=>distToPolyline(...p,r.points)<r.width/2)),road.id+' is painted as a road');
  }
 });
-test('the arrival beach ends on the left in a cliff, open to the right toward the first monsters',async()=>{
+test('the Conch Coast lies west of the arrival beach on the Frontier coast, as authored',()=>{
+ const scene=acceptedSceneLayout.scenes.find(s=>s.id==='shell-beach'),fw=worlds[frontier.id],[ox,oz]=frontier.atlas.offset;
+ assert.equal(scene.region,frontier.id);
+ // in world metres: left of the arrival beach, a little way off, inside the Frontier map
+ const beach=acceptedSceneLayout.scenes.find(s=>s.id==='beach').bounds,b=scene.bounds;
+ assert.ok(b[1]+ox<beach[0]-25&&b[0]>=frontier.bounds.minX&&b[1]<=frontier.bounds.maxX&&b[3]<=frontier.bounds.maxZ);
+ // the ground is the scene's own surface away from its trails and edges
+ let n=0,close=0;
+ for(let x=b[0]+6;x<b[1]-6;x+=3)for(let z=b[2]+6;z<b[3]-6;z+=3){n++;if(Math.abs(fw.groundY(x,z)-sceneSample(scene,'heights',x,z))<.3)close++;}
+ assert.ok(close/n>.97,`seated ${close}/${n}`);
+ // its roads and landmark moved with it; nothing of it is left at the old place
+ assert.ok(fw.roads.some(r=>r.acceptedScene==='shell-beach')&&!world.roads.some(r=>r.acceptedScene==='shell-beach'));
+ assert.ok(frontier.landmarks.some(l=>l.id==='giant_conch')&&!data.world.landmarks.some(l=>l.id==='giant_conch'));
+ // the Frontier shore follows the scene's own shore inside its bounds
+ for(const [x,z] of scene.shore.filter(p=>p[0]>b[0]+4&&p[0]<b[1]-4))assert.ok(Math.abs(polylineZ(frontier.sea.shore,x)-z)<.01,'shore at '+x);
+});
+test('the arrival beach ends on the left in a high headland joined to the Conch Coast, open to the right',async()=>{
  const {edgeCliffAt}=await import('../../src/core/edge-cliffs.js');
- const cliff=data.world.acceptedScenes.edgeCliffs.find(c=>c.id==='arrival-west');
- // a raised plateau behind the cliff line, the beach in front at sea level
- assert.ok(world.groundY(-153,70)>cliff.top-.6,'plateau behind the face');
- assert.ok(world.groundY(-149,70)<.6,'beach in front of the face');
- // the seam with Frontier Wilds keeps its height
- for(let z=52;z<=94;z+=2)assert.equal(edgeCliffAt(cliff,-160,z),-Infinity);
- // no scene collider inside the plateau, spawn and waypoint untouched
- assert.ok(!world.circles.some(c=>c.type==='accepted-scene'&&edgeCliffAt(cliff,c.x,c.z)>-Infinity));
+ const fw=worlds[frontier.id],[ox,oz]=frontier.atlas.offset,ground=(x,z)=>x<data.world.bounds.minX?fw.groundY(x-ox,z-oz):world.groundY(x,z);
+ const mine=data.world.acceptedScenes.edgeCliffs.find(c=>c.id==='west-headland'),theirs=frontier.acceptedScenes.edgeCliffs.find(c=>c.id==='west-headland');
+ // one outline in world metres, kept by both maps
+ assert.deepEqual(theirs.points.map(([x,z,k])=>[Math.round((x+ox)*100)/100,Math.round((z+oz)*100)/100,k]),mine.points.map(([x,z,k])=>[x,z,k]));
+ assert.equal(theirs.top,mine.top);
+ // a solid plateau from the Conch Coast's east headland to a face over the beach
+ for(let x=-192;x<=-155;x+=1)assert.ok(ground(x,74)>mine.top-.6,'plateau at '+x);
+ assert.ok(ground(-149,70)<.6,'beach in front of the face');
+ // continuous over the seam, and up to the conch headland
+ for(let z=56;z<=82;z+=2){assert.ok(Math.abs(world.groundY(data.world.bounds.minX,z)-fw.groundY(frontier.bounds.maxX,z-oz))<.05,'seam at '+z);assert.ok(Math.abs(ground(-197,z)-ground(-193,z))<.8,'joins the conch headland at '+z);}
+ // no scene collider inside the plateau, spawn untouched
+ for(const [w,c] of[[world,mine],[fw,theirs]])assert.ok(!w.circles.some(o=>o.type==='accepted-scene'&&edgeCliffAt(c,o.x,o.z)>-Infinity));
  assert.ok(world.isFree(...data.world.playerSpawn,.45));
- // the shore to the right is beach level: walk from the spawn to the Conch Coast cove
- let x=-140,z=70;
- for(;x<-70;x+=.2){const m=world.move(x,z,.45,.2,0);assert.ok(m.x>x+.18,'blocked walking east at '+x.toFixed(1));}
+ // the face is a cliff: walking west from the beach stops at it
+ let x=-140;for(;x>-158;x-=.2){const m=world.move(x,70,.45,-.2,0);if(m.x>x-.18)break;}
+ assert.ok(x>-153,'the face blocks the beach at '+x.toFixed(1));
+ // the north side is a ramp: walk up onto the top from the land behind
+ let z=44;for(;z<70;z+=.2){const m=fw.move(-172-ox,z-oz,.45,0,.2);assert.ok(m.z>z-oz+.18,'blocked climbing the ramp at '+z.toFixed(1));}
+ assert.ok(fw.groundY(-172-ox,70-oz)>mine.top-.6);
+ // the shore to the right is open, level ground: a walk (half-metre steps round props)
+ // leads from the spawn to the first monsters' coast where the Conch Coast stood
+ const S=.5,key=(i,j)=>i+','+j,start=[Math.round(data.world.playerSpawn[0]/S),Math.round(data.world.playerSpawn[1]/S)],seen=new Set([key(...start)]),queue=[start];let reached=false;
+ while(queue.length&&!reached){const [i,j]=queue.shift();for(const [di,dj] of[[1,0],[-1,0],[0,1],[0,-1]]){const ni=i+di,nj=j+dj;if(seen.has(key(ni,nj))||ni*S<-150||ni*S>-50||nj*S<50||nj*S>90)continue;
+  const m=world.move(i*S,j*S,.45,di*S,dj*S);if(Math.hypot(m.x-ni*S,m.z-nj*S)>.03||Math.abs(world.groundY(ni*S,nj*S))>1.2)continue;seen.add(key(ni,nj));queue.push([ni,nj]);if(ni*S>=-60)reached=true;}}
+ assert.ok(reached,'no level walk from the spawn east along the shore');
 });

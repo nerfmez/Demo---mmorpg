@@ -13,16 +13,20 @@ const jsonHook=registerHooks({load(url,context,next){return next(url,url.endsWit
 const {acceptedScenerySteps}=await import('../../src/render/accepted-scenes.js');
 jsonHook.deregister();
 
-const data=loadData(),world=createWorld(data.world);
+const data=loadData();
 const renderer={domElement:{height:706},getRenderTarget(){return null;},setRenderTarget(){},render(){}};
-const steps=acceptedScenerySteps(world,renderer);let built;for(;;){built=steps.next();if(built.done)break;}
-const root=built.value.root;root.updateMatrixWorld(true);
+// every region that places accepted scenes builds its own scenery, in its own local metres
+const regions=[data.world,data.maps['frontier-wilds-v1']].map(wd=>{
+ const world=createWorld(wd),steps=acceptedScenerySteps(world,renderer);let built;for(;;){built=steps.next();if(built.done)break;}
+ const root=built.value.root;root.updateMatrixWorld(true);return {world,root};
+});
 
 test('scene stones and steps stand on the ground the player walks on, moved once with it',()=>{
+ const v=new THREE.Vector3(),R=.5;
+ for(const {world,root} of regions){
  const seated=[];root.traverse(o=>{if(o.isMesh&&o.userData.seatedParts)seated.push(o);});
  assert.ok(seated.length,'seated stone meshes');
- const v=new THREE.Vector3(),R=.5;
- for(const scene of acceptedSceneLayout.scenes){
+ for(const scene of acceptedSceneLayout.scenes.filter(s=>(s.region||data.world.id)===world.data.id)){
   let cells=0,floating=0;const gaps=[];
   for(const mesh of seated){
    // the lowest point of the stones in each half-metre cell, inside the scene
@@ -40,4 +44,18 @@ test('scene stones and steps stand on the ground the player walks on, moved once
   assert.ok(Math.abs(median)<.3,`${scene.id}: stones sit ${median.toFixed(2)} m off the ground (median)`);
   if(scene.id==='hill-windmill')assert.ok(floating/cells<.02,`${scene.id}: ${floating} of ${cells} stone cells float over 0.6 m`);
  }
+ }
+});
+test('a headland over a seam: each map draws its own half of the rock face, and the halves meet',()=>{
+ const v=new THREE.Vector3(),[ox,oz]=data.maps['frontier-wilds-v1'].atlas.offset,ends=[];
+ for(const {world,root} of regions){
+  const mesh=root.getObjectByName('accepted-edge-cliffs');assert.ok(mesh,world.data.id+' draws its edge cliffs');
+  const b=world.data.bounds,pos=mesh.geometry.attributes.position,shift=world.data.id===data.world.id?[0,0]:[ox,oz];
+  let near=Infinity,far=0;
+  for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);far=Math.max(far,b.minX-v.x,v.x-b.maxX);if(v.z>70-shift[1]&&v.z<90-shift[1])near=Math.min(near,Math.abs(v.x+shift[0]-data.world.bounds.minX));}
+  assert.ok(far<2.5,world.data.id+' faces stay within a sample of its bounds ('+far.toFixed(2)+' m over)');
+  ends.push(near);
+ }
+ // the sea cliff crosses the seam: both halves reach it
+ for(const d of ends)assert.ok(d<.6,'face reaches the seam ('+d.toFixed(2)+' m)');
 });

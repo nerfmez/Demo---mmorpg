@@ -4,7 +4,10 @@ import {edgeCliffCover} from './edge-cliffs.js';
 import layout from '../../data/accepted-scenes.js';
 import {distToPolyline,polylineZAtX} from './math.js';
 const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
-export function acceptedScenes(data){return data.acceptedScenes?.enabled?layout.scenes:[];}
+// Each scene lies in one region's local coordinates (scene.region, Azure Coast when
+// unset); a region with acceptedScenes.enabled gets the scenes placed in it.
+export const HOME_REGION='azure-harbor-v1';
+export function acceptedScenes(data){return data.acceptedScenes?.enabled?layout.scenes.filter(s=>(s.region||HOME_REGION)===(data.id||HOME_REGION)):[];}
 export function sceneWeight(scene,x,z){
  const b=scene.bounds,d=Math.min(x-b[0],b[1]-x,z-b[2],b[3]-z);
  return smooth(d/scene.feather);
@@ -90,7 +93,7 @@ export function acceptedApronOffsets(data,grid,heights,waterLevel){
    // continue: the edge's own profile runs on outward unsmoothed (a cliff, terrace or
    // bank that meets the side carries on and dies away over one width), instead of a
    // ramp whose width follows the rise
-   const r=own.continue?0:Math.round(cfg.smoothAlong/2),d=r?box(box(rise,r),r):rise;
+   const r=own.continue?0:Math.round(own.smoothAlong/2),d=r?box(box(rise,r),r):rise;
    const width=(own.continue?d.map((_,i)=>own.continue*wave(lo+(hi-lo)*i/(n-1))):box(d.map((v,i)=>Math.max(own.min,Math.min(own.max,own.k*Math.abs(v)))*wave(lo+(hi-lo)*i/(n-1))),r)),reach=Math.max(...width);
    const x0=alongX?lo-reach:(out<0?fixed-reach:fixed-f),x1=alongX?hi+reach:(out<0?fixed+f:fixed+reach),z0=alongX?(out<0?fixed-reach:fixed-f):lo-reach,z1=alongX?(out<0?fixed+f:fixed+reach):hi+reach;
    for(let j=Math.max(0,Math.floor((z0-grid.oz)/grid.res));j<=Math.min(grid.h-1,Math.ceil((z1-grid.oz)/grid.res));j++)

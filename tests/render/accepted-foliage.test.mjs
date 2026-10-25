@@ -14,8 +14,9 @@ jsonHook.deregister();
 
 const data=loadData(),world=createWorld(data.world),foliage=data.world.acceptedScenes.foliage;
 const renderer={domElement:{height:706},getRenderTarget(){return null;},setRenderTarget(){},render(){}};
-const steps=acceptedScenerySteps(world,renderer);let built;for(;;){built=steps.next();if(built.done)break;}
-const meshes=[];built.value.root.traverse(o=>{if(o.isInstancedMesh)meshes.push(o);});
+// the Conch Coast lies in the Frontier map: every region with scenes builds its own
+const meshes=[];
+for(const w of[world,createWorld(data.maps['frontier-wilds-v1'])]){const steps=acceptedScenerySteps(w,renderer);let built;for(;;){built=steps.next();if(built.done)break;}built.value.root.traverse(o=>{if(o.isInstancedMesh)meshes.push(o);});}
 const scales=mesh=>{const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3(),out=[];for(let i=0;i<mesh.count;i++){mesh.getMatrixAt(i,m);m.decompose(p,q,s);out.push(s.y);}return out;};
 
 test('scene trees, shrubs and grass are drawn with the map\'s own materials',()=>{

@@ -5,6 +5,7 @@ import { fromBoxLocal, pointInPolygon } from '../core/math.js';
 import {outsideClearingWeight,outsideRoadDistance,sceneClearingFade} from '../core/ground-regions.js';
 
 import {cityFloorAt} from '../core/city.js';
+import art from '../../data/art.json' with {type:'json'};
 
 const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
@@ -66,7 +67,9 @@ export function mapImage(world) {
       if (world.data.sea) {
         const d = world.coastAt(x, z).distance;
         const beach = world.data.sea.beach || 14;
-        if (world.isBeach(x, z)) c = mix(c, SAND, Math.min(1, (beach - d) / 5));
+        // raised ground (a headland or terrace top) is not sand, as render/ground.js beachTop
+        const top = art.ground.beachTop, h = world.terrainY(x, z), high = top ? Math.max(0, Math.min(1, (h - top[0]) / (top[1] - top[0]))) : 0;
+        if (world.isBeach(x, z)) c = mix(c, SAND, Math.min(1, (beach - d) / 5) * (1 - high * high * (3 - 2 * high)));
       }
       const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z,.8):outsideRoadDistance(world.data.city,world.roads,x,z,.8);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));

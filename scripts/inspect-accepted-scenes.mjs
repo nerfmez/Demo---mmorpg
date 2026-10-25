@@ -10,7 +10,8 @@ const specs=[
  {id:'beach',x:-128.68,z:77.12,s:.8,y:-.44,box:[-38,38,-40,25]},
  {id:'forest',x:-112,z:-64,s:.62,y:.4,box:[-58,58,-70,20]},
  {id:'rose-garden',x:-100,z:20,s:.68,y:.4,box:[-60,60,-60,28]},
- {id:'shell-beach',x:-53,z:83,s:.60,y:-.44,box:[-70,70,-65,50]},
+ // west of the arrival beach on the Greenhollow Frontier coast (Frontier local metres; world = local + atlas offset)
+ {id:'shell-beach',region:'frontier-wilds-v1',x:152,z:176,s:.60,y:-.44,box:[-70,70,-65,50]},
  {id:'azure-meadow',x:38,z:-85,s:.50,y:.4,box:[-65,65,-65,30]},
  {id:'hill-windmill',x:126,z:-85,s:.48,y:.4,box:[-65,65,-65,30],outer:30}
 ];

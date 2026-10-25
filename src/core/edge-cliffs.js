@@ -1,7 +1,8 @@
 // Raised ground behind an authored cliff line (acceptedScenes.edgeCliffs): a plateau
-// outlined by a closed polygon whose edges are either cliffs (a steep face `lean`
-// metres deep, drawn with rock columns by render/edge-cliffs.js) or ramps (a slope
-// `ramp` metres wide down to the surrounding ground). Applied after the scenes and
+// outlined by a closed polygon whose edges are cliffs (a steep face `lean` metres
+// deep, drawn with rock columns by render/edge-cliffs.js), ramps (a slope `ramp`
+// metres wide down to the surrounding ground, or a point's own 4th value) or open (the plateau runs on at full
+// height into ground as high, such as a scene's own headland). Applied after the scenes and
 // seams (core/terrain.js) as a floor under the ground; a ramp edge lying on a map
 // seam keeps the seam's height. Pure geometry: no randomness.
 import {pointInPolygon} from './math.js';
@@ -10,28 +11,29 @@ const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a
 const prepared = new WeakMap();
 function prepare(cliff) {
   let p = prepared.get(cliff); if (p) return p;
-  const pts = cliff.points.map(q => [q[0], q[1]]), kinds = cliff.points.map(q => q[2] || 'cliff');
+  const pts = cliff.points.map(q => [q[0], q[1]]), kinds = cliff.points.map(q => q[2] || 'cliff'), widths = cliff.points.map(q => q[3] ?? cliff.ramp);
   const xs = pts.map(q => q[0]), zs = pts.map(q => q[1]);
-  p = { pts, kinds, box: [Math.min(...xs), Math.max(...xs), Math.min(...zs), Math.max(...zs)] };
+  p = { pts, kinds, widths, box: [Math.min(...xs), Math.max(...xs), Math.min(...zs), Math.max(...zs)] };
   prepared.set(cliff, p); return p;
 }
-/** Distance from (x, z) to the nearest outline edge of each kind (edge i runs from point i). */
+/** Distance from (x, z) to the nearest outline edge of each kind (edge i runs from point i);
+ *  rise: the nearest ramp distance as a share of that ramp's width (a point's 4th value, else `ramp`). */
 function edgeDistances(p, x, z) {
-  let cliff = Infinity, ramp = Infinity;
+  let cliff = Infinity, ramp = Infinity, rise = Infinity;
   for (let i = 0; i < p.pts.length; i++) {
     const a = p.pts[i], b = p.pts[(i + 1) % p.pts.length], dx = b[0] - a[0], dz = b[1] - a[1];
     const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz)));
     const d = Math.hypot(a[0] + dx * t - x, a[1] + dz * t - z);
-    if (p.kinds[i] === 'ramp') ramp = Math.min(ramp, d); else cliff = Math.min(cliff, d);
+    if (p.kinds[i] === 'ramp') { ramp = Math.min(ramp, d); rise = Math.min(rise, d / p.widths[i]); } else if (p.kinds[i] !== 'open') cliff = Math.min(cliff, d);
   }
-  return { cliff, ramp };
+  return { cliff, ramp, rise };
 }
 /** The plateau height of one edge cliff at (x, z), or -Infinity outside it. */
 export function edgeCliffAt(cliff, x, z) {
   const p = prepare(cliff), b = p.box;
   if (x < b[0] || x > b[1] || z < b[2] || z > b[3] || !pointInPolygon(p.pts, x, z)) return -Infinity;
-  const { cliff: dc, ramp: dr } = edgeDistances(p, x, z);
-  return cliff.top * Math.min(smooth(0, cliff.lean, dc), smooth(0, cliff.ramp, dr));
+  const { cliff: dc, rise } = edgeDistances(p, x, z);
+  return cliff.top * Math.min(smooth(0, cliff.lean, dc), smooth(0, 1, rise));
 }
 /** The highest plateau of all edge cliffs at (x, z), or -Infinity. */
 export function edgeCliffsAt(data, x, z) {
@@ -52,12 +54,12 @@ export function edgeCliffCover(data, x, z, pad = 0) {
 }
 /** The cliff stretches of an edge cliff as polylines (consecutive cliff edges joined). */
 export function edgeCliffRuns(cliff) {
-  const p = prepare(cliff), n = p.pts.length, runs = [];
-  let start = p.kinds.findIndex(k => k === 'ramp'); if (start < 0) start = 0;
+  const p = prepare(cliff), n = p.pts.length, runs = [], face = k => k !== 'ramp' && k !== 'open';
+  let start = p.kinds.findIndex(k => !face(k)); if (start < 0) start = 0;
   for (let c = 1; c <= n; c++) {
     const i = (start + c) % n;
-    if (p.kinds[i] === 'ramp') continue;
-    if (p.kinds[(i + n - 1) % n] === 'ramp' || !runs.length) runs.push([p.pts[i]]);
+    if (!face(p.kinds[i])) continue;
+    if (!face(p.kinds[(i + n - 1) % n]) || !runs.length) runs.push([p.pts[i]]);
     runs[runs.length - 1].push(p.pts[(i + 1) % n]);
   }
   return runs;

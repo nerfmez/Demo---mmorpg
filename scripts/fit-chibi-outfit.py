@@ -222,10 +222,14 @@ ty0, ty1 = cg[-1, 1], cc[-1, 1]
 T = np.stack([x * sT, (y - ty0) * sT + ty1, zmapT(z)], 1)
 # legs
 sL = C['legScale']
-# across, the legs keep the generated stance, spaced as the torso is (x * sT): moving them onto the
-# chibi's legs pulled the thighs in below the hips (a kink there) and the calves together; the
-# chibi's legs are hidden under them, so where exactly they stand across does not show
-L = np.stack([sx * (gx * sT + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
+# across, the boots and the trousers' hems stand on the chibi's leg lines, so any set's boots meet
+# any set's trousers; going up, the legs turn to the generated stance spaced as the torso is
+# (x * sT) by the hips, so the thighs do not jump inward below them (that pinched the calves
+# together)
+ccx = np.interp(z, zs, cc[:, 0])
+t = smooth01(C['bootTop'], crotchG, z)
+tx = ccx + (gx * sT - ccx) * t
+L = np.stack([sx * (tx + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
 # arms: `armX` maps distances out along the arm (from the shoulder to the fingertips), else `armLen` scales them
 a0, a1 = C['armAxis']; sA = C['armScale']
 if C.get('armX'):

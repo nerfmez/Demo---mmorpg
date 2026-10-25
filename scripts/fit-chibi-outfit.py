@@ -115,14 +115,62 @@ def seg_points(P, F, ax, c):
 GF = np.array([[v.index for v in f.verts] for f in bm.faces])
 
 
-def leg_centres(P, F, zs, near=None):
-    # `near`: (x, y) of the leg at the ankle; only points within 7 cm of that vertical count, so a
-    # coat or cape hanging round the leg does not pull the slice's centre off it
+def slice_loops(P, F, z):
+    # the cut of the surface at height z as closed loops (2D points), joined end to end by edge
+    d = P[F][:, :, 2] - z
+    cross = (d.min(1) < 0) & (d.max(1) > 0)
+    segs = []
+    for f, dd in zip(F[cross], d[cross]):
+        ends = []
+        for i, j in ((0, 1), (1, 2), (2, 0)):
+            if (dd[i] < 0) != (dd[j] < 0):
+                k = dd[i] / (dd[i] - dd[j]); ends.append((min(f[i], f[j]), max(f[i], f[j]), P[f[i]] + k * (P[f[j]] - P[f[i]])))
+        if len(ends) == 2: segs.append(ends)
+    at = {}
+    for n, (a, b) in enumerate(segs):
+        at.setdefault(a[:2], []).append(n); at.setdefault(b[:2], []).append(n)
+    used, loops = set(), []
+    for n in range(len(segs)):
+        if n in used: continue
+        used.add(n); a, b = segs[n]; pts = [a[2][:2], b[2][:2]]; key = b[:2]
+        while True:
+            nxt = [m for m in at.get(key, []) if m not in used]
+            if not nxt: break
+            m = nxt[0]; used.add(m); a, b = segs[m]
+            e = b if a[:2] == key else a
+            pts.append(e[2][:2]); key = e[:2]
+        loops.append(np.array(pts))
+    return loops
+
+
+def inside(p, poly):
+    x, y = poly[:, 0], poly[:, 1]
+    x2, y2 = np.roll(x, -1), np.roll(y, -1)
+    c = ((y > p[1]) != (y2 > p[1])) & (p[0] < (x2 - x) * (p[1] - y) / (y2 - y + 1e-12) + x)
+    return c.sum() % 2 == 1
+
+
+def leg_track(P, F, zs, start):
+    # the leg's own tube, followed up from the ankle: at each height the closed loop around the
+    # last centre (coat panels and capes are other loops), its box middle the leg's centre
+    out, c = [], np.array(start, float)
+    for z in zs:
+        loops = [l for l in slice_loops(P, F, z) if len(l) > 5 and l[:, 0].mean() > 0.004]
+        hit = [l for l in loops if inside(c, l)]
+        if hit:
+            l = min(hit, key=lambda l: np.ptp(l[:, 0]) * np.ptp(l[:, 1]))  # the innermost
+            c = np.array([(l[:, 0].min() + l[:, 0].max()) / 2, (l[:, 1].min() + l[:, 1].max()) / 2])
+            out.append(c.copy())
+        else:
+            out.append((np.nan, np.nan))
+    return np.array(out)
+
+
+def leg_centres(P, F, zs):
     out = []
     for z in zs:
         S = seg_points(P, F, 2, z)
         S = S[S[:, 0] > 0.004] if len(S) else S
-        if near is not None and len(S): S = S[(np.abs(S[:, 0] - near[0]) < 0.07) & (np.abs(S[:, 1] - near[1]) < 0.07)]
         out.append(((S[:, 0].min() + S[:, 0].max()) / 2, (S[:, 1].min() + S[:, 1].max()) / 2) if len(S) else (np.nan, np.nan))
     return np.array(out)
 
@@ -132,25 +180,20 @@ crotchG, crotchC = tz[0]
 zmapT = lambda z: np.interp(z, tz[:, 0], tz[:, 1], left=None, right=None) + np.where(z > tz[-1, 0], z - tz[-1, 0], 0) + np.where(z < tz[0, 0], (z - tz[0, 0]) * (crotchC / crotchG - 1), 0)
 zmapL = lambda z: z * crotchC / crotchG
 zs = np.linspace(0.03, crotchG - 0.03, 24)
-ank = np.nanmedian(leg_centres(P0, GF, np.linspace(0.06, 0.16, 6)), axis=0)
-cg = leg_centres(P0, GF, zs, ank)
+cg = leg_centres(P0, GF, zs)
+if C.get('legTrack', True):
+    # a coat or cape hanging round the legs pulls a whole slice's centre off the leg: follow the
+    # leg's own loop up from the lower shin (the boot shaft, below any coat) instead
+    sh = np.nanmedian(leg_centres(P0, GF, np.linspace(0.12, 0.2, 5)), axis=0)
+    tr = leg_track(P0, GF, zs, sh)
+    ok_t = ~np.isnan(tr[:, 0]) & (zs > 0.1)
+    cg[ok_t] = tr[ok_t]
 cc = leg_centres(BV, BT, zmapL(zs))
 ok = ~np.isnan(cg).any(1) & ~np.isnan(cc).any(1)
 zs, cg, cc = zs[ok], cg[ok], cc[ok]
 
 
-def robust_line(t, v):
-    # fit the leg as a straight line through the slices that agree, dropping the others
-    keep = np.ones(len(t), bool)
-    for _ in range(4):
-        a, b = np.polyfit(t[keep], v[keep], 1)
-        r = np.abs(a * t + b - v)
-        keep = r < max(0.006, 1.5 * np.median(r[keep]))
-    return np.polyval(np.polyfit(t[keep], v[keep], 1), t)
-
-
-cg = np.stack([robust_line(zs, cg[:, 0]), robust_line(zs, cg[:, 1])], 1)
-# the generated leg (a straight line) goes onto the chibi's own leg line, as it curves
+# the generated leg line goes onto the chibi's own leg line
 dcx, dcy = cc[:, 0] - cg[:, 0], cc[:, 1] - cg[:, 1]
 gx = np.interp(P0[:, 2], zs, cg[:, 0])
 gy = np.interp(P0[:, 2], zs, cg[:, 1])

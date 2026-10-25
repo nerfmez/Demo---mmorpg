@@ -15,8 +15,16 @@ from mathutils.bvhtree import BVHTree
 C = json.load(open(sys.argv[-1]))
 CHIBI = C.get('chibi', 'public/models/hero_chibi.glb')
 ARM_AXIS = 0.838  # the generated chibi's arm axis height (m) that its landmarks (torsoZ, armAxis) are given for
-CHIBI_TIP = 0.513  # the chibi's fingertips out from its middle in the T-pose (m)
-FLATTEN = json.load(open('data/models.json'))['characters']['hero_chibi'].get('flatten', [])
+HERO = json.load(open('data/models.json'))['characters']['hero_chibi']
+FLATTEN = HERO.get('flatten', [])
+# the sets' settings and the cuts below were made for the first chibi body (crotch 0.45 m, arm axis
+# 0.769 m, neck 0.83 m); its heights are moved onto this body's own landmarks (`fit`)
+FIT = HERO.get('fit', {})
+CHIBI_TIP = FIT.get('tip', 0.513)  # the chibi's fingertips out from its middle in the T-pose (m)
+_old, _new = [0, 0.45, 0.769, 0.83, 1.2], [0, FIT.get('crotch', 0.45), FIT.get('armAxis', 0.769), FIT.get('neck', 0.83), 1.2]
+B = lambda h: np.interp(h, _old, _new)
+C['torsoZ'] = [[g, float(B(c))] for g, c in C['torsoZ']]
+C['armAxis'] = [C['armAxis'][0], float(B(C['armAxis'][1]))]
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
 
@@ -301,7 +309,7 @@ margin = np.where(piece == 0, C['margin']['boots'], C['margin']['armor'])
 # the cloth is pushed out of the body only from the chest up (`pushAbove`): lower down the body is
 # hidden under it (HIDE), and pushing the trousers over the chibi's fuller hips and thighs bulged
 # them; there the generated shape is kept as it was made
-pushed = (P[:, 2] > C.get('pushAbove', 0.69)) & ~incollar
+pushed = (P[:, 2] > B(C.get('pushAbove', 0.69))) & ~incollar
 
 
 def push(Q):
@@ -378,8 +386,8 @@ names = {0: 'boots', 1: 'armor'}
 # trousers are not pushed over the fuller legs): the armour's legs from inside the boot tops, its
 # torso below the arms, and up to below the collar out to just inside the sleeve ends (boxes of
 # [z from, z to, |x| below] that overlap, so no band of skin is left between them)
-HIDE = {'armor': [[zmapL(C['bootTop']) - 0.04, crotchC, 1], [crotchC - 0.01, 0.70, 0.22], [0.69, 0.785, float(armx(np.array(C['cuff']))) - 0.02],
-                  [0.70, 0.84, float(armx(np.array(C['cuff']))) - 0.02, 0.11]],  # the whole upper arm in a sleeve
+HIDE = {'armor': [[zmapL(C['bootTop']) - 0.04, crotchC, 1], [crotchC - 0.01, B(0.70), 0.22], [B(0.69), B(0.785), float(armx(np.array(C['cuff']))) - 0.02],
+                  [B(0.70), B(0.84), float(armx(np.array(C['cuff']))) - 0.02, 0.11]],  # the whole upper arm in a sleeve
         'boots': [[-1, zmapL(C['bootTop']) + 0.01, 1]]}
 for pc, name in names.items():
     fs = [f for f in bm.faces if piece[f.verts[0].index] == pc]

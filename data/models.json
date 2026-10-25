@@ -656,27 +656,19 @@
       "source": "HairSample_Male-beta from approved live Character Studio V6; original SHA256 4af2194f90ba846f3b13c00b50b14262419062d2171d17de922bcce2f89979c7. Complete base skin/scalp; separate gear-controlled garments. VRoid source metadata CC0. See docs/HAIRSAMPLE-INTEGRATION.md."
     },
     "hero_chibi": {
-      "paintedLight": 0.4,
+      "paintedLight": 0.2,
       "file": "models/hero_chibi.glb",
       "chibi": true,
-      "tris": 4442,
+      "tris": 5200,
+      "fit": {
+        "_doc": "The body's own landmarks (m) the modelled outfits are fitted to (scripts/fit-chibi-outfit.py): the crotch, the T-pose arm axis, the neck cut and the fingertips out from the middle.",
+        "crotch": 0.49,
+        "armAxis": 0.764,
+        "neck": 0.852,
+        "tip": 0.523
+      },
       "armDrop": 1.3,
       "gearScale": 0.65,
-      "flatten": [
-        {
-          "_doc": "Bands of the bind torso flattened at load (chibi-body.js flattenBody): between heights y0 and y1 the surface beyond depth z (front if above 0, back if below) moves back toward z by up to k. The Meshy body had a bust and round hips; the sheet's chibi is a boy.",
-          "y0": 0.64,
-          "y1": 0.8,
-          "z": 0.072,
-          "k": 1
-        },
-        {
-          "y0": 0.4,
-          "y1": 0.62,
-          "z": -0.045,
-          "k": 0.8
-        }
-      ],
       "helmFit": {
         "_doc": "Helms and hoods on the chibi go over its hair: the head fit scaled by `scale` about the head's centre and lifted `lift` head heights (chibi-body.js).",
         "scale": 1.5,
@@ -689,13 +681,13 @@
         "curve": 0.3
       },
       "headShape": {
-        "_doc": "Head reshape toward the sheet's round chibi head (chibi-body.js reshapeHead): wide widens the head, chin shortens the face below the eye line (eye, from the head's bottom), cheek fills the cheeks, soft bends the head normals toward its centre for one round toon shade, scale sizes the whole head about its base on the neck.",
-        "wide": 0.08,
-        "chin": 0.15,
-        "cheek": 0.06,
+        "_doc": "Head reshape toward the sheet's round chibi head (chibi-body.js reshapeHead): wide widens the head, chin shortens the face below the eye line (eye, from the head's bottom), cheek fills the cheeks, soft bends the head normals toward its centre for one round toon shade, scale sizes the whole head about its base on the neck. The base made from the owner's 2026-10-25 sheet already has its head: no reshape, only the soft normals.",
+        "wide": 0,
+        "chin": 0,
+        "cheek": 0,
         "eye": 0.36,
         "soft": 0.6,
-        "scale": 0.82
+        "scale": 1
       },
       "bodyMap": {
         "hips": 1.0,

@@ -79,8 +79,8 @@ test('imported models name real gear bases and respect measured asset budgets',a
    continue; // explicit original-source exception; no geometry reduction after approval
   }
   // the VRM hero (opt-in, scripts/prep-vrm.mjs) is a bigger, single character: its budget is set apart
-  // a modelled chibi outfit keeps Meshy's 2048 texture (loaded only while worn): 1.1 MB
-  assert.ok(buf.length<(m.hairsample?14336:m.vrm?4096:m.chibiOutfit?1126:group==='characters'?600:400)*1024,m.file+' stays small for iPad');
+  // the chibi body and a modelled chibi outfit keep Meshy's 2048 texture (an outfit loads only while worn): 1.1 MB
+  assert.ok(buf.length<(m.hairsample?14336:m.vrm?4096:m.chibiOutfit||m.chibi?1126:group==='characters'?600:400)*1024,m.file+' stays small for iPad');
   // a boss may carry a little more detail; one that summons (Greyfang's howl brings thornback
   // wolves, ai.js) must keep the whole encounter within the regular budget per monster
   const boss=group==='monsters'&&data.monsters.monsters[id]?.boss;

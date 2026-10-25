@@ -29,6 +29,8 @@ test('the chibi head reshape stays a small, bounded change', () => {
   assert.ok(h.eye > 0 && h.eye < 1, 'eye line inside the head');
   assert.ok(h.soft >= 0 && h.soft <= 1, 'soft blends between mesh and sphere normals');
   assert.ok(h.scale === undefined || (h.scale > 0.6 && h.scale <= 1.2), 'the head scale keeps a chibi head');
+  const f = data.models.characters.hero_chibi.fit;
+  assert.ok(f.crotch < f.armAxis && f.armAxis < f.neck && f.neck < 1.2 && f.tip > 0.3, 'fit landmarks in order on the 1.2 m body');
 });
 
 test('the chibi painted light only lifts its shading', () => {
@@ -39,8 +41,7 @@ test('the chibi painted light only lifts its shading', () => {
 });
 
 test('the chibi torso flatten bands are bounded', () => {
-  const bands = data.models.characters.hero_chibi.flatten;
-  assert.ok(Array.isArray(bands) && bands.length, 'hero_chibi flattens its torso');
+  const bands = data.models.characters.hero_chibi.flatten || [];
   for (const b of bands) {
     assert.ok(b.y0 < b.y1 && b.y0 > 0 && b.y1 < 1.2, 'band inside the 1.2 m body');
     assert.ok(Math.abs(b.z) < 0.2 && b.z !== 0, 'depth limit in front of (z > 0) or behind (z < 0) the body');

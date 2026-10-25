@@ -3,7 +3,7 @@
 // time-to-kill, time-to-die (standing still, no dodging) and minutes per level, so the
 // numbers in data/ can be checked against data.progression.balance.targets by a test.
 // Pure: it never touches a live game. Reproduce with `node scripts/balance-report.mjs`.
-import { createCharacter, derive, expToNext } from './character.js';
+import { createCharacter, derive, expToNext, defenseFactor } from './character.js';
 import { computeSkill } from './skills.js';
 import { gearDropCandidates, gearRecipe } from './crafting.js';
 
@@ -73,13 +73,13 @@ export function balanceAt(data, kit, level, jobNodes = null) {
   // and dodging take the rest). MP regenerates over the fight and the walk to the next one.
   const crit = 1 + d.critChance * (d.critMult - 1);
   const mdef = m.defense * (1 - (d.penetrationPct || 0) / 100);
-  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * (1 - mdef / (mdef + 60));
+  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * defenseFactor(mdef, data);
   const casts = m.hp / perCast;
   const byRate = casts * Math.max(s.cooldown, s.castTime, 0.35) / b.uptime;
   const byMana = s.cost ? (casts * s.cost) / d.mpRegen - b.secondsPerKill : 0;
   const ttk = Math.max(byRate, byMana);
   const dps = m.hp / ttk;
-  const taken = (m.damage / m.hitInterval) * (1 - d.defense / (d.defense + 60));
+  const taken = (m.damage / m.hitInterval) * defenseFactor(d.defense, data);
   const ttd = d.maxHp / taken;
   const perKill = ttk + b.secondsPerKill;
   const expPerMin = (60 / perKill) * m.exp;
@@ -154,7 +154,7 @@ export function longFightDps(data, kit, level, jobNodes = null, seconds = 90) {
   const s = computeSkill(ch, data, d, 0), m = referenceMonster(data, level);
   const crit = 1 + d.critChance * (d.critMult - 1);
   const mdef = m.defense * (1 - (d.penetrationPct || 0) / 100);
-  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * (1 - mdef / (mdef + 60));
+  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * defenseFactor(mdef, data);
   const byRate = b.uptime / Math.max(s.cooldown, s.castTime, 0.35);
   const byMana = s.cost ? (d.maxMp + d.mpRegen * seconds) / seconds / s.cost : Infinity;
   return { dps: Math.round(perCast * Math.min(byRate, byMana) * 10) / 10, manaLimited: byMana < byRate };
@@ -166,7 +166,7 @@ export function monsterTtk(data, kit, monsterId, level) {
   const { ch, d } = referenceHero(data, kit, level);
   const s = computeSkill(ch, data, d, 0), L = level - 1;
   const hp = m.hp * (1 + sc.hpPerLevel * L), def = m.defense * (1 + sc.defensePerLevel * L) * (1 - (d.penetrationPct || 0) / 100);
-  const perCast = (s.damage || 0) * (1 + d.critChance * (d.critMult - 1)) * Math.max(1, s.projectiles || 1) * (1 - def / (def + 60));
+  const perCast = (s.damage || 0) * (1 + d.critChance * (d.critMult - 1)) * Math.max(1, s.projectiles || 1) * defenseFactor(def, data);
   return (hp / perCast) * Math.max(s.cooldown, s.castTime, 0.35) / b.uptime;
 }
 

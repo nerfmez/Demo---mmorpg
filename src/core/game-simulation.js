@@ -5,7 +5,7 @@
 import { createWorld } from './world.js';
 import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
-import { createCharacter, migrateCharacter, derive, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
+import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
@@ -847,7 +847,7 @@ export class Game {
     if (crit) dmg *= this.derived.critMult;
     // Penetration ignores a share of the monster's defense.
     const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100);
-    if (!opts.dot) dmg *= 1 - def / (def + 60);
+    if (!opts.dot) dmg *= defenseFactor(def, this.data);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
     if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
     if (m.statuses.hex) dmg *= m.statuses.hex.taken;
@@ -962,7 +962,7 @@ export class Game {
       return 0;
     }
     const guard=applyGuard(this,amount,source,opts);
-    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * (1 - this.derived.defense / (this.derived.defense + 60)) * (1 + this.derived.damageTakenPct / 100);
+    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100);
     let blocked = guard.guarded;
     // A shield blocks hits from in front only; ground hazards (no source) are never blocked.
     if (this.derived.blockChance > 0 && source && source.x !== undefined && !opts.unblockable) {

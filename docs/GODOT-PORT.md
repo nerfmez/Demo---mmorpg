@@ -38,7 +38,7 @@ and legacy `Game` reference; `OpenWorldGame` is the live browser simulation.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 13`, with `name`, `appearance`, `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 14`, with `name`, `appearance`, `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## Approved V3 city overlay
 
@@ -60,7 +60,7 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 | File | Godot equivalent | Notes |
 |---|---|---|
 | `math.js`, `rng.js` | `util/math.gd`, `util/rng.gd` | Keep mulberry32 so a seed gives the same rolls. Godot's `RandomNumberGenerator` would give different results. |
-| `character.js` | Autoload `Character.gd` | Stats, levels, Job Tree, respec, gear stats and `derive()`. Six stats (`STATS`): STR, AGI, VIT, INT, DEX, LUK; `progression.character.perStat` gives each its derived stats (DEX crit damage `critMultPct`, LUK crit chance `critChancePct`; drop find stays on tree nodes and items); a save without LUK takes the starting value. `movementRanks` holds movement skill ranks above 1 (AGI upgrades: `crafting.js upgradeMovement`, `progression.movementUpgrade`; `skills.js movementSkill` shortens the recharge and lengthens the move per rank). |
+| `character.js` | Autoload `Character.gd` | Stats, levels, Job Tree, respec, gear stats and `derive()`. Raw numbers (HP, MP, attack, magic, defense, damage, heals, barriers, costs, potions) were multiplied by 10 on 2026-10-25 with percentages unchanged; armour is `defenseFactor()` = 1 - defense / (defense + `progression.combat.defenseConstant`, 600); save v14 moves older gear's flat option rolls (still below today's minimum) to the new scale. Six stats (`STATS`): STR, AGI, VIT, INT, DEX, LUK; `progression.character.perStat` gives each its derived stats (DEX crit damage `critMultPct`, LUK crit chance `critChancePct`; drop find stays on tree nodes and items); a save without LUK takes the starting value. `movementRanks` holds movement skill ranks above 1 (AGI upgrades: `crafting.js upgradeMovement`, `progression.movementUpgrade`; `skills.js movementSkill` shortens the recharge and lengthens the move per rank). |
 | `skills.js` | `SkillCompiler.gd` | `computeSkill()` returns a flat Dictionary. Keep tag-based `modFits(skill, mod, companions)` and inactive-mod reasons; see compatibility notes below. |
 | `crafting.js` | `Crafting.gd` | Recipes, grade roll, upgrades, drops. |
 | `quests.js` | `Quests.gd` | Journal state lives in `character.progress.quests`. Feed it the same events (kill, collect, craft). |
@@ -250,7 +250,7 @@ there is no character-level equip gate or set bonus. Their PNGs do not imply new
 3D outfit meshes; the current renderer reuses existing look templates.
  `gearDropCandidates` picks bases made from
 the monster's parts at the tier for its level (falling back to the nearest lower tier).
-`rollGearDrop` rolls a grade best-first (`items.gearDrops`) and options like a craft. A
+`rollGearDrop` rolls a grade best-first (`items.gearDrops`) and options like a craft. Every option value (craft, promotion, drop) rolls through `crafting.js optionRange(data, id, grade, itemLevel)`: the option's min..max grows with the item level (`items.grades.optionLevelGrowth`: flat values 0.146 per level like weapon base stats, percentages 0.025), then the grade takes its band of that range (`items.grades.optionRoll`, C 0-0.55 up to S 0.7-1; no grade passes the top); the item card and the recipe list show that range. Charms can roll gear and gold find, boots material find (`gear_find`, `gold_find`, `material_find`). A
 `drop` of item `gear` carries `gear`; pickup gives it a new uid. `goldFindPct`,
 `materialFindPct` and `gearFindPct` (capped) scale kill gold, part chances and gear chances.
 

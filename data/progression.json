@@ -17,28 +17,28 @@
       "LUK": 3
     },
     "base": {
-      "hp": 99,
-      "hpPerLevel": 4,
-      "hpPerVit": 6,
-      "mp": 44.5,
-      "mpPerLevel": 1.2,
-      "mpPerInt": 2.5,
-      "mpRegen": 2.5,
-      "hpRegen": 0.6,
+      "hp": 990,
+      "hpPerLevel": 40,
+      "hpPerVit": 60,
+      "mp": 445,
+      "mpPerLevel": 12,
+      "mpPerInt": 25,
+      "mpRegen": 25,
+      "hpRegen": 6,
       "moveSpeed": 6,
-      "attack": 1.65,
-      "magic": 2.25,
-      "mpRegenPerInt": 0.025
+      "attack": 16.5,
+      "magic": 22.5,
+      "mpRegenPerInt": 0.25
     },
     "perStat": {
       "STR": {
-        "attack": 0.45
+        "attack": 4.5
       },
       "INT": {
-        "magic": 0.45
+        "magic": 4.5
       },
       "VIT": {
-        "defense": 0.25,
+        "defense": 2.5,
         "barrierPct": 0.6
       },
       "AGI": {
@@ -48,7 +48,7 @@
       "DEX": {
         "critMultPct": 0.5,
         "projectileDamagePct": 0.45,
-        "attack": 0.2
+        "attack": 2
       },
       "LUK": {
         "critChancePct": 0.15
@@ -61,7 +61,7 @@
       "critChancePct": 40,
       "moveSpeedPct": 30,
       "damageTakenPct": -25,
-      "hpRegen": 5,
+      "hpRegen": 50,
       "leechPct": 8,
       "extraMovementCharges": 1,
       "blockChancePct": 50,
@@ -255,7 +255,9 @@
   },
   "slotCount": 4,
   "combat": {
-    "_doc": "Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
+    "_doc": "defenseConstant: armour takes defense / (defense + defenseConstant) of a hit (core/character.js defenseFactor; it grows with the raw numbers: 2026-10-25 every raw HP/attack/defense/damage/MP value was multiplied by 10). reflectFlat: the flat part of a guard reflect. Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
+    "defenseConstant": 600,
+    "reflectFlat": 40,
     "comboWindow": 1.1,
     "stagger": 0.14,
     "block": {
@@ -287,12 +289,12 @@
     "gear": {
       "gradeMult": 1.08,
       "defense": [
-        7,
-        5.5
+        70,
+        55
       ],
       "maxHp": [
-        18,
-        10
+        180,
+        100
       ]
     },
     "builds": {
@@ -355,8 +357,8 @@
       "_doc": "A Ranger who takes the whole farming line and shoots hunter arrows must out-earn a same-level sword hero after paying for the arrows, but the arrows must cost a noticeable share (tests/core/balance-model.test.js).",
       "find": {
         "goldFindPct": 49,
-        "materialFindPct": 44.3,
-        "gearFindPct": 40
+        "materialFindPct": 37.3,
+        "gearFindPct": 37.3
       },
       "arrow": "arrows_hunter",
       "plainArrow": "arrows_tusk",

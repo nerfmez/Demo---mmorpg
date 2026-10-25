@@ -12,6 +12,7 @@ import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse } from '../core/character.js';
+import { equipmentItemLevel } from '../core/item-metadata.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, upgradeMovement, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
@@ -382,7 +383,7 @@ export class Panels {
       ${wt ? `<div class="gear-implicit">${wt.nameTh} · ${Object.entries(imp)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>` : ''}
-      ${optionList(data,it.options)}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires)}`;
+      ${optionList(data,it.options,it.grade,equipmentItemLevel(data,it))}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires)}`;
   }
 
   render_bag() {

@@ -19,7 +19,7 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 8,
+        "base": 80,
         "scale": 1.0
       },
       "range": 2.4,
@@ -49,14 +49,14 @@
       "kind": "melee_nova",
       "power": "attack",
       "damage": {
-        "base": 7,
+        "base": 70,
         "scale": 0.85
       },
       "range": 2.8,
       "radius": 2.8,
       "cooldown": 1.2,
       "castTime": 0.24,
-      "cost": 6,
+      "cost": 60,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -85,7 +85,7 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 9,
+        "base": 90,
         "scale": 0.95
       },
       "range": 15,
@@ -116,7 +116,7 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 8,
+        "base": 80,
         "scale": 0.9
       },
       "range": 13,
@@ -148,7 +148,7 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 10,
+        "base": 100,
         "scale": 1.1
       },
       "range": 13,
@@ -156,7 +156,7 @@
       "projectileRadius": 0.35,
       "cooldown": 0.7,
       "castTime": 0.22,
-      "cost": 6,
+      "cost": 60,
       "element": "fire",
       "burnChance": 0.25,
       "requires": {},
@@ -177,7 +177,7 @@
       "kind": "chain",
       "power": "spell",
       "damage": {
-        "base": 11,
+        "base": 110,
         "scale": 1.0
       },
       "range": 11,
@@ -186,7 +186,7 @@
       "chainFalloff": 0.85,
       "cooldown": 1.3,
       "castTime": 0.24,
-      "cost": 10,
+      "cost": 100,
       "element": "lightning",
       "requires": {
         "INT": 6
@@ -210,7 +210,7 @@
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 18,
+        "base": 180,
         "scale": 1.5
       },
       "range": 10,
@@ -218,7 +218,7 @@
       "delay": 0.55,
       "cooldown": 2.4,
       "castTime": 0.3,
-      "cost": 14,
+      "cost": 140,
       "element": "physical",
       "requires": {
         "INT": 6
@@ -242,13 +242,13 @@
       "kind": "nova",
       "power": "spell",
       "damage": {
-        "base": 12,
+        "base": 120,
         "scale": 1.0
       },
       "radius": 4.2,
       "cooldown": 6,
       "castTime": 0.25,
-      "cost": 16,
+      "cost": 160,
       "element": "cold",
       "chill": {
         "slow": 0.55,
@@ -275,7 +275,7 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 4,
+        "base": 40,
         "scale": 0.4
       },
       "range": 14,
@@ -320,7 +320,7 @@
       "dealtMult": 0.8,
       "cooldown": 9,
       "castTime": 0.3,
-      "cost": 12,
+      "cost": 120,
       "element": "arcane",
       "requires": {
         "INT": 7
@@ -344,14 +344,14 @@
       "kind": "self_barrier",
       "power": "vit",
       "barrier": {
-        "base": 30,
-        "scale": 1.8
+        "base": 300,
+        "scale": 18
       },
       "duration": 6,
       "radius": 4,
       "cooldown": 9,
       "castTime": 0.25,
-      "cost": 12,
+      "cost": 120,
       "element": "none",
       "requires": {},
       "upgradeMaterial": "beetle_shell",
@@ -376,7 +376,7 @@
       "speedBuff": 0.1,
       "cooldown": 14,
       "castTime": 0.3,
-      "cost": 12,
+      "cost": 120,
       "element": "none",
       "requires": {
         "STR": 5
@@ -400,7 +400,7 @@
       "kind": "heal_zone",
       "power": "spell",
       "heal": {
-        "base": 6,
+        "base": 60,
         "scale": 0.45
       },
       "tick": 0.5,
@@ -409,7 +409,7 @@
       "radius": 2.8,
       "cooldown": 10,
       "castTime": 0.3,
-      "cost": 18,
+      "cost": 180,
       "element": "none",
       "requires": {
         "INT": 5
@@ -434,12 +434,12 @@
         "count": 1,
         "life": 25,
         "hp": {
-          "base": 60,
-          "vit": 3,
-          "level": 3
+          "base": 600,
+          "vit": 30,
+          "level": 30
         },
         "damage": {
-          "base": 6,
+          "base": 60,
           "scale": 0.55
         },
         "speed": 7,
@@ -448,7 +448,7 @@
       },
       "cooldown": 12,
       "castTime": 0.4,
-      "cost": 20,
+      "cost": 200,
       "element": "physical",
       "requires": {
         "INT": 5
@@ -471,7 +471,7 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 14,
+        "base": 140,
         "scale": 1.1
       },
       "range": 17,
@@ -479,7 +479,7 @@
       "projectileRadius": 0.3,
       "cooldown": 2.4,
       "castTime": 0.2,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "DEX": 5
@@ -515,7 +515,7 @@
       "range": 3,
       "cooldown": 6,
       "castTime": 0.15,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -527,7 +527,7 @@
         "sword"
       ],
       "damage": {
-        "base": 12,
+        "base": 120,
         "scale": 1.15
       },
       "arc": 100,
@@ -567,7 +567,7 @@
         "dagger"
       ],
       "damage": {
-        "base": 6,
+        "base": 60,
         "scale": 0.6
       },
       "arc": 45,
@@ -593,7 +593,7 @@
       "range": 2.8,
       "cooldown": 5,
       "castTime": 0.5,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -605,7 +605,7 @@
         "axe"
       ],
       "damage": {
-        "base": 14,
+        "base": 140,
         "scale": 1.2
       },
       "arc": 80,
@@ -632,7 +632,7 @@
       "range": 2.7,
       "cooldown": 7,
       "castTime": 0.4,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -644,7 +644,7 @@
         "mace"
       ],
       "damage": {
-        "base": 12,
+        "base": 120,
         "scale": 1.1
       },
       "arc": 65,
@@ -670,7 +670,7 @@
       "range": 5,
       "cooldown": 4,
       "castTime": 0.65,
-      "cost": 12,
+      "cost": 120,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -682,7 +682,7 @@
         "greatblade"
       ],
       "damage": {
-        "base": 20,
+        "base": 200,
         "scale": 1.7
       },
       "width": 1.4,
@@ -707,7 +707,7 @@
       "range": 2.2,
       "cooldown": 5,
       "castTime": 0.2,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "VIT": 5
@@ -716,8 +716,8 @@
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "damage": {
-        "base": 8,
-        "scale": 0.8
+        "base": 80,
+        "scale": 8
       },
       "arc": 90,
       "requiresOffhand": "shield",
@@ -743,7 +743,7 @@
       "range": 14,
       "cooldown": 6,
       "castTime": 0.3,
-      "cost": 12,
+      "cost": 120,
       "element": "physical",
       "requires": {
         "DEX": 5
@@ -755,7 +755,7 @@
         "bow"
       ],
       "damage": {
-        "base": 6,
+        "base": 60,
         "scale": 0.45
       },
       "radius": 3,
@@ -779,7 +779,7 @@
       "range": 5,
       "cooldown": 1,
       "castTime": 0.2,
-      "cost": 2,
+      "cost": 20,
       "element": "fire",
       "requires": {
         "INT": 5
@@ -791,13 +791,13 @@
         "staff"
       ],
       "damage": {
-        "base": 7,
+        "base": 70,
         "scale": 0.65
       },
       "arc": 55,
       "channel": {
         "tick": 0.25,
-        "manaPerSecond": 8,
+        "manaPerSecond": 80,
         "moveMult": 0.4
       }
     },
@@ -817,7 +817,7 @@
       "range": 9,
       "cooldown": 10,
       "castTime": 0.3,
-      "cost": 16,
+      "cost": 160,
       "element": "cold",
       "requires": {
         "INT": 5
@@ -831,7 +831,7 @@
         "length": 4,
         "thickness": 0.45,
         "hp": {
-          "base": 35,
+          "base": 350,
           "scale": 1.1
         },
         "minGap": 1.4,
@@ -853,7 +853,7 @@
       "range": 8,
       "cooldown": 7,
       "castTime": 0.3,
-      "cost": 12,
+      "cost": 120,
       "element": "none",
       "requires": {
         "INT": 5
@@ -862,7 +862,7 @@
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "heal": {
-        "base": 12,
+        "base": 120,
         "scale": 0.65
       },
       "cleanse": [
@@ -896,7 +896,7 @@
       "radius": 5,
       "aura": {
         "reserve": 0.2,
-        "mpRegen": 1.5,
+        "mpRegen": 15,
         "tick": 0.5
       }
     },
@@ -915,7 +915,7 @@
       "range": 0,
       "cooldown": 14,
       "castTime": 0.4,
-      "cost": 20,
+      "cost": 200,
       "element": "physical",
       "requires": {
         "INT": 5
@@ -928,12 +928,12 @@
         "count": 1,
         "life": 25,
         "hp": {
-          "base": 100,
-          "vit": 5,
-          "level": 4
+          "base": 1000,
+          "vit": 50,
+          "level": 40
         },
         "damage": {
-          "base": 3,
+          "base": 30,
           "scale": 0.25
         },
         "speed": 3,
@@ -1016,7 +1016,7 @@
       "landing": {
         "radius": 2.2,
         "damage": {
-          "base": 6,
+          "base": 60,
           "scale": 0.6
         }
       },

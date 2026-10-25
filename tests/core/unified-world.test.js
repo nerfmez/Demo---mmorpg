@@ -6,6 +6,7 @@ import { createUnifiedWorld } from '../../src/core/unified-world.js';
 import { OpenWorldGame } from '../../src/core/open-world-game.js';
 import { rollDrops } from '../../src/core/crafting.js';
 import { questState } from '../../src/core/quests.js';
+import { CHARACTER_VERSION } from '../../src/core/character.js';
 
 const AZURE = 'azure-harbor-v1', FRONTIER = 'frontier-wilds-v1', GROVE = 'moonroot-grove-v1';
 const worlds = Object.fromEntries(Object.entries(data.maps).map(([id, map]) => [id, createWorld(map)]));
@@ -148,7 +149,7 @@ test('v13 saves remain local to their region and load at the same atlas position
   g.ch.level = 9; g.ch.gold = 456;
   g.ch.progress.maps[AZURE].waypoints.push('forest');
   const saved = JSON.parse(JSON.stringify(g.snapshot()));
-  assert.equal(saved.version, 13);
+  assert.equal(saved.version, CHARACTER_VERSION);
   assert.equal(saved.worldId, FRONTIER);
   assert.deepEqual(saved.pos, [Math.round(wp.x * 10) / 10, Math.round((wp.z + 2.2) * 10) / 10]);
   const restored = make(FRONTIER, saved);

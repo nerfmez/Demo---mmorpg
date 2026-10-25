@@ -27,7 +27,8 @@ test('weapon base power follows its hands: two-hand ~2x and heavy ~1.5x a light 
     if (base.slot !== 'weapon') continue;
     const hands = data.items.weaponTypes[base.weaponType].hands;
     const ref = base.starter ? rules.reference.starter : rules.reference.base + rules.reference.perItemLevel * (base.itemLevel - 1);
-    const ratio = gearPower(base.stats, data) / (rules[hands].baseFactor * ref);
+    // the reference is attack-equivalent: weigh it like attack (requirements.weights.attack)
+    const ratio = gearPower(base.stats, data) / (rules[hands].baseFactor * ref * data.items.requirements.weights.attack);
     assert.ok(ratio >= lo && ratio <= hi, `${id} (${hands}) power ratio ${ratio.toFixed(2)}`);
   }
   // Base stats only: options are never multiplied by the hand factor.
@@ -111,7 +112,7 @@ test('gloves are their own slot and a shield blocks only frontal hits', () => {
   const p = g.player;
   p.facing = 0; // facing +Z
   const front = { kind: 'monster', x: p.x, z: p.z + 2 }, back = { kind: 'monster', x: p.x, z: p.z - 2 };
-  const full = Math.max(1, Math.round(100 * (1 - g.derived.defense / (g.derived.defense + 60))));
+  const full = Math.max(1, Math.round(100 * (1 - g.derived.defense / (g.derived.defense + data.progression.combat.defenseConstant))));
   p.hp = p.maxHp = 1e6;
   g.damagePlayer(100, back);
   assert.equal(1e6 - p.hp, full, 'from behind: never blocked');

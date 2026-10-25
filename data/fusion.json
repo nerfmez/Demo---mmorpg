@@ -90,7 +90,7 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 7,
+        "base": 70,
         "scale": 0.8
       },
       "range": 12,
@@ -98,7 +98,7 @@
       "projectileRadius": 0.32,
       "cooldown": 0.8,
       "castTime": 0.22,
-      "cost": 6,
+      "cost": 60,
       "element": "poison",
       "requires": {},
       "upgradeMaterial": "spore_sac",

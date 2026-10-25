@@ -83,8 +83,9 @@ test('batch crafting respects material exhaustion, bounds and requested affix ro
  const ch=funded(),recipe=data.recipes.recipes.tusk_blade;ch.materials.boar_tusk=recipe.cost.boar_tusk*2;
  const r=craftBatch(ch,data,'tusk_blade',createRng(2),{attempts:10,grade:'S'});assert.equal(r.attempts,2);assert.equal(r.reason,'materials');assert.equal(ch.materials.boar_tusk,0);
  const before=JSON.stringify(ch);for(const args of [{attempts:11},{attempts:-1},{attempts:NaN},{grade:'X'},{option:'fake'},{quality:1.1}])assert.equal(craftBatch(ch,data,'tusk_blade',createRng(3),args).reason,'invalid');assert.equal(JSON.stringify(ch),before);
- const option=recipe.optionPool[0],def=data.items.gearOptions[option],rich=funded();let n=0;
- const rng={weighted:()=>{n++;return 'B';},next:()=>0,int:()=>n===1?def.min:def.max};
+ const option=recipe.optionPool[0],rich=funded();let n=0;
+ // grade S rolls the top band of the item's range: the first craft its floor (below 0.8 quality), the second its top
+ const rng={weighted:()=>{n++;return 'S';},next:()=>0,int:(lo,hi)=>n===1?lo:hi};
  const quality=craftBatch(rich,data,'tusk_blade',rng,{attempts:5,option,quality:.8});assert.equal(quality.attempts,2);assert.ok(quality.matched);
 });
 test('promotion adds an affix without rerolling good options, changing +N or replacing the item',()=>{

@@ -43,7 +43,7 @@ test('imports reject unsupported fields and non-finite data before reaching shad
   assert.equal(store.get('firebolt').fx.projectile.flowSpeed, 18);
   assert.equal(store.get('firebolt').fx.colors.rim, fx.skills.firebolt.colors.rim);
   assert.equal(store.get('firebolt').def.speed, 0.1); // speed's step keeps a nonzero replay velocity
-  assert.equal(store.get('firebolt').def.damage.base, 10);
+  assert.equal(store.get('firebolt').def.damage.base, skills.combat.firebolt.damage.base); // the rejected import leaves the authored value
   assert.throws(() => store.import({ version: 1, skill: '__proto__', patch: {} }));
   assert.throws(() => store.get('__proto__'));
 });

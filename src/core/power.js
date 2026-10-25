@@ -2,7 +2,7 @@
 // and their mods, job tree) so the player can see what a change adds or costs. It is the
 // geometric mean of offence (sustained damage per second of the best slotted damage skill)
 // and defence (effective HP against a hit from the front), scaled by data.progression.power.
-import { derive } from './character.js';
+import { derive, defenseFactor } from './character.js';
 import { computeSkill } from './skills.js';
 
 /** Damage per second of one computed skill (0 for skills that deal none). */
@@ -17,7 +17,7 @@ export function skillDps(s, d) {
 
 /** Effective HP: max HP over the share of a frontal hit that gets through armour and a shield. */
 export function effectiveHp(d, data) {
-  const armour = (1 - d.defense / (d.defense + 60)) * (1 + d.damageTakenPct / 100);
+  const armour = defenseFactor(d.defense, data) * (1 + d.damageTakenPct / 100);
   const block = 1 - d.blockChance * (1 - data.progression.combat.block.taken);
   return d.maxHp / Math.max(0.05, armour * block);
 }

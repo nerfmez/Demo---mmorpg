@@ -8,7 +8,11 @@ import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK']; // LUK: crit chance (DEX: crit damage)
-export const CHARACTER_VERSION = 13;
+export const CHARACTER_VERSION = 14;
+/** Share of a hit armour lets through: 1 - defense / (defense + progression.combat.defenseConstant). */
+export const defenseFactor = (defense, data) => 1 - defense / (defense + data.progression.combat.defenseConstant);
+// v14: raw numbers (HP, attack, magic, defense, MP, regen) grew tenfold; rolled flat options of saved gear follow
+const RAW_SCALE_V14 = 10, RAW_OPTIONS_V14 = ['attack_flat', 'magic_flat', 'hp_flat', 'mp_flat', 'defense_flat', 'regen_flat'];
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -189,6 +193,12 @@ export function migrateCharacter(ch, data) {
       && !ch.slots.some(s => s.mods.includes(uid))).slice(0, data.mods.maxMovementMods);
   ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
   normalizeItemMetadata(ch, data);
+  // (saves before v3 convert legacy rolls straight into today's ranges below)
+  // only a value still on the old scale moves: every old roll sits below today's minimum (old maximum
+  // attack 6, today's minimum 10), so a save written after the change, or migrated twice, is left alone
+  if ((ch.version || 1) >= 3 && (ch.version || 1) < 14)
+    for (const item of ch.gear) for (const o of item.options || [])
+      if (RAW_OPTIONS_V14.includes(o.id) && o.value < data.items.gearOptions[o.id].min) o.value *= RAW_SCALE_V14;
   if ((ch.version || 1) < 3) {
     for (const item of ch.gear) {
       item.options = item.options || [];

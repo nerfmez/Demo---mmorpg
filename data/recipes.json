@@ -387,7 +387,8 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -404,7 +405,8 @@
         "move_pct",
         "cdr_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 1
     },
@@ -424,7 +426,8 @@
         "defense_flat",
         "regen_flat",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "material_find"
       ],
       "itemLevel": 21
     },
@@ -440,7 +443,9 @@
         "attack_flat",
         "melee_pct",
         "projectile_pct",
-        "defense_flat"
+        "defense_flat",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 1
     },
@@ -460,7 +465,9 @@
         "mp_flat",
         "spell_pct",
         "area_pct",
-        "heal_pct"
+        "heal_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 16
     },
@@ -477,7 +484,9 @@
         "regen_flat",
         "summon_pct",
         "poison_on_hit",
-        "mp_flat"
+        "mp_flat",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 6
     },
@@ -496,7 +505,9 @@
         "cdr_pct",
         "projectile_pct",
         "crit_pct",
-        "attack_flat"
+        "attack_flat",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 16
     },
@@ -516,7 +527,9 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "crit_pct"
+        "crit_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 21
     },
@@ -537,7 +550,9 @@
         "magic_flat",
         "crit_pct",
         "cdr_pct",
-        "leech_pct"
+        "leech_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 21
     },
@@ -817,7 +832,8 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "material_find"
       ],
       "itemLevel": 1
     },
@@ -834,7 +850,9 @@
         "mp_flat",
         "spell_pct",
         "heal_pct",
-        "summon_pct"
+        "summon_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 1
     },
@@ -851,7 +869,8 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "material_find"
       ],
       "itemLevel": 1
     },
@@ -1450,7 +1469,8 @@
         "defense_flat",
         "hp_flat",
         "regen_flat",
-        "cdr_pct"
+        "cdr_pct",
+        "material_find"
       ]
     },
     "fang_talisman": {
@@ -1469,7 +1489,9 @@
         "attack_flat",
         "move_pct",
         "leech_pct",
-        "melee_pct"
+        "melee_pct",
+        "gear_find",
+        "gold_find"
       ]
     },
     "stormglass_blade": {
@@ -1608,7 +1630,8 @@
         "defense_flat",
         "cdr_pct",
         "hp_flat",
-        "projectile_pct"
+        "projectile_pct",
+        "material_find"
       ]
     },
     "oathblade": {
@@ -1752,7 +1775,8 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "heal_pct"
+        "heal_pct",
+        "material_find"
       ],
       "itemLevel": 11
     },
@@ -1886,7 +1910,9 @@
         "crit_pct",
         "cdr_pct",
         "attack_flat",
-        "projectile_pct"
+        "projectile_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 6
     },
@@ -1904,7 +1930,9 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "barrier_pct"
+        "barrier_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 6
     },
@@ -1922,7 +1950,9 @@
         "defense_flat",
         "block_pct",
         "regen_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 6
     },
@@ -1941,7 +1971,9 @@
         "magic_flat",
         "hp_flat",
         "move_pct",
-        "crit_pct"
+        "crit_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 11
     },

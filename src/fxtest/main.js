@@ -102,13 +102,22 @@ function makeDummy() {
 }
 const dummies = Array.from({ length: 6 }, makeDummy);
 
+// errors on screen (the owner tests on a tablet, with no console): the banner shows what failed
+function notify(text) { try { showBanner(text); } catch { /* before the banner exists */ } }
+window.addEventListener('error', (e) => notify('ผิดพลาด: ' + (e.message || e.error)));
+window.addEventListener('unhandledrejection', (e) => notify('ผิดพลาด: ' + (e.reason?.message || e.reason)));
+
 // ---------- hero ----------
 let hero = null, heroAnim = null, heroWeapon = 'staff', heroOffhand = null;
 function buildHero(weapon = heroWeapon, offhand = heroOffhand) {
   heroWeapon = weapon; heroOffhand = offhand;
   const action = heroAnim?.action || null;
+  // a hero that cannot be built (a weapon model that failed to load) keeps the old one and says so,
+  // so the rest of a rebuild (the panel, the dummies) still runs: the owner saw a half-switched bench
+  let next;
+  try { next = buildHumanoid(DEFAULT_LOOK, { weapon, armor: 'tunic', helm: null, offhand, bases: {} }); } catch (err) { console.error(err); notify('สร้างตัวละครไม่สำเร็จ: ' + (err?.message || err)); return; }
   if (hero) disposeObject(hero.root); // frees the old rig's geometry, materials and skeleton
-  hero = buildHumanoid(DEFAULT_LOOK, { weapon, armor: 'tunic', helm: null, offhand, bases: {} });
+  hero = next;
   heroAnim = new HumanoidAnimator(hero);
   heroAnim.action = action;
   scene.add(hero.root);
@@ -308,8 +317,9 @@ function renderPanel() {
   panel.textContent = '';
   const tabs = h('div', 'tabs');
   for (const id of BENCH_SKILLS) {
-    const b = h('button', 'tab' + (id === state.skill ? ' on' : ''), data.skills.combat[id].nameTh);
-    b.addEventListener('click', () => { if (id === state.skill) return; state.skill = id; state.mods = []; state.fusion = null; aimAngle = Math.PI / 2; rebuild(); });
+    const b = h('button', 'tab' + (id === state.skill && !state.fusion ? ' on' : ''), data.skills.combat[id].nameTh);
+    // a plain skill tab drops any linked fusion (tapping Hunter's Shot while Thunder Arrow is on gives plain Hunter's Shot)
+    b.addEventListener('click', () => { if (id === state.skill && !state.fusion) return; state.skill = id; state.mods = []; state.fusion = null; aimAngle = Math.PI / 2; rebuild(); });
     tabs.append(b);
   }
   panel.append(tabs);

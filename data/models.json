@@ -1021,8 +1021,8 @@
     "outfit_wardenstalker_hood": {
       "file": "models/outfits/wardenstalker_hood.glb",
       "chibiOutfit": "helm",
-      "tris": 457,
-      "source": "The headwear of the warden set's model (assets/meshy/outfits/warden_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/warden.json wardenstalker_hood."
+      "tris": 2118,
+      "source": "The hood of the warden set regenerated on the owner's new chibi base (assets/meshy/outfits/warden2_reference.png: Meshy image-to-image of the base dressed as reference 08; warden2_meshy.glb: Meshy 6 image-to-3d), headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/warden2.json wardenstalker_hood."
     }
   },
   "monsters": {

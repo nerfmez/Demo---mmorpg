@@ -54,7 +54,7 @@ def head(g, neck):
         for wts in ((1 / 3, 1 / 3, 1 / 3), (0.6, 0.2, 0.2), (0.2, 0.6, 0.2), (0.2, 0.2, 0.6)):
             u = sum(a * b[0] for a, b in zip(wts, uv)); v = sum(a * b[1] for a, b in zip(wts, uv))
             c = px[int(np.clip((v % 1) * h, 0, h - 1)), int(np.clip((u % 1) * w, 0, w - 1))]
-            if c[2] - c[0] > 30 and c[2] >= c[1]: return True
+            if c[2] - c[0] > C.get('eyeBlue', 30) and c[2] >= c[1]: return True
         return False
     # the eyes: blue, on the front of the face; their middles place the head
     eye = [f for f in bm.faces if f.normal.y < -0.3 and abs(f.calc_center_median().x) < 0.09

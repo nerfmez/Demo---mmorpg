@@ -33,3 +33,7 @@ fit settings for `scripts/fit-chibi-outfit.py` (see `docs/OUTFIT-BASE.md`, "Mode
 - Legs: the fit keeps the generated legs straight (the leg line is fitted through the slices near the
   ankle, so a coat or cape round the legs does not bend it) and does not push the trousers over the
   chibi's fuller thighs; the body under the armour is hidden in game.
+
+- The warden hood was regenerated on the new chibi base (`warden2_reference.png` → `warden2_meshy.glb`,
+  Meshy image-to-image then Meshy 6 image-to-3d, about 38 credits; `warden2.json`): the first hood's
+  back was made for a lower head and left a gap behind the neck.

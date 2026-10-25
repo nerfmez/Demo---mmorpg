@@ -59,3 +59,36 @@ test('the owner\'s conch ships light: one reduced mesh and one 1024 colour map',
  assert.deepEqual([jpg.readUInt16BE(at+7),jpg.readUInt16BE(at+5)],[1024,1024],'colour map size');
  assert.ok(bytes.length<600*1024,'file size');
 });
+test('render can follow every height edit inside a scene (connectors, seams, shore)',async()=>{
+ const {acceptedGroundEdit}=await import('../../src/core/accepted-shift.js');
+ const hf=world.heightfield,data2=data.world;let checked=0,edited=0;
+ for(const scene of acceptedSceneLayout.scenes){
+  const b=scene.bounds;
+  for(let z=Math.ceil(b[2]);z<=b[3];z+=1)for(let x=Math.ceil(b[0]);x<=b[1];x+=1){
+   const i=Math.round((x-hf.ox)/hf.res),j=Math.round((z-hf.oz)/hf.res),gx=hf.ox+i*hf.res,gz=hf.oz+j*hf.res;
+   if(sceneWeight(scene,gx,gz)<.999||(data2.acceptedScenes.connectors||[]).some(r=>r.repair&&Math.hypot(...r.points.reduce((m,p)=>Math.hypot(gx-p[0],gz-p[1])<Math.hypot(gx-m[0],gz-m[1])?p:m).map((v,k)=>v-[gx,gz][k]))<r.width/2+12))continue;
+   const e=acceptedGroundEdit(data2,scene,gx,gz,hf.acceptedConnectors);checked++;if(Math.abs(e.shift)>.05)edited++;
+   assert.ok(Math.abs(e.height-hf.data[j*hf.w+i])<1e-3,`${scene.id} ${gx},${gz}: ${e.height} vs ${hf.data[j*hf.w+i]}`);
+  }
+ }
+ assert.ok(checked>10000&&edited>500,`checked ${checked}, edited ${edited}`);
+});
+
+test('a ring of trees and shrubs carries each scene\'s woodland past its bounds without touching routes',()=>{
+ const plant=data.world.acceptedScenes.surround.plant,trees=world.circles.filter(c=>c.type==='scene-tree'),shrubs=world.decor.sceneShrubs;
+ const outside=(b,x,z)=>Math.hypot(Math.max(b[0]-x,0,x-b[1]),Math.max(b[2]-z,0,z-b[3]));
+ for(const s of acceptedSceneLayout.scenes){
+  assert.ok(trees.filter(t=>outside(s.bounds,t.x,t.z)<=plant.trees.outer+1).length>=plant.trees.perScene/2,s.id+' ring trees');
+  assert.ok(shrubs.filter(t=>outside(s.bounds,t.x,t.z)<=plant.shrubs.outer+1).length>=plant.shrubs.perScene/2,s.id+' ring shrubs');
+ }
+ for(const t of trees){
+  assert.ok(acceptedSceneLayout.scenes.every(s=>sceneWeight(s,t.x,t.z)===0),'ring trees stay outside every scene');
+  assert.ok(!world.isWater(t.x,t.z,t.r)&&world.heightfield.slopeAt(t.x,t.z)<=plant.trees.slope,'dry, gentle ground');
+  for(const r of world.roads)for(let i=1;i<r.points.length;i++){
+   const [ax,az]=r.points[i-1],[bx,bz]=r.points[i],l=Math.hypot(bx-ax,bz-az)||1,u=Math.max(0,Math.min(1,((t.x-ax)*(bx-ax)+(t.z-az)*(bz-az))/l/l));
+   assert.ok(Math.hypot(t.x-ax-(bx-ax)*u,t.z-az-(bz-az)*u)>r.width/2+t.r,r.id+' clear of ring tree '+[t.x,t.z]);
+  }
+ }
+ const stones=world.circles.filter(c=>c.type==='waypoint');assert.equal(stones.length,data.world.waypoints.length);
+ for(const w of stones)assert.ok(trees.every(t=>Math.hypot(t.x-w.x,t.z-w.z)>t.r+3),w.id+' waypoint stays open');
+});

@@ -75,8 +75,18 @@ export function distToPolyline(px, pz, pts) {
 }
 
 /** Z of a polyline that runs mostly along X (used for the road), linear interpolation. */
+const strictlyIncreasing = new WeakMap();
 export function polylineZAtX(pts, x) {
   if (x <= pts[0][0]) return pts[0][1];
+  let sorted = strictlyIncreasing.get(pts);
+  if (sorted === undefined) { sorted = pts.every((p, i) => !i || p[0] > pts[i - 1][0]); strictlyIncreasing.set(pts, sorted); }
+  if (sorted) { // same segment as the scan below, found by bisection (shorelines are long)
+    if (x >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
+    let lo = 0, hi = pts.length - 1;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (pts[mid][0] < x) lo = mid; else hi = mid; }
+    const [ax, az] = pts[lo], [bx, bz] = pts[hi];
+    return lerp(az, bz, (x - ax) / (bx - ax || 1));
+  }
   for (let i = 0; i < pts.length - 1; i++) {
     const [ax, az] = pts[i];
     const [bx, bz] = pts[i + 1];

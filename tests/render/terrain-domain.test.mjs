@@ -169,4 +169,19 @@ test('accepted scenes paint only their own paths, not the town earth clearing',a
  assert.ok(checked>100,'the meadow and windmill overlap the clearing: '+checked);
 });
 
+test('the ring round accepted scenes takes back the earth clearing but keeps routes and waypoints',async()=>{
+ const {sceneSurround,sceneKeep,outsideClearingWeight}=await import('../../src/core/ground-regions.js');
+ const {acceptedAt}=await import('../../src/core/accepted-scenes.js');
+ const world=worlds[A],field=surfaceData(world),hf=world.heightfield,cfg=world.data.acceptedScenes.surround,at=(x,z)=>Math.round((z-hf.oz)/hf.res)*hf.w+Math.round((x-hf.ox)/hf.res);
+ let ring=0;
+ for(let j=0;j<hf.h;j+=2)for(let i=0;i<hf.w;i+=2){
+  const x=hf.ox+i*hf.res,z=hf.oz+j*hf.res;
+  if(acceptedAt(world.data,x,z)||sceneSurround(world.data,x,z,cfg.clearRing)<.8||sceneKeep(world.data,world.roads,x,z)>0||outsideClearingWeight(world.data.city,x,z)<.5||world.isWater(x,z))continue;
+  ring++;assert.ok(field.dirt[j*hf.w+i]<.3&&field.road[j*hf.w+i]<.3,`clearing still painted at ${x},${z}`);
+ }
+ assert.ok(ring>40,'the meadow and windmill rings cross the clearing: '+ring);
+ for(const road of world.data.acceptedScenes.connectors)for(const[x,z]of road.points)if(!world.isWater(x,z))assert.ok(field.road[at(x,z)]>.6,road.id+' keeps its paint at '+[x,z]);
+ const forest=world.data.waypoints.find(w=>w.id==='forest').pos;assert.ok(field.road[at(...forest)]>.8,'the forest waypoint clearing stays earth');
+});
+
 test.after(()=>{for(const[id,g]of Object.entries(terrains)){disposeObject(g);releaseGroundCaches(worlds[id]);}});

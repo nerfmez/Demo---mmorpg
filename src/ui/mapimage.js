@@ -2,10 +2,9 @@
 // landmarks), made once from the same world data the 3D view uses. The minimap and the world
 // map panel both draw from it.
 import { fromBoxLocal, pointInPolygon } from '../core/math.js';
-import {outsideClearingWeight,outsideRoadDistance} from '../core/ground-regions.js';
+import {outsideClearingWeight,outsideRoadDistance,sceneClearingFade} from '../core/ground-regions.js';
 
 import {cityFloorAt} from '../core/city.js';
-import {acceptedAt,sceneWeight} from '../core/accepted-scenes.js';
 
 const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
@@ -72,8 +71,9 @@ export function mapImage(world) {
       const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z):outsideRoadDistance(world.data.city,world.roads,x,z);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));
       const water = world.isWater(x, z);
-      const scene=acceptedAt(world.data,x,z),inScene=scene?sceneWeight(scene,x,z):0; // accepted scenes keep their own paths
-      if(!water)c=mix(c,ROAD,outsideClearingWeight(world.data.city,x,z)*(1-inScene)*(.88+n*.08));
+      // accepted scenes and the ring round them keep their own paths (as render/ground.js)
+      const clearing=water?0:outsideClearingWeight(world.data.city,x,z);
+      if(clearing)c=mix(c,ROAD,clearing*(1-sceneClearingFade(world.data,world.roads,x,z))*(.88+n*.08));
       // hill shade: light from the north-west (slopes facing -x/-z are lit), high ground a bit lighter
       const shade = 0.97 + Math.max(-0.14, Math.min(0.14, (dx + dz) * 0.13)) + Math.max(-0.1, Math.min(0.12, h * 0.018));
       c = [c[0] * shade, c[1] * shade, c[2] * shade];
@@ -144,7 +144,7 @@ export function mapImage(world) {
   }
   for (const c of [...world.circles].sort((a,b)=>a.z-b.z)) {
     g.save();g.translate(tx(c.x),tz(c.z));g.scale(PX,PX);
-    const treeType=['tree','willow','birch','pine','palm'].includes(c.type);
+    const treeType=['tree','willow','birch','pine','palm','scene-tree'].includes(c.type);
     if(treeType){
       const scale=(c.scale||1)*1.05;g.scale(scale,scale);
       g.fillStyle='#294f3d33';g.beginPath();g.ellipse(.4,.5,2.1,1.3,0,0,Math.PI*2);g.fill();

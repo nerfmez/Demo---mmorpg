@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
 import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={}}={}){
-const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941;
+const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=g=>{g.userData.rigidParts=true;return g;};
 // ---------- helpers ----------
 let seed = 20261021;
 const rand = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -1317,7 +1317,7 @@ function build(){
   for(const[u,v,r,c]of[[.40,.465,.8,true],[.51,.445,.9,false],[.665,.49,1,true],[.70,.50,.9,true],[.35,.60,.8,true],[.60,.78,.85,true],[.88,.79,.6,false],[.25,.62,.6,false],[.47,.70,.55,true],[.56,.55,.5,false],[.76,.66,.6,true],[.31,.74,.5,false]]){
     const[x,z]=P(u,v),s=scallop(r*1.6,c);s.position.set(x,height(x,z)+.04,z);s.rotation.y=R(-.6,.6);scene.add(s);
   }
-  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
+  const stones=new THREE.Mesh(rigidParts(mergeGeometries(stoneParts,true)),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(rigidParts(mergeGeometries(stoneLines,true)),outlineMat('#4c4852')));
   clearConchPlants();placeCoastPlants();scene.add(giantConch());
   
 }

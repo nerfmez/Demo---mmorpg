@@ -120,3 +120,28 @@ The owner asked to continue with the windmill scene.
 
 Checks: the scene data is unchanged for all six scenes. `npm test` passes 606/606 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view, the mill, the south, west and east approaches, and the rose garden's walls after the shared change). Local startup, timed on its own, was 41.9 and 42.0 s. A 56.8 s reading came from a run with a second capture in parallel.
 
+
+## Owner round: blend the surroundings into the scenes (25 October 2026)
+
+The owner asked to put all the finished scenes into the game and adjust the nearby surroundings to fit them.
+
+Observable criteria: no wall, trench or floating mesh where a scene meets native ground; the town's bare-earth clearing and soil patches do not stop on a straight line at a scene's bounds; the scenes' woodland carries on past their edges; roads, connectors and waypoints keep their earth and stay walkable; no seeded native prop moves.
+
+- **Ground:** an outer apron (`acceptedScenes.apron`) raises or lowers native ground on the listed scene sides to meet each scene's edge, over 6–22 m depending on the rise, kept dry and off pond banks. Connectors are lifted with it. Scene meshes follow every height edit (`core/accepted-shift.js`); stone walls and steps move per part, rigidly, so they do not shear.
+- **Paint:** in a wobbly ring round each scene the earth clearing and soil patches give way to grass tinted toward the scenes' greens; visible roads, connector extensions and waypoints keep their earth.
+- **Planting:** about 16 trees and 90 shrubs per scene, in clumps, with their own seed after every native pass. None stand on roads, connectors, waypoints, beaches, water or paving.
+- **Sea:** the sky-reflection patches no longer repeat on a 22 m square grid. Scene grass and flowers no longer float on the game's sea in the Conch Coast cove.
+- **Tried and reverted:** turning the Conch Coast headland's east cove into land. It left a straight cliff and stair-stepped sand on the plateau, which looked worse than the existing cove.
+
+Checks: `npm test` 608/608. Render tests 45 passed and 2 failed; the same 2 tests (landmark import release, closed skirt edges) also fail on the base commit `a9e074a`. `check-accepted-routes` reports 0 failures. A native layout hash of all circles, boxes and decor (ring plants excluded) equals the base commit's. Startup (SwiftShader, timed one run at a time, alternating): this branch 67.5 and 72.4 s, base 69.0 and 70.4 s.
+
+Visual inspection: the game camera at zoom 2, 1180×820, HUD hidden. All 24 scene edges (north, south, east and west of each scene) were compared before and after. Faults found and fixed during the round:
+- ring trees on the beach sand: kept off beaches;
+- evenly sprinkled shrubs: grouped into clumps;
+- the headland cliff: reverted;
+- grass on the cove water: culled.
+
+Remaining limits:
+- The steep grey slope bands at the windmill's east side (a native plateau edge and a connector cut) are unchanged.
+- The Conch Coast cove is still drawn over sloping scene ground, inside the game's coastline.
+- iPad/WebKit frame rate is not measured here.

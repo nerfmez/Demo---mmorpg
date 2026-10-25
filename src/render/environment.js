@@ -236,6 +236,16 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
     }
     if (c.type === 'willow') willowLeaves.push({ x: c.x, z: c.z, y: y + 2.2 * s, s: 1.7 * s, sy: 1.35 * s, ry: c.rot, color: '#ceddc4' });
   }
+  // The ring planted round accepted scenes (core world.js plantSceneSurrounds):
+  // the same tree a shade lighter, toward the scenes' sunlit greens. It draws no
+  // numbers from rng, so the native trees keep their look.
+  for (const c of world.circles) {
+    if (c.type !== 'scene-tree') continue;
+    if(visited++%8===0)yield;
+    const s = c.scale * 0.85, y = gy(c.x, c.z) - 0.2;
+    if(animeStudy)animeTrunks.push({x:c.x,z:c.z,y,sx:s,sy:s,sz:s,ry:c.rot});else trunks.push({x:c.x,z:c.z,y,s:1,sx:s,sy:s,sz:s,ry:c.rot});
+    cloudTrees.push({x:c.x,z:c.z,y:y+3.5*s,sx:s*2.5,sy:s*1.7,sz:s*2.25,ry:c.rot,color:'#fbfbe6'});
+  }
   const trunkGeo = branchTrunk();
   root.add(yield* buildInstances(trunkGeo, paintSurface(mat('#85613f', {vertexColors:true}), 'bark'), trunks, { outline: '#564132', outlineWidth: 0.027 }));
   const birchGeo = new THREE.CylinderGeometry(0.13, 0.2, 3.6, 7);
@@ -409,6 +419,10 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
     bushes.push({ x: bsh.x, z: bsh.z, y: y + 0.35 * bsh.s, s: 0.75 * bsh.s, sy: 0.55 * bsh.s, color: '#dfe8c9' });
     bushes.push({ x: bsh.x + 0.5 * bsh.s, z: bsh.z + 0.2, y: y + 0.28 * bsh.s, s: 0.55 * bsh.s, sy: 0.45 * bsh.s, color: '#ecedce' });
     if (bsh.berries) for (let k = 0; k < 5; k++) berries.push({ x: bsh.x + Math.sin(k * 1.3) * 0.5 * bsh.s, z: bsh.z + Math.cos(k * 1.3) * 0.45 * bsh.s, y: y + 0.45 * bsh.s + (k % 2) * 0.12, s: 0.09 });
+  }
+  for (const bsh of d.sceneShrubs || []) {
+    if(visited++%16===0)yield;
+    studyBushes.push({x:bsh.x,z:bsh.z,y:gy(bsh.x,bsh.z)-.015,sx:1.25*bsh.s,sy:1.05*bsh.s,sz:1.1*bsh.s,ry:bsh.x*.27+bsh.z*.13});
   }
   const bushMat=mat('#ffffff',{double:true,wind:.03,windBase:.5});bushMat.map=leafTexture();bushMat.alphaTest=.45;bushMat.forceSinglePass=true;
   root.add(yield* buildInstances(bushGeo,bushMat,bushes.filter(it=>!inArtStudy(it.x,it.z)).map(it=>({...it,ry:0})),{shadow:true}));

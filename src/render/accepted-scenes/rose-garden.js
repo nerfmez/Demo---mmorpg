@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
 import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={}}={}){
-const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941;
+const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=g=>{g.userData.rigidParts=true;return g;};
 // ---------- helpers ----------
 let seed = 20261021;
 const rand = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -1353,7 +1353,7 @@ FOL.leaf=['#2b7152','#57973d','#b5c94d'];FOL.shrub=['#2e6a4a','#5c943e','#a9bd49
 function build(){
  const[x,z]=P(.50,.84);heroStub.x=x;heroStub.z=z;heroStub.face=-2.7;
  {const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);}buildLedges();embeddedRoadStones();gazeboModel();gardenRocks();grove();
- const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='rose-stone-details';stones.userData.authoredNormals=true;stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
+ const stones=new THREE.Mesh(rigidParts(mergeGeometries(stoneParts,true)),masonryMaterial());stones.name='rose-stone-details';stones.userData.authoredNormals=true;stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(rigidParts(mergeGeometries(stoneLines,true)),outlineMat('#4c4852')));
  clearGardenPaths();placeCoastPlants();placeRoses();
 }
 function updateAmbience(){}

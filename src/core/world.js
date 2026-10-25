@@ -3,7 +3,8 @@
 // spawns; the renderer draws exactly the same layout.
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
-import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders} from './accepted-scenes.js';
+import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders,sceneWeight} from './accepted-scenes.js';
+import {outsideClearingWeight,sceneKeep} from './ground-regions.js';
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToPolylineBounds, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
@@ -137,7 +138,7 @@ export function createWorld(worldData) {
   const boxes = []; // colliders {x,z,hx,hz,angle,type}
   const decor = {
     flowers: [], grass: [], bushes: [], ferns: [], mushrooms: [], reeds: [], lilies: [], lanterns: [], fences: [],
-    crates: [], bones: [], pebbles: [], shells: [], arches: [], banners: [], edgeTrees: [], logsDecor: [],
+    crates: [], bones: [], pebbles: [], shells: [], arches: [], banners: [], edgeTrees: [], logsDecor: [], sceneShrubs: [],
   };
   const PCELL = 4;
   const placed = new Map();
@@ -205,7 +206,7 @@ export function createWorld(worldData) {
     onBridge(x, z, r + 2) ||
     roadDist(x, z) < r + roadPad ||
     clearAreas.some((c) => dist(x, z, c.x, c.z) < c.r + r) ||
-    hf.slopeAt(x, z) > slope ||
+    hf.propSlopeAt(x, z) > slope ||
     overlaps(x, z, r);
 
   // ---------- town ----------
@@ -534,6 +535,70 @@ export function createWorld(worldData) {
     }
     for(const key of Object.keys(decor))decor[key]=decor[key].filter(c=>!suppressNativeSceneProp(worldData,c.x,c.z)&&!connectorClear(worldData,c.x,c.z,1));
     for(const c of acceptedColliders(worldData))(c.hx===undefined?circles:boxes).push(c);
+    plantSceneSurrounds();
+  }
+
+  // Scene-surround planting (data: acceptedScenes.surround.plant): a ring of trees
+  // and shrub clumps outside each accepted scene, so its woodland does not stop
+  // dead at the bounds. One seed per scene, after every native pass: no native
+  // placement moves. Trees are collision circles (type 'scene-tree'); shrubs are decor.
+  function plantSceneSurrounds() {
+    const cfg = worldData.acceptedScenes.surround?.plant;
+    if (!cfg) return;
+    const scenes = acceptedScenes(worldData), inScene = (x, z) => scenes.some((s) => sceneWeight(s, x, z) > 0);
+    const sceneSolids = circles.filter((c) => c.type === 'accepted-scene');
+    const outside = (s, x, z) => { const q = s.bounds; return Math.hypot(Math.max(q[0] - x, 0, x - q[1]), Math.max(q[2] - z, 0, z - q[3])) || -Math.min(x - q[0], q[1] - x, z - q[2], q[3] - z); };
+    const pick = (r, s, kind) => { // a point in the ring, nearer the scene more often
+      const q = s.bounds, d = kind.inner + (kind.outer - kind.inner) * Math.pow(r.next(), 1.6);
+      for (let n = 0; n < 40; n++) {
+        const x = r.range(q[0] - d - 1, q[1] + d + 1), z = r.range(q[2] - d - 1, q[3] + d + 1);
+        if (Math.abs(outside(s, x, z) - d) < 1) return [x, z];
+      }
+      return null;
+    };
+    const hash = (id) => [...id].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7);
+    // Paved city ground and every road, raw polylines included (roadDist on paving
+    // only measures the city streets).
+    const nearTown = (x, z, pad) => [[0, 0], [pad, 0], [-pad, 0], [0, pad], [0, -pad]].some(([dx, dz]) => cityFloorAt(worldData.city, x + dx, z + dz));
+    const stones = circles.filter((c) => c.type === 'waypoint'), nearWaypoint = (x, z, pad) => stones.some((w) => dist(x, z, w.x, w.z) < pad);
+    const nearRoad = (x, z, pad) => roadDist(x, z) < pad || roads.some((rd) => distToPolylineBounds(x, z, rd.points) - rd.width / 2 < pad && distToPolyline(x, z, rd.points) - rd.width / 2 < pad);
+    const trees = [];
+    for (const s of scenes) {
+      const r = createRng((cfg.seed ^ hash(s.id)) >>> 0), t = cfg.trees, firstTree = trees.length;
+      for (let placedTrees = 0, tries = 0; placedTrees < t.perScene && tries < t.perScene * 40; tries++) {
+        const p = pick(r, s, t), scale = r.range(t.scale[0], t.scale[1]), rot = r.range(0, 6.28);
+        if (!p) continue;
+        const [x, z] = p, rad = 0.75 * scale;
+        if (!inBounds(x, z, 2) || inScene(x, z) || isWater(x, z, rad + 1) || isBeach(x, z, rad + 2) || docks.some((dk) => pointInBox(dk, x, z, rad + 0.8)) || onBridge(x, z, rad + 2)) continue;
+        if (nearRoad(x, z, rad + t.roadPad) || connectorClear(worldData, x, z, rad + t.roadPad) || clearAreas.some((c) => dist(x, z, c.x, c.z) < c.r + rad + 2) || nearWaypoint(x, z, rad + 4)) continue;
+        if (hf.slopeAt(x, z) > t.slope || outsideClearingWeight(worldData.city, x, z) > 0.05 || nearTown(x, z, rad + 1)) continue;
+        if (overlaps(x, z, rad) || trees.some((o) => dist(x, z, o.x, o.z) < t.spacing) || sceneSolids.some((o) => dist(x, z, o.x, o.z) < (o.r ?? 1) + rad + 0.6)) continue;
+        const tree = { x, z, r: rad, type: 'scene-tree', scale, rot };
+        trees.push(tree); circles.push(tree); placedTrees++;
+      }
+      // Shrubs grow in clumps, half of them at the foot of this scene's ring trees.
+      const sh = cfg.shrubs, shrubs = [], mine = trees.slice(firstTree);
+      const fits = (x, z) => {
+        if (!inBounds(x, z, 1) || scenes.some((o) => sceneWeight(o, x, z) > 0.1) || isWater(x, z, 0.8) || isBeach(x, z, 0.5) || nearRoad(x, z, 0.6) || nearWaypoint(x, z, 2.5) || connectorClear(worldData, x, z, 1)) return false;
+        if (hf.slopeAt(x, z) > sh.slope || nearTown(x, z, 1) || (outsideClearingWeight(worldData.city, x, z) > 0.05 && sceneKeep(worldData, roads, x, z) > 0.1)) return false;
+        return !shrubs.some((o) => dist(x, z, o.x, o.z) < sh.spacing) && !trees.some((o) => dist(x, z, o.x, o.z) < o.r + 0.6);
+      };
+      for (let placedShrubs = 0, tries = 0; placedShrubs < sh.perScene && tries < sh.perScene * 12; tries++) {
+        let centre;
+        if (mine.length && r.next() < sh.treeBase) {
+          const host = r.pick(mine), a = r.range(0, 6.28), d = host.r + r.range(0.7, 1.6);
+          centre = [host.x + Math.sin(a) * d, host.z + Math.cos(a) * d];
+        } else centre = pick(r, s, sh);
+        if (!centre) continue;
+        for (let k = 0, n = r.int(sh.clump[0], sh.clump[1]); k < n && placedShrubs < sh.perScene; k++) {
+          const a = r.range(0, 6.28), d = k ? r.range(0.8, sh.clumpRadius) : 0, size = r.range(sh.size[0], sh.size[1]);
+          const x = centre[0] + Math.sin(a) * d, z = centre[1] + Math.cos(a) * d;
+          if (!fits(x, z)) continue;
+          shrubs.push({ x, z, s: size }); placedShrubs++;
+        }
+      }
+      decor.sceneShrubs.push(...shrubs);
+    }
   }
 
   // ---------- collision grid ----------

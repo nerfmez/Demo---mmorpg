@@ -34,8 +34,11 @@ test('boundary clipping does not reshuffle existing native trees or core decorat
   for(const t of before.town.trees){const m=repair.treeRelocations.find(m=>m.id===t.id);if(m)[t.x,t.z]=m.old;}
   delete before.city.propertyBoundary;delete before.city.outsideClearings;
   const old=createWorld(before);
-  assert.deepEqual(world.decor,old.decor);
-  assert.deepEqual(world.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')),old.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')));
+  // The ring planted round accepted scenes avoids the clearings, so it is not native.
+  const decor=w=>{const d={...w.decor};delete d.sceneShrubs;return d;};
+  const native=w=>w.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')&&c.type!=='scene-tree');
+  assert.deepEqual(decor(world),decor(old));
+  assert.deepEqual(native(world),native(old));
   assert.deepEqual(world.heightfield.data,old.heightfield.data);
 });
 test('organic clearing contains real walkable play pockets and retained islands',()=>{

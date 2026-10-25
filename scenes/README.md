@@ -96,6 +96,7 @@ Done:
 ## Status (owner's verdict)
 - Singing Conch Coast (`shell-beach/`): **ผ่านเบื้องต้น**, 23 October 2026, public version 6. Keep the revised conch, curved path and expanded space as the accepted baseline.
 - Beach (`beach/`): approved. Forest (`forest/`): approved ("ผ่าน").
+- In the game (PR #148): all six finished scenes are placed in the world. On 25 October their surroundings were blended in: ground aprons, grass rings and ring planting. See `docs/review/accepted-scenes-20261024/REVIEW.md`.
 - Ruins (`ruins/`): rebuilt again on 23 October to the approved beach/forest standard,
   with fitted arch wedges, bonded masonry, fractured ridge shelves and flush worn
   approach paving. Waiting for the owner's verdict; the review record identifies

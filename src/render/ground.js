@@ -16,7 +16,7 @@ import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 import { groundBrushUniform,groundBrushUniformSteps } from './ground-brush.js';
 import { coveredTerrainCell } from './city-terrain.js';
 import { cityFloorAt } from '../core/city.js';
-import { outsideClearingWeight, outsideRoadVisible } from '../core/ground-regions.js';
+import { outsideClearingWeight, outsideRoadVisible, sceneSurround, sceneClearingFade } from '../core/ground-regions.js';
 import art from '../../data/art.json' with {type:'json'};
 import { regionShift } from './region-shift.js';
 
@@ -91,6 +91,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
   const town = wd.town;
   const ruins = wd.ruins;
   const b = world.bounds;
+  const surround = wd.acceptedScenes?.enabled ? wd.acceptedScenes.surround : null;
   for (let j = 0; j < h; j++) {
     if (j && j % 4 === 0) yield;
     const z = oz + j * res;
@@ -146,7 +147,9 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const zn = inside ? world.zoneAt(x, z) : null;
       if (zn && zn.id === 'ruins' && stone[k] < 0.5 && valueNoise(x * 0.23, z * 0.23, 3) > 0.68) stone[k] = 0.62;
       const dirtBias = zn ? { highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0 : 0.1;
-      dirt[k] = Math.max(dirt[k], (1 - planned[k]) * smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2));
+      // Round the accepted scenes the soil patches give way to their grass.
+      const soilFade = surround ? 1 - surround.soilFade * sceneSurround(wd, x, z, surround.soilRing) : 1;
+      dirt[k] = Math.max(dirt[k], (1 - planned[k]) * soilFade * smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2));
       for(const surface of wd.harbor?.workSurfaces||[]){
         const p=toBoxLocal(surface,x,z),radius=Math.hypot(p.lx/surface.rx,p.lz/surface.rz);
         if(radius>1.3)continue;
@@ -157,12 +160,15 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       }
       const accepted=acceptedAt(wd,x,z),aw=accepted?sceneWeight(accepted,x,z):0;
       if(!cityFloorAt(wd.city,x,z)&&!world.isWater(x,z)){
-        // An accepted scene paints its own paths: the town's earth clearing stops at its edge.
-        const clearing=outsideClearingWeight(wd.city,x,z)*(1-aw);
+        // An accepted scene paints its own paths: the town's earth clearing gives
+        // way to its grass, in the scene and in a ring round it, except along routes.
+        const raw=outsideClearingWeight(wd.city,x,z),clearing=raw&&raw*(1-(surround?sceneClearingFade(wd,world.roads,x,z):aw));
         dirt[k]=Math.max(dirt[k],clearing*.97);
         road[k]=Math.max(road[k],clearing*.92);
       }
-      if(accepted){const d=sceneSample(accepted,'trails',x,z);road[k]=Math.max(road[k],(1-smooth(-.25,.45,d))*aw);stone[k]*=1-aw;dirt[k]*=1-aw;}
+      // Scene trails narrow to a point across the feather instead of fading out
+      // square at the bounds; a connector or road that continues one paints itself.
+      if(accepted){const d=sceneSample(accepted,'trails',x,z),t=(1-aw)*1.8;road[k]=Math.max(road[k],(1-smooth(-.25-t,.45-t,d))*smooth(0,.25,aw));stone[k]*=1-aw;dirt[k]*=1-aw;}
       road[k] *= 1 - stone[k] * .7;
     }
   }
@@ -191,8 +197,10 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const mix=animeStudy?Math.max(blend,.5):0; // zones keep half of their own tint outside the sample area
       const cl = mix?col(L).clone().lerp(col(animeConfig.palette.groundLight),mix):col(L);
       const cd = mix?col(D).clone().lerp(col(animeConfig.palette.groundDark),mix):col(D);
-      const accepted=acceptedAt(wd,x,z),aw=accepted?sceneWeight(accepted,x,z):0;
-      const al=col('#b3c540'),ad=col('#5a8536');
+      const accepted=acceptedAt(wd,x,z),scene=accepted?sceneWeight(accepted,x,z):0;
+      // Round the scenes (not in town) the zone tint leans toward the scenes' grass.
+      const aw=surround?Math.max(scene,surround.tintMix*sceneSurround(wd,x,z,surround.tintRing)*(1-planned[k])):scene;
+      const al=col(surround?.palette[0]||'#b3c540'),ad=col(surround?.palette[1]||'#5a8536');
       lr[k] = cl.r+(al.r-cl.r)*aw;
       lg[k] = cl.g+(al.g-cl.g)*aw;
       lb[k] = cl.b+(al.b-cl.b)*aw;
@@ -579,9 +587,12 @@ function seaMaterial(world, contacts, domain) {
           float lightPulse=.5+.5*sin(uTime*.8+vW.x*.16+vW.y*.11);
           col+=vec3(.022,.035,.028)*caustic*lightPulse*(1.0-smoothstep(.0,3.0,d));
         }
-        // cel-shaded sky reflection: soft-edged pale patches drifting slowly over open water
-        vec2 skyP=vW*.045+vec2(uTime*.010,uTime*.004);
-        float sky=smoothstep(.56,.60,vnoise(skyP+vec2(vnoise(vW*.11+uTime*.02),0.0)*.6));
+        // cel-shaded sky reflection: soft-edged pale patches drifting slowly over open water.
+        // A turned domain warped on both axes, so the 22 m noise lattice does not line up
+        // into rows along the world grid.
+        vec2 skyP=mat2(.80,-.60,.60,.80)*vW*.045+vec2(uTime*.010,uTime*.004);
+        vec2 skyW=vec2(vnoise(vW*.11+uTime*.02),vnoise(vW.yx*.13-uTime*.017))-.5;
+        float sky=smoothstep(.56,.60,vnoise(skyP+skyW*1.2));
         col+=vec3(.05,.09,.10)*sky*uSparkle.w/.06*smoothstep(.6,2.5,d);
         // sun glints: sparse four-point stars that twinkle in and out on the open water
         vec2 gp=vW/uSparkle.z,gc=floor(gp),gl=fract(gp)-.5;

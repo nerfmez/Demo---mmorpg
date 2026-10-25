@@ -50,7 +50,8 @@
   "half": 0.24,
   "inflate": 0.006,
   "spread": 1.0,
-  "lift": 0.0
+  "lift": 0.0,
+  "back": -0.03
  },
  "drape": 0.1,
  "drapeY": -0.04,

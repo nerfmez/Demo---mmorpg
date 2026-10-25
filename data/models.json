@@ -894,7 +894,7 @@
     "outfit_ranger_coat": {
       "file": "models/outfits/ranger_coat.glb",
       "chibiOutfit": "armor",
-      "tris": 2148,
+      "tris": 2118,
       "source": "The chibi in the ranger_coat set (the owner's reference sheet 01 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-0d22-7308-94f7-d6b344cc84e1), Meshy 6 retexture (task 01a16f6d-835c-76fd-bed2-acab3d0763c5); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/ranger.json)."
     },
     "outfit_hide_vest": {
@@ -936,7 +936,7 @@
     "outfit_wardenstalker_coat": {
       "file": "models/outfits/wardenstalker_coat.glb",
       "chibiOutfit": "armor",
-      "tris": 1889,
+      "tris": 1919,
       "source": "The chibi in the wardenstalker_coat set (the owner's reference sheet 08 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-1d1d-7353-83b5-c18abb750df5), Meshy 6 retexture (task 01a16f6d-f4f3-73a5-a285-555646842a15); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden.json)."
     },
     "outfit_gale_boots": {

@@ -95,6 +95,10 @@ def head(g, neck):
     face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.07 and np.abs(cols[f] - skin).max() < 40)
     face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.09 and abs(f.calc_center_median().x) > 0.11
                 and not (dr and f.calc_center_median().y > C.get('drapeY', 0)))
+    if dr and C.get('drapeFur'):
+        # of what hangs below the neck the coat's green (and its dark lining) goes: the armour draws them
+        face.update(f for f in bm.faces if f.calc_center_median().z < neck and
+                    (cols[f][1] > cols[f][0] + 15 and cols[f][1] > cols[f][2] + 15 or cols[f].max() < 60))
     if 'chinCut' in C:
         # and the collar or scarf under the chin, in front of the neck (`chinCut` below the eyes, in
         # front of `chinBack` behind them): the armour has its own, and this one, turning with the
@@ -146,6 +150,11 @@ ref = load(REF['src'], REF['scale'], REF['lift'])
 _, reyes, _ = head(ref, REF['neck'])
 g = load(C['src'], C.get('scale'), C.get('lift'))
 bm, eyes, img = head(g, C['neck'])
+if C.get('drapeStretch'):
+    # the drape reaches down onto this body's shoulders, which sit lower under the head than the
+    # generated model's (`drapeStretch` × its length below the neck cut)
+    for v in bm.verts:
+        if v.co.z < C['neck']: v.co.z = C['neck'] - (C['neck'] - v.co.z) * C['drapeStretch']
 # onto the Travel model's head: the same distance between the eyes, the same middle between them
 k = float(np.clip(np.linalg.norm(reyes[0] - reyes[1]) / np.linalg.norm(eyes[0] - eyes[1]), 0.75, 1.1))
 off = Vector((reyes[0] + reyes[1]) / 2 - k * (eyes[0] + eyes[1]) / 2)

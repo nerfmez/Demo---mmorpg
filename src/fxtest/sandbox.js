@@ -60,7 +60,7 @@ export function benchMods(data, skill, selected = []) {
 
 export function createBench(data, skill, mods = [], { seed = 71, fusion = null, fusionRules = null, movement = 'dash' } = {}) {
   const ch = createCharacter(data, { kit: 'bow' });
-  ch.stats = { STR: 50, AGI: 50, VIT: 50, INT: 50, DEX: 50 };
+  ch.stats = { STR: 50, AGI: 50, VIT: 50, INT: 50, DEX: 50, LUK: 50 };
   ch.skills[skill] = 1;
   ch.mods = mods.map((m) => ({ id: m.id, uid: ch.nextUid++, level: m.level || 1, grade: 'C' }));
   if (fusion) ch.skills[fusion] = 1;

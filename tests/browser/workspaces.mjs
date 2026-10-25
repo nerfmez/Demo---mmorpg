@@ -74,6 +74,8 @@ try{
   await nav('movement');assert.equal(await page.locator('#atelier .skill-grid .inventory-cell').count(),4);await click('[data-action="skill"][data-id="roll"]');await click('#atelier [data-action="apply"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.movement),'roll');await noOverflow();await shot('movement');
   await nav('bag');await verifyInventoryScroll(page,{context:ctx,engineName:name,width,height,touch,capture:label=>shot('inventory-'+label)});
   await nav('growth');assert.ok(await page.locator('[data-act="skill-up"]').count());await noOverflow();await shot('upgrades');
+  // movement skills rank up with AGI: their own tab, an upgrade button and the next rank's distance/recharge
+  await click('[data-act="growth-filter"][data-id="move"]');assert.ok(await page.locator('[data-act="move-up"]').count());assert.match(await page.locator('.seeker-growth-grid').innerText(),/คืนชาร์จ/);await noOverflow();await shot('upgrades-movement');
   // Open/close and panel navigation preserve combat selections; no unexpected mutations.
   await click('.panel-close');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);
   await verifyPassiveGestures(page,{context:ctx,engineName:name,capture:label=>shot('passive-'+label)});

@@ -231,18 +231,23 @@ export function computeSkill(ch, data, derived, slotIndex) {
   return s;
 }
 
+/** A movement skill's rank (1 until AGI upgrades raise it). */
+export const movementRank = (ch, id) => ch.movementRanks?.[id] || 1;
+
 export function movementSkill(ch, data, derived) {
   const def = movementDef(data, ch.movement) || movementDef(data, 'dash');
+  const up = data.progression.movementUpgrade, rank = movementRank(ch, ch.movement || 'dash') - 1;
   const out = {
     id: ch.movement || 'dash', // none yet during the opening: the button shows the default
     def,
     charge: def.charge ? { ...def.charge } : null,
     kind: def.kind,
-    distance: def.distance,
+    distance: def.distance * (1 + (up?.distancePerLevel || 0) * rank),
     duration: def.duration,
     delay: def.delay || 0, // a blink's gather in place before it jumps
     charges: ch.movement && ch.movementSkills.includes(ch.movement) ? def.charges + derived.extraMovementCharges : 0,
-    recharge: def.recharge * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
+    recharge: def.recharge * (1 - (up?.rechargePerLevel || 0) * rank) * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
+    rank: rank + 1,
     invulnerable: def.invulnerable,
   };
   out.mods = [];

@@ -9,7 +9,7 @@ export function previewMods(id,selected=[]){
  return Object.keys(data.mods.mods).filter(key=>modFits(def,modDef(data,key),selected.map(k=>modDef(data,k))).ok);
 }
 export function createRulesPreview(id,weapon,distance,mods=[]){
- const ch=createCharacter(data,{kit:'bow'});ch.stats={STR:50,AGI:50,VIT:50,INT:50,DEX:50};ch.skills[id]=1;
+ const ch=createCharacter(data,{kit:'bow'});ch.stats={STR:50,AGI:50,VIT:50,INT:50,DEX:50,LUK:50};ch.skills[id]=1;
  ch.mods=mods.map(key=>({id:key,uid:ch.nextUid++,level:1,grade:'C'}));ch.slots=ch.slots.map((_,i)=>({skill:i===0?id:null,mods:i===0?ch.mods.map(m=>m.uid):[]}));
  ch.equipped.weapon=ch.equipped.offhand=null;
  for(const type of [weapon,...(id==='shield_bash'?['shield']:[])]){

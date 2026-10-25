@@ -13,7 +13,8 @@
       "AGI": 3,
       "VIT": 3,
       "INT": 3,
-      "DEX": 3
+      "DEX": 3,
+      "LUK": 3
     },
     "base": {
       "hp": 99,
@@ -45,9 +46,13 @@
         "cooldownPct": 0.2
       },
       "DEX": {
-        "critChancePct": 0.15,
+        "critMultPct": 0.5,
         "projectileDamagePct": 0.45,
         "attack": 0.2
+      },
+      "LUK": {
+        "critChancePct": 0.15,
+        "gearFindPct": 0.1
       }
     },
     "critMult": 1.5,
@@ -104,6 +109,18 @@
     "_doc": "Town only. Gold only: no rare items, no real money.",
     "statsGoldPerLevel": 15,
     "jobGoldPerLevel": 12
+  },
+  "movementUpgrade": {
+    "_doc": "AGI raises movement skill ranks (owner, 2026-10-25), at the same workbench or trainer and with the same skill crystals and gold as a combat skill. Each rank above the first shortens the recharge by rechargePerLevel and lengthens the move by distancePerLevel (core/skills.js movementSkill). The skill's upgradeStat (AGI) must reach the step's requiresStat.",
+    "maxLevel": 5,
+    "rechargePerLevel": 0.06,
+    "distancePerLevel": 0.04,
+    "steps": [
+      { "requiresStat": 5, "gold": 35, "skill_crystal": 1 },
+      { "requiresStat": 7, "gold": 90, "skill_crystal": 2 },
+      { "requiresStat": 9, "gold": 180, "skill_crystal": 3 },
+      { "requiresStat": 11, "gold": 320, "skill_crystal": 4 }
+    ]
   },
   "skillUpgrade": {
     "_doc": "Skill crystals + gold raise skill rank at a workbench or trainer (including town.skillUpgradeStations), at any character level (only the stat requirement and the materials gate a rank). balanceLevel is not a gate: it is the level the balance model assumes a hero reaches each rank. Mods remain the source of behaviour changes. No failure or destruction.",

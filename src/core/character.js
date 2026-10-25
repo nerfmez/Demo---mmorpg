@@ -7,7 +7,7 @@ import { migrateQuestJournal } from './quests.js';
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
-export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
+export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK']; // LUK: crit chance (DEX: crit damage)
 export const CHARACTER_VERSION = 13;
 
 export function emptyProgress(data) {
@@ -47,6 +47,7 @@ export function createCharacter(data, opts = {}) {
     equipped: Object.fromEntries((data.items.slots || ['weapon', 'armor']).map((s) => [s, null])),
     skills: opening ? {} : { [kit.basic]: 1 },
     movementSkills: [],
+    movementRanks: {}, // movement skill id -> rank above 1 (AGI upgrades, crafting.js upgradeMovement)
     movement: null,
     movementMods: [],
     mods: [],
@@ -255,8 +256,15 @@ export function migrateCharacter(ch, data) {
   const notice = equipmentNotice(ch, data);
   if (notice) ch.progress.equipmentNotice = notice;
   else delete ch.progress.equipmentNotice;
+  // LUK joined the stats: an older hero gets the starting value, like a new one (no points taken)
+  ch.stats = ch.stats || {};
+  for (const s of STATS) if (!Number.isFinite(ch.stats[s])) ch.stats[s] = data.progression.character.startingStats[s];
   ch.movementSkills = (ch.movementSkills || []).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || null;
+  // movement ranks came with the AGI upgrades: an older hero has none (rank 1); bad entries are dropped
+  const maxMove = data.progression.movementUpgrade?.maxLevel || 1;
+  ch.movementRanks = Object.fromEntries(Object.entries(ch.movementRanks || {})
+    .filter(([id, n]) => data.skills.movement[id] && Number.isInteger(n) && n > 1).map(([id, n]) => [id, Math.min(n, maxMove)]));
   migrateQuestJournal(ch, data, { legacy: (ch.version || 1) < 8 || !hadQuestJournal });
   ch.version = CHARACTER_VERSION;
   return ch;

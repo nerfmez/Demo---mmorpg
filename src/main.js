@@ -112,7 +112,7 @@ function startGame(character, slot) {
     character.skills=Object.fromEntries(Object.keys(data.skills.combat).map(id=>[id,1]));
     character.movementSkills=Object.keys(data.skills.movement);
     character.movement ||= character.movementSkills[0];
-    character.stats={STR:35,AGI:35,VIT:35,INT:35,DEX:35};
+    character.stats={STR:35,AGI:35,VIT:35,INT:35,DEX:35,LUK:35};
     character.mods=Object.keys(data.mods.mods).map(id=>({id,uid:character.nextUid++,level:1,grade:'C'}));
   }
   const sandbox=fresh&&params.has('skillSandbox');

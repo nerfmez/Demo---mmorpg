@@ -959,7 +959,8 @@
       "charges": 2,
       "recharge": 3.2,
       "invulnerable": false,
-      "icon": "dash"
+      "icon": "dash",
+      "upgradeStat": "AGI"
     },
     "roll": {
       "name": "Roll",
@@ -974,7 +975,8 @@
       "charges": 1,
       "recharge": 1.3,
       "invulnerable": true,
-      "icon": "roll"
+      "icon": "roll",
+      "upgradeStat": "AGI"
     },
     "blink": {
       "name": "Blink",
@@ -993,7 +995,8 @@
       "requires": {
         "INT": 7
       },
-      "icon": "blink"
+      "icon": "blink",
+      "upgradeStat": "AGI"
     },
     "leap": {
       "name": "Leap Slam",
@@ -1020,7 +1023,8 @@
       "requires": {
         "STR": 6
       },
-      "icon": "leap"
+      "icon": "leap",
+      "upgradeStat": "AGI"
     }
   }
 }

@@ -147,6 +147,26 @@ export function upgradeSkill(ch, data, skillId) {
   return { ok: true, level: level + 1 };
 }
 
+// Movement skills rank up the same way, gated by their upgradeStat (AGI): data.progression.movementUpgrade.
+export function movementUpgradeState(ch, data, id) {
+  if (!ch.movementSkills?.includes(id)) return { ok: false, reason: 'not_learned' };
+  const mu = data.progression.movementUpgrade, level = ch.movementRanks?.[id] || 1, step = mu.steps[level - 1];
+  if (level >= mu.maxLevel || !step) return { ok: false, reason: 'max' };
+  const cost = materialCost(step);
+  const req = meetsRequires(ch, { [data.skills.movement[id].upgradeStat]: step.requiresStat });
+  if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
+}
+
+export function upgradeMovement(ch, data, id) {
+  const state = movementUpgradeState(ch, data, id);
+  if (!state.ok) return state;
+  pay(ch, state.cost);
+  const level = (ch.movementRanks?.[id] || 1) + 1;
+  ch.movementRanks = { ...(ch.movementRanks || {}), [id]: level };
+  return { ok: true, level };
+}
+
 export function modUpgradeCost(data, inst) {
   const mu = data.progression.modUpgrade;
   return inst.level >= Math.min(mu.maxLevel, data.mods.mods[inst.id]?.maxLevel || mu.maxLevel) ? null : mu.cost[inst.level - 1];

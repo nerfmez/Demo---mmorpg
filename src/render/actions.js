@@ -235,6 +235,8 @@ export function registerClip(name, c) {
   ACTIONS[name] = { hit: c.hit, sweep: c.sweep, own: c.own ?? true, ends: c.ends, keys: c.keys.map(([t, pose]) => [t, { ...REST, ...pose }]) };
 }
 for (const [name, c] of Object.entries(CLIPS)) if (name !== '_doc') registerClip(name, c);
+// Breakbeat Slam with a shield in the left hand: the same jumping smash, the left hand kept off the haft
+ACTIONS.breakbeatSlam1H = { ...ACTIONS.breakbeatSlam, keys: ACTIONS.breakbeatSlam.keys.map(([t, p]) => [t, { ...p, grip: [0, 0, 0] }]) };
 // Flame Stream: the staff's Firebolt push held while channelling. A channel freezes the action at 0.92 of
 // its hit (hero.js), so the full reach comes a little earlier and is held to the hit.
 {
@@ -295,6 +297,7 @@ export function pickAction(skill, kind, weapon, step = 0, dual = false) {
   }
   if (a === 'shoot') a = weapon === 'bow' ? 'bowShot' : 'throw';
   if (a === 'boltCast' && weapon === 'bow') a = 'bolt';
+  if (a === 'breakbeatSlam' && weapon !== 'greatblade') a = 'breakbeatSlam1H'; // a mace with a shield (play() names a two-handed mace greatblade)
   if (a === 'sunderChop' && weapon !== 'greatblade') a = 'sunderChop1H'; // an axe with a shield: the left arm stays on it (play() names a two-handed axe greatblade) // the wand's cast would turn the bow flat across the body
   return a;
 }

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const CLIPS = JSON.parse(readFileSync(new URL('../../data/action-clips.json', import.meta.url)));
-const CHANNELS = new Set(['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'weapon', 'drop', 'grip', 'aim', 'spin', 'ikL', 'ikR', 'ikw', 'staffAim']);
+const CHANNELS = new Set(['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'weapon', 'drop', 'grip', 'aim', 'spin', 'ikL', 'ikR', 'ikw', 'staffAim', 'gripSlide']);
 const vec = (v) => Array.isArray(v) && v.length === 3 && v.every(Number.isFinite);
 
 test('clip actions run from 0 to 1 with the contact inside, a sweep and real channels', () => {

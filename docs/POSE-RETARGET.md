@@ -68,7 +68,9 @@ and Spell_Simple_Shoot mirrored: the wand arm pushes straight out at the target 
 Bolt and Firebolt with any weapon but the staff and the bow. Each entry's `_from` records its clips, commands and edits. `heavyCutA`/`heavyCutB` (KayKit Melee_2H_Attack_Slice
 and its mirror, both hands on the haft) alternate as the basic attack of the greatblade and of the axe and
 mace held in both hands; `sunderChop`/`sunderChop1H` (KayKit Melee_1H_Attack_Slice_Diagonal, the
-left hand on the haft or kept on the shield) are Sunder Cut.
+left hand on the haft or kept on the shield) are Sunder Cut. `staffCast` (KayKit Mage Spellcast_Shoot with the 2H_Staff, the release arm from
+Spell_Simple_Enter/Shoot, the weapon channel recomputed so the staff keeps the Mage's direction, the staff
+held near its foot with `gripSlide`) is Firebolt and Arcane Bolt with the staff.
 
 ## Choosing a clip and previewing an action
 

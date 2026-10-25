@@ -572,6 +572,9 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     .filter((e) => e.hand && e.socket);
   rig.gripCenter = T.grip.RightHand;
   rig.gripTurn = [0, 0];
+  // how far the weapon slides through the fist toward its head (weapon units; hero.js sets it from an
+  // action's gripSlide): a staff held near its foot to point its head at the target
+  rig.gripSlide = [0, 0];
   // The second hand on a two-handed haft (hero.js sets support.on and support.axis, the haft's
   // world direction): the left hand turns its thumb along the haft like a holding hand, and
   // support.offset gives its fist hole's offset from the wrist, so the animator can put the
@@ -604,6 +607,7 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
       socket.parent.updateWorldMatrix(true, false);
       socket.position.copy(socket.parent.worldToLocal(hand.localToWorld(seat.copy(centre))));
       if (shift) socket.position.sub(seat.set(0, 0, shift).multiply(socket.scale).applyQuaternion(socket.quaternion));
+      if (rig.gripSlide[side]) socket.position.add(seat.set(0, 0, rig.gripSlide[side]).multiply(socket.scale).applyQuaternion(socket.quaternion));
     }
   };
   rig.syncSkin();

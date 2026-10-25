@@ -1,5 +1,5 @@
 {
- "_doc": "Actions retargeted from reference clips (scripts/pose-retarget/clip-keys.mjs, docs/POSE-RETARGET.md), registered by src/render/actions.js. keys: [time 0..1, pose]: absolute driver channels (Euler XYZ radians, the actions' channels), drop [m] and the weapon's turn in the hand; channels a key leaves out rest. hit: the key time of the contact (the blade's fastest frame), moved onto the skill's cast time by play(). sweep: +1 when the blade sweeps toward the hero's left, -1 back; the slash effect follows it. COMBOS and BY_SKILL in actions.js pick them per weapon and skill. own (default true): the clip's weapon channel moves the weapon; false keeps a castHold weapon at its carry angle. grip [1,0,0]: a two-handed weapon's left hand on the haft. aim [1,0,0]: a drawn bow stands upright facing the target. A held charge has hit 1.",
+ "_doc": "Actions retargeted from reference clips (scripts/pose-retarget/clip-keys.mjs, docs/POSE-RETARGET.md), registered by src/render/actions.js. keys: [time 0..1, pose]: absolute driver channels (Euler XYZ radians, the actions' channels), drop [m] and the weapon's turn in the hand; channels a key leaves out rest. hit: the key time of the contact (the blade's fastest frame), moved onto the skill's cast time by play(). sweep: +1 when the blade sweeps toward the hero's left, -1 back; the slash effect follows it. COMBOS and BY_SKILL in actions.js pick them per weapon and skill. own (default true): the clip's weapon channel moves the weapon; false keeps a castHold weapon at its carry angle. grip [1,0,0]: a two-handed weapon's left hand on the haft. aim [1,0,0]: a drawn bow stands upright facing the target. A held charge has hit 1. gripSlide [s,0,0]: the weapon slides s of its units through the fist toward its head (a staff held near its foot).",
  "swordCut": {
   "_from": "Quaternius Universal Animation Library (CC0) Sword_Light_A, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs)",
   "hit": 0.488,
@@ -7404,6 +7404,574 @@
      ],
      "drop": [
       -0.019,
+      0,
+      0
+     ]
+    }
+   ]
+  ]
+ },
+ "staffCast": {
+  "_from": "KayKit Adventurers (CC0) Mage Spellcast_Shoot with the 2H_Staff prop (the staff raised, then pointed at the target, held near its foot): node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Mage.glb --clip Spellcast_Shoot --prop 2H_Staff --skill firebolt --keys 31 --legs 0.6 --face --hit 0.3. Keys (t <- u): 0 <- 0, 0.3 <- 0.167 (the staff raised), 0.42 <- 0.2 (held), hit 0.5 <- 0.367 (pointed at the target), 0.58 <- 0.4, 0.8 <- 0.5, 1 <- 0.9. On the hit, overshoot and held keys the right arm (armR, elbowR) the body's twist into it (hips, torso, chest) and the free left arm hanging at the side (armL, elbowL; the Mage holds it behind the hip, which read as an arm going back) are the casting push (the left upper arm swung 0.5 rad forward against the twist, so the free hand stays at the side instead of going back) of Quaternius UAL1 Spell_Simple_Enter at u 1 and Spell_Simple_Shoot at u 0 (mirrored to the right hand, as boltCast) so the arm goes out toward the target (owner: the release arm goes forward, not back); the weapon channel is then recomputed so the staff keeps Spellcast_Shoot's direction. gripSlide 0.4: the staff slides 0.4 of its units through the fist toward its head, held near its foot like the reference.",
+  "hit": 0.5,
+  "sweep": 1,
+  "own": true,
+  "keys": [
+   [
+    0,
+    {
+     "hips": [
+      0,
+      0,
+      0
+     ],
+     "torso": [
+      0,
+      0,
+      0
+     ],
+     "chest": [
+      0,
+      0,
+      0
+     ],
+     "head": [
+      0,
+      -0.063,
+      0
+     ],
+     "legL": [
+      0.015,
+      -0.089,
+      0.1
+     ],
+     "legR": [
+      -0.051,
+      -0.036,
+      -0.038
+     ],
+     "kneeL": [
+      0.109,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.205,
+      0,
+      0
+     ],
+     "armL": [
+      0.652,
+      0.164,
+      0.841
+     ],
+     "armR": [
+      0.529,
+      -0.225,
+      -0.789
+     ],
+     "elbowL": [
+      -0.924,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.978,
+      0,
+      0
+     ],
+     "weapon": [
+      0.63,
+      -0.387,
+      -0.115
+     ],
+     "drop": [
+      -0.009,
+      0,
+      0
+     ],
+     "gripSlide": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.3,
+    {
+     "hips": [
+      0,
+      0.253,
+      0
+     ],
+     "torso": [
+      0,
+      -0.14,
+      0
+     ],
+     "chest": [
+      0,
+      -0.113,
+      0
+     ],
+     "head": [
+      -0.086,
+      -0.13,
+      -0.074
+     ],
+     "legL": [
+      0.083,
+      -0.215,
+      0.116
+     ],
+     "legR": [
+      -0.166,
+      -0.171,
+      -0.106
+     ],
+     "kneeL": [
+      0.041,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.203,
+      0,
+      0
+     ],
+     "armL": [
+      0.711,
+      0.19,
+      0.833
+     ],
+     "armR": [
+      -0.141,
+      0.102,
+      -0.945
+     ],
+     "elbowL": [
+      -0.928,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.164,
+      0,
+      0
+     ],
+     "weapon": [
+      0.568,
+      -0.445,
+      -0.148
+     ],
+     "drop": [
+      -0.016,
+      0,
+      0
+     ],
+     "gripSlide": [
+      0.4,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.42,
+    {
+     "hips": [
+      0,
+      0.262,
+      0
+     ],
+     "torso": [
+      0,
+      -0.141,
+      0
+     ],
+     "chest": [
+      0,
+      -0.114,
+      0
+     ],
+     "head": [
+      -0.07,
+      -0.134,
+      -0.069
+     ],
+     "legL": [
+      0.113,
+      -0.214,
+      0.127
+     ],
+     "legR": [
+      -0.163,
+      -0.177,
+      -0.108
+     ],
+     "kneeL": [
+      0.024,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.238,
+      0,
+      0
+     ],
+     "armL": [
+      0.736,
+      0.204,
+      0.825
+     ],
+     "armR": [
+      -0.273,
+      0.263,
+      -0.916
+     ],
+     "elbowL": [
+      -0.934,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.899,
+      0,
+      0
+     ],
+     "weapon": [
+      0.55,
+      -0.445,
+      -0.152
+     ],
+     "drop": [
+      -0.017,
+      0,
+      0
+     ],
+     "gripSlide": [
+      0.4,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.5,
+    {
+     "hips": [
+      0,
+      0.482,
+      0.012
+     ],
+     "torso": [
+      -0.001,
+      0.232,
+      0.01
+     ],
+     "chest": [
+      0.246,
+      0.093,
+      0.044
+     ],
+     "head": [
+      0.111,
+      -0.131,
+      0.017
+     ],
+     "legL": [
+      0.333,
+      -0.068,
+      0.196
+     ],
+     "legR": [
+      0.008,
+      -0.2,
+      -0.056
+     ],
+     "kneeL": [
+      -0.125,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.348,
+      0,
+      0
+     ],
+     "armL": [
+      -0.43,
+      -0.019,
+      0.426
+     ],
+     "armR": [
+      -0.795,
+      0.318,
+      -1.426
+     ],
+     "elbowL": [
+      -0.461,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.308,
+      0,
+      0
+     ],
+     "weapon": [
+      1.436,
+      0.072,
+      -0.009
+     ],
+     "drop": [
+      -0.023,
+      0,
+      0
+     ],
+     "gripSlide": [
+      0.4,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.58,
+    {
+     "hips": [
+      0,
+      0.002,
+      0.012
+     ],
+     "torso": [
+      -0.013,
+      0.229,
+      0.012
+     ],
+     "chest": [
+      0.213,
+      0.093,
+      0.046
+     ],
+     "head": [
+      0.098,
+      -0.122,
+      0.014
+     ],
+     "legL": [
+      0.324,
+      -0.071,
+      0.194
+     ],
+     "legR": [
+      -0.01,
+      -0.198,
+      -0.062
+     ],
+     "kneeL": [
+      -0.125,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.362,
+      0,
+      0
+     ],
+     "armL": [
+      -0.439,
+      0,
+      0.426
+     ],
+     "armR": [
+      -1.234,
+      0.36,
+      -1.208
+     ],
+     "elbowL": [
+      -0.441,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.012,
+      0,
+      0
+     ],
+     "weapon": [
+      1.024,
+      0.587,
+      0.053
+     ],
+     "drop": [
+      -0.023,
+      0,
+      0
+     ],
+     "gripSlide": [
+      0.4,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.8,
+    {
+     "hips": [
+      0,
+      0.482,
+      0.012
+     ],
+     "torso": [
+      -0.001,
+      0.232,
+      0.01
+     ],
+     "chest": [
+      0.246,
+      0.093,
+      0.044
+     ],
+     "head": [
+      0.038,
+      -0.086,
+      0.004
+     ],
+     "legL": [
+      0.279,
+      -0.089,
+      0.183
+     ],
+     "legR": [
+      -0.089,
+      -0.189,
+      -0.088
+     ],
+     "kneeL": [
+      -0.125,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.406,
+      0,
+      0
+     ],
+     "armL": [
+      -0.43,
+      -0.019,
+      0.426
+     ],
+     "armR": [
+      -0.795,
+      0.318,
+      -1.426
+     ],
+     "elbowL": [
+      -0.461,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.308,
+      0,
+      0
+     ],
+     "weapon": [
+      1.401,
+      0.209,
+      -0.021
+     ],
+     "drop": [
+      -0.025,
+      0,
+      0
+     ],
+     "gripSlide": [
+      0.4,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    1,
+    {
+     "hips": [
+      0,
+      0.043,
+      0
+     ],
+     "torso": [
+      0,
+      -0.024,
+      0
+     ],
+     "chest": [
+      0,
+      -0.019,
+      0
+     ],
+     "head": [
+      0,
+      -0.063,
+      0
+     ],
+     "legL": [
+      0.025,
+      -0.111,
+      0.1
+     ],
+     "legR": [
+      -0.071,
+      -0.06,
+      -0.045
+     ],
+     "kneeL": [
+      0.125,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.237,
+      0,
+      0
+     ],
+     "armL": [
+      0.675,
+      0.183,
+      0.836
+     ],
+     "armR": [
+      0.532,
+      -0.272,
+      -0.791
+     ],
+     "elbowL": [
+      -0.934,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.141,
+      0,
+      0
+     ],
+     "weapon": [
+      0.704,
+      -0.339,
+      -0.087
+     ],
+     "drop": [
+      -0.011,
+      0,
+      0
+     ],
+     "gripSlide": [
+      0,
       0,
       0
      ]

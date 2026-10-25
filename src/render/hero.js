@@ -512,6 +512,8 @@ export class HumanoidAnimator {
     const armW = hold?.run?.arms ? 1 - this.moveW : 1;
     // a blade held back out of the little-finger side (hold.run.reverse): the fist keeps its thumb
     // toward the pommel (chibi-body.js), handed back to the action's own grip
+    // an action's grip along the weapon (pose.gripSlide, already weighted by the action): chibi-body.js
+    if (this.rig.gripSlide) this.rig.gripSlide[0] = pose.gripSlide ? pose.gripSlide[0] : 0;
     if (this.rig.gripTurn) {
       const turn = hold?.run?.reverse ? this.moveW * (1 - actionW) : 0;
       this.rig.gripTurn[0] = turn;
@@ -703,7 +705,7 @@ export class HumanoidAnimator {
   }
 }
 
-const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'heavyCutA', 'heavyCutB', 'sunderChop', 'sunderChop1H']);
+const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'heavyCutA', 'heavyCutB', 'sunderChop', 'sunderChop1H', 'staffCast']);
 const IK_T = new THREE.Vector3();
 const SUPPORT_PASSES = 3;
 const SUPPORT_PALM = new THREE.Vector3(), IK_P = new THREE.Vector3();

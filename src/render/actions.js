@@ -234,7 +234,8 @@ for (const [name, c] of Object.entries(CLIPS)) if (name !== '_doc') registerClip
 export function pickAction(skill, kind, weapon, step = 0) {
   if (ACTIONS[skill]) return skill;
   let a = BY_SKILL[skill] || BY_KIND[kind] || (kind === 'projectile' ? (skill === 'hunter_shot' ? 'shoot' : 'bolt') : 'cast');
-  if ((skill === 'firebolt' || skill === 'arcane_bolt') && weapon === 'staff') a = 'staffBolt';
+  // the staff points its head at the target with the arm pushed out (owner: the release arm goes forward)
+  if ((skill === 'firebolt' || skill === 'arcane_bolt') && weapon === 'staff') a = 'staffCast';
   if (a === 'combo') { const c = COMBOS[weapon] || ['slashA', 'slashB']; a = c[step % c.length]; } // one plain strike, alternating
   if (a === 'shoot') a = weapon === 'bow' ? 'bowShot' : 'throw';
   if (a === 'boltCast' && weapon === 'bow') a = 'bolt';

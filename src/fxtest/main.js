@@ -13,7 +13,7 @@ import HOLDS from '../../data/weapon-holds.json';
 import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
-import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
+import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
 import { fusionPayloads, fusionRecipe } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
 import { ThunderArrowFx } from './thunder-arrow-fx.js';
@@ -35,7 +35,6 @@ const state = {
 };
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
-const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 } };
 
 // ---------- renderer / scene ----------
 const stage = document.getElementById('stage');
@@ -104,7 +103,7 @@ const dummies = Array.from({ length: 6 }, makeDummy);
 
 // errors on screen (the owner tests on a tablet, with no console): the banner shows what failed
 function notify(text) { try { showBanner(text); } catch { /* before the banner exists */ } }
-window.addEventListener('error', (e) => notify('ผิดพลาด: ' + (e.message || e.error)));
+window.addEventListener('error', (e) => notify('ผิดพลาด: ' + (e.message || e.error) + (e.filename ? ` (${e.filename.split('/').pop()}:${e.lineno})` : '')));
 window.addEventListener('unhandledrejection', (e) => notify('ผิดพลาด: ' + (e.reason?.message || e.reason)));
 
 // ---------- hero ----------

@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../../src/core/data-node.js';
-import { createBench, benchMods } from '../../src/fxtest/sandbox.js';
+import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from '../../src/fxtest/sandbox.js';
 
 const data = loadData();
 function run(skill, mods, act = (g) => g.castSlot(0, { x: 5, z: 0 }), seconds = 2) {
@@ -319,4 +319,13 @@ test('Measured Riposte on the bench: a dummy strikes on a telegraph; a timed gua
   assert.ok(of('playerHit')[0].blocked && of('playerHit')[0].amount < 30, 'the guard takes the edge off the blow');
   assert.ok(of('hit').filter((e) => e.skill === 'riposte').length >= 2, 'the counter cuts what is in front');
   assert.ok(g.player.hp >= g.player.maxHp * 0.3, 'the bench hero never falls');
+});
+
+test('every bench skill has a weapon, a dummy layout and a camera view (a missing view threw on the tablet)', () => {
+  for (const id of BENCH_SKILLS) {
+    assert.ok(BENCH_WEAPON[id], `${id}: weapon`);
+    assert.ok(LAYOUTS[id]?.length, `${id}: layout`);
+    const v = VIEW[id];
+    assert.ok(v && [v.cx, v.cz, v.w, v.d].every(Number.isFinite), `${id}: view`);
+  }
 });

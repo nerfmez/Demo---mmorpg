@@ -290,7 +290,9 @@ Rebuild separate Control scenes for combat loadout, modifiers, movement, materia
 upgrades and passive paths. A desktop/tablet navigation rail becomes a compact page
 selector on narrow phones. Keep inspection separate from allocating points, socketing,
 and spending materials. `ui/buildmeta.js` is presentation vocabulary shared by skill,
-modifier, crafting and inventory details: native tags, damage element, stat requirements,
+modifier, crafting and inventory details: native tags (`TAG_GROUPS`: every tag in one of six
+groups, power, delivery, shape, element, effect and mechanic, with its Thai name;
+`tests/core/skill-tags.test.js` holds skills and mods to it), damage element, stat requirements,
 needs/on/not tags, mod family and exact incompatibility reasons. Modifier-added tags are
 labeled separately; only a fitting companion's `grants` add fit eligibility. Calls to core
 `modFits()` remain the authority for compatibility; do not duplicate the rules in Godot UI code.

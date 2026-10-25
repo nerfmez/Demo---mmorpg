@@ -35,7 +35,7 @@ export function skillCraftGuide(data, recipe) {
     case 'melee_arc': case 'melee_nova':
       stage = 0; condition = 'เข้าระยะประชิดแล้วกดใช้'; break;
     case 'projectile':
-      stage = 0; condition = 'เล็งทิศทางแล้วปล่อยกระสุน'; break;
+      stage = 0; condition = 'เล็งทิศทางแล้วยิง'; break;
     case 'counter_stance':
       stage = 2; role = 'guard'; condition = 'หันรับการโจมตีด้านหน้า แล้วกดซ้ำเพื่อสวนกลับ'; break;
     case 'melee_line':

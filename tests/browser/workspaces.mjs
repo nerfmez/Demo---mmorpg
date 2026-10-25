@@ -67,7 +67,7 @@ try{
   await click('[data-action="skill"][data-id="healing_spring"]');await click('#atelier [data-action="apply"]');await click('.atelier-dialog [data-action="confirm"]');
   await click('.category-tabs [data-action="category"][data-id="mod"]');
   const uid=await page.evaluate(()=>__frontier.game.ch.mods.find(m=>m.id==='split').uid);
-  await click(`[data-action="mod"][data-id="${uid}"]`);await click('#atelier [data-action="apply"]');assert.match(await page.locator('.atelier-notice').innerText(),/ต้องเป็น.*กระสุน/);await shot('incompatible');
+  await click(`[data-action="mod"][data-id="${uid}"]`);await click('#atelier [data-action="apply"]');assert.match(await page.locator('.atelier-notice').innerText(),/ต้องเป็น.*ยิง/);await shot('incompatible');
   const lingering=await page.evaluate(()=>__frontier.game.ch.mods.find(m=>m.id==='lingering').uid);
   await click(`[data-action="mod"][data-id="${lingering}"]`);await click('#atelier [data-action="apply"]');assert.ok(await page.evaluate(uid=>__frontier.game.ch.slots[0].mods.includes(uid),lingering));
   assert.ok(await page.evaluate(()=>__frontier.game.skills[0].duration>__frontier.game.data.skills.combat.healing_spring.duration));await noOverflow();await shot('mods');

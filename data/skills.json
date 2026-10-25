@@ -11,7 +11,9 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Damage",
+        "Physical",
         "Arc"
       ],
       "kind": "melee_arc",
@@ -38,8 +40,10 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Area",
         "Damage",
+        "Physical",
         "Nova"
       ],
       "kind": "melee_nova",
@@ -75,7 +79,8 @@
       "tags": [
         "Attack",
         "Projectile",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "projectile",
       "power": "attack",
@@ -103,10 +108,10 @@
       "nameTh": "ลูกเวทพื้นฐาน",
       "desc": "ร่ายลูกพลังเวทเล็ก ๆ จากปลายคทาหรือไม้กายสิทธิ์ ไม่เปลืองมานา เป็นการโจมตีพื้นฐานของสายเวท",
       "tags": [
-        "Attack",
         "Spell",
         "Projectile",
-        "Damage"
+        "Damage",
+        "Arcane"
       ],
       "kind": "projectile",
       "power": "spell",
@@ -199,6 +204,7 @@
         "Area",
         "Earth",
         "Damage",
+        "Physical",
         "Ground"
       ],
       "kind": "ground_area",
@@ -302,7 +308,8 @@
         "Spell",
         "Area",
         "Curse",
-        "Debuff"
+        "Debuff",
+        "Duration"
       ],
       "kind": "curse_zone",
       "power": "spell",
@@ -331,7 +338,8 @@
         "Guard",
         "Buff",
         "Area",
-        "Barrier"
+        "Barrier",
+        "Duration"
       ],
       "kind": "self_barrier",
       "power": "vit",
@@ -357,7 +365,8 @@
       "tags": [
         "Buff",
         "Area",
-        "Warcry"
+        "Warcry",
+        "Duration"
       ],
       "kind": "buff",
       "power": "attack",
@@ -385,7 +394,8 @@
         "Area",
         "Heal",
         "Persistent",
-        "Zone"
+        "Zone",
+        "Duration"
       ],
       "kind": "heal_zone",
       "power": "spell",
@@ -455,6 +465,7 @@
         "Attack",
         "Projectile",
         "Damage",
+        "Physical",
         "Charge"
       ],
       "kind": "projectile",
@@ -493,9 +504,11 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Guard",
         "Counter",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "counter_stance",
       "power": "attack",
@@ -532,7 +545,9 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Damage",
+        "Physical",
         "Arc"
       ],
       "kind": "melee_arc",
@@ -566,8 +581,10 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Area",
         "Damage",
+        "Physical",
         "Debuff",
         "Arc"
       ],
@@ -604,7 +621,9 @@
       "tags": [
         "Attack",
         "Melee",
+        "Slam",
         "Damage",
+        "Physical",
         "Control",
         "Arc"
       ],
@@ -641,8 +660,10 @@
       "tags": [
         "Attack",
         "Melee",
+        "Slam",
         "Line",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "melee_line",
       "power": "attack",
@@ -674,8 +695,10 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Guard",
         "Damage",
+        "Physical",
         "Control",
         "Arc"
       ],
@@ -711,6 +734,7 @@
         "Attack",
         "Area",
         "Damage",
+        "Physical",
         "Rain",
         "Ground"
       ],
@@ -785,7 +809,8 @@
         "Spell",
         "Area",
         "Control",
-        "Construct"
+        "Construct",
+        "Duration"
       ],
       "kind": "wall",
       "power": "spell",

@@ -273,14 +273,24 @@ else:
 A = np.stack([sx * armx(ax), y * sA, a1 + (z - a0) * sA], 1)
 wl = smooth01(crotchG + 0.02, crotchG - 0.03, z)[:, None]
 wa = (smooth01(0.10, 0.16, ax) * (z > a0 - 0.08))[:, None]
-if incollar.any():
-    # the collar as one piece: across and front to back as the torso, its foot on the torso's at
-    # that height, and its height scaled by `squash`
-    z0 = P0[incollar, 2].min()
-    wa[incollar] = 0
-    T[incollar, 2] = zmapT(np.full(incollar.sum(), z0)) + (z[incollar] - z0) * C['collar'].get('squash', 1) * sT
 P = T * (1 - wl) + L * wl
 P = P * (1 - wa) + A * wa
+if incollar.any():
+    # the collar as one piece, scaled by `scale` (default the torso's), its two lobes standing where
+    # the warp puts their feet (on the shoulders); across, the move fades out toward the middle so
+    # the band round the back of the neck stays joined
+    K = C['collar']; k = K.get('scale', sT)
+    o = []
+    for sd in (1, -1):
+        side = incollar & (sx == sd) & (ax > 0.08)
+        foot = side & (P0[:, 2] < np.percentile(P0[side, 2], 15))
+        o.append(P[foot].mean(0) - k * P0[foot].mean(0))
+    oz, oy, ox = (o[0][2] + o[1][2]) / 2, (o[0][1] + o[1][1]) / 2, (o[0][0] - o[1][0]) / 2
+    ci = np.nonzero(incollar)[0]
+    P[ci] = k * P0[ci] + np.stack([sx[ci] * ox * smooth01(0, 0.08, ax[ci]), np.full(len(ci), oy), np.full(len(ci), oz + K.get('lift', 0))], 1)
+    # out over the shoulders (`spread` across) and down onto them (`lift` < 0): the chibi's head is
+    # wider, and its chin sits at the shoulders
+    P[ci, 0] *= K.get('spread', 1)
 
 
 # --- keep the garment outside the body: push out along the body's normal, then spread the push

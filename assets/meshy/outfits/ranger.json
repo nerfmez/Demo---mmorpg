@@ -48,7 +48,8 @@
   "from": 0.82,
   "top": 0.96,
   "half": 0.24,
-  "squash": 1.0,
-  "inflate": 0.02
+  "inflate": 0.006,
+  "spread": 1.35,
+  "lift": -0.03
  }
 }

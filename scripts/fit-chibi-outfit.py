@@ -90,7 +90,9 @@ bmesh.ops.triangulate(bm, faces=bm.faces[:])
 drop = []
 for f in bm.faces:
     c = f.calc_center_median()
-    if abs(c.x) > C['cuff'] or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.16)) or c.z > C.get('top', C['neck'] + 0.03):
+    # the sleeve cut is for the arms only (from the armpits up): lower down it would cut the outer
+    # half off wide hips, trousers and boots
+    if (abs(c.x) > C['cuff'] and c.z > C.get('armpit', 0.66)) or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.16)) or c.z > C.get('top', C['neck'] + 0.03):
         drop.append(f)
 bmesh.ops.delete(bm, geom=drop, context='FACES')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
@@ -325,7 +327,8 @@ names = {0: 'boots', 1: 'armor'}
 # trousers are not pushed over the fuller legs): the armour's legs from inside the boot tops, its
 # torso below the arms, and up to below the collar out to just inside the sleeve ends (boxes of
 # [z from, z to, |x| below] that overlap, so no band of skin is left between them)
-HIDE = {'armor': [[zmapL(C['bootTop']) - 0.04, crotchC, 1], [crotchC - 0.01, 0.70, 0.22], [0.69, 0.785, float(armx(np.array(C['cuff']))) - 0.02]],
+HIDE = {'armor': [[zmapL(C['bootTop']) - 0.04, crotchC, 1], [crotchC - 0.01, 0.70, 0.22], [0.69, 0.785, float(armx(np.array(C['cuff']))) - 0.02],
+                  [0.70, 0.84, float(armx(np.array(C['cuff']))) - 0.02, 0.11]],  # the whole upper arm in a sleeve
         'boots': [[-1, zmapL(C['bootTop']) + 0.01, 1]]}
 for pc, name in names.items():
     fs = [f for f in bm.faces if piece[f.verts[0].index] == pc]
@@ -338,8 +341,8 @@ for pc, name in names.items():
         cen = (a + b + c) / 3; n = np.cross(b - a, c - a); nl = np.linalg.norm(n)
         if nl == 0: continue
         n /= nl
-        regs = C.get('hideRegion', {}).get(name) or HIDE[name]  # boxes [z from, z to, |x| below]
-        if all(any(r[0] < q[2] < r[1] and abs(q[0]) < r[2] for r in regs) for q in (a, b, c)):  # each corner in some box
+        regs = C.get('hideRegion', {}).get(name) or HIDE[name]  # boxes [z from, z to, |x| below(, |x| above)]
+        if all(any(r[0] < q[2] < r[1] and (r[3] if len(r) > 3 else -1) < abs(q[0]) < r[2] for r in regs) for q in (a, b, c)):  # each corner in some box
             hid.append(ti); continue  # well inside what the piece covers (the armpits open in the T-pose)
         hits = 0
         for q in (cen, a * 0.8 + cen * 0.2, b * 0.8 + cen * 0.2, c * 0.8 + cen * 0.2):

@@ -32,7 +32,9 @@
     },
     "perStat": {
       "STR": {
-        "attack": 4.5
+        "attack": 4.5,
+        "maxHp": 20,
+        "meleeDamagePct": 0.3
       },
       "INT": {
         "magic": 4.5

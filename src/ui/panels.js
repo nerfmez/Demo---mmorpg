@@ -25,7 +25,7 @@ import { MENU_GROUPS, MENU_PAGES, groupOf } from './menu-map.js';
 
 const LOADOUT_TABS = new Set(['bag', 'skills', 'mods', 'movement']);
 
-const STAT_TH = { STR: 'พลังกาย · ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/เกราะ', INT: 'สติปัญญา · พลังเวท/MP', DEX: 'ความแม่น · แรงคริ/ยิง', LUK: 'โชค · โอกาสคริ' };
+const STAT_TH = { STR: 'พลังกาย · พลังโจมตี/HP/ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/เกราะ', INT: 'สติปัญญา · พลังเวท/MP', DEX: 'ความแม่น · แรงคริ/ยิง', LUK: 'โชค · โอกาสคริ' };
 const REASON_TH = { level: 'เลเวลตัวละครยังไม่ถึงขั้นที่กำหนด', invalid: 'การตั้งค่าคราฟต์ไม่ถูกต้อง', materials: 'วัตถุดิบไม่พอ', learned: 'เรียนแล้ว', max: 'สูงสุดแล้ว', full: 'ช่อง Mod เต็ม', duplicate: 'ใส่ Mod ซ้ำไม่ได้', requires: 'Stat ไม่ถึง', not_learned: 'ยังไม่ได้เรียน' };
 const TELEPORT_TH = { combat: 'กำลังต่อสู้อยู่ — ออกจากการต่อสู้ก่อนแล้วค่อยวาร์ป', locked: 'ยังไม่ได้ปลดล็อก — เดินไปแตะหินวาร์ปนั้นก่อน', dead: 'หมดสติอยู่', unknown: 'ไม่พบจุดวาร์ป' };
 const CRAFT_FILTERS = [

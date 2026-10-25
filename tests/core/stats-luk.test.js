@@ -65,3 +65,14 @@ test('crit chance past 100% turns into crit damage at the data rate, outside the
   const under = createCharacter(data); under.stats.LUK = 10;
   assert.equal(derive(under, data).critOverflowPct, 0, 'nothing below 100%');
 });
+
+test('STR gives attack, some HP (a third of VIT\'s) and a little melee damage (owner)', () => {
+  const per = data.progression.character.perStat.STR, base = data.progression.character.base;
+  assert.ok(per.attack > 0 && per.meleeDamagePct > 0);
+  assert.ok(Math.abs(per.maxHp - base.hpPerVit / 3) < 1, 'about a third of VIT\'s HP');
+  const a = createCharacter(data), b = createCharacter(data); b.stats.STR += 10;
+  const da = derive(a, data), db = derive(b, data);
+  assert.ok(db.maxHp > da.maxHp && db.meleeDamagePct > da.meleeDamagePct && db.attack > da.attack);
+  const v = createCharacter(data); v.stats.VIT += 10;
+  assert.ok(derive(v, data).maxHp - da.maxHp > db.maxHp - da.maxHp, 'VIT stays the HP stat');
+});

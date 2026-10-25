@@ -12,6 +12,12 @@ const h = (html) => {
   t.innerHTML = html.trim();
   return t.content.firstElementChild;
 };
+// Per-frame text: assigning even an unchanged string replaces the text node, which
+// restyles and repaints the whole HUD layer every frame.
+const setText = (el, text) => {
+  text = String(text);
+  if (el.textContent !== text) el.textContent = text;
+};
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 // head height (m, before the rig's scale) for the name + HP bar over each monster
@@ -456,11 +462,11 @@ export class Hud {
     this.hpFill.style.width = pct(p.hp, p.maxHp);
     this.hpLag.style.width = pct(p.hp, p.maxHp);
     this.hpBarrier.style.width = pct(Math.min(p.barrier, p.maxHp), p.maxHp);
-    this.hpText.textContent = `HP  ${Math.ceil(p.hp)} / ${p.maxHp}${p.barrier > 0.5 ? ` +${Math.round(p.barrier)}` : ''}`;
+    setText(this.hpText, `HP  ${Math.ceil(p.hp)} / ${p.maxHp}${p.barrier > 0.5 ? ` +${Math.round(p.barrier)}` : ''}`);
     this.mpFill.style.width = pct(p.mp, p.maxMp);
     const low = !p.dead && p.hp < p.maxHp * 0.3;
     if (low !== this.lowHp) this.el.hurt.classList.toggle('low', (this.lowHp = low));
-    this.mpText.textContent = `MP  ${Math.floor(p.mp)} / ${p.maxMp}`;
+    setText(this.mpText, `MP  ${Math.floor(p.mp)} / ${p.maxMp}`);
     const xpKey = `${ch.level}:${ch.exp}:${ch.jobLevel}:${ch.jobExp}`;
     if (xpKey !== this.lastXpKey) {
       this.lastXpKey = xpKey;
@@ -473,7 +479,7 @@ export class Hud {
       this.jobLevel.textContent = `Job ${ch.jobLevel}`;
       this.xp.setAttribute('aria-label', `Lv.${ch.level} ${xp.exp.text} · Job ${ch.jobLevel} ${xp.job.text}`);
     }
-    this.lvl.textContent = ch.level;
+    setText(this.lvl, ch.level);
     const area = g.world.zoneAt(p.x, p.z);
     if (area?.id !== this.locationId) {
       this.locationId = area?.id;

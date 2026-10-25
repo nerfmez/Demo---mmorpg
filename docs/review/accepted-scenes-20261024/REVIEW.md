@@ -218,3 +218,30 @@ Tests:
 - core 609/609, with new tests for compiling against the post target and for road-distance reach;
 - routes 0 failures;
 - render tests show the same 2 failures as the base commit.
+
+## Load time, second round (25 October 2026)
+
+CI on the first round still timed out. The Chromium smoke waits up to 60 s for the world and then 10 frames (game time 0.5). The world was ready at about 56 s, but those frames took about 15 s more. WebKit's vrm phase and workspaces stalled the same way. The CI smoke runs at quality=low, where the world is drawn straight to the canvas.
+
+Found with a CPU profile, a GPU-process trace and a DOM-mutation probe (Chromium, SwiftShader, 1600 × 900, quality=low, as the smoke):
+- **Upload variant at low quality:** the resident upload drew into a private 8 × 8 render target. Three keys canvas output (sRGB, tone mapping) on null and XR targets only, so each upload linked a second, linear-output program that gameplay never uses, and blocked on it. This was about 9 s of blocking first use at startup, now about 5 s. The private target is now flagged as canvas output when there is no screen grade, so the upload links the gameplay program. At high quality nothing changes.
+- **HUD writes every frame:** HP/MP text, the level badge, the empty skill slots' classes, the summon commands and the ammo button were rewritten every frame even when unchanged. Each write restyled and repainted the whole HUD layer, which costs hundreds of milliseconds per frame with software GL. They are now written only on change; the probe sees no DOM mutations per frame when nothing changes.
+- **Loading bar:** it kept animating inside the faded card, repainting it every frame. It now stops, and the card is hidden after its fade.
+- **Scene plants per chunk:** each scene's instanced plants (all but grass) are split into 16 m pieces, as the map's own plants are, so the camera and the sun's shadow box draw only the pieces they reach. At high quality this cut triangles per frame from about 2.76 M to 1.53 M, with no visible change.
+- **Landmark test:** `tests/render/landmark-assets.test.mjs` still expected every authored landmark to import. Landmarks drawn by an accepted scene are skipped by design, so the test now expects that.
+
+Measured locally (Chromium, SwiftShader, quality=low, 1600 × 900, the smoke's readiness condition; runs alternated, one at a time):
+
+| Build | Ready (s) |
+|---|---|
+| previous head (4d4079c) | 70.6, 71.1 |
+| this change | 58.4, 58.2 |
+| main (14ebb0a) | 60.5, 53.5 |
+
+That is about 12 s faster than the previous head, on a par with main. Most of the gain is after the loading card: about 22 s down to about 12 s. WebKit is measured by CI. Local times vary by several seconds between batches, so only alternated runs are compared.
+
+Checked: screenshots after load (desktop and iPad viewports) show HP/MP text, the level badge, skill slots and the hidden loading card as before.
+
+Tests:
+- core 611/611, with a new test that the low-quality upload links the canvas program;
+- render 48/49; the one failure (closed skirt edges, `terrain-domain`) also fails on main.

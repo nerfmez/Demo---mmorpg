@@ -87,6 +87,13 @@ button {
 #loading.done {
   opacity: 0;
   pointer-events: none;
+  /* after the fade: no longer composited, and the bar stops (it repainted the
+     hidden card every frame) */
+  visibility: hidden;
+  transition: opacity 0.4s, visibility 0s 0.4s;
+}
+#loading.done .load-bar i {
+  animation: none;
 }
 .load-card {
   text-align: center;

@@ -23,6 +23,13 @@ const capture = (el, id) => {
   }
 };
 
+// Per-frame text: assigning even an unchanged string replaces the text node, which
+// restyles and repaints the whole HUD layer every frame.
+const setText = (el, text) => {
+  text = String(text);
+  if (el.textContent !== text) el.textContent = text;
+};
+
 const h = (html) => {
   const t = document.createElement('template');
   t.innerHTML = html.trim();
@@ -568,7 +575,8 @@ export class Input {
   refreshButtons() {
     const g = this.game;
     const p = g.player;
-    this.summonCommands.hidden=!g.allies.some(a=>!a.dead&&a.life>0);
+    const noAllies=!g.allies.some(a=>!a.dead&&a.life>0);
+    if(this.summonCommands.hidden!==noAllies)this.summonCommands.hidden=noAllies; // re-setting the attribute restyles
     g.skills.forEach((s, i) => {
       const b = this.buttons[i];
       const key = s ? `${s.id}:${s.cost}:${s.requirementsMet}` : 'empty';
@@ -587,8 +595,9 @@ export class Input {
       }
       if (!s) {
         b.style.setProperty('--cd', '0%');
-        b.querySelector('.cdt').textContent = '';
-        b.classList.remove('nomp', 'locked', 'charging', 'noammo', 'lowammo');
+        setText(b.querySelector('.cdt'), '');
+        // remove() rewrites the class attribute even when nothing is removed; toggle(c, false) does not
+        for (const c of ['nomp', 'locked', 'charging', 'noammo', 'lowammo']) b.classList.toggle(c, false);
         b.style.setProperty('--charge','0%');
         return;
       }
@@ -597,7 +606,7 @@ export class Input {
       b.style.setProperty('--charge', `${charge ? 100 * charge.t / charge.skill.charge.duration : 0}%`);
       const cd = p.cooldowns[i];
       b.style.setProperty('--cd', `${(cd / s.cooldown) * 100}%`);
-      b.querySelector('.cdt').textContent = charge ? `${Math.round(100 * charge.t / charge.skill.charge.duration)}%` : p.channeling?.slot === i ? 'ร่าย' : cd > 0.1 ? cd < 1 ? cd.toFixed(1) : Math.ceil(cd) : '';
+      setText(b.querySelector('.cdt'), charge ? `${Math.round(100 * charge.t / charge.skill.charge.duration)}%` : p.channeling?.slot === i ? 'ร่าย' : cd > 0.1 ? cd < 1 ? cd.toFixed(1) : Math.ceil(cd) : '');
       b.classList.toggle('nomp', p.mp < s.cost);
       b.classList.toggle('locked', !s.requirementsMet);
       // Arrow skills show what is left in the quiver; orange when low, dim when empty.
@@ -645,6 +654,6 @@ export class Input {
     }
     const cdk = p.movement.charges < mv.charges ? 1 - p.movement.rechargeT / mv.recharge : 0;
     this.moveBtn.style.setProperty('--cd', `${p.movement.charges === 0 ? cdk * 100 : 0}%`);
-    this.moveBtn.querySelector('.cdt').textContent = mv.charges > 0 && p.movement.charges === 0 ? Math.ceil(mv.recharge - p.movement.rechargeT) : '';
+    setText(this.moveBtn.querySelector('.cdt'), mv.charges > 0 && p.movement.charges === 0 ? Math.ceil(mv.recharge - p.movement.rechargeT) : '');
   }
 }

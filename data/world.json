@@ -16595,7 +16595,9 @@
         {"scene": "rose-garden", "at": [-128.4, 7.4], "size": 1.5, "note": "the tree framing the gazebo"},
         {"scene": "hill-windmill", "at": [117.5, -101.0], "size": 1.45, "note": "the tree on the terraces beside the mill"}
       ],
-      "crownTint": "#edf1e2"
+      "crownTint": "#edf1e2",
+      "chunk": 16,
+      "chunkDoc": "Each scene's instanced plants (crowns, trunks, shrubs, flowers, fronds) are split into chunk-metre square pieces, as the map's own plants are, so the camera and the sun's shadow box draw only the pieces they reach. Grass keeps its own per-clump culling."
     },
     "surround": {
       "_doc": "The ring outside each accepted scene where the town's earth clearing and soil patches give way to grass (render/ground.js, ui/mapimage.js); the grass keeps the map's own zone colours, in the scenes too. Distances in metres from the scene bounds; keep corridors leave routes and waypoint clearings earth.",

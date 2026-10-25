@@ -18,6 +18,11 @@ export function* warmResidentSteps(view, region) {
   const compileBatch=new THREE.Group();
   const target=new THREE.WebGLRenderTarget(8,8,{depthBuffer:true});
   const renderer=view.renderer, previous=renderer.getRenderTarget();
+  // Without the screen grade the world is drawn straight to the canvas. Three keys
+  // canvas output (sRGB, tone mapping) on null and XR targets only, so flag this
+  // private target as one: the upload then links the gameplay program instead of
+  // blocking on an unused linear-output variant.
+  if(!view.post){target.isXRRenderTarget=true;target.texture.colorSpace=renderer.outputColorSpace;}
   const previousFace=renderer.getActiveCubeFace?.()??0,previousMip=renderer.getActiveMipmapLevel?.()??0;
   const shadowEnabled=renderer.shadowMap.enabled;
   const shadowAutoUpdate=renderer.shadowMap.autoUpdate,shadowNeedsUpdate=renderer.shadowMap.needsUpdate;

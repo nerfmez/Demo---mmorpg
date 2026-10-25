@@ -95,6 +95,27 @@ test('private warm draws reuse the actual High post receiver shader key without 
   }
 });
 
+test('without the screen grade, private warm draws reuse the canvas output program',()=>{
+  const root=new THREE.Group(),mesh=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshLambertMaterial());root.add(mesh);
+  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),hemi=new THREE.HemisphereLight(),sun=new THREE.DirectionalLight();scene.add(hemi,sun,sun.target);
+  let target=null,compileKey,drawKey,drawTarget;
+  const renderer={outputColorSpace:THREE.SRGBColorSpace,toneMapping:THREE.ACESFilmicToneMapping,shadowMap:{enabled:false,autoUpdate:true,needsUpdate:false},
+    state:{buffers:{depth:{getReversed:()=>false}}},getRenderTarget:()=>target,setRenderTarget:t=>target=t};
+  const extensions={has:()=>false},lights=WebGLLights(extensions);lights.setup([hemi,sun]);
+  const programs=WebGLPrograms(renderer,{get:()=>null},extensions,{precision:'highp',getMaxPrecision:p=>p},{},{numPlanes:0,numIntersection:0});
+  const key=()=>programs.getProgramCacheKey(programs.getParameters(mesh.material,lights.state,[],scene,mesh,[]));
+  const canvasKey=key();
+  renderer.compile=()=>{assert.equal(target,null);compileKey=key();};
+  renderer.render=drawScene=>{if(!drawScene.children.length)return;drawTarget=target;drawKey=key();};
+  const warm=warmResidentSteps({renderer,scene,camera,hemisphere:hemi,sun},{root});
+  assert.equal(warm.next().done,false);
+  assert.equal(drawTarget.width,8,'buffers still upload through the tiny private target');
+  assert.equal(compileKey,canvasKey);
+  assert.equal(drawKey,canvasKey,'the upload links the canvas program, not an unused linear-output variant');
+  warm.return();assert.equal(target,null);
+  mesh.geometry.dispose();mesh.material.dispose();
+});
+
 test('resident warmup preserves full aliased buffers while warming one primitive per material group and instance',()=>{
   const root=new THREE.Group(),geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(36),3));

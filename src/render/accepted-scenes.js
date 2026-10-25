@@ -52,7 +52,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
    const kind=foliage&&mesh.isInstancedMesh?mesh.geometry.userData.gameFoliage:null;
    // a scene's own trunk outline gives way to the game's hull (added below)
    if(kind==='trunk'&&mesh.material.side===THREE.BackSide){mesh.removeFromParent();mesh.material.dispose();continue;}
-   const matrix=mesh.matrixWorld.clone();
+   const matrix=mesh.matrixWorld.clone();let placed=[mesh];
    if(mesh.isInstancedMesh){
     const m=new THREE.Matrix4(),color=new THREE.Color(),p=new THREE.Vector3();let count=0;
     if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
@@ -68,7 +68,10 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
      mesh.setMatrixAt(count,m);if(mesh.instanceColor){mesh.getColorAt(i,color);mesh.setColorAt(count,color);}count++;
     }
     mesh.count=count;mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;
-    if(kind)yield* gameFoliageSteps(world,mesh,kind,gameMaterial,foliage,root);
+    // As the map's own plants: one piece per chunk, so a camera or the sun's shadow
+    // box draws only the pieces it reaches (grass keeps its own per-clump culling).
+    placed=kind==='grass'||!foliage?.chunk?[mesh]:splitInstances(mesh,foliage.chunk);
+    if(kind)for(const part of placed)yield* gameFoliageSteps(world,part,kind,gameMaterial,foliage,root);
    }else{
     // Copy before baking: hulls may share a geometry with their visible surface.
     const original=mesh.geometry;mesh.geometry=original.clone().applyMatrix4(matrix);
@@ -86,7 +89,8 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
     if(!mesh.userData.authoredNormals)mesh.geometry.computeVertexNormals(); // imported models keep their smooth normals
    }
    // All fixed vertices/instances are now region-local, ready for cell batching.
-   root.add(mesh);mesh.position.set(0,0,0);mesh.quaternion.identity();mesh.scale.setScalar(1);mesh.updateMatrix();
+   for(const o of placed){root.add(o);o.position.set(0,0,0);o.quaternion.identity();o.scale.setScalar(1);o.updateMatrix();}
+   if(placed[0]!==mesh)mesh.removeFromParent();
    mesh.geometry.computeBoundingSphere();mesh.geometry.computeBoundingBox();
    yield;
   }
@@ -122,6 +126,24 @@ function* gameFoliageSteps(world,mesh,kind,gameMaterial,foliage,root){
   for(let i=0;i<mesh.count;i++){mesh.getMatrixAt(i,m);m.decompose(p,q,sc);items.push({x:p.x,z:p.z,sx:sc.x,sy:sc.y,sz:sc.z});}
   mesh.castShadow=false;yield* attachGrassSurfaceSteps(mesh,items,world);
  }
+}
+// Instances (already world-placed) regrouped into size-metre square pieces that share
+// the geometry and material; the scene-wide original only gives up its instance buffers.
+function splitInstances(mesh,size){
+ const m=new THREE.Matrix4(),c=new THREE.Color(),cells=new Map();
+ for(let i=0;i<mesh.count;i++){mesh.getMatrixAt(i,m);const k=Math.floor(m.elements[12]/size)+','+Math.floor(m.elements[14]/size);let ids=cells.get(k);if(!ids)cells.set(k,ids=[]);ids.push(i);}
+ if(cells.size<2)return [mesh];
+ const parts=[];
+ for(const ids of cells.values()){
+  const part=new THREE.InstancedMesh(mesh.geometry,mesh.material,ids.length);
+  part.name=mesh.name;part.castShadow=mesh.castShadow;part.receiveShadow=mesh.receiveShadow;part.renderOrder=mesh.renderOrder;part.frustumCulled=mesh.frustumCulled;
+  part.customDepthMaterial=mesh.customDepthMaterial;part.customDistanceMaterial=mesh.customDistanceMaterial;part.userData={...mesh.userData};
+  ids.forEach((id,j)=>{mesh.getMatrixAt(id,m);part.setMatrixAt(j,m);if(mesh.instanceColor){mesh.getColorAt(id,c);part.setColorAt(j,c);}});
+  part.instanceMatrix.needsUpdate=true;if(part.instanceColor)part.instanceColor.needsUpdate=true;
+  parts.push(part);
+ }
+ mesh.dispose();
+ return parts;
 }
 // Stones are separate parts (factory groups): each moves whole with the ground
 // under its centre, and one the feather or a later edit would squash below half

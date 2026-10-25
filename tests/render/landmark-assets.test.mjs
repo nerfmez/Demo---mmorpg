@@ -26,7 +26,8 @@ test('region landmark imports release raw/batched buffers once, including cancel
   const resources=new Map();const loader={async loadAsync(path){const gltf=await model('public/'+path);gltf.scene.traverse(o=>{for(const r of [o.geometry,o.material])if(r&&!resources.has(r)){resources.set(r,0);r.addEventListener('dispose',()=>resources.set(r,resources.get(r)+1));}});return gltf;}};
   const atlas=new Texture();let atlasDisposals=0;atlas.addEventListener('dispose',()=>atlasDisposals++);
   const result=await loadLandmarkAssets(createWorld(wd),{loader,assetURL:path=>path,foliageTexture:atlas});
-  assert.equal(result.stats.kinds.length,wd.landmarks.filter(l=>!l.builtin).length);
+  // an accepted scene draws its own landmark (render/accepted-scenes.js)
+  assert.equal(result.stats.kinds.length,wd.landmarks.filter(l=>!l.builtin&&!l.acceptedScene).length);
   assert.ok(result.stats.batch.after<result.stats.sourceDraws,'material batches reduce draws');
   result.dispose();result.dispose();
   assert.equal(atlasDisposals,0,'the accepted forest atlas is borrowed, never freed with a region');

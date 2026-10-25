@@ -76,12 +76,7 @@ if 'scale' not in C:
     C['scale'] = ARM_AXIS / (za - R[:, 2].min())
     C['lift'] = -R[:, 2].min() * C['scale']
     print('scale %.4f lift %.4f' % (C['scale'], C['lift']))
-    tipG = float(np.abs(R[:, 0]).max() * C['scale'])
-    if C['cuff'] > 0.28 and 'wrist' in FIT:
-        # a long sleeve ends at the wrist: its end goes onto this body's wrist (the chibi's hands are
-        # bigger than the generated gloves, so one straight map left the cuff on the forearm)
-        C.setdefault('armX', [[0.12, 0.12], [C['cuff'], FIT['wrist']], [tipG, CHIBI_TIP]])
-    C.setdefault('armX', [[0.12, 0.12], [tipG, CHIBI_TIP]])
+    C.setdefault('armX', [[0.12, 0.12], [float(np.abs(R[:, 0]).max() * C['scale']), CHIBI_TIP]])
 gen.data.transform(Matrix.Translation((0, 0, C['lift'])) @ Matrix.Scale(C['scale'], 4))
 gen.matrix_world = Matrix.Identity(4)
 img = [n for n in gen.material_slots[0].material.node_tree.nodes if n.type == 'TEX_IMAGE'][0].image
@@ -379,9 +374,7 @@ for i, p in enumerate(P):
 # from the waist up the weights are smoothed over the cloth's own surface: taken from the nearest
 # body point they jump between the chest and the arm across a shoulder pad or a sleeve, and the
 # pieces tear apart into shards when the arms come down
-# (round the shoulders only: further out the sleeve keeps the arm's own weights, or its cuff would
-# lag behind the forearm)
-up = np.nonzero((P[:, 2] > crotchC + 0.08) & (np.abs(P[:, 0]) < C.get('smoothOut', 0.17)))[0]
+up = np.nonzero(P[:, 2] > crotchC + 0.08)[0]
 for _ in range(C.get('weightSmooth', 10)):
     W[up] = 0.5 * W[up] + 0.5 * np.array([W[nbr[i]].mean(0) if nbr[i] else W[i] for i in up])
 W /= np.maximum(W.sum(1, keepdims=True), 1e-9)

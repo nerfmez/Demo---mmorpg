@@ -662,13 +662,12 @@
       "chibi": true,
       "tris": 5200,
       "fit": {
-        "_doc": "The body's own landmarks (m) the modelled outfits are fitted to (scripts/fit-chibi-outfit.py): the crotch, the T-pose arm axis, the neck cut, the fingertips out from the middle, the torso's width against the first chibi body's, and the wrist (a long sleeve's end goes there).",
+        "_doc": "The body's own landmarks (m) the modelled outfits are fitted to (scripts/fit-chibi-outfit.py): the crotch, the T-pose arm axis, the neck cut, the fingertips out from the middle, and the torso's width against the first chibi body's.",
         "crotch": 0.49,
         "armAxis": 0.764,
         "neck": 0.852,
         "tip": 0.523,
-        "torso": 0.85,
-        "wrist": 0.37
+        "torso": 0.85
       },
       "armDrop": 1.3,
       "gearScale": 0.65,
@@ -937,7 +936,7 @@
     "outfit_wardenstalker_coat": {
       "file": "models/outfits/wardenstalker_coat.glb",
       "chibiOutfit": "armor",
-      "tris": 1919,
+      "tris": 1889,
       "source": "The chibi in the wardenstalker_coat set (the owner's reference sheet 08 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-1d1d-7353-83b5-c18abb750df5), Meshy 6 retexture (task 01a16f6d-f4f3-73a5-a285-555646842a15); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden.json)."
     },
     "outfit_gale_boots": {
@@ -1022,7 +1021,7 @@
     "outfit_wardenstalker_hood": {
       "file": "models/outfits/wardenstalker_hood.glb",
       "chibiOutfit": "helm",
-      "tris": 473,
+      "tris": 457,
       "source": "The headwear of the warden set's model (assets/meshy/outfits/warden_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/warden.json wardenstalker_hood."
     }
   },

@@ -95,10 +95,6 @@ def head(g, neck):
     face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.07 and np.abs(cols[f] - skin).max() < 40)
     face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - 0.09 and abs(f.calc_center_median().x) > 0.11
                 and not (dr and f.calc_center_median().y > C.get('drapeY', 0)))
-    if dr and C.get('drapeFur'):
-        # of what hangs below the neck only the hood's pale fur stays (the coat under it is the armour's)
-        face.update(f for f in bm.faces if f.calc_center_median().z < neck and not
-                    (cols[f].min() > 140 and cols[f].max() - cols[f].min() < 50))
     if 'chinCut' in C:
         # and the collar or scarf under the chin, in front of the neck (`chinCut` below the eyes, in
         # front of `chinBack` behind them): the armour has its own, and this one, turning with the

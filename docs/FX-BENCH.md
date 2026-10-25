@@ -76,6 +76,19 @@ round the arrow through the short cast and a cold nock glow; the arrow (Hunter's
 `pr.fusion` marks it) wrapped in three re-struck lightning strands trailing behind its head with
 a head glow and shed sparks; the hit is Chain Spark's own lightning.
 
+### Recipe: Venom Arrow / ธนูพิษ (Hunter's Shot + Venom Bolt)
+
+The owner split the old bow skill Venom Arrow: its poison became a spell, **Venom Bolt / เวทพิษ**,
+and Venom Arrow became this fusion. Venom Bolt is a bench-only prototype skill (`data/fusion.json`
+`skills`, merged into the bench's skill list by `fusion.js benchData`; the game's data and its
+Venom Arrow are unchanged until fusion moves into the game, which also needs its icon and
+acquisition): a wand spell (Firebolt's push pose, `boltCast`) whose green orb (the generic
+projectile in the poison colours) stacks Venom Arrow's poison to five, with the poison splash on
+impact. The recipe (`type: arrow_poison`) keeps Hunter's Shot's own cast and speed (no charge),
+cooldown 0.6 s; its arrows turn poison: the poison element and Venom Bolt's stacking poison at
+`poisonMult` (0.5) of its stack strength (the core multiplies it by the hit), drawn as the old
+Venom Arrow (`look`: the projectile kind the renderer draws).
+
 ## Slash (bench look and rule trial)
 
 `src/render/skillfx/slash-fx.js` draws one clean crescent of light around the caster over the real range
@@ -111,6 +124,7 @@ numbers in `data/combat-fx.json`.
 
 ## Venom Arrow (rule trial of Venom Mire)
 
+On the bench this skill is now the Venom Arrow fusion (above); the game still has it as below.
 The owner did not want a poison pool, and a poison shot from the staff was too close to Firebolt.
 Venom Mire is now **Venom Arrow**, a bow attack (in the game too, `data/skills.json` `venom_mire`
 with core poison stacks): a fast thin arrow

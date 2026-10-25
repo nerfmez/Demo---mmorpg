@@ -14,14 +14,14 @@ import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
-import { fusionRecipe } from './fusion.js';
+import { fusionRecipe, benchData } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
 import { ThunderArrowFx } from './thunder-arrow-fx.js';
 import { mulberry32 } from '../render/skillfx/fx-common.js';
 import { OCCLUDER_LAYER } from '../render/skillfx/flame-fx.js';
 import { SkillFx, OWN_PROJECTILES, ELEMENT_COLOR } from '../render/skill-fx.js';
 
-const data = gameData;
+const data = benchData(gameData, FUSION); // with the bench-only prototype spells (Venom Bolt)
 
 const params = new URLSearchParams(location.search);
 const state = {
@@ -145,6 +145,7 @@ const shake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shak
 const flameSlash = new FlameSlashFx(scene, camera);
 const thunderArrow = new ThunderArrowFx(scene, camera, () => vfx);
 const arrowRecipe = () => game.fusion?.recipe?.type === 'arrow_chain';
+const arrowFusion = () => game.fusion?.recipe?.type?.startsWith('arrow_'); // the carrier's own arrows, restyled
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
 // the skill effects, driven by the same director as the game (src/render/skill-fx.js)
@@ -258,6 +259,7 @@ function drain() {
       if (e.element === 'cold') fx.frost.chipBurst(e.x, 1.0, e.z, 8, 2.5, 3, 0.8); else if (e.element === 'fire') fx.fire.impact(e.x, 1.0, e.z, true); else vfx.impact(e);
       continue;
     }
+    if (e.type === 'impact' && e.kind === 'venom_bolt') { fx.venom.impact(e); continue; } // Venom Bolt: the poison splash
     const drawn = fx.event(e);
     if (e.type === 'impact' && !drawn) vfx.impact(e);
     // a skill the effects director leaves alone (Hunter's Shot) still gets its pose, as in the game (view.js)
@@ -394,7 +396,7 @@ function renderPanel() {
   line('ธาตุ', ELEMENT_TH[s.element] || s.element);
   line('คูลดาวน์', `${s.cooldown.toFixed(2)} วิ`);
   line('MP', `${s.cost}`);
-  if (s.recipe) { line('สกิลฟิวชั่น', s.recipe.nameTh); if (s.recipe.chargeTime) line('ชาร์จ', `${s.recipe.chargeTime} วิ`); if (s.recipe.wave) line('คลื่นไฟ', `${(game.fusion.payload.damage * s.recipe.wave.damageMult).toFixed(1)} · ${s.recipe.wave.range} ม. · ทะลุทุกตัว`); if (s.recipe.chainDamageMult) { line('สายฟ้าเด้ง', `${(game.fusion.payload.damage * s.recipe.chainDamageMult).toFixed(1)} · ${game.fusion.payload.chain + 1} ตัว`); } }
+  if (s.recipe) { line('สกิลฟิวชั่น', s.recipe.nameTh); if (s.recipe.chargeTime) line('ชาร์จ', `${s.recipe.chargeTime} วิ`); if (s.recipe.wave) line('คลื่นไฟ', `${(game.fusion.payload.damage * s.recipe.wave.damageMult).toFixed(1)} · ${s.recipe.wave.range} ม. · ทะลุทุกตัว`); if (s.recipe.poisonMult) line('พิษ', `ซ้อน ${game.fusion.payload.poison.maxStacks} ชั้น · ${game.fusion.payload.poison.duration} วิ`); if (s.recipe.chainDamageMult) { line('สายฟ้าเด้ง', `${(game.fusion.payload.damage * s.recipe.chainDamageMult).toFixed(1)} · ${game.fusion.payload.chain + 1} ตัว`); } }
   else if (game.fusion) line('ลิงก์', `${game.fusion.payload.nameTh} ${(game.fusion.payload.damage * FUSION.payloadDamageMult).toFixed(1)} (${Math.round(FUSION.payloadDamageMult * 100)}%)`);
   if (s.kind === 'melee_arc') line('ระยะ / มุม', `${s.range} ม. × ${s.arc}°`);
   if (s.kind === 'projectile') line('ระยะ / ความเร็ว', `${s.range} ม. · ${s.speed} ม./วิ`);
@@ -532,14 +534,14 @@ function tick(real, draw = true) {
   fx.update(dt);
   castBtn.classList.toggle('ready', fx.counterReady);
   const recipeKind = skillDef().recipe?.id;
-  flameSlash.update(dt, hero.bones?.weapon, fx.bladeBase, fx.bladeTip, game.projectiles, arrowRecipe() ? null : recipeKind);
+  flameSlash.update(dt, hero.bones?.weapon, fx.bladeBase, fx.bladeTip, game.projectiles, arrowFusion() ? null : recipeKind);
   // dodge effects as in the game (view.js): the dash streak and afterimages, roll dust (the blink and
   // the leap: skillfx/move-fx.js through fx); the body is gone between the blink's jump and its end
   vfx.syncMovement(p, hero.root.position.y, dt, hero);
   hero.root.visible = !(p.dash?.kind === 'blink' && p.dash.moved);
   vfx.updateCast(dt, hero, !p.cast, p);
   // Thunder Arrow's arrows stay Hunter's Shot arrows (vfx.js) under their own lightning; a wave recipe draws its own projectile
-  vfx.syncProjectiles(game, dt, simTime, recipeKind && !arrowRecipe() ? benchSkip(recipeKind) : OWN_PROJECTILES);
+  vfx.syncProjectiles(game, dt, simTime, recipeKind && !arrowFusion() ? benchSkip(recipeKind) : OWN_PROJECTILES);
   if (hero.bones?.weapon) { hero.bones.weapon.getWorldPosition(nockAt); nockAt.y += 0.05; }
   thunderArrow.update(dt, game.projectiles, arrowRecipe() ? recipeKind : null, nockAt);
   vfx.update(dt);

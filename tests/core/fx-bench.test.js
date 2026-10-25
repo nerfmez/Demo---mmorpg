@@ -50,7 +50,7 @@ test('flame stream channels pulses until released', () => {
 
 // Prototype fusion (data/fusion.json): a physical carrier links one fast spell.
 import { readFileSync } from 'node:fs';
-import { fusionPayloads } from '../../src/fxtest/fusion.js';
+import { fusionPayloads, fusionRecipe, benchData } from '../../src/fxtest/fusion.js';
 const FUSION = JSON.parse(readFileSync(new URL('../../data/fusion.json', import.meta.url)));
 
 test('fusion pairs: physical fast carriers with fast damage spells only', () => {
@@ -328,4 +328,35 @@ test('every bench skill has a weapon, a dummy layout and a camera view (a missin
     const v = VIEW[id];
     assert.ok(v && [v.cx, v.cz, v.w, v.d].every(Number.isFinite), `${id}: view`);
   }
+});
+
+test('Venom Bolt (bench-only spell) stacks poison; Venom Arrow is Hunter\'s Shot + Venom Bolt with poison arrows, plain Hunter\'s Shot stays plain', () => {
+  const bd = benchData(data, FUSION);
+  assert.ok(!data.skills.combat.venom_bolt, 'the game\'s own data is left untouched');
+  assert.deepEqual(fusionPayloads(bd, FUSION, 'hunter_shot').filter((id) => fusionRecipe(FUSION, 'hunter_shot', id)).sort(), ['chain_spark', 'venom_bolt']);
+  const stacking = (g) => {
+    const target = g.monsters[0], at = { x: target.x, z: target.z }; g.monsters = [target]; // the layout's first dummy, straight ahead
+    g.aimAt(Math.atan2(at.x, at.z));
+    const stacks = [], kinds = new Set();
+    for (let i = 0; i < 6 * 60; i++) {
+      if (g.player.cooldowns[0] <= 0 && !g.player.cast) g.castSlot(0, at);
+      g.benchStep(1 / 60);
+      for (const pr of g.projectiles) kinds.add(pr.kind);
+      for (const e of g.drainEvents()) if (e.type === 'poisonStack') stacks.push(e.stacks);
+    }
+    return { stacks, kinds, target };
+  };
+  const bolt = stacking(createBench(bd, 'venom_bolt', []));
+  assert.deepEqual(bolt.stacks, [1, 2, 3, 4, 5], 'the spell stacks its poison to five');
+  const g = createBench(bd, 'hunter_shot', [], { fusion: 'venom_bolt', fusionRules: FUSION });
+  const recipe = FUSION.recipes.find((r) => r.id === 'venom_arrow');
+  assert.equal(g.skills[0].recipe.id, recipe.id);
+  assert.equal(g.skills[0].cooldown, recipe.cooldown);
+  const arrow = stacking(g);
+  assert.deepEqual(arrow.stacks, [1, 2, 3, 4, 5], 'the poison arrows stack to five');
+  assert.deepEqual([...arrow.kinds], [recipe.look], 'drawn as the Venom Arrow');
+  assert.ok(arrow.target.statuses.poison.stacks === 5);
+  const plain = stacking(createBench(bd, 'hunter_shot', []));
+  assert.deepEqual(plain.stacks, [], 'a plain Hunter\'s Shot carries no poison');
+  assert.deepEqual([...plain.kinds], ['hunter_shot']);
 });

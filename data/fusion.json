@@ -1,5 +1,5 @@
 {
-  "_doc": "PROTOTYPE skill fusion, used only by the FX bench (fx-test.html) until approved. A physical carrier skill can link one fast spell (payload) into one of its mod sockets. The carrier keeps its own shape; when it connects, the payload fires from the first struck target with its full behaviour and only its main damage reduced. The fused skill uses the longer cooldown of the two and the sum of their MP costs. maxCooldown stands in for the planned Core skill type. recipes: authored fusions for a specific pair; they replace the generic rule for that pair (charge, then the carrier's strike plus the recipe's own payload delivery). type wave (default): the carrier's strike and a piercing wave (Flame Wave Slash). type arrow_chain: the carrier's own arrows (no charge: that is Power Draw's role) that, on their first hit, burst the payload's chain lightning from the struck target (the target and up to the payload's chain count more, chainDamageMult of the payload's damage with its falloff).",
+  "_doc": "PROTOTYPE skill fusion, used only by the FX bench (fx-test.html) until approved. A physical carrier skill can link one fast spell (payload) into one of its mod sockets. The carrier keeps its own shape; when it connects, the payload fires from the first struck target with its full behaviour and only its main damage reduced. The fused skill uses the longer cooldown of the two and the sum of their MP costs. maxCooldown stands in for the planned Core skill type. recipes: authored fusions for a specific pair; they replace the generic rule for that pair (charge, then the carrier's strike plus the recipe's own payload delivery). type wave (default): the carrier's strike and a piercing wave (Flame Wave Slash). type arrow_chain: the carrier's own arrows (no charge: that is Power Draw's role) that, on their first hit, burst the payload's chain lightning from the struck target (the target and up to the payload's chain count more, chainDamageMult of the payload's damage with its falloff). type arrow_poison: the carrier's own arrows (no charge) turned into the payload's poison arrows: poison element and the payload's stacking poison (stackDps scaled by poisonMult, it multiplies the hit), drawn with the old Venom Arrow look (look). skills: bench-only prototype spells added to the skill list on the bench (fusion.js benchData) until they get the game's content (icon, acquisition).",
   "carrier": {
     "requiresAll": [
       "Attack"
@@ -61,6 +61,54 @@
       "desc": "ยิงลูกธนูพรานได้เร็วเท่าเดิม ลูกธนูห่อสายฟ้า ปักเป้าแรกแล้วฟ้าแลบระเบิดจากตัวเป้า เด้งต่อไปหาศัตรูใกล้ ๆ อีก 3 ตัว (ไม่ต้องชาร์จ: การชาร์จเป็นของชาร์จยิงรุนแรง)",
       "cooldown": 0.95,
       "chainDamageMult": 0.6
+    },
+    {
+      "carrier": "hunter_shot",
+      "payload": "venom_bolt",
+      "type": "arrow_poison",
+      "id": "venom_arrow",
+      "name": "Venom Arrow",
+      "nameTh": "ธนูพิษ",
+      "desc": "ยิงลูกธนูพรานได้เร็วเท่าเดิม ลูกธนูอาบพิษ โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง (ไม่ต้องชาร์จ)",
+      "cooldown": 0.6,
+      "poisonMult": 0.5,
+      "look": "venom_mire"
     }
-  ]
+  ],
+  "skills": {
+    "venom_bolt": {
+      "name": "Venom Bolt",
+      "nameTh": "เวทพิษ",
+      "desc": "ปล่อยลูกเวทพิษพุ่งตรงไปข้างหน้า โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง",
+      "tags": [
+        "Spell",
+        "Projectile",
+        "Poison",
+        "Damage",
+        "DoT"
+      ],
+      "kind": "projectile",
+      "power": "spell",
+      "damage": {
+        "base": 7,
+        "scale": 0.8
+      },
+      "range": 12,
+      "speed": 11,
+      "projectileRadius": 0.32,
+      "cooldown": 0.8,
+      "castTime": 0.22,
+      "cost": 6,
+      "element": "poison",
+      "requires": {},
+      "upgradeMaterial": "spore_sac",
+      "icon": "mire",
+      "upgradeStat": "INT",
+      "poison": {
+        "maxStacks": 5,
+        "duration": 4,
+        "stackDps": 0.6
+      }
+    }
+  }
 }

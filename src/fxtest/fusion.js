@@ -18,6 +18,13 @@ export function fusionPayloads(data, rules, carrierId) {
   return Object.keys(data.skills.combat).filter((id) => id !== carrierId && fusionCheck(rules, carrier, data.skills.combat[id]).ok);
 }
 
+// The game's data with the bench-only prototype spells (rules.skills, e.g. Venom Bolt) added to the
+// combat skills. The game's own data is left untouched.
+export function benchData(data, rules) {
+  if (!rules?.skills) return data;
+  return { ...data, skills: { ...data.skills, combat: { ...data.skills.combat, ...rules.skills } } };
+}
+
 export const fusionRecipe = (rules, carrierId, payloadId) => (rules.recipes || []).find((r) => r.carrier === carrierId && r.payload === payloadId) || null;
 
 // carrierSlot/payloadSlot: resolved skills in g.skills. The payload slot is not castable by itself.
@@ -55,6 +62,7 @@ export function installFusion(g, rules, carrierSlot = 0, payloadSlot = 1) {
 // Flame Wave Slash: a 1 s charge, then Slash and a piercing crescent of fire that hits each target once.
 function installRecipe(g, recipe, slot, carrier, payload) {
   if (recipe.type === 'arrow_chain') return installArrowChain(g, recipe, slot, carrier, payload);
+  if (recipe.type === 'arrow_poison') return installArrowPoison(g, recipe, carrier, payload);
   carrier.cooldown = recipe.cooldown;
   carrier.cost += payload.cost;
   carrier.fusion = payload.id;
@@ -153,4 +161,28 @@ function installArrowChain(g, recipe, slot, carrier, payload) {
     game.emit({ type: 'fusion', carrier: carrier.id, payload: payload.id, x: first.x, z: first.z, element: payload.element, recipe: recipe.id });
   }
   return { carrier, payload, recipe, waveElement: payload.element };
+}
+
+// Venom Arrow (type arrow_poison): the carrier's own arrows (no charge) dipped in the payload's
+// poison: poison element, and each hit adds a stack of the payload's poison (its stackDps scaled by
+// poisonMult; the core multiplies it by the hit). They keep the old Venom Arrow look (recipe.look,
+// the projectile kind the renderer draws).
+function installArrowPoison(g, recipe, carrier, payload) {
+  carrier.cooldown = recipe.cooldown;
+  carrier.cost += payload.cost;
+  carrier.fusion = payload.id;
+  carrier.recipe = recipe;
+  const poison = { ...payload.poison, stackDps: payload.poison.stackDps * recipe.poisonMult };
+  const skill = { ...carrier, element: payload.element, poison };
+  const run = g.executeSkill;
+  g.executeSkill = function (s, aim, opts = {}) {
+    if (s !== carrier) return run.call(this, s, aim, opts);
+    const before = new Set(this.projectiles);
+    run.call(this, s, aim, opts);
+    for (const pr of this.projectiles) {
+      if (before.has(pr) || pr.owner !== 'player') continue;
+      Object.assign(pr, { fusion: recipe.id, kind: recipe.look || pr.kind, element: payload.element, skill });
+    }
+  };
+  return { carrier, payload, recipe };
 }

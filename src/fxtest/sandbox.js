@@ -6,14 +6,14 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'hunter_shot', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte'];
+export const BENCH_SKILLS = ['slash', 'hunter_shot', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_bolt', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
-export const BENCH_WEAPON = { slash: 'sword', hunter_shot: 'bow', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword' };
+export const BENCH_WEAPON = { slash: 'sword', hunter_shot: 'bow', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', venom_bolt: 'wand', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword' };
 
 // Dummy layouts per skill (caster at the origin facing +X). Each shows what mods change:
 // extra chain hops, the nova edge (Concentrated shrinks it), the cone edge and range.
 // the game and close cameras frame this area for each skill (centre cx, cz; width w, depth d)
-export const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, hunter_shot: { cx: 6.0, cz: 0.6, w: 16, d: 7.5 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 } };
+export const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, hunter_shot: { cx: 6.0, cz: 0.6, w: 16, d: 7.5 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, venom_bolt: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 } };
 export const LAYOUTS = {
   // two in the swing, one just outside its arc, and a line behind for a linked bolt to fly on into
   slash: [[2.0, 0.4], [1.8, -0.9], [1.4, 2.0], [5.0, 0.6], [8.2, -0.3], [11.0, 1.0]],
@@ -23,6 +23,7 @@ export const LAYOUTS = {
   flame_stream: [[2.0, 0.2], [3.3, -1.0], [4.4, 1.0], [3.0, 2.6], [6.2, 0]],
   // a target in line, others off to the sides and behind for Split / Pierce / Bounce
   venom_mire: [[5.0, 0.0], [8.5, -1.2], [7.2, 2.0], [11.0, 0.6], [3.8, -2.6]],
+  venom_bolt: [[5.0, 0.0], [8.5, -1.2], [7.2, 2.0], [11.0, 0.6], [3.8, -2.6]],
   // four in the 3 m circle at the 5 m aim point, two just outside it
   arrow_rain: [[5.0, 0.3], [4.0, -1.4], [6.2, 1.4], [5.9, -1.1], [8.6, 0.4], [3.6, 3.0]],
   // a long lane: the reach and the pushed-air rings read along it

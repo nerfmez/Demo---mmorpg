@@ -10,7 +10,8 @@ import bpy, bmesh, numpy as np
 SRC, HAIR, OUT = ('assets/meshy/outfits/feather_circlet_meshy.glb', 'public/models/hero_chibi_hair.glb',
                   'public/models/outfits/feather_circlet.glb')
 Z_FRONT, Z_SIDE = 1.045, 1.06  # the cord's height over the forehead and over the ears
-SPAN = 1.35                    # how far round the head each end of the arc reaches (radians from the front)
+SPAN = 1.25                    # how far round the head each end of the arc reaches (radians from the front)
+SIZE = 0.65                    # its feathers' height and depth for that length (1: the sheet's)
 GAP = 0.006                    # the arc's inside off the hair
 TRIS, TEX = 2000, 1024
 
@@ -65,8 +66,8 @@ k = SPAN * hair_r(0) / (max(-phi.min(), phi.max()) * np.median(inside))
 for v, p, q in zip(g.data.vertices, phi, rho):
     out = q - np.interp(p, bins, inside)
     a = p * SPAN / max(-phi.min(), phi.max())
-    r = hair_r(a) + GAP + out * k
-    h = Z_FRONT + (Z_SIDE - Z_FRONT) * min(abs(a) / (np.pi / 2), 1) + (v.co.z - zc) * k
+    r = hair_r(a) + GAP + out * k * SIZE
+    h = Z_FRONT + (Z_SIDE - Z_FRONT) * min(abs(a) / (np.pi / 2), 1) + (v.co.z - zc) * k * SIZE
     v.co = (AX + r * np.sin(a), AY - r * np.cos(a), h)
 g.data.update()
 img = [n for n in g.material_slots[0].material.node_tree.nodes if n.type == 'TEX_IMAGE'][0].image

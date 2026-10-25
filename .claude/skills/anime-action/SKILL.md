@@ -92,6 +92,8 @@ Rules of thumb:
   (`onShake`); the pose itself should already be at the contact when they fire.
 - Every action that draws a trail or crescent must have the weapon actually travel along that arc
   between the last strike key and the `hit` key (`docs/VFX-REFERENCE.md`, the approved slash crescent).
+- A spell's release pushes the casting arm out toward the target (owner: "the arm goes forward, not
+  back"); the free hand does not swing back. A flick of the wrist or a raise alone does not read as a cast.
 - Guards and charges hold a pose for the whole state (the animator freezes `a.t` before `hit` while
   charging/channelling); give them a pose that already reads as "ready", not a mid-swing frame.
 

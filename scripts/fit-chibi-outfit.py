@@ -289,7 +289,9 @@ else:
 armV = BV[BW[:, armg].sum(1) > 0.6]; armV = armV[np.abs(armV[:, 0]) > 0.14]
 kz = np.polyfit(np.abs(armV[:, 0]), armV[:, 2], 1); ky = np.polyfit(np.abs(armV[:, 0]), armV[:, 1], 1)
 ac = armx(ax)
-A = np.stack([sx * ac, np.polyval(ky, ac) + y * sA, np.polyval(kz, ac) + (z - a0) * sA], 1)
+# front to back the sleeve is measured from the generated body's middle (its hips, as the torso is):
+# Meshy centres the whole model in its box, so a hood or cape behind it moves the arms forward
+A = np.stack([sx * ac, np.polyval(ky, ac) + (y - ty0) * sA, np.polyval(kz, ac) + (z - a0) * sA], 1)
 wl = smooth01(crotchG + 0.02, crotchG - 0.03, z)[:, None]
 wa = (smooth01(0.10, 0.16, ax) * (z > a0 - 0.08))[:, None]
 P = T * (1 - wl) + L * wl
@@ -379,7 +381,9 @@ for i, p in enumerate(P):
 # from the waist up the weights are smoothed over the cloth's own surface: taken from the nearest
 # body point they jump between the chest and the arm across a shoulder pad or a sleeve, and the
 # pieces tear apart into shards when the arms come down
-up = np.nonzero(P[:, 2] > crotchC + 0.08)[0]
+# (round the shoulders only: the sleeve keeps the arm's own weights, or blended with the upper arm
+# and chest its cuff stays behind when the forearm swings and hangs off the arm)
+up = np.nonzero((P[:, 2] > crotchC + 0.08) & (np.abs(P[:, 0]) < C.get('smoothOut', 0.15)))[0]
 for _ in range(C.get('weightSmooth', 10)):
     W[up] = 0.5 * W[up] + 0.5 * np.array([W[nbr[i]].mean(0) if nbr[i] else W[i] for i in up])
 W /= np.maximum(W.sum(1, keepdims=True), 1e-9)

@@ -40,6 +40,10 @@ test('the chibi painted light only lifts its shading', () => {
   assert.ok(k === undefined || (k >= 0 && k <= 0.6), 'paintedLight is a fraction up to 0.6');
   const t = data.models.characters.hero_chibi.tint;
   assert.ok(t === undefined || (t.length === 3 && t.every((c) => c > 0.6 && c <= 1)), 'tint only warms the skin a little');
+  const u = data.models.characters.hero_chibi.underCloth;
+  assert.ok(u && u.inset > 0 && u.inset <= 0.03, 'the body is tucked under cloth, not removed (a few cm at most: an arm is about 3 cm thick)');
+  assert.ok(u.inside > 0 && u.inside < 1 && u.under > 0 && u.under < 1, 'a garment inside and the body under it are shaded, never black');
+  assert.ok(u.depth > 0 && u.depth <= 0.1, 'the tucked body is pushed back only a few cm in depth');
 });
 
 test('the chibi torso flatten bands are bounded', () => {

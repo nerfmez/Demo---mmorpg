@@ -436,8 +436,14 @@ An armour or boots item with a modelled outfit (`characters.outfit_<item id>`, `
 wears that model instead of the shells it replaces (armour: top, trousers, skirt; boots: boots): one
 textured skinned mesh on the same armature, its vertices moved into the body's bind space and its
 joints remapped to the body skeleton by name (`prepareChibiOutfit`, `fitOutfit`), with the body's
-toon material and outline. Its node extras `hideBody` list the body triangles it covers; the body is
-drawn without them while it is worn (`coveredBody`), so the skin cannot poke through. The models load
+toon material and outline. Its node extras `hideBody` list the body triangles it covers; while it is
+worn those body vertices are tucked `underCloth.inset` inside the cloth along their normals (`coveredBody`;
+a vertex is tucked only when every triangle round it is covered) and drawn at `underCloth.under` of its
+light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view
+ray in the vertex shader (body and outline hull), so the cloth always wins the depth test, the skin
+cannot poke through and a gap shows shade, never the background. In Godot do the same in the body's
+spatial shader (VERTEX in view space, scaled along itself). Garments and modelled helms draw their back faces at `underCloth.inside`
+of their light, so a hollow pad or open collar reads as shaded cloth. The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
 hair is and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn

@@ -658,6 +658,13 @@
     "hero_chibi": {
       "paintedLight": 0.2,
       "tint": [1, 0.9, 0.8],
+      "underCloth": {
+        "_doc": "Under a modelled outfit the body triangles it covers are tucked `inset` metres inside the cloth (chibi-garments.js coveredBody), not removed, so no gap shows through; garments and helms draw their insides at `inside` of their light, and the tucked body at `under` of its own, pushed `depth` metres back along the view ray so the cloth always wins the depth test.",
+        "inset": 0.015,
+        "inside": 0.4,
+        "under": 0.3,
+        "depth": 0.05
+      },
       "file": "models/hero_chibi.glb",
       "chibi": true,
       "tris": 5200,

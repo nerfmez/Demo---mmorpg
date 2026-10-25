@@ -130,8 +130,10 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    warps the generated body onto `hero_chibi`, pushes the cloth outside the body, copies the body's
    skin weights and records the body triangles each piece covers. Its settings per set live in
    `assets/meshy/outfits/<set>.json` beside the Meshy source.
-3. In game (`render/chibi-garments.js`) the model replaces the shells it covers and the body is drawn
-   without the covered triangles, so nothing pokes through and no per-pose adjustment is needed.
+3. In game (`render/chibi-garments.js`) the model replaces the shells it covers. The body under it is
+   not removed: the covered vertices are tucked inside the cloth, shaded as its inside and pushed back
+   in depth (`characters.hero_chibi.underCloth`), so nothing pokes through, no gap ever shows the
+   background, and no per-pose adjustment is needed; garment insides are shaded too.
    Gloves still use the code-built pieces.
 4. Helms: `scripts/fit-chibi-helm.py` cuts the same model's headwear together with the hair drawn
    under it (the face cut away) and moves it onto the Travel model's head by the eyes, the frame the

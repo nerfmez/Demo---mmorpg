@@ -359,6 +359,8 @@ export function prepareChibiBody(gltf, cfg) {
   if (cfg.flatten) flattenBody(mesh, cfg.flatten);
   const fists = cfg.fist ? { RightHand: curlFist(mesh, bones.RightHand, cfg.fist), LeftHand: curlFist(mesh, bones.LeftHand, cfg.fist) } : {};
   smoothNormals(mesh.geometry);
+  // 1 where a worn outfit tucks the body under its cloth (chibi-garments.js coveredBody), else 0
+  mesh.geometry.setAttribute('tucked', new THREE.BufferAttribute(new Float32Array(mesh.geometry.attributes.position.count), 1));
   if (fists.RightHand && fists.LeftHand) addFistMorphs(mesh.geometry, [fists.RightHand, fists.LeftHand]);
   if (head0) softHeadNormals(mesh.geometry, head0, cfg.headShape.soft);
   if (head0 && cfg.faceShadow) addFaceCoords(mesh, head0.w, cfg.faceShadow);
@@ -427,7 +429,7 @@ export function prepareChibiBody(gltf, cfg) {
   const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(bones.Head.matrixWorld.clone().invert());
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -575,6 +577,7 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
   const flash = rig.material.userData.flash;
   const geometry = model ? model.geometry : own || (helm && H.underHelm ? H.underHelm : H.geometry), src = model ? model.material : H.material;
   const hair = new THREE.Mesh(geometry, paintedLight(toonCopy(src, flash, rim, false), T.paintedLight));
+  if (model) darkInside(hair.material, T.underCloth?.inside); // a helm's inside reads as shade
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
   if (H.highlight && !model) hairHighlightMaterial(hair.material, H.box, H.highlight);
   hair.castShadow = true;
@@ -594,6 +597,45 @@ export function paintedLight(material, k) {
     material.emissive.setScalar(k);
     material.emissiveMap = material.map;
   }
+  return material;
+}
+
+/**
+ * Draw a garment's inside (its back faces) at `k` of its light: a hollow pad or an open collar then
+ * reads as shaded cloth, not as the outside's texture seen through it.
+ */
+export function darkInside(material, k) {
+  if (!k) return material;
+  const prev = material.onBeforeCompile, key = material.customProgramCacheKey;
+  material.onBeforeCompile = (shader, renderer) => {
+    prev?.call(material, shader, renderer);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>',
+      `outgoingLight *= gl_FrontFacing ? 1.0 : ${k.toFixed(3)};\n#include <opaque_fragment>`);
+  };
+  material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-inside${k}`;
+  return material;
+}
+
+/**
+ * The body where it is tucked under cloth (its `tucked` attribute): drawn at `k` of its light and
+ * pushed `depth` metres further from the camera along its view ray (the same place on screen), so the
+ * cloth over it always wins the depth test and nothing pokes through, while an opening in a garment
+ * shows that shade, never the background. `k` 1 leaves the colour (the outline hull).
+ */
+function tuckedShade(material, k, depth) {
+  const prev = material.onBeforeCompile, key = material.customProgramCacheKey;
+  material.onBeforeCompile = (shader, renderer) => {
+    prev?.call(material, shader, renderer);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float tucked;\nvarying float vTucked;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTucked = tucked;')
+      .replace('#include <project_vertex>', `#include <project_vertex>
+if (tucked > 0.0) { mvPosition.xyz *= 1.0 + tucked * ${depth.toFixed(4)} / max(length(mvPosition.xyz), 1e-3); gl_Position = projectionMatrix * mvPosition; }`);
+    if (k < 1) shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vTucked;')
+      .replace('#include <opaque_fragment>', `outgoingLight *= mix(1.0, ${k.toFixed(3)}, clamp(vTucked, 0.0, 1.0));\n#include <opaque_fragment>`);
+  };
+  material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-tucked${k}-${depth}`;
   return material;
 }
 
@@ -632,6 +674,7 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     mesh.material = paintedLight(toonCopy(src, flash, rim, false), T.paintedLight);
     // `tint`: the base's pale painted skin warmed toward the sheet's peach under the cool scene light
     if (T.tint) { mesh.material.color.setRGB(...T.tint); mesh.material.emissive.multiply(mesh.material.color); }
+    tuckedShade(mesh.material, T.underCloth?.under ?? 0.3, T.underCloth?.depth ?? 0.05);
     mesh.material.side = THREE.FrontSide; // Meshy marks it double-sided; the body is closed
     if (T.faceShadow) {
       const follow = faceShadowMaterial(mesh.material, body.getObjectByName('Head'), T.faceShadow.bind, T.faceShadow);
@@ -642,7 +685,7 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     mesh.frustumCulled = false;
     mesh.updateMorphTargets();
     if (mesh.morphTargetInfluences) mesh.morphTargetInfluences.splice(0, 2, ...closed);
-    const hull = new THREE.SkinnedMesh(mesh.geometry, outlineHull(src, outline, darkness));
+    const hull = new THREE.SkinnedMesh(mesh.geometry, tuckedShade(outlineHull(src, outline, darkness), 1, T.underCloth?.depth ?? 0.05));
     hull.bind(mesh.skeleton, mesh.bindMatrix);
     hull.frustumCulled = false;
     hull.morphTargetInfluences = mesh.morphTargetInfluences; // the outline closes with the hand

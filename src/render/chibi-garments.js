@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { garmentFrame, garmentUniforms, pieceUniforms, garmentMaterial, garmentHull } from './garments.js';
 import { regionShell, skirt } from './base-garments.js';
 import { toonCopy } from './vrm-body.js';
-import { chibiOutline, paintedLight } from './chibi-body.js';
+import { chibiOutline, paintedLight, darkInside } from './chibi-body.js';
 
 const BONES = { arm: 'LeftArm', elbow: 'LeftForeArm', hand: 'LeftHand', foot: 'LeftFoot', toe: 'LeftToeBase', neck: 'neck', chest: 'Spine', hips: 'Hips', leg: 'LeftUpLeg', knee: 'LeftLeg' };
 /** HairSample metres per chibi metre (hips to ankle 0.89 m against 0.53 m). */
@@ -46,7 +46,8 @@ function pieces(T, outfit, skip = new Set()) {
 
 /**
  * A modelled outfit piece (data/models.json characters with `chibiOutfit`: "armor" or "boots"): one
- * skinned mesh on the chibi's armature, with the body triangles it covers (node extras `hideBody`).
+ * skinned mesh on the chibi's armature, with the body triangles it covers (node extras `hideBody`;
+ * they are tucked under it, coveredBody).
  */
 export function prepareChibiOutfit(gltf, m) {
   gltf.scene.updateMatrixWorld(true);
@@ -97,18 +98,41 @@ function fitOutfit(O, body) {
   return g;
 }
 
-/** The body geometry less the triangles the worn outfit models cover (cached on T per outfit). */
+/**
+ * The body under the worn outfit models: the triangles they cover are kept but tucked inside the
+ * cloth (every vertex all of whose triangles are covered moves `underCloth.inset` metres in along its
+ * normal) and shaded as the inside of the cloth (`tucked`), so the skin cannot poke through and a gap
+ * shows shade, never the background through a hole in the body (cached on T per outfit).
+ */
 function coveredBody(T, src, models) {
   const key = models.map((O) => O.piece + ':' + O.hide.length).join('|');
   T.covered ??= new Map();
   if (!T.covered.has(key)) {
-    const hide = new Set(models.flatMap((O) => O.hide)), ix = src.index.array, keep = [];
-    for (let t = 0; t < ix.length / 3; t++) if (!hide.has(t)) keep.push(ix[3 * t], ix[3 * t + 1], ix[3 * t + 2]);
+    const hide = new Set(models.flatMap((O) => O.hide)), ix = src.index.array;
+    const pos = src.attributes.position, nrm = src.attributes.normal;
+    // a vertex is tucked when every triangle round it (across UV seams: by position) is covered
+    const at = (i) => `${pos.getX(i).toFixed(4)},${pos.getY(i).toFixed(4)},${pos.getZ(i).toFixed(4)}`;
+    const open = new Set(), touched = new Set();
+    for (let t = 0; t < ix.length / 3; t++) {
+      for (let k = 0; k < 3; k++) (hide.has(t) ? touched : open).add(at(ix[3 * t + k]));
+    }
+    if (!src.boundingBox) src.computeBoundingBox();
+    const local = (src.boundingBox.max.y - src.boundingBox.min.y) / 1.2; // the 1.2 m body in its own units
+    const inset = (T.underCloth?.inset ?? 0.015) * local, moved = pos.array.slice(), tucked = new Float32Array(pos.count);
+    for (let i = 0; i < pos.count; i++) {
+      const p = at(i);
+      if (!touched.has(p)) continue;
+      tucked[i] = open.has(p) ? 0.5 : 1; // shaded as the inside of the cloth; its edge half way
+      if (open.has(p)) continue;
+      moved[3 * i] -= nrm.getX(i) * inset; moved[3 * i + 1] -= nrm.getY(i) * inset; moved[3 * i + 2] -= nrm.getZ(i) * inset;
+    }
     const g = new THREE.BufferGeometry();
     for (const [k, a] of Object.entries(src.attributes)) g.setAttribute(k, a);
+    g.setAttribute('position', new THREE.BufferAttribute(moved, 3));
+    g.setAttribute('tucked', new THREE.BufferAttribute(tucked, 1));
     g.morphAttributes = src.morphAttributes;
     g.morphTargetsRelative = src.morphTargetsRelative;
-    g.setIndex(keep);
+    g.setIndex(src.index);
     g.boundingSphere = src.boundingSphere;
     g.userData.shared = true;
     T.covered.set(key, g);
@@ -138,7 +162,7 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
         m.userData.garment = O.piece;
         return m;
       };
-      const part = make(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight));
+      const part = make(darkInside(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight), T.underCloth?.inside));
       part.name = 'Outfit-' + O.piece;
       part.castShadow = true;
       part.receiveShadow = true; // like the body it covers

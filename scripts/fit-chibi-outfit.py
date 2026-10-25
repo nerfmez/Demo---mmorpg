@@ -367,6 +367,13 @@ for i, p in enumerate(P):
     t = BT[idx]
     b = bary(np.array(loc), *BV[t]); b /= b.sum()
     W[i] = b @ BW[t]
+# from the waist up the weights are smoothed over the cloth's own surface: taken from the nearest
+# body point they jump between the chest and the arm across a shoulder pad or a sleeve, and the
+# pieces tear apart into shards when the arms come down
+up = np.nonzero(P[:, 2] > crotchC + 0.08)[0]
+for _ in range(C.get('weightSmooth', 10)):
+    W[up] = 0.5 * W[up] + 0.5 * np.array([W[nbr[i]].mean(0) if nbr[i] else W[i] for i in up])
+W /= np.maximum(W.sum(1, keepdims=True), 1e-9)
 # the collar rides the upper chest: the shoulders' arm weights would tear it when the arms come down
 W[incollar] = 0; W[incollar, G.index('Spine02')] = 1
 hips = G.index('Hips')

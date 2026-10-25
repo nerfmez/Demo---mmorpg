@@ -100,7 +100,8 @@ def head(g, neck):
         # front of `chinBack` behind them): the armour has its own, and this one, turning with the
         # head, would tear off it; a hood's drape behind the neck stays
         face.update(f for f in bm.faces if f.calc_center_median().z < mid[2] - C['chinCut']
-                    and f.calc_center_median().y < mid[1] + C.get('chinBack', 0.2))
+                    and f.calc_center_median().y < mid[1] + C.get('chinBack', 0.2)
+                    and not (dr and f.calc_center_median().y > C.get('drapeY', 0)))
     if C.get('helmNoHair', True):
         # and the generated model's own hair (the game draws the hero's hair under the helm): its
         # colour is read off the fringe on the forehead (the frontmost faces just above the eyes);

@@ -53,5 +53,6 @@
   "lift": 0.0
  },
  "drape": 0.1,
- "drapeY": -0.04
+ "drapeY": -0.04,
+ "weightSmooth": 40
 }

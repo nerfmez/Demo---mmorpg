@@ -1021,7 +1021,7 @@
     "outfit_wardenstalker_hood": {
       "file": "models/outfits/wardenstalker_hood.glb",
       "chibiOutfit": "helm",
-      "tris": 414,
+      "tris": 457,
       "source": "The headwear of the warden set's model (assets/meshy/outfits/warden_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/warden.json wardenstalker_hood."
     }
   },

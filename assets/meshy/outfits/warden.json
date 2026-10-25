@@ -42,5 +42,7 @@
   "boots": "public/models/outfits/gale_boots.glb"
  },
  "chinCut": 0.07,
- "chinBack": 0.3
+ "chinBack": 0.3,
+ "drape": 0.09,
+ "drapeY": -0.02
 }

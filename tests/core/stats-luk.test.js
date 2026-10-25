@@ -49,3 +49,19 @@ test('crit chance has no design cap (owner): LUK can take it past the old 40%, u
   ch.stats.LUK = 5000;
   assert.equal(derive(ch, data).critChance, 1, 'a chance stops at 100%');
 });
+
+test('crit chance past 100% turns into crit damage at the data rate, outside the crit damage cap', () => {
+  const pc = data.progression.character, rate = pc.critOverflowToMultPct;
+  assert.ok(rate > 0 && rate < 1, 'a reduced rate');
+  const ch = createCharacter(data);
+  ch.stats.DEX = 5000; // crit damage pinned at its cap
+  const capped = derive(ch, data);
+  assert.equal(capped.critMultPct, pc.caps.critMultPct);
+  ch.stats.LUK = 5000;
+  const d = derive(ch, data), over = d.critChancePct - 100;
+  assert.equal(d.critChance, 1);
+  assert.ok(over > 0);
+  assert.ok(Math.abs(d.critMult - pc.critMult * (1 + (pc.caps.critMultPct + over * rate) / 100)) < 1e-9, 'the overflow adds on top of the capped crit damage');
+  const under = createCharacter(data); under.stats.LUK = 10;
+  assert.equal(derive(under, data).critOverflowPct, 0, 'nothing below 100%');
+});

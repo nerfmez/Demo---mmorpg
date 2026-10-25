@@ -55,6 +55,8 @@
       }
     },
     "critMult": 1.5,
+    "critOverflowToMultPct": 0.5,
+    "_critOverflowDoc": "Crit chance past 100% (no cap, owner 2026-10-25) turns into crit damage: each point over adds critOverflowToMultPct to critMultPct, outside the critMultPct soft cap and cap (core/character.js derive).",
     "baseCritChancePct": 5,
     "caps": {
       "cooldownPct": 25,

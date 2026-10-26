@@ -1053,8 +1053,7 @@
       "upgradeMaterial": "golem_heart",
       "upgradeStat": "VIT",
       "job": "heavy",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "cross_cut": {
       "name": "Cross Cut",

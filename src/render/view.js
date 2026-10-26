@@ -576,7 +576,7 @@ export class View {
         v.summon(e);
         break;
       case 'buff':
-        v.warcry(e); // every buff skill uses the roar ring until it has its own look
+        if (!drawn) v.warcry(e); // a buff skill without its own look (skill-fx.js) uses the roar ring
         break;
       case 'curse':
         v.curse(e);

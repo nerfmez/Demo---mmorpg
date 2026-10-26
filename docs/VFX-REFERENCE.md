@@ -234,6 +234,14 @@ Backstab picks the monster it points at within 7 m (target ring) and steps behin
 Owner: no effect on the ground, and the Thai name is แทงหลัง. The shadow pools are gone; the ink wisps
 now leave the body (0.45-1.35 m up) and curl outward instead of rising from the ground.
 
+Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
+`skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
+blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon
+plates sweeps up round the body, holds and shrinks into it, with a steel glint at the chest, a ring
+snapping out at the waist (in the air, nothing on the ground) and sparks; while it lasts a sheen ring
+slides up the body every 1.2 s so the state stays readable. The shell is drawn over the scene, not
+added to it: an additive version turned green on grass. The hero plays the War Cry roar.
+
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
 Reference (owner): **the effects already made on the FX bench** (`fx-test.html`, published bench),

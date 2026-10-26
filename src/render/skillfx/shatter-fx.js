@@ -1,13 +1,14 @@
-// Sky Shatter (heavy weapons; a 0.7 s heavy wind-up, a 140 degree slam in front that stuns), held to
-// the owner's bar (.claude/skills/skill-vfx) and sized for a job skill (9 s cooldown).
-//   Wind-up (castStart): the ground answers the gathered force: pebbles lift round the hero and hang
-//   trembling in the air.
-//   Slam (the rules' 'slash' contact): a ragged flash where the weapon lands and light rays shooting up
-//   (the sky shakes); the ground there sinks into a crater; blunt slabs of ground heave up row after
-//   row over the true arc and range, tilted outward, each row a beat later, dust rolling off them
-//   (a stun is blunt force: no sharp spikes, owner review); the lifted
-//   pebbles are flung forward and fall; a warm light; a heavy shake (the director).
-//   Struck monsters get Breakbeat Slam's stun stars (MaceFx.hit). Cosmetic only.
+// Sky Shatter (heavy weapons; a 0.7 s wind-up, a 140 degree blow in front that stuns), held to the
+// owner's bar (.claude/skills/skill-vfx) and sized for a job skill (9 s cooldown). The hero pries the
+// ground up (actions.js skyPry: the blade driven low into the ground through the crouch, ripped up and
+// overhead on the contact), so the ground answers the blade.
+//   Wind-up (castStart): pebbles lift and tremble round the hero.
+//   The rip (the rules' 'slash' contact): a ragged flash and light rays where the blade tears out; the
+//   ground there sinks into a crater; blunt slabs of ground are pried up row after row over the true
+//   arc and range, tilted outward, each row a beat later, dust rolling off them (a stun is blunt force:
+//   no sharp spikes, owner review); the pebbles are thrown up and forward with the blade and fall;
+//   a warm light; a heavy shake (the director). Struck monsters get Breakbeat Slam's stun stars
+//   (MaceFx.hit). Cosmetic only.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, flashMaterial, tintFlash, place, placeV, conformPlane, addLight, NOISE, BILLBOARD_VS } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W, taperW, taperGlowW } from './light-kit.js';
@@ -67,7 +68,7 @@ export class ShatterFx {
     this.slamAt = this.time; this.center.set(x + fx * 1.4 * k, 0, z + fz * 1.4 * k);
     // the crater where the weapon lands
     place(this.crater, this.center.x, 0.05, this.center.z); this.crater.scale.setScalar(0.9 * k * 1.7 * 2); conformPlane(this.crater); this.crater.visible = true;
-    // rows of stone spikes over the true arc, each row a beat later
+    // rows of ground slabs pried up over the true arc, each row a beat later
     let i = 0;
     ROWS.forEach(([d, n], row) => {
       for (let j = 0; j < n && i < SPIKES; j++, i++) {
@@ -78,8 +79,8 @@ export class ShatterFx {
     });
     // light rays shooting up out of the slam
     this.rays.forEach((ray, j) => { const a = (j / RAYS) * 6.283 + r() * 0.5, el = 1.05 + r() * 0.4; ray.d.set(Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el)); ray.len = 2.4 + r() * 1.6; });
-    // the lifted pebbles are flung forward and fall
-    for (const q of this.pebbles) if (q.state === 1) { q.state = 2; q.t = 0; q.v.set(fx * (2.5 + r() * 2) + (r() - 0.5) * 2, 2 + r() * 2.5, fz * (2.5 + r() * 2) + (r() - 0.5) * 2); }
+    // the lifted pebbles are thrown up and forward with the blade, and fall
+    for (const q of this.pebbles) if (q.state === 1) { q.state = 2; q.t = 0; q.v.set(fx * (1.5 + r() * 1.5) + (r() - 0.5) * 1.6, 4.5 + r() * 3, fz * (1.5 + r() * 1.5) + (r() - 0.5) * 1.6); }
     // dust bursting out of the crater
     for (let j = 0; j < 5; j++) { const a = r() * 6.283; this.puff(this.center.x, 0.3, this.center.z, Math.cos(a) * 2, Math.sin(a) * 2, 1.1 + r() * 0.5, 0.8); }
   }
@@ -99,9 +100,9 @@ export class ShatterFx {
       } else {
         q.v.y -= 15 * dt; q.p.addScaledVector(q.v, dt); q.m.rotation.x += dt * 9;
         if (q.p.y < q.size) { q.p.y = q.size; q.v.set(0, 0, 0); }
-        if (q.t > 0.9) { q.state = 0; q.m.visible = false; continue; }
+        if (q.t > 1.3) { q.state = 0; q.m.visible = false; continue; }
       }
-      placeV(q.m, q.p); q.m.scale.setScalar(q.size * (q.state === 2 ? Math.min(1, (0.9 - q.t) / 0.25) : 1));
+      placeV(q.m, q.p); q.m.scale.setScalar(q.size * (q.state === 2 ? Math.min(1, (1.3 - q.t) / 0.25) : 1));
     }
     if (this.slamAt >= 0 && t < 3) {
       // the flash and the rays

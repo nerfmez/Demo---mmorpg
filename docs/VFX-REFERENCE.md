@@ -148,7 +148,10 @@ rays at the landing point, a round crater (the shared `ground-kit.js` crater, al
 rows of blunt ground slabs heaving up over the true arc and range a beat apart (inner edge lifted,
 dust off them, then sinking back; first built as sharp spikes, but the owner noted a stun is blunt
 force, so no points), the pebbles flung forward; Breakbeat Slam's stun stars on
-the struck monsters; the hero plays Breakbeat Slam's motion.
+the struck monsters. The owner then asked for a ground-pry motion and picked candidate A (Quaternius
+Sword_UpperCut, CC0) over a dragged lift: `skyPry` in `data/action-clips.json` (the blade low in the
+ground through the crouch, ripped up and overhead on the hit), and the pebbles are thrown up with the
+blade.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

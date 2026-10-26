@@ -1,17 +1,19 @@
-// Meteor, drawn in the anime (sakuga) style the owner picked (2026-10-26, "ทำแบบอนิเมะ") and sized for a
-// job skill (10 s cooldown). Built one phase at a time with the owner; rules in docs/VFX-REFERENCE.md.
-//   Warning (the rules' delay): a crisp two-tone edge at the true radius over a low fill; an inner fill
-//   grows from the centre and reaches the edge on the landing frame. A spiky star twinkles in the sky
-//   behind the target, redrawn every drawing.
-//   Fall (the last FALL seconds): a dark rock with molten cracks, wrapped in a comet of flat fire bands
-//   (white hugging the rock, yellow, orange, a dark red shadow band) with swept-back tongues, redrawn
-//   12 times a second; speed lines; fire chunks break off the tail and cool into solid cel smoke that
-//   dies by holes. The last drawing before contact is a smear.
-//   Impact ('burst'): still the earlier light version, to be redrawn next. Cosmetic only.
+// Meteor in the anime style the owner picked (2026-10-26, "ทำแบบอนิเมะ"), sized for a job skill (10 s
+// cooldown). The fire and smoke are drawn flipbooks (assets/vfx/anime-sheets: a trial with the owner's
+// reference images) stepped at 12 drawings a second; rules in docs/VFX-REFERENCE.md.
+//   Warning (the rules' delay): a crisp two-tone edge at the true radius over a low fill; a hatched
+//   fill grows from the centre and reaches the edge on the landing frame. A spiky star twinkles in the
+//   sky behind the target, redrawn every drawing.
+//   Fall (the last FALL seconds): a dark rock with molten cracks inside a drawn fireball streaming back
+//   along the fall; every drawing a fire chunk is left behind that bursts, breaks up and hands over to
+//   drawn smoke.
+//   Impact ('burst'): a drawn fireball sits on the ground and grows from a compressed core to its peak
+//   in a few drawings, two smaller ones beside it a drawing later; smoke rises from it as it breaks up;
+//   glowing cracks open in the ground and cool; sparks fly. Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, placeV, place, conformPlane, fxGround, NOISE } from './fx-common.js';
-import { CORE_FS, GLOW_FS, lightOf, glowTexture, starTexture, lightSprite, W, lineW, lineGlowW, taperW, taperGlowW, circlePoints, drawSparks, spark } from './light-kit.js';
-import { drawingOf, DRAWINGS, cometMaterial, layComet, puffMaterial, spikeMaterial, warnDisc, billboard } from './anime-kit.js';
+import { Ribbon, mulberry32, placeV, place, conformPlane, NOISE } from './fx-common.js';
+import { CORE_FS, GLOW_FS, lightOf, W, lineGlowW, taperW, drawSparks, spark } from './light-kit.js';
+import { drawingOf, DRAWINGS, sheetMaterial, sheetFrame, faceCamera, screenAngle, spikeMaterial, warnDisc, billboard } from './anime-kit.js';
 
 // the rock: two flat cel bands, molten cracks in flat fire bands, the face it falls on red-hot
 const ROCK_VS = `varying vec3 vN; varying vec3 vO;
@@ -36,36 +38,30 @@ function rockGeometry(seed) {
   g.computeVertexNormals(); return g;
 }
 
-const SLOTS = 2, FALL = 0.6, APEX = 7, BACK = 2.8, RAYS = 14, CRACKS = 9, STARS = 8, EMBERS = 10, SPARKS = 360, RING = 48, PUFFS = 24, LINES = 3;
-const HEAD_R = 1.15, ROCK = 0.8;
-const UP = new THREE.Vector3(0, 1, 0);
+const SLOTS = 2, FALL = 0.6, APEX = 7, BACK = 2.8, CRACKS = 9, SPARKS = 200, FIRES = 14, SMOKES = 12;
+const HEAD = 2.6, ROCK = 0.8;
 
 export class MeteorFx {
   constructor(scene, camera) {
     this.camera = camera;
-    this.core = new Ribbon(scene, camera, 7000, CORE_FS, THREE.NormalBlending);
-    this.glow = new Ribbon(scene, camera, 7000, GLOW_FS, THREE.AdditiveBlending);
+    this.core = new Ribbon(scene, camera, 4000, CORE_FS, THREE.NormalBlending);
+    this.glow = new Ribbon(scene, camera, 4000, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
     this.rnd = mulberry32(61); this.sparks = []; this.free = [];
     this.rockMat = new THREE.ShaderMaterial({ uniforms: { uDir: { value: new THREE.Vector3(0, -1, 0) } }, vertexShader: ROCK_VS, fragmentShader: ROCK_FS });
+    const part = (name, order) => ({ m: billboard(scene, sheetMaterial(name), order), p: new THREE.Vector3(), v: new THREE.Vector3(), age: 9, dur: 1, first: 0, last: 0, ease: 1, size: 1, roll: 0, rise: 0 });
     this.slots = Array.from({ length: SLOTS }, (_, i) => ({
       live: false, t: 0, delay: 1, x: 0, z: 0, radius: 3, el: 'fire', look: lightOf('fire'), landedAt: -1, drawing: -1, salt: i * 101,
-      apex: new THREE.Vector3(), dir: new THREE.Vector3(), head: new THREE.Vector3(), side: new THREE.Vector3(),
+      apex: new THREE.Vector3(), dir: new THREE.Vector3(), head: new THREE.Vector3(),
       warn: warnDisc(scene), spike: billboard(scene, spikeMaterial(), 10),
-      comet: billboard(scene, cometMaterial(), 9),
+      ball: billboard(scene, sheetMaterial('fire'), 9),
       rock: new THREE.Mesh(rockGeometry(11 + i * 7), this.rockMat),
-      puffs: Array.from({ length: PUFFS }, () => ({ m: billboard(scene, puffMaterial(), 8), p: new THREE.Vector3(), v: new THREE.Vector3(), age: 9, life: 1, size: 1, fire: 0 })),
-      puffI: 0,
-      lines: Array.from({ length: LINES }, () => ({ off: 0, ang: 0, back: 0, len: 0 })),
-      pop: lightSprite(scene, glowTexture('fire'), true, 9),
-      rays: Array.from({ length: RAYS }, () => ({ d: new THREE.Vector3(), len: 1 })),
+      fires: Array.from({ length: FIRES }, () => part('fire', 9)), fireI: 0,
+      smokes: Array.from({ length: SMOKES }, () => part('smoke', 8)), smokeI: 0,
       cracks: Array.from({ length: CRACKS }, () => Array.from({ length: 5 }, () => new THREE.Vector3())),
-      stars: Array.from({ length: STARS }, () => ({ sp: lightSprite(scene, starTexture('fire'), false, 10), p: new THREE.Vector3(), at: 0 })),
-      embers: Array.from({ length: EMBERS }, () => ({ sp: lightSprite(scene, glowTexture('fire'), true, 9), p: new THREE.Vector3(), ph: 0 })),
     }));
-    for (const s of this.slots) { s.rock.visible = false; s.rock.renderOrder = 8; scene.add(s.rock); }
-    this.ring = Array.from({ length: RING }, () => new THREE.Vector3()); this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
-    this.v = new THREE.Vector3(); this.p = new THREE.Vector3();
+    for (const s of this.slots) { s.rock.visible = false; s.rock.renderOrder = 10; scene.add(s.rock); }
+    this.v = new THREE.Vector3(); this.p = new THREE.Vector3(); this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
   }
   // core 'area': the rules' delay starts. from: the caster (the meteor comes from behind the target)
   begin(e, element, from) {
@@ -75,133 +71,102 @@ export class MeteorFx {
     Object.assign(s, { live: true, t: 0, delay: Math.max(0.6, e.delay), x: e.x, z: e.z, radius: e.radius, el: element, look: lightOf(element), landedAt: -1, drawing: -1 });
     s.apex.set(e.x + dx / l * BACK, APEX, e.z + dz / l * BACK);
     s.dir.set(e.x - s.apex.x, -APEX, e.z - s.apex.z).normalize();
-    s.side.crossVectors(s.dir, UP).normalize();
-    for (const sp of [s.pop, ...s.embers.map((q) => q.sp)]) sp.material.map = glowTexture(element);
-    for (const q of s.stars) q.sp.material.map = starTexture(element);
-    s.warn.material.uniforms.uR.value = e.radius; s.warn.material.uniforms.uK.value = 0; s.warn.material.uniforms.uOpen.value = 0;
+    const U = s.warn.material.uniforms; U.uR.value = e.radius; U.uK.value = 0; U.uOpen.value = 0;
     place(s.warn, e.x, 0.04, e.z); s.warn.scale.setScalar(e.radius * 2 * 1.06); conformPlane(s.warn); s.warn.visible = true;
   }
   // core 'burst': it lands
   impact(e) {
     const s = this.slots.find((q) => q.live && q.landedAt < 0 && Math.hypot(q.x - e.x, q.z - e.z) < 0.05);
     if (!s) return;
-    s.landedAt = s.t; s.spike.visible = false; s.comet.visible = false; s.rock.visible = false; s.warn.visible = false;
-    const r = this.rnd, R = s.radius;
-    s.rays.forEach((ray, k) => { const a = r() * 6.283, el = k < 5 ? 0.9 + r() * 0.6 : 0.1 + r() * 0.5; ray.d.set(Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el)); ray.len = R * (k < 5 ? 0.7 + r() * 0.5 : 0.45 + r() * 0.4); });
+    s.landedAt = s.t; s.spike.visible = false; s.ball.visible = false; s.rock.visible = false; s.warn.visible = false;
+    const r = this.rnd, R = s.radius, big = R * 1.5;
+    // the fireball on the ground: a hero drawing and two smaller ones a drawing later
+    this.p.set(s.x, big * 0.42, s.z); this.fire(s, this.p, this.v.set(0, 0, 0), big, 0, 0.8, 0, 4, 0.6, 0);
+    for (const sg of [-1, 1]) {
+      const a = r() * 6.283;
+      this.p.set(s.x + Math.cos(a) * R * 0.45, big * 0.3, s.z + Math.sin(a) * R * 0.45);
+      this.fire(s, this.p, this.v.set(0, 0, 0), big * (0.55 + r() * 0.15), -1 / DRAWINGS * (sg > 0 ? 1 : 2), 0.7, 0, 4, 0.6, 0);
+    }
     s.cracks.forEach((c, k) => { const a = (k / CRACKS) * 6.283 + (r() - 0.5) * 0.4, len = R * (0.55 + r() * 0.4); for (let i = 0; i < 5; i++) { const u = i / 4, j = i ? (r() - 0.5) * 0.35 : 0; c[i].set(s.x + Math.cos(a + j * 0.4) * len * u, 0.03, s.z + Math.sin(a + j * 0.4) * len * u); } });
-    s.stars.forEach((q) => { const a = r() * 6.283, d = R * (0.2 + r() * 0.7); q.p.set(s.x + Math.cos(a) * d, 0.6 + r() * 1.6, s.z + Math.sin(a) * d); q.at = 0.05 + r() * 0.35; });
-    s.embers.forEach((q) => { const a = r() * 6.283, d = R * Math.sqrt(r()) * 0.8; q.p.set(s.x + Math.cos(a) * d, 0.15, s.z + Math.sin(a) * d); q.ph = r() * 6; });
-    for (let i = 0; i < 60; i++) { const a = r() * 6.283, sp = 3 + r() * 7; this.p.set(s.x + Math.cos(a) * 0.3, 0.3, s.z + Math.sin(a) * 0.3); this.v.set(Math.cos(a) * sp, 3 + r() * 6, Math.sin(a) * sp); spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.35 + r() * 0.35, 0.05, s.look); }
+    for (let i = 0; i < 40; i++) { const a = r() * 6.283, sp = 3 + r() * 7; this.p.set(s.x + Math.cos(a) * 0.3, 0.3, s.z + Math.sin(a) * 0.3); this.v.set(Math.cos(a) * sp, 3 + r() * 6, Math.sin(a) * sp); spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.35 + r() * 0.35, 0.05, s.look); }
+  }
+  // a drawn fire (or smoke) particle; age starts below 0 to wait
+  fire(s, p, v, size, age, dur, first, last, ease, rise) { return this.part(s.fires[s.fireI++ % FIRES], p, v, size, age, dur, first, last, ease, rise); }
+  smoke(s, p, v, size, age, dur, rise) { return this.part(s.smokes[s.smokeI++ % SMOKES], p, v, size, age, dur, 0, 5, 1, rise); }
+  part(q, p, v, size, age, dur, first, last, ease, rise) {
+    q.p.copy(p); q.v.copy(v); Object.assign(q, { size, age, dur, first, last, ease, rise, roll: (this.rnd() - 0.5) * 0.5 });
+    q.m.material.uniforms.uFlip.value = this.rnd() < 0.5 ? 1 : 0;
+    return q;
   }
   hide(s) {
-    for (const sp of [s.pop, ...s.stars.map((q) => q.sp), ...s.embers.map((q) => q.sp)]) sp.visible = false;
-    for (const m of [s.rock, s.warn, s.spike, s.comet]) m.visible = false;
-    for (const q of s.puffs) { q.age = 9; q.m.visible = false; }
+    for (const m of [s.rock, s.warn, s.spike, s.ball]) m.visible = false;
+    for (const q of [...s.fires, ...s.smokes]) { q.age = 9; q.dur = 1; q.m.visible = false; }
   }
   update(dt) {
     this.core.begin(); this.glow.begin();
     for (const s of this.slots) {
-      const puffing = s.puffs.some((q) => q.age < q.life);
-      if (!s.live && !puffing) continue;
+      const parts = this.partsLive(s);
+      if (!s.live && !parts) continue;
       if (s.live) { s.t += dt; if (s.landedAt < 0) this.warn(s, dt); else this.after(s, s.t - s.landedAt); }
-      if (puffing) this.puffs(s, dt);
+      if (parts) this.parts(s, dt);
     }
     drawSparks(this.sparks, this.free, dt, this.core, this.glow, this.three, 13);
     this.core.end(); this.glow.end();
   }
-  // fire chunks and smoke: shapes step on the drawing grid, positions drift smoothly
-  puffs(s, dt) {
-    const cam = this.camera.quaternion;
-    for (const q of s.puffs) {
-      if (q.age >= q.life) { q.m.visible = false; continue; }
-      q.age += dt; q.v.multiplyScalar(Math.max(0, 1 - dt * 3)); q.p.addScaledVector(q.v, dt); q.p.y += dt * (q.fire ? 0.5 : 0.35);
-      const u = Math.min(1, Math.floor(q.age * DRAWINGS) / DRAWINGS / q.life), U = q.m.material.uniforms;
-      U.uCool.value = q.fire ? Math.min(1, Math.max(0, (u - 0.12) / 0.4)) : 1;
-      U.uHole.value = u < 0.5 ? 0 : (u - 0.5) * 1.5;
-      const grow = Math.min(1, 0.55 + u * 2.2), shrink = u > 0.8 ? 1 - (u - 0.8) * 3 : 1;
-      q.m.visible = true; placeV(q.m, q.p); q.m.quaternion.copy(cam); q.m.scale.setScalar(q.size * grow * shrink);
-    }
-  }
-  puff(s, p, v, size, life, fire) {
-    const q = s.puffs[s.puffI++ % PUFFS];
-    q.p.copy(p); q.v.copy(v); q.size = size; q.life = life; q.fire = fire; q.age = 0;
-    const U = q.m.material.uniforms; U.uSeed.value = this.rnd() * 50; U.uFire.value = fire; U.uCool.value = 0; U.uHole.value = 0;
+  partsLive(s) { return s.fires.some((q) => q.age < q.dur) || s.smokes.some((q) => q.age < q.dur); }
+  // drawn particles: frames step on the drawing grid, positions drift smoothly
+  parts(s, dt) { for (const q of s.fires) this.step(q, dt); for (const q of s.smokes) this.step(q, dt); }
+  step(q, dt) {
+    if (q.age >= q.dur) { q.m.visible = false; return; }
+    q.age += dt;
+    if (q.age < 0) { q.m.visible = false; return; }
+    q.v.multiplyScalar(Math.max(0, 1 - dt * 2.5)); q.p.addScaledVector(q.v, dt); q.p.y += q.rise * dt;
+    q.m.material.uniforms.uFrame.value = sheetFrame(q.age, q.dur, q.first, q.last, q.ease);
+    q.m.visible = true; placeV(q.m, q.p); faceCamera(q.m, this.camera, q.roll); q.m.scale.setScalar(q.size);
   }
   warn(s, dt) {
     const k = Math.min(1, s.t / s.delay), d = drawingOf(s.t), fresh = d !== s.drawing; s.drawing = d;
-    // the true area: a crisp edge, a low fill, and a fill growing to the edge on the landing frame
+    // the true area: a crisp edge, a low fill, and a hatched fill growing to the edge on the landing frame
     const U = s.warn.material.uniforms; U.uOpen.value = Math.min(1, s.t / 0.15); U.uK.value = k;
-    const fallAt = s.delay - FALL, r = this.rnd, cam = this.camera.quaternion;
+    const fallAt = s.delay - FALL, r = this.rnd;
     if (s.t < fallAt) {
       // a star twinkling in the sky behind the target, redrawn every drawing
       const u = Math.min(1, s.t / Math.max(0.1, fallAt));
-      s.spike.visible = true; placeV(s.spike, s.apex); s.spike.quaternion.copy(cam);
+      s.spike.visible = true; placeV(s.spike, s.apex); faceCamera(s.spike, this.camera);
       if (fresh) { s.spike.material.uniforms.uSeed.value = d + s.salt; s.spike.scale.setScalar((0.7 + 1.3 * u) * (d % 2 ? 0.85 : 1)); }
       return;
     }
     s.spike.visible = false;
     const f = Math.min(1, (s.t - fallAt) / FALL), e = f * f * 0.65 + f * 0.35;
     s.head.set(s.apex.x + (s.x - s.apex.x) * e, s.apex.y * (1 - e) + 0.9 * e, s.apex.z + (s.z - s.apex.z) * e);
-    const grow = Math.min(1, 0.45 + f * 3), smear = f > 0.86 ? 1 : 0;
+    const grow = Math.min(1, 0.45 + f * 3);
     // the rock, tumbling, its leading face red-hot
     s.rock.visible = true; placeV(s.rock, s.head); s.rock.scale.setScalar(ROCK * grow); s.rock.rotation.x += dt * 5; s.rock.rotation.z += dt * 3.2;
     this.rockMat.uniforms.uDir.value.copy(s.dir);
-    // the comet of flat fire bands round it, redrawn every drawing; the last drawing smears
-    const R = HEAD_R * grow * (1 + 0.12 * smear), len = (1.6 + 4.2 * Math.min(1, f * 2.5)) * (1 + 0.5 * smear);
-    s.comet.visible = true; this.v.copy(s.head); this.v.y += fxGround.y(s.head.x, s.head.z);
-    layComet(s.comet, this.camera, this.v, s.dir, R, len, R * 2.1);
-    s.comet.material.uniforms.uRock.value = ROCK * grow * 0.92;
+    // the fireball round it, its flames streaming back up the fall (the drawing's top along the tail)
+    const tail = screenAngle(this.camera, this.v.copy(s.dir).negate());
+    this.p.copy(s.head).addScaledVector(s.dir, -HEAD * 0.22 * grow);
+    s.ball.visible = true; placeV(s.ball, this.p); faceCamera(s.ball, this.camera, tail - Math.PI / 2);
+    s.ball.scale.set(HEAD * grow, HEAD * grow * 1.25, 1);
     if (fresh) {
-      s.comet.material.uniforms.uSeed.value = d * 1.37 + s.salt;
-      // speed lines along the fall, new each drawing
-      for (const ln of s.lines) { ln.off = (r() < 0.5 ? -1 : 1) * R * (0.9 + r() * 0.9); ln.ang = r() * 6.283; ln.back = 0.4 + r() * 1.2; ln.len = 2 + r() * 2.2; }
-      // a fire chunk breaks off the tail; smoke left at the end of the tail
-      const tf = 0.3 + r() * 0.35, sd = (r() < 0.5 ? -1 : 1) * R * (0.6 + r() * 0.5);
-      this.p.copy(s.head).addScaledVector(s.dir, -len * tf).addScaledVector(s.side, sd);
-      this.v.copy(s.dir).multiplyScalar(-2).addScaledVector(s.side, Math.sign(sd) * 1.2);
-      this.puff(s, this.p, this.v, R * (0.7 + r() * 0.35), 0.45 + r() * 0.2, 1);
-      this.p.copy(s.head).addScaledVector(s.dir, -len * (0.85 + r() * 0.2)).addScaledVector(s.side, (r() - 0.5) * R);
-      this.v.set(0, 0, 0);
-      this.puff(s, this.p, this.v, R * (1.2 + r() * 0.6), 0.8 + r() * 0.3, 0);
-    }
-    for (const ln of s.lines) {
-      this.two[0].copy(s.head).addScaledVector(s.side, ln.off * Math.cos(ln.ang)).addScaledVector(UP, ln.off * 0.5 * Math.sin(ln.ang)).addScaledVector(s.dir, -ln.back);
-      this.two[1].copy(this.two[0]).addScaledVector(s.dir, -ln.len);
-      W.v = 0.07; this.core.strip(this.two, taperW, 0.95, [1, 0.96, 0.86]);
+      const B = s.ball.material.uniforms; B.uFrame.value = 1 + (d % 2); B.uFlip.value = (d >> 1) % 2;
+      // a fire chunk left behind each drawing: it bursts, breaks up and hands over to smoke
+      this.p.copy(s.head).addScaledVector(s.dir, -HEAD * (0.5 + r() * 0.3)); this.p.x += (r() - 0.5) * 0.5; this.p.z += (r() - 0.5) * 0.5;
+      this.fire(s, this.p, this.v.copy(s.dir).multiplyScalar(-1.5), HEAD * (0.55 + r() * 0.25) * grow, 0, 0.42, 2, 4, 1, 0.4);
+      if (d % 2) this.smoke(s, this.p, this.v.set(0, 0, 0), HEAD * (0.45 + r() * 0.2) * grow, -0.15, 0.6, 0.5);
     }
   }
   after(s, t) {
     const L = s.look, R = s.radius;
-    // the glow pops big and fades
-    const pk = Math.min(1, t / 0.35); s.pop.visible = pk < 1;
-    if (s.pop.visible) { this.p.set(s.x, 0.8, s.z); placeV(s.pop, this.p); s.pop.scale.setScalar(R * (1.1 + 1.0 * Math.sqrt(pk))); s.pop.material.opacity = 1 - pk * pk; }
-    // rays: shoot out, then thin away
-    const rk = Math.min(1, t / 0.32);
-    if (rk < 1) for (const ray of s.rays) {
-      this.two[0].set(s.x, 0.3, s.z).addScaledVector(ray.d, ray.len * 0.15 * rk); this.two[1].set(s.x, 0.3, s.z).addScaledVector(ray.d, ray.len * (0.4 + 0.6 * Math.sqrt(rk)));
-      W.v = 0.16 * (1 - rk); this.glow.strip(this.two, taperGlowW, 1 - rk, L.glow); this.core.strip(this.two, taperW, 1 - rk * rk, L.edge);
-    }
-    // two shock rings racing out past the radius
-    for (const [d, w, far] of [[0, 0.09, 1.15], [0.1, 0.05, 0.95]]) {
-      const k = Math.min(1, Math.max(0, t - d) / 0.4); if (k <= 0 || k >= 1) continue;
-      circlePoints(this.ring, s.x, s.z, R * far * (1 - Math.pow(1 - k, 2)) + 0.2, 0.06);
-      W.v = w * (1 - k * 0.7); this.glow.strip(this.ring, lineGlowW, 1 - k, L.glow); this.core.strip(this.ring, lineW, 1 - k * k, L.edge);
+    if (t > 0.12 && !s.smoked) { // smoke from the fireball as it peaks, rising, then breaking up
+      s.smoked = true; const r = this.rnd;
+      for (let i = 0; i < 2; i++) { const a = r() * 6.283; this.p.set(s.x + Math.cos(a) * R * 0.25, R * (0.9 + i * 0.3), s.z + Math.sin(a) * R * 0.25); this.smoke(s, this.p, this.v.set(0, 0, 0), R * (0.7 + r() * 0.2), -i / DRAWINGS, 1.0, 1.2); }
     }
     // glowing cracks: open fast, glow, cool
     const ck = Math.min(1, t / 0.12), cool = Math.max(0, 1 - Math.max(0, t - 0.6) / 1.2);
     if (cool > 0) for (const c of s.cracks) { W.v = 0.07 * ck; this.glow.strip(c, lineGlowW, cool, L.glow); this.core.strip(c, taperW, cool, L.edge); }
-    // little stars pop around
-    for (const q of s.stars) {
-      const k = (t - q.at) / 0.4; q.sp.visible = k > 0 && k < 1;
-      if (q.sp.visible) { placeV(q.sp, q.p); q.sp.scale.setScalar(0.5 * Math.sin(Math.PI * k)); q.sp.material.rotation = k * 2; }
-    }
-    // embers linger and flicker out
-    for (const q of s.embers) {
-      const k = t / 1.8; q.sp.visible = k < 1;
-      if (q.sp.visible) { placeV(q.sp, q.p); q.sp.scale.setScalar(0.55 * (1 - k) * (0.7 + 0.3 * Math.sin(t * 20 + q.ph))); q.sp.material.opacity = 1 - k; }
-    }
-    if (t > 2) { s.live = false; this.hide(s); }
+    if (t > 2) { s.live = false; s.smoked = false; this.hide(s); }
   }
-  clear() { for (const s of this.slots) { s.live = false; this.hide(s); } for (const q of this.sparks) this.free.push(q); this.sparks.length = 0; }
-  get busy() { return this.sparks.length > 0 || this.slots.some((s) => s.live || s.puffs.some((q) => q.age < q.life)); }
+  clear() { for (const s of this.slots) { s.live = false; s.smoked = false; this.hide(s); } for (const q of this.sparks) this.free.push(q); this.sparks.length = 0; }
+  get busy() { return this.sparks.length > 0 || this.slots.some((s) => s.live || this.partsLive(s)); }
 }

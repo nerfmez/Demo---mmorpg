@@ -95,8 +95,12 @@ Gilland's *Elemental Magic*; most VFX sites are blocked from the build container
 - Impacts: a compressed core then the full shape in 1-2 drawings, never a slow grow; no closed even
   rings (they read as a selection circle), no concentric star plus ring plus disc (a reticle).
 
-Shared pieces: `skillfx/anime-kit.js` (comet, cel puff, spiky flash, ground warning). Meteor's warning
-and fall use it; its impact, Thunderstorm and Blizzard are still the light version below until redone.
+Procedural fire drawn in code stayed far from the reference ("ไม่ใกล้เคียงกับตังอย่างเลย"), so the
+owner asked to try the effects with the reference images first and will supply images later if it
+works: the fire and smoke are drawn flipbooks (`assets/vfx/anime-sheets`, MIT, credited in its README)
+played stepped on the drawing grid. Shared pieces: `skillfx/anime-kit.js` (sheet quads, spiky flash,
+ground warning). Meteor uses them for all three phases; Thunderstorm and Blizzard are still the light
+version below until redone.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

@@ -95,12 +95,18 @@ Gilland's *Elemental Magic*; most VFX sites are blocked from the build container
 - Impacts: a compressed core then the full shape in 1-2 drawings, never a slow grow; no closed even
   rings (they read as a selection circle), no concentric star plus ring plus disc (a reticle).
 
-Procedural fire drawn in code stayed far from the reference ("ไม่ใกล้เคียงกับตังอย่างเลย"), so the
-owner asked to try the effects with the reference images first and will supply images later if it
-works: the fire and smoke are drawn flipbooks (`assets/vfx/anime-sheets`, MIT, credited in its README)
-played stepped on the drawing grid. Shared pieces: `skillfx/anime-kit.js` (sheet quads, spiky flash,
-ground warning). Meteor uses them for all three phases; Thunderstorm and Blizzard are still the light
-version below until redone.
+A first live comet shader stayed far from the reference ("ไม่ใกล้เคียงกับตังอย่างเลย"). Pasting the
+reference images in as flipbooks was rejected too: effects are built live, the images are only a model
+for the shape language ("คุณต้องทำเอฟเฟคสกิลไม่ใช่เอารูปมาตัดใส่"). What we take from the reference:
+a mass of round cloud lobes at the base with big curling flame tongues rising and splaying outward
+above; a pale yellow core in front with its own tongue edges and an orange crescent; an orange body
+with a dark red crescent on the side away from the light and a thin dark line; dark plum cel smoke
+behind that takes over as the fire breaks up. Built as many camera-facing flame quads (one instanced
+mesh) with a teardrop SDF each, in big/mid/small sizes, drawn smoke, then bodies, then cores, every
+shape redrawn each drawing. Colours are written as display values (no sRGB-to-linear conversion of the
+uniforms, or orange turns red). Shared pieces: `skillfx/anime-kit.js` (AnimeFire, spiky flash, ground
+warning). Meteor uses them for all three phases; Thunderstorm and Blizzard are still the light version
+below until redone.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

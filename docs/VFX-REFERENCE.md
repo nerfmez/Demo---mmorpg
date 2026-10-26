@@ -145,8 +145,9 @@ not to add more swirling snow for fear of the cost on the iPad: keep these zones
 Sky Shatter (heavy weapons, a 0.7 s wind-up, a 140 degree stunning slam), `skillfx/shatter-fx.js`:
 pebbles lift and tremble round the hero through the wind-up; on the contact a ragged flash and light
 rays at the landing point, a round crater (the shared `ground-kit.js` crater, also Meteor's), three
-rows of jagged stone spikes bursting up over the true arc and range a beat apart (leaning outward,
-dust off their feet, then sinking back), the pebbles flung forward; Breakbeat Slam's stun stars on
+rows of blunt ground slabs heaving up over the true arc and range a beat apart (inner edge lifted,
+dust off them, then sinking back; first built as sharp spikes, but the owner noted a stun is blunt
+force, so no points), the pebbles flung forward; Breakbeat Slam's stun stars on
 the struck monsters; the hero plays Breakbeat Slam's motion.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26

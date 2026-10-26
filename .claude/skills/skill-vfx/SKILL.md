@@ -57,6 +57,7 @@ Pools only; no allocation per particle or per frame; shared geometry/textures ma
   stay inside the real area and never hide monster wind-ups.
 - A sky source must stay on screen under the game camera (`skyAbove`, or slide toward the camera).
 - Rocks or objects should not tumble in the sky for long; things that land shrink away.
+- Shapes say what the hit does: a stun is blunt force (heaved slabs, round shapes), not sharp spikes.
 - Mind the cost: the owner plays on an iPad and would rather skip extra particles (more swirling
   snow on Blizzard) than risk the frame rate. Few draw calls, pooled, no per-frame allocation; long
   zones stay light.

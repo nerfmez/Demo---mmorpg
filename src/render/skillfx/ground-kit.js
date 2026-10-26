@@ -17,19 +17,20 @@ export function rockGeometry(seed) {
   g.computeVertexNormals(); return g;
 }
 
-/** A jagged stone spike: a five-sided point, base at y 0 and tip at y 1 (radius about 1 at the base),
- *  its corners jittered so no two match. */
-export function spikeGeometry(seed) {
+/** A broken ground slab: a thick blunt block with chamfered edges, top face up (y 0 .. 1, x and z
+ *  -1 .. 1), its corners jittered so no two match. */
+export function slabGeometry(seed) {
   let a = seed; const r = () => ((a = (a * 9301 + 49297) % 233280) / 233280);
-  const g = new THREE.ConeGeometry(1, 1, 5, 2, false); g.translate(0, 0.5, 0);
+  const g = new THREE.BoxGeometry(2, 1, 2, 2, 1, 2); g.translate(0, 0.5, 0);
   const p = g.attributes.position, seen = new Map();
   for (let i = 0; i < p.count; i++) {
-    const k = p.getX(i).toFixed(3) + ',' + p.getY(i).toFixed(3) + ',' + p.getZ(i).toFixed(3);
-    if (!seen.has(k)) seen.set(k, [(r() - 0.5) * 0.35, (r() - 0.5) * 0.1, (r() - 0.5) * 0.35]);
-    const j = seen.get(k), y = p.getY(i);
-    p.setXYZ(i, p.getX(i) * (1 + j[0]) + (y > 0.99 ? (r() - 0.5) * 0.2 : 0), y + (y > 0.01 && y < 0.99 ? j[1] : 0), p.getZ(i) * (1 + j[2]));
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = x.toFixed(3) + ',' + y.toFixed(3) + ',' + z.toFixed(3);
+    if (!seen.has(k)) seen.set(k, [(r() - 0.5) * 0.3, (r() - 0.5) * 0.25, (r() - 0.5) * 0.3]);
+    const j = seen.get(k), top = y > 0.5, corner = Math.abs(x) > 0.9 && Math.abs(z) > 0.9;
+    const pull = top ? (corner ? 0.72 : 0.86) : 1;                       // chamfer the top edges
+    p.setXYZ(i, x * pull * (1 + j[0]), y + (top ? j[1] : 0), z * pull * (1 + j[2]));
   }
-  g.computeVertexNormals(); return g;
+  const flat = g.toNonIndexed(); flat.computeVertexNormals(); g.dispose(); return flat;   // flat faces: chipped stone
 }
 export const DECAL_VS = `varying vec2 vP; void main(){ vP=uv*2.0-1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `;
 // the crater, a decal on the ground (1 = the bowl's lip; the plane spans 1.7): shaded in the game's

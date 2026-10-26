@@ -25,9 +25,12 @@ import { ThrustFx } from './skillfx/thrust-fx.js';
 import { BashFx } from './skillfx/bash-fx.js';
 import { RiposteFx, RIPOSTE_PALETTE } from './skillfx/riposte-fx.js';
 import { MoveFx } from './skillfx/move-fx.js';
+import { MeteorFx } from './skillfx/meteor-fx.js';
+import { ThunderFx } from './skillfx/thunder-fx.js';
+import { BlizzardFx } from './skillfx/blizzard-fx.js';
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -65,6 +68,9 @@ export class SkillFx {
     this.bash = new BashFx(scene, camera);
     this.riposte = new RiposteFx(scene, camera);
     this.move = new MoveFx(scene, camera, () => host.vfx);
+    this.meteor = new MeteorFx(scene, camera);
+    this.thunder = new ThunderFx(scene, camera);
+    this.blizzard = new BlizzardFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
@@ -202,9 +208,19 @@ export class SkillFx {
       // dodges: the blink's gather and jump, the leap's landing (skillfx/move-fx.js)
       case 'movement': if (e.kind === 'blink' && g.player.dash?.kind === 'blink') this.move.gather(g.player.x, g.player.z, g.player.dash.delay || 0.08); return false;
       case 'blinkPlayer': this.move.jump(e.fromX, e.fromZ, e.x, e.z); host.vfx.blinkEcho(e.fromX, e.fromZ, host.rig()); return true;
-      case 'area': if (e.kind !== 'arrow_rain' || e.owner !== 'player') return false; this.rain.wave(e, this.skillOf('arrow_rain')?.element || 'physical', g.player); return true;
+      case 'area': {
+        if (e.owner !== 'player') return false;
+        const el = this.skillOf(e.kind)?.element;
+        if (e.kind === 'arrow_rain') { this.rain.wave(e, el || 'physical', g.player); return true; }
+        if (e.kind === 'meteor') { this.meteor.begin(e, el || 'fire', g.player); return true; }
+        if (e.kind === 'thunderstorm') { this.thunder.begin(e, el || 'lightning'); return true; }
+        if (e.kind === 'blizzard') { this.blizzard.begin(e, el || 'cold'); return true; }
+        return false;
+      }
       case 'burst':
         if (e.kind === 'arrow_rain') { this.rain.burst(e); return true; }
+        if (e.kind === 'meteor') { this.meteor.impact(e); host.shake(0.4, 0.3); return true; }
+        if (e.kind === 'thunderstorm') { this.thunder.strike(e); host.shake(0.12, 0.12); return true; }
         if (e.kind === 'leap') { this.move.land(e.x, e.z, e.radius); host.shake(0.2, 0.18); return true; }
         if (e.kind === 'mod_burst') { this.mod.burst(e); host.banner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); return true; }
         return false;
@@ -306,13 +322,16 @@ export class SkillFx {
     // the leap's streak follows the body through its arc (view.js lifts the hero 1.5 m)
     if (p.dash?.kind === 'leap') this.move.leapAt(p.x, Math.sin(Math.min(1, p.dash.t / p.dash.dur) * Math.PI) * 1.5 + 0.8, p.z);
     this.move.update(dt);
+    this.meteor.update(dt);
+    this.thunder.update(dt);
+    this.blizzard.update(dt);
   }
   // the offscreen flame passes, right before the main render
   prerender() { this.flame.prerender(); }
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard]) fx.clear();
     this.timers.length = 0;
   }
 }

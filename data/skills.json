@@ -1386,8 +1386,7 @@
       "upgradeMaterial": "rune_core",
       "upgradeStat": "INT",
       "job": "elemage",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "blizzard": {
       "name": "Blizzard",
@@ -1426,8 +1425,7 @@
       "upgradeMaterial": "sea_pearl",
       "upgradeStat": "INT",
       "job": "elemage",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "thunderstorm": {
       "name": "Thunderstorm",
@@ -1461,8 +1459,7 @@
       "upgradeMaterial": "storm_quill",
       "upgradeStat": "INT",
       "job": "elemage",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "holy_bell": {
       "name": "Holy Bell",

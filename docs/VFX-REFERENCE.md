@@ -72,3 +72,18 @@ flash-step streak and a slit opening with a ring; a single tapered leap ribbon (
 compact flash, two shock rings sized to the landing radius, short ground cracks, a low dust skirt and
 a few chips.
 
+
+### Meteor, Thunderstorm and Blizzard — 2026-10-26
+
+The gallery host (`www.jeanmoreno.com`) was blocked by this session's network policy (proxy 403), so
+no new clip was inspected; the principles already recorded above were applied. Meteor
+(`skillfx/meteor-fx.js`): anticipation as a cel hit circle filling like a timer plus a star swelling in
+the sky; the main motion an accelerating burning rock with a thick tapering tail, kept low enough to
+stay inside the game camera; the impact as `CFXR Impact Contrast`/`Ground Hit + Debris` teach (a
+compact bright flash first, a shock ring to the real radius, embers and dark chips on their own
+gravity), then a soft scorch. Thunderstorm (`skillfx/thunder-fx.js`): the lightning roles listed above
+— a gathering cloud for anticipation, jagged forked bolts as the main motion per rules wave, a ground
+flash and sparks as the impact, the cloud lit from inside on each strike. Blizzard
+(`skillfx/blizzard-fx.js`): a lingering ground layer whose ice-pointed rim is the real hit area, with
+wind-driven snow streaks and drifting flakes as a separate moving layer. All original procedural
+shapes; nothing copied.

@@ -2,7 +2,7 @@
 
 Owner-selected refined anime illustration style. Artwork staging only: runtime icons, recipes and stats are not changed.
 
-- `icons/`: 69 separate transparent 512×512 PNGs. Paired gloves/boots are single inventory icons.
+- `icons/`: 72 separate transparent 512×512 PNGs. Paired gloves/boots are single inventory icons.
 - `references/`: three owner-approved original style/design sheets; their nine designs have been separated as inventory icons while retaining the original artwork.
 - `masters/`: generated source images. The wolf batch sword was rejected for silhouette drift; use `wolfbite-sword-corrected.png` and `icons/wolfbite_sword.png`. Other wolf atlas items remain valid.
 - `previews/`: composited views on ivory for owner review.
@@ -19,6 +19,8 @@ The starter travel atlas completes the existing tunic and boots with proposed ca
 The three approved fern-hare, mirrorwing and rootdigger reference sheets were separated into nine more transparent icons. Combined with the earlier four-item completion pilot, the three proposed equipment sets have complete matching pieces.
 
 The level-16 Wisp concept combines existing wraps, staff and pendant with proposed robe, hood and matching boots. The existing level-1 `wisp_slippers` remain a separate item; this source-art change does not alter item levels or recipes.
+
+The large-shield sheet (`masters/large-shields-atlas.png`, owner-supplied, already transparent) holds three large shields, front above and strap side below. The fronts are icons: the existing `crag_tower_shield` and proposed `crab_tower_shield` and `beetle_tower_shield` (larger partners of the crab shield and beetle buckler); the strap sides stay in the master as references for the held model.
 
 New pieces are artwork proposals, not live gear definitions. Existing Guardian Horn Helmet is approved and retained.
 

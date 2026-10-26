@@ -1,0 +1,87 @@
+{
+  "source_image": "large-shields-atlas.png",
+  "source_sha256": "39174b5044cd8d24252bff00a0447e8346fc5b15ce45f204e43e8b5df55c0912",
+  "source_kind": "owner-supplied transparent sheet: three large shields, front (top row) and strap side (bottom row)",
+  "status": "Artwork only; no game data changes",
+  "extraction_method": "alpha connected components; front views become icons, back views stay in the master",
+  "items": [
+    {
+      "id": "crab_tower_shield",
+      "name_th": "โล่ใหญ่กระดองปู",
+      "new_proposed_item": true,
+      "view": "front",
+      "source_bounds": [
+        57,
+        13,
+        524,
+        610
+      ],
+      "back_view_bounds": [
+        134,
+        567,
+        473,
+        978
+      ],
+      "content_bounds": [
+        71,
+        20,
+        440,
+        492
+      ],
+      "components": 1,
+      "sha256": "9eb785cccde4d7070cd4c7622505f774c637c5954d59865f9394aa6e25de93c3"
+    },
+    {
+      "id": "beetle_tower_shield",
+      "name_th": "โล่ใหญ่กระดองด้วง",
+      "new_proposed_item": true,
+      "view": "front",
+      "source_bounds": [
+        565,
+        23,
+        971,
+        614
+      ],
+      "back_view_bounds": [
+        620,
+        569,
+        919,
+        978
+      ],
+      "content_bounds": [
+        94,
+        20,
+        418,
+        492
+      ],
+      "components": 1,
+      "sha256": "cdd51002447b1a8bafd2af97eb5d369d9d31969e9198faf6898b65489e4d284a"
+    },
+    {
+      "id": "crag_tower_shield",
+      "name_th": "โล่หอคอยศิลาผา",
+      "new_proposed_item": false,
+      "view": "front",
+      "source_bounds": [
+        1026,
+        8,
+        1451,
+        614
+      ],
+      "back_view_bounds": [
+        1100,
+        598,
+        1408,
+        983
+      ],
+      "content_bounds": [
+        90,
+        20,
+        421,
+        492
+      ],
+      "components": 1,
+      "sha256": "ac1e0edf9354450002f66a9c779c7667096d2775a25eb346030ad9205606abf0"
+    }
+  ]
+}

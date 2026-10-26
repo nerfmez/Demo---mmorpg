@@ -3,8 +3,8 @@
 // smooth every frame, with Firebolt's fluttering embers (FireExtras). Sized for a job skill (10 s
 // cooldown); rules in docs/VFX-REFERENCE.md.
 //   Warning (the rules' delay): a crisp two-tone edge at the true radius over a low fill; a plain fill
-//   grows from the centre and reaches the edge on the landing frame. Up the sky beside the target a
-//   small fire is born and swells as Firebolt's gather wisps spiral into it, with a slowly turning
+//   grows from the centre and reaches the edge on the landing frame. High up the sky beside the target
+//   a small fire is born and swells as Firebolt's gather wisps spiral into it, with a slowly turning
 //   flare glint.
 //   Fall (the last FALL seconds): out of it a dark rock with molten cracks leads a comet of fire that
 //   wraps it and streams back up the path; embers peel off behind; the ground under it lights up.
@@ -43,7 +43,7 @@ function rockGeometry(seed) {
   g.computeVertexNormals(); return g;
 }
 
-const SLOTS = 2, FALL = 0.6, APEX = 5.5, SIDE = 3.5, TOWARD = 3, CHUNKS = 5, CRATER = 4.2;
+const SLOTS = 2, FALL = 0.6, APEX = 11, CHUNKS = 5, CRATER = 4.2;
 const ROCK = 0.85, HEAD = 1.15, TAIL = 4.2, DOME = 2.0;
 const X = new THREE.Vector3(1, 0, 0), UP = new THREE.Vector3(0, 1, 0);
 const HEAT_FS = `varying vec2 vP; uniform float uA; void main(){ float r=length(vP); if(r>1.0) discard; float a=pow(1.0-r,1.6); gl_FragColor=vec4(vec3(1.0,0.45,0.12)*a*uA, 1.0); }`;
@@ -119,12 +119,17 @@ export class MeteorFx {
     const s = this.slots.find((q) => !q.live) || this.slots[0];
     this.hide(s);
     Object.assign(s, { live: true, t: 0, delay: Math.max(0.6, e.delay), x: e.x, z: e.z, radius: e.radius, landedAt: -1, emberAt: 0, gathered: false });
-    // where the fire is born: up and to the screen's right, a little toward the camera, so it stays in
-    // view under the game's high camera (straight up from the target is off the top of the screen)
-    const cam = this.camera; this.v.setFromMatrixColumn(cam.matrixWorld, 0); this.v.y = 0; this.v.normalize();
-    this.p.set(cam.position.x - e.x, 0, cam.position.z - e.z).normalize();
-    s.apex.set(e.x + this.v.x * SIDE + this.p.x * TOWARD, APEX, e.z + this.v.z * SIDE + this.p.z * TOWARD);
-    s.dir.set(e.x - s.apex.x, -APEX, e.z - s.apex.z).normalize();
+    // where the fire is born: high up (APEX m) at a spot near the top of the screen, a little right of
+    // the target, found by casting a ray through that screen point to that height; the game's camera is
+    // high, so straight above the target would be off the top of the screen
+    const cam = this.camera, ndc = this.p.set(e.x, fxGround.y(e.x, e.z), e.z).project(cam);
+    const sx = Math.max(-0.75, Math.min(0.75, ndc.x + 0.3)), H = Math.min(APEX, cam.position.y - 4);
+    this.v.set(sx, 0.78, 0.5).unproject(cam).sub(cam.position).normalize();
+    const k = (H - cam.position.y) / this.v.y;
+    if (k > 0 && isFinite(k)) s.apex.copy(cam.position).addScaledVector(this.v, k);
+    else s.apex.set(e.x + 2, H, e.z + 3);
+    s.apex.y -= fxGround.y(s.apex.x, s.apex.z);
+    s.dir.set(e.x - s.apex.x, -s.apex.y, e.z - s.apex.z).normalize();
     const U = s.warn.material.uniforms; U.uR.value = e.radius; U.uK.value = 0; U.uOpen.value = 0;
     place(s.warn, e.x, 0.04, e.z); s.warn.scale.setScalar(e.radius * 2 * 1.06); conformPlane(s.warn); s.warn.visible = true;
     place(s.heat, e.x, 0.05, e.z); s.heat.scale.setScalar(e.radius * 2.2); conformPlane(s.heat); s.heat.visible = true; s.heat.material.uniforms.uA.value = 0;

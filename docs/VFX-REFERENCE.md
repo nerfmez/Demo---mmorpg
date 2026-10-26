@@ -120,8 +120,9 @@ warning fill is plain (no dense hatching). Showing the meteor the whole warning 
 oddly in the sky (rejected): it falls only in the last 0.6 s again, out of a sky cue made like
 Firebolt's charge: a small fire swelling as the gather wisps spiral in, with a turning flare glint.
 Checked in the real game: its camera is far higher than the bench's (18.9 m up, 13.5 m back, fov 36),
-so a cue 7 m above the target is off the top of the screen; the fire is born 5.5 m up, 3.5 m to the
-screen's right and 3 m toward the camera, and the meteor falls from there. `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm and Blizzard are
+so a cue 7 m above the target is off the top of the screen. The owner wanted it higher: the fire is
+born 11 m up where a ray through a point near the top of the screen, a little right of the target,
+meets that height, and the meteor falls from there. `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm and Blizzard are
 still the light version below until redone.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26

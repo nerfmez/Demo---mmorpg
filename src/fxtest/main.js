@@ -29,7 +29,7 @@ const state = {
   mods: [], // [{id, level}]
   fusion: null, // linked payload skill id
   speed: 1,
-  cam: ['game', 'close'].includes(params.get('cam')) ? params.get('cam') : 'hero', // hero: a close look at the hero's animation (the default)
+  cam: ['hero', 'close'].includes(params.get('cam')) ? params.get('cam') : 'game', // game: exactly the game's camera (the default, owner 2026-10-26); hero: a close look at the hero's animation
   auto: false,
   holding: false,
 };
@@ -46,11 +46,12 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#9fc6d8');
 scene.fog = new THREE.Fog('#9fc6d8', 26, 48);
 const camera = new THREE.PerspectiveCamera(36, 1, 0.3, 120);
-// 'game' = the game's 3/4 camera; 'close' = the lower angle the effects were first reviewed at
+// 'game' = the game's own camera (view.js CAM_OFFSET at zoom 1, looking 0.8 m above the hero; fov 36, 52
+// in portrait); 'close' = the lower angle the effects were first reviewed at
 const CAM_DIRS = { game: new THREE.Vector3(0, 19, 13.5).normalize(), close: new THREE.Vector3(0, 7.4, 8.6).normalize(), hero: new THREE.Vector3(-0.15, 0.55, 0.82).normalize() };
 // 'hero' = from the hero's right side (it faces +X), a little behind so the dummies stand beyond it, framed
 // on the hero and following it
-const HERO_LOOK = new THREE.Vector3(0.9, 0.55, 0), HERO_HALF = 1.4;
+const HERO_LOOK = new THREE.Vector3(0.9, 0.55, 0), HERO_HALF = 1.4, GAME_OFFSET = new THREE.Vector3(0, 19, 13.5);
 scene.add(new THREE.HemisphereLight('#dce9ff', '#4a6040', 1.1));
 const sun = new THREE.DirectionalLight('#fff0dc', 1.8);
 sun.position.set(-4, 10, 6);
@@ -471,9 +472,13 @@ function layout() {
   const w = stage.clientWidth, hgt = stage.clientHeight;
   renderer.setSize(w, hgt, false);
   camera.aspect = w / Math.max(1, hgt);
+  camera.fov = state.cam === 'game' && w / Math.max(1, hgt) < 1 ? 52 : 36;
   const v = VIEW[state.skill], half = THREE.MathUtils.degToRad(camera.fov / 2);
   const close = state.cam === 'close';
-  if (state.cam === 'hero') {
+  if (state.cam === 'game') {
+    camera.position.copy(GAME_OFFSET);
+    camera.lookAt(0, 0.8, 0);
+  } else if (state.cam === 'hero') {
     // about 2.6 m around the hero fits the shorter side of the view
     const dist = Math.max(HERO_HALF / Math.tan(half), (HERO_HALF * 1.25) / (Math.tan(half) * camera.aspect));
     camera.position.copy(HERO_LOOK).addScaledVector(CAM_DIRS.hero, dist);

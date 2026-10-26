@@ -741,6 +741,12 @@ export class Vfx {
     if (e.kind === 'rock') return this.rockLand(e);
     if (e.kind === 'erupt') return this.erupt(e);
     const c = el(e.element);
+    // a new skill without its own effect yet (fxPending): an element ring the size of the hit
+    if (e.generic) {
+      this.ring(e.x, e.z, e.radius, c.glow, 0.5);
+      this.fx.burst(e.x, this.gy(e.x, e.z) + 0.3, e.z, Math.round(10 + e.radius * 8), { color: c.dots, size: 0.4, speed: e.radius * 2.5, life: 0.55, up: 0.6 });
+      return;
+    }
     this.fx.burst(e.x, this.gy(e.x, e.z) + 0.3, e.z, 18, { color: c.dots, size: 0.35, speed: e.radius * 2.5, life: 0.5, up: 0.4 });
   }
 
@@ -1492,6 +1498,33 @@ export class Vfx {
           }
         },
       };
+    }
+    // New skills without their own effect yet (fxPending): an element-tinted warning disc before a delayed
+    // hit, and a tinted field with drifting motes for a lingering zone. Skill Lab effects replace these.
+    if (a.owner === 'player' && a.skill?.def?.fxPending) {
+      const c = el(a.element);
+      if (a.dot) {
+        const m = this.decal(this.discGeo, discMaterial('mire'), a.x, a.z, a.radius, 0, 0.07);
+        m.material.uniforms.uColor.value.set(c.glow);
+        m.material.uniforms.uColor2.value.set(c.dots);
+        return { obj: m, update: (ar, t, dt) => {
+          m.material.uniforms.uT.value = t;
+          m.material.uniforms.uA.value = fadeInOut(ar) * 0.75;
+          if (Math.random() < dt * 14) {
+            const ang = Math.random() * Math.PI * 2, r = Math.random() * ar.radius, x = ar.x + Math.sin(ang) * r, z = ar.z + Math.cos(ang) * r;
+            this.fx.add(x, this.gy(x, z) + 0.2 + Math.random() * 1.2, z, 0, -0.4, 0, { color: c.dots, size: 0.22, sizeEnd: 0.05, life: 0.8, drag: 1 });
+          }
+        } };
+      }
+      if (a.delay > 0) {
+        const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);
+        m.material.uniforms.uColor.value.set(c.dots);
+        m.material.uniforms.uColor2.value.set(c.glow);
+        return { obj: m, update: (ar) => {
+          m.material.uniforms.uFill.value = Math.min(1, ar.t / Math.max(0.01, ar.delay));
+          m.material.uniforms.uA.value = ar.t < ar.delay ? 0.7 : 0;
+        } };
+      }
     }
     return null;
   }

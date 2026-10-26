@@ -2314,6 +2314,24 @@
         "gold": 40
       },
       "grade": "B"
-    }
+    },
+    "learn_sky_shatter": {"type":"skill","result":"sky_shatter","cost":{"ram_horn":4,"crag_stone":3,"gold":60}},
+    "learn_earth_rend": {"type":"skill","result":"earth_rend","cost":{"crag_stone":4,"golem_heart":1,"gold":60}},
+    "learn_iron_body": {"type":"skill","result":"iron_body","cost":{"golem_heart":1,"ram_horn":3,"gold":55}},
+    "learn_cross_cut": {"type":"skill","result":"cross_cut","cost":{"mantis_scythe":3,"wolf_fang":2,"gold":45}},
+    "learn_blade_storm": {"type":"skill","result":"blade_storm","cost":{"dusk_pelt":3,"mantis_scythe":2,"gold":60}},
+    "learn_rally": {"type":"skill","result":"rally","cost":{"wolf_pelt":3,"greyfang_mane":1,"gold":45}},
+    "learn_frenzy_roar": {"type":"skill","result":"frenzy_roar","cost":{"greyfang_mane":2,"wolf_fang":3,"gold":50}},
+    "learn_stand_firm": {"type":"skill","result":"stand_firm","cost":{"ram_horn":3,"crab_shell":2,"gold":50}},
+    "learn_team_stand": {"type":"skill","result":"team_stand","cost":{"warden_horn":2,"crab_shell":3,"gold":60}},
+    "learn_blessing": {"type":"skill","result":"blessing","cost":{"sea_pearl":3,"glow_dust":3,"gold":55}},
+    "learn_rapid_volley": {"type":"skill","result":"rapid_volley","cost":{"storm_quill":3,"hawk_feather":2,"gold":50}},
+    "learn_killing_arrow": {"type":"skill","result":"killing_arrow","cost":{"hawk_feather":4,"storm_quill":2,"gold":60}},
+    "learn_meteor": {"type":"skill","result":"meteor","cost":{"rune_core":2,"golem_heart":1,"gold":70}},
+    "learn_blizzard": {"type":"skill","result":"blizzard","cost":{"sea_pearl":3,"wisp_core":2,"gold":65}},
+    "learn_thunderstorm": {"type":"skill","result":"thunderstorm","cost":{"storm_quill":3,"wisp_core":2,"gold":65}},
+    "learn_holy_bell": {"type":"skill","result":"holy_bell","cost":{"warden_horn":2,"glow_dust":3,"gold":55}},
+    "learn_light_chain": {"type":"skill","result":"light_chain","cost":{"mirror_scale":3,"glow_dust":2,"gold":45}},
+    "learn_spell_wave": {"type":"skill","result":"spell_wave","cost":{"rune_core":2,"mantis_scythe":2,"gold":55}}
   }
 }

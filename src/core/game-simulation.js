@@ -24,6 +24,19 @@ const INTERACT_RADIUS = 3.6;
 const WAYPOINT_RADIUS = 3.8;
 const AI_RADIUS = 85; // monsters farther than this from the player sleep unless in a fight
 
+/** Sum of one field over a unit's active buffs (each buff skill keeps its own entry). */
+function buffSum(buffs, key) {
+  let n = 0;
+  for (const k in buffs) n += buffs[k][key] || 0;
+  return n;
+}
+/** Damage-taken multiplier from active buffs (takenMult; several multiply). */
+function buffTaken(buffs) {
+  let n = 1;
+  for (const k in buffs) if (buffs[k].taken) n *= buffs[k].taken;
+  return n;
+}
+
 export class Game {
   /**
    * @param {object} data game data
@@ -843,8 +856,7 @@ export class Game {
   }
 
   playerDamageMult() {
-    const b = this.player.buffs.war_cry;
-    return b ? 1 + b.damage : 1;
+    return 1 + buffSum(this.player.buffs, 'damage');
   }
 
   /** Damage to a monster from the player, an ally or a damage-over-time effect. */
@@ -954,7 +966,7 @@ export class Game {
 
   damageAlly(a, amount, source) {
     if (a.dead) return 0;
-    let dmg = Math.max(1, Math.round(amount * 0.85));
+    let dmg = Math.max(1, Math.round(amount * 0.85 * buffTaken(a.buffs)));
     if(a.barrier>0){const absorbed=Math.min(a.barrier,dmg);a.barrier-=absorbed;dmg-=absorbed;if(a.barrier<=0)breakBarrier(this,a);}
     a.hp -= dmg;
     this.emit({ type: 'allyHit', id: a.id, amount: dmg, x: a.x, z: a.z });
@@ -977,7 +989,7 @@ export class Game {
       return 0;
     }
     const guard=applyGuard(this,amount,source,opts);
-    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100);
+    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100) * buffTaken(p.buffs);
     let blocked = guard.guarded;
     // A shield blocks hits from in front only; ground hazards (no source) are never blocked.
     if (this.derived.blockChance > 0 && source && source.x !== undefined && !opts.unblockable) {
@@ -1004,7 +1016,7 @@ export class Game {
     p.hurtT = 0.25;
     this.emit({ type: 'playerHit', amount: dmg, absorbed, shielded, blocked, x: p.x, z: p.z });
     if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
-    if (opts.knock && dmg > 0) {
+    if (opts.knock && dmg > 0 && !Object.values(p.buffs).some((b) => b.steady)) {
       this.cancelCharge();
       this.cancelChannel();
       const d = dirFromAngle(opts.knock.angle);
@@ -1135,6 +1147,8 @@ export class Game {
             triggered,
           });
         }
+        // a volley (base repeats) fires again along the current facing, without a new cast or arrow
+        if (repeat < s.repeats) this.later(s.repeatDelay, () => !p.dead && this.executeSkill(s, { ...aim, angle: p.facing }, { mult: s.repeatMult, repeat: repeat + 1, triggered }));
         return;
       }
       case 'chain': {
@@ -1244,10 +1258,11 @@ export class Game {
         return;
       }
       case 'buff': {
-        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff };
-        p.buffs.war_cry = { ...buff };
-        for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.buffs.war_cry = { ...buff };
-        this.emit({ type: 'buff', kind: 'war_cry', x: p.x, z: p.z, radius: s.radius });
+        // each buff skill keeps its own entry, so different buffs stack and the same one refreshes
+        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff, taken: s.takenMult, steady: s.steady };
+        p.buffs[s.id] = { ...buff };
+        for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.buffs[s.id] = { ...buff };
+        this.emit({ type: 'buff', kind: s.id, x: p.x, z: p.z, radius: s.radius });
         return;
       }
       case 'summon': {
@@ -1427,7 +1442,7 @@ export class Game {
     const mz = this.input.moveZ;
     const mlen = Math.hypot(mx, mz);
     const chill = p.statuses.chill ? 1 - p.statuses.chill.slow : 1;
-    const haste = p.buffs.war_cry ? 1 + p.buffs.war_cry.speed : 1;
+    const haste = 1 + buffSum(p.buffs, 'speed');
     const speed = this.derived.moveSpeed * (p.charging ? p.charging.skill.charge.moveMult : p.channeling ? p.channeling.skill.channel.moveMult : p.cast ? 0.4 : 1) * chill * haste;
     p.moving = mlen > 0.08;
     if (p.moving) {
@@ -1584,12 +1599,12 @@ export class Game {
         }
         a.targetId = t ? t.id : null;
       }
-      const haste = a.buffs.war_cry ? 1 + a.buffs.war_cry.speed : 1;
+      const haste = 1 + buffSum(a.buffs, 'speed');
       if (a.state === 'windup') {
         if (a.stateT >= 0.25) {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
-            const k = a.buffs.war_cry ? 1 + a.buffs.war_cry.damage : 1;
+            const k = 1 + buffSum(a.buffs, 'damage');
             this.hitMonster(tt, a.damage * k * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z });
             this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
@@ -1795,7 +1810,7 @@ export class Game {
             if (m.dead || dist(a.x, a.z, m.x, m.z) > a.radius + m.r) continue;
             this.hitMonster(m, a.damage, s ? this.hitOpts(s, { crit: this.rollCrit(), fromX: a.x, fromZ: a.z }) : { element: a.element });
           }
-          this.emit({ type: 'burst', kind: a.kind, element: a.element, echo: !!a.echo, x: a.x, z: a.z, radius: a.radius });
+          this.emit({ type: 'burst', kind: a.kind, element: a.element, echo: !!a.echo, x: a.x, z: a.z, radius: a.radius, generic: !!s?.def?.fxPending });
         } else if (a.owner === 'monster' && a.damage) {
           const src = this.monsterById(a.sourceId);
           // a ring (a.inner) leaves its middle safe

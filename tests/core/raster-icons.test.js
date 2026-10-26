@@ -43,8 +43,9 @@ test('only registered supplied PNGs replace existing illustrations; unknown/mod 
  assert.equal(rasterIconUrl('gear','rusty_sword',{}),null);assert.equal(rasterIconMarkup('gear','rusty_sword','',{}),null);assert.equal(rasterIconUrl('gear','missing',{}),null);assert.throws(()=>art('gear','missing'),/Missing authored artwork/);
  assert.throws(()=>rasterIconUrl('skill','slash',{'skill/slash':'https://invalid/icon.png'}),/Invalid raster icon path/);
 });
-test('all 31 skills choose round touch artwork while keeping the square img fallback and deployment base',()=>{
- const ids=[...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)];
+test('all 31 pictured skills choose round touch artwork while keeping the square img fallback and deployment base',()=>{
+ // skills still waiting for a picture (iconPending) show a labelled stand-in instead: tests/core/pending-art.test.js
+ const ids=Object.entries({...data.skills.combat,...data.skills.movement}).filter(([,s])=>!s.iconPending).map(([id])=>id);
  assert.equal(ids.length,31);
  assert.deepEqual(Object.keys(SKILL_ROUND_ICONS).sort(),ids.map(id=>'skill/'+id).sort());
  for(const id of ids){

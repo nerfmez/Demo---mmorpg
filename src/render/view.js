@@ -576,7 +576,7 @@ export class View {
         v.summon(e);
         break;
       case 'buff':
-        if (e.kind === 'war_cry') v.warcry(e);
+        v.warcry(e); // every buff skill uses the roar ring until it has its own look
         break;
       case 'curse':
         v.curse(e);

@@ -101,9 +101,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
     tauntRadius: 0,
     trigger: null,
     damageMult: 1,
-    repeats: 0,
-    repeatMult: 0,
-    repeatDelay: 0,
+    // a skill can strike more than once on its own (base repeats); a repeat mod adds to it
+    repeats: def.repeats || 0,
+    repeatMult: def.repeatMult || 0,
+    repeatDelay: def.repeatDelay || 0,
     knock: def.knock || 0,
     leech: derived.leechPct || 0,
     // Some skills need a weapon type in the right hand (requiresWeapon); stats and weapon both gate the cast.
@@ -133,8 +134,11 @@ export function computeSkill(ch, data, derived, slotIndex) {
     s.dealtMult = Math.max(0.5, 1 - (1 - def.dealtMult) * levelMult);
   }
   if (def.kind === 'buff') {
-    s.damageBuff = def.damageBuff * levelMult;
-    s.speedBuff = def.speedBuff;
+    s.damageBuff = (def.damageBuff || 0) * levelMult;
+    s.speedBuff = def.speedBuff || 0;
+    // takenMult: damage taken while buffed (0.8 = 20% less); a higher skill level cuts a little more
+    s.takenMult = def.takenMult ? Math.max(0.5, 1 - (1 - def.takenMult) * levelMult) : 1;
+    s.steady = !!def.steady; // no knockback while buffed
   }
   if (def.summon) {
     const sm = def.summon;
@@ -195,7 +199,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
       s.reflect = lv(e.reflect, L);
       s.tauntRadius = e.tauntRadius;
     }
-    if (e.repeats) {
+    if (e.repeats && s.def.repeats) s.repeats += lv(e.repeats, L);
+    else if (e.repeats) {
       s.repeats = lv(e.repeats, L);
       s.repeatMult = lv(e.repeatMult, L);
       s.repeatDelay = e.repeatDelay;

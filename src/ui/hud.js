@@ -495,7 +495,7 @@ export class Hud {
     const st = [`<b>Job ${ch.jobLevel}</b>`, `<b class="gold">${fieldIcon('coin')}${ch.gold.toLocaleString('en-US')} G</b>`];
     if (p.statuses.poison) st.push('<b class="st poison">ติดพิษ</b>');
     if (p.statuses.chill) st.push('<b class="st cold">หนาวช้า</b>');
-    if (p.buffs.war_cry) st.push('<b class="st buff">คำรามศึก</b>');
+    for (const id in p.buffs) st.push(`<b class="st buff">${esc(g.data.skills.combat[id]?.nameTh || 'บัฟ')}</b>`);
     if (g.allies.length) st.push(`<b class="st ally">หมาป่า ×${g.allies.length}</b>`);
     const html = st.join('');
     if (html !== this.lastStatus) {

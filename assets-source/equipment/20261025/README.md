@@ -20,7 +20,7 @@ The three approved fern-hare, mirrorwing and rootdigger reference sheets were se
 
 The level-16 Wisp concept combines existing wraps, staff and pendant with proposed robe, hood and matching boots. The existing level-1 `wisp_slippers` remain a separate item; this source-art change does not alter item levels or recipes.
 
-The large-shield sheet (`masters/large-shields-atlas.png`, owner-supplied, already transparent) shows three large shields, front above and back below. Only the fronts are icons: the existing `crag_tower_shield` and proposed `crab_tower_shield` and `beetle_tower_shield`; the back views are not used.
+The large-shield sheet (`masters/large-shields-atlas.png`, owner-supplied, already transparent) shows three greatshields, a new kind of gear: one large shield held in both hands. Front above, back below; only the fronts are icons: proposed `crab_greatshield`, `beetle_greatshield` and `crag_greatshield` (not the existing one-handed `crag_tower_shield`).
 
 New pieces are artwork proposals, not live gear definitions. Existing Guardian Horn Helmet is approved and retained.
 

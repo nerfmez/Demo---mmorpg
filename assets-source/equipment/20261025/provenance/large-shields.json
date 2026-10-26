@@ -6,7 +6,7 @@
   "extraction_method": "alpha connected components; only the fronts are icons, the back views are not used",
   "items": [
     {
-      "id": "crab_tower_shield",
+      "id": "crab_greatshield",
       "name_th": "โล่ใหญ่กระดองปู",
       "new_proposed_item": true,
       "source_bounds": [
@@ -22,10 +22,11 @@
         492
       ],
       "components": 1,
-      "sha256": "9eb785cccde4d7070cd4c7622505f774c637c5954d59865f9394aa6e25de93c3"
+      "sha256": "9eb785cccde4d7070cd4c7622505f774c637c5954d59865f9394aa6e25de93c3",
+      "kind": "greatshield: one large shield held in both hands"
     },
     {
-      "id": "beetle_tower_shield",
+      "id": "beetle_greatshield",
       "name_th": "โล่ใหญ่กระดองด้วง",
       "new_proposed_item": true,
       "source_bounds": [
@@ -41,12 +42,13 @@
         492
       ],
       "components": 1,
-      "sha256": "cdd51002447b1a8bafd2af97eb5d369d9d31969e9198faf6898b65489e4d284a"
+      "sha256": "cdd51002447b1a8bafd2af97eb5d369d9d31969e9198faf6898b65489e4d284a",
+      "kind": "greatshield: one large shield held in both hands"
     },
     {
-      "id": "crag_tower_shield",
-      "name_th": "โล่หอคอยศิลาผา",
-      "new_proposed_item": false,
+      "id": "crag_greatshield",
+      "name_th": "โล่ใหญ่ศิลาผา",
+      "new_proposed_item": true,
       "source_bounds": [
         1026,
         8,
@@ -60,7 +62,8 @@
         492
       ],
       "components": 1,
-      "sha256": "ac1e0edf9354450002f66a9c779c7667096d2775a25eb346030ad9205606abf0"
+      "sha256": "ac1e0edf9354450002f66a9c779c7667096d2775a25eb346030ad9205606abf0",
+      "kind": "greatshield: one large shield held in both hands"
     }
   ]
 }

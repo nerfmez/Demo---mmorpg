@@ -25,7 +25,7 @@ hero=block('// ---------- the hero:','// ---------- the waypoint:')
 # Terrain, physical props and fence collisions for the inland scene.
 hero=hero.replace('height(HERO.x, HERO.z)','walkY(HERO.x, HERO.z)')
 hero=re.sub(r'function blocked\(x, z\) \{.*?\n\}', '''function blocked(x,z){
- if(x<GX0+3||x>GX1-3||z<GZ0+3||z>GZ1-2||(seaDist(x,z)>-.8&&!onStone(x,z)))return true;
+ if(x<GX0+3||x>GX1-3||z<GZ0+3||z>GZ1-2||(seaDist(x,z)>-.8&&!onStone(x,z)&&!(stairsAt(x,z).inside&&stairsAt(x,z).y>SEA_Y+.2)))return true;
  if(onStone(x,z))return false;
  const y=height(x,z),s=Math.max(Math.abs(height(x+.3,z)-y),Math.abs(height(x,z+.3)-y))/.3;
  if(s>1.25&&!stairsAt(x,z).inside)return true;
@@ -42,7 +42,7 @@ for a_,b_ in[('float dz=w.z-zShoreG(w.x);','float dz=pondIn(w.xz);'),('  vec2 q=
   ('col=mix(col,${L(\'#e8ffd2\')},line*mix(.26,.36,near));','col=mix(col,${L(\'#e8ffd2\')},line*mix(.10,.16,near));'),
   ('  float alpha=mix(.46,.56,smoothstep(.0,1.,depth));','  col=mix(col,${L(\'#24604f\')},.42*smoothstep(.45,.75,vnoise(q*.16+vec2(3.,7.)))*smoothstep(.3,1.2,depth));\n  float alpha=mix(.5,.62,smoothstep(.0,1.,depth));')]:
  assert a_ in sea,a_;sea=sea.replace(a_,b_)
-runtime=r[r.index('function resize()'):].replace('  updatePetals(timeU.value);','').replace('ready: true','pond: {ports:POND_PORTS,junctions:ROAD_JUNCTIONS,routes:ROUTES,moon:MOON,stones:STEP_STONES}, ready: true')
+runtime=r[r.index('function resize()'):].replace('  updatePetals(timeU.value);','').replace('ready: true','pond: {ports:POND_PORTS,junctions:ROAD_JUNCTIONS,routes:ROUTES,moon:MOON,stones:STEP_STONES,crossing:CROSSING,blocked,walkY,hero:HERO,colliders:COLLIDERS,height}, ready: true')
 plantSource=(here.parent/'shell-beach/scene.js').read_text()
 plants=plantSource[plantSource.index('function placeCoastPlants(){'):plantSource.index("FOL.leaf=")]
 plants=plants.replace('const items=frondItems.filter(f=>f.young===young),geo=', 'const items=frondItems.filter(f=>f.young===young);if(!items.length)continue;const geo=')

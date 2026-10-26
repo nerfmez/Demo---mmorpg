@@ -58,7 +58,7 @@ function build(){
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();scene.add(moonGate());
  steppingStones();shoreStones();seaRocks.push(...STEP_STONES.slice(0,8).map(s=>[s.x,s.z,s.r]));while(seaRocks.length<8)seaRocks.push([0,-999,0]);
  scene.add(buildSea());lilyPads();scatteredRocks();plantGrove();glowPlants();
- if(rootParts.length){const roots=new THREE.Mesh(mergeGeometries(rootParts),paint({vertexColors:true,shade:[.55,.5,.5],mid:[.86,.8,.74]}));roots.castShadow=roots.receiveShadow=true;scene.add(roots);}
+ if(rootParts.length){const roots=new THREE.Mesh(mergeGeometries(rootParts),barkPaint());roots.castShadow=roots.receiveShadow=true;scene.add(roots);}
  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c5452')));
  for(let i=0;i<woodParts.length;i++){let g=woodParts[i];if(g.index)g=g.toNonIndexed();if(g.attributes.uv)g.deleteAttribute('uv');woodParts[i]=g;}
  clearPaths();placeCoastPlants();scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));setStatus();

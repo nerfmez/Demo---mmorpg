@@ -1,6 +1,6 @@
 # Mirror Pond — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 3:
+**Owner status: in review, 26 October 2026**, artifact version 4:
 https://claude.ai/artifact/YRE8REPWfr1GbfzaNNPxw1.
 
 Concept: `mirror-pond.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -41,3 +41,10 @@ buried over the ground and fork, and the roots that reach the pond end just past
 Owner, on version 2: "the roots don't join the real trunk". Each root now leaves the game trunk's
 bark (its authored spine radius at that height), as thick as the bark it grows from, and curves
 down onto the ground within a short flare, so trunk and roots read as one piece.
+
+Owner, on version 3: the roots join now but still look like another tree's, and walk across the
+stones. Roots and the willows' trunks, branches and foot roots are now bark in the game trunk's
+own style (`barkTube`: nine flat facets toned light, mid or shadow by the sun). The stepping
+stones are an even chain from the plaza's shore to the rim stair's foot, close enough to step
+across; the way across (shore, stones, stair) is walkable, and the moon gate blocks only its two
+feet. Checked by walking the hero from the plaza over every stone and up the stair to the gate.

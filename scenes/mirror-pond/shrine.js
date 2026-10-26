@@ -30,14 +30,31 @@ function moonGate(){
  const mesh=new THREE.Mesh(mergeGeometries(parts),mat);mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);
  const crescent=new THREE.RingGeometry((R0-ring)*.45,(R0-ring)*.62,24,1,Math.PI*.15,Math.PI*1.25);crescent.translate(x,cyc,z+.0);
  const glow=new THREE.Mesh(crescent,new THREE.MeshBasicMaterial({color:'#9ff0e6',transparent:true,opacity:.85}));glow.position.z=-.02;group.add(glow);
- COLLIDERS.push({x,z,r:R0*1.1});
+ // the ring's two feet, not the whole disc: the court before it stays open
+ for(const side of[-1,1])COLLIDERS.push({x:x+side*R0*.85,z,r:ring*.9});COLLIDERS.push({x,z:z-ring*.2,r:ring*.6});
  MOON={x,z,y,r:R0,group};
  return group;
 }
 // stepping stones across the pond from the plaza to the rim stair, [u, v on the water]
-const STEP_STONES=[[.522,.535],[.507,.49],[.516,.445],[.498,.40],[.49,.355],[.482,.312]].map(([u,v],i)=>{const[x,z]=P(u,v,SEA_Y);return{x,z,r:M(.42+.04*Math.sin(i*2.1)),top:SEA_Y+M(.32)};});
-function onStone(x,z){return STEP_STONES.some(s=>Math.hypot(x-s.x,z-s.z)<s.r*.92);}
-function walkY(x,z){let y=height(x,z);for(const s of STEP_STONES)if(Math.hypot(x-s.x,z-s.z)<s.r)y=Math.max(y,s.top);return y;}
+// Stepping stones: an even chain from the plaza's shore to the foot of the rim stair, close
+// enough to walk across. The way across is the chain's line: the shore, each stone, the stair.
+const CROSSING=(()=>{
+ const foot=ROUTES.find(r=>r.id==='stair').rows[0],[sx,sz]=P(.522,.585,0),a=new V3(sx,0,sz),b=new V3(foot.x,0,foot.z);
+ // where the line leaves the shore and meets the rim
+ const at=t=>a.clone().lerp(b,t);let t0=0,t1=1;
+ for(let t=0;t<=1;t+=.002)if(pondIn(at(t).x,at(t).z)>0){t0=t;break;}
+ for(let t=1;t>=0;t-=.002)if(pondIn(at(t).x,at(t).z)>0){t1=t;break;}
+ const A=at(t0),B=at(t1),L=A.distanceTo(B),r=M(.36),gap=M(.1),n=Math.max(2,Math.round((L+gap)/(2*r+gap))),stones=[];
+ for(let i=0;i<n;i++){const t=(i+.5)/n,p=A.clone().lerp(B,t),side=new V3(-(B.z-A.z),0,B.x-A.x).normalize().multiplyScalar(M(.12)*Math.sin(i*2.3));stones.push({x:p.x+side.x,z:p.z+side.z,r:r*(1+.06*Math.sin(i*1.7)),top:SEA_Y+M(.3)});}
+ return{line:[[a.x,a.z],...stones.map(s=>[s.x,s.z]),[b.x,b.z]],stones};
+})();
+const STEP_STONES=CROSSING.stones;
+function onStone(x,z){
+ if(STEP_STONES.some(s=>Math.hypot(x-s.x,z-s.z)<s.r*.95))return true;
+ const L=CROSSING.line;for(let i=0;i<L.length-1;i++){const[ax,az]=L[i],[bx,bz]=L[i+1],dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));if(Math.hypot(x-ax-dx*t,z-az-dz*t)<M(.22))return true;}
+ return false;
+}
+function walkY(x,z){const y=height(x,z);return pondIn(x,z)>-M(.15)&&onStone(x,z)?Math.max(y,SEA_Y+M(.3)):y;}
 function steppingStones(){
  for(const s of STEP_STONES){
   const h=s.top-SEA_FLOOR+.1,g=new THREE.CylinderGeometry(s.r,s.r*1.12,h,7);
@@ -53,7 +70,8 @@ function shoreStones(){
  for(let i=0;i<n;i++){
   const a=-Math.PI+(i+R(-.2,.2))/n*2*Math.PI,r=pondRadius(a)+M(.15),x=POND.cx+Math.cos(a)*r,z=POND.cz+Math.sin(a)*r;
   const st=stairsAt(x,z);if(st.s<st.half+M(.5))continue;
-  if(Math.hypot(x-STEP_STONES[0].x,z-STEP_STONES[0].z)<M(1.4))continue;
+  // the way onto the stones stays open
+  {const L=CROSSING.line,[ax,az]=L[0],[bx,bz]=L[2],dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));if(Math.hypot(x-ax-dx*t,z-az-dz*t)<M(1.1))continue;}
   const f=field(x,z);if(f.top>.5)continue;   // the rim's own rock face stands here
   if(rand()<.22)continue;
   const w=M(R(.45,.75)),h=M(R(.35,.6)),y=Math.min(height(x,z),SEA_Y+M(.2));
@@ -86,8 +104,11 @@ function lilyPads(){
 // a weeping willow: a leaning trunk, then curtains of hanging strands from a domed crown
 function willow(u,v,s){
  const[x,y,z]=onGround(u,v),parts=[],bark=[],H=M(2.4)*s,Rc=M(1.7)*s;
- const tr=new THREE.CylinderGeometry(M(.12)*s,M(.24)*s,H,8);tr.translate(x,y+H/2,z);bark.push(coloredPart(tr,'#8c7258'));
- for(let k=0;k<4;k++){const a=k*1.7+R(-.3,.3),b=new THREE.CylinderGeometry(M(.05)*s,M(.09)*s,Rc*1.1,6);b.translate(0,Rc*.55,0);b.rotateZ(.9);b.rotateY(a);b.translate(x,y+H*.85,z);bark.push(coloredPart(b,'#856b52'));}
+ const lean=R(0,Math.PI*2);
+ bark.push(barkTube([new V3(x,y-.1,z),new V3(x+Math.cos(lean)*M(.15),y+H*.45,z+Math.sin(lean)*M(.15)),new V3(x+Math.cos(lean)*M(.08),y+H,z+Math.sin(lean)*M(.08))],M(.26)*s,M(.13)*s,10));
+ for(let k=0;k<4;k++){const a=k*1.7+R(-.3,.3);bark.push(barkTube([new V3(x,y+H*.75,z),new V3(x+Math.cos(a)*Rc*.35,y+H*1.05,z+Math.sin(a)*Rc*.35),new V3(x+Math.cos(a)*Rc*.6,y+H*1.2,z+Math.sin(a)*Rc*.55)],M(.1)*s,M(.04)*s,8));}
+ // short buttress roots at its foot, like the other trees'
+ for(let k=0;k<5;k++){const a=k/5*Math.PI*2+R(-.3,.3);bark.push(barkTube(rootPath(x,z,y-.05,s*1.6,a,.25,M(R(.5,.9))*s,R(0,6)),M(.12)*s,M(.015),12));}
  const cy=y+H+Rc*.35;
  // no leafy dome (owner): the crown is only strands. They spring from the branch ends over the
  // whole crown, arch up and out a little and fall in long curtains, the outer ones longest.
@@ -99,9 +120,9 @@ function willow(u,v,s){
   parts.push(coloredPart(taperedTube(pts,M(.032),M(.008),6,3),pick(LEAF)));
  }
  // branches reach up into the crown to carry them
- for(let k=0;k<7;k++){const a=k/7*Math.PI*2+R(-.3,.3),r=Rc*R(.35,.7),pts=[new V3(x,y+H*.8,z),new V3(x+Math.cos(a)*r*.45,cy+Rc*.05,z+Math.sin(a)*r*.45),new V3(x+Math.cos(a)*r,cy+Rc*.18,z+Math.sin(a)*r*.9)];bark.push(coloredPart(taperedTube(pts,M(.09)*s,M(.025)*s,8,5),'#856b52'));}
+ for(let k=0;k<7;k++){const a=k/7*Math.PI*2+R(-.3,.3),r=Rc*R(.35,.7),pts=[new V3(x,y+H*.8,z),new V3(x+Math.cos(a)*r*.45,cy+Rc*.05,z+Math.sin(a)*r*.45),new V3(x+Math.cos(a)*r,cy+Rc*.18,z+Math.sin(a)*r*.9)];bark.push(barkTube(pts,M(.09)*s,M(.025)*s,8));}
  const leaf=new THREE.Mesh(mergeGeometries(parts),paint({vertexColors:true,shade:[.52,.66,.62],mid:[.86,.95,.88]}));leaf.castShadow=true;scene.add(leaf);
- const trunk=new THREE.Mesh(mergeGeometries(bark),paint({vertexColors:true,shade:[.55,.5,.5],mid:[.86,.8,.74]}));trunk.castShadow=trunk.receiveShadow=true;scene.add(trunk);
+ const trunk=new THREE.Mesh(mergeGeometries(bark),barkPaint());trunk.castShadow=trunk.receiveShadow=true;scene.add(trunk);
  COLLIDERS.push({x,z,r:M(.3)*s});
 }
 // A tube along points whose radius falls from r0 to r1 (faster toward the tip).
@@ -110,6 +131,21 @@ function taperedTube(pts,r0,r1,segments=14,sides=6){
  for(let i=0;i<p.count;i++){const t=Math.floor(i/ring)/segments,q=curve.getPoint(t),r=r1+(r0-r1)*Math.pow(1-t,1.4);p.setXYZ(i,q.x+(p.getX(i)-q.x)*r,q.y+(p.getY(i)-q.y)*r,q.z+(p.getZ(i)-q.z)*r);}
  g.computeVertexNormals();return g;
 }
+// Bark in the game trunk's own style (render/anime-study.js animeTrunk): nine flat facets round
+// a curve, each toned light, mid or shadow by the sun, so roots and willow trunks match the trees.
+const BARK_SUN=new V3(-.6,.55,.55).normalize();
+function barkTube(pts,r0,r1,segments=14){
+ const curve=new THREE.CatmullRomCurve3(pts),sides=9,p=[],n=[],c=[],light=new THREE.Color(FOL.trunk.light),mid=new THREE.Color(FOL.trunk.mid),shadow=new THREE.Color(FOL.trunk.shadow);
+ const frames=curve.computeFrenetFrames(segments,false),rings=[];
+ for(let j=0;j<=segments;j++){const t=j/segments,o=curve.getPointAt(t),r=r1+(r0-r1)*Math.pow(1-t,1.4);rings.push(Array.from({length:sides},(_,k)=>{const a=k/sides*Math.PI*2,no=frames.normals[j].clone().multiplyScalar(Math.cos(a)).addScaledVector(frames.binormals[j],Math.sin(a));return{v:o.clone().addScaledVector(no,r),no};}));}
+ for(let j=0;j<segments;j++)for(let k=0;k<sides;k++){
+  const kk=(k+1)%sides,q=[rings[j][k],rings[j][kk],rings[j+1][kk],rings[j+1][k]],normal=q[0].no.clone().add(q[1].no).normalize(),lit=normal.dot(BARK_SUN);
+  const tone=lit>.33?mid.clone().lerp(light,THREE.MathUtils.smoothstep(lit,.33,.9)):shadow.clone().lerp(mid,THREE.MathUtils.smoothstep(lit,-.65,.33));
+  for(const id of[0,1,2,0,2,3]){p.push(...q[id].v.toArray());n.push(...normal.toArray());c.push(tone.r,tone.g,tone.b);}
+ }
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(n,3));g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));return g;
+}
+const barkPaint=()=>paint({vertexColors:true,shade:[.62,.62,.70],mid:[.62,.62,.70],band:[-5,-5]});
 // the game trunk's radius (tree units) at height h, from its authored spine
 function trunkRadius(h){const sp=ANIME.trunk.spine;for(let i=1;i<sp.length;i++)if(h<=sp[i][1]){const t=(h-sp[i-1][1])/(sp[i][1]-sp[i-1][1]);return sp[i-1][3]+(sp[i][3]-sp[i-1][3])*t;}return sp.at(-1)[3];}
 // A root grows out of the trunk's side: it leaves the bark at height hs, curves down onto the
@@ -137,13 +173,13 @@ function rootTree(u,v,s,seed,toPond=false){
   const a=start+k/n*Math.PI*2+R(-.3,.3),toward=spill!==null&&Math.cos(a-spill)>.55,hs=R(.22,.4),len=s*R(1.1,1.9)*(toward?1.8:1);
   // as thick as the bark it grows from, so the trunk and its roots are one piece
   const thick=trunkRadius(hs)*s*R(.6,.72),pts=rootPath(x,z,y0,s,a,hs,len,R(0,6));
-  rootParts.push(coloredPart(taperedTube(pts,thick,thick*.12,20,8),pick(ROOT_BARK)));
+  rootParts.push(barkTube(pts,thick,thick*.12,20));
   // a fork or two off the main root, thinner, turning away from it
   for(let f=0;f<(rand()<.6?2:1);f++){
    const i0=Math.min(pts.length-2,Math.max(3,Math.round(R(.35,.6)*(pts.length-1)))),o=pts[i0],side=rand()<.5?-1:1,b=a+side*R(.45,.9),bl=len*R(.3,.5);
    const bp=[o.clone()];for(let j=1;j<=6;j++){const t=j/6,px=o.x+Math.cos(b)*bl*t,pz=o.z+Math.sin(b)*bl*t;if(pondIn(px,pz)>0)break;bp.push(new V3(px,Math.max(height(px,pz),SEA_Y-.15)+M(.02)-M(.04)*t,pz));}
    if(bp.length<3)continue;
-   rootParts.push(coloredPart(taperedTube(bp,thick*(1-i0/(pts.length-1))*.75,thick*.08,10,6),pick(ROOT_BARK)));
+   rootParts.push(barkTube(bp,thick*(1-i0/(pts.length-1))*.75,thick*.08,10));
   }
  }
 }

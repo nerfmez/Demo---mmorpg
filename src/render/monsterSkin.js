@@ -70,8 +70,8 @@ export function prepareMonsterModel(gltf, cfg) {
     });
   }
   // `rigid`: a model built of separate hard pieces (the warden golem's stones and shield) moves each
-  // piece whole with the one bone that pulls it most, so stones never stretch or shear between bones
-  if (cfg.rigid) rigidPieces(g, si, sw, names.length, cfg.rigid === true ? 0.6 : cfg.rigid);
+  // piece whole with the bone nearest it, so stones never stretch, shear or follow another limb
+  if (cfg.rigid) rigidPieces(g, si, sw, names, segs, sharp);
   g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
   g.userData.shared = true;
@@ -80,9 +80,13 @@ export function prepareMonsterModel(gltf, cfg) {
   return { geometry: g, map, bones: names, cfg };
 }
 
-/** Give every connected piece of the mesh (joined by shared corners, across UV seams) that one bone
- * pulls with at least `share` of its weight to that bone alone. */
-function rigidPieces(g, si, sw, bones, share = 0.6) {
+/**
+ * Give every connected piece of the mesh (joined by shared corners, across UV seams) the bone whose
+ * segments lie nearest its middle, so a stone near another limb (a leg stone beside the fist) never
+ * follows it. A piece whose middle sits between two joined bones (the lava knot of an elbow or knee)
+ * is shared by those two only, with smooth weights, so it stays attached to both.
+ */
+function rigidPieces(g, si, sw, names, segs, sharp) {
   const pos = g.attributes.position, n = pos.count, parent = new Int32Array(n);
   for (let i = 0; i < n; i++) parent[i] = i;
   const find = (i) => { while (parent[i] !== i) i = parent[i] = parent[parent[i]]; return i; };
@@ -95,26 +99,32 @@ function rigidPieces(g, si, sw, bones, share = 0.6) {
   const ix = g.index ? g.index.array : null;
   if (ix) for (let t = 0; t < ix.length; t += 3) { join(ix[t], ix[t + 1]); join(ix[t], ix[t + 2]); }
   else for (let t = 0; t < n; t += 3) { join(t, t + 1); join(t, t + 2); }
-  const pull = new Map();
+  const mid = new Map(), p = new THREE.Vector3();
   for (let i = 0; i < n; i++) {
     const r = find(i);
-    let w = pull.get(r);
-    if (!w) pull.set(r, (w = new Float32Array(bones)));
-    for (let k = 0; k < 4; k++) w[si[i * 4 + k]] += sw[i * 4 + k];
+    let m = mid.get(r);
+    if (!m) mid.set(r, (m = [new THREE.Vector3(), 0]));
+    m[0].add(p.fromBufferAttribute(pos, i)); m[1]++;
   }
-  // a piece one bone mostly pulls goes whole with it; a piece shared between bones (the lava knot of
-  // an elbow or knee, bridging two limbs) keeps its smooth weights, so it stays joined to both
-  const best = new Map();
-  for (const [r, w] of pull) {
-    let total = 0, top = 0, b = 0;
-    for (let j = 0; j < bones; j++) { total += w[j]; if (w[j] > top) { top = w[j]; b = j; } }
-    best.set(r, top >= share * total ? b : -1);
+  const dist = (q, j) => Math.min(...segs[j].map(([a, b]) => segDist(q, a, b)));
+  const joined = new Set();
+  for (const s of ['L', 'R']) for (const [a, b] of [[`leg${s}`, `knee${s}`], [`arm${s}`, `elbow${s}`], ['hips', `leg${s}`], ['torso', `arm${s}`]]) joined.add(a + '|' + b).add(b + '|' + a);
+  for (const [a, b] of [['torso', 'head'], ['hips', 'torso']]) joined.add(a + '|' + b).add(b + '|' + a);
+  const pick = new Map();
+  for (const [r, [sum, count]] of mid) {
+    const c = sum.divideScalar(count).clone();
+    const order = names.map((_, j) => j).sort((x, y) => dist(c, x) - dist(c, y));
+    const [b1, b2] = order, d1 = dist(c, b1), d2 = dist(c, b2);
+    pick.set(r, joined.has(names[b1] + '|' + names[b2]) && d2 < d1 * 1.3 ? [b1, b2] : [b1]);
   }
   for (let i = 0; i < n; i++) {
-    const b = best.get(find(i));
-    if (b < 0) continue;
+    const bs = pick.get(find(i));
     si.fill(0, i * 4, i * 4 + 4); sw.fill(0, i * 4, i * 4 + 4);
-    si[i * 4] = b; sw[i * 4] = 1;
+    if (bs.length === 1) { si[i * 4] = bs[0]; sw[i * 4] = 1; continue; }
+    p.fromBufferAttribute(pos, i);
+    const w1 = 1 / Math.pow(dist(p, bs[0]) + 0.02, sharp), w2 = 1 / Math.pow(dist(p, bs[1]) + 0.02, sharp);
+    si[i * 4] = bs[0]; sw[i * 4] = w1 / (w1 + w2);
+    si[i * 4 + 1] = bs[1]; sw[i * 4 + 1] = w2 / (w1 + w2);
   }
 }
 

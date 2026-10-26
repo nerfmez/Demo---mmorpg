@@ -660,6 +660,9 @@ function wardenBoss(game, m, dt, { t, gap, slowMult }) {
     }
     return;
   }
+  // curls into a boulder and rolls along the locked lane: a rock in the way stuns it, and a roll
+  // that hits nobody leaves it dizzy (missStun), so stepping aside opens a punish window
+  if (a.roll && m.cd.roll <= 0 && gap >= a.roll.minRange && gap <= a.roll.maxRange) return startWindup(game, m, 'roll', t);
   if (m.cd.slam <= 0 && gap <= a.slam.radius - 1) return startWindup(game, m, 'slam', t, { radius: a.slam.radius });
   if (gap > a.sweep.range * 0.7) walkTo(game, m, t.x, t.z, m.def.speed * slowMult * (m.enraged ? 1.25 : 1), dt);
   else {

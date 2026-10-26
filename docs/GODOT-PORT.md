@@ -316,7 +316,14 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
   Wolves use `rend` (2 hits), Greyfang `rake` (3 hits). They replace the old repeated lunges.
 - **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event).
 - **`shove`:** an instant cone with `knock` (ram). `charge` (boar) is the only straight rush left,
-  besides the hawk `dive` and stalker `pounce` leaps.
+  besides the hawk `dive` and stalker `pounce` leaps, and the warden's `roll`.
+- **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an
+  attack with `kind: 'charge'`, so it shares the charge path (one hit per unit, a rock in the way
+  stuns it) plus `missStun` when it hits nobody. It is chosen at `minRange`..`maxRange`, after the
+  quake. In the renderer the warden's model carries a second form (`data/models.json` monsters
+  `horned_warden.ball`, `prepareMonsterForm`): a rigid boulder shown at the end of the curl and while
+  it rolls, spinning at speed / radius, with the skinned golem hidden. In Godot keep both meshes under
+  the monster and toggle them the same way.
 - **`quake`:** the warden marks `steps` `quake` areas along the locked line at wind-up start;
   each erupts `stepDelay` after the previous one.
 - **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.

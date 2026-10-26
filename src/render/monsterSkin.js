@@ -77,6 +77,30 @@ export function prepareMonsterModel(gltf, cfg) {
   return { geometry: g, map, bones: names, cfg };
 }
 
+/**
+ * A second, rigid form of a monster (data/models.json monsters.<type>.ball: the warden curled into
+ * a boulder): scaled by cfg.scale and centred on the origin, so it can spin about its middle.
+ */
+export function prepareMonsterForm(gltf, cfg) {
+  let mesh = null;
+  gltf.scene.updateMatrixWorld(true);
+  gltf.scene.traverse((o) => {
+    if (o.isMesh && !mesh) mesh = o;
+  });
+  if (!mesh) throw new Error('monster form: no mesh');
+  const g = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
+  for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
+  g.scale(cfg.scale || 1, cfg.scale || 1, cfg.scale || 1);
+  g.computeBoundingBox();
+  const c = g.boundingBox.getCenter(new THREE.Vector3());
+  g.translate(-c.x, -c.y, -c.z);
+  g.computeBoundingSphere();
+  g.userData.shared = true;
+  const map = mesh.material.map || null;
+  if (map) map.userData.shared = true;
+  return { geometry: g, map, radius: (g.boundingBox.max.y - g.boundingBox.min.y) / 2 };
+}
+
 // glow: how far the colour ignores the lighting (1 = unlit, for spirits that give off light)
 function modelMaterial(map, flash, rim, glow) {
   const m = new THREE.MeshToonMaterial({ map, gradientMap: toonRamp() });
@@ -136,6 +160,7 @@ export function attachMonsterModel(rig, T) {
     hull.userData.rig = true;
     mats.push(hull);
   }
+  rig.modelMeshes = [];
   for (const m of mats) {
     const mesh = new THREE.SkinnedMesh(T.geometry, m);
     mesh.bind(skeleton, new THREE.Matrix4());
@@ -143,6 +168,29 @@ export function attachMonsterModel(rig, T) {
     mesh.castShadow = m === mat;
     mesh.receiveShadow = m === mat; // never light the outline hull
     rig.root.add(mesh);
+    rig.modelMeshes.push(mesh);
+  }
+  // the second form (hidden until the animator swaps to it), with the same toon look and outline
+  if (T.ball) {
+    const form = new THREE.Group();
+    form.name = 'ball';
+    form.visible = false;
+    const bmat = modelMaterial(T.ball.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.glow ?? 0);
+    const bm = [bmat];
+    if (cfg.outline !== false) {
+      const hull = hullMaterial(cfg.outline || '#2a2230', cfg.outlineWidth ?? 0.02);
+      hull.userData.rig = true;
+      bm.push(hull);
+    }
+    for (const m of bm) {
+      const mesh = new THREE.Mesh(T.ball.geometry, m);
+      mesh.castShadow = m === bmat;
+      mesh.receiveShadow = m === bmat;
+      form.add(mesh);
+    }
+    form.userData.radius = T.ball.radius;
+    rig.root.add(form);
+    rig.ballForm = form;
   }
   // the stealth fade (view.js) also fades the model's own materials
   rig.modelMaterial = mat;

@@ -9,7 +9,7 @@ import { prepareHeroBase } from './skinned.js';
 import { prepareVrmBody, useVrm } from './vrm-body.js';
 import { prepareChibiBody, prepareChibiHair, useChibi } from './chibi-body.js';
 import { prepareChibiOutfit } from './chibi-garments.js';
-import { prepareMonsterModel } from './monsterSkin.js';
+import { prepareMonsterModel, prepareMonsterForm } from './monsterSkin.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {parts, outline}
 const loading = new Map(); // deduplicate concurrent/repeated registry loads
@@ -35,11 +35,17 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
       const key = `${group}/${id}`;
       if (loaded.has(key)) continue;
       if (loading.has(key)) { jobs.push(loading.get(key)); continue; }
-      const job = loader
-          .loadAsync(m.file)
-          .then((gltf) => {
-            if (group === 'characters' || group === 'monsters') {
-              loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : m.chibi ? prepareChibiBody : m.chibiHair ? prepareChibiHair : group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
+      const job = Promise.all([loader.loadAsync(m.file), group === 'monsters' && m.ball ? loader.loadAsync(m.ball.file) : null])
+          .then(([gltf, ball]) => {
+            if (group === 'monsters') {
+              // a second form (the warden's rolled boulder) loads with the monster, so every rig has both
+              const T = prepareMonsterModel(gltf, m);
+              if (ball) T.ball = prepareMonsterForm(ball, m.ball);
+              loaded.set(`${group}/${id}`, T);
+              return;
+            }
+            if (group === 'characters') {
+              loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : m.chibi ? prepareChibiBody : m.chibiHair ? prepareChibiHair : prepareHeroBase)(gltf, m));
               return;
             }
             loaded.set(`${group}/${id}`, prepareWeaponModel(gltf.scene, m));

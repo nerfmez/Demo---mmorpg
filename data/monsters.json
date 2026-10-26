@@ -579,6 +579,18 @@
           "recover": 1.2,
           "cooldown": 7.5,
           "damageMult": 1.5
+        },
+        "roll": {
+          "kind": "charge",
+          "minRange": 5,
+          "maxRange": 16,
+          "windup": 1.1,
+          "speed": 12,
+          "duration": 1.2,
+          "recover": 1.1,
+          "cooldown": 12,
+          "damageMult": 1.8,
+          "missStun": 1.5
         }
       },
       "enrageAt": 0.5,

@@ -83,6 +83,15 @@ test('imported models name real gear bases and respect measured asset budgets',a
   assert.ok(buf.length<(m.hairsample?14336:m.vrm?4096:m.chibiOutfit||m.chibi?1126:group==='characters'?600:400)*1024,m.file+' stays small for iPad');
   // a boss may carry a little more detail; one that summons (Greyfang's howl brings thornback
   // wolves, ai.js) must keep the whole encounter within the regular budget per monster
+  // a second form (the warden's rolled boulder): its own file, and both forms inside the boss budget
+  if(m.ball){
+   const ball=readFileSync(new URL('../../public/'+m.ball.file,import.meta.url));
+   assert.equal(ball.toString('latin1',0,4),'glTF',m.ball.file+' is a binary glTF');
+   assert.ok(ball.length<400*1024,m.ball.file+' stays small for iPad');
+   const bj=JSON.parse(ball.subarray(20,20+ball.readUInt32LE(12)));
+   assert.equal(bj.meshes.flatMap(mesh=>mesh.primitives).reduce((n,p)=>n+bj.accessors[p.indices].count/3,0),m.ball.tris,id+' ball triangle count');
+   assert.ok(m.tris+m.ball.tris<=6000,id+': both forms inside the boss budget');
+  }
   const boss=group==='monsters'&&data.monsters.monsters[id]?.boss;
   assert.ok(m.tris<=(boss?6000:m.hairsample?26000:m.vrm?20000:{characters:8000,monsters:5000}[group]??4000),id+' triangle budget');
   if(boss){

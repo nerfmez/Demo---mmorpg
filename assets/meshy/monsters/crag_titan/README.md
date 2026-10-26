@@ -14,4 +14,8 @@ Task ids are in `tasks.json`.
 - `ball_meshy.glb`: the rolled boulder. Meshy added a ground disc with rubble, which is to be cut off
   when it is prepared (keep the main piece).
 
-Not in game yet: the Horned Warden still uses `public/models/monsters/horned_warden.glb`.
+In game (the Horned Warden keeps its name, drops and attacks, plus a new `roll`):
+- `public/models/monsters/horned_warden.glb`: `scripts/prep-monster-glb.py golem_meshy.glb` (4,263 triangles).
+- `public/models/monsters/horned_warden_ball.glb`: `scripts/close-boulder-base.py` (ground removed,
+  base closed, rounded and painted stone), then `prep-monster-glb.py --tris 1600`.
+- The golem is skinned to the warden rig in `data/models.json` (the shield on the right forearm).

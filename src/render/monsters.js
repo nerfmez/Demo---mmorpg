@@ -833,6 +833,21 @@ function animWarden(r, s, dt, time) {
     torsoX = 0.55 * hold;
     hipsY -= 0.2 * hold;
     headX = 0.2 * hold;
+  } else if (s.windup === 'roll') {
+    // curls up: drops low, hunches over the knees, arms and shield drawn in round the body
+    torsoX = 0.2 + 1.0 * k;
+    headX = 0.7 * k;
+    hipsY -= 0.75 * k;
+    armX = [0.7 * k, 0.7 * k];
+    armZ = [0.25 - 0.9 * k, -0.25 + 0.9 * k];
+  } else if (s.lastAttack === 'roll' && (s.state === 'act' || s.state === 'recover' && s.actT < 0.5)) {
+    // rolling (the boulder form is drawn), then unfolding from the crouch
+    const u = s.state === 'act' ? 1 : 1 - clamp01((s.actT - 0.2) / 0.3);
+    torsoX = 0.2 + 1.0 * u;
+    headX = 0.7 * u;
+    hipsY -= 0.75 * u;
+    armX = [0.7 * u, 0.7 * u];
+    armZ = [0.25 - 0.9 * u, -0.25 + 0.9 * u];
   } else if (s.state === 'act') {
     headX = 0.55;
     torsoX = 0.7;
@@ -872,6 +887,25 @@ function animWarden(r, s, dt, time) {
   b.tail.rotation.z = r.tailSpring.update(Math.sin(time * 3) * 0.3 + Math.sin(ph) * 0.3 * w + clampAbs(s.turn * 0.3, 0.5), dt);
   const glow = s.enraged ? 1.4 + Math.sin(time * 8) * 0.4 : 0.6;
   b.rune.scale.setScalar(glow);
+  // the roll: the boulder form takes over at the end of the curl, spins forward while it rolls
+  // and stays a moment as it stops; then the golem unfolds out of it
+  const form = r.ballForm;
+  if (form) {
+    const rollingNow = s.lastAttack === 'roll' && (s.state === 'act' || s.state === 'recover' && s.actT < 0.2);
+    const ball = (s.windup === 'roll' && k > 0.8) || rollingNow;
+    form.visible = ball;
+    for (const m of r.modelMeshes) m.visible = !ball;
+    if (ball) {
+      const rad = form.userData.radius;
+      form.position.set(0, rad, 0.2);
+      // a wobble on the curl, full spin while it rolls (rig units: speed / root scale)
+      const spin = s.state === 'act' ? (s.attack?.speed || 10) / (rad * (r.baseScale || 1)) : s.windup === 'roll' ? 2 : 0;
+      r.rollAngle = ((r.rollAngle || 0) + spin * dt) % (Math.PI * 2);
+      form.rotation.set(r.rollAngle, 0, 0);
+      const pop = s.windup === 'roll' ? 0.85 + 0.15 * clamp01((k - 0.8) / 0.2) : 1;
+      form.scale.setScalar(pop);
+    } else r.rollAngle = 0;
+  }
 }
 
 // ---------- registry ----------

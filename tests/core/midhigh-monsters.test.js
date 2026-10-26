@@ -238,6 +238,54 @@ test('wolf rend and Greyfang rake are multi-hit combos; the warden quake is a li
   assert.equal(w.hits.length, 0);
 });
 
+test('the dormant warden lies still as a boulder and stands up before it fights', () => {
+  const w = arena('horned_warden');
+  Object.assign(w.m, { aggro: false, state: 'idle', stateT: 0 });
+  w.place(30);
+  const x = w.m.x, z = w.m.z;
+  w.step(5);
+  assert.equal(w.m.state, 'idle');
+  assert.ok(w.m.x === x && w.m.z === z, 'a dormant boulder does not wander');
+  w.place(4);
+  w.step(0.02);
+  assert.ok(w.m.aggro);
+  assert.equal(w.m.state, 'emerge', 'it first stands up');
+  w.step(w.m.def.dormant.wake - 0.1);
+  assert.equal(w.m.state, 'emerge');
+  assert.equal(w.hits.length, 0, 'no attack while its stones stack up');
+  w.step(0.2);
+  assert.notEqual(w.m.state, 'emerge');
+});
+
+test('the warden rolls as a boulder along a locked lane: one hit, none in the wind-up, dizzy after a miss', () => {
+  const w = arena('horned_warden');
+  const roll = w.m.def.attacks.roll;
+  assert.ok(roll.windup >= 0.8, 'a long, readable curl-up');
+  w.place(12); w.m.cd.slam = w.m.cd.sweep = w.m.cd.quake = 99;
+  w.step(0.01);
+  assert.equal(w.m.windup?.name, 'roll');
+  w.until(() => w.m.state === 'act');
+  assert.equal(w.hits.length, 0, 'nothing during the wind-up');
+  w.until(() => w.m.state !== 'act');
+  assert.equal(w.hits.length, 1, 'the boulder hits once');
+  assert.equal(w.m.charge, null, 'roll state clears');
+  assert.equal(w.m.state, 'recover');
+  assert.ok(w.m.cd.roll > 0);
+  // stepping out of the lane after it locks: no hit, and the boulder is left dizzy
+  const v = arena('horned_warden');
+  v.place(10); v.m.cd.slam = v.m.cd.sweep = v.m.cd.quake = 99;
+  v.step(0.01); v.step(v.m.windup.total * 0.7);
+  Object.assign(v.g.player, { x: 8 });
+  v.until(() => v.m.state !== 'windup' && v.m.state !== 'act');
+  assert.equal(v.hits.length, 0, 'sidestep misses');
+  assert.equal(v.m.state, 'stunned', 'a missed roll opens a punish window');
+  // too close to roll: it fights in place
+  const c = arena('horned_warden');
+  c.place(2); c.m.cd.slam = c.m.cd.sweep = c.m.cd.quake = 99;
+  c.step(0.01);
+  assert.notEqual(c.m.windup?.name, 'roll');
+});
+
 test('new contact attacks miss out of range/arc and death cancels remaining combo contacts', () => {
   for (const [type, name, gap] of [['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.2], ['thicket_mantis', 'whirl', 0.6], ['ironhorn_ram', 'shove', 1.5]]) {
     for (const miss of ['range', 'arc']) {

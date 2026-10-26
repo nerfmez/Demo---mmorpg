@@ -1,0 +1,11 @@
+{
+  "id": "shell_mitts",
+  "name_th": "ถุงมือเปลือกปู",
+  "slot": "gloves",
+  "game_status": "defined",
+  "set_id": "crabshell",
+  "set_name_th": "ชุดกระดองปู",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/crabshell-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/shell_mitts.png",
+  "record": "assets-source/equipment/20261026/items/shell_mitts.json"
+}

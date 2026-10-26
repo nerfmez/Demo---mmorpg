@@ -1,0 +1,91 @@
+{
+  "status": "source artwork proposal; no runtime item definitions",
+  "source_image": "exec-b530e83f-57b6-45d1-9562-571903f49d11.png",
+  "items": [
+    {
+      "id": "moonleaf_robe",
+      "source_component_ids": [
+        1
+      ],
+      "source_alpha_bbox": [
+        59,
+        15,
+        457,
+        534
+      ],
+      "sha256": "bee9593786fa7fbff00f7ab1f1007fb0b3e29f849d51a4bcd742ddc95818994b",
+      "proposed_new_item": true
+    },
+    {
+      "id": "moonleaf_cowl",
+      "source_component_ids": [
+        3
+      ],
+      "source_alpha_bbox": [
+        568,
+        98,
+        981,
+        474
+      ],
+      "sha256": "f68438a3c46c86a10ad1432690e30e00050e1a57c64ab3e162b59f7ea5de0090",
+      "proposed_new_item": true
+    },
+    {
+      "id": "moonleaf_gloves",
+      "source_component_ids": [
+        2,
+        4
+      ],
+      "source_alpha_bbox": [
+        1085,
+        84,
+        1495,
+        479
+      ],
+      "sha256": "83651e5011e274baba31af9709b4779721a213b9e0d79f78bd471c77036bb2da",
+      "proposed_new_item": true
+    },
+    {
+      "id": "moonleaf_slippers",
+      "source_component_ids": [
+        7
+      ],
+      "source_alpha_bbox": [
+        20,
+        603,
+        493,
+        1007
+      ],
+      "sha256": "4eac2883b18efeb6c8ced03e9b1168440a72fce3b5db1507b774da21ba79da59",
+      "proposed_new_item": false
+    },
+    {
+      "id": "moonleaf_wand",
+      "source_component_ids": [
+        5
+      ],
+      "source_alpha_bbox": [
+        586,
+        529,
+        1066,
+        997
+      ],
+      "sha256": "04ac7e3e0c24e92aac2657194ee1f6e02de2eced96ad85ed28e78a1fb13f31bf",
+      "proposed_new_item": false
+    },
+    {
+      "id": "moonleaf_pendant",
+      "source_component_ids": [
+        6
+      ],
+      "source_alpha_bbox": [
+        1191,
+        572,
+        1456,
+        969
+      ],
+      "sha256": "7ff24970c5dda491198a9692c6ee77139e81fdd909c28194a1e670ffbd4da6e5",
+      "proposed_new_item": true
+    }
+  ]
+}

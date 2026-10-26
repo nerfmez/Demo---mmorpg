@@ -8,12 +8,15 @@ import { toonRamp, outlineMaterial } from './toon.js';
 import { prepareHeroBase } from './skinned.js';
 import { prepareVrmBody, useVrm } from './vrm-body.js';
 import { prepareChibiBody, prepareChibiHair, useChibi } from './chibi-body.js';
-import { prepareMonsterModel } from './monsterSkin.js';
+import { prepareChibiOutfit } from './chibi-garments.js';
+import { prepareMonsterModel, prepareMonsterForm } from './monsterSkin.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {parts, outline}
 const loading = new Map(); // deduplicate concurrent/repeated registry loads
 const weapons = new Map();
 const failedWeapons = new Set();
+const outfits = new Map(); // chibi outfit models (characters with `chibiOutfit`), loaded when first worn
+const failedOutfits = new Set();
 const weaponListeners = new Set();
 const loader = new GLTFLoader();
 
@@ -25,17 +28,24 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
     if (group.startsWith('_')) continue;
     for (const [id, m] of Object.entries(entries)) {
       if (group === 'weapons') { weapons.set(id, m); continue; }
+      if (m.chibiOutfit) { if (useChibi) outfits.set(id, m); continue; } // on demand, like weapons
       if (m.vrm && !useVrm) continue; // the VRM hero is opt-in (?hero=vrm), so it is not downloaded otherwise
       if ((m.chibi || m.chibiHair) && !useChibi) continue; // the chibi hero and its hair (all but ?hero=classic / vrm)
       if (m.hairsample && useChibi) continue; // the HairSample hero only with ?hero=classic
       const key = `${group}/${id}`;
       if (loaded.has(key)) continue;
       if (loading.has(key)) { jobs.push(loading.get(key)); continue; }
-      const job = loader
-          .loadAsync(m.file)
-          .then((gltf) => {
-            if (group === 'characters' || group === 'monsters') {
-              loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : m.chibi ? prepareChibiBody : m.chibiHair ? prepareChibiHair : group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
+      const job = Promise.all([loader.loadAsync(m.file), group === 'monsters' && m.ball ? loader.loadAsync(m.ball.file) : null])
+          .then(([gltf, ball]) => {
+            if (group === 'monsters') {
+              // a second form (the warden's rolled boulder) loads with the monster, so every rig has both
+              const T = prepareMonsterModel(gltf, m);
+              if (ball) T.ball = prepareMonsterForm(ball, m.ball);
+              loaded.set(`${group}/${id}`, T);
+              return;
+            }
+            if (group === 'characters') {
+              loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : m.chibi ? prepareChibiBody : m.chibiHair ? prepareChibiHair : prepareHeroBase)(gltf, m));
               return;
             }
             loaded.set(`${group}/${id}`, prepareWeaponModel(gltf.scene, m));
@@ -65,9 +75,38 @@ function requestWeapon(id) {
   return job;
 }
 
-/** Only the current hands affect this readiness key, so stale requests cannot refresh new gear. */
+/** A chibi outfit model is requested when first worn; listeners hear its id ("outfit_<item>"). */
+function requestOutfit(id) {
+  const metadata = outfits.get(id), key = `characters/${id}`;
+  if (!metadata || loaded.has(key) || failedOutfits.has(id)) return;
+  if (loading.has(key)) return loading.get(key);
+  const job = loader.loadAsync(metadata.file).then((gltf) => {
+    loaded.set(key, prepareChibiOutfit(gltf, metadata));
+    for (const listener of weaponListeners) listener(id);
+  }).catch((err) => {
+    failedOutfits.add(id); // the code-built garments stay
+    console.warn('model not loaded:', metadata.file, err);
+  }).finally(() => loading.delete(key));
+  loading.set(key, job);
+  return job;
+}
+
+/** The worn armour's, boots' and helm's chibi outfit ids (core/outfit-look.js defaults). */
+const outfitIds = (bases) => [`outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`, ...(bases.helm ? [`outfit_${bases.helm}`] : [])];
+
+/** A loaded chibi outfit model, or null (requesting it, so the hero is redressed when it arrives). */
+export function chibiOutfit(id) {
+  requestOutfit(id);
+  return loaded.get(`characters/${id}`) || null;
+}
+
+/**
+ * Only the current hands and worn outfit models affect this readiness key, so stale requests cannot
+ * refresh new gear.
+ */
 export function weaponModelKey(bases = {}) {
-  return `${loaded.has(`weapons/${bases.weapon}`)}:${loaded.has(`weapons/${bases.offhand}`)}`;
+  const has = (k) => +loaded.has(k);
+  return `${has(`weapons/${bases.weapon}`)}:${has(`weapons/${bases.offhand}`)}:${outfitIds(bases).map((id) => has(`characters/${id}`)).join('')}`;
 }
 
 /** Portraits may wait for current demanded assets; absent/failed assets use fallback. */
@@ -76,6 +115,11 @@ export function weaponModelsReady(bases = {}) {
   for (const id of [bases.weapon, bases.offhand]) {
     if (weapons.has(id) && !loaded.has(`weapons/${id}`) && !failedWeapons.has(id)) {
       requestWeapon(id); ready = false;
+    }
+  }
+  for (const id of outfitIds(bases)) {
+    if (outfits.has(id) && !loaded.has(`characters/${id}`) && !failedOutfits.has(id)) {
+      requestOutfit(id); ready = false;
     }
   }
   return ready;

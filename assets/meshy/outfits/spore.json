@@ -1,0 +1,44 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for reference sheet 16: sized from its arm axis (no scale given), cut at the neck, sleeve ends (cuff) and boot tops; landmarks as travel.json.",
+ "id": "spore",
+ "src": "assets/meshy/outfits/spore_meshy.glb",
+ "neck": 0.905,
+ "cuff": 0.215,
+ "bootTop": 0.13,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.5,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/sporeweave_vest.glb",
+  "boots": "public/models/outfits/moonleaf_slippers.glb"
+ }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "moonleaf_cowl",
+  "name_th": "ผ้าคลุมใบจันทร์",
+  "slot": "head",
+  "game_status": "proposed",
+  "set_id": "moonleaf",
+  "set_name_th": "ชุดใบจันทร์",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/moonleaf-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/moonleaf_cowl.png",
+  "record": "assets-source/equipment/20261026/items/moonleaf_cowl.json"
+}

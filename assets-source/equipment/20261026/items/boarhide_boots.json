@@ -1,0 +1,11 @@
+{
+  "id": "boarhide_boots",
+  "name_th": "รองเท้าหนังหมูป่า",
+  "slot": "boots",
+  "game_status": "proposed",
+  "set_id": "boarhide",
+  "set_name_th": "ชุดหนังหมูป่า",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/boarhide-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/boarhide_boots.png",
+  "record": "assets-source/equipment/20261026/items/boarhide_boots.json"
+}

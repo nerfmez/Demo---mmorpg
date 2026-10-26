@@ -1,0 +1,11 @@
+{
+  "id": "shell_guard",
+  "name_th": "เกราะกระดองด้วง",
+  "slot": "armor",
+  "game_status": "defined",
+  "set_id": "beetle",
+  "set_name_th": "ชุดกระดองด้วง",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/beetle-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/shell_guard.png",
+  "record": "assets-source/equipment/20261026/items/shell_guard.json"
+}

@@ -52,7 +52,8 @@ function glslAll(F) {
 uniform vec3 uPal[10]; uniform vec4 uCutA; uniform vec4 uCutB; uniform vec4 uCutC; uniform vec4 uCutD; uniform float uKind;
 varying vec3 vBind;
 // uCutA: sleeve, cuff, hem, trim · uCutB: panel, yoke, stripe, neck · uCutC: pants, boot, pattern
-// uCutD: skirt length or boots/gloves length, skirt opening (radians either side of the front), trousers design
+// uCutD: skirt length or boots/gloves length, skirt opening (radians either side of the front), trousers design,
+//   w 1: boots/gloves cut clean at their length plus y (their shell reaches past it in whole triangles, the chibi)
 ${fns}
 vec3 garmentColor(vec3 p) {
 ${KINDS.map((k, i) => `  ${i ? 'else ' : ''}if (uKind < ${i}.5) return garment${i}(p);`).join('\n')}
@@ -69,6 +70,7 @@ vec3 garmentColor(vec3 p) {
 `;
   if (kind === 'gloves') return head + `
   float len = ${f(F.wrist - F.elbow)}, t = (x - ${f(F.elbow)}) / len, top = 1.0 - uCutD.x;
+  if (uCutD.w > 0.0 && t < top - uCutD.y) discard;
   if (t < top + 0.07) return uPal[2];
   if (uCutC.z > 2.5 && (t < 1.0 ? fract(t * 4.0) < 0.12 : fract((x - ${f(F.wrist)}) / 0.032) < 0.2)) return uPal[2];
   if (uCutC.z > 1.5 && uCutC.z < 2.5 && t < top + 0.32) return length(fract(vec2(x, y) * 45.0) - 0.5) < 0.2 ? uPal[3] : uPal[2];
@@ -81,6 +83,7 @@ vec3 garmentColor(vec3 p) {
 `;
   if (kind === 'boots') return head + `
   float t = (y - ${f(F.ankle)}) / ${f(F.knee - F.ankle)};
+  if (uCutD.w > 0.0 && t > uCutD.x + uCutD.y) discard;
   if (y < ${f(F.ankle * 0.4)}) return uPal[9];
   if (t > uCutD.x - 0.09) return uPal[2];
   if (uCutC.z > 2.5 && fract(t * 5.0) < 0.12) return uPal[2];

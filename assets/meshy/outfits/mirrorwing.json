@@ -1,0 +1,44 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for the mirrorwing set: the front view of its equipment turnaround (assets-source/equipment/20261026, mirrorwing-turnaround), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1) and a Meshy 6 retexture from the same image (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); sized from its arm axis, cut at the neck, sleeve ends (cuff) and boot tops read off the model.",
+ "id": "mirrorwing",
+ "src": "assets/meshy/outfits/mirrorwing_meshy.glb",
+ "neck": 0.92,
+ "cuff": 0.42,
+ "bootTop": 0.22,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.32,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/mirrorwing_robe.glb",
+  "boots": "public/models/outfits/mirrorwing_boots.glb"
+ }
+}

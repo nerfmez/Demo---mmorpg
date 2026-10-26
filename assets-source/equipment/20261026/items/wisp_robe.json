@@ -1,0 +1,11 @@
+{
+  "id": "wisp_robe",
+  "name_th": "เสื้อคลุมแสงวิญญาณ",
+  "slot": "armor",
+  "game_status": "proposed",
+  "set_id": "wisp",
+  "set_name_th": "ชุดแสงวิญญาณ",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/wisp-turnaround.jpeg",
+  "icon": "assets-source/equipment/20261025/icons/wisp_robe.png",
+  "record": "assets-source/equipment/20261026/items/wisp_robe.json"
+}

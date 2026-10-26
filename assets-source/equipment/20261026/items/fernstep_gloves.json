@@ -1,0 +1,11 @@
+{
+  "id": "fernstep_gloves",
+  "name_th": "ถุงมือก้าวเฟิร์น",
+  "slot": "gloves",
+  "game_status": "proposed",
+  "set_id": "fernstep",
+  "set_name_th": "ชุดก้าวเฟิร์น",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/fernstep-turnaround.jpeg",
+  "icon": "assets-source/equipment/20261025/icons/fernstep_gloves.png",
+  "record": "assets-source/equipment/20261026/items/fernstep_gloves.json"
+}

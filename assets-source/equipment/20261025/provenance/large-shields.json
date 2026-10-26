@@ -1,0 +1,69 @@
+{
+  "source_image": "large-shields-atlas.png",
+  "source_sha256": "39174b5044cd8d24252bff00a0447e8346fc5b15ce45f204e43e8b5df55c0912",
+  "source_kind": "owner-supplied transparent sheet: three large shields, front (top row) and back (bottom row)",
+  "status": "Artwork only; no game data changes",
+  "extraction_method": "alpha connected components; only the fronts are icons, the back views are not used",
+  "items": [
+    {
+      "id": "crab_greatshield",
+      "name_th": "โล่ใหญ่กระดองปู",
+      "new_proposed_item": true,
+      "source_bounds": [
+        57,
+        13,
+        524,
+        610
+      ],
+      "content_bounds": [
+        71,
+        20,
+        440,
+        492
+      ],
+      "components": 1,
+      "sha256": "9eb785cccde4d7070cd4c7622505f774c637c5954d59865f9394aa6e25de93c3",
+      "kind": "greatshield: one large shield held in both hands"
+    },
+    {
+      "id": "beetle_greatshield",
+      "name_th": "โล่ใหญ่กระดองด้วง",
+      "new_proposed_item": true,
+      "source_bounds": [
+        565,
+        23,
+        971,
+        614
+      ],
+      "content_bounds": [
+        94,
+        20,
+        418,
+        492
+      ],
+      "components": 1,
+      "sha256": "cdd51002447b1a8bafd2af97eb5d369d9d31969e9198faf6898b65489e4d284a",
+      "kind": "greatshield: one large shield held in both hands"
+    },
+    {
+      "id": "crag_greatshield",
+      "name_th": "โล่ใหญ่ศิลาผา",
+      "new_proposed_item": true,
+      "source_bounds": [
+        1026,
+        8,
+        1451,
+        614
+      ],
+      "content_bounds": [
+        90,
+        20,
+        421,
+        492
+      ],
+      "components": 1,
+      "sha256": "ac1e0edf9354450002f66a9c779c7667096d2775a25eb346030ad9205606abf0",
+      "kind": "greatshield: one large shield held in both hands"
+    }
+  ]
+}

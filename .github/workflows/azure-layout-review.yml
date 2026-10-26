@@ -22,8 +22,8 @@ permissions:
 
 jobs:
   focused-layout:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    runs-on: ubuntu-24.04 # Playwright 1.56 has no browser build for ubuntu-latest (26.04)
+    timeout-minutes: 20 # apt dependencies for the browser can take ~8 min on a cold runner
     steps:
       - uses: actions/checkout@v4
         with:

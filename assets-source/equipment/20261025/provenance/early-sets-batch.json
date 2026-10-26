@@ -1,0 +1,318 @@
+{
+  "status": "Artwork preview only; no game data changes",
+  "style": "Owner-approved cream-background illustration references",
+  "items": [
+    {
+      "id": "hide_vest",
+      "name_th": "เสื้อหนังหมูป่า",
+      "new_proposed_item": false,
+      "theme": "boar",
+      "source": "exec-d5cff942-54c0-4eb9-ad7e-cf2de4589a07.png",
+      "source_crop": [
+        40,
+        20,
+        530,
+        548
+      ],
+      "content_bounds": [
+        23,
+        15,
+        471,
+        510
+      ],
+      "boundary_margin": [
+        23,
+        15,
+        19,
+        18
+      ],
+      "sha256": "6aafb24e8e56fedb2e59b4929edd5bf4c04b816abb6370fc318ae566d905a7a0"
+    },
+    {
+      "id": "leather_cap",
+      "name_th": "หมวกหนัง",
+      "new_proposed_item": false,
+      "theme": "boar",
+      "source": "exec-d5cff942-54c0-4eb9-ad7e-cf2de4589a07.png",
+      "source_crop": [
+        550,
+        60,
+        990,
+        525
+      ],
+      "content_bounds": [
+        23,
+        31,
+        406,
+        446
+      ],
+      "boundary_margin": [
+        23,
+        31,
+        34,
+        19
+      ],
+      "sha256": "d5976f63df883483411915ed63e2e8e06f4ec9a0226efc4402a241adead2fc5b"
+    },
+    {
+      "id": "hide_gloves",
+      "name_th": "ถุงมือหนังหมูป่า",
+      "new_proposed_item": false,
+      "theme": "boar",
+      "source": "exec-d5cff942-54c0-4eb9-ad7e-cf2de4589a07.png",
+      "source_crop": [
+        1015,
+        80,
+        1536,
+        525
+      ],
+      "content_bounds": [
+        19,
+        24,
+        504,
+        424
+      ],
+      "boundary_margin": [
+        19,
+        24,
+        17,
+        21
+      ],
+      "sha256": "f28fa519cd15c23902e6bf01fc27466464e02b6b99aa9ac948516c60c495bade"
+    },
+    {
+      "id": "boarhide_boots",
+      "name_th": "รองเท้าหนังหมูป่า",
+      "new_proposed_item": true,
+      "theme": "boar",
+      "source": "exec-d5cff942-54c0-4eb9-ad7e-cf2de4589a07.png",
+      "source_crop": [
+        25,
+        565,
+        540,
+        1005
+      ],
+      "content_bounds": [
+        23,
+        18,
+        508,
+        423
+      ],
+      "boundary_margin": [
+        23,
+        18,
+        7,
+        17
+      ],
+      "sha256": "f6280da68a23a099b286b4fa4ed30a7abb472ca4dcd8c76b2937804ce7431ab8"
+    },
+    {
+      "id": "tusk_blade",
+      "name_th": "ดาบเขี้ยวหมูป่า",
+      "new_proposed_item": false,
+      "theme": "boar",
+      "source": "exec-d5cff942-54c0-4eb9-ad7e-cf2de4589a07.png",
+      "source_crop": [
+        535,
+        525,
+        1040,
+        1015
+      ],
+      "content_bounds": [
+        9,
+        4,
+        496,
+        471
+      ],
+      "boundary_margin": [
+        9,
+        4,
+        9,
+        19
+      ],
+      "sha256": "fb3c63e6818c3dd5a7adf80605a0eb390aa7c5a92aac767afa12eef549b71017"
+    },
+    {
+      "id": "tusk_charm",
+      "name_th": "เครื่องรางเขี้ยว",
+      "new_proposed_item": false,
+      "theme": "boar",
+      "source": "exec-d5cff942-54c0-4eb9-ad7e-cf2de4589a07.png",
+      "source_crop": [
+        1060,
+        550,
+        1536,
+        1005
+      ],
+      "content_bounds": [
+        19,
+        20,
+        451,
+        421
+      ],
+      "boundary_margin": [
+        19,
+        20,
+        25,
+        34
+      ],
+      "sha256": "7fca0fd189c7acd51359bc2bef27f0ce3983d80906517dc864a9156cc0928cde"
+    },
+    {
+      "id": "crabshell_vest",
+      "name_th": "เกราะกระดองปู",
+      "new_proposed_item": true,
+      "theme": "crab",
+      "source": "exec-80b23ddd-4070-45b5-8d43-fca89d9ac584.png",
+      "source_crop": [
+        0,
+        20,
+        565,
+        520
+      ],
+      "content_bounds": [
+        20,
+        20,
+        546,
+        493
+      ],
+      "boundary_margin": [
+        20,
+        20,
+        19,
+        7
+      ],
+      "sha256": "6d75ae3bf409a4c7c2bf1136a7703317547c84646179b23f818f2e0a7faa2823"
+    },
+    {
+      "id": "crabshell_helm",
+      "name_th": "หมวกกระดองปู",
+      "new_proposed_item": false,
+      "theme": "crab",
+      "source": "exec-80b23ddd-4070-45b5-8d43-fca89d9ac584.png",
+      "source_crop": [
+        565,
+        50,
+        1015,
+        520
+      ],
+      "content_bounds": [
+        11,
+        28,
+        437,
+        435
+      ],
+      "boundary_margin": [
+        11,
+        28,
+        13,
+        35
+      ],
+      "sha256": "4a299752d5c7d2e13a9ea2ea76d0982a625a33e86a009625321f2b999426a744"
+    },
+    {
+      "id": "shell_mitts",
+      "name_th": "ถุงมือเปลือกปู",
+      "new_proposed_item": false,
+      "theme": "crab",
+      "source": "exec-80b23ddd-4070-45b5-8d43-fca89d9ac584.png",
+      "source_crop": [
+        1015,
+        50,
+        1536,
+        520
+      ],
+      "content_bounds": [
+        18,
+        31,
+        494,
+        436
+      ],
+      "boundary_margin": [
+        18,
+        31,
+        27,
+        34
+      ],
+      "sha256": "bdf176ad97f09d2ab1db76fd2e5acf9b2b1717c3fe4ef4af6f13697f0a1c8086"
+    },
+    {
+      "id": "tide_boots",
+      "name_th": "รองเท้าเดินคลื่น",
+      "new_proposed_item": false,
+      "theme": "crab",
+      "source": "exec-80b23ddd-4070-45b5-8d43-fca89d9ac584.png",
+      "source_crop": [
+        20,
+        550,
+        580,
+        1010
+      ],
+      "content_bounds": [
+        39,
+        20,
+        545,
+        435
+      ],
+      "boundary_margin": [
+        39,
+        20,
+        15,
+        25
+      ],
+      "sha256": "08c84c215eaba21b2c68fc5f1613e5f4873ce3b69a6bbb884eec6be3be391109"
+    },
+    {
+      "id": "crab_shield",
+      "name_th": "โล่กระดองปู",
+      "new_proposed_item": false,
+      "theme": "crab",
+      "source": "exec-80b23ddd-4070-45b5-8d43-fca89d9ac584.png",
+      "source_crop": [
+        585,
+        520,
+        1055,
+        1010
+      ],
+      "content_bounds": [
+        16,
+        2,
+        447,
+        449
+      ],
+      "boundary_margin": [
+        16,
+        2,
+        23,
+        41
+      ],
+      "sha256": "76b92e4888ee1cfa0d92f7297ed547d9a529e06a5088580282f1da497034fa3d"
+    },
+    {
+      "id": "pearl_pendant",
+      "name_th": "จี้ไข่มุกทะเล",
+      "new_proposed_item": false,
+      "theme": "crab",
+      "source": "exec-80b23ddd-4070-45b5-8d43-fca89d9ac584.png",
+      "source_crop": [
+        1080,
+        540,
+        1515,
+        995
+      ],
+      "content_bounds": [
+        24,
+        18,
+        405,
+        413
+      ],
+      "boundary_margin": [
+        24,
+        18,
+        30,
+        42
+      ],
+      "sha256": "45117cd3d338aa6667a86c60ae700fb3d541eb31e92002138ca6f04e346646b2"
+    }
+  ]
+}

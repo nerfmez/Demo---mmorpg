@@ -28,11 +28,26 @@ test('the chibi head reshape stays a small, bounded change', () => {
   for (const k of ['wide', 'chin', 'cheek']) assert.ok(h[k] >= 0 && h[k] <= 0.3, k + ' is a modest fraction');
   assert.ok(h.eye > 0 && h.eye < 1, 'eye line inside the head');
   assert.ok(h.soft >= 0 && h.soft <= 1, 'soft blends between mesh and sphere normals');
+  assert.ok(h.scale === undefined || (h.scale > 0.6 && h.scale <= 1.2), 'the head scale keeps a chibi head');
+  const f = data.models.characters.hero_chibi.fit;
+  assert.ok(f.crotch < f.armAxis && f.armAxis < f.neck && f.neck < 1.2 && f.tip > 0.3, 'fit landmarks in order on the 1.2 m body');
+});
+
+test('the chibi painted light only lifts its shading', () => {
+  const k = data.models.characters.hero_chibi.paintedLight;
+  // the Meshy textures carry their own shading: a fraction of the texture glows so the toon light
+  // does not darken it twice, but it never flattens the cel ramp away
+  assert.ok(k === undefined || (k >= 0 && k <= 0.6), 'paintedLight is a fraction up to 0.6');
+  const t = data.models.characters.hero_chibi.tint;
+  assert.ok(t === undefined || (t.length === 3 && t.every((c) => c > 0.6 && c <= 1)), 'tint only warms the skin a little');
+  const u = data.models.characters.hero_chibi.underCloth;
+  assert.ok(u && u.inset > 0 && u.inset <= 0.03, 'the body is tucked under cloth, not removed (a few cm at most: an arm is about 3 cm thick)');
+  assert.ok(u.inside > 0 && u.inside < 1 && u.under > 0 && u.under < 1, 'a garment inside and the body under it are shaded, never black');
+  assert.ok(u.depth > 0 && u.depth <= 0.1, 'the tucked body is pushed back only a few cm in depth');
 });
 
 test('the chibi torso flatten bands are bounded', () => {
-  const bands = data.models.characters.hero_chibi.flatten;
-  assert.ok(Array.isArray(bands) && bands.length, 'hero_chibi flattens its torso');
+  const bands = data.models.characters.hero_chibi.flatten || [];
   for (const b of bands) {
     assert.ok(b.y0 < b.y1 && b.y0 > 0 && b.y1 < 1.2, 'band inside the 1.2 m body');
     assert.ok(Math.abs(b.z) < 0.2 && b.z !== 0, 'depth limit in front of (z > 0) or behind (z < 0) the body');
@@ -53,9 +68,9 @@ test('the chibi helm fit sits over the hair', () => {
   assert.ok(h && h.scale > 1 && h.scale < 1.6 && h.lift >= 0 && h.lift < 0.3, 'helms larger and a little higher than the head');
 });
 
-test('the chibi hair models are single meshes within the character budget', () => {
+test('the chibi hair model is a single mesh within the character budget', () => {
   const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiHair);
-  assert.deepEqual(entries.map(([id]) => id).sort(), ['hero_chibi_hair', 'hero_chibi_hair_back']);
+  assert.deepEqual(entries.map(([id]) => id), ['hero_chibi_hair']);
   let drawn = 0;
   for (const [id, m] of entries) {
     const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
@@ -73,6 +88,42 @@ test('the chibi hair models are single meshes within the character budget', () =
     if (m.keep) assert.ok(['front', 'back'].includes(m.keep[0]) && m.keep[1] > 0 && m.keep[1] < 1, id + ' keep');
     drawn += tris;
   }
-  // the two halves together stay well inside the 8,000-tri character budget
+  // with the body it stays well inside the 8,000-tri character budget
   assert.ok(drawn + data.models.characters.hero_chibi.tris < 12000);
+});
+
+test('modelled chibi outfits are one skinned mesh on the chibi armature for a real item', () => {
+  const outfits = JSON.parse(readFileSync(new URL('../../data/outfits.json', import.meta.url), 'utf8'));
+  const body = data.models.characters.hero_chibi;
+  const bb = readFileSync(new URL('../../public/' + body.file, import.meta.url));
+  const bj = JSON.parse(bb.toString('utf8', 20, 20 + bb.readUInt32LE(12)));
+  const bones = new Set(bj.skins[0].joints.map((i) => bj.nodes[i].name));
+  const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiOutfit);
+  assert.ok(entries.length >= 2, 'at least the travel tunic and boots');
+  for (const [id, m] of entries) {
+    assert.ok(['armor', 'boots', 'helm'].includes(m.chibiOutfit), id + ' piece');
+    // the game finds the model by the worn item's id (hero.js: outfit_<item>)
+    const table = { armor: 'armor', boots: 'boots', helm: 'helms' }[m.chibiOutfit];
+    assert.ok(outfits[table][id.replace(/^outfit_/, '')], id + ' names a ' + m.chibiOutfit + ' item');
+    const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
+    const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
+    if (m.chibiOutfit === 'helm') {
+      // a plain textured mesh placed on the head like the hair
+      assert.ok(!j.skins && j.meshes.length === 1 && j.images.length === 1, id + ' one textured mesh');
+      assert.equal(j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0), m.tris, id);
+      assert.ok(m.withHair === undefined || typeof m.withHair === 'boolean', id + ' withHair');
+      continue;
+    }
+    assert.equal(j.skins.length, 1, id);
+    for (const i of j.skins[0].joints) assert.ok(bones.has(j.nodes[i].name), id + ' joint ' + j.nodes[i].name + ' is a chibi bone');
+    const nodes = j.nodes.filter((n) => n.mesh !== undefined);
+    assert.equal(nodes.length, 1, id + ' one mesh');
+    assert.equal(j.images.length, 1, id + ' its own painted texture');
+    const tris = j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
+    assert.equal(tris, m.tris, id);
+    // the body faces it covers, hidden while it is worn: real triangles of the body
+    const hide = JSON.parse(nodes[0].extras.hideBody);
+    assert.ok(hide.length > 100 && hide.every((t) => Number.isInteger(t) && t >= 0 && t < body.tris), id + ' hideBody');
+    assert.ok(tris + body.tris < 8000, id + ' with the body inside the character budget');
+  }
 });

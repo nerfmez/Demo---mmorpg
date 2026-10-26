@@ -15,10 +15,10 @@ import { ACTIONS, pickAction } from './actions.js';
 import { reachArm, PALM } from './ik.js';
 import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
-import { buildHeadwear } from './headwear.js';
+import { buildHeadwear, HAIR_WHOLE } from './headwear.js';
 import OUTFITS from '../../data/outfits.json';
 import { resolveOutfit } from '../core/outfit-look.js';
-import { modelInstance, characterBase } from './models.js';
+import { modelInstance, characterBase, chibiOutfit } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
 import { attachChibiBody, attachChibiHair } from './chibi-body.js';
@@ -178,7 +178,9 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rb.add('chest', sph(0.06, 8, 6), L.scarf, { pos: [0.06, 0.31, -0.08] });
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
-  buildHeadwear(rb, wear.helm);
+  // the chibi wears a modelled helm when its item has one (and it has loaded), else the built one
+  const helmModel = V?.chibi && wear.helm ? chibiOutfit('outfit_' + wear.helm.id) : null;
+  if (!helmModel) buildHeadwear(rb, wear.helm);
   const outfit = T || X ? buildOutfit(rb, T || X, wear) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc || gear.unarmed ? null : 'sword'), gear.bases?.weapon); // unarmed: before the opening's weapon is chosen
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
@@ -193,7 +195,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   if (offhandModel) rig.bones.offhand.add(modelInstance('weapons', offhandModel, rig.material.userData.flash));
   // A left-hand weapon is not animated: it keeps the right hand's resting angle (actions.js REST.weapon).
   if (rig.bones.offhand && gear.offhand && !['shield', 'quiver'].includes(gear.offhand)) rig.bones.offhand.rotation.x = 1.2;
-  if (!V && !X) attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
+  if (!V && !X) attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && !HAIR_WHOLE.includes(gear.helm) });
   let neckParts = rig.bones.chest;
   if (T) {
     fitParts(rig.bones.head, T.headFit);
@@ -216,11 +218,10 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
       attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
-      attachChibiGarments(rig, V, wear); // the outfit's top, trousers, skirt, boots and gloves
-      for (const id of ['hero_chibi_hair', 'hero_chibi_hair_back']) {
-        const hair = characterBase(id); // the fringe and the back come from two models
-        if (hair) attachChibiHair(rig, V, hair);
-      }
+      // the outfit's top, trousers, skirt, boots and gloves; a modelled armour or boots replaces its shells
+      attachChibiGarments(rig, V, wear, { armor: chibiOutfit('outfit_' + wear.armor), boots: chibiOutfit('outfit_' + wear.boots.id) });
+      const hair = characterBase('hero_chibi_hair');
+      if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && !HAIR_WHOLE.includes(wear.helm.kind), model: helmModel }); // a circlet or cowl leaves the hair whole
     } else attachVrmBody(rig, V);
   }
   rig.look = L;

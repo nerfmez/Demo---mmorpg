@@ -1,0 +1,11 @@
+{
+  "id": "crabshell_vest",
+  "name_th": "เกราะกระดองปู",
+  "slot": "armor",
+  "game_status": "proposed",
+  "set_id": "crabshell",
+  "set_name_th": "ชุดกระดองปู",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/crabshell-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/crabshell_vest.png",
+  "record": "assets-source/equipment/20261026/items/crabshell_vest.json"
+}

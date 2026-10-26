@@ -119,7 +119,9 @@ export function setAggro(game, m, unit = null, force = false) {
   }
   m.aggro = true;
   if (unit && (force || !m.targetUnit)) m.targetUnit = unit;
-  if (m.state === 'idle' || m.state === 'return') setState(m, 'chase');
+  // a dormant boulder first stands up (its stones stack into the golem): no attack while it wakes
+  if (fresh && m.def.dormant && m.state === 'idle') setState(m, 'emerge', m.def.dormant.wake);
+  else if (m.state === 'idle' || m.state === 'return') setState(m, 'chase');
   // a pack animal brings its packmates in range with it (def.packAssist metres)
   const assist = m.def.packAssist, pack = m.spawn?.pack;
   if (fresh && assist && pack) {
@@ -172,6 +174,11 @@ function approach(v, target, step) {
 }
 
 function idle(game, m, dt, slowMult) {
+  // a dormant monster (def.dormant: the warden lying as a boulder) does not wander
+  if (m.def.dormant) {
+    m.moving = false;
+    return;
+  }
   if (m.wanderT === undefined || m.wanderT <= 0) {
     m.wanderT = game.rng.range(2.5, 6);
     if (game.rng.chance(0.6)) {
@@ -660,6 +667,9 @@ function wardenBoss(game, m, dt, { t, gap, slowMult }) {
     }
     return;
   }
+  // curls into a boulder and rolls along the locked lane: a rock in the way stuns it, and a roll
+  // that hits nobody leaves it dizzy (missStun), so stepping aside opens a punish window
+  if (a.roll && m.cd.roll <= 0 && gap >= a.roll.minRange && gap <= a.roll.maxRange) return startWindup(game, m, 'roll', t);
   if (m.cd.slam <= 0 && gap <= a.slam.radius - 1) return startWindup(game, m, 'slam', t, { radius: a.slam.radius });
   if (gap > a.sweep.range * 0.7) walkTo(game, m, t.x, t.z, m.def.speed * slowMult * (m.enraged ? 1.25 : 1), dt);
   else {

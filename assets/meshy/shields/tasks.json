@@ -1,0 +1,17 @@
+{
+ "crab_greatshield": {
+  "geometry": "01a176c9-0d5e-7053-97c7-09a7c6c8947d",
+  "retexture": "01a176c9-67be-7494-961c-bea1d926361f",
+  "status": "SUCCEEDED"
+ },
+ "beetle_greatshield": {
+  "geometry": "01a176c9-1115-767a-b734-5b46d757abeb",
+  "retexture": "01a176ca-b0e7-716e-bb3d-a19da69b83ed",
+  "status": "SUCCEEDED"
+ },
+ "crag_greatshield": {
+  "geometry": "01a176c9-13a6-729c-bdc1-06dd3fe661d3",
+  "retexture": "01a176cb-f940-7195-9f84-4526646784c0",
+  "status": "SUCCEEDED"
+ }
+}

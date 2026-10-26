@@ -1,0 +1,11 @@
+{
+  "id": "wisp_hood",
+  "name_th": "ฮู้ดแสงวิญญาณ",
+  "slot": "head",
+  "game_status": "proposed",
+  "set_id": "wisp",
+  "set_name_th": "ชุดแสงวิญญาณ",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/wisp-turnaround.jpeg",
+  "icon": "assets-source/equipment/20261025/icons/wisp_hood.png",
+  "record": "assets-source/equipment/20261026/items/wisp_hood.json"
+}

@@ -201,3 +201,12 @@ Thunderstorm: a double ring with a crackle running round it; thin crackling bolt
 ragged flashes, glow pops, rays and sparks; the last wave a big bolt, a large flash, a shock ring.
 Blizzard: a double ring over a faint frost sheet; lit ice blades bursting up round the edge; spiralling
 wind-light streaks, snow stars and glints; the blades shatter at the end.
+
+### Warden boulder roll — 2026-10-26
+
+The gallery host returned 403 to this session again, so no clip was inspected. The roll uses the anime
+motion language the owner asked for: a few fading afterimages of the ball itself behind it (motion blur
+read as cel frames), thin cream speed lines streaking back from its silhouette in staggered pulses, a
+soft dust streak on the ground and a slight stretch of the ball along its path. Original procedural
+shapes (`src/render/roll-fx.js`, numbers in `data/combat-fx.json` `roll`); nothing copied. Re-check
+against relevant gallery dash/rush/speed-line clips when the host is reachable.

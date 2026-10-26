@@ -1,0 +1,44 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for the burrowguard set: the front view of its equipment turnaround (assets-source/equipment/20261026, burrowguard-turnaround), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7) and a Meshy 6 retexture from the same image (task 01a17807-cfb8-748b-83eb-5d1f87e06040); sized from its arm axis, cut at the neck, sleeve ends (cuff) and boot tops read off the model.",
+ "id": "burrowguard",
+ "src": "assets/meshy/outfits/burrowguard_meshy.glb",
+ "neck": 0.915,
+ "cuff": 0.33,
+ "bootTop": 0.29,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.5,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/burrowguard_armor.glb",
+  "boots": "public/models/outfits/burrowguard_boots.glb"
+ }
+}

@@ -1,0 +1,86 @@
+{
+  "source": "exec-fcee01fd-dac1-4d96-9ece-7923ad836964.png",
+  "status": "Artwork only; no game data changes",
+  "items": [
+    {
+      "id": "wolfpelt_coat",
+      "name_th": "เสื้อคลุมหนังหมาป่า",
+      "new_proposed_item": false,
+      "source_bounds": [
+        12,
+        19,
+        589,
+        582
+      ],
+      "components": 1,
+      "sha256": "f270187fd460929a7735660b04452ea4d6d0619cccb5c372de13367918f03425"
+    },
+    {
+      "id": "wolfpelt_hood",
+      "name_th": "ฮู้ดหนังหมาป่า",
+      "new_proposed_item": true,
+      "source_bounds": [
+        607,
+        72,
+        994,
+        559
+      ],
+      "components": 1,
+      "sha256": "85bf43f2904ce75403dcc68b5403a88d7112cd4c5bd23f85636c488c3186da49"
+    },
+    {
+      "id": "wolf_grips",
+      "name_th": "ถุงมือหนังหมาป่า",
+      "new_proposed_item": false,
+      "source_bounds": [
+        1060,
+        105,
+        1517,
+        524
+      ],
+      "components": 2,
+      "sha256": "925e72876d2172f811adcad414bdefb514abf65009e21ff17b3e7dcbf714653e"
+    },
+    {
+      "id": "wolf_boots",
+      "name_th": "รองเท้าหมาป่า",
+      "new_proposed_item": false,
+      "source_bounds": [
+        38,
+        583,
+        535,
+        1010
+      ],
+      "components": 1,
+      "sha256": "ff8d7a3cd3c802ff934646ca5de267db2b122576ebddf13ec15bb7fcae3e5174"
+    },
+    {
+      "id": "wolfbite_sword",
+      "name_th": "ดาบเขี้ยวหมาป่า",
+      "new_proposed_item": false,
+      "source_bounds": [
+        120,
+        35,
+        1138,
+        1220
+      ],
+      "components": 1,
+      "sha256": "103203282c4a774eccb78aeb771c4203ae5805224afe46bdffc4243e602e0f8b",
+      "source_image": "exec-c282bb69-a123-498a-9e55-ee084b437c78.png"
+    },
+    {
+      "id": "fang_dagger",
+      "name_th": "มีดเขี้ยวหมาป่า",
+      "new_proposed_item": false,
+      "source_bounds": [
+        1043,
+        603,
+        1497,
+        983
+      ],
+      "components": 1,
+      "sha256": "9daa2434dc089f3c2da37e19d4216bf13c1dcfc5f2d8109540b8325205191367"
+    }
+  ],
+  "revision_note": "Wolf sword revised from original in-game sword as sole shape reference. Previous batch sword redraw rejected."
+}

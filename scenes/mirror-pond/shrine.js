@@ -12,7 +12,7 @@ function coloredPart(g,color,matrix){
 const MOON_STONE=['#c9cfc9','#bec5c0','#d3d8d2','#b5bdb8'];
 function moonGate(){
  // as the reference's: an open ring of dressed, mossy stones on three curved steps, a round
- // stone moon held in its upper middle, flowers and moss at its foot
+ // stone moon floating within it, flowers and moss at its foot
  const[x,z]=P(.475,.135,PL),y=height(x,z)-.1,R0=wide(.443,.507,.075,PL)/2,ring=R0*.17,group=new THREE.Group();
  // three steps, each a front half-round of blocks over a solid core, the lowest widest
  const STEP=M(.13);let top=y;
@@ -28,10 +28,9 @@ function moonGate(){
   const a=(i+.5)/n*Math.PI*2;
   block(x+Math.sin(a)*mid,cyc+Math.cos(a)*mid-ring*.45,rz,seg*.97,ring*.9,ring*1.1,0,Math.cos(a)>.2?.55:.2,{base:pick(MOON_STONE),rz:-a});
  }
- // the moon: a round stone disc in the ring's upper middle, joined to it by a short collar above
- const moonR=R0*.32,my=cyc+R0*.18;
- const disc=new THREE.CylinderGeometry(moonR,moonR,ring*.8,22);disc.rotateX(Math.PI/2);disc.translate(x,my,rz);stoneParts.push(coloredPart(disc,'#d5dad2'));
- const collar=new THREE.BoxGeometry(ring*.5,mid-(my-cyc)-moonR+ring*.2,ring*.5);collar.translate(x,(my+moonR+cyc+mid)/2,rz);stoneParts.push(coloredPart(collar,'#c3c9c2'));
+ // the moon: a round stone disc floating in the ring, right of its middle (owner), joined to nothing
+ const moonR=R0*.28,mx=x+R0*.36,my=cyc+R0*.08;
+ const disc=new THREE.CylinderGeometry(moonR,moonR,ring*.8,22);disc.rotateX(Math.PI/2);disc.translate(mx,my,rz);stoneParts.push(coloredPart(disc,'#d5dad2'));
  // flowers and moss at its foot
  for(let i=0;i<10;i++){const a=R(-1.6,1.6),r=R0*R(1.2,1.6);addBush(x+Math.sin(a)*r,y,z-R0*.15+Math.cos(a)*r*.8,M(R(.2,.35)),{sy:.6,tint:R(-.1,.25)});}
  for(let i=0;i<26;i++){const a=R(-1.8,1.8),r=R0*R(1.15,1.9),fx=x+Math.sin(a)*r,fz=z-R0*.15+Math.cos(a)*r*.85;flowerItems.push({x:fx,y:height(fx,fz)+.02,z:fz,s:R(.7,1),ry:R(0,6.28),c:rand()<.5?'#f7da54':'#fff6dc'});}

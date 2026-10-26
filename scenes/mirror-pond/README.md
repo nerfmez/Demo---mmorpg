@@ -1,6 +1,6 @@
 # Mirror Pond — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 5:
+**Owner status: in review, 26 October 2026**, artifact version 6:
 https://claude.ai/artifact/YRE8REPWfr1GbfzaNNPxw1.
 
 Concept: `mirror-pond.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -54,3 +54,6 @@ like the reference. The stones are now a stride apart (still walkable along the 
 checked by walking the hero to the gate). The moon gate is the reference's: an open ring of
 twenty dressed, mossy stones, a round stone moon held in its upper middle, three curved block
 steps below and flowers at its foot.
+
+Owner (circling the spot), on version 5: the moon goes here and floats, joined to nothing. The
+stone moon now floats inside the ring right of its middle, a little above centre, with no collar.

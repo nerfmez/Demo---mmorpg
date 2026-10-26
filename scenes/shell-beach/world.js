@@ -106,7 +106,8 @@ function stairsAt(x,z){
 const TRAILS = [
  [[.205,.545,.025,0],[.29,.50,.03,0],[.39,.46,.03,0],[.47,.43,.025,0]],
  [[.92,.20,.018,PL],[.92,.11,.018,PL],[.90,.02,.018,PL]],
- [[.21,.16,.018,PL],[.27,.09,.018,PL],[.34,.03,.018,PL]],
+ // the way up from the stairs winds over the bank (owner, 26 October 2026: the straight cut read as unnatural)
+ [[.21,.16,.015,PL],[.247,.1536,.015,PL],[.2686,.132,.015,PL],[.275,.095,.015,PL],[.2814,.058,.015,PL],[.303,.0364,.015,PL],[.34,.03,.015,PL]],
 ].map(pl => pl.map(([u, v, hu, h]) => { const [x, z] = P(u, v, h); return new V3(x, wide(u - hu, u + hu, v, h) / 2, z); }))
   // a smooth curve through the authored points (width rides along in y), sampled every 1.2 m
   .map(pl => { const c = new THREE.CatmullRomCurve3(pl, false, 'centripetal'); return c.getSpacedPoints(Math.ceil(c.getLength() / 1.2)).map(p => ({ x: p.x, z: p.z, w: p.y })); });
@@ -152,7 +153,7 @@ const SHORE_GLSL='float zShoreG(float x){'+SHORE_POINTS.slice(1).map((b,i)=>{con
 // a grassy slope instead of a slot. Routes ride the ramp (field() takes the higher).
 // Outlines in scene units: x = (world x + 232) / 0.6, z = (world z - 83) / 0.6 at the
 // game placement; heights in scene units (world y = 0.6 h - 0.44).
-const RAMP_SOFT=M(.6);
+const RAMP_SOFT=M(1.6);
 const RAMPS=[
   // stair gully, world x -255..-247, beach z 76 up to z 54 at 6 m
   {pts:[[-38.3,-11.7],[-25,-11.7],[-25,-55],[-38.3,-55]],mouth:-11.7,back:-48.3,top:10.7},
@@ -176,6 +177,13 @@ function fillAt(x,z){
   }
   return y;
 }
+// The ramp is a grassy slope (owner, 26 October 2026: the bare dirt wedge read as an
+// unnatural road): it counts as raised ground, so the trail paint (1 - top) skips it.
+function fillTop(x,z){
+  let w=0;
+  for(const R of RAMPS){const d=rampEdge(R.pts,x,z);if(d<RAMP_SOFT)w=Math.max(w,(1-smooth(-RAMP_SOFT,RAMP_SOFT,d))*smooth(R.mouth,R.mouth+(R.back-R.mouth)*.35,z));}
+  return w;
+}
 
 // the shape of the land: height and how much of it is a raised top
 function field(x, z) {
@@ -192,7 +200,7 @@ function field(x, z) {
     const b = T.base || 0;
     if (w > 0) { y = Math.max(y, b + ((T.topAt ? T.topAt(x) : T.top) - b) * w); top = Math.max(top, w); }
   }
-  const fill=fillAt(x,z);if(fill>y+.01){y=fill;rock=0;}
+  const fill=fillAt(x,z);if(fill>y+.01){y=fill;rock=0;top=Math.max(top,fillTop(x,z));}
   const st=stairsAt(x,z);
   if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){
     const k=smooth(st.half-.05,st.half+ST.bank,st.s);

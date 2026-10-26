@@ -20,7 +20,8 @@ a=w.index('const TRAILS = [');b=w.index('].map(pl =>',a)
 w=w[:a]+'''const TRAILS = [
  [[.205,.545,.025,0],[.29,.50,.03,0],[.39,.46,.03,0],[.47,.43,.025,0]],
  [[.92,.20,.018,PL],[.92,.11,.018,PL],[.90,.02,.018,PL]],
- [[.21,.16,.018,PL],[.27,.09,.018,PL],[.34,.03,.018,PL]],
+ // the way up from the stairs winds over the bank (owner, 26 October 2026: the straight cut read as unnatural)
+ [[.21,.16,.015,PL],[.247,.1536,.015,PL],[.2686,.132,.015,PL],[.275,.095,.015,PL],[.2814,.058,.015,PL],[.303,.0364,.015,PL],[.34,.03,.015,PL]],
 ''' +w[b:]
 a=w.index('const PLAZA =');b=w.index('// distance from the dirt',a);w=w[:a]+'''const PLAZA=poly([[-.2,.53],[.15,.52],[.28,.40],[.43,.32],[.8,.35],[.91,.62],[.94,.92],[-.2,.85]],0);
 const PLAZA_HOLE=poly([[2,2],[2.1,2],[2.1,2.1]],0);
@@ -57,7 +58,7 @@ w=w.replace('const row=[0,.29,.59,.83,1]','const row=[0,.24,.56,.81,1]')
 # Smooth the stair gully and the slot behind the cove (fill.js, owner 26 October 2026); routes ride the fill.
 w=w.replace('// the shape of the land: height and how much of it is a raised top\nfunction field(x, z) {',(here/'fill.js').read_text()+'\n// the shape of the land: height and how much of it is a raised top\nfunction field(x, z) {',1)
 assert 'fillAt' in w
-w=w.replace("  const st=stairsAt(x,z);\n  if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){","  const fill=fillAt(x,z);if(fill>y+.01){y=fill;rock=0;}\n  const st=stairsAt(x,z);\n  if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){",1)
+w=w.replace("  const st=stairsAt(x,z);\n  if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){","  const fill=fillAt(x,z);if(fill>y+.01){y=fill;rock=0;top=Math.max(top,fillTop(x,z));}\n  const st=stairsAt(x,z);\n  if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){",1)
 w=w.replace("    y=st.y+(y-st.y)*k;","    const ry=Math.max(st.y,fillAt(x,z));y=ry+(y-ry)*k;",1)
 a=w.index('function buildLedges(){');w=w[:a]+(here/'paving.js').read_text()+'\n'
 w=w.replace('ST.half + ST.bank - 1','stairsAt(q.x,q.z).half + ST.bank + M(.7)')

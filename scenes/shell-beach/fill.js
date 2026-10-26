@@ -7,7 +7,7 @@
 // a grassy slope instead of a slot. Routes ride the ramp (field() takes the higher).
 // Outlines in scene units: x = (world x + 232) / 0.6, z = (world z - 83) / 0.6 at the
 // game placement; heights in scene units (world y = 0.6 h - 0.44).
-const RAMP_SOFT=M(.6);
+const RAMP_SOFT=M(1.6);
 const RAMPS=[
   // stair gully, world x -255..-247, beach z 76 up to z 54 at 6 m
   {pts:[[-38.3,-11.7],[-25,-11.7],[-25,-55],[-38.3,-55]],mouth:-11.7,back:-48.3,top:10.7},
@@ -30,4 +30,11 @@ function fillAt(x,z){
     y=Math.max(y,h);
   }
   return y;
+}
+// The ramp is a grassy slope (owner, 26 October 2026: the bare dirt wedge read as an
+// unnatural road): it counts as raised ground, so the trail paint (1 - top) skips it.
+function fillTop(x,z){
+  let w=0;
+  for(const R of RAMPS){const d=rampEdge(R.pts,x,z);if(d<RAMP_SOFT)w=Math.max(w,(1-smooth(-RAMP_SOFT,RAMP_SOFT,d))*smooth(R.mouth,R.mouth+(R.back-R.mouth)*.35,z));}
+  return w;
 }

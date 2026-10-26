@@ -344,3 +344,12 @@ Owner: "enclose it as a secret place with only one entrance" (circling the open 
 - **Rock faces without holes:** the bank behind a face is steepest half way up, so a course set back that far sank into the grass and showed green holes, more on the new ring. A course now stands out on the bank where the ground mesh (its own triangles, not the bilinear game height) would cover its corners or middle, and the courses below come out as far, so a face never overhangs. Faces are only ever moved outwards; a few courses show an extra fold. Holes measured over all faces: 178 m² → 18 m² (Frontier) and 25 m² → 0 (Azure); what is left is mostly the foot, which is sunk 0.3 m on purpose.
 
 Checks: core 617/617 (new: from outside, a walk reaches the conch beach; with the ring ramp blocked it does not), render 50/51 (skirt, also on main). Inspected from the sea, above, the west, the north entrance, the west face, the north walls and the arrival face, at normal capture with the hero's see-through dither off for the free-camera views.
+
+### Follow-up: a natural west cliff and way up (26 October 2026)
+
+Owner: "the left cliff runs straight, not natural; the road going up is not natural" (circling the west face and the dirt strip above the stairs).
+
+- **West face:** the rock ring's west side follows a wavy line (up to 3 m in and out) with a rounded north-west corner instead of one straight 51 m face.
+- **Way up:** the scene's upper trail from the stairs winds over the bank in an S instead of a straight cut, and is narrower (the repair connector that grades it follows the same line, so the grade is gentler). The stair-gully fill is grass (it counts as raised ground, softer edges) instead of a bare dirt wedge. A new trail (`conch/entrance-trail`) continues from the top of the upper trail across the back to the ring's one ramp, so the route reads entrance → back → stairs → cove.
+
+Checks: core and accepted-scene tests pass (one entrance still the only way in); inspected from above (the owner's camera), low over the stairs, the west face and the play camera on the trail and at the entrance.

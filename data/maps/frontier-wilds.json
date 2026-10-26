@@ -775,183 +775,19 @@
     },
     {
       "id": "shell-beach/trail-2",
-      "width": 2.33,
-      "points": [
-        [
-          134.416,
-          161.662
-        ],
-        [
-          134.743,
-          161.024
-        ],
-        [
-          135.061,
-          160.382
-        ],
-        [
-          135.375,
-          159.737
-        ],
-        [
-          135.691,
-          159.094
-        ],
-        [
-          136.014,
-          158.454
-        ],
-        [
-          136.348,
-          157.82
-        ],
-        [
-          136.7,
-          157.196
-        ],
-        [
-          137.073,
-          156.584
-        ],
-        [
-          137.47,
-          155.987
-        ],
-        [
-          137.888,
-          155.405
-        ],
-        [
-          138.321,
-          154.834
-        ],
-        [
-          138.766,
-          154.273
-        ],
-        [
-          139.219,
-          153.717
-        ],
-        [
-          139.675,
-          153.164
-        ],
-        [
-          140.131,
-          152.611
-        ],
-        [
-          140.583,
-          152.055
-        ],
-        [
-          141.029,
-          151.494
-        ]
-      ],
+      "width": 1.939,
+      "points": [[134.416, 161.662], [135.108, 161.567], [135.802, 161.484], [136.467, 161.279], [137, 160.833], [137.385, 160.252], [137.631, 159.6], [137.694, 158.906], [137.645, 158.209], [137.567, 157.515], [137.517, 156.818], [137.458, 156.122], [137.381, 155.427], [137.336, 154.73], [137.391, 154.035], [137.603, 153.371], [137.928, 152.753], [138.376, 152.22], [138.968, 151.857], [139.646, 151.695], [140.339, 151.606], [141.029, 151.494]],
       "acceptedScene": "shell-beach"
     },
     {
       "id": "accepted/shell-upper-apron",
-      "width": 2.33,
-      "points": [
-        [
-          134.416,
-          161.662
-        ],
-        [
-          134.743,
-          161.024
-        ],
-        [
-          135.061,
-          160.382
-        ],
-        [
-          135.375,
-          159.737
-        ],
-        [
-          135.691,
-          159.094
-        ],
-        [
-          136.014,
-          158.454
-        ],
-        [
-          136.348,
-          157.82
-        ],
-        [
-          136.7,
-          157.196
-        ],
-        [
-          137.073,
-          156.584
-        ],
-        [
-          137.47,
-          155.987
-        ],
-        [
-          137.888,
-          155.405
-        ],
-        [
-          138.321,
-          154.834
-        ],
-        [
-          138.766,
-          154.273
-        ],
-        [
-          139.219,
-          153.717
-        ],
-        [
-          139.675,
-          153.164
-        ],
-        [
-          140.131,
-          152.611
-        ],
-        [
-          140.583,
-          152.055
-        ],
-        [
-          141.029,
-          151.494
-        ]
-      ],
+      "width": 1.939,
+      "points": [[134.416, 161.662], [135.108, 161.567], [135.802, 161.484], [136.467, 161.279], [137, 160.833], [137.385, 160.252], [137.631, 159.6], [137.694, 158.906], [137.645, 158.209], [137.567, 157.515], [137.517, 156.818], [137.458, 156.122], [137.381, 155.427], [137.336, 154.73], [137.391, 154.035], [137.603, 153.371], [137.928, 152.753], [138.376, 152.22], [138.968, 151.857], [139.646, 151.695], [140.339, 151.606], [141.029, 151.494]],
       "acceptedScene": "connector",
-      "heights": [
-        3.201,
-        3.579,
-        3.957,
-        4.335,
-        4.713,
-        5.091,
-        5.469,
-        5.847,
-        6.225,
-        6.603,
-        6.981,
-        7.359,
-        7.736,
-        8.114,
-        8.492,
-        8.87,
-        9.248,
-        9.626
-      ],
+      "heights": [3.189, 3.496, 3.803, 4.109, 4.414, 4.72, 5.026, 5.333, 5.64, 5.947, 6.254, 6.561, 6.868, 7.175, 7.481, 7.788, 8.095, 8.401, 8.706, 9.012, 9.319, 9.626],
       "repair": true
-    }
+    },
+    {"id": "conch/entrance-trail", "width": 2.4, "points": [[141, 151.5], [140.2, 148.5], [138.5, 145.5], [136.2, 142.8], [134, 139.5], [132.8, 136], [132.5, 132.5], [131.7, 129], [131, 125.5], [131.2, 122], [131.8, 118.5], [133, 115]], "note": "The Conch Coast's way in (owner, 26 October 2026): a winding trail from the rock ring's one ramp over the back to the scene's upper trail and the stairs down to the cove."}
   ],
   "river": {
     "_doc": "Shallow walkable stream. Cross anywhere with a gentle bank; bridges remain optional.",
@@ -3055,7 +2891,7 @@
     "beach": {"width": 11, "fade": 18, "_doc": "Sand band width (render/terrain-domain.js sceneBeach) inside the scenes placed here: the Conch Coast keeps the 11 m beach it was approved with on Azure Coast, easing back to this map's 20 m over fade metres outside its bounds."},
     "edgeCliffs": [
       {"id": "west-headland", "top": 6.5, "lean": 1.3, "ramp": 11, "points": [[181, 183, "open"], [185, 177, "open"], [185, 153.5, "open"], [180.5, 157, "open"], [179.5, 160.5], [172.5, 160.5, "open"], [170, 157, "open"], [170, 140], [174, 136], [188, 135.5], [196, 131], [206, 133], [216, 137], [224, 143], [231, 146.5], [233, 153], [233, 168], [231.5, 175], [227, 177.5], [218, 177], [208, 177.5], [200, 182.5], [194, 188.5], [188, 190.5], [182, 190.5], [179.5, 188]], "note": "The arrival beach ends on the left in a high rock headland (owner, 25-26 October 2026), joined to the Conch Coast and closed in rock: from the conch wall and east headland (open edges, as high) it covers the slot behind the cove, its face in line with the conch wall's (one face over the beach, its top raised to the wall's near it), and runs over the Greenhollow Frontier seam to a cliff face over the beach and a sea cliff that meets the conch headland's tip. Rock on every side: with the Conch Coast's rock ring (conch-ring) the whole rise has one way up, the ring's north ramp. The same outline in world metres is kept by both maps (data/world.json and data/maps/frontier-wilds.json); each draws its own half.", "raise": [[172, 157, 9, 7.8]]},
-      {"id": "conch-ring", "top": 6.5, "lean": 1.3, "ramp": 10, "points": [[98, 176.5], [98, 125], [125, 121, "ramp", 10], [138, 121], [172, 123], [173.5, 136.2, "open"], [138, 143.5, "open"], [116, 143.5, "open"], [116, 159, "open"], [122, 171, "open"], [127, 176]], "note": "The Conch Coast is a hidden cove with one way in (owner, 26 October 2026): a rock ring round its west and north backs, as high as its west headland, joined to the west headland's plateau at the east. Its one opening, and the only way up onto the whole rise, is a ramp on the north side above the stair gully: up onto the back, down the stairs to the conch beach. Open edges lie on the scene's own tops (as high or higher)."}
+      {"id": "conch-ring", "top": 6.5, "lean": 1.3, "ramp": 10, "points": [[98, 176.5], [99.5, 171], [96.5, 165], [95.5, 159], [98.5, 153], [97.5, 147], [95, 141], [96, 135], [99, 130], [101.5, 126.5], [107, 124.2], [125, 121, "ramp", 10], [138, 121], [172, 123], [173.5, 136.2, "open"], [138, 143.5, "open"], [116, 143.5, "open"], [116, 159, "open"], [122, 171, "open"], [127, 176]], "note": "The Conch Coast is a hidden cove with one way in (owner, 26 October 2026): a rock ring round its west and north backs, as high as its west headland, joined to the west headland's plateau at the east. Its one opening, and the only way up onto the whole rise, is a ramp on the north side above the stair gully: up onto the back, down the stairs to the conch beach. Open edges lie on the scene's own tops (as high or higher). Its west face follows a wavy natural line with a rounded north-west corner (owner, 26 October 2026: the straight face read as unnatural)."}
     ],
     "edgeCliffsDoc": "core/edge-cliffs.js: a plateau `top` m high inside a closed outline; points mark cliff edges (default, a face `lean` m deep, rock columns in render/edge-cliffs.js), ramp edges (a slope `ramp` m wide, or the point's 4th value) or open edges (full height up to the edge, where it meets ground as high). `raise` [x, z, radius, top] lifts the top near a higher wall. Local metres of this map; an outline crossing a seam is kept by both maps and each draws the faces inside its bounds. Applied after the scenes and seams as a floor under the ground; scene props and colliders inside are left out.",
     "foliage": {
@@ -3117,102 +2953,10 @@
     "connectors": [
       {
         "id": "accepted/shell-upper-apron",
-        "width": 2.33,
-        "points": [
-          [
-            134.416,
-            161.662
-          ],
-          [
-            134.743,
-            161.024
-          ],
-          [
-            135.061,
-            160.382
-          ],
-          [
-            135.375,
-            159.737
-          ],
-          [
-            135.691,
-            159.094
-          ],
-          [
-            136.014,
-            158.454
-          ],
-          [
-            136.348,
-            157.82
-          ],
-          [
-            136.7,
-            157.196
-          ],
-          [
-            137.073,
-            156.584
-          ],
-          [
-            137.47,
-            155.987
-          ],
-          [
-            137.888,
-            155.405
-          ],
-          [
-            138.321,
-            154.834
-          ],
-          [
-            138.766,
-            154.273
-          ],
-          [
-            139.219,
-            153.717
-          ],
-          [
-            139.675,
-            153.164
-          ],
-          [
-            140.131,
-            152.611
-          ],
-          [
-            140.583,
-            152.055
-          ],
-          [
-            141.029,
-            151.494
-          ]
-        ],
+        "width": 1.939,
+        "points": [[134.416, 161.662], [135.108, 161.567], [135.802, 161.484], [136.467, 161.279], [137, 160.833], [137.385, 160.252], [137.631, 159.6], [137.694, 158.906], [137.645, 158.209], [137.567, 157.515], [137.517, 156.818], [137.458, 156.122], [137.381, 155.427], [137.336, 154.73], [137.391, 154.035], [137.603, 153.371], [137.928, 152.753], [138.376, 152.22], [138.968, 151.857], [139.646, 151.695], [140.339, 151.606], [141.029, 151.494]],
         "acceptedScene": "shell-beach",
-        "heights": [
-          3.201,
-          3.579,
-          3.957,
-          4.335,
-          4.713,
-          5.091,
-          5.469,
-          5.847,
-          6.225,
-          6.603,
-          6.981,
-          7.359,
-          7.736,
-          8.114,
-          8.492,
-          8.87,
-          9.248,
-          9.626
-        ],
+        "heights": [3.189, 3.496, 3.803, 4.109, 4.414, 4.72, 5.026, 5.333, 5.64, 5.947, 6.254, 6.561, 6.868, 7.175, 7.481, 7.788, 8.095, 8.401, 8.706, 9.012, 9.319, 9.626],
         "repair": true
       }
     ],

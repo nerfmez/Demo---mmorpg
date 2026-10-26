@@ -101,15 +101,17 @@ for the shape language ("คุณต้องทำเอฟเฟคสกิ�
 a mass of round cloud lobes at the base with big curling flame tongues rising and splaying outward
 above; a pale yellow core in front with its own tongue edges and an orange crescent; an orange body
 with a dark red crescent on the side away from the light and a thin dark line; dark plum cel smoke
-behind that takes over as the fire breaks up. A second try built the fire from many separate flame
-quads and was rejected ("ห่วย รูปทรงไม่ได้เลย"): stacked shapes read as a pile of stickers. A fire is now
-one mass with one outline, built in one quad's shader in polar coordinates (two rims of hooked tips
-round a circle, cloud bumps at the bottom; the core is a smaller rim of its own; the shade is the same
-shape sampled toward the light). The shape was prototyped in Python against the reference first.
-Colours are written as display values (no sRGB-to-linear conversion of the
-uniforms, or orange turns red). Shared pieces: `skillfx/anime-kit.js` (AnimeFire, spiky flash, ground
-warning). Meteor uses them for all three phases; Thunderstorm and Blizzard are still the light version
-below until redone.
+behind that takes over as the fire breaks up. A second try built the fire from many separate flame quads ("ห่วย รูปทรงไม่ได้เลย"), a third drew one
+flat fire mass per quad; the owner judged flat picture-like fire worse than the usual effects and chose
+**anime in 3D** (cel-shaded 3D, as in Genshin-style games): real shapes with volume, toon-shaded.
+`skillfx/cel3d.js`: solid meshes (round puffs, a comet lathe, flame-tongue lathes) displaced by
+scrolling noise with flame ridges twisting along the flow; flat bands from the displaced surface's own
+normal (pale yellow where it faces the camera and sun, orange, dark red toward the silhouette, a thin
+dark red line), cooling (the yellow goes, then the orange) and dissolving through noise with a bright
+burning edge; smoke is the same puffs lit in two plum bands. Shapes re-draw on the 12-per-second grid.
+Lessons: a tongue pointing at the camera reads as a ball (spray them sideways to the view); the rock
+is drawn over its fire so it leads. The ground warning and sky star stay in `skillfx/anime-kit.js`.
+Thunderstorm and Blizzard are still the light version below until redone.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

@@ -402,7 +402,7 @@ export class SkillFx {
     if (this.iron.busy) { this.iron.follow(p.x, p.z); if (!p.buffs?.iron_body) this.iron.stop(); }
     this.iron.update(dt);
     // party shouts: follow the hero through the shout, then a glow off every body still buffed
-    this.buff.follow(p.x, p.z, p.facing);
+    this.buff.follow(p.x, p.z);
     for (const k of BUFF_KEYS) {
       const bodies = this.buffBodies; bodies.length = 0;
       if (p.buffs?.[k] && !p.dead) bodies.push(p);

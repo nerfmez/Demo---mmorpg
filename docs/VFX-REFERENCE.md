@@ -102,16 +102,18 @@ a mass of round cloud lobes at the base with big curling flame tongues rising an
 above; a pale yellow core in front with its own tongue edges and an orange crescent; an orange body
 with a dark red crescent on the side away from the light and a thin dark line; dark plum cel smoke
 behind that takes over as the fire breaks up. A second try built the fire from many separate flame quads ("ห่วย รูปทรงไม่ได้เลย"), a third drew one
-flat fire mass per quad; the owner judged flat picture-like fire worse than the usual effects and chose
-**anime in 3D** (cel-shaded 3D, as in Genshin-style games): real shapes with volume, toon-shaded.
-`skillfx/cel3d.js`: solid meshes (round puffs, a comet lathe, flame-tongue lathes) displaced by
-scrolling noise with flame ridges twisting along the flow; flat bands from the displaced surface's own
-normal (pale yellow where it faces the camera and sun, orange, dark red toward the silhouette, a thin
-dark red line), cooling (the yellow goes, then the orange) and dissolving through noise with a bright
-burning edge; smoke is the same puffs lit in two plum bands. Shapes re-draw on the 12-per-second grid.
-Lessons: a tongue pointing at the camera reads as a ball (spray them sideways to the view); the rock
-is drawn over its fire so it leads. The ground warning and sky star stay in `skillfx/anime-kit.js`.
-Thunderstorm and Blizzard are still the light version below until redone.
+flat fire mass per quad, a fourth was toon-shaded solid 3D meshes. The owner: "คุณภาพมันไม่ดีพอ มันไม่
+เกี่ยวกับสไตล์แล้ว" and named the bar: **Firebolt and Flame Stream** (Chain Spark simple but right; the
+rest fine). What makes them good: fire as nested see-through shells (or one thresholded density
+field) cut from domain-warped noise that is carried along the flow, a smooth hot-to-cool heat ramp
+with narrow transitions, glow above the tone mapping, smooth motion every frame (no stepped drawings),
+fluttering curved embers, a ragged flash at contact, lights on the ground. Meteor now uses exactly
+those techniques with its own shapes (`skillfx/meteor-flame.js`: Firebolt's `V5_FIELD` noise and heat
+ramp and colours on a comet shell round the rock and an explosion dome whose cut-off rises with age;
+`FireExtras` embers, flash and puff at meteor size). Lessons: judge against the owner's best skills,
+not a style name; polish one approach instead of swapping approaches; a shell in front of the rock
+hides it (draw the rock last, without depth test). `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm and Blizzard are
+still the light version below until redone.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

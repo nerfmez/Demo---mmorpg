@@ -98,8 +98,8 @@ function arcGeometry(arcRad, r0, r1, segs = 72, rings = 8) {
 
 export class SlashFx {
   constructor(scene, camera) {
-    this.scene = scene; this.camera = camera;
-    this._m = new THREE.Matrix4(); this._x = new THREE.Vector3(); this._y = new THREE.Vector3(); this._z = new THREE.Vector3(); this._w = new THREE.Vector3(); this._s = new THREE.Vector3();
+    this.scene = scene;
+    this._z = new THREE.Vector3();
     this.geos = new Map();
     this.cuts = Array.from({ length: CUTS }, () => {
       const uniforms = { uHead: { value: 0 }, uFade: { value: 0 }, uDir: { value: 1 }, uThick: { value: 0.55 }, uSeed: { value: 0 },
@@ -111,7 +111,7 @@ export class SlashFx {
       for (const m of [core, glow]) { m.frustumCulled = false; m.visible = false; }
       const g = new THREE.Group(), tilt = new THREE.Group();
       tilt.add(glow, core); g.add(tilt); scene.add(g);
-      return { g, tilt, core, glow, uniforms, live: false, t: 0, reach: 1, arc: 1, dir: 1, lastHead: 0, hold: HOLD };
+      return { g, tilt, core, glow, uniforms, live: false, t: 0, reach: 1, arc: 1, dir: 1, lastHead: 0, hold: HOLD, drift: new THREE.Vector3() };
     });
     this.sparks = new Ribbon(scene, camera, 1200, `varying vec2 vUv; varying float vA; varying vec3 vT;
       void main(){ float d=abs(vUv.y); if(d>0.9) discard; gl_FragColor=vec4(d<0.45 ? vec3(1.0) : vT, vA); }`, THREE.NormalBlending);
@@ -141,7 +141,8 @@ export class SlashFx {
     c.reach = p.range * (p.reach ?? pat.reach); c.arc = (arcDeg * Math.PI) / 180; c.dir = dir; c.lastHead = 0; c.hold = p.hold ?? HOLD;
     c.core.geometry = c.glow.geometry = this.geometry(arcDeg, c.reach);
     c.tilt.rotation.set(0, 0, 0);
-    if (p.face !== undefined) this.faceCamera(c, p, at);
+    c.drift.set(0, 0, 0);
+    if (p.face !== undefined) this.layFlat(c, p, at);
     else {
       place(c.g, at.x, 1.0 + (p.y ?? pat.y), at.z);
       c.g.rotation.set(0, at.angle, 0);
@@ -156,19 +157,17 @@ export class SlashFx {
     if (p.fusedElement) u.uRim.value.set(...(FUSE[p.fusedElement] || FUSE.fire));
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
   }
-  // A cut whose crescent faces the camera (Cross Cut: its two crescents must cross as an X from any
-  // facing, and a plane rolled about the facing direction is seen edge-on when the hero faces along the
-  // view): the crescent's middle passes through a point `ahead` metres in front of the caster, bulging
-  // toward screen angle `face` (radians from screen up, positive to the right).
-  faceCamera(c, p, at) {
-    const m = this.camera.matrixWorld, right = this._x.setFromMatrixColumn(m, 0), up = this._y.setFromMatrixColumn(m, 1);
-    const toCam = this._w.setFromMatrixColumn(m, 2); // the camera's +Z: toward the viewer
-    const bulge = this._z.copy(up).multiplyScalar(Math.cos(p.face)).addScaledVector(right, Math.sin(p.face)).normalize();
-    this._m.makeBasis(this._s.crossVectors(toCam, bulge), toCam, bulge); // local Y toward the viewer, Z the bulge
-    c.g.quaternion.setFromRotationMatrix(this._m);
+  // A cut laid flat, set by the skill (Cross Cut: its two crescents lie level at waist height in front of
+  // the hero and cross as an X whose arms reach forward, so it reads from the high game camera whatever
+  // the facing): the crescent's body crosses a point `ahead` metres in front of the caster, bulging
+  // toward the facing turned by `face` radians, and the cut drifts forward at `drift` m/s.
+  layFlat(c, p, at) {
+    const a = at.angle + p.face, bulge = this._z.set(Math.sin(a), 0, Math.cos(a));
+    c.g.rotation.set(0, a, 0);
     const d = p.ahead ?? c.reach;
     place(c.g, at.x + Math.sin(at.angle) * d, 1.0 + (p.y ?? 0), at.z + Math.cos(at.angle) * d);
     c.g.position.addScaledVector(bulge, -c.reach * 0.8); // the arc's centre behind the point, so its body crosses it
+    c.drift.set(Math.sin(at.angle), 0, Math.cos(at.angle)).multiplyScalar(p.drift || 0);
   }
   // world point on the reach edge at fraction s of the cut
   edgePoint(c, s, out) {
@@ -184,6 +183,7 @@ export class SlashFx {
     for (const c of this.cuts) {
       if (!c.live) continue;
       c.t += dt;
+      if (c.drift.x || c.drift.z) c.g.position.addScaledVector(c.drift, dt);
       const r = Math.min(1, c.t / SWEEP), head = 1 - (1 - r) * (1 - r);
       c.uniforms.uHead.value = head;
       c.uniforms.uFade.value = Math.max(0, (c.t - SWEEP - c.hold) / FADE);

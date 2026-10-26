@@ -124,11 +124,11 @@ export class SkillFx {
     // axe or mace plays the greatblade's cut), else the one picked for the weapon; the others alternate
     const playing = this.host.anim()?.action?.name;
     const sweep = ACTIONS[playing && ACTIONS[playing]?.sweep !== undefined ? playing : pickAction(s.id, 'melee_arc', this.host.weapon(), this.swingStep)]?.sweep;
-    // Cross Cut: its two crescents face the camera at opposite diagonals (SlashFx faceCamera) and cross
-    // in front of the hero, the first held until the second has swept across it, so the crescents
-    // themselves draw the X (owner: no separate X)
+    // Cross Cut: its two crescents lie level at opposite diagonals (SlashFx layFlat) and cross in front
+    // of the hero, arms reaching forward, drifting forward; the first is held until the second has swept
+    // across it, so the crescents themselves draw the X (owner: no separate X, and it goes forward)
     const cross = s.id === 'cross_cut' ? (this.crossI++ % 2 ? -1 : 1) : 0;
-    return { ...(cross ? { face: cross * -0.785, faceArc: 64, reach: 0.95, ahead: s.range * 0.6, y: 0.1, hold: cross > 0 ? 0.2 : 0.06 } : {}), palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : s.id === 'cross_cut' ? CROSS_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
+    return { ...(cross ? { face: cross * 0.785, faceArc: 64, reach: 1.15, ahead: s.range * 0.6, y: -0.1, drift: 3, hold: cross > 0 ? 0.2 : 0.06 } : {}), palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : s.id === 'cross_cut' ? CROSS_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
   }
   play(action, dur, step, hit, kind) { this.host.anim().play(action, dur, this.host.weapon(), step, hit, kind); }
   // the bench's look for the Firebolt charge: only the smooth filled core of the game's charge

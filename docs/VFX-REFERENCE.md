@@ -192,6 +192,9 @@ first held until the second has swept across it so the two crescents themselves 
 both fade together. `cross-fx.js` is gone. Rolled about the hero's facing, the two crescents overlap as
 one band from the game camera, so these two face the camera at opposite 45° diagonals with a flatter
 64° arc and cross over the target area in front of the hero.
+Owner: "X มันต้องไปข้างหน้า อันนี้มันล่างขึ้นบน" (a camera-facing X stands up the screen). The crescents now lie
+level at waist height, crossing as an X whose arms reach forward from the hero, and drift forward
+over the target.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

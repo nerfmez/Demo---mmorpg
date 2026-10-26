@@ -1,0 +1,11 @@
+{
+  "id": "moonleaf_pendant",
+  "name_th": "จี้ใบจันทร์",
+  "slot": "accessory",
+  "game_status": "proposed",
+  "set_id": "moonleaf",
+  "set_name_th": "ชุดใบจันทร์",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/moonleaf-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/moonleaf_pendant.png",
+  "record": "assets-source/equipment/20261026/items/moonleaf_pendant.json"
+}

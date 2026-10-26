@@ -1,0 +1,11 @@
+{
+  "id": "wolfpelt_hood",
+  "name_th": "ฮู้ดหนังหมาป่า",
+  "slot": "head",
+  "game_status": "proposed",
+  "set_id": "wolfpelt",
+  "set_name_th": "ชุดหนังหมาป่า",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/wolfpelt-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/wolfpelt_hood.png",
+  "record": "assets-source/equipment/20261026/items/wolfpelt_hood.json"
+}

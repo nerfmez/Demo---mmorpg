@@ -1,0 +1,11 @@
+{
+  "id": "wisp_boots",
+  "name_th": "รองเท้าแสงวิญญาณ",
+  "slot": "boots",
+  "game_status": "proposed",
+  "set_id": "wisp",
+  "set_name_th": "ชุดแสงวิญญาณ",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/wisp-turnaround.jpeg",
+  "icon": "assets-source/equipment/20261025/icons/wisp_boots.png",
+  "record": "assets-source/equipment/20261026/items/wisp_boots.json"
+}

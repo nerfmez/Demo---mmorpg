@@ -1,0 +1,11 @@
+{
+  "id": "storm_gloves",
+  "name_th": "ถุงมือพายุ",
+  "slot": "gloves",
+  "game_status": "proposed",
+  "set_id": "storm",
+  "set_name_th": "ชุดพายุ",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/storm-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/storm_gloves.png",
+  "record": "assets-source/equipment/20261026/items/storm_gloves.json"
+}

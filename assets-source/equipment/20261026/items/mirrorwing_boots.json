@@ -1,0 +1,11 @@
+{
+  "id": "mirrorwing_boots",
+  "name_th": "รองเท้าปีกกระจก",
+  "slot": "boots",
+  "game_status": "proposed",
+  "set_id": "mirrorwing",
+  "set_name_th": "ชุดปีกกระจก",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/mirrorwing-turnaround.jpeg",
+  "icon": "assets-source/equipment/20261025/icons/mirrorwing_boots.png",
+  "record": "assets-source/equipment/20261026/items/mirrorwing_boots.json"
+}

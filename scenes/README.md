@@ -15,6 +15,13 @@ the built `index.html` in a browser. Each page has a wipe slider to compare with
 | Rose Garden Glade (`rose-garden/`) | **ผ่านเบื้องต้น — preliminary owner approval, 24 October 2026 (public version 11).** Retained baseline: timber gazebo, climbing roses, planted stone court and connected stair paths. [Build and review](rose-garden/README.md) | `python3 rose-garden/prepare.py && python3 rose-garden/assemble.py` |
 | Chibi hero model (Blender, `chibi/`) | **Paused** by the owner (quality not good enough; Meshy or bought/commissioned models suggested) | needs Blender bpy: `python chibi/build.py chibi/face.png chibi.glb` |
 
+## Zone tones (owner, 26 October 2026)
+Each region keeps its own colour mood, so the zones feel different. Moonroot Grove scenes take the
+tone of `assets/moonroot/moonroot_grove_concept.jpg` (deep teal-green, blue-green round crowns,
+pale roots, glowing cyan plants and white flowers, cool water), not the warmer yellow-green of the
+per-zone 40-degree concepts (`docs/reference/landscapes-40deg-20261022/moonroot-grove/` on branch
+`docs/landscape-concepts-40deg-20261022`); those give the layout of each Moonroot zone.
+
 ## Shared stone style
 All scenes use the arrival beach's stones: neutral grey palette, mossy tops, lavender-shadow
 three-step light and the `#4c4852` ink outline. The ruins-derived scenes take it from

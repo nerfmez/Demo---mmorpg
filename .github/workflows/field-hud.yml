@@ -9,7 +9,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   field-hud:
-    runs-on: ubuntu-latest
+    # Playwright 1.56 installs browsers on 24.04, not on the newer ubuntu-latest image
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     strategy:
       fail-fast: false

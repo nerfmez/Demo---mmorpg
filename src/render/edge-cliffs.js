@@ -11,6 +11,13 @@ const MOSS = ['#a2c64a', '#b4d152', '#8fb843'];
 function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 /** One merged geometry (position, colour) for every cliff stretch of every edge cliff. */
+const MIN_FACE = 1.8;
+function tallParts(S) {
+  const parts = [];let run = [];
+  for (const q of S) { if (q.top - q.base >= MIN_FACE) run.push(q); else { if (run.length > 2) parts.push(run); run = []; } }
+  if (run.length > 2) parts.push(run);
+  return parts;
+}
 function insideParts(S, b) {
   const inside = q => q.x >= b.minX && q.x <= b.maxX && q.z >= b.minZ && q.z <= b.maxZ, parts = [];
   let a = -1;
@@ -51,7 +58,9 @@ export function edgeCliffGeometry(world) {
       });
       // a cliff crossing into a neighbouring map is drawn by each map up to its own bound
       // (one sample over, so the two halves meet)
-      for (const part of insideParts(S, world.data.bounds)) columns(part);
+      // where the ground in front stands almost as high, a short face would read as a loose
+      // slab: below MIN_FACE metres the plateau meets it as a grass bank, no columns
+      for (const part of insideParts(S, world.data.bounds)) for (const face of tallParts(part)) columns(face);
     }
     function columns(S) {
       const cols = []; let i0 = 0;

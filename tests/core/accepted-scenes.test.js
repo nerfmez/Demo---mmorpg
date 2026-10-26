@@ -144,18 +144,22 @@ test('a final connector keeps the heights it was given, and its ground meets the
   assert.ok(world.roads.some(r=>r.id===road.id||road.points.every(p=>distToPolyline(...p,r.points)<r.width/2)),road.id+' is painted as a road');
  }
 });
-test('the Conch Coast lies west of the arrival beach on the Frontier coast, as authored',()=>{
+test('the Conch Coast lies west of the arrival beach on the Frontier coast, as authored',async()=>{
  const scene=acceptedSceneLayout.scenes.find(s=>s.id==='shell-beach'),fw=worlds[frontier.id],[ox,oz]=frontier.atlas.offset;
  assert.equal(scene.region,frontier.id);
  // in world metres: left of the arrival beach, a little way off, inside the Frontier map
  const beach=acceptedSceneLayout.scenes.find(s=>s.id==='beach').bounds,b=scene.bounds;
  assert.ok(b[1]+ox<beach[0]-25&&b[0]>=frontier.bounds.minX&&b[1]<=frontier.bounds.maxX&&b[3]<=frontier.bounds.maxZ);
  // the ground is the scene's own surface away from its trails and edges
+ // (away from the west headland's plateau, which closes the slot behind its cove)
+ const {edgeCliffsAt}=await import('../../src/core/edge-cliffs.js');
  let n=0,close=0;
- for(let x=b[0]+6;x<b[1]-6;x+=3)for(let z=b[2]+6;z<b[3]-6;z+=3){n++;if(Math.abs(fw.groundY(x,z)-sceneSample(scene,'heights',x,z))<.3)close++;}
+ for(let x=b[0]+6;x<b[1]-6;x+=3)for(let z=b[2]+6;z<b[3]-6;z+=3){if(edgeCliffsAt(frontier,x,z)>-Infinity)continue;n++;if(Math.abs(fw.groundY(x,z)-sceneSample(scene,'heights',x,z))<.3)close++;}
  assert.ok(close/n>.97,`seated ${close}/${n}`);
  // its roads and landmark moved with it; nothing of it is left at the old place
  assert.ok(fw.roads.some(r=>r.acceptedScene==='shell-beach')&&!world.roads.some(r=>r.acceptedScene==='shell-beach'));
+ // the cove trail up the slot is closed by the headland's rock (owner, 26 October 2026)
+ assert.ok(!fw.roads.some(r=>r.id==='shell-beach/trail-1'));
  assert.ok(frontier.landmarks.some(l=>l.id==='giant_conch')&&!data.world.landmarks.some(l=>l.id==='giant_conch'));
  // the Frontier shore follows the scene's own shore inside its bounds
  for(const [x,z] of scene.shore.filter(p=>p[0]>b[0]+4&&p[0]<b[1]-4))assert.ok(Math.abs(polylineZ(frontier.sea.shore,x)-z)<.01,'shore at '+x);

@@ -312,3 +312,14 @@ Owner review of the moved Conch Coast: "the path and the cliffs are not seamless
 - **Outer ground:** the back and west sides continue the scene's own ground (`continue`, as Hill Windmill) with narrow gullies closed (`outerFill`), instead of a smooth apron mound behind the wall.
 
 Checks: core 616/616, render 50/51 (skirt, also on main). Inspected the owner's view, the gully, the wall end, the stairs and the cove at the play camera; remaining floating cells are the scene's sea rocks, bottoms at the water line.
+
+### Follow-up: the headland closes the Conch Coast's back in rock (26 October 2026)
+
+Owner: "join the cliff and close the path, so there is one way in, with rock covering it" (circling the slot behind the conch's cove and the sea corner between the two headlands).
+
+- `west-headland` now takes in the slot behind the cove: a rock face over the cove, open edges where it meets the conch wall and east headland (as high). The scene's cove trail up that slot (`shell-beach/trail-1`) is closed and left out of the roads, and the cove ramp of the previous round is withdrawn.
+- The sea cliff runs out into the water to the conch headland's tip, so no sand or slope shows between the two headlands.
+- The north side is rock along its whole length, routed round the conch's continued slopes so the face always stands over low ground; the grass ramp to the north-east is the one way up.
+- Rock faces shorter than 1.8 m are not drawn (render/edge-cliffs.js MIN_FACE): the plateau meets such ground as a grass bank instead of a loose slab.
+
+Checks: core 616/616, render 50/51 (skirt, also on main). Inspected from above, from the sea, the corner, the north face (two angles) and the cove.

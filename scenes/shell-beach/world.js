@@ -143,10 +143,10 @@ function zShore(x){
  return SHORE_POINTS.at(-1)[1]+.16*Math.sin(x*.7);
 }
 const SHORE_GLSL='float zShoreG(float x){'+SHORE_POINTS.slice(1).map((b,i)=>{const a=SHORE_POINTS[i];return `if(x<${b[0].toFixed(5)})return mix(${a[1].toFixed(5)},${b[1].toFixed(5)},clamp((x-(${a[0].toFixed(5)}))/${(b[0]-a[0]).toFixed(5)},0.,1.))+.16*sin(x*.7);`;}).join('')+`return ${SHORE_POINTS.at(-1)[1].toFixed(5)}+.16*sin(x*.7);}`;
-// Smooth paths and cliffs at the back (owner, 26 October 2026): two narrow slots read as
-// raw ravines from the game camera, the stair gully between the west headland and the
-// conch terrace, and the slot behind the cove right of the conch. Each is filled with a
-// ramp: inside its outline the ground rises from the sand at `mouth` to `top` at `back`
+// Smooth path at the back (owner, 26 October 2026): the stair gully between the west
+// headland and the conch terrace read as a raw ravine from the game camera. It is filled
+// with a ramp (the slot behind the cove is closed by the game's west headland instead,
+// data acceptedScenes.edgeCliffs): inside its outline the ground rises from the sand at `mouth` to `top` at `back`
 // (smoothstep along z) and stays there behind; it fades out over RAMP_SOFT past the
 // outline. Ground already higher (terraces, banks) is kept, so the cliff faces stand over
 // a grassy slope instead of a slot. Routes ride the ramp (field() takes the higher).
@@ -156,9 +156,6 @@ const RAMP_SOFT=M(.6);
 const RAMPS=[
   // stair gully, world x -255..-247, beach z 76 up to z 54 at 6 m
   {pts:[[-38.3,-11.7],[-25,-11.7],[-25,-55],[-38.3,-55]],mouth:-11.7,back:-48.3,top:10.7},
-  // slot behind the cove, world x -212..-203 from the cove mouth z 66 up to z 54 at 5.5 m,
-  // joining the low ground north of the east headland to x -195
-  {pts:[[33.3,-28.3],[48.3,-28.3],[48.3,-48.3],[61.7,-51.7],[61.7,-68.3],[33.3,-68.3]],mouth:-28.3,back:-48.3,top:9.9},
 ];
 function rampEdge(pts,x,z){
   let inside=false,d=Infinity;

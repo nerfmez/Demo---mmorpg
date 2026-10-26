@@ -394,3 +394,5 @@ Owner (drawing): "can you make cliffs ring the cherry tree, and move the arch's 
 - Trees and bush masses are placed by their spot in the authored frame and lifted onto the ground; the rises lift them where they stand instead of moving them (`RING_ON` in the patch). Only the new faces, the arch and the things standing on the raised ground differ from the previous build (image diff).
 
 Checks: core 640/640 (roads walkable, scene edges continuous). Inspected from above, at the south entrance in the play camera, along the north rise and through the gate.
+
+Owner, on that round: "the path to the stairs need not bend sharply, make it natural; the lower ring needs no divide". The north rise now leaves the stair top in one rounded curve instead of an L corner, and the south-west and south-east rises stand at their side terraces' height, so each side of the lower ring is one level: the old terrace bottom walls they bury are not drawn (their random draws still run, so nothing else moves).

@@ -390,9 +390,9 @@ const TERRACES = [
   const xs = pts.map(p => p.x), zs = pts.map(p => p.z);
   return { ...T, pts, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) };
 });
-for (const [top, W] of [[H(3.3), [[-123.0,-90.0],[-118.5,-93.0],[-111.2,-94.6],[-103.1,-95.6],[-96.5,-97.0],[-92.0,-98.8],[-90.0,-101.5],[-89.6,-105.5],[-89.5,-112],[-127,-112],[-127,-90.0]]],
-  [3.0, [[-127.2,-69.8],[-125.9,-66.4],[-123.0,-62.8],[-120.2,-59.0],[-119.6,-50],[-150,-50],[-150,-67.6],[-140,-67.8]]],
-  [3.0, [[-90.3,-73.5],[-91.8,-68.2],[-95.0,-64.6],[-99.5,-62.0],[-103.5,-59.6],[-105.2,-55.5],[-105.4,-50],[-74,-50],[-74,-67.6],[-86,-68]]]]) {
+for (const [top, W] of [[H(3.3), [[-122.4,-86.5],[-122.2,-88.6],[-121.0,-90.6],[-118.5,-92.3],[-114.5,-93.9],[-111.2,-94.6],[-103.1,-95.6],[-96.5,-97.0],[-92.0,-98.8],[-90.0,-101.5],[-89.6,-105.5],[-89.5,-112],[-127,-112],[-127,-86.5]]],
+  [H(3.3), [[-127.2,-69.8],[-125.9,-66.4],[-123.0,-62.8],[-120.2,-59.0],[-119.6,-50],[-150,-50],[-150,-67.6],[-140,-67.8]]],
+  [H(3.4), [[-90.3,-73.5],[-91.8,-68.2],[-95.0,-64.6],[-99.5,-62.0],[-103.5,-59.6],[-105.2,-55.5],[-105.4,-50],[-74,-50],[-74,-67.6],[-86,-68]]]]) {
   const curve = new THREE.CatmullRomCurve3(W.map(([x, z]) => new V3((x + 112) / 0.62, 0, (z + 64) / 0.62)), true, 'centripetal');
   const pts = curve.getSpacedPoints(Math.ceil(curve.getLength() / 1.3)).slice(0, -1).map(q => ({ x: q.x, z: q.z, wall: 1 })), xs = pts.map(p => p.x), zs = pts.map(p => p.z);
   TERRACES.push({ top, ledge: true, ring: true, pts, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) });
@@ -587,7 +587,9 @@ function cliffRuns(T, extra = false) {
 }
 function buildCliffs(extra = false) {
   const pos = [], col = [], tmpA = new V3(), tmpB = new V3(), nn = new V3();
+  let SKIP = false;
   const quad = (a, b, c, d, out, color) => {
+    if (SKIP) return;
     tmpA.subVectors(b, a); tmpB.subVectors(c, a); nn.crossVectors(tmpA, tmpB);
     const vs = nn.dot(out) >= 0 ? [a, b, c, a, c, d] : [a, c, b, a, d, c];
     for (const v of vs) { pos.push(v.x, v.y, v.z); col.push(color.r, color.g, color.b); }
@@ -633,6 +635,7 @@ function buildCliffs(extra = false) {
       };
       const shade = new THREE.Color();
       cols.forEach((C, ci) => {
+        { let drop = 0; for (let i = C.i0; i <= C.i1; i++) drop += T.top - S[i].base - 0.35; SKIP = drop / (C.i1 - C.i0 + 1) < 1.2; }
         for (let i = C.i0; i < C.i1; i++) {
           const out = new V3((S[i].nx + S[i + 1].nx) / 2, 0, (S[i].nz + S[i + 1].nz) / 2);
           for (let r = 0; r < F.length - 1; r++) {

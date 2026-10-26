@@ -57,9 +57,9 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
   # stair level and leaves trail-1 its pass on the east, under the arch; lower rises south-west and
   # south-east leave the south entrance open. Their faces are the added rock (second pass).
   old="// signed distance to a terrace outline: negative inside"
-  new=("for (const [top, W] of [[H(3.3), [[-123.0,-90.0],[-118.5,-93.0],[-111.2,-94.6],[-103.1,-95.6],[-96.5,-97.0],[-92.0,-98.8],[-90.0,-101.5],[-89.6,-105.5],[-89.5,-112],[-127,-112],[-127,-90.0]]],\n"
-       "  [3.0, [[-127.2,-69.8],[-125.9,-66.4],[-123.0,-62.8],[-120.2,-59.0],[-119.6,-50],[-150,-50],[-150,-67.6],[-140,-67.8]]],\n"
-       "  [3.0, [[-90.3,-73.5],[-91.8,-68.2],[-95.0,-64.6],[-99.5,-62.0],[-103.5,-59.6],[-105.2,-55.5],[-105.4,-50],[-74,-50],[-74,-67.6],[-86,-68]]]]) {\n"
+  new=("for (const [top, W] of [[H(3.3), [[-122.4,-86.5],[-122.2,-88.6],[-121.0,-90.6],[-118.5,-92.3],[-114.5,-93.9],[-111.2,-94.6],[-103.1,-95.6],[-96.5,-97.0],[-92.0,-98.8],[-90.0,-101.5],[-89.6,-105.5],[-89.5,-112],[-127,-112],[-127,-86.5]]],\n"
+       "  [H(3.3), [[-127.2,-69.8],[-125.9,-66.4],[-123.0,-62.8],[-120.2,-59.0],[-119.6,-50],[-150,-50],[-150,-67.6],[-140,-67.8]]],\n"
+       "  [H(3.4), [[-90.3,-73.5],[-91.8,-68.2],[-95.0,-64.6],[-99.5,-62.0],[-103.5,-59.6],[-105.2,-55.5],[-105.4,-50],[-74,-50],[-74,-67.6],[-86,-68]]]]) {\n"
        "  const curve = new THREE.CatmullRomCurve3(W.map(([x, z]) => new V3((x + 112) / 0.62, 0, (z + 64) / 0.62)), true, 'centripetal');\n"
        "  const pts = curve.getSpacedPoints(Math.ceil(curve.getLength() / 1.3)).slice(0, -1).map(q => ({ x: q.x, z: q.z, wall: 1 })), xs = pts.map(p => p.x), zs = pts.map(p => p.z);\n"
        "  TERRACES.push({ top, ledge: true, ring: true, pts, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) });\n"
@@ -101,6 +101,16 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
                   "    const a = TS, core = new THREE.CatmullRomCurve3([0, 0.05, 0.15, 0.3, 0.5, 0.7, 0.85, 0.95, 1].map(t => new V3(...arc(t))), false, 'centripetal');"),
                  ("[0.97, 0.0, 't'], [1.0, -0.5, 't']","[0.97, 0.0, 't'], [0.9653, -0.0166, 't'], [0.9611, -0.0326, 't'], [0.9576, -0.0478, 't'], [0.9551, -0.0624, 't'], [0.9536, -0.0763, 't'], [0.9536, -0.0893, 't'], [0.9567, -0.1013, 't'], [0.9606, -0.1128, 't'], [0.9649, -0.1238, 't'], [0.9695, -0.1344, 't'], [0.9740, -0.1448, 't'], [0.9783, -0.1549, 't'], [0.9822, -0.1649, 't'], [0.9819, -0.1755, 't'], [0.9812, -0.1859, 't'], [0.9817, -0.1958, 't'], [0.9823, -0.2054, 't'], [0.9829, -0.2148, 't'], [0.9834, -0.2239, 't'], [0.9840, -0.2329, 't'], [0.9845, -0.2416, 't'], [0.9850, -0.2501, 't'], [0.9855, -0.2584, 't'], [0.9860, -0.2666, 't'], [1.0, -0.5, 't']")]:
    assert src.count(old)==1,(name,old);src=src.replace(old,new)
+ if name=='forest':
+  # Owner: the lower ring has no step inside. Where a rise now stands as high in front of an authored
+  # wall, that stretch of columns is not drawn (its random draws still run, so the rest stays as it is).
+  for old,new in[("function buildCliffs(extra = false) {\n  const pos = [], col = [], tmpA = new V3(), tmpB = new V3(), nn = new V3();\n  const quad = (a, b, c, d, out, color) => {\n",
+                  "function buildCliffs(extra = false) {\n  const pos = [], col = [], tmpA = new V3(), tmpB = new V3(), nn = new V3();\n  let SKIP = false;\n  const quad = (a, b, c, d, out, color) => {\n    if (SKIP) return;\n"),
+                 ("      cols.forEach((C, ci) => {\n        for (let i = C.i0; i < C.i1; i++) {\n          const out = new V3((S[i].nx + S[i + 1].nx) / 2, 0, (S[i].nz + S[i + 1].nz) / 2);",
+                  "      cols.forEach((C, ci) => {\n        { let drop = 0; for (let i = C.i0; i <= C.i1; i++) drop += T.top - S[i].base - 0.35; SKIP = drop / (C.i1 - C.i0 + 1) < 1.2; }\n        for (let i = C.i0; i < C.i1; i++) {\n          const out = new V3((S[i].nx + S[i + 1].nx) / 2, 0, (S[i].nz + S[i + 1].nz) / 2);")]:
+   assert src.count(old)==1,(name,old[:60]);src=src.replace(old,new)
+  old="  const g = new THREE.BufferGeometry();\n  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));"
+  assert src.count(old)>=1,(name,'geometry')
  src=gameFoliageParts(name,src)
  camera="const camera=new THREE.PerspectiveCamera(32,1672/941,1,400);\n"
  camera+="const CAM={target:new V3(.96,0,-4.02),pitch:38,dist:51.9,yaw:-7.3};\n" if name=='beach' else f"const CAM={{target:new V3(0,0,-7.2),pitch:40,dist:{72 if name=='forest' else 93.6},yaw:0}};\n"

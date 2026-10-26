@@ -1,6 +1,6 @@
-# Old Root Stone Ring — standalone scene in owner review
+# Old Root Stone Ring — preliminarily accepted standalone scene
 
-**Owner status: in review, 26 October 2026**, artifact version 1:
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 26 October 2026** ("อันนี้ดี ต่อไปเลย"), artifact version 1:
 https://claude.ai/artifact/E1j8hiqDU25sz3r6mabsTE.
 
 Concept: `old-root-stone-ring.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`

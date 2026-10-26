@@ -195,6 +195,8 @@ one band from the game camera, so these two face the camera at opposite 45° dia
 Owner: "X มันต้องไปข้างหน้า อันนี้มันล่างขึ้นบน" (a camera-facing X stands up the screen). The crescents now lie
 level at waist height, crossing as an X whose arms reach forward from the hero, and drift forward
 over the target.
+Checked close up from the game camera, the two usual fan-shaped crescents met like a ">": they are now
+thin curved bands crossing at their middles, drawn over the monster they cross so the X is whole.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

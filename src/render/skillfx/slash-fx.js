@@ -122,9 +122,9 @@ export class SlashFx {
     this._p = new THREE.Vector3(); this._q = new THREE.Vector3(); this._a = new THREE.Vector3();
     this._seg = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
   }
-  geometry(arcDeg, range) {
-    const key = `${arcDeg}|${range.toFixed(2)}`;
-    if (!this.geos.has(key)) this.geos.set(key, arcGeometry((arcDeg * Math.PI) / 180, range * 0.25, range));
+  geometry(arcDeg, range, inner = 0.25) {
+    const key = `${arcDeg}|${range.toFixed(2)}|${inner}`;
+    if (!this.geos.has(key)) this.geos.set(key, arcGeometry((arcDeg * Math.PI) / 180, range * inner, range));
     return this.geos.get(key);
   }
   // a strike whose contact lands `contactIn` seconds from now. where(): caster {x, z, angle} at reveal
@@ -139,7 +139,7 @@ export class SlashFx {
     const c = this.cuts.find((q) => !q.live) || this.cuts.reduce((a, b) => (a.t > b.t ? a : b));
     const arcDeg = p.faceArc ?? p.arc; // a camera-facing cut may take a flatter arc than the skill's hit arc
     c.reach = p.range * (p.reach ?? pat.reach); c.arc = (arcDeg * Math.PI) / 180; c.dir = dir; c.lastHead = 0; c.hold = p.hold ?? HOLD;
-    c.core.geometry = c.glow.geometry = this.geometry(arcDeg, c.reach);
+    c.core.geometry = c.glow.geometry = this.geometry(arcDeg, c.reach, p.inner);
     c.tilt.rotation.set(0, 0, 0);
     c.drift.set(0, 0, 0);
     if (p.face !== undefined) this.layFlat(c, p, at);
@@ -155,6 +155,8 @@ export class SlashFx {
     u.uHot.value.set(...pal.hot); u.uBody.value.set(...pal.body); u.uGlow.value.set(...pal.glow);
     u.uRimK.value = p.fusedElement ? 1 : 0;
     if (p.fusedElement) u.uRim.value.set(...(FUSE[p.fusedElement] || FUSE.fire));
+    // a cut drawn over the bodies it crosses (Cross Cut: its X would be cut in half by the monster in front)
+    c.core.material.depthTest = c.glow.material.depthTest = !p.overlay;
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
   }
   // A cut laid flat, set by the skill (Cross Cut: its two crescents lie level at waist height in front of
@@ -166,7 +168,7 @@ export class SlashFx {
     c.g.rotation.set(0, a, 0);
     const d = p.ahead ?? c.reach;
     place(c.g, at.x + Math.sin(at.angle) * d, 1.0 + (p.y ?? 0), at.z + Math.cos(at.angle) * d);
-    c.g.position.addScaledVector(bulge, -c.reach * 0.8); // the arc's centre behind the point, so its body crosses it
+    c.g.position.addScaledVector(bulge, -c.reach * (1 + (p.inner ?? 0.25)) / 2); // the arc's centre behind the point, so its band crosses it
     c.drift.set(Math.sin(at.angle), 0, Math.cos(at.angle)).multiplyScalar(p.drift || 0);
   }
   // world point on the reach edge at fraction s of the cut

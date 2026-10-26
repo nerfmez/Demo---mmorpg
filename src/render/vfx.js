@@ -436,8 +436,9 @@ export class Vfx {
     const flash = this.fireMesh(2);
     flash.position.set(e.x, y, e.z);
     flash.userData.fireball = true;
-    flash.material.uniforms.uWidth.value = f.size;
-    flash.material.uniforms.uGlowRadius.value = f.glowRadius;
+    // e.scale: a bigger contact of the same approved flame (Meteor's landing)
+    flash.material.uniforms.uWidth.value = f.size * (e.scale || 1);
+    flash.material.uniforms.uGlowRadius.value = f.glowRadius * (e.scale || 1);
     flash.material.uniforms.uSeed.value = Math.random() * 17;
     if (Number.isFinite(e.vx) && Number.isFinite(e.vz)) flash.material.uniforms.uVelocity.value.set(e.vx, 0, e.vz);
     // Reuse the nearest last-rendered Firebolt direction; core events stay unchanged.

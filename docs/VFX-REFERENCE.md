@@ -75,15 +75,18 @@ a few chips.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
-The gallery host (`www.jeanmoreno.com`) was blocked by this session's network policy (proxy 403), so
-no new clip was inspected; the principles already recorded above were applied. Meteor
-(`skillfx/meteor-fx.js`): anticipation as a cel hit circle filling like a timer plus a star swelling in
-the sky; the main motion an accelerating burning rock with a thick tapering tail, kept low enough to
-stay inside the game camera; the impact as `CFXR Impact Contrast`/`Ground Hit + Debris` teach (a
-compact bright flash first, a shock ring to the real radius, embers and dark chips on their own
-gravity), then a soft scorch. Thunderstorm (`skillfx/thunder-fx.js`): the lightning roles listed above
-— a gathering cloud for anticipation, jagged forked bolts as the main motion per rules wave, a ground
-flash and sparks as the impact, the cloud lit from inside on each strike. Blizzard
-(`skillfx/blizzard-fx.js`): a lingering ground layer whose ice-pointed rim is the real hit area, with
-wind-driven snow streaks and drifting flakes as a separate moving layer. All original procedural
-shapes; nothing copied.
+A first procedural version (soft additive glows and thin ribbons) was rejected by the owner: it did
+not match the approved set. The approved effects are solid cel shapes sampled from Blender or built
+on them (Frost Nova's floor and crystals in `skillfx/frost-fx.js`, the lightning and Stone Burst clips
+in `assets/vfx/approved/`, Fireball V5), so these three are now composed from those pieces:
+Meteor = a thin Stone Burst-style boundary during the delay, the Fireball V5 body enlarged and turned
+down its fall, then the Fireball contact (enlarged) and the Stone Burst eruption at the hit radius;
+Thunderstorm = the approved lightning strike at two spots per wave inside a thin boundary;
+Blizzard = Frost Nova's ice held for the zone (`FrostFx.burst(..., hold)`) with solid white snow.
+The gallery host (`www.jeanmoreno.com`) was blocked by the session's network policy. Web research
+used instead: a stylized strike should stay short with a few-frame impact
+([realtimevfx](https://realtimevfx.com/t/lightning-strike-stylized-what-do-you-guys-think-update/1972)),
+Guild Wars 2's Blizzard pairs the storm with jutting ice ([wiki](https://wiki.guildwars2.com/wiki/Blizzard)),
+snow and shake sell an ice move ([forum](https://devforum.roblox.com/t/feedback-on-1st-ice-move/1727614)),
+and a toon impact reads as flat colour bands with a ring
+([Blender Artists](https://blenderartists.org/t/a-girl-with-super-power-alys-ultimate/1600673)).

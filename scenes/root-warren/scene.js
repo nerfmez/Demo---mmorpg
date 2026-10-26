@@ -67,12 +67,32 @@ function rootArch(uA,vA,uB,vB,vTop){
  for(const[x,y,z]of[[ax,ay,az],[bx,by,bz]])for(let k=0;k<7;k++){const a=k/7*Math.PI*2+R(-.3,.3);rootParts.push(barkTube(rootPath(x,z,y-.05,2.6,a,.5,M(R(1.4,2.4)),R(0,6)),M(.3),M(.04),14));}
  COLLIDERS.push({x:ax,z:az,r:M(.45)},{x:bx,z:bz,r:M(.45)});
 }
+// A weathered block as the reference's: an old squared stone, its edges worn round, tilted and
+// sunk into the ground, a smaller piece leaning on it and rubble at its foot, moss on its top and
+// grass, ferns and flowers growing up round its base. Warm grey, each a different shade.
+const WARM_STONE=['#c4bfb4','#b7b2a8','#cdc7bb','#aca79e','#bdb6a9'];
+function weatheredBlock(x,y,z,w,h){
+ const ry=R(-.6,.6),sink=h*R(.18,.3),tone=pick(WARM_STONE),wide=rand()<.4;
+ // some broad and low, some tall and narrow; a few split into two stacked pieces
+ if(wide){w*=R(1.15,1.35);h*=R(.55,.75);}
+ if(!wide&&h>w*1.1&&rand()<.5){const h1=h*R(.55,.65);block(x,y-sink,z,w,h1+sink,w*R(.75,.9),ry,.5,{base:tone,natural:true,rx:R(-.06,.06),rz:R(-.06,.06)});block(x+R(-.06,.06)*w,y+h1-.05,z+R(-.05,.05)*w,w*R(.82,.95),h-h1,w*R(.7,.85),ry+R(-.2,.2),.9,{base:pick(WARM_STONE),natural:true,rx:R(-.1,.1),rz:R(-.12,.12)});}
+ else block(x,y-sink,z,w,h+sink,w*R(.7,.9),ry,.9,{base:tone,natural:true,rx:R(-.1,.1),rz:R(-.12,.12)});
+ // a smaller broken piece leaning against it, and one lying at its foot
+ for(let k=0;k<(rand()<.6?2:1);k++){
+  const a=ry+R(-1.4,1.4)+(k?Math.PI:0),d=w*R(.55,.75),px=x+Math.cos(a)*d,pz=z+Math.sin(a)*d,s=R(.35,.6);
+  block(px,height(px,pz)-h*s*.25,pz,w*s,h*s*R(.6,1),w*s*R(.7,.9),R(0,6),.8,{base:pick(WARM_STONE),natural:true,rx:R(-.25,.25),rz:R(-.3,.3)});
+ }
+ for(let k=0;k<4;k++){const a=R(0,6.28),d=w*R(.5,.9),px=x+Math.cos(a)*d,pz=z+Math.sin(a)*d,r=w*R(.06,.12);addStone(px,height(px,pz)-r*.3,pz,r*1.4,r,r*1.1,{extra:4,chamfer:.3,noLine:true,moss:.3,base:pick(WARM_STONE)});}
+ // grass, flowers and a fern growing up round it, a bush tucked against one side
+ for(let k=0;k<14;k++){const a=R(0,6.28),d=w*R(.45,.8),px=x+Math.cos(a)*d,pz=z+Math.sin(a)*d;grassItems.push({x:px,y:height(px,pz)-.02,z:pz,s:R(.8,1.2),ry:R(0,6.28),k:R(.9,1.08)});if(rand()<.5)flowerItems.push({x:px,y:height(px,pz)+.02,z:pz,s:R(.7,1),ry:R(0,6.28),c:rand()<.5?'#fff6dc':'#f7da54'});}
+ if(rand()<.6)fernClump(x+R(-.6,.6)*w,y-.05,z+w*R(.5,.8),w*R(.5,.8));
+ addBush(x+R(-.7,.7)*w,y,z+w*R(.4,.7),w*R(.3,.45),{sy:.6,tint:R(-.1,.2)});
+}
 function warrenRocks(){
  for(const[u,v,w,h]of[[.345,.33,.045,.10],[.385,.245,.04,.08],[.365,.15,.04,.08],[.60,.24,.04,.06],[.515,.19,.035,.06],[.72,.13,.05,.08],[.79,.27,.035,.05],[.985,.36,.04,.10],[.31,.39,.035,.04],[.36,.40,.03,.035],[.02,.32,.04,.06],[.13,.38,.04,.05],[.62,.50,.03,.035],[.665,.56,.03,.03],[.70,.53,.025,.025],[.40,.52,.025,.025],[.22,.95,.05,.06],[.86,.87,.06,.09],[.80,.92,.05,.06],[.06,.78,.05,.08],[.14,.88,.05,.07],[.27,.87,.04,.05],[.12,.68,.05,.07],[.08,.72,.04,.06],[.90,.80,.05,.08],[.95,.70,.05,.09],[.74,.97,.05,.06]]){
   const[x,y,z]=onGround(u,v),width=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h);
   if(stairsAt(x,z).s<stairsAt(x,z).half+width*.5+.4)continue;
-  // squared, cracked, mossy blocks, as the reference's (the shared ruin stone)
-  block(x,y-M(.25),z,width,hh+M(.25),width*R(.75,.9),R(-.4,.4),.7,{base:pick(MOON_STONE)});COLLIDERS.push({x,z,r:width*.45});
+  weatheredBlock(x,y,z,width,hh);COLLIDERS.push({x,z,r:width*.45});
   for(let k=0;k<2;k++)addBush(x+R(-.6,.6)*width,y,z+width*R(.3,.6),M(R(.25,.4)),{sy:.6,tint:R(-.1,.2)});
  }
 }

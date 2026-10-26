@@ -1,6 +1,6 @@
 # Root Warren — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 3:
+**Owner status: in review, 26 October 2026**, artifact version 4:
 https://claude.ai/artifact/EuwKaqYC2DzvzctjRKvZVQ.
 
 Concept: `root-warren.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -41,3 +41,9 @@ Owner, on version 2: the trunk must be far thicker, it is a giant. The great tre
 giant's trunk as wide on screen as the reference's: a column core with eight great strands
 twisting up round it (the reference's trunk reads as fused roots), each strand splaying out and
 down at the foot; the great roots leave from its surface.
+
+Owner, on version 3: the stones are not yet natural. Each block is now a weathered old stone
+(`weatheredBlock`): edges worn round, tilted and sunk into the ground, warm grey of differing
+shades; some broad and low, some tall, some split into two stacked pieces; a smaller broken piece
+leaning on it, rubble at its foot, moss on its top, and grass, flowers, a fern and a bush growing
+up round its base.

@@ -177,6 +177,10 @@ so together they draw an X; on the second cut an X of light (white core strokes 
 at the tips, drawn over the bodies) flares in the air in front of the hero, holds a beat, then splits
 apart along its arms and fades, sparks thrown off the crossing; each struck monster gets a small X
 glint on its body.
+Owner review: Cross Cut became a dagger main skill (two cuts per press, MP economy round), and it got
+its own motion, candidate B picked by the owner: `crossCut`, the first two cuts of Quaternius
+Sword_Light_Combo (a diagonal cut down across the body on the hit, a backhand out the other way on the
+repeat), so the hero's two cuts match the two crescents and the X lands with the backhand.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

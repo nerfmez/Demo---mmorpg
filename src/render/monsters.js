@@ -795,6 +795,11 @@ function buildWarden() {
 
 const WARDEN_KNEE = (n) => n.replace('leg', 'knee');
 
+// the warden's brace before a roll (shield arm forward and across, elbow bent so the shield stands on
+// the ground in front of it, hips dropped behind it)
+const BRACE = { armX: 0.9, armZ: 0.55, armZL: -0.4, elbow: -0.5, hips: 0.35 };
+const ROLL_SPIN = 2.2;
+
 function animWarden(r, s, dt, time) {
   const b = r.bones;
   const c = r.motion;
@@ -837,11 +842,16 @@ function animWarden(r, s, dt, time) {
     hipsY -= 0.2 * hold;
     headX = 0.2 * hold;
   } else if (s.windup === 'roll') {
-    // first it sets its shield down: a dip that plants the shield's foot on the ground, head bowed
-    const p = clamp01(k / 0.25);
-    hipsY -= 0.16 * p;
-    headX = 0.3 * p;
-    torsoX += 0.15 * p;
+    // first it braces behind its shield: the shield swings round in front and its foot is planted on
+    // the ground, the body crouched low behind it, the free fist pressed to its back; then it curls
+    const p = clamp01(k / 0.35);
+    const e = p * p * (3 - 2 * p);
+    armX = [-0.55 * e, -BRACE.armX * e];
+    armZ = [0.25 + (BRACE.armZL - 0.25) * e, -0.25 + (BRACE.armZ + 0.25) * e];
+    torsoX = 0.2 + 0.35 * e;
+    hipsY -= BRACE.hips * e;
+    headX = -0.15 * e;
+    r.braceElbow = BRACE.elbow * e;
   } else if (s.state === 'act') {
     headX = 0.55;
     torsoX = 0.7;
@@ -879,7 +889,8 @@ function animWarden(r, s, dt, time) {
     b[n].rotation.z = damp(b[n].rotation.z, armZ[i], 10, dt);
   });
   b.elbowL.rotation.x = damp(b.elbowL.rotation.x, s.windup === 'slam' ? -0.4 : -0.35, 10, dt);
-  b.elbowR.rotation.x = damp(b.elbowR.rotation.x, s.windup === 'slam' ? -0.4 : -0.35, 10, dt);
+  b.elbowR.rotation.x = damp(b.elbowR.rotation.x, s.windup === 'slam' ? -0.4 : s.windup === 'roll' ? -0.35 + (r.braceElbow || 0) : -0.35, 10, dt);
+  if (s.windup !== 'roll') r.braceElbow = 0;
   r.hipsY = damp(r.hipsY ?? 1.45, hipsY + drop + c.bob * thud, 14, dt);
   b.hips.position.y = r.hipsY - drop - c.bob * thud;
   b.hips.rotation.z = Math.sin(ph) * c.roll * w;
@@ -897,7 +908,8 @@ function animWarden(r, s, dt, time) {
     if (form.visible) {
       const rad = form.userData.radius;
       form.position.set(0, rad, 0.2);
-      const spin = s.state === 'act' ? (s.attack?.speed || 10) / (rad * (r.baseScale || 1)) : 0;
+      // spun faster than it travels (SPIN x the rolling rate), so it reads as a fast, heavy roll
+      const spin = s.state === 'act' ? ROLL_SPIN * (s.attack?.speed || 10) / (rad * (r.baseScale || 1)) : 0;
       r.rollAngle = T.dormant ? 0 : ((r.rollAngle || 0) + spin * dt) % (Math.PI * 2);
       form.rotation.set(r.rollAngle, 0, 0);
       const pop = 0.9 + 0.1 * T.ball;
@@ -913,8 +925,8 @@ function animWarden(r, s, dt, time) {
  * The warden golem <-> boulder timeline (its stones move on the GPU, monsterSkin.js ASSEMBLE): out of
  * combat it lies as the boulder (after walking home it folds into it on the spot); a fight wakes it,
  * the boulder breaks into its stones and they fly up into the golem, feet first; before a roll it
- * sets its shield down on the ground, folds into the ball and rolls; then it unfolds and the shield
- * flies back to its arm. Returns {a: assembled 0..1, ball: boulder model 0..1, dormant}.
+ * braces behind its shield planted on the ground, folds into the ball and rolls; then it unfolds.
+ * Returns {a: assembled 0..1, ball: boulder model 0..1, dormant}.
  */
 function wardenForm(r, s, k, dt) {
   const A = r.assemble, form = r.ballForm;
@@ -923,7 +935,7 @@ function wardenForm(r, s, k, dt) {
   if (!dormant) r.homeCurl = s.state === 'return';
   r.curlT = dormant ? (r.homeCurl ? (r.curlT || 0) + dt : 9) : 0;
   if (s.state === 'act' && s.lastAttack === 'roll') r.rolled = true;
-  let a = 1, ball = 0, drop = false, back = 1;
+  let a = 1, ball = 0;
   // fold c 0..1: the stones gather into a ball, then the boulder model takes over from them
   const fold = (c) => { a = 1 - c; ball = clamp01((c - 0.85) / 0.15); };
   if (dormant) fold(clamp01(r.curlT / 1.2));
@@ -931,40 +943,24 @@ function wardenForm(r, s, k, dt) {
     const w = clamp01(s.actT / (s.actionTotal || 1.8));
     ball = 1 - clamp01(w / 0.1);
     a = clamp01((w - 0.1) / 0.9);
-  } else if (s.windup === 'roll') {
-    drop = k >= 0.25;
-    back = 0;
-    fold(clamp01((k - 0.25) / 0.6));
-  } else if (s.state === 'act' && s.lastAttack === 'roll') {
-    a = 0; ball = 1; drop = true; back = 0;
-  } else if (r.rolled && (s.state === 'recover' || s.state === 'stunned')) {
+  } else if (s.windup === 'roll') fold(clamp01((k - 0.55) / 0.4)); // braced behind the shield, then it curls
+  else if (s.state === 'act' && s.lastAttack === 'roll') { a = 0; ball = 1; }
+  else if (r.rolled && (s.state === 'recover' || s.state === 'stunned')) {
     const t = s.actT;
     ball = 1 - clamp01(t / 0.12);
     a = clamp01((t - 0.12) / 0.7);
-    back = clamp01((t - 0.55) / 0.45);
-    drop = back < 1;
-    if (!drop && a >= 1) r.rolled = false;
+    if (a >= 1) r.rolled = false;
   } else r.rolled = false;
-  // the shield stays where it was set down: its pose then, carried over to where the rig is now
   const hull = r.modelMeshes.slice(1), body = r.modelMeshes[0];
-  if (drop) {
-    if (!r.dropW) {
-      const sk = body.skeleton, i = sk.bones.indexOf(r.bones.elbowR);
-      r.dropW = r.bones.elbowR.matrixWorld.clone().multiply(sk.boneInverses[i]);
-    }
-    A.uDrop.value.copy(r.root.matrixWorld).invert().multiply(r.dropW);
-  } else r.dropW = null;
   const rad = form.userData.radius;
   A.uAssemble.value = a;
   A.uPack.value = 1 - ball;
-  A.uDropMode.value = drop ? 1 : 0;
-  A.uShieldBack.value = back;
   A.uBall.value.set(0, rad, 0.2, rad);
   // the outline hull and the shadow follow the plain skinned golem: only while it is whole
-  const whole = a >= 1 && !drop;
+  const whole = a >= 1;
   for (const h of hull) h.visible = whole;
   body.castShadow = whole;
-  body.visible = ball < 1 || drop;
+  body.visible = ball < 1;
   return { a, ball, dormant };
 }
 

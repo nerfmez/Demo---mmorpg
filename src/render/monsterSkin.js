@@ -71,7 +71,7 @@ export function prepareMonsterModel(gltf, cfg) {
   }
   // `rigid`: a model built of separate hard pieces (the warden golem's stones and shield) moves each
   // piece whole with the bone nearest it, so stones never stretch, shear or follow another limb
-  if (cfg.rigid) g.setAttribute('pieceC', new THREE.BufferAttribute(rigidPieces(g, si, sw, names, segs, sharp, cfg.dropPiece), 4));
+  if (cfg.rigid) g.setAttribute('pieceC', new THREE.BufferAttribute(rigidPieces(g, si, sw, names, segs, sharp), 4));
   g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
   g.userData.shared = true;
@@ -86,7 +86,7 @@ export function prepareMonsterModel(gltf, cfg) {
  * follows it. A piece whose middle sits between two joined bones (the lava knot of an elbow or knee)
  * is shared by those two only, with smooth weights, so it stays attached to both.
  */
-function rigidPieces(g, si, sw, names, segs, sharp, drop = null) {
+function rigidPieces(g, si, sw, names, segs, sharp) {
   const pos = g.attributes.position, n = pos.count, parent = new Int32Array(n);
   for (let i = 0; i < n; i++) parent[i] = i;
   const find = (i) => { while (parent[i] !== i) i = parent[i] = parent[parent[i]]; return i; };
@@ -130,14 +130,12 @@ function rigidPieces(g, si, sw, names, segs, sharp, drop = null) {
     si[i * 4] = bs[0]; sw[i * 4] = w1 / (w1 + w2);
     si[i * 4 + 1] = bs[1]; sw[i * 4 + 1] = w2 / (w1 + w2);
   }
-  // per vertex: its piece's middle and when it moves in a transformation (0 the feet .. 1 the head);
-  // the pieces near `drop` (the shield) add 2, so the shader can set them down on their own
-  const dropSeg = drop && drop.segment.map((q) => new THREE.Vector3(...q));
+  // per vertex: its piece's middle and when it moves in a transformation (0 the feet .. 1 the head)
   const out = new Float32Array(n * 4);
   for (let i = 0; i < n; i++) {
     const c = centre.get(find(i));
     out[i * 4] = c.x; out[i * 4 + 1] = c.y; out[i * 4 + 2] = c.z;
-    out[i * 4 + 3] = (c.y - minY) / (maxY - minY) + (dropSeg && segDist(c, dropSeg[0], dropSeg[1]) < drop.radius ? 2 : 0);
+    out[i * 4 + 3] = (c.y - minY) / (maxY - minY);
   }
   return out;
 }
@@ -170,20 +168,14 @@ export function prepareMonsterForm(gltf, cfg) {
 // Transformation of a `rigid` model (the warden golem <-> its boulder), on the GPU after skinning:
 // uAssemble 1 is the golem; going down to 0 each stone, the head first, tumbles along an arc into its
 // place in a ball of stones at uBall (centre, radius), shrunk to uPack of its size (0 hides them inside
-// the boulder model). With uDropMode the shield pieces (pieceC.w >= 2) stay where uDrop put them
-// (set down on the ground) and fly back to the arm as uShieldBack goes from 0 to 1.
+// the boulder model).
 const ASSEMBLE = `
 {
-  bool dropPiece = pieceC.w > 1.5;
-  float st = dropPiece ? pieceC.w - 2.0 : pieceC.w;
+  float st = pieceC.w;
   vec3 local = position - pieceC.xyz;
   float seed = st * 37.0 + pieceC.x * 11.0 + pieceC.z * 5.0;
   vec3 axis = normalize(vec3(sin(seed * 12.9), cos(seed * 7.3), sin(seed * 3.1) + 0.2));
-  if (dropPiece && uDropMode > 0.5) {
-    float t = uShieldBack, e = t * t * (3.0 - 2.0 * t);
-    vec3 dropped = (uDrop * vec4(position, 1.0)).xyz;
-    transformed = mix(dropped, transformed, e) + vec3(0.0, sin(3.14159 * t) * uBall.w * 1.4, 0.0);
-  } else if (uAssemble < 0.999) {
+  if (uAssemble < 0.999) {
     float t = clamp((uAssemble - st * 0.55) / 0.45, 0.0, 1.0), e = t * t * (3.0 - 2.0 * t);
     vec3 dir = normalize(pieceC.xyz - vec3(0.0, uBall.w * 1.7, 0.0) + vec3(0.0, 0.0, 1e-3));
     float ang = (1.0 - e) * 2.6, c = cos(ang), s = sin(ang);
@@ -200,7 +192,7 @@ function modelMaterial(map, flash, rim, glow, assemble = null) {
     if (assemble) {
       Object.assign(shader.uniforms, assemble);
       shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nattribute vec4 pieceC;\nuniform float uAssemble, uPack, uDropMode, uShieldBack;\nuniform vec4 uBall;\nuniform mat4 uDrop;')
+        .replace('#include <common>', '#include <common>\nattribute vec4 pieceC;\nuniform float uAssemble, uPack;\nuniform vec4 uBall;')
         .replace('#include <skinning_vertex>', '#include <skinning_vertex>\n' + ASSEMBLE);
     }
     shader.uniforms.uFlash = flash;
@@ -251,7 +243,7 @@ export function attachMonsterModel(rig, T) {
   // rest space -> bone space, so effects can find a limb's tip on the posed rig (monster-trails.js)
   rig.restInverse = Object.fromEntries(T.bones.map((n, i) => [n, skeleton.boneInverses[i]]));
   // per rig: how far it is assembled, for its animator (rigid models only)
-  rig.assemble = cfg.rigid ? { uAssemble: { value: 1 }, uPack: { value: 1 }, uDropMode: { value: 0 }, uShieldBack: { value: 1 }, uBall: { value: new THREE.Vector4(0, 1, 0, 1) }, uDrop: { value: new THREE.Matrix4() } } : null;
+  rig.assemble = cfg.rigid ? { uAssemble: { value: 1 }, uPack: { value: 1 }, uBall: { value: new THREE.Vector4(0, 1, 0, 1) } } : null;
   const mat = modelMaterial(T.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.glow ?? 0, rig.assemble);
   // a model of open shells (Meshy's stones are hollow at their backs): their insides are drawn in
   // their own texture, not the dark outline behind them, when a limb swings round

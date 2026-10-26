@@ -334,9 +334,9 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
   from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
   the warden's boulder while dormant; during `emerge` the boulder breaks into the golem's own stones,
   which fly up into place feet first, each tumbling along an arc; back home it folds into the boulder
-  again. Before a `roll` (1.5 s wind-up) it dips to set its shield on the ground, then folds into
-  the ball; the shield stays standing where it was set down (`dropPiece` in data/models.json picks its
-  pieces) and flies back to the arm as the golem unfolds after the roll. All of it is done per stone
+  again. Before a `roll` (1.5 s wind-up) it braces: the shield swings round in front with its foot
+  planted on the ground and the body crouched behind it (monsters.js `BRACE`), then it folds into the
+  ball; the ball spins `ROLL_SPIN` (2.2) times its rolling rate, so it reads as fast and heavy. All of it is done per stone
   in the vertex shader after skinning (monsterSkin.js `ASSEMBLE`: each vertex carries its stone's
   middle and when it moves, `pieceC`), driven by monsters.js `wardenForm`.
 - **`quake`:** the warden marks `steps` `quake` areas along the locked line at wind-up start;

@@ -135,23 +135,27 @@ function coastIndex(points) {
     for (let i = s; i <= e; i++) { const [x, z] = points[i]; box[0] = Math.min(box[0], x); box[1] = Math.max(box[1], x); box[2] = Math.min(box[2], z); box[3] = Math.max(box[3], z); }
     runs.push({ s, e, box, lb: 0 });
   }
-  const order = runs.slice();
+  // the run with the nearest box first (a good first bound), then every run whose box
+  // can still beat the best; no per-query sort (the tie rule picks the lowest index anyway)
+  const scan = (r, x, z, best) => {
+    let { nearest, index } = best;
+    for (let i = r.s; i < r.e; i++) {
+      const a = points[i], b = points[i + 1];
+      const vx=b[0]-a[0], vz=b[1]-a[1], len2=vx*vx+vz*vz;
+      const t=len2>0?clamp(((x-a[0])*vx+(z-a[1])*vz)/len2,0,1):0;
+      const dx=x-a[0]-vx*t, dz=z-a[1]-vz*t, d=dx*dx+dz*dz;
+      if (d < nearest || (d === nearest && i < index)) { nearest = d; index = i; }
+    }
+    best.nearest = nearest; best.index = index;
+  };
   g = {
     nearest(x, z) {
-      for (const r of runs) { const dx = Math.max(r.box[0] - x, 0, x - r.box[1]), dz = Math.max(r.box[2] - z, 0, z - r.box[3]); r.lb = dx * dx + dz * dz; }
-      order.sort((p, q) => p.lb - q.lb);
-      let nearest = Infinity, index = 0;
-      for (const r of order) {
-        if (r.lb > nearest * (1 + 1e-9) + 1e-9) break; // margin for rounding in the box bound
-        for (let i = r.s; i < r.e; i++) {
-          const a = points[i], b = points[i + 1];
-          const vx=b[0]-a[0], vz=b[1]-a[1], len2=vx*vx+vz*vz;
-          const t=len2>0?clamp(((x-a[0])*vx+(z-a[1])*vz)/len2,0,1):0;
-          const dx=x-a[0]-vx*t, dz=z-a[1]-vz*t, d=dx*dx+dz*dz;
-          if (d < nearest || (d === nearest && i < index)) { nearest = d; index = i; }
-        }
-      }
-      return { nearest, index };
+      let first = runs[0];
+      for (const r of runs) { const dx = Math.max(r.box[0] - x, 0, x - r.box[1]), dz = Math.max(r.box[2] - z, 0, z - r.box[3]); r.lb = dx * dx + dz * dz; if (r.lb < first.lb) first = r; }
+      const best = { nearest: Infinity, index: 0 };
+      scan(first, x, z, best);
+      for (const r of runs) if (r !== first && !(r.lb > best.nearest * (1 + 1e-9) + 1e-9)) scan(r, x, z, best); // margin for rounding in the box bound
+      return best;
     },
     contains(x, z) {
       const j = Math.floor((z - z0) / COAST_BAND);

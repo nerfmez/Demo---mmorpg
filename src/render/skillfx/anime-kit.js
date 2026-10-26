@@ -24,61 +24,83 @@ export const ANIME_FIRE = {
 };
 
 // Cel fire, built live (owner, 2026-10-26: make the effect, never paste pictures). The shape language
-// is studied from hand-drawn anime fire: a mass of round lobes with big curling flame tongues rising
-// off it; a pale yellow core in front with its own tongue edges and an orange crescent; an orange body
-// with a dark red crescent on the side away from the light and a thin dark line; dark plum cel smoke.
-// Every flame is one camera-facing quad (all of them in one instanced mesh, refilled each frame like a
-// Ribbon): a teardrop SDF (a scalloped round body, a tongue that narrows to a curled tip, an optional
-// side tongue), banded flat, redrawn when its seed changes (once per drawing).
-export const FLAME = { BODY: 0, CORE: 1, SMOKE: 2 };
-const FLAME_VS = `attribute vec4 iPos; attribute vec4 iShape; attribute vec4 iLook; varying vec2 vUv; varying vec4 vShape; varying vec4 vLook; varying vec2 vLight;
-  // iPos: xyz, roll; iShape: seed, tip, curl, side; iLook: kind, cool, hole, alpha. size in instance scale
-  attribute vec2 iSize;
+// is studied from hand-drawn anime fire: one mass with one outline (never a pile of separate stickers);
+// flame tips all round the rim, hooked and leaning up, bigger at the top, round cloud bumps at the
+// bottom; a pale yellow core that is a smaller flame mass of its own with orange strokes between its
+// tongues; an orange body with a dark red crescent on the side away from the light and a thin dark
+// line; plum cel smoke. A fire is one camera-facing quad (all in one instanced mesh, refilled each
+// frame like a Ribbon) whose shader builds the rims in polar coordinates: r < R + tips(theta), theta
+// bent with the radius so the tips hook. The tips re-draw every drawing.
+export const FLAME = { FIRE: 0, SMOKE: 2 };
+const FLAME_VS = `attribute vec4 iPos; attribute vec4 iShape; attribute vec4 iLook; attribute vec2 iSize;
+  varying vec2 vUv; varying vec4 vShape; varying vec4 vLook; varying vec2 vLight;
+  // iPos: xyz, roll; iShape: seed, drawing, up (taller top tips: a comet), -; iLook: kind, cool, hole, alpha
   void main(){ vUv = position.xy*2.0; vShape = iShape; vLook = iLook;
-    vLight = vec2(cos(-iPos.w)*0.55 - sin(-iPos.w)*0.83, sin(-iPos.w)*0.55 + cos(-iPos.w)*0.83) * 0.12; // away from the screen's up-left light, in the quad's frame
+    float c = cos(-iPos.w), s = sin(-iPos.w);
+    vLight = vec2(c*0.6 - s*0.8, s*0.6 + c*0.8);   // the screen's up-left light, in the quad's frame
     vec4 mv = viewMatrix * vec4(iPos.xyz, 1.0);
-    float c = cos(iPos.w), s = sin(iPos.w); vec2 o = position.xy * iSize;
-    mv.xy += vec2(c*o.x - s*o.y, s*o.x + c*o.y);
+    vec2 o = position.xy * iSize; float cr = cos(iPos.w), sr = sin(iPos.w);
+    mv.xy += vec2(cr*o.x - sr*o.y, sr*o.x + cr*o.y);
     gl_Position = projectionMatrix * mv; }`;
 const FLAME_FS = `varying vec2 vUv; varying vec4 vShape; varying vec4 vLook; varying vec2 vLight;
-  uniform vec3 uCore; uniform vec3 uCoreShade; uniform vec3 uBody; uniform vec3 uBodyShade; uniform vec3 uLine;
+  uniform vec3 uCore; uniform vec3 uBody; uniform vec3 uShade; uniform vec3 uLine;
   uniform vec3 uCool; uniform vec3 uCoolShade; uniform vec3 uSmoke; uniform vec3 uSmokeShade;` + HASH + `
-  float smin(float a, float b, float k){ float h = clamp(0.5 + 0.5*(b - a)/k, 0.0, 1.0); return mix(b, a, h) - k*h*(1.0 - h); }
-  float tongueD(vec2 q, float H, float w0, float curl){
-    if (q.y <= 0.0) return length(vec2(q.x, q.y*1.6)) - w0;
-    float y = q.y / H; if (y >= 1.0) return length(q - vec2(curl*0.3*H, H));
-    float x = q.x - curl*0.3*H*y*y;
-    return abs(x) - w0*pow(1.0 - y, 1.15)*(1.0 + 0.25*sin(3.1416*y)); }
-  float shape(vec2 p, float seed, float tip, float curl, float side, float kind){
-    vec2 c = vec2(0.0, -0.32); vec2 q = p - c;
-    float n = 5.0 + floor(hh(vec2(seed, 1.0))*3.0), an = atan(q.y, q.x);
-    float r = 0.56 * (0.9 + 0.1*abs(sin(an*n*0.5 + hh(vec2(seed, 2.0))*6.0)));
-    if (kind > 1.5 || tip <= 0.0) r = 0.62 * (0.82 + 0.18*abs(sin(an*n*0.5 + hh(vec2(seed, 2.0))*6.0)));   // cloud lobes
-    float d = length(q) - r;
-    if (tip > 0.0) {
-      d = smin(d, tongueD(q, tip, 0.42, curl), 0.12);
-      if (abs(side) > 0.0) {
-        float a = -side*0.75; vec2 q2 = mat2(cos(a), -sin(a), sin(a), cos(a)) * (q - vec2(side*0.2, 0.05));
-        d = smin(d, tongueD(q2, tip*0.55, 0.24, -side*0.6), 0.1);
-      }
+  float h1(float i, float s){ return fract(sin(i*127.1 + s*311.7)*43758.5453); }
+  // a flame rim: tips of height H (hooked: a fast rise, a long concave fall) round a circle of radius
+  // R; cloud bumps instead of tips toward the bottom. th is measured from up, clockwise.
+  float ring(vec2 q, float R, float n, float H, float bend, float seed, float draw, float up, float cloud){
+    float r = length(q), th = atan(q.x, q.y);
+    float rr = max(r - R*0.8, 0.0);
+    float t = (th + bend*rr/R*sign(th)*clamp(abs(sin(th))*2.0, 0.0, 1.0))/6.2832*n + seed;
+    float i = floor(t), s = t - i;
+    float hh = 0.55 + 0.9*mix(h1(i, seed), h1(i, seed + draw), 0.45);
+    float prof = pow(s, 0.8)*pow(1.0 - s, 2.0)/0.1874;   // peak 1
+    float tip = H*hh*prof*(1.0 + up*max(cos(th), 0.0));
+    float lob = R*0.12*abs(sin(th*n*0.5 + seed));
+    float cw = pow(max(-cos(th), 0.0), 1.5)*0.5;
+    return r - (R + tip*(1.0 - cw) + lob*cw); }
+  float body(vec2 p, float seed, float draw, float up, float hole){
+    vec2 q = p - vec2(0.0, -0.06);
+    float d = min(ring(q, 0.5, 16.0, 0.16, 0.5, seed, draw, up, 0.5),
+                  ring(vec2(q.x*0.985 + q.y*0.17, q.y*0.985 - q.x*0.17), 0.48, 25.0, 0.1, 0.55, seed + 3.0, draw, up*0.8, 0.5));
+    if (hole > 0.0) { // break-up: the middle burns out and the rim splits into chunks
+      float th = atan(q.x, q.y), r = length(q);
+      d = max(d, hole*0.62 - r + (vq(q*5.0 + seed)*0.12));
+      d = max(d, hole*0.3 - abs(fract(th/6.2832*5.0 + seed*0.37) - 0.5)*r*2.4);
     }
     return d; }
+  float lobes(vec2 p, float seed){ // cel smoke: a cluster of round bumps
+    float an = atan(p.y, p.x), n = 6.0 + floor(h1(1.0, seed)*3.0);
+    return length(p) - 0.62*(0.82 + 0.18*abs(sin(an*n*0.5 + h1(2.0, seed)*6.0))); }
   void main(){
-    float seed = vShape.x, tip = vShape.y, curl = vShape.z, side = vShape.w, kind = vLook.x;
-    float d = shape(vUv, seed, tip, curl, side, kind);
-    float aa = fwidth(d) * 1.2, a = 1.0 - smoothstep(-aa, 0.0, d);
+    float seed = vShape.x, draw = vShape.y, up = vShape.z, kind = vLook.x, cool = vLook.y, hole = vLook.z;
+    vec2 p = vUv; vec3 c;
+    float d;
+    if (kind > 1.5) {
+      d = lobes(p, seed);
+      if (hole > 0.0 && vq(p*2.4 + seed*7.0) < hole) discard;
+      bool sh = lobes(p - vLight*0.16, seed) > 0.0;
+      c = sh ? uSmokeShade : uSmoke;
+      if (d > -0.035) c = uLine;
+    } else {
+      d = body(p, seed, draw, up, hole);
+      bool sh = body(p - vLight*0.15, seed, draw, up, hole) > 0.0;
+      // the core: its own flame mass, up-left of the middle, orange strokes between its tongues
+      vec2 qc = p - vec2(-0.04, 0.02);
+      float dc = ring(qc, 0.31, 13.0, 0.15, 0.6, seed + 7.0, draw, up*0.8, 0.0);
+      float rc = length(qc), tc = atan(qc.x, qc.y);
+      float t = (tc + 0.9*rc*sign(tc))/6.2832*13.0 + seed + 7.5, st = fract(t);
+      bool stroke = abs(st - 0.5) < 0.06*(rc/0.35)*(1.0 - rc/0.42) && rc > 0.1 && rc < 0.4 && h1(floor(t), seed) > 0.35;
+      bool core = dc < 0.0 && !stroke && !sh && cool < 0.34;
+      c = sh ? (cool > 0.67 ? uCoolShade : uShade) : (cool > 0.67 ? uCool : uBody);
+      if (core) c = uCore;
+      if (d > -0.014) c = uLine;
+    }
+    float aa = fwidth(d)*1.2, a = 1.0 - smoothstep(-aa, 0.0, d);
     if (a <= 0.0) discard;
-    if (vLook.z > 0.0 && vq(vUv*2.4 + seed*7.0) < vLook.z) discard;
-    // the side away from the light (light up-left): sample the shape shifted toward the light
-    bool shade = shape(vUv + vLight, seed, tip, curl, side, kind) > 0.0;
-    vec3 c;
-    if (kind > 1.5) c = shade ? uSmokeShade : uSmoke;
-    else if (kind > 0.5) c = shade ? uCoreShade : uCore;
-    else { float cool = vLook.y; c = shade ? (cool > 0.5 ? uCoolShade : uBodyShade) : (cool > 0.5 ? uCool : uBody); }
-    if (kind < 0.5 || kind > 1.5) if (d > -0.04) c = uLine;
-    gl_FragColor = vec4(c, a * vLook.w); }`;
+    gl_FragColor = vec4(c, a*vLook.w); }`;
 export const FIRE_LOOK = {
-  fire: { core: '#ffeb94', coreShade: '#ffa03a', body: '#ff7d1c', bodyShade: '#bc3418', line: '#6a1c16', cool: '#b23c1c', coolShade: '#6e2218', smoke: '#86687a', smokeShade: '#5c4258' },
+  fire: { core: '#ffec96', body: '#ff801e', shade: '#bc3418', line: '#6c1e16', cool: '#c2441c', coolShade: '#74241a', smoke: '#86687a', smokeShade: '#5c4258' },
 };
 export class AnimeFire {
   constructor(scene, max, el = 'fire') {
@@ -89,20 +111,21 @@ export class AnimeFire {
     for (const [k, arr, w] of [['iPos', this.pos, 4], ['iShape', this.shp, 4], ['iLook', this.look, 4], ['iSize', this.size, 2]]) geo.setAttribute(k, new THREE.InstancedBufferAttribute(arr, w).setUsage(THREE.DynamicDrawUsage));
     geo.instanceCount = 0; this.geo = geo;
     this.mesh = new THREE.Mesh(geo, new THREE.ShaderMaterial({
-      uniforms: { uCore: col(L.core), uCoreShade: col(L.coreShade), uBody: col(L.body), uBodyShade: col(L.bodyShade), uLine: col(L.line), uCool: col(L.cool), uCoolShade: col(L.coolShade), uSmoke: col(L.smoke), uSmokeShade: col(L.smokeShade) },
+      uniforms: { uCore: col(L.core), uBody: col(L.body), uShade: col(L.shade), uLine: col(L.line), uCool: col(L.cool), uCoolShade: col(L.coolShade), uSmoke: col(L.smoke), uSmokeShade: col(L.smokeShade) },
       vertexShader: FLAME_VS, fragmentShader: FLAME_FS, transparent: true, depthWrite: false,
     }));
     this.mesh.frustumCulled = false; this.mesh.renderOrder = 9; scene.add(this.mesh);
   }
   begin() { this.n = 0; }
-  /** One flame quad. p: world centre (ground lift applied by the caller); w, h: metres; roll: screen
-   *  radians (0 = the tongue points up the screen); shape: seed, tip (0 = no tongue, ~0.8-1.3), curl,
-   *  side (-1, 0, 1); kind FLAME.*; cool 0..1; hole 0..1; alpha. Callers add back to front. */
-  add(p, w, h, roll, seed, tip, curl, side, kind, cool = 0, hole = 0, alpha = 1) {
+  /** One fire (or smoke) quad. p: world centre (ground lift applied by the caller); w, h: metres;
+   *  roll: screen radians (0 = its top up the screen); seed: its shape; draw: the drawing index (tips
+   *  re-draw when it changes); up: taller top tips (a comet: 2-3); kind FLAME.*; cool 0..1 (orange ->
+   *  red, the core goes); hole 0..1 (burns out from the middle and splits); alpha. Add back to front. */
+  add(p, w, h, roll, seed, draw, up, kind, cool = 0, hole = 0, alpha = 1) {
     if (this.n >= this.max) return;
     const i = this.n++, j = i * 4, P = this.pos, S = this.shp, K = this.look;
     P[j] = p.x; P[j + 1] = p.y; P[j + 2] = p.z; P[j + 3] = roll;
-    S[j] = seed; S[j + 1] = tip; S[j + 2] = curl; S[j + 3] = side;
+    S[j] = seed; S[j + 1] = draw; S[j + 2] = up; S[j + 3] = 0;
     K[j] = kind; K[j + 1] = cool; K[j + 2] = hole; K[j + 3] = alpha;
     this.size[i * 2] = w; this.size[i * 2 + 1] = h;
   }

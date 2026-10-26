@@ -101,9 +101,12 @@ for the shape language ("คุณต้องทำเอฟเฟคสกิ�
 a mass of round cloud lobes at the base with big curling flame tongues rising and splaying outward
 above; a pale yellow core in front with its own tongue edges and an orange crescent; an orange body
 with a dark red crescent on the side away from the light and a thin dark line; dark plum cel smoke
-behind that takes over as the fire breaks up. Built as many camera-facing flame quads (one instanced
-mesh) with a teardrop SDF each, in big/mid/small sizes, drawn smoke, then bodies, then cores, every
-shape redrawn each drawing. Colours are written as display values (no sRGB-to-linear conversion of the
+behind that takes over as the fire breaks up. A second try built the fire from many separate flame
+quads and was rejected ("ห่วย รูปทรงไม่ได้เลย"): stacked shapes read as a pile of stickers. A fire is now
+one mass with one outline, built in one quad's shader in polar coordinates (two rims of hooked tips
+round a circle, cloud bumps at the bottom; the core is a smaller rim of its own; the shade is the same
+shape sampled toward the light). The shape was prototyped in Python against the reference first.
+Colours are written as display values (no sRGB-to-linear conversion of the
 uniforms, or orange turns red). Shared pieces: `skillfx/anime-kit.js` (AnimeFire, spiky flash, ground
 warning). Meteor uses them for all three phases; Thunderstorm and Blizzard are still the light version
 below until redone.

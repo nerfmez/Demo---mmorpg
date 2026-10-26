@@ -354,3 +354,12 @@ Owner: "the left cliff runs straight, not natural; the road going up is not natu
 - **Paths blend into the country** (owner: "no hard road lines outside the town"): outside the town zones the ground shader turns a road into earth over a long soft edge and lets grass break through across it (`render/ground-color.js`, weighted by the town mask), so country roads and footpaths read as worn tracks; town lanes keep their short edge and kerbs.
 
 Checks: core and accepted-scene tests pass (one entrance still the only way in); inspected from above (the owner's camera), low over the stairs, the west face and the play camera on the trail and at the entrance.
+
+### Follow-up: a wood round the mill, and no connector trenches (26 October 2026)
+
+Owner: the main job is to make the finished scenes sit in the map harmoniously.
+
+- **Hill Windmill wood:** its concept sets the mill's hill in a dense wood. The surround planting takes per-scene overrides (`acceptedScenes.surround.plant.scene`); the windmill's ring is 80 larger trees and 260 shrubs out to 26 m (it was 18 trees, as for every scene). Other scenes' rings are unchanged. Nothing inside the scene changed.
+- **Connector trenches:** the generated connectors run straight from a trail's end to the nearest map road, at a straight height ramp. Two crossed a scene's raised ground and carved it: `accepted/join-5` cut a 2.5 m deep, 29 m long trench through the rose garden's west terrace (its steep walls painted as grey rock, read as ghostly slabs), and `accepted/join-12` cut 2 m through the windmill's west hill (the straight road beside the lone wall piece). Both are removed: the rose garden keeps four exits and the windmill three, and the scenes' own trails fade out into grass at their ends. A new test fails any connector that digs a trench 2 m deep or 20 m long through the ground beside it (the forest's west ramp, a 1.5 m cutting down its plateau edge to the beach, stays).
+
+Checks: core 640/640; local hud and ux browser suites (dev load) pass. Inspected from above and in the play camera at the rose garden's west terrace and the windmill's west hill, and wide views of the windmill's wood.

@@ -147,6 +147,16 @@ test('a final connector keeps the heights it was given, and its ground meets the
   assert.ok(world.roads.some(r=>r.id===road.id||road.points.every(p=>distToPolyline(...p,r.points)<r.width/2)),road.id+' is painted as a road');
  }
 });
+test('connectors run on the ground beside them: none digs a trench through a scene',()=>{
+ // a straight connector once cut 2.5 m deep through the rose garden's west terrace
+ for(const w of Object.values(worlds))for(const c of w.heightfield.acceptedConnectors||[]){
+  let deep=0,worst=0;
+  for(let i=1;i<c.points.length;i++){const [ax,az]=c.points[i-1],[bx,bz]=c.points[i],L=Math.hypot(bx-ax,bz-az),nx=-(bz-az)/L,nz=(bx-ax)/L,o=c.width/2+2.5;
+   for(let t=0;t<1;t+=1/L){const x=ax+(bx-ax)*t,z=az+(bz-az)*t,trench=Math.min(w.terrainY(x+nx*o,z+nz*o),w.terrainY(x-nx*o,z-nz*o))-w.terrainY(x,z);
+    worst=Math.max(worst,trench);if(trench>.6)deep++;}}
+  assert.ok(worst<2&&deep<20,`${c.id}: trench ${worst.toFixed(2)} m deep over ${deep} m`);
+ }
+});
 test('the Conch Coast lies west of the arrival beach on the Frontier coast, as authored',async()=>{
  const scene=acceptedSceneLayout.scenes.find(s=>s.id==='shell-beach'),fw=worlds[frontier.id],[ox,oz]=frontier.atlas.offset;
  assert.equal(scene.region,frontier.id);

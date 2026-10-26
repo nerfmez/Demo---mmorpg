@@ -1,6 +1,6 @@
-# Moonstone Camp — standalone scene in owner review
+# Moonstone Camp — preliminarily accepted standalone scene
 
-**Owner status: in review, 26 October 2026**, artifact version 3:
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 26 October 2026** ("โอเคต่อไป"), artifact version 3:
 https://claude.ai/artifact/PqbowbCkpB7D95dBY2AfR6.
 
 Concept: `moonstone-camp.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`

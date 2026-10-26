@@ -1,0 +1,91 @@
+{
+  "status": "source artwork proposal; no runtime item definitions",
+  "source_image": "exec-b506b082-a7c9-44c0-be17-5175cc4ccbfa.png",
+  "items": [
+    {
+      "id": "wisp_robe",
+      "source_component_ids": [
+        1
+      ],
+      "source_alpha_bbox": [
+        55,
+        19,
+        492,
+        539
+      ],
+      "sha256": "62609d4c3b12e2e8579ba1d08d2974416db1b68b0e98e76d5560c128c04ca21b",
+      "proposed_new_item": true
+    },
+    {
+      "id": "wisp_hood",
+      "source_component_ids": [
+        2
+      ],
+      "source_alpha_bbox": [
+        606,
+        32,
+        947,
+        531
+      ],
+      "sha256": "88df29fbe0143a6fd0ebbed22828fa462c03d44f8cc7882df9bdc5a5a481274f",
+      "proposed_new_item": true
+    },
+    {
+      "id": "wisp_wraps",
+      "source_component_ids": [
+        3,
+        4
+      ],
+      "source_alpha_bbox": [
+        1023,
+        135,
+        1483,
+        512
+      ],
+      "sha256": "0a0ac7fa92abe6bbe737f62d43474cc9f2c5dd6dea44961d636af3b5c86bf1cb",
+      "proposed_new_item": false
+    },
+    {
+      "id": "wisp_boots",
+      "source_component_ids": [
+        9
+      ],
+      "source_alpha_bbox": [
+        37,
+        599,
+        502,
+        981
+      ],
+      "sha256": "3345fae7623cb4a943420960879d0729276bbc1544189d60ebe41bec4f52fb89",
+      "proposed_new_item": true
+    },
+    {
+      "id": "wisp_staff",
+      "source_component_ids": [
+        7
+      ],
+      "source_alpha_bbox": [
+        579,
+        548,
+        1029,
+        990
+      ],
+      "sha256": "516533a0f14c871f01ab8199844c37d1643591e64f6455454bf9de07ea03816c",
+      "proposed_new_item": false
+    },
+    {
+      "id": "wisp_pendant",
+      "source_component_ids": [
+        8
+      ],
+      "source_alpha_bbox": [
+        1151,
+        564,
+        1409,
+        978
+      ],
+      "sha256": "1a8da607e314f949da5eaa982dd318b45663e53e3068ae052b0ecac0c6d9ca9f",
+      "proposed_new_item": false
+    }
+  ]
+}

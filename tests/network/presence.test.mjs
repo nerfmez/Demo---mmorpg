@@ -8,9 +8,10 @@ import { presenceEndpoint } from '../../src/network/presence.js';
 import { loadData } from '../../src/core/data-node.js';
 import { createProtocol, PROTOCOL, WORLD_ID, presencePose } from '../../src/network/protocol.js';
 import { OpenWorldGame } from '../../src/core/open-world-game.js';
+import { CHARACTER_VERSION } from '../../src/core/character.js';
 const data = loadData();
 const origin = 'http://localhost:4173';
-const look = { hairStyle: 'messy', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' };
+const look = { hairStyle: 'messy', face: 'default', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' };
 const gear = { weapon: 'rusty_sword', offhand: null, armor: 'travel_tunic', helm: null, gloves: null, boots: 'travel_boots' };
 const pose = { x: -132, z: 80, facing: 0, moving: false };
 const join = (map = 'azure-harbor-v1', room = 'lobby') => ({ type: 'join', map, room, pose, look, gear });
@@ -59,7 +60,7 @@ test('atlas poses agree across all starting origins; region metadata matches mai
       assert.equal(p.region, wire.regionAt(x, z)); assert.equal(wire.poseOK(p, WORLD_ID), true);
       assert.equal(wire.poseOK({ ...p, region: 'wrong' }, WORLD_ID), false);
       const saved = structuredClone(g.snapshot()), [rx, rz] = data.maps[saved.worldId].atlas.offset;
-      assert.equal(saved.version, 13); assert.deepEqual(saved.pos, [Math.round((x - rx) * 10) / 10, Math.round((z - rz) * 10) / 10]);
+      assert.equal(saved.version, CHARACTER_VERSION); assert.deepEqual(saved.pos, [Math.round((x - rx) * 10) / 10, Math.round((z - rz) * 10) / 10]);
     }
   }
   assert.equal(wire.poseOK({ ...pose, x: -600, z: 170, region: 'frontier-wilds-v1' }, WORLD_ID), false, 'exterior atlas notch is rejected');

@@ -3,12 +3,13 @@ import { seekerBrand } from './fieldhud.js';
 import { icon } from './icons.js';
 import { art } from './art.js';
 import { LOOK_OPTIONS, DEFAULT_LOOK } from '../render/hero.js';
+import { colorWheelHtml, mountColorWheel } from './color-wheel.js';
 import { IS_PREVIEW, listSlots, deleteSlot, exportCode, importCode, firstEmptySlot, lastSlot, loadSlot, writeSlot } from '../save.js';
 import { createCharacter } from '../core/character.js';
 import { characterMap } from '../core/maps.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const HAIR_NAMES = { messy: 'ยุ่งพลิ้ว', swept: 'ปัดข้าง', ponytail: 'หางม้า', short: 'สั้นเรียบ' };
+const HAIR_NAMES = { messy: 'ยุ่งพลิ้ว', swept: 'ปัดข้าง', ponytail: 'หางม้า', short: 'สั้นแสกข้าง', buns: 'มวยสองข้าง', long: 'ยาวตรง', curly: 'ฟูหยิก', shag: 'แชก', spiky: 'ชี้ฟู' };
 
 function fmtTime(sec) {
   const h = Math.floor(sec / 3600);
@@ -114,7 +115,8 @@ export class Menu {
       <h2>สร้างตัวละคร <small>ช่อง ${slot}</small></h2>
       <label class="field">ชื่อ<input id="heroName" maxlength="14" placeholder="นักเดินทาง" value="${esc(this.name)}" autocomplete="off"></label>
       <div class="field">ทรงผม<div class="switch">${LOOK_OPTIONS.hairStyle.map((h) => `<button class="btn ${this.look.hairStyle === h ? 'on' : ''}" data-act="look" data-key="hairStyle" data-val="${h}">${HAIR_NAMES[h]}</button>`).join('')}</div></div>
-      <div class="field">สีผม${sw('hair')}</div>
+      <div class="field">หน้าตา<div class="faces">${LOOK_OPTIONS.face.map((f) => `<button class="face-pick ${this.look.face === f ? 'on' : ''}" data-act="look" data-key="face" data-val="${f}" aria-label="${f}">${f === 'default' ? 'เดิม' : `<img src="models/faces/${f}.png" alt="" loading="lazy">`}</button>`).join('')}</div></div>
+      <div class="field">สีผม${colorWheelHtml('hairWheel', this.look.hair)}</div>
       <div class="field">สีผิว${sw('skin')}</div>
       <div class="field">สีตา${sw('eyes')}</div>
       <div class="field">เสื้อ${sw('tunic')}</div>
@@ -123,6 +125,11 @@ export class Menu {
         <button class="btn" data-act="slots-back">← กลับ</button>
         <button class="btn primary big" data-act="start">เริ่มผจญภัย ▶</button>
       </div></div>`, 'create');
+    // the hair colour: any colour from the wheel; the hero's hair recolours live while dragging
+    mountColorWheel(this.el.querySelector('#hairWheel'), this.look.hair, {
+      onPreview: (hex) => this.view.previewHero?.root.traverse((o) => o.material?.userData?.hairColor?.value.set(hex)),
+      onPick: (hex) => { this.look.hair = hex; this.refreshPreview(); },
+    });
   }
 
   refreshPreview() {

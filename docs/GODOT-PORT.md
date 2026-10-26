@@ -38,7 +38,7 @@ and legacy `Game` reference; `OpenWorldGame` is the live browser simulation.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 13`, with `name`, `appearance`, `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 14`, with `name`, `appearance` (its `hairStyle` and `face` from `network/protocol.js` `HAIR_STYLES` and `FACES`, its `hair` any hex colour; v14 gives an older look the painted `face: "default"`), `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## Approved V3 city overlay
 
@@ -488,7 +488,20 @@ Its hair (`characters.hero_chibi_hair`, cut from the Travel Tunic's dressed chib
 axis to the head's bind bounds (`fit`, from the hair's fixed `box`); under a helm other than a
 circlet or a cowl (`headwear.js` `HAIR_WHOLE`: the moonleaf cowl is a collar round the neck) the
 hair above and behind `underHelm` is not drawn, so it cannot poke through. In Godot
-attach it to the head bone with the same scale and offset and the same under-helm cut. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
+attach it to the head bone with the same scale and offset and the same under-helm cut.
+The look's other hair styles (`network/protocol.js` `HAIR_STYLES`) each have their own model
+(`characters.hero_chibi_hair_<style>`, `chibiHairStyle`, `public/models/hair/`), loaded when first
+chosen (`render/models.js` `chibiHair`). Each is fitted to the chibi head once per body and hair
+(`chibi-body.js` `fitHairToHead`, with `fit.tuck`, and `fit.tilt` leaning it back): seen from the
+head's middle, a lock inside the face (`hero_chibi.face`) moves out over it, and the rest of the head
+(the ears under a hair that covers them, `hero_chibi.ears`, and the skin just under the head joint)
+moves in under the hair, so the head never shows through any hair. In Godot, run the same fit once
+when the look is chosen and keep the moved hair and body meshes. The hair is tinted to the look's
+`hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`): `hairColorMaterial` scales
+the colour by the painted grey texture's brightness and lifts its highlights to white. The look's
+`face` (`FACES`) draws one of the owner's faces (`public/models/faces/<id>.png`) over the painted one
+(`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
+decal pass or a second texture in the head's shader. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

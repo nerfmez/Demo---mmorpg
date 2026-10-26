@@ -8,7 +8,7 @@ import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 13;
+export const CHARACTER_VERSION = 14;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -169,6 +169,8 @@ export function migrateCharacter(ch, data) {
   for (const k of ['kills', 'collected', 'quests', 'bossKills', 'maps']) ch.progress[k] = ch.progress[k] || {};
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;
+  // v14: the look has a face (the chibi's drawn faces); older looks keep the painted one
+  if (ch.appearance && typeof ch.appearance === 'object' && !ch.appearance.face) ch.appearance.face = 'default';
   if (typeof ch.hideHelm !== 'boolean') ch.hideHelm = false; // saves before the helm show/hide toggle draw their helm
   const legacyOpening = !ch.opening;
   if (legacyOpening) ch.opening = { stage: 'done' }; // v10: includes the independent movement-mod v9 saves

@@ -107,3 +107,21 @@ test('retired Burning Ground becomes Fire Shift without two element shifts shari
   assert.deepEqual(out.slots[1].mods, [703]);
   assert.deepEqual(migrateCharacter(JSON.parse(JSON.stringify(out)), data), out, 'idempotent');
 });
+
+test('v14: an older look keeps the painted face, a chosen face and any hair colour survive a reload', async () => {
+  const { CHARACTER_VERSION } = await import('../../src/core/character.js');
+  const { FACES, HAIR_STYLES } = await import('../../src/network/protocol.js');
+  assert.equal(CHARACTER_VERSION, 14);
+  const old = createCharacter(data, { name: 'Old', appearance: { hairStyle: 'ponytail', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' } });
+  old.version = 13; delete old.appearance.face;
+  migrateCharacter(old, data);
+  assert.equal(old.appearance.face, 'default');
+  assert.equal(old.appearance.hairStyle, 'ponytail');
+  const none = createCharacter(data, { name: 'Plain' }); none.version = 13;
+  assert.equal(migrateCharacter(none, data).appearance, null, 'a never-styled look stays the default');
+  const ch = createCharacter(data, { name: 'New', appearance: { hairStyle: 'buns', face: 'wink', hair: '#a1c2e3', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' } });
+  const again = migrateCharacter(structuredClone(ch), data);
+  assert.deepEqual(again.appearance, ch.appearance);
+  assert.ok(FACES.includes('default') && FACES.length === 19 && new Set(FACES).size === FACES.length);
+  assert.ok(HAIR_STYLES.includes('messy') && !HAIR_STYLES.includes('bob'));
+});

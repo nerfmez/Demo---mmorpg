@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { data } from './helpers.js';
+import { HAIR_STYLES, FACES } from '../../src/network/protocol.js';
 
 // skin bones the driver retarget reads (MAP and the shoulders in src/render/skinned.js)
 const NEED = ['Hips', 'Spine02', 'Spine', 'Head', 'LeftUpLeg', 'LeftLeg', 'LeftFoot', 'RightUpLeg', 'RightLeg', 'RightFoot',
@@ -90,6 +91,39 @@ test('the chibi hair model is a single mesh within the character budget', () => 
   }
   // with the body it stays well inside the 8,000-tri character budget
   assert.ok(drawn + data.models.characters.hero_chibi.tris < 12000);
+});
+
+test('every hair style but the default has one chibi hair model, fitted over the head within budget; every face has its picture', () => {
+  const styles = Object.entries(data.models.characters).filter(([, m]) => m.chibiHairStyle);
+  // the default style keeps the shipped hair (hero_chibi_hair); every other style has its own model
+  assert.deepEqual(styles.map(([, m]) => m.chibiHairStyle).sort(), HAIR_STYLES.filter((s) => s !== 'messy').sort());
+  for (const [id, m] of styles) {
+    const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
+    const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
+    assert.equal(j.meshes.length, 1, id);
+    assert.equal(j.images?.length, 1, id + ' its own painted texture');
+    const tris = j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
+    assert.equal(tris, m.tris, id);
+    assert.ok(tris + data.models.characters.hero_chibi.tris < 12000, id + ' with the body inside the character budget');
+    for (const k of ['width', 'depth', 'height', 'lift', 'back', 'side', 'tilt']) assert.ok(Number.isFinite(m.fit[k]), id + ' fit.' + k);
+    assert.ok(m.fit.width > 0.4 && m.fit.width <= 1.2 && m.fit.depth > 0.4 && m.fit.depth <= 1.2 && Math.abs(m.fit.tilt) <= 30, id + ' a sane fit');
+    // tucked over the head (fitHairToHead), by a small margin
+    assert.ok(m.fit.tuck > 0 && m.fit.tuck <= 0.05, id + ' fit.tuck');
+    // its box is the skull of the head it was cut from: inside the hair model, not round it
+    const a = j.accessors[j.meshes[0].primitives[0].attributes.POSITION];
+    for (const c of [0, 2]) assert.ok(m.box[0][c] >= a.min[c] - 1e-4 && m.box[1][c] <= a.max[c] + 1e-4 && m.box[0][c] < m.box[1][c], id + ' skull box inside the model');
+    assert.ok(m.box[1][1] <= a.max[1] + 1e-4 && m.box[0][1] < m.box[1][1], id + ' skull top inside the model');
+  }
+  // every drawn face has its picture, and the decal frame is inside the face coordinates
+  for (const id of FACES.filter((f) => f !== 'default')) {
+    const b = readFileSync(new URL('../../public/models/faces/' + id + '.png', import.meta.url));
+    assert.equal(b.toString('latin1', 1, 4), 'PNG', id);
+  }
+  const d = data.models.characters.hero_chibi.faceDecal;
+  assert.ok(d && d.width > 0.5 && d.width <= 1 && d.top > d.chin && d.v0 > 0 && d.v0 < 1 && d.skin.length === 3, 'the face decal frame');
+  const f = data.models.characters.hero_chibi.face, e = data.models.characters.hero_chibi.ears;
+  assert.ok(f && f.front > 0 && f.front < 1 && f.top > 0 && f.top < 1 && f.side > 0 && f.side < 0.5, 'the face the hair never moves');
+  assert.ok(e && e.out > 0.3 && e.out < 0.5 && e.y[0] < e.y[1], 'the ears');
 });
 
 test('modelled chibi outfits are one skinned mesh on the chibi armature for a real item', () => {

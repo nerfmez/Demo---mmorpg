@@ -137,7 +137,8 @@ clean cel frost spreads to the true radius with snow drifts sweeping round over 
 round the centre); a wall of wind rises round the edge, cut from Firebolt's warped noise (`V5_FIELD`)
 carried round the circle and stretched into streaks, see-through where it faces the camera so the
 monsters inside stay readable; snow streaks and flakes spiral round the centre (curved trails along
-their own orbit); at the end the wall tears apart and the frost melts inward.
+their own orbit); at the end the wall tears apart and the frost melts inward. Passed by the owner, who chose
+not to add more swirling snow for fear of the cost on the iPad: keep these zones light.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

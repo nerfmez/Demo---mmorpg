@@ -164,7 +164,12 @@ end. Stone, dust and slab pieces are shared from `ground-kit.js`. Owner review (
 the slabs became one continuous heaved ridge on each bank (a mesh rebuilt per frame: a torn wall into
 the chasm, broken plates shoved up at different heights and tilts, a ragged outer edge), and the run
 got beats: the front speeds up, every fifth of the way a dust column and rock chunks burst up with a
-shake pulse, and the far end ends in a big burst.
+shake pulse, and the far end ends in a big burst. Still rejected ("เหมือนตัดแปะ": the ridge meshes read as pasted on
+the ground). Third version, per the owner: a jump slash (`rendLeap`, Breakbeat Slam's approved jumping
+smash with a higher leap) and everything at once on the hit, no running front: a jagged fissure with
+forks glowing hot for a moment inside a band of scorched earth that blends into the ground, blunt rock
+pillars bursting up out of it and shattering into pieces that fly and fall, small rocks and a wall of
+dust along the whole lane, one hard shake.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

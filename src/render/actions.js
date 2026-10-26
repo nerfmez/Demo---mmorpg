@@ -205,7 +205,7 @@ export const ACTIONS = {
 const BY_SKILL = {
   slash: 'combo', whirl_blade: 'whirlSpin', hunter_shot: 'shoot', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
   stone_burst: 'boltCast', frost_nova: 'nova', venom_mire: 'shoot', venom_bolt: 'boltCast', hex: 'boltCast', ward: 'nova',
-  arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', armor_cleave: 'sunderChop', interrupt_slam: 'breakbeatSlam', sky_shatter: 'skyPry', weakpoint: 'flankStab', shield_bash: 'shieldShove', riposte: 'riposteGuard',
+  arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', armor_cleave: 'sunderChop', interrupt_slam: 'breakbeatSlam', sky_shatter: 'skyPry', earth_rend: 'rendLeap', weakpoint: 'flankStab', shield_bash: 'shieldShove', riposte: 'riposteGuard',
   war_cry: 'warCryRoar', healing_spring: 'nova', spirit_wolf: 'zap',
   // the owner's approved spells are the base of the alike ones: Firebolt's push (boltCast, staffCast with
   // a staff) for spells aimed at a spot, Chain Spark's flick (zap) for calling a summon, Frost Nova's

@@ -39,7 +39,7 @@ export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
 const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam', 'shield_bash', 'sky_shatter']);
 const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
-const POST = { sky_shatter: 0.6 };
+const POST = { sky_shatter: 0.6, earth_rend: 0.5 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**

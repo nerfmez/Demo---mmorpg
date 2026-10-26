@@ -75,25 +75,20 @@ a few chips.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
-Two versions were rejected by the owner before this one: first soft additive glows and thin ribbons
-(not the approved style), then a build from the approved meshes themselves (the owner wants the
-**style**, not the old shapes). The owner also asked that the size of an effect follow the skill's tier:
-these are job skills (job level 40, 10-12 s cooldowns), so they get more beats and a bigger footprint
-than Firebolt or Frost Nova, while staying inside the real hit area and never hiding monster wind-ups.
-The approved style, as used here (`skillfx/cel-kit.js`): solid shapes only, flat colour bands from a
-near-white core out to a same-hue dark edge, toon-ramp props with outline hulls, hard on/off flicker
-instead of soft fades, noise erosion with a dark rim for dissipation.
-Meteor: a fire circle with flame teeth draws round the hit area; a chunky outlined rock leads a
-banded flame shell down from the sky with cel smoke puffs; on impact a spiky star flash, a fire dome
-eaten away, a banded shock ring, bouncing rock chunks, a smoke ring and a glowing crater that cools.
-Thunderstorm: no cloud mesh (from the game camera a cloud overhead hides the circle), but a storm
-shadow and an electric circle with a zigzag band; sharp banded zigzag bolts with forks from the sky,
-ground stars and crawling arcs; the last wave is a big central bolt with a shock ring.
-Blizzard: a ring of blade-like ice shards bursts up at the edge (after Guild Wars 2's Blizzard), a
-snow floor with banded wind ripples, thick banded wind streaks and outlined ice chunks circling.
-The gallery host (`www.jeanmoreno.com`) was blocked by the session's network policy; web research
-used instead: [realtimevfx](https://realtimevfx.com/t/lightning-strike-stylized-what-do-you-guys-think-update/1972)
-(short, punchy strikes), [GW2 Blizzard](https://wiki.guildwars2.com/wiki/Blizzard) (jutting ice),
-[Roblox forum](https://devforum.roblox.com/t/feedback-on-1st-ice-move/1727614) (moving snow, shake),
-[Blender Artists](https://blenderartists.org/t/a-girl-with-super-power-alys-ultimate/1600673) (toon
-impact as flat bands and a ring). All shapes are original; nothing copied.
+Reference (owner): **the effects already made on the FX bench** (`fx-test.html`, published bench),
+not outside sources and not the approved meshes' shapes. Three earlier versions were rejected: soft
+fog-like glows (too vague), a build from the approved meshes (copied shapes), and flat cartoon shapes
+with dark outlines (not the bench's style). The bench language, studied frame by frame from the game
+camera (Slash, Firebolt, Chain Spark, Frost Nova, Flame Stream, Arrow Rain, Frontline Split, Breakbeat
+Slam): light, not ink; a near-white core strip inside a coloured additive glow; soft radial glow
+sprites that pop; sharp rays; thin ring/rectangle outlines of light marking the real area; little
+four-point stars; spark streaks on gravity; Chain Spark's thin angular crackling bolts; Frost Nova's
+lit pale ice with white facet edges. Shared pieces: `skillfx/light-kit.js`.
+The size follows the skill's tier (owner): these are job skills (job level 40, 10-12 s cooldowns), so
+they get more beats and a wider footprint than the basic spells, inside the real hit area.
+Meteor: a double ring with a closing timer ring and a star in the sky; a fire-light ball with a thick
+tail; on impact a big glow pop, rays, two shock rings, glowing cracks that cool, sparks, stars, embers.
+Thunderstorm: a double ring with a crackle running round it; thin crackling bolts from the sky with
+ragged flashes, glow pops, rays and sparks; the last wave a big bolt, a large flash, a shock ring.
+Blizzard: a double ring over a faint frost sheet; lit ice blades bursting up round the edge; spiralling
+wind-light streaks, snow stars and glints; the blades shatter at the end.

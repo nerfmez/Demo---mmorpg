@@ -68,7 +68,7 @@ export class SkillFx {
     this.bash = new BashFx(scene, camera);
     this.riposte = new RiposteFx(scene, camera);
     this.move = new MoveFx(scene, camera, () => host.vfx);
-    // higher-tier spells in the approved style with their own cel shapes (skillfx/cel-kit.js)
+    // job-tier spells in the bench's light-and-ribbon language (skillfx/light-kit.js)
     this.meteor = new MeteorFx(scene, camera);
     this.thunder = new ThunderFx(scene, camera);
     this.blizzard = new BlizzardFx(scene, camera);

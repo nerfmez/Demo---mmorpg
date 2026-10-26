@@ -67,6 +67,14 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
                  ("{const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);}",
                   "{const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);const saved=seed;seed=20261026;const more=buildCliffs(true);seed=saved;more.name='accepted-cliffs';scene.add(more);}")]:
    assert src.count(old)==1,(name,old);src=src.replace(old,new)
+ if name=='forest':
+  # Owner, 26 October 2026: the straight banks north of the stairs and on the north-east wind like
+  # the other rock faces, and the arching tree's island foot stands a little further back.
+  for old,new in[("{ top: H(3.3), ledge: false, pts: [[0.2, 0.1, 't'], [0.32, 0.1, 't'], [0.33, -0.5, 't'], [0.18, -0.5, 't']] },","{ top: H(3.3), ledge: false, pts: [[0.2, 0.1, 't'], [0.32, 0.1, 't'], [0.3308, 0.088, 't'], [0.3413, 0.076, 't'], [0.3447, 0.064, 't'], [0.3378, 0.052, 't'], [0.3244, 0.04, 't'], [0.3096, 0.028, 't'], [0.3017, 0.016, 't'], [0.3054, 0.004, 't'], [0.317, -0.008, 't'], [0.3315, -0.02, 't'], [0.3394, -0.035, 't'], [0.3333, -0.06, 't'], [0.3277, -0.1, 't'], [0.325, -0.2, 't'], [0.3275, -0.35, 't'], [0.33, -0.5, 't'], [0.18, -0.5, 't']] },"),
+                 ("[ex, ez] = P(0.715, 0.27, H(3.7))","[ex, ez] = P(0.7, 0.22, H(3.7))"),
+                 ("[dx2, dz2] = P(0.78, 0.29, 0)","[dx2, dz2] = P(0.78, 0.255, 0)"),
+                 ("[0.97, 0.0, 't'], [1.0, -0.5, 't']","[0.97, 0.0, 't'], [0.9595, -0.012, 't'], [0.9509, -0.024, 't'], [0.9550, -0.036, 't'], [0.9698, -0.048, 't'], [0.9858, -0.06, 't'], [0.9894, -0.075, 't'], [0.9818, -0.1, 't'], [0.9820, -0.2, 't'], [1.0, -0.5, 't']")]:
+   assert src.count(old)==1,(name,old);src=src.replace(old,new)
  src=gameFoliageParts(name,src)
  camera="const camera=new THREE.PerspectiveCamera(32,1672/941,1,400);\n"
  camera+="const CAM={target:new V3(.96,0,-4.02),pitch:38,dist:51.9,yaw:-7.3};\n" if name=='beach' else f"const CAM={{target:new V3(0,0,-7.2),pitch:40,dist:{72 if name=='forest' else 93.6},yaw:0}};\n"

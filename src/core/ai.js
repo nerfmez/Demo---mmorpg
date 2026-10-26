@@ -119,7 +119,9 @@ export function setAggro(game, m, unit = null, force = false) {
   }
   m.aggro = true;
   if (unit && (force || !m.targetUnit)) m.targetUnit = unit;
-  if (m.state === 'idle' || m.state === 'return') setState(m, 'chase');
+  // a dormant boulder first stands up (its stones stack into the golem): no attack while it wakes
+  if (fresh && m.def.dormant && m.state === 'idle') setState(m, 'emerge', m.def.dormant.wake);
+  else if (m.state === 'idle' || m.state === 'return') setState(m, 'chase');
   // a pack animal brings its packmates in range with it (def.packAssist metres)
   const assist = m.def.packAssist, pack = m.spawn?.pack;
   if (fresh && assist && pack) {
@@ -172,6 +174,11 @@ function approach(v, target, step) {
 }
 
 function idle(game, m, dt, slowMult) {
+  // a dormant monster (def.dormant: the warden lying as a boulder) does not wander
+  if (m.def.dormant) {
+    m.moving = false;
+    return;
+  }
   if (m.wanderT === undefined || m.wanderT <= 0) {
     m.wanderT = game.rng.range(2.5, 6);
     if (game.rng.chance(0.6)) {

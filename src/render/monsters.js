@@ -887,12 +887,41 @@ function animWarden(r, s, dt, time) {
   b.tail.rotation.z = r.tailSpring.update(Math.sin(time * 3) * 0.3 + Math.sin(ph) * 0.3 * w + clampAbs(s.turn * 0.3, 0.5), dt);
   const glow = s.enraged ? 1.4 + Math.sin(time * 8) * 0.4 : 0.6;
   b.rune.scale.setScalar(glow);
+  // out of combat the warden lies as its boulder (it curls up again when it gets home); when a fight
+  // starts its stones stack into the golem from the ground up: legs, body, arms, then the head
+  const dormant = s.state === 'idle' && !s.aggro;
+  r.curlT = dormant ? (r.curlT ?? 1) + dt : 0;
+  if (dormant && r.curlT < 1) {
+    const u = clamp01(r.curlT);
+    b.torso.rotation.x = 0.2 + 1.0 * u;
+    b.head.rotation.x = 0.7 * u;
+    b.hips.position.y -= 0.75 * u;
+  }
+  const wake = s.state === 'emerge' ? clamp01(s.actT / (s.actionTotal || 1.8)) : 1;
+  const grow = (from, to, base = 0.15) => {
+    const t = clamp01((wake - from) / (to - from));
+    // ease out with a small overshoot: each stone block lands and settles
+    const e = 1 + 2.2 * (t - 1) ** 3 + 1.2 * (t - 1) ** 2;
+    return base + (1 - base) * e;
+  };
+  if (wake < 1) {
+    const legs = grow(0, 0.35), body = grow(0.25, 0.6), arms = grow(0.5, 0.82, 0.05), head = grow(0.72, 1, 0);
+    b.legL.scale.setScalar(legs); b.legR.scale.setScalar(legs);
+    b.torso.scale.multiplyScalar(body);
+    b.armL.scale.setScalar(arms); b.armR.scale.setScalar(arms);
+    b.head.scale.setScalar(head);
+    b.hips.position.y -= 1.0 * (1 - clamp01(wake / 0.45));
+    b.rune.scale.setScalar(1.6 * clamp01((wake - 0.6) / 0.4));
+  } else if (r.woke !== true) {
+    for (const n of ['legL', 'legR', 'armL', 'armR', 'head']) b[n].scale.setScalar(1);
+  }
+  r.woke = wake >= 1;
   // the roll: the boulder form takes over at the end of the curl, spins forward while it rolls
   // and stays a moment as it stops; then the golem unfolds out of it
   const form = r.ballForm;
   if (form) {
     const rollingNow = s.lastAttack === 'roll' && (s.state === 'act' || s.state === 'recover' && s.actT < 0.2);
-    const ball = (s.windup === 'roll' && k > 0.8) || rollingNow;
+    const ball = (s.windup === 'roll' && k > 0.8) || rollingNow || (dormant && r.curlT >= 0.8);
     form.visible = ball;
     for (const m of r.modelMeshes) m.visible = !ball;
     if (ball) {
@@ -900,9 +929,9 @@ function animWarden(r, s, dt, time) {
       form.position.set(0, rad, 0.2);
       // a wobble on the curl, full spin while it rolls (rig units: speed / root scale)
       const spin = s.state === 'act' ? (s.attack?.speed || 10) / (rad * (r.baseScale || 1)) : s.windup === 'roll' ? 2 : 0;
-      r.rollAngle = ((r.rollAngle || 0) + spin * dt) % (Math.PI * 2);
+      r.rollAngle = dormant ? 0 : ((r.rollAngle || 0) + spin * dt) % (Math.PI * 2);
       form.rotation.set(r.rollAngle, 0, 0);
-      const pop = s.windup === 'roll' ? 0.85 + 0.15 * clamp01((k - 0.8) / 0.2) : 1;
+      const pop = s.windup === 'roll' ? 0.85 + 0.15 * clamp01((k - 0.8) / 0.2) : dormant ? 0.85 + 0.15 * clamp01((r.curlT - 0.8) / 0.2) : 1;
       form.scale.setScalar(pop);
     } else r.rollAngle = 0;
   }

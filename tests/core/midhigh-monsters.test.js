@@ -238,6 +238,25 @@ test('wolf rend and Greyfang rake are multi-hit combos; the warden quake is a li
   assert.equal(w.hits.length, 0);
 });
 
+test('the dormant warden lies still as a boulder and stands up before it fights', () => {
+  const w = arena('horned_warden');
+  Object.assign(w.m, { aggro: false, state: 'idle', stateT: 0 });
+  w.place(30);
+  const x = w.m.x, z = w.m.z;
+  w.step(5);
+  assert.equal(w.m.state, 'idle');
+  assert.ok(w.m.x === x && w.m.z === z, 'a dormant boulder does not wander');
+  w.place(4);
+  w.step(0.02);
+  assert.ok(w.m.aggro);
+  assert.equal(w.m.state, 'emerge', 'it first stands up');
+  w.step(w.m.def.dormant.wake - 0.1);
+  assert.equal(w.m.state, 'emerge');
+  assert.equal(w.hits.length, 0, 'no attack while its stones stack up');
+  w.step(0.2);
+  assert.notEqual(w.m.state, 'emerge');
+});
+
 test('the warden rolls as a boulder along a locked lane: one hit, none in the wind-up, dizzy after a miss', () => {
   const w = arena('horned_warden');
   const roll = w.m.def.attacks.roll;

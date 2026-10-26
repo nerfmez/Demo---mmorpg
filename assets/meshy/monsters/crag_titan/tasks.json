@@ -1,12 +1,12 @@
 {
  "golem": {
-  "geometry": "01a1770d-ef18-740f-a858-43b336515da8",
-  "retexture": "01a1770e-4860-7505-8f8a-1ae892e317f8",
+  "geometry": "01a1772f-a428-77e1-b601-882d6e4479d4",
+  "retexture": "01a1772f-fcfe-77cc-95e6-c1e80303f63e",
   "status": "SUCCEEDED"
  },
  "ball": {
-  "geometry": "01a1770d-f396-7173-9ec4-b9cd49d82dcd",
-  "retexture": "01a1770f-9267-71e7-9107-cb6a303c5172",
+  "geometry": "01a1772f-a83c-76f0-87d4-31020c675fea",
+  "retexture": "01a17731-e899-717f-b294-4e4e1e4782d0",
   "status": "SUCCEEDED"
  }
 }

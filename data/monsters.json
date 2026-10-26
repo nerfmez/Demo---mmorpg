@@ -540,6 +540,9 @@
       "name": "Horned Warden",
       "nameTh": "ผู้พิทักษ์เขาเหล็ก",
       "behavior": "warden_boss",
+      "dormant": {
+        "wake": 1.8
+      },
       "boss": true,
       "hp": 900,
       "damage": 16,

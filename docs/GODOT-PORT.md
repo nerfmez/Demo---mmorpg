@@ -324,6 +324,14 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
   `horned_warden.ball`, `prepareMonsterForm`): a rigid boulder shown at the end of the curl and while
   it rolls, spinning at speed / radius, with the skinned golem hidden. In Godot keep both meshes under
   the monster and toggle them the same way.
+- **`dormant`** (`{wake}`, the warden): out of combat the monster lies still (no wandering); on aggro
+  from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
+  the warden's boulder while dormant and stacks the golem from it during `emerge` (legs, body, arms,
+  then the head grow in with a small overshoot); back home it curls into the boulder again.
+- **`dormant`** (`{wake}`, the warden): out of combat the monster lies still (no wandering); on aggro
+  from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
+  the warden's boulder while dormant and stacks the golem from it during `emerge` (legs, body, arms,
+  then the head grow in with a small overshoot); back home it curls into the boulder again.
 - **`quake`:** the warden marks `steps` `quake` areas along the locked line at wind-up start;
   each erupts `stepDelay` after the previous one.
 - **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.

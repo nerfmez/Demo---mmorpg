@@ -19,3 +19,19 @@ In game (the Horned Warden keeps its name, drops and attacks, plus a new `roll`)
 - `public/models/monsters/horned_warden_ball.glb`: `scripts/close-boulder-base.py` (ground removed,
   base closed, rounded and painted stone), then `prep-monster-glb.py --tris 1600`.
 - The golem is skinned to the warden rig in `data/models.json` (the shield on the right forearm).
+
+## Second version (2026-10-26)
+
+The owner redrew the sheet (`concept_sheet.png`): cleaner toon stone with orange lava cracks, the boulder
+cracked with lava as well. `golem_meshy.glb` and `ball_meshy.glb` were remade from it the same way
+(meshy-t2 + Meshy 6 retexture, 30 credits; task ids in `tasks.json`). Meshy gave the boulder two horns,
+one either side. The first version is kept in `v1/`; the game still uses the first version's models
+until the new ones are fitted.
+
+## Second version (2026-10-26)
+
+The owner redrew the sheet and supplied it already cut out (`concept_sheet.png`, transparent): cleaner toon
+stone with orange lava cracks, the boulder cracked with lava as well. Each figure was put on white as it is
+(only the loose rocks floating apart from it dropped) and remade the same way (meshy-t2 + Meshy 6
+retexture, 30 credits; task ids in `tasks.json`). Meshy gave the boulder two horns, one either side.
+The first version is kept in `v1/`; the game uses the first version's models until the new ones are fitted.

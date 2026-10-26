@@ -396,3 +396,7 @@ Owner (drawing): "can you make cliffs ring the cherry tree, and move the arch's 
 Checks: core 640/640 (roads walkable, scene edges continuous). Inspected from above, at the south entrance in the play camera, along the north rise and through the gate.
 
 Owner, on that round: "the path to the stairs need not bend sharply, make it natural; the lower ring needs no divide". The north rise now leaves the stair top in one rounded curve instead of an L corner, and the south-west and south-east rises stand at their side terraces' height, so each side of the lower ring is one level: the old terrace bottom walls they bury are not drawn (their random draws still run, so nothing else moves).
+
+### Follow-up: the arrival beach's banks (26 October 2026)
+
+Owner: "next point". From above, the arrival beach showed a pale grey band below its stone-walled garden (grey slope strata on a steep grass bank, read as a ghostly slab). The beach joins `grassBanks`: its steep grass banks are grass; sand stays sand (the bank flag only changes the slope paint, not the beach). Checked from above both ways and in the play camera behind the beach.

@@ -1,20 +1,24 @@
-// Party buff shouts (Rally first; the other warcry buffs take their own look from LOOKS), held to the
+// Party buff shouts (Rally, Frenzy Roar; the other warcry buffs take their own look from LOOKS), held to the
 // owner's bar (.claude/skills/skill-vfx), in the bench's light-and-ribbon language.
 //  - rouse (the cast): embers spiral up round the hero, gathering speed;
 //  - the shout (the rules' 'buff'): a ring of light races out at waist height to the buff's true
 //    radius (in the air: nothing on the ground) with an echo, shout lines burst out round the hero like
 //    a manga roar, spirit streaks shoot up round the hero with a star
 //    glint, and over every body the buff reached (the hero and allies in range) up-chevrons rise and
-//    fade: the anime "power up" mark for a damage buff;
-//  - while it lasts: a few streaks of the same colour drift up off each buffed body.
+//    fade: the anime "power up" mark for a damage buff (a speed buff: chevrons pointing the way each body
+//    faces, sliding forward, and a jagged roar ring);
+//  - while it lasts: a few streaks of the same colour drift up off each buffed body (a speed buff: speed
+//    trails streaming back from it).
 // One ribbon pair, one glint sprite and pooled sparks: light on an iPad, and buffs run for many seconds.
 import * as THREE from 'three';
 import { Ribbon, mulberry32 } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W, lineW, lineGlowW, tailW, tailGlowW, circlePoints, drawSparks, spark, flareTexture, lightSprite } from './light-kit.js';
 
-// per skill: core/glow colours; symbol 'up' = rising chevrons (more damage)
+// per skill: core/glow colours; symbol 'up' = rising chevrons (more damage), 'speed' = chevrons along the
+// facing (faster); jag = a jagged roar ring
 export const LOOKS = {
   rally: { edge: [1.0, 0.6, 0.22], glow: [1.0, 0.24, 0.06], symbol: 'up' },
+  frenzy_roar: { edge: [1.0, 0.3, 0.32], glow: [1.0, 0.04, 0.12], symbol: 'speed', jag: true },
 };
 const RING = 49, STREAKS = 10, STREAK_PTS = 6, SPARKS = 140, MARKS = 6, CHEV = 3, RAYS = 16;
 const RING_LIFE = 0.45, STREAK_LIFE = 0.55, MARK_LIFE = 1.0, AURA_EVERY = 0.16, RAY_LIFE = 0.3;
@@ -32,8 +36,8 @@ export class BuffFx {
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.streaks = Array.from({ length: STREAKS }, () => ({ a: 0, r: 0.5, h: 2, delay: 0 }));
     this.rays = Array.from({ length: RAYS }, () => ({ a: 0, len: 1 }));
-    this.marks = Array.from({ length: MARKS }, () => ({ x: 0, z: 0, t: 9 }));
-    this.right = new THREE.Vector3(); this.up = new THREE.Vector3(); this.p = new THREE.Vector3(); this.v = new THREE.Vector3();
+    this.marks = Array.from({ length: MARKS }, () => ({ x: 0, z: 0, f: 0, t: 9 }));
+    this.right = new THREE.Vector3(); this.up = new THREE.Vector3(); this.axis = new THREE.Vector3(); this.perp = new THREE.Vector3(); this.p = new THREE.Vector3(); this.v = new THREE.Vector3();
     this.sparks = []; this.free = [];
     this.look = LOOKS.rally; this.x = 0; this.z = 0; this.radius = 8; this.t = 9; this.rT = 9; this.rLife = 0.3; this.aura = {};
     this.onShake = null;
@@ -50,29 +54,30 @@ export class BuffFx {
       this.sparks[this.sparks.length - 1].life = -r() * this.rLife * 0.6;
     }
   }
-  // the shout: bodies [{x, z}] the buff reached (the hero first)
+  // the shout: bodies [{x, z, facing}] the buff reached (the hero first)
   shout(skill, x, z, radius, bodies) {
     this.look = LOOKS[skill] || LOOKS.rally; this.x = x; this.z = z; this.radius = radius || 1.5; this.t = 0;
     const r = this.rnd;
     this.streaks.forEach((s, i) => { s.a = (i / STREAKS) * 6.283 + r() * 0.4; s.r = 0.35 + r() * 0.35; s.h = 2.2 + r() * 1.2; s.delay = r() * 0.08; });
     this.rays.forEach((q, i) => { q.a = (i / RAYS) * 6.283 + (r() - 0.5) * 0.25; q.len = 1.6 + r() * 1.4; });
     let k = 0;
-    for (const b of bodies) { if (k >= MARKS) break; const m = this.marks[k++]; m.x = b.x; m.z = b.z; m.t = k === 1 ? 0 : -0.08 - 0.03 * k; }
+    for (const b of bodies) { if (k >= MARKS) break; const m = this.marks[k++]; m.x = b.x; m.z = b.z; m.f = b.facing || 0; m.t = k === 1 ? 0 : -0.08 - 0.03 * k; }
     for (; k < MARKS; k++) this.marks[k].t = 9;
     this.onShake?.(0.06, 0.12);
   }
   // the hero moves while the shout plays: its own marks follow
-  follow(x, z) { this.x = x; this.z = z; this.marks[0].x = x; this.marks[0].z = z; }
-  // the lasting glow of one buff: streaks off each body ({x, z}) still holding it
+  follow(x, z, facing = 0) { this.x = x; this.z = z; const m = this.marks[0]; m.x = x; m.z = z; m.f = facing; }
+  // the lasting glow of one buff: streaks off each body ({x, z, facing}) still holding it
   linger(skill, dt, bodies) {
     const look = LOOKS[skill], left = (this.aura[skill] || 0) + dt;
     if (left < AURA_EVERY) { this.aura[skill] = left; return; }
     this.aura[skill] = left - AURA_EVERY;
     const r = this.rnd;
     for (const b of bodies) for (let i = 0; i < 2; i++) {
-      const a = r() * 6.283;
+      const a = r() * 6.283, f = b.facing || 0;
       this.p.set(b.x + Math.sin(a) * 0.4, 0.15 + r() * 0.9, b.z + Math.cos(a) * 0.4);
-      this.v.set(0, 3.5 + r() * 1.5, 0); // fast enough to draw a streak, not a dot
+      if (look.symbol === 'speed') this.v.set(-Math.sin(f) * (4 + r() * 2), 0.3, -Math.cos(f) * (4 + r() * 2)); // trails streaming back
+      else this.v.set(0, 3.5 + r() * 1.5, 0); // fast enough to draw a streak, not a dot
       spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.35 + r() * 0.15, 0.07, look);
     }
   }
@@ -87,7 +92,9 @@ export class BuffFx {
       for (let i = 0; i < 2; i++) { // the shout and its echo
         const rk = (t - i * 0.1) / RING_LIFE;
         if (rk < 0 || rk >= 1) continue;
-        circlePoints(this.ring, x, z, 0.6 + (this.radius - 0.6) * out2(rk), 1.0 - 0.3 * i);
+        const rr = 0.6 + (this.radius - 0.6) * out2(rk);
+        circlePoints(this.ring, x, z, rr, 1.0 - 0.3 * i);
+        if (L.jag) for (let j = 1; j < RING - 1; j += 2) { const q = this.ring[j], g = 1 + (0.45 * (1 - 0.5 * rk)) / rr; q.x = x + (q.x - x) * g; q.z = z + (q.z - z) * g; } // a roar's teeth
         W.v = (i ? 0.1 : 0.2) * (1 - 0.6 * rk); this.glow.strip(this.ring, lineGlowW, 0.9 * (1 - rk), L.glow); this.core.strip(this.ring, lineW, (i ? 0.7 : 1) * (1 - rk * rk), L.edge);
       }
       // shout lines bursting out round the hero (a manga roar)
@@ -111,20 +118,31 @@ export class BuffFx {
       this.flare.visible = fk < 1;
       if (this.flare.visible) { this.flare.position.set(x, 1.5, z); this.flare.scale.setScalar(2.4 * (0.5 + 0.5 * out2(Math.min(1, fk * 4))) * (1 - 0.4 * fk)); this.flare.material.opacity = 1 - fk * fk; }
     } else this.flare.visible = false;
-    // the marks: chevrons rising over each body the buff reached, facing the camera
-    if (L.symbol === 'up') {
+    // the marks over each body the buff reached, facing the camera: chevrons rising (more damage) or
+    // pointing and sliding the way the body faces (faster)
+    if (L.symbol) {
       this.right.set(1, 0, 0).applyQuaternion(this.camera.quaternion); this.up.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
+      const speed = L.symbol === 'speed';
       for (const m of this.marks) {
         if (m.t >= MARK_LIFE) continue;
         m.t += dt; if (m.t < 0) continue;
         const k = m.t / MARK_LIFE;
+        let ax = 0, ay = 1;
+        if (speed) { // the facing as seen on screen
+          const fx = Math.sin(m.f), fz = Math.cos(m.f);
+          ax = fx * this.right.x + fz * this.right.z; ay = fx * this.up.x + fz * this.up.z;
+          const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l;
+        }
+        this.axis.copy(this.right).multiplyScalar(ax).addScaledVector(this.up, ay);
+        this.perp.copy(this.right).multiplyScalar(-ay).addScaledVector(this.up, ax);
         for (let c = 0; c < CHEV; c++) {
           const ck = k * 1.25 - c * 0.12; if (ck < 0 || ck > 1) continue;
-          const lift = 2.0 + 1.0 * out2(ck) + c * 0.42, al = Math.min(1, ck * 6) * (1 - ck * ck), w = 0.5;
-          this.p.set(m.x, lift, m.z);
-          this.three[0].copy(this.p).addScaledVector(this.right, -w).addScaledVector(this.up, -w * 0.7);
+          const al = Math.min(1, ck * 6) * (1 - ck * ck), w = 0.5;
+          if (speed) this.p.set(m.x, 1.0, m.z).addScaledVector(this.axis, 0.7 + 1.3 * out2(ck) + c * 0.42);
+          else this.p.set(m.x, 2.0 + 1.0 * out2(ck) + c * 0.42, m.z);
+          this.three[0].copy(this.p).addScaledVector(this.perp, -w).addScaledVector(this.axis, -w * 0.7);
           this.three[1].copy(this.p);
-          this.three[2].copy(this.p).addScaledVector(this.right, w).addScaledVector(this.up, -w * 0.7);
+          this.three[2].copy(this.p).addScaledVector(this.perp, w).addScaledVector(this.axis, -w * 0.7);
           W.v = 0.17; this.glow.strip(this.three, lineGlowW, 0.8 * al, L.glow); this.core.strip(this.three, lineW, al, L.edge);
         }
       }

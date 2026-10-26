@@ -247,6 +247,11 @@ roar, spirit streaks shoot up with a star glint, and up-chevrons (the anime "pow
 every body the buff reached; while it lasts small ember streaks drift up off each buffed body. The
 first try (thin gold lines, a pale ring) vanished on grass: an orange rim and a red glow read better.
 
+Frenzy Roar (คำรามคลั่ง, a duelist speed buff: +20% speed for 8 s within 8 m), the same `BuffFx` in
+blood red: a jagged roar ring (a roar's teeth) and its echo, the shout lines, chevrons ">>>" over each
+body pointing the way it faces and sliding forward, and speed trails streaming back off each buffed
+body while it lasts. A first pink tint read as cute, not frenzied; it is a deeper red.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

@@ -1225,8 +1225,7 @@
       "upgradeMaterial": "greyfang_mane",
       "upgradeStat": "AGI",
       "job": "duelist",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "stand_firm": {
       "name": "Stand Firm",

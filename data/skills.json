@@ -1092,8 +1092,7 @@
       "upgradeMaterial": "mantis_scythe",
       "upgradeStat": "DEX",
       "job": "blade",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "blade_storm": {
       "name": "Blade Storm",

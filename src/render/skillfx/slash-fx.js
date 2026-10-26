@@ -138,10 +138,10 @@ export class SlashFx {
     const c = this.cuts.find((q) => !q.live) || this.cuts.reduce((a, b) => (a.t > b.t ? a : b));
     c.reach = p.range * pat.reach; c.arc = (p.arc * Math.PI) / 180; c.dir = dir; c.lastHead = 0;
     c.core.geometry = c.glow.geometry = this.geometry(p.arc, c.reach);
-    place(c.g, at.x, 1.0 + pat.y, at.z);
+    place(c.g, at.x, 1.0 + (p.y ?? pat.y), at.z);
     c.g.rotation.set(0, at.angle, 0);
     c.tilt.rotation.set(0, 0, 0);
-    c.tilt.rotateZ(pat.tilt * dir); // the cut's plane rolls around the facing direction
+    c.tilt.rotateZ(p.tilt ?? pat.tilt * dir); // the cut's plane rolls around the facing direction (a skill may fix it: Cross Cut)
     c.tilt.rotateX(-0.06);
     const u = c.uniforms;
     u.uDir.value = dir; u.uHead.value = 0; u.uFade.value = 0; u.uSeed.value = (this.seed = (this.seed * 7.31) % 97);

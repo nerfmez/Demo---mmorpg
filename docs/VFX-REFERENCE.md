@@ -171,6 +171,13 @@ forks glowing hot for a moment inside a band of scorched earth that blends into 
 pillars bursting up out of it and shattering into pieces that fly and fall, small rocks and a wall of
 dust along the whole lane, one hard shake.
 
+Cross Cut (ฟันไขว้, daggers, two quick cuts 0.14 s apart), `skillfx/cross-fx.js`: the two cuts are the
+bench's slash crescents with fixed, opposite steep tilts (`SlashFx` takes a `tilt` and `y` per strike),
+so together they draw an X; on the second cut an X of light (white core strokes in a blue glow, sharp
+at the tips, drawn over the bodies) flares in the air in front of the hero, holds a beat, then splits
+apart along its arms and fades, sparks thrown off the crossing; each struck monster gets a small X
+glint on its body.
+
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
 Reference (owner): **the effects already made on the FX bench** (`fx-test.html`, published bench),

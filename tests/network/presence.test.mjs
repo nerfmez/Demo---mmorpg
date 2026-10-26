@@ -8,6 +8,7 @@ import { presenceEndpoint } from '../../src/network/presence.js';
 import { loadData } from '../../src/core/data-node.js';
 import { createProtocol, PROTOCOL, WORLD_ID, presencePose } from '../../src/network/protocol.js';
 import { OpenWorldGame } from '../../src/core/open-world-game.js';
+import { CHARACTER_VERSION } from '../../src/core/character.js';
 const data = loadData();
 const origin = 'http://localhost:4173';
 const look = { hairStyle: 'messy', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' };
@@ -48,7 +49,7 @@ test('health, anonymous identity, movement, room/map separation, leave, reconnec
   const c = await connect(); c.sendJSON(join()); assert.notEqual((await c.take('welcome')).id, bw.id); await a.take('join'); c.close(); await a.take('leave');
 });
 
-test('atlas poses agree across all starting origins; region metadata matches main boundary ownership and v13 saves stay local', () => {
+test('atlas poses agree across all starting origins; region metadata matches main boundary ownership and current-version saves stay local', () => {
   const wire = createProtocol(data), points = [[-160, -92], [-161, -92], [13, -120], [13, -121], [-160, -160.5], [-161, -160.5]];
   for (const initial of Object.keys(data.maps)) {
     const g = new OpenWorldGame({ ...data, world: data.maps[initial] }, { seed: 7 });
@@ -59,7 +60,7 @@ test('atlas poses agree across all starting origins; region metadata matches mai
       assert.equal(p.region, wire.regionAt(x, z)); assert.equal(wire.poseOK(p, WORLD_ID), true);
       assert.equal(wire.poseOK({ ...p, region: 'wrong' }, WORLD_ID), false);
       const saved = structuredClone(g.snapshot()), [rx, rz] = data.maps[saved.worldId].atlas.offset;
-      assert.equal(saved.version, 13); assert.deepEqual(saved.pos, [Math.round((x - rx) * 10) / 10, Math.round((z - rz) * 10) / 10]);
+      assert.equal(saved.version, CHARACTER_VERSION); assert.deepEqual(saved.pos, [Math.round((x - rx) * 10) / 10, Math.round((z - rz) * 10) / 10]);
     }
   }
   assert.equal(wire.poseOK({ ...pose, x: -600, z: 170, region: 'frontier-wilds-v1' }, WORLD_ID), false, 'exterior atlas notch is rejected');

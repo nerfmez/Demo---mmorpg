@@ -66,7 +66,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
      // Every instance stands on the ground the player walks on (feather, seams,
      // connectors and shore all move it); only those at the very edge are left out,
      // and ground cover where the game's sea runs over the scene's old shore.
-     if(sceneWeight(spec,p.x,p.z)<.1||connectorClear(world.data,p.x,p.z,1.2)||edgeCliffCover(world.data,p.x,p.z,.6))continue;
+     if(sceneWeight(spec,p.x,p.z)<.1||connectorClear(world.data,p.x,p.z,1.2)||edgeCliffCover(world.data,p.x,p.z,1.6))continue;
      if(cover&&spec.shore&&p.y-sceneSample(spec,'heights',p.x,p.z)<1&&world.inSea(p.x,p.z))continue;
      m.elements[13]+=world.groundY(p.x,p.z)-sceneSample(spec,'heights',p.x,p.z);
      mesh.setMatrixAt(count,m);if(mesh.instanceColor){mesh.getColorAt(i,color);mesh.setColorAt(count,color);}count++;
@@ -94,7 +94,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
     // edge cliffs take a scene's cliff material: the Conch Coast's where it is in this region
     if(mesh.name==='accepted-cliffs'&&(spec.id==='shell-beach'||!cliffLook))cliffLook={material:mesh.material,depth:mesh.customDepthMaterial};
     // nothing of the scene stands inside an edge cliff's plateau (core/edge-cliffs.js)
-    if(world.data.acceptedScenes?.edgeCliffs?.length)mesh.geometry=dropInsideEdgeCliffs(world.data,mesh.geometry);
+    if(world.data.acceptedScenes?.edgeCliffs?.length)mesh.geometry=dropInsideEdgeCliffs(world.data,mesh.geometry,mesh.name!=='accepted-cliffs');
     if(mesh.name==='accepted-cliffs')for(const road of world.data.acceptedScenes.connectors.filter(r=>r.repair))for(let i=0;i<positions.count;i++){const x=positions.getX(i),z=positions.getZ(i);if(distToPolyline(x,z,road.points)<road.width/2+1)positions.setY(i,Math.min(positions.getY(i),world.groundY(x,z)-.08));}
     mesh.geometry=yield* clipRegionGeometrySteps(mesh.geometry,clipWorld);
     if(!mesh.userData.authoredNormals)mesh.geometry.computeVertexNormals(); // imported models keep their smooth normals
@@ -163,13 +163,28 @@ function splitInstances(mesh,size){
  mesh.dispose();
  return parts;
 }
-// Triangles whose centre lies inside an edge cliff's plateau are left out.
-function dropInsideEdgeCliffs(data,geometry){
+// Triangles whose centre lies inside an edge cliff's plateau are left out. With `whole`,
+// a small piece (connected triangles under PIECE metres across: a palm trunk, a frond, a
+// stone) that reaches inside goes whole, so no trunk stands headless at the face.
+const PIECE=8;
+function pieces(pos){
+ const parent=new Int32Array(pos.count/3).map((_,i)=>i),find=i=>{while(parent[i]!==i)i=parent[i]=parent[parent[i]];return i;},seen=new Map();
+ for(let i=0;i<pos.count;i++){const k=Math.round(pos.getX(i)*1e3)+','+Math.round(pos.getY(i)*1e3)+','+Math.round(pos.getZ(i)*1e3),t=(i/3)|0,o=seen.get(k);if(o===undefined)seen.set(k,t);else{const a=find(o),b=find(t);if(a!==b)parent[a]=b;}}
+ return Array.from(parent,(_,t)=>find(t));
+}
+function dropInsideEdgeCliffs(data,geometry,whole=false){
  geometry.computeBoundingBox();const bb=geometry.boundingBox;
  const near=(data.acceptedScenes.edgeCliffs).some(c=>{const xs=c.points.map(p=>p[0]),zs=c.points.map(p=>p[1]);return bb.max.x>=Math.min(...xs)&&bb.min.x<=Math.max(...xs)&&bb.max.z>=Math.min(...zs)&&bb.min.z<=Math.max(...zs);});
  if(!near)return geometry;
  const g=geometry.index?geometry.toNonIndexed():geometry,pos=g.attributes.position,keep=[];
- for(let i=0;i<pos.count;i+=3){const x=(pos.getX(i)+pos.getX(i+1)+pos.getX(i+2))/3,z=(pos.getZ(i)+pos.getZ(i+1)+pos.getZ(i+2))/3;if(!edgeCliffCover(data,x,z))keep.push(i);}
+ const inside=new Uint8Array(pos.count/3);
+ for(let i=0;i<pos.count;i+=3){const x=(pos.getX(i)+pos.getX(i+1)+pos.getX(i+2))/3,z=(pos.getZ(i)+pos.getZ(i+1)+pos.getZ(i+2))/3;inside[i/3]=edgeCliffCover(data,x,z)?1:0;}
+ if(whole&&inside.some(v=>v)){
+  const root=pieces(pos),box=new Map(),hit=new Set();
+  for(let t=0;t<root.length;t++){let b=box.get(root[t]);if(!b)box.set(root[t],b=[Infinity,-Infinity,Infinity,-Infinity]);for(let k=t*3;k<t*3+3;k++){b[0]=Math.min(b[0],pos.getX(k));b[1]=Math.max(b[1],pos.getX(k));b[2]=Math.min(b[2],pos.getZ(k));b[3]=Math.max(b[3],pos.getZ(k));}if(inside[t])hit.add(root[t]);}
+  for(let t=0;t<root.length;t++){const b=box.get(root[t]);if(hit.has(root[t])&&b[1]-b[0]<PIECE&&b[3]-b[2]<PIECE)inside[t]=1;}
+ }
+ for(let i=0;i<pos.count;i+=3)if(!inside[i/3])keep.push(i);
  if(keep.length*3===pos.count){if(g!==geometry)g.dispose();return geometry;}
  const out=new THREE.BufferGeometry();
  for(const[name,a]of Object.entries(g.attributes)){

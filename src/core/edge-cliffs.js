@@ -28,12 +28,19 @@ function edgeDistances(p, x, z) {
   }
   return { cliff, ramp, rise };
 }
+/** The plateau's top at (x, z): `top`, raised near each `raise` [x, z, radius, top] (full
+ *  within half the radius, easing back over the rest), so its edge can meet a higher wall. */
+export function edgeCliffTop(cliff, x, z) {
+  let t = cliff.top;
+  for (const [rx, rz, r, top] of cliff.raise || []) t = Math.max(t, cliff.top + (top - cliff.top) * (1 - smooth(r / 2, r, Math.hypot(x - rx, z - rz))));
+  return t;
+}
 /** The plateau height of one edge cliff at (x, z), or -Infinity outside it. */
 export function edgeCliffAt(cliff, x, z) {
   const p = prepare(cliff), b = p.box;
   if (x < b[0] || x > b[1] || z < b[2] || z > b[3] || !pointInPolygon(p.pts, x, z)) return -Infinity;
   const { cliff: dc, rise } = edgeDistances(p, x, z);
-  return cliff.top * Math.min(smooth(0, cliff.lean, dc), smooth(0, 1, rise));
+  return edgeCliffTop(cliff, x, z) * Math.min(smooth(0, cliff.lean, dc), smooth(0, 1, rise));
 }
 /** The highest plateau of all edge cliffs at (x, z), or -Infinity. */
 export function edgeCliffsAt(data, x, z) {

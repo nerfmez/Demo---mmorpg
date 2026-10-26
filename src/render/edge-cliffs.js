@@ -4,7 +4,7 @@
 // a dark backing behind the cracks and a mossy lip over the top. Foot and top follow the
 // game's ground, so the face spans the plateau's real drop. Cosmetic randomness only.
 import * as THREE from 'three';
-import {edgeCliffAt,edgeCliffRuns} from '../core/edge-cliffs.js';
+import {edgeCliffAt,edgeCliffRuns,edgeCliffTop} from '../core/edge-cliffs.js';
 
 const STONE = ['#cbc6c2', '#bfbab8', '#d2ccc6', '#b6b1b2', '#c7c1bc'];
 const MOSS = ['#a2c64a', '#b4d152', '#8fb843'];
@@ -54,7 +54,7 @@ export function edgeCliffGeometry(world) {
         if (edgeCliffAt(cliff, q.x + q.nx * .8, q.z + q.nz * .8) > -Infinity) { q.nx = -q.nx; q.nz = -q.nz; }
         if (i) s += Math.hypot(q.x - S[i - 1].x, q.z - S[i - 1].z); q.s = s;
         q.base = Math.min(ground(q.x + q.nx * 1.4, q.z + q.nz * 1.4), ground(q.x + q.nx * 2.4, q.z + q.nz * 2.4)) - .3;
-        q.top = Math.min(cliff.top, ground(q.x - q.nx * (lean + .4), q.z - q.nz * (lean + .4)) + .08);
+        q.top = Math.min(edgeCliffTop(cliff, q.x, q.z), ground(q.x - q.nx * (lean + .4), q.z - q.nz * (lean + .4)) + .08);
       });
       // a cliff crossing into a neighbouring map is drawn by each map up to its own bound
       // (one sample over, so the two halves meet)

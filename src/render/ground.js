@@ -176,7 +176,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         // scenes whose rock faces are their own meshes keep grass on their banks
         if(grassBanks.has(accepted.id))bank[k]=aw;}
       // an edge cliff's plateau is grass on its slopes too, never sand; its face is a rock mesh
-      if(edgeCliffsAt(wd,x,z)>-Infinity){bank[k]=1;coast[k*2]=0;}
+      if(edgeCliffsAt(wd,x,z)>-Infinity){bank[k]=1;coast[k*2]=0;if(accepted)road[k]=0;}
       road[k] *= 1 - stone[k] * .7;
     }
   }

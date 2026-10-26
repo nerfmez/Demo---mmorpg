@@ -323,3 +323,12 @@ Owner: "join the cliff and close the path, so there is one way in, with rock cov
 - Rock faces shorter than 1.8 m are not drawn (render/edge-cliffs.js MIN_FACE): the plateau meets such ground as a grass bank instead of a loose slab.
 
 Checks: core 616/616, render 50/51 (skirt, also on main). Inspected from above, from the sea, the corner, the north face (two angles) and the cove.
+
+### Follow-up: one face with the conch wall (26 October 2026)
+
+Owner: "why not make it one piece" (the crack between the conch wall's end and the headland's face over the cove).
+
+- The headland's face over the cove now runs in line with the conch wall's face (z 67.5), so the cove pocket is gone and the beach meets one wall; near the wall the plateau's top rises to the wall's 7.8 m (`raise`), so the skyline is level across the join.
+- Scene trail paint stops on the plateau, and a small scene piece (a palm trunk, a frond, a stone: connected triangles under 8 m across) that reaches into the plateau is left out whole instead of being clipped to a headless trunk at the face. Large meshes (cliffs) keep the per-triangle rule. No measurable build cost (Frontier scenery 2.0 s either way in Node).
+
+Checks: core 616/616, render 50/51 (skirt, also on main). Inspected at the owner's camera, low from the beach, from the sea and from above.

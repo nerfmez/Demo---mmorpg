@@ -124,7 +124,8 @@ so a cue 7 m above the target is off the top of the screen. The owner wanted it 
 born 11 m up where a ray through a point near the top of the screen, a little right of the target,
 meets that height, and the meteor falls from there. `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm (owner pass on Meteor, then next) is built from Chain Spark's own
 lightning (`chain-fx.js` exports `zig`, its crackling core and glow shaders). Owner review: the storm
-eye high in the sky became a ball of lightning hovering 4.4 m over the circle and drifting slowly
+eye high in the sky became a ball of lightning hovering 6.5 m over the circle (slid toward the
+camera when it would leave the top of the screen) and drifting slowly
 after the monsters in it (a plasma sphere: white-hot heart, electric-blue rim, flowing bands, normal
 blending so it stays blue over grass; short arcs crawling over it; a ragged flash flicker), and the
 bolts were too busy: two clean bolts a wave (one fork each, low jag, no second parallel bolt) drop

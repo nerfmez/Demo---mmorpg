@@ -3,7 +3,7 @@
 // (zig, its crackling white core inside a blue glow, a thinner second bolt, forks, re-jagged 15 times
 // a second) and its ragged flash, sized for a job skill (11 s cooldown). Rules in docs/VFX-REFERENCE.md.
 //   Warning: the true area, a crisp edge and a plain fill growing to the first strike. Over the circle
-//   a ball of lightning wakes and hovers, drifting slowly after the monsters inside: a hot white-blue
+//   a ball of lightning wakes and hovers high (kept in view), drifting slowly after the monsters inside: a hot white-blue
 //   core in a soft glow, a small ragged flash flickering in it, short arcs crawling over its surface.
 //   Each wave ('burst'): two clean bolts (one fork each) drop from the ball, staggered, to the monsters
 //   in the circle (else to spots in it); each lands in a ragged flash, a few flat tendrils on the
@@ -16,7 +16,7 @@ import { glowTexture, lightSprite } from './light-kit.js';
 import { CRACKLE_FS, BOLT_GLOW_FS, Rng, zig, rewindPts, zDir, zPerp } from './chain-fx.js';
 import { warnDisc } from './anime-kit.js';
 
-const SLOTS = 2, BOLTS = 14, FLASHES = 12, LIGHTS = 3, SCORCH = 10, SPARKS = 320, BALL_H = 4.4, BALL_R = 0.75, BALL_SPEED = 0.9;
+const SLOTS = 2, BOLTS = 14, FLASHES = 12, LIGHTS = 3, SCORCH = 10, SPARKS = 320, BALL_H = 6.5, BALL_R = 0.75, BALL_SPEED = 0.9;
 const LEAD = 0.05, HOLD = 0.2, FADE = 0.1;
 const R1 = new Rng(), R2 = new Rng(), R3 = new Rng();
 const pts = [], ws = [], fp = [], fw = [];
@@ -83,7 +83,7 @@ export class ThunderFx {
     if (!s) {
       s = this.slots.find((q) => !q.live) || this.slots[0];
       Object.assign(s, { live: true, t: 0, end: 0, first: 9, x: e.x, z: e.z, radius: e.radius, waves: 0, struck: 0, pulse: 0, outAt: -1 });
-      s.eye.set(e.x, BALL_H, e.z); s.aim.copy(s.eye);
+      s.eye.set(e.x, BALL_H, e.z); s.aim.copy(s.eye); s.snap = true;
       const U = s.warn.material.uniforms; U.uR.value = e.radius; U.uK.value = 0; U.uOpen.value = 0;
       place(s.warn, e.x, 0.04, e.z); s.warn.scale.setScalar(e.radius * 2 * 1.06); conformPlane(s.warn); s.warn.visible = true;
     }
@@ -162,6 +162,15 @@ export class ThunderFx {
       let n = 0, mx = 0, mz = 0;
       if (monsters) for (const m of monsters) if (!m.dead && Math.hypot(m.x - s.x, m.z - s.z) <= s.radius) { mx += m.x; mz += m.z; n++; }
       if (n) s.aim.set(mx / n, BALL_H, mz / n); else s.aim.set(s.x + Math.cos(s.t * 0.8) * s.radius * 0.3, BALL_H, s.z + Math.sin(s.t * 0.8) * s.radius * 0.3);
+      // keep it in view under the high game camera: if it would sit above the top of the screen, slide
+      // it along the view toward the camera, at the same height
+      this.p.copy(s.aim); this.p.y += fxGround.y(s.aim.x, s.aim.z); this.p.project(this.camera);
+      if (this.p.y > 0.8 && this.p.z < 1) {
+        const cam = this.camera.position; this.p.set(this.p.x, 0.8, 0.5).unproject(this.camera).sub(cam);
+        const kk = (BALL_H + fxGround.y(s.aim.x, s.aim.z) - cam.y) / this.p.y;
+        if (kk > 0 && isFinite(kk)) { s.aim.copy(cam).addScaledVector(this.p, kk); s.aim.y = BALL_H; }
+      }
+      if (s.snap) { s.eye.copy(s.aim); s.snap = false; }   // born where it hovers
       this.p.subVectors(s.aim, s.eye); const d = this.p.length(), step = Math.min(d, BALL_SPEED * dt);
       if (d > 1e-4) s.eye.addScaledVector(this.p, step / d);
       const out = s.outAt >= 0 ? Math.max(0, 1 - (s.t - s.outAt) / 0.25) : 1, wake = Math.min(1, s.t / 0.35), k = wake * out;

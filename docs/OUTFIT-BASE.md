@@ -128,7 +128,9 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    (meshy-t2 image-to-3d in T-pose, then a Meshy 6 retexture from the same image).
 2. `scripts/fit-chibi-outfit.py` (Blender as a Python module) cuts the neck, sleeves and boot tops,
    warps the generated body onto `hero_chibi`, pushes the cloth outside the body, copies the body's
-   skin weights and records the body triangles each piece covers. Its settings per set live in
+   skin weights and records the body triangles each piece covers. Faces that a cut-away part covered
+   in the generated model (a pad's top under the hood's fur) are repainted from the nearest faces of
+   their own part, since their texture there was never meant to be seen. Its settings per set live in
    `assets/meshy/outfits/<set>.json` beside the Meshy source.
 3. In game (`render/chibi-garments.js`) the model replaces the shells it covers. The body under it is
    not removed: the covered vertices are tucked inside the cloth, shaded as its inside and pushed back

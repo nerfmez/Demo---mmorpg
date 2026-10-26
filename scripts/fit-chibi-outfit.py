@@ -152,6 +152,18 @@ for f in bm.faces:
     # flat cut there took their tops off, leaving holes on every shoulder
     if (abs(c.x) > C['cuff'] and c.z > C.get('armpit', 0.66)) or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.09) and abs(c.y - neckY) < C.get('neckDepth', 0.09)) or c.z > C.get('top', C['neck'] + C.get('shoulderRise', 0.9) * max(abs(c.x) - 0.08, 0) + 0.02):
         drop.append(f)
+# what the cut-away parts covered (a pad's top under the hood's fur) was never seen in the generated
+# model, and its texture there is whatever bled under them: those faces are found here (their outward
+# ray meets a cut part within `uncover`) and repainted from their uncovered neighbours further down
+_cutv = sorted({v for f in drop for v in f.verts}, key=lambda v: v.index); _ci = {v: k for k, v in enumerate(_cutv)}
+_cut = BVHTree.FromPolygons([v.co.copy() for v in _cutv], [[_ci[v] for v in f.verts] for f in drop]) if drop else None
+_dropped = set(drop)
+uncovered = set()
+if _cut and C.get('uncover', 0.04):
+    for f in bm.faces:
+        if f in _dropped: continue
+        c, n = f.calc_center_median(), f.normal
+        if _cut.ray_cast(c + n * 0.001, n, C.get('uncover', 0.04))[0] is not None: uncovered.add(f)
 bmesh.ops.delete(bm, geom=drop, context='FACES')
 # what is left floating above the neck cut on its own (a helm's cheek guard, hood fur tips) goes too
 _seen = set(); _float = []
@@ -567,6 +579,45 @@ if covered and open_:
         tex[by0:by1, bx0:bx1, :3][inside] = ref
     img.pixels = tex.ravel().tolist()
     print('repainted covered trouser faces', len(covered))
+
+# the faces the cuts uncovered take the median colour of the nearest faces of their own part that
+# were always in view (a pad's top becomes its leather, not the fur colour that bled under the fur)
+uncovered = [f for f in uncovered if f.is_valid]
+if uncovered:
+    from mathutils.kdtree import KDTree
+    part = {}
+    for f in bm.faces:
+        if f in part: continue
+        todo = [f]; part[f] = f
+        while todo:
+            t = todo.pop()
+            for e in t.edges:
+                for o in e.link_faces:
+                    if o not in part: part[o] = f; todo.append(o)
+    unc = set(uncovered); seen_ = {}
+    for f in bm.faces:
+        if f not in unc: seen_.setdefault(part[f], []).append(f)
+    trees = {}
+    for k, fs in seen_.items():
+        t = KDTree(len(fs))
+        for i, f in enumerate(fs): t.insert(f.calc_center_median(), i)
+        t.balance(); trees[k] = (t, fs)
+    yy, xx = np.mgrid[0:th, 0:tw]; n = 0
+    for f in uncovered:
+        if part[f] not in trees: continue  # a part all under the cut: left as it is
+        t, fs = trees[part[f]]
+        ref = np.median([face_rgb(fs[i]) for _, i, _ in t.find_n(f.calc_center_median(), 8)], axis=0)
+        (x0, y0), (x1, y1), (x2, y2) = face_uv(f)[:3]
+        bx0, bx1 = int(max(0, min(x0, x1, x2) - 2)), int(min(tw, max(x0, x1, x2) + 3))
+        by0, by1 = int(max(0, min(y0, y1, y2) - 2)), int(min(th, max(y0, y1, y2) + 3))
+        X, Y = xx[by0:by1, bx0:bx1] + 0.5, yy[by0:by1, bx0:bx1] + 0.5
+        d = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
+        if abs(d) < 1e-9: continue
+        a = ((y1 - y2) * (X - x2) + (x2 - x1) * (Y - y2)) / d
+        b = ((y2 - y0) * (X - x2) + (x0 - x2) * (Y - y2)) / d
+        tex[by0:by1, bx0:bx1, :3][(a > -0.08) & (b > -0.08) & (1 - a - b > -0.08)] = ref; n += 1
+    img.pixels = tex.ravel().tolist()
+    print('repainted uncovered faces', n)
 
 mat = bpy.data.materials.new('garment')
 mat.use_nodes = True

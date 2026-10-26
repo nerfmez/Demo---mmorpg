@@ -49,5 +49,6 @@
  "drapeStretch": 1.8,
  "shoulderRise": 0.15,
  "dropPale": 0.06,
- "proud": 0.015
+ "proud": 0.015,
+ "uncover": 0.12
 }

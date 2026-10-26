@@ -15993,7 +15993,11 @@
         "_doc": "Scene-surround planting (core/world.js plantSceneSurrounds): trees (collision circles of type scene-tree) and shrubs (decor.sceneShrubs) in a ring outside each accepted scene, kept off roads, waypoints, beaches and water, with one seed per scene placed after every native pass. Shrubs grow in clumps (clump: shrubs per clump, within clumpRadius m), treeBase of them at a ring tree's foot. Distances in metres outside the bounds.",
         "seed": 20261025,
         "trees": {"perScene": 18, "inner": 1.5, "outer": 16, "spacing": 4.5, "scale": [0.85, 1.3], "slope": 0.6, "roadPad": 1.5},
-        "shrubs": {"perScene": 90, "inner": 0.5, "outer": 12, "spacing": 0.9, "clump": [2, 4], "clumpRadius": 1.8, "treeBase": 0.5, "size": [0.75, 1.3], "slope": 1.4}
+        "shrubs": {"perScene": 90, "inner": 0.5, "outer": 12, "spacing": 0.9, "clump": [2, 4], "clumpRadius": 1.8, "treeBase": 0.5, "size": [0.75, 1.3], "slope": 1.4},
+        "scene": {
+          "hill-windmill": {"trees": {"perScene": 80, "inner": 1, "outer": 26, "spacing": 3.6, "scale": [0.95, 1.45], "slope": 0.75}, "shrubs": {"perScene": 260, "outer": 18}}
+        },
+        "sceneDoc": "Per-scene overrides of trees and shrubs. hill-windmill: its concept sits the mill's hill in a dense wood, so a thick ring of larger trees frames it (owner, 26 October 2026)."
       }
     },
     "source": "00bed638a57b6217f675e1a279fcc8fcf769dda7",

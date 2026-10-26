@@ -85,13 +85,16 @@ test('a ring of trees and shrubs carries each scene\'s woodland past its bounds 
  const outside=(b,x,z)=>Math.hypot(Math.max(b[0]-x,0,x-b[1]),Math.max(b[2]-z,0,z-b[3]));
  for(const [id,world] of Object.entries(worlds)){
  const plant=data.maps[id].acceptedScenes.surround.plant,trees=world.circles.filter(c=>c.type==='scene-tree'),shrubs=world.decor.sceneShrubs,mine=acceptedSceneLayout.scenes.filter(s=>regionOf(s)===id);
+ const own=(s,k)=>({...plant[k],...plant.scene?.[s.id]?.[k]});
  for(const s of mine){
-  assert.ok(trees.filter(t=>outside(s.bounds,t.x,t.z)<=plant.trees.outer+1).length>=plant.trees.perScene/2,s.id+' ring trees');
-  assert.ok(shrubs.filter(t=>outside(s.bounds,t.x,t.z)<=plant.shrubs.outer+1).length>=plant.shrubs.perScene/2,s.id+' ring shrubs');
+  const t=own(s,'trees'),sh=own(s,'shrubs');
+  assert.ok(trees.filter(c=>outside(s.bounds,c.x,c.z)<=t.outer+1).length>=t.perScene/2,s.id+' ring trees');
+  assert.ok(shrubs.filter(c=>outside(s.bounds,c.x,c.z)<=sh.outer+1).length>=sh.perScene/2,s.id+' ring shrubs');
  }
  for(const t of trees){
+  const slope=Math.max(...mine.filter(s=>outside(s.bounds,t.x,t.z)<=own(s,'trees').outer+1).map(s=>own(s,'trees').slope));
   assert.ok(mine.every(s=>sceneWeight(s,t.x,t.z)===0),'ring trees stay outside every scene');
-  assert.ok(!world.isWater(t.x,t.z,t.r)&&world.heightfield.slopeAt(t.x,t.z)<=plant.trees.slope,'dry, gentle ground');
+  assert.ok(!world.isWater(t.x,t.z,t.r)&&world.heightfield.slopeAt(t.x,t.z)<=slope,'dry, gentle ground');
   for(const r of world.roads)for(let i=1;i<r.points.length;i++){
    const [ax,az]=r.points[i-1],[bx,bz]=r.points[i],l=Math.hypot(bx-ax,bz-az)||1,u=Math.max(0,Math.min(1,((t.x-ax)*(bx-ax)+(t.z-az)*(bz-az))/l/l));
    assert.ok(Math.hypot(t.x-ax-(bx-ax)*u,t.z-az-(bz-az)*u)>r.width/2+t.r,r.id+' clear of ring tree '+[t.x,t.z]);

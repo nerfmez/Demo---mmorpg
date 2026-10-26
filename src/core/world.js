@@ -546,6 +546,7 @@ export function createWorld(worldData) {
   // and shrub clumps outside each accepted scene, so its woodland does not stop
   // dead at the bounds. One seed per scene, after every native pass: no native
   // placement moves. Trees are collision circles (type 'scene-tree'); shrubs are decor.
+  // plant.scene[id] overrides the tree and shrub settings for one scene.
   function plantSceneSurrounds() {
     const cfg = worldData.acceptedScenes.surround?.plant;
     if (!cfg) return;
@@ -568,7 +569,8 @@ export function createWorld(worldData) {
     const nearRoad = (x, z, pad) => roadDist(x, z) < pad || roads.some((rd) => distToPolylineBounds(x, z, rd.points) - rd.width / 2 < pad && distToPolyline(x, z, rd.points) - rd.width / 2 < pad);
     const trees = [];
     for (const s of scenes) {
-      const r = createRng((cfg.seed ^ hash(s.id)) >>> 0), t = cfg.trees, firstTree = trees.length;
+      const own = cfg.scene?.[s.id] ?? {}, t = { ...cfg.trees, ...own.trees }, sh = { ...cfg.shrubs, ...own.shrubs };
+      const r = createRng((cfg.seed ^ hash(s.id)) >>> 0), firstTree = trees.length;
       for (let placedTrees = 0, tries = 0; placedTrees < t.perScene && tries < t.perScene * 40; tries++) {
         const p = pick(r, s, t), scale = r.range(t.scale[0], t.scale[1]), rot = r.range(0, 6.28);
         if (!p) continue;
@@ -581,7 +583,7 @@ export function createWorld(worldData) {
         trees.push(tree); circles.push(tree); placedTrees++;
       }
       // Shrubs grow in clumps, half of them at the foot of this scene's ring trees.
-      const sh = cfg.shrubs, shrubs = [], mine = trees.slice(firstTree);
+      const shrubs = [], mine = trees.slice(firstTree);
       const fits = (x, z) => {
         if (!inBounds(x, z, 1) || scenes.some((o) => sceneWeight(o, x, z) > 0.1) || isWater(x, z, 0.8) || isBeach(x, z, 0.5) || nearRoad(x, z, 0.6) || nearWaypoint(x, z, 2.5) || connectorClear(worldData, x, z, 1)) return false;
         if (hf.slopeAt(x, z) > sh.slope || nearTown(x, z, 1) || (outsideClearingWeight(worldData.city, x, z) > 0.05 && sceneKeep(worldData, roads, x, z) > 0.1)) return false;

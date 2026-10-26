@@ -1,4 +1,7 @@
-# Coastal Ranger Forest — standalone scene (draft, owner review pending)
+# Coastal Ranger Forest — preliminarily accepted standalone scene
+
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 26 October 2026** ("ผมว่าโอเคละ"), artifact version 2:
+https://claude.ai/artifact/4XG7vAN6FvXnACVHgMzQSw. Retain as the baseline for game integration.
 
 Concept: `coastal-ranger-forest.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
 (branch `docs/landscape-concepts-40deg-20261022`), retained without recompression as `concept.png`.
@@ -27,5 +30,4 @@ python3 scenes/ranger-forest/assemble.py --three /path/to/three-0.170/package   
   junctions and two ports (`south`, `east`); `paving.js` lays the stair as level courses with risers.
 - `tower.js` builds the watchtower; `scene.js` places fences, props, sea stacks, rocks and foliage.
 
-`window.__scene.ranger` exposes `ports`, `junctions`, `routes` and `tower`. Game integration waits for
-owner approval.
+`window.__scene.ranger` exposes `ports`, `junctions`, `routes` and `tower`. Game integration is the next step.

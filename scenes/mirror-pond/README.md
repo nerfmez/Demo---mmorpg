@@ -1,6 +1,6 @@
 # Mirror Pond — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 4:
+**Owner status: in review, 26 October 2026**, artifact version 5:
 https://claude.ai/artifact/YRE8REPWfr1GbfzaNNPxw1.
 
 Concept: `mirror-pond.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -48,3 +48,9 @@ own style (`barkTube`: nine flat facets toned light, mid or shadow by the sun). 
 stones are an even chain from the plaza's shore to the rim stair's foot, close enough to step
 across; the way across (shore, stones, stair) is walkable, and the moon gate blocks only its two
 feet. Checked by walking the hero from the plaza over every stone and up the stair to the gate.
+
+Owner, on version 4: the stones need not be that close, just walkable; make the moon gate more
+like the reference. The stones are now a stride apart (still walkable along the crossing line,
+checked by walking the hero to the gate). The moon gate is the reference's: an open ring of
+twenty dressed, mossy stones, a round stone moon held in its upper middle, three curved block
+steps below and flowers at its foot.

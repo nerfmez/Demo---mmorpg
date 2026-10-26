@@ -11,28 +11,33 @@ function coloredPart(g,color,matrix){
 }
 const MOON_STONE=['#c9cfc9','#bec5c0','#d3d8d2','#b5bdb8'];
 function moonGate(){
- // a ring of dressed stones standing on two round steps, a pale stone disc within it
- const[x,z]=P(.475,.135,PL),y=height(x,z)-.12,R0=wide(.443,.507,.075,PL)/2,ring=R0*.2,cy=tall(x,z,y,.075)+y;
- const group=new THREE.Group(),parts=[];
- for(const[r,h,c]of[[R0*.95,M(.14),'#a9b2ad'],[R0*.78,M(.12),'#b4bcb6']]){
-  const yy=parts.length?y+M(.16):y;parts.push(coloredPart(new THREE.CylinderGeometry(r,r*1.04,h,14),c,new THREE.Matrix4().makeTranslation(x,yy+h/2,z)));
+ // as the reference's: an open ring of dressed, mossy stones on three curved steps, a round
+ // stone moon held in its upper middle, flowers and moss at its foot
+ const[x,z]=P(.475,.135,PL),y=height(x,z)-.1,R0=wide(.443,.507,.075,PL)/2,ring=R0*.17,group=new THREE.Group();
+ // three steps, each a front half-round of blocks over a solid core, the lowest widest
+ const STEP=M(.13);let top=y;
+ for(let k=0;k<3;k++){
+  const r=R0*(1.18-k*.17),h=STEP,cy=y+k*STEP;
+  const core=new THREE.CylinderGeometry(r*.96,r*.98,h,18);core.translate(x,cy+h/2,z-r*.15);stoneParts.push(coloredPart(core,'#b4bbb5'));
+  const n=9;for(let i=0;i<n;i++){const a=-Math.PI*.55+(i+.5)/n*Math.PI*1.1,w=2*r*Math.sin(Math.PI*1.1/n/2)*1.02;block(x+Math.sin(a)*(r-M(.12)),cy-M(.02),z-r*.15+Math.cos(a)*(r-M(.12)),w,h+M(.02),M(.28),a,k===0?.5:.3,{base:pick(MOON_STONE)});}
+  top=cy+h;
  }
- const base=y+M(.26),cyc=base+R0+ring*.2,n=14,ry=0;
+ // the ring: twenty dressed stones, the joints showing, moss on the upper ones
+ const cyc=top+R0,n=20,mid=R0-ring/2,seg=2*Math.PI*mid/n,rz=z-R0*.1;
  for(let i=0;i<n;i++){
-  const a=(i+.5)/n*Math.PI*2,mx=Math.sin(a)*(R0-ring/2),my=Math.cos(a)*(R0-ring/2);
-  const seg=2*Math.PI*(R0-ring/2)/n;
-  block(x+mx,cyc+my-ring*.42,z,seg*1.02,ring*.84,ring*.95,ry,i>n*.6||i<n*.25?.35:.15,{base:pick(MOON_STONE),rz:-a});
+  const a=(i+.5)/n*Math.PI*2;
+  block(x+Math.sin(a)*mid,cyc+Math.cos(a)*mid-ring*.45,rz,seg*.97,ring*.9,ring*1.1,0,Math.cos(a)>.2?.55:.2,{base:pick(MOON_STONE),rz:-a});
  }
- // the disc: a pale stone face with a crescent of moon-glass
- const disc=new THREE.CircleGeometry(R0-ring*.9,28);disc.translate(x,cyc,z-.05);
- parts.push(coloredPart(disc,'#d9e1dc'));
- const mat=paint({vertexColors:true,shade:[.62,.66,.68],mid:[.9,.93,.92]});
- const mesh=new THREE.Mesh(mergeGeometries(parts),mat);mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);
- const crescent=new THREE.RingGeometry((R0-ring)*.45,(R0-ring)*.62,24,1,Math.PI*.15,Math.PI*1.25);crescent.translate(x,cyc,z+.0);
- const glow=new THREE.Mesh(crescent,new THREE.MeshBasicMaterial({color:'#9ff0e6',transparent:true,opacity:.85}));glow.position.z=-.02;group.add(glow);
- // the ring's two feet, not the whole disc: the court before it stays open
- for(const side of[-1,1])COLLIDERS.push({x:x+side*R0*.85,z,r:ring*.9});COLLIDERS.push({x,z:z-ring*.2,r:ring*.6});
- MOON={x,z,y,r:R0,group};
+ // the moon: a round stone disc in the ring's upper middle, joined to it by a short collar above
+ const moonR=R0*.32,my=cyc+R0*.18;
+ const disc=new THREE.CylinderGeometry(moonR,moonR,ring*.8,22);disc.rotateX(Math.PI/2);disc.translate(x,my,rz);stoneParts.push(coloredPart(disc,'#d5dad2'));
+ const collar=new THREE.BoxGeometry(ring*.5,mid-(my-cyc)-moonR+ring*.2,ring*.5);collar.translate(x,(my+moonR+cyc+mid)/2,rz);stoneParts.push(coloredPart(collar,'#c3c9c2'));
+ // flowers and moss at its foot
+ for(let i=0;i<10;i++){const a=R(-1.6,1.6),r=R0*R(1.2,1.6);addBush(x+Math.sin(a)*r,y,z-R0*.15+Math.cos(a)*r*.8,M(R(.2,.35)),{sy:.6,tint:R(-.1,.25)});}
+ for(let i=0;i<26;i++){const a=R(-1.8,1.8),r=R0*R(1.15,1.9),fx=x+Math.sin(a)*r,fz=z-R0*.15+Math.cos(a)*r*.85;flowerItems.push({x:fx,y:height(fx,fz)+.02,z:fz,s:R(.7,1),ry:R(0,6.28),c:rand()<.5?'#f7da54':'#fff6dc'});}
+ // the ring's two feet: the court before it stays open
+ for(const side of[-1,1])COLLIDERS.push({x:x+side*R0*.85,z:rz,r:ring*.9});
+ MOON={x,z:rz,y,r:R0,group};
  return group;
 }
 // stepping stones across the pond from the plaza to the rim stair, [u, v on the water]
@@ -44,7 +49,7 @@ const CROSSING=(()=>{
  const at=t=>a.clone().lerp(b,t);let t0=0,t1=1;
  for(let t=0;t<=1;t+=.002)if(pondIn(at(t).x,at(t).z)>0){t0=t;break;}
  for(let t=1;t>=0;t-=.002)if(pondIn(at(t).x,at(t).z)>0){t1=t;break;}
- const A=at(t0),B=at(t1),L=A.distanceTo(B),r=M(.36),gap=M(.1),n=Math.max(2,Math.round((L+gap)/(2*r+gap))),stones=[];
+ const A=at(t0),B=at(t1),L=A.distanceTo(B),r=M(.36),gap=M(.5),n=Math.max(2,Math.round((L+gap)/(2*r+gap))),stones=[];
  for(let i=0;i<n;i++){const t=(i+.5)/n,p=A.clone().lerp(B,t),side=new V3(-(B.z-A.z),0,B.x-A.x).normalize().multiplyScalar(M(.12)*Math.sin(i*2.3));stones.push({x:p.x+side.x,z:p.z+side.z,r:r*(1+.06*Math.sin(i*1.7)),top:SEA_Y+M(.3)});}
  return{line:[[a.x,a.z],...stones.map(s=>[s.x,s.z]),[b.x,b.z]],stones};
 })();

@@ -171,7 +171,7 @@ forks glowing hot for a moment inside a band of scorched earth that blends into 
 pillars bursting up out of it and shattering into pieces that fly and fall, small rocks and a wall of
 dust along the whole lane, one hard shake.
 
-Cross Cut (ฟันไขว้, daggers, two quick cuts 0.14 s apart), `skillfx/cross-fx.js`: the two cuts are the
+Cross Cut (ฟันไขว้, daggers, two quick cuts 0.14 s apart), first built with `skillfx/cross-fx.js` (since removed): the two cuts are the
 bench's slash crescents with fixed, opposite steep tilts (`SlashFx` takes a `tilt` and `y` per strike),
 so together they draw an X; on the second cut an X of light (white core strokes in a blue glow, sharp
 at the tips, drawn over the bodies) flares in the air in front of the hero, holds a beat, then splits
@@ -186,6 +186,12 @@ and its targets is gone. The crescents are violet, and each monster the cuts rea
 lines across its body: the first zips in as the first cut lands and waits, the second crosses it,
 then both flare with a burst of sparks and thin away. A line in the hero's vertical plane was tried
 first and read edge-on from the high game camera, so the lines lie across the camera's view.
+Owner, next round ("ไม่ต้องมีกากบาทแยกออกมา เอาคลื่นโค้งๆนั้นแหละฟังสลับกันเป็นกากบาท"): no separate X at
+all. The effect is only the two violet crescents: same height and reach, opposite tilts and sweeps, the
+first held until the second has swept across it so the two crescents themselves cross as an X, then
+both fade together. `cross-fx.js` is gone. Rolled about the hero's facing, the two crescents overlap as
+one band from the game camera, so these two face the camera at opposite 45° diagonals with a flatter
+64° arc and cross over the target area in front of the hero.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

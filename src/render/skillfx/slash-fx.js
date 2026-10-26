@@ -98,7 +98,8 @@ function arcGeometry(arcRad, r0, r1, segs = 72, rings = 8) {
 
 export class SlashFx {
   constructor(scene, camera) {
-    this.scene = scene;
+    this.scene = scene; this.camera = camera;
+    this._m = new THREE.Matrix4(); this._x = new THREE.Vector3(); this._y = new THREE.Vector3(); this._z = new THREE.Vector3(); this._w = new THREE.Vector3(); this._s = new THREE.Vector3();
     this.geos = new Map();
     this.cuts = Array.from({ length: CUTS }, () => {
       const uniforms = { uHead: { value: 0 }, uFade: { value: 0 }, uDir: { value: 1 }, uThick: { value: 0.55 }, uSeed: { value: 0 },
@@ -110,7 +111,7 @@ export class SlashFx {
       for (const m of [core, glow]) { m.frustumCulled = false; m.visible = false; }
       const g = new THREE.Group(), tilt = new THREE.Group();
       tilt.add(glow, core); g.add(tilt); scene.add(g);
-      return { g, tilt, core, glow, uniforms, live: false, t: 0, reach: 1, arc: 1, dir: 1, lastHead: 0 };
+      return { g, tilt, core, glow, uniforms, live: false, t: 0, reach: 1, arc: 1, dir: 1, lastHead: 0, hold: HOLD };
     });
     this.sparks = new Ribbon(scene, camera, 1200, `varying vec2 vUv; varying float vA; varying vec3 vT;
       void main(){ float d=abs(vUv.y); if(d>0.9) discard; gl_FragColor=vec4(d<0.45 ? vec3(1.0) : vT, vA); }`, THREE.NormalBlending);
@@ -136,13 +137,17 @@ export class SlashFx {
     this.index = k; this.lastAt = this.t;
     const pat = PATTERN[k], at = p.where(), dir = p.dir || 1;
     const c = this.cuts.find((q) => !q.live) || this.cuts.reduce((a, b) => (a.t > b.t ? a : b));
-    c.reach = p.range * pat.reach; c.arc = (p.arc * Math.PI) / 180; c.dir = dir; c.lastHead = 0;
-    c.core.geometry = c.glow.geometry = this.geometry(p.arc, c.reach);
-    place(c.g, at.x, 1.0 + (p.y ?? pat.y), at.z);
-    c.g.rotation.set(0, at.angle, 0);
+    const arcDeg = p.faceArc ?? p.arc; // a camera-facing cut may take a flatter arc than the skill's hit arc
+    c.reach = p.range * (p.reach ?? pat.reach); c.arc = (arcDeg * Math.PI) / 180; c.dir = dir; c.lastHead = 0; c.hold = p.hold ?? HOLD;
+    c.core.geometry = c.glow.geometry = this.geometry(arcDeg, c.reach);
     c.tilt.rotation.set(0, 0, 0);
-    c.tilt.rotateZ(p.tilt ?? pat.tilt * dir); // the cut's plane rolls around the facing direction (a skill may fix it: Cross Cut)
-    c.tilt.rotateX(-0.06);
+    if (p.face !== undefined) this.faceCamera(c, p, at);
+    else {
+      place(c.g, at.x, 1.0 + (p.y ?? pat.y), at.z);
+      c.g.rotation.set(0, at.angle, 0);
+      c.tilt.rotateZ(p.tilt ?? pat.tilt * dir); // the cut's plane rolls around the facing direction
+      c.tilt.rotateX(-0.06);
+    }
     const u = c.uniforms;
     u.uDir.value = dir; u.uHead.value = 0; u.uFade.value = 0; u.uSeed.value = (this.seed = (this.seed * 7.31) % 97);
     const pal = p.palette || PALETTE; // a skill may bring its own colours (Sunder Cut: amber steel)
@@ -150,6 +155,20 @@ export class SlashFx {
     u.uRimK.value = p.fusedElement ? 1 : 0;
     if (p.fusedElement) u.uRim.value.set(...(FUSE[p.fusedElement] || FUSE.fire));
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
+  }
+  // A cut whose crescent faces the camera (Cross Cut: its two crescents must cross as an X from any
+  // facing, and a plane rolled about the facing direction is seen edge-on when the hero faces along the
+  // view): the crescent's middle passes through a point `ahead` metres in front of the caster, bulging
+  // toward screen angle `face` (radians from screen up, positive to the right).
+  faceCamera(c, p, at) {
+    const m = this.camera.matrixWorld, right = this._x.setFromMatrixColumn(m, 0), up = this._y.setFromMatrixColumn(m, 1);
+    const toCam = this._w.setFromMatrixColumn(m, 2); // the camera's +Z: toward the viewer
+    const bulge = this._z.copy(up).multiplyScalar(Math.cos(p.face)).addScaledVector(right, Math.sin(p.face)).normalize();
+    this._m.makeBasis(this._s.crossVectors(toCam, bulge), toCam, bulge); // local Y toward the viewer, Z the bulge
+    c.g.quaternion.setFromRotationMatrix(this._m);
+    const d = p.ahead ?? c.reach;
+    place(c.g, at.x + Math.sin(at.angle) * d, 1.0 + (p.y ?? 0), at.z + Math.cos(at.angle) * d);
+    c.g.position.addScaledVector(bulge, -c.reach * 0.8); // the arc's centre behind the point, so its body crosses it
   }
   // world point on the reach edge at fraction s of the cut
   edgePoint(c, s, out) {
@@ -167,7 +186,7 @@ export class SlashFx {
       c.t += dt;
       const r = Math.min(1, c.t / SWEEP), head = 1 - (1 - r) * (1 - r);
       c.uniforms.uHead.value = head;
-      c.uniforms.uFade.value = Math.max(0, (c.t - SWEEP - HOLD) / FADE);
+      c.uniforms.uFade.value = Math.max(0, (c.t - SWEEP - c.hold) / FADE);
       // sparks thrown off the leading edge while it travels
       if (head > c.lastHead + 0.02) {
         const n = Math.ceil((head - c.lastHead) * 10);
@@ -182,7 +201,7 @@ export class SlashFx {
         if (r < 1) { this.edgePoint(c, head, this.light.position); light = Math.max(light, 1.5); }
         c.lastHead = head;
       }
-      if (c.t > SWEEP + HOLD + FADE) { c.live = false; c.core.visible = c.glow.visible = false; }
+      if (c.t > SWEEP + c.hold + FADE) { c.live = false; c.core.visible = c.glow.visible = false; }
     }
     this.light.intensity = Math.max(light, this.light.intensity - dt * 40);
     for (const s of this.sparkList) { s.age += dt; s.v.multiplyScalar(1 - 6 * dt); s.v.y -= 4 * dt; s.p.addScaledVector(s.v, dt); }

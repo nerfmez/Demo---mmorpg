@@ -30,9 +30,10 @@ import { ThunderFx } from './skillfx/thunder-fx.js';
 import { BlizzardFx } from './skillfx/blizzard-fx.js';
 import { ShatterFx } from './skillfx/shatter-fx.js';
 import { RendFx } from './skillfx/rend-fx.js';
-import { CrossFx, CROSS_PALETTE } from './skillfx/cross-fx.js';
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
+// Cross Cut's violet crescents (owner's pick)
+const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
 export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
@@ -79,7 +80,6 @@ export class SkillFx {
     this.blizzard = new BlizzardFx(scene, camera);
     this.shatter = new ShatterFx(scene, camera);
     this.rend = new RendFx(scene, camera);
-    this.cross = new CrossFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
@@ -124,9 +124,11 @@ export class SkillFx {
     // axe or mace plays the greatblade's cut), else the one picked for the weapon; the others alternate
     const playing = this.host.anim()?.action?.name;
     const sweep = ACTIONS[playing && ACTIONS[playing]?.sweep !== undefined ? playing : pickAction(s.id, 'melee_arc', this.host.weapon(), this.swingStep)]?.sweep;
-    // Cross Cut: its two cuts take fixed opposite steep tilts and sweep opposite ways, drawing an X
+    // Cross Cut: its two crescents face the camera at opposite diagonals (SlashFx faceCamera) and cross
+    // in front of the hero, the first held until the second has swept across it, so the crescents
+    // themselves draw the X (owner: no separate X)
     const cross = s.id === 'cross_cut' ? (this.crossI++ % 2 ? -1 : 1) : 0;
-    return { palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : s.id === 'cross_cut' ? CROSS_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), tilt: cross ? cross * 0.95 : undefined, where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
+    return { ...(cross ? { face: cross * -0.785, faceArc: 64, reach: 0.95, ahead: s.range * 0.6, y: 0.1, hold: cross > 0 ? 0.2 : 0.06 } : {}), palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : s.id === 'cross_cut' ? CROSS_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
   }
   play(action, dur, step, hit, kind) { this.host.anim().play(action, dur, this.host.weapon(), step, hit, kind); }
   // the bench's look for the Firebolt charge: only the smooth filled core of the game's charge
@@ -269,7 +271,6 @@ export class SkillFx {
         const c = this.centerOf(e.id); if (!c) return true;
         if (e.skill === 'flame_stream') this.flame.lick(c);
         if (e.skill === 'frontline_split') this.split.cut(c);
-        if (e.skill === 'cross_cut') this.cross.hit(e.id, c, e.fromX, e.fromZ);
         if (e.skill === 'interrupt_slam' || e.skill === 'sky_shatter') this.mace.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'riposte') this.riposte.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'shield_bash') this.bash.hit(e.id, c, e.fromX, e.fromZ, this.skillOf('shield_bash')?.taunt?.duration || 3);
@@ -344,14 +345,13 @@ export class SkillFx {
     this.blizzard.update(dt);
     this.shatter.update(dt);
     this.rend.update(dt);
-    this.cross.update(dt);
   }
   // the offscreen flame passes, right before the main render
   prerender() { this.flame.prerender(); }
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.cross]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend]) fx.clear();
     this.timers.length = 0;
   }
 }

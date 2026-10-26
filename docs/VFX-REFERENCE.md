@@ -122,8 +122,13 @@ Firebolt's charge: a small fire swelling as the gather wisps spiral in, with a t
 Checked in the real game: its camera is far higher than the bench's (18.9 m up, 13.5 m back, fov 36),
 so a cue 7 m above the target is off the top of the screen. The owner wanted it higher: the fire is
 born 11 m up where a ray through a point near the top of the screen, a little right of the target,
-meets that height, and the meteor falls from there. `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm and Blizzard are
-still the light version below until redone.
+meets that height, and the meteor falls from there. `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm (owner pass on Meteor, then next) is built from Chain Spark's own
+lightning (`chain-fx.js` exports `zig`, its crackling core and glow shaders): a storm eye high up the
+sky in view of the game camera (`skyAbove` in fx-common, shared with Meteor) flickers with a ragged
+flash and crackling tendrils; each wave sends staggered angular bolts from it to the monsters in the
+circle (else to spots in it), each landing in a ragged flash with ground tendrils, sparks, a scorch
+mark and Chain Spark's shocked arcs; the last wave is a big bolt to the centre and the eye bursts out.
+Blizzard is still the light version below until redone.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

@@ -14,7 +14,7 @@
 //   height field), its molten floor cooling, then it fades.
 //   Cosmetic only.
 import * as THREE from 'three';
-import { mulberry32, placeV, place, conformPlane, fxGround, addLight, NOISE } from './fx-common.js';
+import { mulberry32, placeV, place, conformPlane, fxGround, addLight, skyAbove, NOISE } from './fx-common.js';
 import { glowTexture, flareTexture, lightSprite } from './light-kit.js';
 import { warnDisc } from './anime-kit.js';
 import { FireExtras } from './fire-extras.js';
@@ -119,16 +119,8 @@ export class MeteorFx {
     const s = this.slots.find((q) => !q.live) || this.slots[0];
     this.hide(s);
     Object.assign(s, { live: true, t: 0, delay: Math.max(0.6, e.delay), x: e.x, z: e.z, radius: e.radius, landedAt: -1, emberAt: 0, gathered: false });
-    // where the fire is born: high up (APEX m) at a spot near the top of the screen, a little right of
-    // the target, found by casting a ray through that screen point to that height; the game's camera is
-    // high, so straight above the target would be off the top of the screen
-    const cam = this.camera, ndc = this.p.set(e.x, fxGround.y(e.x, e.z), e.z).project(cam);
-    const sx = Math.max(-0.75, Math.min(0.75, ndc.x + 0.3)), H = Math.min(APEX, cam.position.y - 4);
-    this.v.set(sx, 0.78, 0.5).unproject(cam).sub(cam.position).normalize();
-    const k = (H - cam.position.y) / this.v.y;
-    if (k > 0 && isFinite(k)) s.apex.copy(cam.position).addScaledVector(this.v, k);
-    else s.apex.set(e.x + 2, H, e.z + 3);
-    s.apex.y -= fxGround.y(s.apex.x, s.apex.z);
+    // where the fire is born: high up, near the top of the screen a little right of the target
+    skyAbove(this.camera, e.x, e.z, APEX, 0.3, s.apex);
     s.dir.set(e.x - s.apex.x, -s.apex.y, e.z - s.apex.z).normalize();
     const U = s.warn.material.uniforms; U.uR.value = e.radius; U.uK.value = 0; U.uOpen.value = 0;
     place(s.warn, e.x, 0.04, e.z); s.warn.scale.setScalar(e.radius * 2 * 1.06); conformPlane(s.warn); s.warn.visible = true;

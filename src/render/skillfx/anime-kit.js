@@ -21,6 +21,7 @@ const UV_VS = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatr
 // fire palette for drawn shapes (flash, warning): core, body, edge, shadow
 export const ANIME_FIRE = {
   fire: ['#fffbe6', '#ffd23f', '#ff7a1a', '#b5301b'],
+  lightning: ['#f4fbff', '#9fd8ff', '#4a9dff', '#1f4fb8'],
 };
 
 const _q2 = new THREE.Quaternion(), _zz = new THREE.Vector3(0, 0, 1);

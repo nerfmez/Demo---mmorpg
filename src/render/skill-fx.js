@@ -68,10 +68,10 @@ export class SkillFx {
     this.bash = new BashFx(scene, camera);
     this.riposte = new RiposteFx(scene, camera);
     this.move = new MoveFx(scene, camera, () => host.vfx);
-    // built from the approved set (Fireball V5, Stone Burst, lightning, Frost V2) through the game's Vfx
-    this.meteor = new MeteorFx(scene, camera, () => host.vfx);
-    this.thunder = new ThunderFx(scene, camera, () => host.vfx);
-    this.blizzard = new BlizzardFx(scene, camera, () => host.vfx);
+    // higher-tier spells in the approved style with their own cel shapes (skillfx/cel-kit.js)
+    this.meteor = new MeteorFx(scene, camera);
+    this.thunder = new ThunderFx(scene, camera);
+    this.blizzard = new BlizzardFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
@@ -215,13 +215,7 @@ export class SkillFx {
         if (e.kind === 'arrow_rain') { this.rain.wave(e, el || 'physical', g.player); return true; }
         if (e.kind === 'meteor') { this.meteor.begin(e, el || 'fire', g.player); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.begin(e, el || 'lightning'); return true; }
-        if (e.kind === 'blizzard') {
-          // Frost Nova's own ice, held for the zone (minus its melt), with the storm's snow over it
-          this.frost.setElement(el || 'cold');
-          this.frost.burst(e.x, e.z, e.radius, [], 0.75, Math.max(0, (e.duration || 5) - 1.3));
-          this.blizzard.begin(e);
-          return true;
-        }
+        if (e.kind === 'blizzard') { this.blizzard.begin(e); return true; }
         return false;
       }
       case 'burst':

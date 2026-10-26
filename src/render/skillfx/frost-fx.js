@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { mulberry32, clamp01, NOISE, BILLBOARD_VS, addLight, fxGround, place, conformPlane } from './fx-common.js';
 
-const SPREAD = 0.38, MELT0 = 1.25, MELT1 = 2.15, END = 2.4, CHIPS = 260, FORMED = 0.7;
+const SPREAD = 0.38, MELT0 = 1.25, MELT1 = 2.15, END = 2.4, CHIPS = 260;
 
 // Ground frost, anime style: a flat cel decal with a clean scalloped edge, a bright rim band,
 // and flat tones, with no lines inside. It melts by receding inward.
@@ -167,12 +167,11 @@ export class FrostFx {
     this.pendingCharge = n;
   }
   // core 'nova' event. targets: [{x, z}] of dummies hit (for the frozen crust)
-  // hold: seconds the frost and its crystals stay formed before melting as usual (Blizzard's zone)
-  burst(x, z, radius, targets, strength = 1, hold = 0) {
+  burst(x, z, radius, targets, strength = 1) {
     let n = this.pendingCharge;
     if (!n || n.burstAt !== null || Math.hypot(n.root.position.x - x, n.root.position.z - z) > 1 || Math.abs(n.radius - radius) > 0.01) n = this.makeNova(x, z, radius, strength);
     this.pendingCharge = null;
-    n.burstAt = n.t; n.hold = hold;
+    n.burstAt = n.t;
     const r = this.rnd, R = radius;
     const arrive = (d) => SPREAD * (1 - Math.cbrt(1 - Math.min(0.999, d / R)));
     const local = targets.map((t) => [t.x - x, t.z - z]);
@@ -232,8 +231,7 @@ export class FrostFx {
         if (n.t > n.chargeTotal + 1) n.dead = true; // the cast was cancelled
         continue;
       }
-      // a held frost stays at its formed moment (FORMED) for `hold` seconds, then carries on to melt
-      const raw = n.t - n.burstAt, t = n.hold && raw > FORMED ? Math.max(FORMED, raw - n.hold) : raw, R = n.radius;
+      const t = n.t - n.burstAt, R = n.radius;
       if (!n.done.has('burst')) { n.done.add('burst'); this.chipBurst(ox, 0.4, oz, Math.round(26 * n.strength), 6.5 * n.S, 4.5, 1.0); }
       const front = R * (1 - Math.pow(1 - Math.min(1, t / SPREAD), 3));
       n.mat.uniforms.uR.value = Math.max(0.8 * n.S, front);

@@ -75,18 +75,25 @@ a few chips.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
-A first procedural version (soft additive glows and thin ribbons) was rejected by the owner: it did
-not match the approved set. The approved effects are solid cel shapes sampled from Blender or built
-on them (Frost Nova's floor and crystals in `skillfx/frost-fx.js`, the lightning and Stone Burst clips
-in `assets/vfx/approved/`, Fireball V5), so these three are now composed from those pieces:
-Meteor = a thin Stone Burst-style boundary during the delay, the Fireball V5 body enlarged and turned
-down its fall, then the Fireball contact (enlarged) and the Stone Burst eruption at the hit radius;
-Thunderstorm = the approved lightning strike at two spots per wave inside a thin boundary;
-Blizzard = Frost Nova's ice held for the zone (`FrostFx.burst(..., hold)`) with solid white snow.
-The gallery host (`www.jeanmoreno.com`) was blocked by the session's network policy. Web research
-used instead: a stylized strike should stay short with a few-frame impact
-([realtimevfx](https://realtimevfx.com/t/lightning-strike-stylized-what-do-you-guys-think-update/1972)),
-Guild Wars 2's Blizzard pairs the storm with jutting ice ([wiki](https://wiki.guildwars2.com/wiki/Blizzard)),
-snow and shake sell an ice move ([forum](https://devforum.roblox.com/t/feedback-on-1st-ice-move/1727614)),
-and a toon impact reads as flat colour bands with a ring
-([Blender Artists](https://blenderartists.org/t/a-girl-with-super-power-alys-ultimate/1600673)).
+Two versions were rejected by the owner before this one: first soft additive glows and thin ribbons
+(not the approved style), then a build from the approved meshes themselves (the owner wants the
+**style**, not the old shapes). The owner also asked that the size of an effect follow the skill's tier:
+these are job skills (job level 40, 10-12 s cooldowns), so they get more beats and a bigger footprint
+than Firebolt or Frost Nova, while staying inside the real hit area and never hiding monster wind-ups.
+The approved style, as used here (`skillfx/cel-kit.js`): solid shapes only, flat colour bands from a
+near-white core out to a same-hue dark edge, toon-ramp props with outline hulls, hard on/off flicker
+instead of soft fades, noise erosion with a dark rim for dissipation.
+Meteor: a fire circle with flame teeth draws round the hit area; a chunky outlined rock leads a
+banded flame shell down from the sky with cel smoke puffs; on impact a spiky star flash, a fire dome
+eaten away, a banded shock ring, bouncing rock chunks, a smoke ring and a glowing crater that cools.
+Thunderstorm: no cloud mesh (from the game camera a cloud overhead hides the circle), but a storm
+shadow and an electric circle with a zigzag band; sharp banded zigzag bolts with forks from the sky,
+ground stars and crawling arcs; the last wave is a big central bolt with a shock ring.
+Blizzard: a ring of blade-like ice shards bursts up at the edge (after Guild Wars 2's Blizzard), a
+snow floor with banded wind ripples, thick banded wind streaks and outlined ice chunks circling.
+The gallery host (`www.jeanmoreno.com`) was blocked by the session's network policy; web research
+used instead: [realtimevfx](https://realtimevfx.com/t/lightning-strike-stylized-what-do-you-guys-think-update/1972)
+(short, punchy strikes), [GW2 Blizzard](https://wiki.guildwars2.com/wiki/Blizzard) (jutting ice),
+[Roblox forum](https://devforum.roblox.com/t/feedback-on-1st-ice-move/1727614) (moving snow, shake),
+[Blender Artists](https://blenderartists.org/t/a-girl-with-super-power-alys-ultimate/1600673) (toon
+impact as flat bands and a ring). All shapes are original; nothing copied.

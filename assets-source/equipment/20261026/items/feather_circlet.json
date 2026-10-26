@@ -1,0 +1,11 @@
+{
+  "id": "feather_circlet",
+  "name_th": "มงกุฎขนนก",
+  "slot": "helm",
+  "game_status": "defined",
+  "set_id": "storm",
+  "set_name_th": "ชุดพายุ",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/storm-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/feather_circlet.png",
+  "record": "assets-source/equipment/20261026/items/feather_circlet.json"
+}

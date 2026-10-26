@@ -1,0 +1,11 @@
+{
+  "id": "leather_cap",
+  "name_th": "หมวกหนัง",
+  "slot": "helm",
+  "game_status": "defined",
+  "set_id": "boarhide",
+  "set_name_th": "ชุดหนังหมูป่า",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/boarhide-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/leather_cap.png",
+  "record": "assets-source/equipment/20261026/items/leather_cap.json"
+}

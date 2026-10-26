@@ -1,0 +1,11 @@
+{
+  "id": "gale_boots",
+  "name_th": "รองเท้าวายุ",
+  "slot": "boots",
+  "game_status": "defined",
+  "set_id": "storm",
+  "set_name_th": "ชุดพายุ",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/storm-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/gale_boots.png",
+  "record": "assets-source/equipment/20261026/items/gale_boots.json"
+}

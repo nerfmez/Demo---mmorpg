@@ -1,0 +1,11 @@
+{
+  "id": "travel_cap",
+  "name_th": "หมวกเดินทาง",
+  "slot": "head",
+  "game_status": "proposed",
+  "set_id": "travel",
+  "set_name_th": "ชุดเดินทาง",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/travel-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/travel_cap.png",
+  "record": "assets-source/equipment/20261026/items/travel_cap.json"
+}

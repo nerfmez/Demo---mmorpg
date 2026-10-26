@@ -1,0 +1,11 @@
+{
+  "id": "beetle_helm",
+  "name_th": "หมวกกระดองด้วง",
+  "slot": "helm",
+  "game_status": "defined",
+  "set_id": "beetle",
+  "set_name_th": "ชุดกระดองด้วง",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/beetle-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/beetle_helm.png",
+  "record": "assets-source/equipment/20261026/items/beetle_helm.json"
+}

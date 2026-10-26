@@ -1,0 +1,11 @@
+{
+  "id": "sporeweave_gloves",
+  "name_th": "ถุงมือทอสปอร์",
+  "slot": "gloves",
+  "game_status": "defined",
+  "set_id": "spore",
+  "set_name_th": "ชุดสปอร์",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/spore-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/sporeweave_gloves.png",
+  "record": "assets-source/equipment/20261026/items/sporeweave_gloves.json"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "hide_vest",
+  "name_th": "เสื้อหนังหมูป่า",
+  "slot": "armor",
+  "game_status": "defined",
+  "set_id": "boarhide",
+  "set_name_th": "ชุดหนังหมูป่า",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/boarhide-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/hide_vest.png",
+  "record": "assets-source/equipment/20261026/items/hide_vest.json"
+}

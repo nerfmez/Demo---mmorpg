@@ -1,0 +1,11 @@
+{
+  "id": "beetle_boots",
+  "name_th": "รองเท้ากระดองด้วง",
+  "slot": "boots",
+  "game_status": "proposed",
+  "set_id": "beetle",
+  "set_name_th": "ชุดกระดองด้วง",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/beetle-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/beetle_boots.png",
+  "record": "assets-source/equipment/20261026/items/beetle_boots.json"
+}

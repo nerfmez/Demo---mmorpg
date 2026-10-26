@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "reference_pull_request": 152,
+  "source_game_commit": "6a267082dd146aaf7a546941a7bf4f9b25e475b7",
+  "files": [
+    {
+      "set_id": "travel",
+      "set_name_th": "ชุดเดินทาง",
+      "path": "assets-source/equipment/20261026/turnarounds/travel-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "09bef542e3f75beeab38da1227e51dbda43d87dd240d32bd529425a22152e527",
+      "git_blob_sha": "0d8741cba2e4988335d371eae1c3e6c5ccf6418a",
+      "bytes": 1636729,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "boarhide",
+      "set_name_th": "ชุดหนังหมูป่า",
+      "path": "assets-source/equipment/20261026/turnarounds/boarhide-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "c483522ed0308c87d61a83dd95c290cd975bcaf72637866a12a3a3c6124ff8f0",
+      "git_blob_sha": "052ffa6caad6e3076c4dc430dd2f873b29fcb116",
+      "bytes": 1539205,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "beetle",
+      "set_name_th": "ชุดกระดองด้วง",
+      "path": "assets-source/equipment/20261026/turnarounds/beetle-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "c5ea972f6fdb476a14bfa5204056603a7bd69f0dfe3cd3d286c9ac5ec56abe12",
+      "git_blob_sha": "67e3cd28a05231074bfcc96630a9f8e049b2646e",
+      "bytes": 1773937,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "crabshell",
+      "set_name_th": "ชุดกระดองปู",
+      "path": "assets-source/equipment/20261026/turnarounds/crabshell-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "3e43cb79c3ab7c027f2a29af44178f36849a33aee806cb345f1c29a5f1fe3485",
+      "git_blob_sha": "ab5ce77e28c1428bb97bec65c3739000c2cd9945",
+      "bytes": 1732463,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "spore",
+      "set_name_th": "ชุดสปอร์",
+      "path": "assets-source/equipment/20261026/turnarounds/spore-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "06149c7495adcbc2313e7ece7a27de34e456a5241065105cc1321a7ad6a40e11",
+      "git_blob_sha": "f83967be8908f6e8cb6c98d465d231f0297c2d18",
+      "bytes": 1650376,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "storm",
+      "set_name_th": "ชุดพายุ",
+      "path": "assets-source/equipment/20261026/turnarounds/storm-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "b3d81a14689314746b7c81cebb8bdda27c883f24ecd7c18b7a8af772ebc0b489",
+      "git_blob_sha": "cc6e05a412e5f2e9f394b6928f571ccf8c19d603",
+      "bytes": 1855153,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "wardenstalker",
+      "set_name_th": "ชุดพรานผู้พิทักษ์",
+      "path": "assets-source/equipment/20261026/turnarounds/wardenstalker-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "77a8898736d7ab99bb74653824aa3909410a19d52641f9f7c45b8b3dc9db7877",
+      "git_blob_sha": "cb8f0026f5f050ce98ed658db73dfe9e862376a4",
+      "bytes": 1709675,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "wolfpelt",
+      "set_name_th": "ชุดหนังหมาป่า",
+      "path": "assets-source/equipment/20261026/turnarounds/wolfpelt-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "db682fff5921734834971c332f3e32895daced62ca6f8bcea4b938c3e5b03d62",
+      "git_blob_sha": "f42fd4b270c89cec7d2b162f4a81ced962109e00",
+      "bytes": 1771113,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "moonleaf",
+      "set_name_th": "ชุดใบจันทร์",
+      "path": "assets-source/equipment/20261026/turnarounds/moonleaf-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "77aaef7625e57a6d1bb4b3dc16b64fea25d53a346f1429eb3c3626252e025123",
+      "git_blob_sha": "455afe8c26a0eacbfb948d3e2b8c6d6c7c87bd75",
+      "bytes": 1656111,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "burrowguard",
+      "set_name_th": "ชุดผู้พิทักษ์โพรง",
+      "path": "assets-source/equipment/20261026/turnarounds/burrowguard-turnaround.png",
+      "source_kind": "generated_turnaround",
+      "sha256": "5f65ed2033779b79159d836d6d35beab546b913ce8e91479d8c065608344caa8",
+      "git_blob_sha": "518613cef6a2cb74959cd6188441e11cb5610d38",
+      "bytes": 1875567,
+      "width": 2172,
+      "height": 724
+    },
+    {
+      "set_id": "wisp",
+      "set_name_th": "ชุดแสงวิญญาณ",
+      "path": "assets-source/equipment/20261026/turnarounds/wisp-turnaround.jpeg",
+      "source_kind": "user_selected_upload",
+      "sha256": "f0015d7de688777655fc06ac867abcf7edb7aad3e4cd38ce58fee51f826d5428",
+      "git_blob_sha": "edecc6770e0d7f2af2857d13ecbd8c833dcb25c7",
+      "bytes": 158757,
+      "width": 1536,
+      "height": 512
+    },
+    {
+      "set_id": "mirrorwing",
+      "set_name_th": "ชุดปีกกระจก",
+      "path": "assets-source/equipment/20261026/turnarounds/mirrorwing-turnaround.jpeg",
+      "source_kind": "user_selected_upload",
+      "sha256": "261901560688c3ef96ca9168745d74c01bde9b93c7e260750fbf4345cefbf1c6",
+      "git_blob_sha": "bdba605375b3d4a2bfad89da9428def48c88cc9b",
+      "bytes": 171973,
+      "width": 1536,
+      "height": 512
+    },
+    {
+      "set_id": "fernstep",
+      "set_name_th": "ชุดก้าวเฟิร์น",
+      "path": "assets-source/equipment/20261026/turnarounds/fernstep-turnaround.jpeg",
+      "source_kind": "user_selected_upload",
+      "sha256": "9021df87e6391677d357598fd0543fbda771cd160f5931221f492b445c29b885",
+      "git_blob_sha": "f79a49f49688a5788f7d59b3d0f5396a31050480",
+      "bytes": 166816,
+      "width": 1536,
+      "height": 512
+    }
+  ]
+}

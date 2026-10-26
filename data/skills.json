@@ -1197,8 +1197,7 @@
       "upgradeMaterial": "wolf_pelt",
       "upgradeStat": "STR",
       "job": "duelist",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "frenzy_roar": {
       "name": "Frenzy Roar",

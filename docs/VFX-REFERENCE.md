@@ -239,6 +239,14 @@ Earth Heave (งัดพสุธา), owner: the pit should follow the cone. T
 Owner: not as dark as Meteor's, nothing burns. It is freshly dug soil (`uBurn` 0): lighter browns, no
 scorched floor, loose soil instead of soot round it.
 
+Rally (ปลุกใจ, a duelist party buff: +12% damage for 15 s to the hero and allies within 8 m),
+`skillfx/buff-fx.js` (`LOOKS` holds each party shout's colours and mark; the other warcry buffs will
+join it), warm orange-red: embers spiral up through the cast; on the shout a ring and its echo race
+out at waist height to the true 8 m radius (nothing on the ground), shout lines burst out like a manga
+roar, spirit streaks shoot up with a star glint, and up-chevrons (the anime "power up" mark) rise over
+every body the buff reached; while it lasts small ember streaks drift up off each buffed body. The
+first try (thin gold lines, a pale ring) vanished on grass: an orange rim and a red glow read better.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

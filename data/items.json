@@ -2401,8 +2401,8 @@
         "block_pct"
       ],
       "stats": {
-        "defense": 1.5,
-        "maxHp": 6
+        "defense": 15,
+        "maxHp": 60
       },
       "requires": {},
       "starter": false,
@@ -2424,8 +2424,8 @@
         "mp_on_hit"
       ],
       "stats": {
-        "defense": 1,
-        "attack": 1
+        "defense": 10,
+        "attack": 10
       },
       "requires": {},
       "starter": false,
@@ -2443,11 +2443,12 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "stats": {
-        "defense": 3,
-        "maxHp": 8,
+        "defense": 30,
+        "maxHp": 80,
         "moveSpeedPct": 2
       },
       "requires": {},
@@ -2468,8 +2469,8 @@
         "block_pct"
       ],
       "stats": {
-        "defense": 7.5,
-        "maxHp": 12
+        "defense": 75,
+        "maxHp": 120
       },
       "requires": {},
       "starter": false,
@@ -2490,8 +2491,8 @@
         "block_pct"
       ],
       "stats": {
-        "defense": 3.2,
-        "maxHp": 10
+        "defense": 32,
+        "maxHp": 100
       },
       "requires": {},
       "starter": false,
@@ -2509,11 +2510,12 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "material_find"
       ],
       "stats": {
-        "defense": 4.2,
-        "maxHp": 15,
+        "defense": 42,
+        "maxHp": 150,
         "moveSpeedPct": 0.9
       },
       "requires": {},
@@ -2532,11 +2534,12 @@
         "defense_flat",
         "hp_flat",
         "summon_pct",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "material_find"
       ],
       "stats": {
-        "defense": 3,
-        "maxMp": 18,
+        "defense": 30,
+        "maxMp": 180,
         "healPct": 8
       },
       "requires": {},
@@ -2557,8 +2560,8 @@
         "hp_flat"
       ],
       "stats": {
-        "defense": 4.8,
-        "maxHp": 20,
+        "defense": 48,
+        "maxHp": 200,
         "critChancePct": 3.2
       },
       "requires": {},
@@ -2580,9 +2583,9 @@
         "block_pct"
       ],
       "stats": {
-        "defense": 13.5,
-        "maxHp": 33.7,
-        "hpRegen": 1.2
+        "defense": 135,
+        "maxHp": 337,
+        "hpRegen": 12
       },
       "requires": {},
       "starter": false,
@@ -2603,8 +2606,8 @@
         "block_pct"
       ],
       "stats": {
-        "defense": 5.6,
-        "maxHp": 20,
+        "defense": 56,
+        "maxHp": 200,
         "barrierPct": 5.3
       },
       "requires": {},
@@ -2626,9 +2629,9 @@
         "block_pct"
       ],
       "stats": {
-        "defense": 2.2,
-        "maxHp": 7.5,
-        "attack": 1.2
+        "defense": 22,
+        "maxHp": 75,
+        "attack": 12
       },
       "requires": {},
       "starter": false,
@@ -2646,11 +2649,12 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "material_find"
       ],
       "stats": {
-        "defense": 4.5,
-        "maxHp": 18.7
+        "defense": 45,
+        "maxHp": 187
       },
       "requires": {},
       "starter": false,
@@ -2672,8 +2676,8 @@
         "mana_cost_pct"
       ],
       "stats": {
-        "defense": 10.8,
-        "maxMp": 57.5,
+        "defense": 108,
+        "maxMp": 575,
         "barrierPct": 9.6
       },
       "requires": {},
@@ -2697,8 +2701,8 @@
         "mana_cost_pct"
       ],
       "stats": {
-        "defense": 4,
-        "maxMp": 32,
+        "defense": 40,
+        "maxMp": 320,
         "spellDamagePct": 5.3
       },
       "requires": {},
@@ -2722,7 +2726,7 @@
         "mana_cost_pct"
       ],
       "stats": {
-        "magic": 2.8,
+        "magic": 28,
         "critChancePct": 2.4
       },
       "requires": {},
@@ -2742,12 +2746,13 @@
         "cdr_pct",
         "defense_flat",
         "barrier_pct",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "material_find"
       ],
       "stats": {
-        "defense": 2.4,
+        "defense": 24,
         "moveSpeedPct": 3,
-        "maxMp": 15
+        "maxMp": 150
       },
       "requires": {},
       "starter": false,
@@ -2767,8 +2772,8 @@
         "hp_flat"
       ],
       "stats": {
-        "defense": 11.7,
-        "maxHp": 27,
+        "defense": 117,
+        "maxHp": 270,
         "moveSpeedPct": 5.9
       },
       "requires": {},
@@ -2790,8 +2795,8 @@
         "hp_flat"
       ],
       "stats": {
-        "defense": 4,
-        "maxHp": 20,
+        "defense": 40,
+        "maxHp": 200,
         "critChancePct": 4.8
       },
       "requires": {},
@@ -2814,7 +2819,7 @@
         "mp_on_hit"
       ],
       "stats": {
-        "attack": 2.2,
+        "attack": 22,
         "critChancePct": 2.4,
         "projectileDamagePct": 4
       },
@@ -2834,10 +2839,11 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "stats": {
-        "defense": 2.7,
+        "defense": 27,
         "moveSpeedPct": 4.7
       },
       "requires": {},
@@ -2859,8 +2865,8 @@
         "mp_regen_pct"
       ],
       "stats": {
-        "defense": 14.5,
-        "maxMp": 112.5,
+        "defense": 145,
+        "maxMp": 1125,
         "cooldownPct": 10.7
       },
       "requires": {},
@@ -2884,8 +2890,8 @@
         "mana_cost_pct"
       ],
       "stats": {
-        "defense": 7.1,
-        "maxMp": 50,
+        "defense": 71,
+        "maxMp": 500,
         "healPct": 14.3
       },
       "requires": {},
@@ -2909,8 +2915,8 @@
         "mana_cost_pct"
       ],
       "stats": {
-        "magic": 4.3,
-        "maxMp": 14.3,
+        "magic": 43,
+        "maxMp": 143,
         "cooldownPct": 2.4
       },
       "requires": {},
@@ -2931,11 +2937,13 @@
         "cdr_pct",
         "spell_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "gear_find",
+        "gold_find"
       ],
       "stats": {
-        "maxMp": 17.7,
-        "magic": 1.2,
+        "maxMp": 177,
+        "magic": 12,
         "healPct": 3.5
       },
       "requires": {},
@@ -2957,7 +2965,7 @@
         "mp_on_hit"
       ],
       "stats": {
-        "attack": 5.7,
+        "attack": 57,
         "critChancePct": 6.2,
         "projectileDamagePct": 10.3
       },
@@ -2982,8 +2990,8 @@
         "mana_cost_pct"
       ],
       "stats": {
-        "defense": 27.8,
-        "maxMp": 162.1,
+        "defense": 278,
+        "maxMp": 1621,
         "spellDamagePct": 15.4
       },
       "requires": {},
@@ -3007,8 +3015,8 @@
         "mana_cost_pct"
       ],
       "stats": {
-        "defense": 8.2,
-        "maxMp": 72.1,
+        "defense": 82,
+        "maxMp": 721,
         "cooldownPct": 8.6
       },
       "requires": {},
@@ -3028,10 +3036,11 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "material_find"
       ],
       "stats": {
-        "defense": 6.9,
+        "defense": 69,
         "mpRegenPct": 30.9,
         "moveSpeedPct": 5.5
       },
@@ -3050,12 +3059,13 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "stats": {
-        "defense": 9.1,
+        "defense": 91,
         "moveSpeedPct": 7.2,
-        "maxHp": 37.8,
+        "maxHp": 378,
         "critChancePct": 6
       },
       "requires": {},

@@ -2469,7 +2469,8 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 1
     },
@@ -2522,7 +2523,8 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2540,7 +2542,8 @@
         "defense_flat",
         "hp_flat",
         "summon_pct",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2630,7 +2633,8 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2709,7 +2713,8 @@
         "cdr_pct",
         "defense_flat",
         "barrier_pct",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2782,7 +2787,8 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2861,7 +2867,9 @@
         "cdr_pct",
         "spell_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 11
     },
@@ -2944,7 +2952,8 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "material_find"
       ],
       "itemLevel": 16
     },
@@ -2965,7 +2974,8 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 21
     }

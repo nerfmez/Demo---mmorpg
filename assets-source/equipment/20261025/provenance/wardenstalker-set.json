@@ -1,0 +1,62 @@
+{
+  "status": "source artwork proposal; no runtime item definitions",
+  "source_image": "exec-89e7d420-451b-40fb-88ca-6fdf6107b066.png",
+  "items": [
+    {
+      "id": "wardenstalker_coat",
+      "source_component_ids": [
+        2
+      ],
+      "source_alpha_bbox": [
+        53,
+        43,
+        579,
+        647
+      ],
+      "sha256": "6c909a18c95d003bcdb5da43d14c88a695d5822e7ea3567838c76a2c9df04aad",
+      "proposed_new_item": false
+    },
+    {
+      "id": "wardenstalker_hood",
+      "source_component_ids": [
+        1
+      ],
+      "source_alpha_bbox": [
+        656,
+        34,
+        1252,
+        632
+      ],
+      "sha256": "37da11d25ebe762d9ce3b8ff2f6294366e68baf42923270dfeb66ea1b4987a52",
+      "proposed_new_item": false
+    },
+    {
+      "id": "wardenstalker_gloves",
+      "source_component_ids": [
+        4
+      ],
+      "source_alpha_bbox": [
+        17,
+        685,
+        600,
+        1230
+      ],
+      "sha256": "54ffa5f1087d9c136dc9d802a213c21137e9d7038732ebdb26ae674516a446da",
+      "proposed_new_item": false
+    },
+    {
+      "id": "wardenstalker_boots",
+      "source_component_ids": [
+        3
+      ],
+      "source_alpha_bbox": [
+        659,
+        659,
+        1216,
+        1224
+      ],
+      "sha256": "db399a4c8734b01aaa6f9124d13cd2120c50f512005977b0d01ad5341eed2e46",
+      "proposed_new_item": true
+    }
+  ]
+}

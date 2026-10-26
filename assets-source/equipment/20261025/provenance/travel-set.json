@@ -1,0 +1,63 @@
+{
+  "status": "source artwork proposal; no runtime item definitions",
+  "source_image": "exec-7da877e8-16fc-459a-8bfb-182eff082894.png",
+  "items": [
+    {
+      "id": "travel_tunic",
+      "source_component_ids": [
+        1
+      ],
+      "source_alpha_bbox": [
+        57,
+        47,
+        594,
+        638
+      ],
+      "sha256": "15e689cc706a6c04924b8b412334ef849b15a8fdc841a2479c0eadf28f8b5db9",
+      "proposed_new_item": false
+    },
+    {
+      "id": "travel_cap",
+      "source_component_ids": [
+        2
+      ],
+      "source_alpha_bbox": [
+        750,
+        152,
+        1247,
+        535
+      ],
+      "sha256": "698b5250952126ec028d185ac0918f32a6944950876f39bc1b2828520b3b707d",
+      "proposed_new_item": true
+    },
+    {
+      "id": "travel_boots",
+      "source_component_ids": [
+        3
+      ],
+      "source_alpha_bbox": [
+        80,
+        679,
+        597,
+        1203
+      ],
+      "sha256": "eeee2dfb557fb5cde3a62e686e2b880d32a3d4a185a8250f6b80768558027f56",
+      "proposed_new_item": false
+    },
+    {
+      "id": "travel_gloves",
+      "source_component_ids": [
+        4,
+        5
+      ],
+      "source_alpha_bbox": [
+        697,
+        719,
+        1264,
+        1139
+      ],
+      "sha256": "3c9115148add8cbe4dfd5b2c7c8f2f8233d4bdf3391b94fc1ecf09d3a2f9b726",
+      "proposed_new_item": true
+    }
+  ]
+}

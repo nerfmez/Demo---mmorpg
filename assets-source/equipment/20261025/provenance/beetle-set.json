@@ -1,0 +1,84 @@
+{
+  "source": "exec-d098cbef-6ea8-47b4-9e8d-152245e92c28.png",
+  "status": "Artwork only; no game data changes",
+  "items": [
+    {
+      "id": "shell_guard",
+      "name_th": "เกราะกระดองด้วง",
+      "new_proposed_item": false,
+      "source_bounds": [
+        17,
+        18,
+        526,
+        548
+      ],
+      "components": 1,
+      "sha256": "90c2431749b68d7a7dfb7ea216e189084d7686cc351e9ba8a82942db8a4210cb"
+    },
+    {
+      "id": "beetle_helm",
+      "name_th": "หมวกกระดองด้วง",
+      "new_proposed_item": false,
+      "source_bounds": [
+        563,
+        54,
+        982,
+        522
+      ],
+      "components": 1,
+      "sha256": "b0b1fd452a6aebd7030105b88780191e37def4bb1a23a9f1859a8d3c607bb424"
+    },
+    {
+      "id": "beetle_gloves",
+      "name_th": "ถุงมือกระดองด้วง",
+      "new_proposed_item": true,
+      "source_bounds": [
+        1031,
+        78,
+        1509,
+        524
+      ],
+      "components": 2,
+      "sha256": "63700542c073bc530994314ea20eceed9c97eb19978d1e9b8f6f8ae6a512d6b8"
+    },
+    {
+      "id": "beetle_boots",
+      "name_th": "รองเท้ากระดองด้วง",
+      "new_proposed_item": true,
+      "source_bounds": [
+        42,
+        548,
+        500,
+        991
+      ],
+      "components": 2,
+      "sha256": "a7b7af90734f7289f3285fee9c47567027701083ff3aea15781077d5fe2499de"
+    },
+    {
+      "id": "beetle_maul",
+      "name_th": "กระบองกระดองด้วง",
+      "new_proposed_item": false,
+      "source_bounds": [
+        529,
+        513,
+        1070,
+        989
+      ],
+      "components": 1,
+      "sha256": "1f568025601ad4d22154d46cd5166ca7a3f61ca64efb343fe8e3da74eaf57c41"
+    },
+    {
+      "id": "beetle_buckler",
+      "name_th": "โล่กลมกระดองด้วง",
+      "new_proposed_item": false,
+      "source_bounds": [
+        1121,
+        551,
+        1480,
+        984
+      ],
+      "components": 1,
+      "sha256": "a80d84ce32804867aa21e8eb38b70a945720e6798556373c4b34fe858da1c056"
+    }
+  ]
+}

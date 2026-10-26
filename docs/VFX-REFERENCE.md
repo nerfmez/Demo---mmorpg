@@ -132,7 +132,12 @@ bolts were too busy: two clean bolts a wave (one fork each, low jag, no second p
 from the ball to the monsters (else to spots in the circle); each lands in a ragged flash, a few flat
 tendrils, sparks, a scorch mark and Chain Spark's shocked arcs; the last wave is a big bolt to the
 centre and two more, and the ball bursts out. `skyAbove` (fx-common) places Meteor's sky fire.
-Blizzard is still the light version below until redone.
+Blizzard (after Thunderstorm passed) follows `.claude/skills/skill-vfx`: Frost Nova's
+clean cel frost spreads to the true radius with snow drifts sweeping round over it (noise carried
+round the centre); a wall of wind rises round the edge, cut from Firebolt's warped noise (`V5_FIELD`)
+carried round the circle and stretched into streaks, see-through where it faces the camera so the
+monsters inside stay readable; snow streaks and flakes spiral round the centre (curved trails along
+their own orbit); at the end the wall tears apart and the frost melts inward.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

@@ -1,0 +1,32 @@
+{
+  "source_image": "approved-fern-hare.png",
+  "source_kind": "owner-approved original concept sheet",
+  "extraction_method": "cream-paper mask and connected components",
+  "items": [
+    {
+      "id": "fernstep_coat",
+      "component_ids": [
+        1
+      ],
+      "sha256": "3ef35995a0e599464b12a224fba3ed21910241196cd9e139147bf3601e472e57",
+      "proposed_new_item": true
+    },
+    {
+      "id": "fernstep_cap",
+      "component_ids": [
+        2
+      ],
+      "sha256": "93068529b91620064210dba0e75ce4b6dbb0befc6fa4638b4ea00351ff822638",
+      "proposed_new_item": true
+    },
+    {
+      "id": "fernstep_boots",
+      "component_ids": [
+        3,
+        7
+      ],
+      "sha256": "9b228a91b1c5f3e76e17b57f6cb55a1ced11575fd245900a352eb81440c0f1cc",
+      "proposed_new_item": true
+    }
+  ]
+}

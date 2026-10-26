@@ -1,0 +1,32 @@
+{
+  "source_image": "approved-mirrorwing.png",
+  "source_kind": "owner-approved original concept sheet",
+  "extraction_method": "cream-paper mask and connected components",
+  "items": [
+    {
+      "id": "mirrorwing_robe",
+      "component_ids": [
+        1
+      ],
+      "sha256": "ddac23fe4ea80306263bfc4b4d7372bc40748d3d999666f88b031305998cd1d3",
+      "proposed_new_item": true
+    },
+    {
+      "id": "mirrorwing_hood",
+      "component_ids": [
+        2
+      ],
+      "sha256": "4c31ee75d3496b14e4e5bf61f638063b0ee4d2b3f042be659b0ae41f5e07ec1c",
+      "proposed_new_item": true
+    },
+    {
+      "id": "mirrorwing_gloves",
+      "component_ids": [
+        4,
+        13
+      ],
+      "sha256": "0507181caa88505cd5c5ce3a4b602ee169afc96bc746dd607616cbff53184948",
+      "proposed_new_item": true
+    }
+  ]
+}

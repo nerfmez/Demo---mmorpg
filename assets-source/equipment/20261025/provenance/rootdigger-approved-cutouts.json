@@ -1,0 +1,32 @@
+{
+  "source_image": "approved-rootdigger.png",
+  "source_kind": "owner-approved original concept sheet",
+  "extraction_method": "cream-paper mask and connected components",
+  "items": [
+    {
+      "id": "burrowguard_armor",
+      "component_ids": [
+        2
+      ],
+      "sha256": "695a94da30f5f4276dfc5b411ce22e6bfc27ef8c841e96ab62ddaac1b3569aa4",
+      "proposed_new_item": true
+    },
+    {
+      "id": "burrowguard_gloves",
+      "component_ids": [
+        3,
+        5
+      ],
+      "sha256": "85fc40c0b415c594cba942275d07b3d1c4d1580fd2ded5f33ad767647416caed",
+      "proposed_new_item": true
+    },
+    {
+      "id": "burrowguard_shield",
+      "component_ids": [
+        1
+      ],
+      "sha256": "a372b3d03599cf25b805af08d7956913356a9f404715086373c6886da9b40588",
+      "proposed_new_item": true
+    }
+  ]
+}

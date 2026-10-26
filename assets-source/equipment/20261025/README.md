@@ -2,8 +2,8 @@
 
 Owner-selected refined anime illustration style. Artwork staging only: runtime icons, recipes and stats are not changed.
 
-- `icons/`: 54 separate transparent 512×512 PNGs. Paired gloves/boots are single inventory icons.
-- `references/`: three owner-approved original style/design sheets; their nine designs have not been separately extracted here.
+- `icons/`: 63 separate transparent 512×512 PNGs. Paired gloves/boots are single inventory icons.
+- `references/`: three owner-approved original style/design sheets; their nine designs have been separated as inventory icons while retaining the original artwork.
 - `masters/`: generated source images. The wolf batch sword was rejected for silhouette drift; use `wolfbite-sword-corrected.png` and `icons/wolfbite_sword.png`. Other wolf atlas items remain valid.
 - `previews/`: composited views on ivory for owner review.
 - `provenance/`: extraction bounds, hashes and proposed-item markers.
@@ -15,6 +15,8 @@ The level-11 Moonleaf set contains new robe, cowl and gloves, the two existing s
 The Storm atlas includes five existing shapes and proposed matching gloves. The Wardenstalker atlas includes three existing shapes and proposed matching boots. These sets have 6 and 4 separated icons respectively.
 
 The starter travel atlas completes the existing tunic and boots with proposed cap and gloves.
+
+The three approved fern-hare, mirrorwing and rootdigger reference sheets were separated into nine more transparent icons. Combined with the earlier four-item completion pilot, the three proposed equipment sets have complete matching pieces.
 
 New pieces are artwork proposals, not live gear definitions. Existing Guardian Horn Helmet is approved and retained.
 

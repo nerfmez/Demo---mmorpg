@@ -1310,8 +1310,7 @@
       "upgradeMaterial": "sea_pearl",
       "upgradeStat": "INT",
       "job": "priest",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "rapid_volley": {
       "name": "Rapid Volley",

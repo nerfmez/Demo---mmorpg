@@ -1,4 +1,4 @@
-// Party buff shouts (Rally, Frenzy Roar, Stand Firm, Hold the Line; the other warcry buffs take their own look from LOOKS), held to the
+// Party buffs (the shouts Rally, Frenzy Roar, Stand Firm, Hold the Line; the spell Blessing of Light; the other warcry buffs take their own look from LOOKS), held to the
 // owner's bar (.claude/skills/skill-vfx), in the bench's light-and-ribbon language.
 //  - rouse (the cast): embers spiral up round the hero, gathering speed (a roar: air drawn in to the mouth);
 //  - the shout (the rules' 'buff'): a ring of light races out at waist height to the buff's true
@@ -10,6 +10,8 @@
 //  - a roar (Frenzy Roar, owner: it should look like its name) instead sends sound: smooth rings pulse out
 //    one after another at head height to the true radius, a blast of arcs ")))" bursts ahead of the
 //    mouth, and the camera rumbles;
+//  - a holy spell (Blessing, holy) is light, not a shout: motes drift down onto the hero through the cast,
+//    a column of light falls on it, the ring goes out to the radius, and a halo lights over each body;
 //  - while it lasts: a few streaks of the same colour drift up off each buffed body (trail 'back': they
 //    stream back from the way it faces, for a speed buff; 'orbit': they circle the body, for a guard).
 // One ribbon pair, one glint sprite and pooled sparks: light on an iPad, and buffs run for many seconds.
@@ -20,17 +22,20 @@ import { CORE_FS, GLOW_FS, W, lineW, lineGlowW, tailW, tailGlowW, sparkW, sparkG
 // per skill: core/glow colours; flare = the glint's tint; symbol 'up' = rising chevrons (more damage),
 // 'shield' = a shield emblem (less damage taken); roar = sound waves instead of the shout; trail 'back' =
 // the lasting streaks stream back from the facing, 'orbit' = they circle the body; wall = a ring of shields
-// round the hero, double = the shield emblem drawn twice (one inside the other)
+// round the hero, double = the shield emblem drawn twice (one inside the other); holy = a light column
+// instead of shout lines and streaks, symbol 'halo' = a halo over each body, trail 'fall' = motes drift down
 export const LOOKS = {
   rally: { edge: [1.0, 0.6, 0.22], glow: [1.0, 0.24, 0.06], symbol: 'up' },
   frenzy_roar: { edge: [1.0, 0.3, 0.32], glow: [1.0, 0.04, 0.12], roar: true, trail: 'back' },
   stand_firm: { edge: [0.62, 0.86, 1.0], glow: [0.12, 0.42, 1.0], flare: 'cold', symbol: 'shield', trail: 'orbit' },
   team_stand: { edge: [1.0, 0.88, 0.5], glow: [1.0, 0.55, 0.08], symbol: 'shield', double: true, wall: true, trail: 'orbit' },
+  blessing: { edge: [1.0, 0.96, 0.78], glow: [1.0, 0.74, 0.28], flare: 'steel', holy: true, symbol: 'halo', trail: 'fall' },
 };
 const RING = 49, STREAKS = 10, STREAK_PTS = 6, SPARKS = 140, MARKS = 6, CHEV = 3, RAYS = 16, ARC = 13;
 const RING_LIFE = 0.45, STREAK_LIFE = 0.55, MARK_LIFE = 1.0, AURA_EVERY = 0.16, RAY_LIFE = 0.3;
 // a heater shield's outline (screen units: x right, y up), closed
 const SHIELD = [[-1, 1], [-0.33, 1.08], [0.33, 1.08], [1, 1], [1, 0.25], [0.8, -0.35], [0.45, -0.8], [0, -1.15], [-0.45, -0.8], [-0.8, -0.35], [-1, 0.25], [-1, 1]];
+const BEAM_LIFE = 0.6, HALO_LIFE = 1.6;
 const WALL = 8, WALL_R = 1.7, WALL_LIFE = 0.95;
 const WAVES = 5, WAVE_EVERY = 0.09, WAVE_LIFE = 0.6, BLASTS = 5, BLAST_EVERY = 0.06, BLAST_LIFE = 0.42, MOUTH = 1.35;
 const out2 = (k) => 1 - (1 - k) * (1 - k);
@@ -64,6 +69,15 @@ export class BuffFx {
         const a = r() * 6.283, d = 1.6 + r() * 0.8, life = this.rLife * (0.7 + r() * 0.3);
         this.p.set(x + Math.sin(a) * d, 0.6 + r() * 1.4, z + Math.cos(a) * d);
         this.v.set(x - this.p.x, MOUTH - this.p.y, z - this.p.z).multiplyScalar(0.9 / life);
+        spark(this.sparks, this.free, SPARKS, this.p, this.v, life, 0.05, this.look);
+      }
+      return;
+    }
+    if (this.look.holy) { // motes of light drifting down onto the hero
+      for (let i = 0; i < 16; i++) {
+        const a = r() * 6.283, d = 0.3 + r() * 1.0, life = this.rLife * (0.75 + r() * 0.25);
+        this.p.set(x + Math.sin(a) * d, 2.6 + r() * 0.9, z + Math.cos(a) * d);
+        this.v.set(x - this.p.x, 1.2 - this.p.y, z - this.p.z).multiplyScalar(1 / life);
         spark(this.sparks, this.free, SPARKS, this.p, this.v, life, 0.05, this.look);
       }
       return;
@@ -102,6 +116,7 @@ export class BuffFx {
       this.p.set(b.x + Math.sin(a) * 0.4, 0.15 + r() * 0.9, b.z + Math.cos(a) * 0.4);
       if (look.trail === 'back') this.v.set(-Math.sin(f) * (4 + r() * 2), 0.3, -Math.cos(f) * (4 + r() * 2)); // trails streaming back
       else if (look.trail === 'orbit') this.v.set(Math.cos(a) * 3, 0.4, -Math.sin(a) * 3); // round the body
+      else if (look.trail === 'fall') { this.p.y += 1.4; this.v.set(0, -2.2, 0); } // light drifting down
       else this.v.set(0, 3.5 + r() * 1.5, 0); // fast enough to draw a streak, not a dot
       spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.35 + r() * 0.15, 0.07, look);
     }
@@ -147,8 +162,16 @@ export class BuffFx {
         circlePoints(this.ring, x, z, rr, 1.0 - 0.3 * i);
         W.v = (i ? 0.1 : 0.2) * (1 - 0.6 * rk); this.glow.strip(this.ring, lineGlowW, 0.9 * (1 - rk), L.glow); this.core.strip(this.ring, lineW, (i ? 0.7 : 1) * (1 - rk * rk), L.edge);
       }
+      // a holy spell: a column of light falls on the hero, narrowing as it fades
+      const bk = t / BEAM_LIFE;
+      if (L.holy && bk < 1) {
+        for (let i = 0; i < STREAK_PTS; i++) this.spts[i].set(x, 5.5 * (1 - i / (STREAK_PTS - 1)), z);
+        const al = Math.min(1, bk * 8) * (1 - bk * bk);
+        W.v = 1.3 * (1 - 0.6 * bk); this.glow.strip(this.spts, lineGlowW, 0.45 * al, L.glow); // a soft halo (it tints the ground it adds to)
+        W.v = 0.6 * (1 - 0.6 * bk); this.core.strip(this.spts, lineW, 0.9 * al, L.edge);
+      }
       // shout lines bursting out round the hero (a manga roar)
-      const yk = t / RAY_LIFE;
+      const yk = L.holy ? 1 : t / RAY_LIFE;
       if (yk < 1) for (const q of this.rays) {
         const d0 = 0.5 + q.len * 0.9 * out2(yk), d1 = d0 + q.len * (1 - yk) * 0.8;
         this.three[0].set(x + Math.sin(q.a) * d0, 1.0, z + Math.cos(q.a) * d0);
@@ -157,7 +180,7 @@ export class BuffFx {
         W.v = 0.14 * (1 - yk); this.glow.strip(this.three, lineGlowW, 0.8 * (1 - yk), L.glow); this.core.strip(this.three, lineW, 1 - yk * yk, L.edge);
       }
       // spirit streaks shooting up round the hero
-      for (const s of this.streaks) {
+      if (!L.holy) for (const s of this.streaks) {
         const k = (t - s.delay) / STREAK_LIFE; if (k < 0 || k >= 1) continue;
         const head = s.h * out2(Math.min(1, k * 1.6)), len = 0.9 * (1 - k);
         for (let i = 0; i < STREAK_PTS; i++) { const q = i / (STREAK_PTS - 1), hy = head - len * (1 - q); this.spts[i].set(x + Math.sin(s.a) * s.r, 0.1 + Math.max(0, hy), z + Math.cos(s.a) * s.r); }
@@ -185,6 +208,14 @@ export class BuffFx {
       this.p.set(x + Math.sin(a) * WALL_R, 0.9 + 0.25 * pop, z + Math.cos(a) * WALL_R);
       this.drawShield(this.p, 0.5 * (pop < 1 ? pop * 1.12 : 1), al, L, 0.11);
     }
+    // a halo lighting over each body the buff reached, held, then fading
+    if (L.symbol === 'halo') for (const m of this.marks) {
+      if (m.t >= HALO_LIFE) continue;
+      m.t += dt; if (m.t < 0) continue;
+      const k = m.t / HALO_LIFE, al = Math.min(1, k * 6) * (k > 0.7 ? 1 - (k - 0.7) / 0.3 : 1);
+      circlePoints(this.arc, m.x, m.z, 0.3 + 0.08 * out2(Math.min(1, k * 4)), 2.25 + 0.15 * out2(k));
+      W.v = 0.08; this.glow.strip(this.arc, lineGlowW, 0.9 * al, L.glow); this.core.strip(this.arc, lineW, al, L.edge);
+    }
     // the marks: chevrons rising over each body the buff reached, facing the camera
     if (L.symbol === 'up') {
       for (const m of this.marks) {
@@ -209,5 +240,5 @@ export class BuffFx {
     this.t = 9; this.rT = 9; this.flare.visible = false; for (const m of this.marks) m.t = 9;
     for (const q of this.sparks) this.free.push(q); this.sparks.length = 0;
   }
-  get busy() { return this.t < 1.2 || this.rT < this.rLife || this.sparks.length > 0 || this.marks.some((m) => m.t < MARK_LIFE); }
+  get busy() { return this.t < 1.2 || this.rT < this.rLife || this.sparks.length > 0 || this.marks.some((m) => m.t < HALO_LIFE); }
 }

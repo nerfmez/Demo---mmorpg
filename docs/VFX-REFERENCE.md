@@ -151,7 +151,9 @@ force, so no points), the pebbles flung forward; Breakbeat Slam's stun stars on
 the struck monsters. The owner then asked for a ground-pry motion and picked candidate A (Quaternius
 Sword_UpperCut, CC0) over a dragged lift: `skyPry` in `data/action-clips.json` (the blade low in the
 ground through the crouch, ripped up and overhead on the hit), and the pebbles are thrown up with the
-blade.
+blade. The rip read too fast: the rise was spread to about a quarter second and the
+held overhead pose plays over 0.6 s; the skill is renamed Earth Heave (งัดพสุธา, id kept
+`sky_shatter` for saves) to match the motion.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

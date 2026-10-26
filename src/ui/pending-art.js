@@ -3,7 +3,7 @@
 // a PNG is supplied (docs/SKILL-ICONS-PENDING-TH.md). Keep in step with `iconPending` in data/skills.json
 // (tests/core/pending-art.test.js).
 export const PENDING_SKILL_ICONS = Object.freeze({
-  sky_shatter: 'ทุบสะท้านฟ้า',
+  sky_shatter: 'งัดพสุธา',
   earth_rend: 'แผ่นดินแยก',
   iron_body: 'กายเหล็ก',
   cross_cut: 'ฟันไขว้',

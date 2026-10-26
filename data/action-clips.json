@@ -11405,7 +11405,7 @@
  "skyPry": {
   "hit": 0.62,
   "sweep": -1,
-  "_from": "Sky Shatter's ground pry (owner picked candidate A, 2026-10-26: 'what if it pries the ground up'): Quaternius Universal Animation Library (CC0) Sword_UpperCut 0-0.6 of the clip, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs --keys 10). Retimed to the anime beat: the crouch with the blade driven down (clip key 0) loads to clip key 0.222 at 0.4 and holds to 0.52 (the blade in the ground), the rip up is one short segment (clip keys 0.333 at 0.58, 0.388 = the clip's fastest blade frame on the hit 0.62), overshoot 0.444 at 0.67, the blade overhead 0.556-0.778 at 0.74-0.92 (the held pose), clip end at 1. The blade re-aimed with retarget.js weaponChannel (hero-space dirs): low and forward, its tip in the ground, through the crouch (0 [0.15,-0.45,0.88], 0.4/0.52 [0.1,-0.42,0.9]), along the ground at 0.58 [0.1,-0.1,0.99], ripping forward and up on the hit 0.62 [0.05,0.3,0.95], up 0.74 [0.05,0.95,0.25], overhead and back 0.82 [0.05,0.92,-0.3], 0.92 [0.05,0.88,-0.4]; 0.67 the mean of its neighbours. Euler channels unwrapped key to key (equivalent triples closest to the previous key) so the arm does not sweep the long way round.",
+  "_from": "Sky Shatter's ground pry (owner picked candidate A, 2026-10-26: 'what if it pries the ground up'): Quaternius Universal Animation Library (CC0) Sword_UpperCut 0-0.6 of the clip, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs --keys 10). Retimed to the anime beat: the crouch with the blade driven down (clip key 0) loads to clip key 0.222 at 0.4 and holds to 0.52 (the blade in the ground), the rip up is one short segment (clip keys 0.333 at 0.58, 0.388 = the clip's fastest blade frame on the hit 0.62), overshoot 0.444 at 0.67, the blade overhead 0.556-0.778 at 0.74-0.92 (the held pose), clip end at 1. The blade re-aimed with retarget.js weaponChannel (hero-space dirs): low and forward, its tip in the ground, through the crouch (0 [0.15,-0.45,0.88], 0.4/0.52 [0.1,-0.42,0.9]), along the ground at 0.58 [0.1,-0.1,0.99], ripping forward and up on the hit 0.62 [0.05,0.3,0.95], up 0.74 [0.05,0.95,0.25], overhead and back 0.82 [0.05,0.92,-0.3], 0.92 [0.05,0.88,-0.4]; 0.67 the mean of its neighbours. Euler channels unwrapped key to key (equivalent triples closest to the previous key) so the arm does not sweep the long way round. Owner review (the rip was too fast to read): retimed to keys 0, 0.3, hold 0.4, the rip 0.52 and 0.62 (hit), 0.68, 0.76, 0.84, 0.93, 1 (was 0, 0.4, 0.52, 0.58, 0.62, 0.67, 0.74, 0.82, 0.92, 1), so the blade's rise takes about a quarter second; the director plays its follow-through over 0.6 s (skill-fx.js POST).",
   "keys": [
    [
     0,
@@ -11483,7 +11483,7 @@
     }
    ],
    [
-    0.4,
+    0.3,
     {
      "hips": [
       0.0,
@@ -11558,7 +11558,7 @@
     }
    ],
    [
-    0.52,
+    0.4,
     {
      "hips": [
       0.0,
@@ -11633,7 +11633,7 @@
     }
    ],
    [
-    0.58,
+    0.52,
     {
      "hips": [
       0.0,
@@ -11783,7 +11783,7 @@
     }
    ],
    [
-    0.67,
+    0.68,
     {
      "hips": [
       0.0,
@@ -11858,7 +11858,7 @@
     }
    ],
    [
-    0.74,
+    0.76,
     {
      "hips": [
       0.0,
@@ -11933,7 +11933,7 @@
     }
    ],
    [
-    0.82,
+    0.84,
     {
      "hips": [
       0.0,
@@ -12008,7 +12008,7 @@
     }
    ],
    [
-    0.92,
+    0.93,
     {
      "hips": [
       0.0,

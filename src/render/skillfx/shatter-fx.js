@@ -1,4 +1,4 @@
-// Sky Shatter (heavy weapons; a 0.7 s wind-up, a 140 degree blow in front that stuns), held to the
+// Earth Heave (sky_shatter; heavy weapons; a 0.7 s wind-up, a 140 degree blow in front that stuns), held to the
 // owner's bar (.claude/skills/skill-vfx) and sized for a job skill (9 s cooldown). The hero pries the
 // ground up (actions.js skyPry: the blade driven low into the ground through the crouch, ripped up and
 // overhead on the contact), so the ground answers the blade.

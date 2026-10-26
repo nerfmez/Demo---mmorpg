@@ -1,4 +1,4 @@
-// Ground and rock pieces shared by the big impacts (Meteor, Sky Shatter): a jittered rock shape and
+// Ground and rock pieces shared by the big impacts (Meteor, Earth Heave): a jittered rock shape and
 // the round sunken crater the owner asked for instead of ground cracks (shaded in the game's three toon
 // steps from a height field). Placed on the terrain with conformPlane.
 import * as THREE from 'three';

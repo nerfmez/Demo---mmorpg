@@ -262,6 +262,14 @@ function drain() {
     if (e.type === 'impact' && e.kind === 'venom_bolt') { fx.venom.impact(e); continue; } // Venom Bolt: the poison splash
     const drawn = fx.event(e);
     if (e.type === 'impact' && !drawn) vfx.impact(e);
+    // skills without their own bench effect (the new job skills) get the game's general look, as in view.js
+    if (!drawn) {
+      if (e.type === 'slash') vfx.slash(e, heroWeapon);
+      else if (e.type === 'whirl') vfx.whirl(e);
+      else if (e.type === 'nova') vfx.nova(e);
+      else if (e.type === 'burst') vfx.burst(e);
+      else if (e.type === 'buff') vfx.warcry(e);
+    }
     // a skill the effects director leaves alone (Hunter's Shot) still gets its pose, as in the game (view.js)
     if (e.type === 'castStart' && !drawn) { heroAnim.play(e.skill, e.total + 0.28, heroWeapon, e.step, e.total, e.kind); vfx.beginCast(e, skillDef().element); }
     if (e.type === 'hit') {
@@ -400,7 +408,9 @@ function renderPanel() {
   else if (game.fusion) line('ลิงก์', `${game.fusion.payload.nameTh} ${(game.fusion.payload.damage * FUSION.payloadDamageMult).toFixed(1)} (${Math.round(FUSION.payloadDamageMult * 100)}%)`);
   if (s.kind === 'melee_arc') line('ระยะ / มุม', `${s.range} ม. × ${s.arc}°`);
   if (s.kind === 'projectile') line('ระยะ / ความเร็ว', `${s.range} ม. · ${s.speed} ม./วิ`);
-  line('ดาเมจต่อครั้ง', s.kind === 'channel_cone' ? `${(s.damage * s.channel.tick).toFixed(1)} / ${s.channel.tick} วิ` : s.damage.toFixed(1));
+  if (s.damage !== undefined) line('ดาเมจต่อครั้ง', s.kind === 'channel_cone' ? `${(s.damage * s.channel.tick).toFixed(1)} / ${s.channel.tick} วิ` : s.damage.toFixed(1));
+  if (s.repeats) line('ตีซ้ำ', `อีก ${s.repeats} ครั้ง`);
+  if (s.kind === 'buff') line('บัฟ', [s.damageBuff ? `ดาเมจ +${Math.round(s.damageBuff * 100)}%` : '', s.speedBuff ? `เร็ว +${Math.round(s.speedBuff * 100)}%` : '', s.takenMult < 1 ? `รับดาเมจ −${Math.round((1 - s.takenMult) * 100)}%` : '', s.steady ? 'ไม่โดนผลัก' : '', `${s.duration} วิ`].filter(Boolean).join(' · '));
   if (s.kind === 'chain') { line('เด้งต่อ', `${s.chain} ตัว (ระยะ ${s.chainRange} ม.)`); if (s.modEffects?.chainReturn) line('หวนคืน', `${Math.round(s.modEffects.chainReturn * 100)}%`); }
   if (s.kind === 'nova') line('รัศมี', `${s.radius.toFixed(2)} ม.`);
   if (s.kind === 'channel_cone') line('กรวย', `${s.range} ม. × ${s.arc}°`);
@@ -542,6 +552,7 @@ function tick(real, draw = true) {
   vfx.updateCast(dt, hero, !p.cast, p);
   // Thunder Arrow's arrows stay Hunter's Shot arrows (vfx.js) under their own lightning; a wave recipe draws its own projectile
   vfx.syncProjectiles(game, dt, simTime, recipeKind && !arrowFusion() ? benchSkip(recipeKind) : OWN_PROJECTILES);
+  vfx.syncAreas(game, dt, simTime); // warning circles and zones of skills without their own bench effect
   if (hero.bones?.weapon) { hero.bones.weapon.getWorldPosition(nockAt); nockAt.y += 0.05; }
   thunderArrow.update(dt, game.projectiles, arrowRecipe() ? recipeKind : null, nockAt);
   vfx.update(dt);

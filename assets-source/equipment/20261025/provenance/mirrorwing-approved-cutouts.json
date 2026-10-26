@@ -8,18 +8,18 @@
       "component_ids": [
         1
       ],
-      "sha256": "152fcc9ee703145af8bbed5d7ea1df14d3872c69ddc2046548cf164cc38b2284",
+      "sha256": "c7243b5b81ada29ad91f1cf0a8a06a6bea09420fac3ff0074a759f0691be4b8f",
       "proposed_new_item": true,
-      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
+      "edge_cleanup": "soft edge recoloured from the ink line; enclosed paper gaps (between sleeves and body, between fingers) cut out"
     },
     {
       "id": "mirrorwing_hood",
       "component_ids": [
         2
       ],
-      "sha256": "2eb3e6af5a851a830e1829dd2520d956504be45c5f049a83dddb61157a21d836",
+      "sha256": "51aaf37b6c22950af1d3c3c946c3ce7cffd679c32ef024fec93a3bc8219fe011",
       "proposed_new_item": true,
-      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
+      "edge_cleanup": "soft edge recoloured from the ink line; enclosed paper gaps (between sleeves and body, between fingers) cut out"
     },
     {
       "id": "mirrorwing_gloves",
@@ -27,9 +27,9 @@
         4,
         13
       ],
-      "sha256": "5cb2e069304b30ea24e65715dbc7594ee89d3bdb438e543ff2fef9d48d65c744",
+      "sha256": "0f57cff041373b7a6555ee6724e0ae7d89e9118d0882c1238344c05dec34b2f4",
       "proposed_new_item": true,
-      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
+      "edge_cleanup": "soft edge recoloured from the ink line; enclosed paper gaps (between sleeves and body, between fingers) cut out"
     }
   ]
 }

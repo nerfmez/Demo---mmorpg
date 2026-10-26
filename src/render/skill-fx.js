@@ -36,11 +36,11 @@ import { ShadowFx } from './skillfx/shadow-fx.js';
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'shadow_kill']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
-const OWN_STRIKE = new Set(['weakpoint', 'shadow_kill', 'interrupt_slam', 'shield_bash', 'sky_shatter']);
+const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter']);
 const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
 // a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
@@ -241,7 +241,7 @@ export class SkillFx {
       }
       // dodges: the blink's gather and jump, the leap's landing (skillfx/move-fx.js)
       case 'movement': if (e.kind === 'blink' && g.player.dash?.kind === 'blink') this.move.gather(g.player.x, g.player.z, g.player.dash.delay || 0.08); return false;
-      // Shadow Kill: the hero leaves in shards and appears behind its target (skillfx/shadow-fx.js)
+      // Backstab: the hero leaves in shards and appears behind its target (skillfx/shadow-fx.js)
       case 'shadowStep': this.shadow.step(e.fromX, e.fromZ, e.x, e.z); return true;
       case 'blinkPlayer': this.move.jump(e.fromX, e.fromZ, e.x, e.z); host.vfx.blinkEcho(e.fromX, e.fromZ, host.rig()); return true;
       case 'area': {
@@ -266,7 +266,7 @@ export class SkillFx {
         if (!s) return true;
         if (e.skill === 'shield_bash') this.bash.bash(p.x, p.z, e.angle, e.range, e.arc);
         if (e.skill === 'weakpoint') this.thrust.thrust(p.x, 1.15, p.z, e.angle, e.range);
-        if (e.skill === 'shadow_kill') this.thrust.thrust(p.x, 1.15, p.z, e.angle, e.range + 0.6, true);
+        if (e.skill === 'backstab') this.thrust.thrust(p.x, 1.15, p.z, e.angle, e.range + 0.6, true);
         if (e.skill === 'interrupt_slam') this.mace.slam(p.x, p.z, p.facing, s.range, s.arc);
         if (e.skill === 'sky_shatter') { this.shatter.slam(p.x, p.z, p.facing, s.range, s.arc); host.shake(0.3, 0.25); }
         const primary = this.primarySwing; this.primarySwing = false;
@@ -297,7 +297,7 @@ export class SkillFx {
         if (e.skill === 'armor_cleave') { this.sunder.hit(c, e.fromX, e.fromZ); host.shake(0.06, 0.14); }
         // struck from the side or behind the way it faces: the rules' positional bonus
         const m = g.monsters.find((q) => q.id === e.id), weak = !!m && (e.fromX - m.x) * Math.sin(m.facing) + (e.fromZ - m.z) * Math.cos(m.facing) < 0;
-        if (e.skill === 'shadow_kill') {
+        if (e.skill === 'backstab') {
           this.thrust.hit(c, Math.atan2(c.x - e.fromX, c.z - e.fromZ), true, true);
           if (weak) { const b = host.body(e.id); host.float(b.x, b.h + 0.95, b.z, 'แทงหลัง!', '#c99bff', true); }
         }

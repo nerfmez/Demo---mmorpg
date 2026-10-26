@@ -460,7 +460,7 @@ export class Game {
       this.emit({ type: 'chargeStart', slot: i, skill: s.id, weapon: this.derived.weaponType, total: s.charge.duration });
       return true;
     }
-    // Shadow Kill (s.shadowStep): the hero steps through the shadows to behind its target, then strikes.
+    // Backstab (s.shadowStep): the hero steps through the shadows to behind its target, then strikes.
     // It needs a target within shadowStep.range (the locked one, else the nearest); with none it fails
     // before anything is spent.
     if (s.shadowStep && !this.shadowStep(s)) {
@@ -500,7 +500,7 @@ export class Game {
     return true;
   }
 
-  /** Shadow Kill: move the player behind its target (else beside, else in front); false without one. */
+  /** Backstab: move the player behind its target (else beside, else in front); false without one. */
   shadowStep(s) {
     const p = this.player, r = s.shadowStep.range;
     const locked = this.monsters.find((m) => m.id === p.targetId && !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) - m.r <= r);

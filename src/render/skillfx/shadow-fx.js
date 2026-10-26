@@ -1,4 +1,4 @@
-// Shadow Kill (daggers: a step through the shadows to behind the target, then a heavy stab), held to
+// Backstab (daggers: a step through the shadows to behind the target, then a heavy stab), held to
 // the owner's bar (.claude/skills/skill-vfx). On the rules' 'shadowStep' event the hero vanishes in a
 // spray of dark violet shards and a closing ground ring, a dark streak of light runs from where it was
 // to where it appears, and shards gather in behind the target as it lands. The stab itself is Flank

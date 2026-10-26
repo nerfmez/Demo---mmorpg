@@ -1133,9 +1133,9 @@
       "job": "blade",
       "iconPending": true
     },
-    "shadow_kill": {
-      "name": "Shadow Kill",
-      "nameTh": "เงาสังหาร",
+    "backstab": {
+      "name": "Backstab",
+      "nameTh": "แบ็กสแตบ",
       "desc": "วาร์ปไปด้านหลังเป้าหมายในระยะ 7 ม. แล้วแทงแรง โดนจากด้านหลังแรงขึ้น 50% ต้องมีเป้าหมายในระยะ ใช้กับมีดสั้น",
       "tags": [
         "Attack",

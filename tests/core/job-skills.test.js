@@ -9,7 +9,7 @@ import { createCharacter } from '../../src/core/character.js';
 import { computeSkill } from '../../src/core/skills.js';
 import { craft } from '../../src/core/crafting.js';
 
-const BATCH = ['sky_shatter', 'earth_rend', 'iron_body', 'cross_cut', 'blade_storm', 'shadow_kill', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'meteor', 'blizzard', 'thunderstorm', 'holy_bell', 'light_chain', 'spell_wave'];
+const BATCH = ['sky_shatter', 'earth_rend', 'iron_body', 'cross_cut', 'blade_storm', 'backstab', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'meteor', 'blizzard', 'thunderstorm', 'holy_bell', 'light_chain', 'spell_wave'];
 
 const fixture = (id) => {
   const ch = createCharacter(data, { kit: 'bow' });
@@ -90,8 +90,8 @@ test('different buffs stack and each shows by name; reduction buffs cut damage t
   assert.equal(g.player.x, x0, 'iron body: no knockback');
 });
 
-test('Shadow Kill steps behind its target and stabs; with no target in reach it fails and spends nothing', () => {
-  const { g, m } = fixture('shadow_kill');
+test('Backstab steps behind its target and stabs; with no target in reach it fails and spends nothing', () => {
+  const { g, m } = fixture('backstab');
   Object.assign(m, { x: 5, z: 0, facing: -Math.PI / 2 }); // 5 m away, facing back toward the hero
   g.input = { ...g.input, manualAim: false, aimFromPointer: false };
   g.player.cooldowns = g.player.cooldowns.map(() => 0); g.player.cast = null; g.player.dash = null;
@@ -106,7 +106,7 @@ test('Shadow Kill steps behind its target and stabs; with no target in reach it 
   const c = g.player.cast; g.player.cast = null; g.executeSkill(c.skill, c.aim); // the cast completes
   assert.ok(m.hp < 1e6, 'the stab lands');
   // nothing in reach: no cast, no MP, no cooldown
-  const far = fixture('shadow_kill');
+  const far = fixture('backstab');
   Object.assign(far.m, { x: 20, z: 0 });
   far.g.player.cooldowns = far.g.player.cooldowns.map(() => 0); far.g.player.cast = null; far.g.player.dash = null;
   const mp2 = far.g.player.mp, x2 = far.g.player.x;

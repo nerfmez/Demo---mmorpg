@@ -218,7 +218,7 @@ Owner: daggers should not reach that far; make it quick short spins round the bo
 two quick spins 0.15 s apart within 1.8 m (0.9 s, 22 MP), two small rings, a light burst; `bladeStorm`
 is two quick turns.
 
-Shadow Kill (เงาสังหาร, daggers, the blade job's 8 s cooldown that replaced Blade Storm's slot), `skillfx/shadow-fx.js`:
+Backstab (แบ็กสแตบ, daggers, the blade job's 8 s cooldown that replaced Blade Storm's slot), `skillfx/shadow-fx.js`:
 on the rules' `shadowStep` the hero vanishes in a spray of violet shards with a closing ground ring, a
 violet streak arcs low from there to behind the target, shards gather in where the hero appears and a
 violet light flashes. The stab is Flank Thrust's spear and hard burst (`ThrustFx`, `violet`) in the

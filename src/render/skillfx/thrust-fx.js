@@ -49,10 +49,10 @@ export class ThrustFx {
     this.alive = (x) => x.t < LIFE; this.onShake = null;
   }
   // the rules' contact: from the hand along angle, out to the reach
-  // violet: Shadow Kill's stab in the blade job's colour
+  // violet: Backstab's stab in the blade job's colour
   thrust(x, y, z, angle, range, violet = false) { this.thrusts.push({ x, y, z, dx: Math.sin(angle), dz: Math.cos(angle), range, t: 0, edge: violet ? VIOLET : EDGE, glow: violet ? VIOLET_GLOW : GLOW }); }
   // a struck target; weak: hit from the side or behind (the rules' positional bonus); violet: a hard
-  // burst in the blade job's colour without the gold diamond (Shadow Kill's stab from behind)
+  // burst in the blade job's colour without the gold diamond (Backstab's stab from behind)
   hit(center, angle, weak, violet = false) {
     const b = this.bursts[this.burstI++ % BURSTS], r = this.rnd, dx = Math.sin(angle), dz = Math.cos(angle);
     b.t = 0; b.weak = weak; b.size = weak ? 1.3 : 0.6; b.life = weak ? 0.34 : 0.22; b.pos.copy(center);

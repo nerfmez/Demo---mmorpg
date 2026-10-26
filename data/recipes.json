@@ -2408,7 +2408,7 @@
     "learn_iron_body": {"type":"skill","result":"iron_body","cost":{"golem_heart":1,"ram_horn":3,"gold":55}},
     "learn_cross_cut": {"type":"skill","result":"cross_cut","cost":{"mantis_scythe":3,"wolf_fang":2,"gold":45}},
     "learn_blade_storm": {"type":"skill","result":"blade_storm","cost":{"dusk_pelt":3,"mantis_scythe":2,"gold":60}},
-    "learn_shadow_kill": {"type":"skill","result":"shadow_kill","cost":{"dusk_pelt":3,"mirror_scale":2,"gold":70}},
+    "learn_backstab": {"type":"skill","result":"backstab","cost":{"dusk_pelt":3,"mirror_scale":2,"gold":70}},
     "learn_rally": {"type":"skill","result":"rally","cost":{"wolf_pelt":3,"greyfang_mane":1,"gold":45}},
     "learn_frenzy_roar": {"type":"skill","result":"frenzy_roar","cost":{"greyfang_mane":2,"wolf_fang":3,"gold":50}},
     "learn_stand_firm": {"type":"skill","result":"stand_firm","cost":{"ram_horn":3,"crab_shell":2,"gold":50}},

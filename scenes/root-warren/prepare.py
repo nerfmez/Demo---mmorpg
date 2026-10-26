@@ -3,14 +3,14 @@ from pathlib import Path
 here=Path(__file__).resolve().parent
 r=(here.parent/'ruins/scene.js').read_text();w=r[:r.index('function PG(')]
 w=w.replace('concept (ruins-approach-40deg)','Root Warren concept (root-warren)')
-w=w.replace('const K = 2.4;','const K = 3.12;').replace('const PL = M(1.0);','const PL = M(1.5);')
+w=w.replace('const K = 2.4;','const K = 3.12;').replace('const PL = M(1.0);','const PL = M(1.6);')
 w=w.replace('GX1 = 30 * K','GX1 = 36 * K').replace('GZ1 = 10 * K','GZ1 = 16 * K')
 a=w.index('// Trace the owner');b=w.index('const T2B',a);w=w[:a]+w[b:]
 a=w.index('const TERRACES = [');b=w.index('].map(T => {',a)
 w=w[:a]+'''const TERRACES=[
  // the warren bank under the great tree: a steep earth bank with the burrows in its face, the
  // tree's roots spilling over it; it runs on as wooded high ground behind the clearing
- {top:PL,base:0,ledge:false,soft:M(.9),lean:M(.3),pts:[[.33,.32,'n'],[.38,.36,'n'],[.44,.385,'n'],[.52,.39,'n'],[.60,.395,'n'],[.66,.42,'n'],[.72,.435,'n'],[.78,.42,'n'],[.82,.36,'n'],[.80,.25,'n'],[.78,.12,'n'],[.78,-.4,'t'],[.34,-.4,'t'],[.32,.10,'n'],[.32,.22,'n']]},
+ {top:PL,base:0,ledge:false,soft:M(.6),lean:M(.3),pts:[[.33,.32,'n'],[.38,.36,'n'],[.44,.385,'n'],[.52,.39,'n'],[.60,.395,'n'],[.66,.42,'n'],[.72,.435,'n'],[.78,.42,'n'],[.82,.36,'n'],[.80,.25,'n'],[.78,.12,'n'],[.78,-.4,'t'],[.34,-.4,'t'],[.32,.10,'n'],[.32,.22,'n']]},
  // the wooded ground on the left beyond the root arch, rock faces toward the clearing
  {top:M(1.3),base:0,ledge:true,soft:M(1.4),lean:M(.32),pts:[[-.3,.68,'t'],[.02,.66,'b'],[.08,.58,'b'],[.11,.48,'b'],[.10,.40,'n'],[.08,.30,'n'],[.06,.20,'n'],[.05,-.4,'t'],[-.3,-.4,'t']]},
  // and on the right, above the right path's stair
@@ -26,7 +26,8 @@ w=w[:a]+'''const TRAILS=[
 a=w.index('const PLAZA =');b=w.index('// distance from the dirt',a)
 w=w[:a]+'''// the packed earth of the plaza below the mound
 const PLAZA=poly([[.22,.50],[.30,.44],[.40,.43],[.52,.44],[.62,.47],[.72,.50],[.80,.55],[.80,.66],[.72,.80],[.62,.92],[.50,.96],[.38,.92],[.28,.80],[.22,.66]],0);
-const PLAZA_HOLE=poly([[2,2],[2.1,2],[2.1,2.1]],0);
+// the grass island in the middle of the clearing, as the reference's
+const PLAZA_HOLE=poly([[.45,.475],[.53,.455],[.62,.46],[.71,.47],[.77,.52],[.74,.60],[.64,.635],[.53,.62],[.46,.58],[.43,.53]],0);
 ''' +w[b:]
 a=w.index('const SHADE = [');b=w.index('\n',a)
 w=w[:a]+'const SHADE = [[0.20, 0.28, 3.0, 0], [0.55, 0.12, 3.6, PL], [0.95, 0.30, 3.2, M(1.7)], [0.40, 0.55, 2.4, 0], [0.90, 0.85, 2.6, M(1.4)], [0.10, 0.85, 2.6, M(1.2)], [0.30, 0.66, 2.0, 0], [0.70, 0.62, 2.0, 0]]'+w[b:]

@@ -26,7 +26,7 @@ function tall(x, z, base, vt) {
 const wide = (u0, u1, v, y) => { const a = P(u0, v, y), b = P(u1, v, y); return Math.hypot(b[0] - a[0], b[1] - a[1]); };
 const K = 3.12;   // world scale: the concept's layout, K times bigger, seen from K times farther (more room, same frame)
 const M = v => v * K;   // concept metres to world metres
-const PL = M(1.5);   // the plaza and the ruins
+const PL = M(1.6);   // the plaza and the ruins
 const T1 = M(3.6);   // the rock ridge between the path and the plaza, at its highest
 const T2B = M(3.3), T2 = M(5.1);   // the high tier on the ridge's left: its foot and its top
 const inFrame = (u, v) => u > -0.08 && u < 1.08 && v > -0.06 && v < 1.06;
@@ -40,7 +40,7 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 const TERRACES=[
  // the warren bank under the great tree: a steep earth bank with the burrows in its face, the
  // tree's roots spilling over it; it runs on as wooded high ground behind the clearing
- {top:PL,base:0,ledge:false,soft:M(.9),lean:M(.3),pts:[[.33,.32,'n'],[.38,.36,'n'],[.44,.385,'n'],[.52,.39,'n'],[.60,.395,'n'],[.66,.42,'n'],[.72,.435,'n'],[.78,.42,'n'],[.82,.36,'n'],[.80,.25,'n'],[.78,.12,'n'],[.78,-.4,'t'],[.34,-.4,'t'],[.32,.10,'n'],[.32,.22,'n']]},
+ {top:PL,base:0,ledge:false,soft:M(.6),lean:M(.3),pts:[[.33,.32,'n'],[.38,.36,'n'],[.44,.385,'n'],[.52,.39,'n'],[.60,.395,'n'],[.66,.42,'n'],[.72,.435,'n'],[.78,.42,'n'],[.82,.36,'n'],[.80,.25,'n'],[.78,.12,'n'],[.78,-.4,'t'],[.34,-.4,'t'],[.32,.10,'n'],[.32,.22,'n']]},
  // the wooded ground on the left beyond the root arch, rock faces toward the clearing
  {top:M(1.3),base:0,ledge:true,soft:M(1.4),lean:M(.32),pts:[[-.3,.68,'t'],[.02,.66,'b'],[.08,.58,'b'],[.11,.48,'b'],[.10,.40,'n'],[.08,.30,'n'],[.06,.20,'n'],[.05,-.4,'t'],[-.3,-.4,'t']]},
  // and on the right, above the right path's stair
@@ -150,7 +150,8 @@ const poly = (pts, h) => {
 // the plaza: a ring of dirt round the stone circle, traced from the concept; grass in the middle
 // the packed earth of the plaza below the mound
 const PLAZA=poly([[.22,.50],[.30,.44],[.40,.43],[.52,.44],[.62,.47],[.72,.50],[.80,.55],[.80,.66],[.72,.80],[.62,.92],[.50,.96],[.38,.92],[.28,.80],[.22,.66]],0);
-const PLAZA_HOLE=poly([[2,2],[2.1,2],[2.1,2.1]],0);
+// the grass island in the middle of the clearing, as the reference's
+const PLAZA_HOLE=poly([[.45,.475],[.53,.455],[.62,.46],[.71,.47],[.77,.52],[.74,.60],[.64,.635],[.53,.62],[.46,.58],[.43,.53]],0);
 // distance from the dirt's edge: negative on the dirt
 function trailAt(x, z) {
   const hole = polyAt(PLAZA_HOLE, x, z);

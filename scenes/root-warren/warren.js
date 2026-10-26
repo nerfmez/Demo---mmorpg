@@ -22,12 +22,16 @@ function fernClump(x,y,z,s){
     g.setAttribute('position',new THREE.Float32BufferAttribute([q.x,q.y,q.z,q.x+nx*w+tg.x*w*.6,q.y-w*.25,q.z+nz*w+tg.z*w*.6,q.x+tg.x*w*.5,q.y,q.z+tg.z*w*.5],3));g.computeVertexNormals();fernParts.push(coloredPart(g,pick(['#7cba52','#93c95e','#69a84a'])));}}
  }
 }
-// A burrow: a dark round mouth sunk into the bank's face, an earthen rim and a little spoil heap.
+const BURROWS=[];
+// A burrow, as the reference's: a dark round mouth in the bank's face under an arch of small
+// earth-brown stones, a little spoil heap and pebbles before it.
 function burrow(u,v,w){
- const[x,y,z]=onGround(u,v),r=wide(u-w/2,u+w/2,v,y)/2,g=new THREE.CircleGeometry(r,16);
- g.scale(1,.78,1);g.translate(x,y+r*.55,z+.04);fernParts.push(coloredPart(g,'#2b241e'));
- const rim=new THREE.TorusGeometry(r*1.02,r*.14,6,16,Math.PI);rim.scale(1,.8,1);rim.translate(x,y+r*.55,z+.08);fernParts.push(coloredPart(rim,'#8a6a49'));
- for(let k=0;k<5;k++)addStone(x+R(-1.2,1.2)*r,y-.05,z+r*R(.5,1.1),r*R(.2,.35),r*R(.1,.2),r*R(.2,.3),{extra:3,chamfer:.3,noLine:true,moss:0,base:'#9b7a58'});
+ const[x,y,z]=onGround(u,v),r=wide(u-w/2,u+w/2,v,y)/2*1.2,g=new THREE.CircleGeometry(r,18);
+ g.scale(1,.85,1);g.translate(x,y+r*.6,z+.05);fernParts.push(coloredPart(g,'#221c17'));
+ const n=11;for(let i=0;i<=n;i++){const a=Math.PI*i/n,px=x+Math.cos(a)*r*1.18,py=y+r*.6+Math.sin(a)*r*1.05;
+  const st=new THREE.BoxGeometry(r*.34,r*.26,r*.3);st.rotateZ(a-Math.PI/2);st.translate(px,py,z+r*.35);fernParts.push(coloredPart(st,pick(['#b29473','#a3866a','#bd9f7e'])));}
+ BURROWS.push([x,z,r]);
+ for(let k=0;k<5;k++)addStone(x+R(-1.3,1.3)*r,y-.05,z+r*R(.6,1.3),r*R(.2,.35),r*R(.1,.2),r*R(.2,.3),{extra:3,chamfer:.3,noLine:true,moss:0,base:'#9b7a58'});
 }
 // Bark in the game trunk's own style (render/anime-study.js animeTrunk): nine flat facets round
 // a curve, each toned light, mid or shadow by the sun, so roots match the trees (as Mirror Pond's).

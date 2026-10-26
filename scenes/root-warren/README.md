@@ -1,6 +1,6 @@
 # Root Warren — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 1:
+**Owner status: in review, 26 October 2026**, artifact version 2:
 https://claude.ai/artifact/EuwKaqYC2DzvzctjRKvZVQ.
 
 Concept: `root-warren.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -26,3 +26,13 @@ clearing, Moonroot's colours; steep ground painted as bare earth), `fill.js`, `r
 `arch`, `right`, `east`; ports `south`, `northwest`, `northeast`, `east`), `paving.js`, `warren.js`
 (burrows, fern clumps, bark-style roots and rooted trees, glowing plants) and `scene.js` (the great
 tree, the root arch). `window.__scene.warren` exposes `ports`, `junctions` and `routes`.
+
+Owner, on version 1: not passed; the details must be as close to the reference as possible. Rebuilt
+against the reference, item by item: the great tree stands right behind the bank, its eleven very
+thick roots each steered to where the reference draws it (fanning down over the bank to the
+clearing, wandering, forked, a strand twisting round the thickest, moss and bushes riding them);
+the root arch is seven roots braided round each other; the burrows sit under arches of small
+pale earth-brown stones with nothing growing before their mouths; the bank's top is a thicket;
+the grass island lies in the middle of the clearing; squared, cracked, mossy blocks stand where the
+reference has them (on the bank, by the arch, in the clearing and in clusters in both front
+corners among dense bushes and ferns).

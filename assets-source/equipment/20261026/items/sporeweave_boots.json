@@ -1,0 +1,11 @@
+{
+  "id": "sporeweave_boots",
+  "name_th": "รองเท้าทอสปอร์",
+  "slot": "boots",
+  "game_status": "proposed",
+  "set_id": "spore",
+  "set_name_th": "ชุดสปอร์",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/spore-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/sporeweave_boots.png",
+  "record": "assets-source/equipment/20261026/items/sporeweave_boots.json"
+}

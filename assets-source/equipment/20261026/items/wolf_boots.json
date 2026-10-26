@@ -1,0 +1,11 @@
+{
+  "id": "wolf_boots",
+  "name_th": "รองเท้าหมาป่า",
+  "slot": "boots",
+  "game_status": "defined",
+  "set_id": "wolfpelt",
+  "set_name_th": "ชุดหนังหมาป่า",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/wolfpelt-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/wolf_boots.png",
+  "record": "assets-source/equipment/20261026/items/wolf_boots.json"
+}

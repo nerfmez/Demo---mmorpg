@@ -1,0 +1,11 @@
+{
+  "id": "wisp_pendant",
+  "name_th": "จี้ภูตไฟ",
+  "slot": "charm",
+  "game_status": "defined",
+  "set_id": "wisp",
+  "set_name_th": "ชุดแสงวิญญาณ",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/wisp-turnaround.jpeg",
+  "icon": "assets-source/equipment/20261025/icons/wisp_pendant.png",
+  "record": "assets-source/equipment/20261026/items/wisp_pendant.json"
+}

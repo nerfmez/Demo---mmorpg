@@ -1,0 +1,11 @@
+{
+  "id": "wardenstalker_boots",
+  "name_th": "รองเท้าพรานผู้พิทักษ์",
+  "slot": "boots",
+  "game_status": "proposed",
+  "set_id": "wardenstalker",
+  "set_name_th": "ชุดพรานผู้พิทักษ์",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/wardenstalker-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/wardenstalker_boots.png",
+  "record": "assets-source/equipment/20261026/items/wardenstalker_boots.json"
+}

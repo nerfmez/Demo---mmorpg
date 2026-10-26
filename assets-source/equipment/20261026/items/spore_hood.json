@@ -1,0 +1,11 @@
+{
+  "id": "spore_hood",
+  "name_th": "ฮู้ดสปอร์",
+  "slot": "helm",
+  "game_status": "defined",
+  "set_id": "spore",
+  "set_name_th": "ชุดสปอร์",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/spore-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/spore_hood.png",
+  "record": "assets-source/equipment/20261026/items/spore_hood.json"
+}

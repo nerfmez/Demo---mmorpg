@@ -1,0 +1,11 @@
+{
+  "id": "travel_tunic",
+  "name_th": "เสื้อเดินทาง",
+  "slot": "armor",
+  "game_status": "defined",
+  "set_id": "travel",
+  "set_name_th": "ชุดเดินทาง",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/travel-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/travel_tunic.png",
+  "record": "assets-source/equipment/20261026/items/travel_tunic.json"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "burrowguard_helm",
+  "name_th": "หมวกผู้พิทักษ์โพรง",
+  "slot": "head",
+  "game_status": "proposed",
+  "set_id": "burrowguard",
+  "set_name_th": "ชุดผู้พิทักษ์โพรง",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/burrowguard-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/burrowguard_helm.png",
+  "record": "assets-source/equipment/20261026/items/burrowguard_helm.json"
+}

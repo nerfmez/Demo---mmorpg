@@ -1,0 +1,11 @@
+{
+  "id": "burrowguard_armor",
+  "name_th": "เกราะผู้พิทักษ์โพรง",
+  "slot": "armor",
+  "game_status": "proposed",
+  "set_id": "burrowguard",
+  "set_name_th": "ชุดผู้พิทักษ์โพรง",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/burrowguard-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/burrowguard_armor.png",
+  "record": "assets-source/equipment/20261026/items/burrowguard_armor.json"
+}

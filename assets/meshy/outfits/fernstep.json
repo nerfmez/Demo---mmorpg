@@ -1,0 +1,44 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for the fernstep set: the front view of its equipment turnaround (assets-source/equipment/20261026, fernstep-turnaround), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5) and a Meshy 6 retexture from the same image (task 01a17807-e0b0-7681-85a7-5108deaaba6e); sized from its arm axis, cut at the neck, sleeve ends (cuff) and boot tops read off the model.",
+ "id": "fernstep",
+ "src": "assets/meshy/outfits/fernstep_meshy.glb",
+ "neck": 0.91,
+ "cuff": 0.43,
+ "bootTop": 0.26,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.46,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/fernstep_coat.glb",
+  "boots": "public/models/outfits/fernstep_boots.glb"
+ }
+}

@@ -73,7 +73,8 @@ the same shaders, reading the chibi's bind position times `SCALE` so the cuts ke
 - **Gloves** (`gloves`): a hand-and-forearm shell of length `len`, with a cuff band, wraps or
   plates, and parts (fur cuffs, claws, studs, a glowing gem).
 - **Helms** (`helms`): a `kind` built in `src/render/headwear.js` (`cap`, `shell` with
-  optional `spikes`, `pointedHood`, `circlet`, `horned`, `furHood`) and its palette.
+  optional `spikes`, `pointedHood`, `circlet`, `horned`, `furHood`, `cowl`: a cloth collar
+  round the neck that, like the circlet, leaves the hair whole) and its palette.
 
 **Accessories** (charms, pendants, rings) are not drawn on the character.
 
@@ -118,3 +119,36 @@ bones' rest positions `W`) and added to the bone it should follow.
 
 **Hiding the helm**: a toggle beside the helm slot (`ch.hideHelm`, `toggleHelm`) hides the worn
 helm's look; it still counts for stats. `gearLook` then leaves it out (`helmHidden: true`).
+
+## Modelled outfits (chibi hero)
+
+The code-built shells above are the fallback. An armour or boots item can instead have a modelled
+outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `chibiOutfit`):
+
+1. Draw the chibi wearing the set (the owner's reference sheets) and generate it with Meshy
+   (meshy-t2 image-to-3d in T-pose, then a Meshy 6 retexture from the same image).
+2. `scripts/fit-chibi-outfit.py` (Blender as a Python module) cuts the neck, sleeves and boot tops,
+   warps the generated body onto `hero_chibi`, pushes the cloth outside the body, copies the body's
+   skin weights and records the body triangles each piece covers. Faces that a cut-away part covered
+   in the generated model (a pad's top under the hood's fur) are repainted from the nearest faces of
+   their own part, since their texture there was never meant to be seen. A loose shoulder plate can be
+   made to move as one piece on its mean weights (`rigidPads`, the crabshell pauldrons): blended
+   per vertex between the chest and the arm, its corner stretched into a spike when the arm came down. Its settings per set live in
+   `assets/meshy/outfits/<set>.json` beside the Meshy source.
+3. In game (`render/chibi-garments.js`) the model replaces the shells it covers. The body under it is
+   not removed: the covered vertices are tucked inside the cloth, shaded as its inside and pushed back
+   in depth (`characters.hero_chibi.underCloth`), so nothing pokes through, no gap ever shows the
+   background, and no per-pose adjustment is needed; garment insides are shaded too.
+   Gloves (and boots without a model) still use the code-built shells; the body inside them is
+   tucked the same way, and each shell is cut clean at its length in the shader.
+4. Helms: `scripts/fit-chibi-helm.py` cuts the same model's headwear only (its generated hair and
+   the face cut away) and moves it onto the Travel model's head by the eyes, the frame the hero's
+   hair is fitted in. Worn, it is drawn over the hero's own hair (`outfit_<helm id>`, `chibiOutfit`
+   "helm"), the hair pulled just inside it, so none pokes through and none is cut away; the
+   crabshell helm, which has no sheet, keeps the built one. The feather
+   circlet is its own Meshy model (`scripts/fit-feather-circlet.py`) drawn over the hero's hair
+   (`withHair`).
+
+Every armour and boots item has one (`assets/meshy/outfits/README.md`); the boots made with the ranger
+coat are not used (the hide set's `trail_boots` are). The models load when first worn
+(`render/models.js` `chibiOutfit`); until then the code-built garments are drawn.

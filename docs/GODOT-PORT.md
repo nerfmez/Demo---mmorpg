@@ -316,7 +316,29 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
   Wolves use `rend` (2 hits), Greyfang `rake` (3 hits). They replace the old repeated lunges.
 - **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event).
 - **`shove`:** an instant cone with `knock` (ram). `charge` (boar) is the only straight rush left,
-  besides the hawk `dive` and stalker `pounce` leaps.
+  besides the hawk `dive` and stalker `pounce` leaps, and the warden's `roll`.
+- **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an
+  attack with `kind: 'charge'`, so it shares the charge path (one hit per unit, a rock in the way
+  stuns it) plus `missStun` when it hits nobody. It is chosen at `minRange`..`maxRange`, after the
+  quake. In the renderer the warden's model carries a second form (`data/models.json` monsters
+  `horned_warden.ball`, `prepareMonsterForm`): a rigid boulder shown at the end of the curl and while
+  it rolls, spinning at speed / radius, with the skinned golem hidden. In Godot keep both meshes under
+  the monster and toggle them the same way. The golem is skinned `rigid`: each separate stone (and
+  the shield) follows the bone whose segments lie nearest its middle, so a stone never follows another
+  limb (a piece midway along two joined bones, an elbow or knee knot, is shared by those two only); its hollow stones draw both sides and its outline
+  hull is pushed back in depth so it never covers a thin piece seen from behind. While it rolls (`act`) the boulder stretches 10%
+  along its path and `src/render/roll-fx.js` draws its afterimages (copies of the ball, flat-shaded,
+  fading behind it), speed lines (a shader scrolling crossed strips back from the silhouette) and a
+  ground dust streak, all in the rig's space; tuning in `data/combat-fx.json` `roll`.
+- **`dormant`** (`{wake}`, the warden): out of combat the monster lies still (no wandering); on aggro
+  from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
+  the warden's boulder while dormant; during `emerge` the boulder breaks into the golem's own stones,
+  which fly up into place feet first, each tumbling along an arc; back home it folds into the boulder
+  again. Before a `roll` (1.5 s wind-up) it braces: the shield swings round in front with its foot
+  planted on the ground and the body crouched behind it (monsters.js `BRACE`), then it folds into the
+  ball; the ball spins `ROLL_SPIN` (2.2) times its rolling rate, so it reads as fast and heavy. All of it is done per stone
+  in the vertex shader after skinning (monsterSkin.js `ASSEMBLE`: each vertex carries its stone's
+  middle and when it moves, `pieceC`), driven by monsters.js `wardenForm`.
 - **`quake`:** the warden marks `steps` `quake` areas along the locked line at wind-up start;
   each erupts `stepDelay` after the previous one.
 - **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.
@@ -418,28 +440,55 @@ load (`fist` in the registry); each hand's fist is a morph target, closed only w
 holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is
 thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
 bind pose). The head is reshaped once at load toward the sheet's rounder head
-(`headShape`: wider, shorter below the eye line, fuller cheeks) and its normals are bent toward the
+(`headShape`: wider, shorter below the eye line, fuller cheeks, the whole head scaled by `scale`
+about its base on the neck) and its normals are bent toward the
 head centre (`soft`) so the toon ramp shades the face as one round form; the painted eyes were
 enlarged in the texture by `scripts/chibi-eyes.py`. On the face the toon ramp follows where the light stands around the
 head instead of the mesh normal (`faceShadow`: a per-vertex face mask and coordinates, the head
 bone's axes passed in each frame), so one shadow edge sweeps across the face as the light turns,
 as in anime games' face shadow maps; the hair has a jagged highlight band on its camera side
-(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. The chibi wears the same outfit base as the HairSample hero
+(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. The Meshy textures of the body, hair and outfits carry their own painted shading, so each also glows at `paintedLight` × its texture (emission = albedo texture) and the toon light only shapes it instead of darkening it twice. The chibi wears the same outfit base as the HairSample hero
 (`render/chibi-garments.js`): top, trousers, skirt, boots (with the feet) and glove shells cut from
 its own body (`regionShell`, morph targets kept so gloves close with the fists), painted by
 `garments.js` reading its bind position and landmarks times `SCALE` (1.7, the HairSample body's
 size), its bones converted from the armature's centimetres. Helms use `helmFit`, larger and higher
-than `headFit`, to sit over the hair. In Godot build the same shells from the chibi mesh. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
+than `headFit`, to sit over the hair. In Godot build the same shells from the chibi mesh. The body
+mesh is closed: `scripts/decimate-chibi.py` welds the glTF's split UV seams before decimating, or every
+seam opens into a crack that shows the background and that the shells copy.
+An armour or boots item with a modelled outfit (`characters.outfit_<item id>`, `chibiOutfit`
+"armor" or "boots"; `scripts/fit-chibi-outfit.py` fits a Meshy-generated dressed chibi onto this body)
+wears that model instead of the shells it replaces (armour: top, trousers, skirt; boots: boots): one
+textured skinned mesh on the same armature, its vertices moved into the body's bind space and its
+joints remapped to the body skeleton by name (`prepareChibiOutfit`, `fitOutfit`), with the body's
+toon material and outline. Its node extras `hideBody` list the body triangles it covers; while it is
+worn those body vertices are tucked `underCloth.inset` inside the cloth along their normals (`coveredBody`;
+a vertex is tucked only when every triangle round it is covered) and drawn at `underCloth.under` of its
+light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view
+ray in the vertex shader (body and outline hull), so the cloth always wins the depth test, the skin
+cannot poke through and a gap shows shade, never the background. In Godot do the same in the body's
+spatial shader (VERTEX in view space, scaled along itself). The glove shells (and boot shells
+where no model replaces them) tuck the body the same way: the body triangles wholly inside a shell's
+region are covered and every body vertex inside it is pushed back in full (the shell's edge falls
+inside the body's edge triangles), and the shell keeps every triangle reaching into the region (`regionShell` `any`)
+while its shader discards past the region's line (`uCutD.w`, margin `uCutD.y`), so its edge is
+straight, not the body's triangles. Garments and modelled helms draw their back faces in their texture's mean colour (its smallest
+mip) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth. The models load
+when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
+(`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
+hair is and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn
+over the whole hair, taking the hair's own per-axis scale. In Godot attach
+the mesh to the body's `Skeleton3D` and draw the body with those triangles removed (or a mask). Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
 for a bow) and the socket moves to the fist's hole. In Godot,
 import the GLB with its `Skeleton3D`, recompute smooth normals on import, apply the same torso
 flatten, head reshape and normal bend, scale the hand
 attachments, add the same fists as blend shapes (or finger bones) and apply the same hand turn
 and seat after the retarget.
-Its hair is two Meshy models (`characters.hero_chibi_hair` for the fringe and
-`hero_chibi_hair_back` for the back, each drawing only its `keep` part; `scripts/prep-chibi-hair.py`)
-parented to the head bone and fitted per axis to the head's bind bounds (`fit`, from the hair's
-fixed `box` when given); in Godot attach it
-to the head bone with the same scale and offset, in its flat `color`. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
+Its hair (`characters.hero_chibi_hair`, cut from the Travel Tunic's dressed chibi by
+`scripts/fit-chibi-hair.py`, its own painted texture) is parented to the head bone and fitted per
+axis to the head's bind bounds (`fit`, from the hair's fixed `box`); under a helm other than a
+circlet or a cowl (`headwear.js` `HAIR_WHOLE`: the moonleaf cowl is a collar round the neck) the
+hair above and behind `underHelm` is not drawn, so it cannot poke through. In Godot
+attach it to the head bone with the same scale and offset and the same under-helm cut. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

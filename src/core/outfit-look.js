@@ -9,12 +9,13 @@ const DEFAULT_BOOTS = 'travel_boots';
  * @param {object} gear gearLook() output ({bases: {armor, boots, gloves, helm}})
  * @param {object} outfits data/outfits.json
  * @param {object} [look] appearance ({tunic}) for "$tunic" palette entries
- * @returns {{style: string, base: object, skirt: object|null, palette: object, cut: object, parts: string[],
+ * @returns {{armor: string, style: string, base: object, skirt: object|null, palette: object, cut: object, parts: string[],
  *   boots: object, trousers: {pattern: number}, gloves: object|null, helm: object|null}}
  */
 export function resolveOutfit(gear = {}, outfits, look = {}) {
   const b = gear.bases || {};
-  const item = (b.armor && outfits.armor[b.armor]) || outfits.armor.travel_tunic || {};
+  const armor = b.armor && outfits.armor[b.armor] ? b.armor : 'travel_tunic';
+  const item = outfits.armor[armor] || {};
   const style = item.style || 'tunic';
   const styleData = outfits.styles[style] || {};
   const baseName = styleData.base || 'cloth';
@@ -43,7 +44,7 @@ export function resolveOutfit(gear = {}, outfits, look = {}) {
   // armour's own trim and accent colours
   const trousers = { pattern: 0, ...styleData.trousers, ...item.trousers };
   return {
-    style, base, skirt, palette, cut, parts, boots, trousers,
+    armor, style, base, skirt, palette, cut, parts, boots, trousers,
     gloves: piece(outfits.gloves, b.gloves),
     helm: helmEntry ? { id: b.helm, ...helmEntry, palette: { ...helmEntry.palette } } : null,
   };

@@ -2264,6 +2264,658 @@
       "upgradeMaterial": "rootdigger_claw",
       "requirementStat": "DEX",
       "itemLevel": 11
+    },
+    "travel_cap": {
+      "name": "Travel Cap",
+      "nameTh": "หมวกเดินทาง",
+      "slot": "helm",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "stats": {
+        "defense": 1.5,
+        "maxHp": 6
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "boar_hide",
+      "itemLevel": 1,
+      "look": "cap"
+    },
+    "travel_gloves": {
+      "name": "Travel Gloves",
+      "nameTh": "ถุงมือเดินทาง",
+      "slot": "gloves",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "defense": 1,
+        "attack": 1
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "boar_hide",
+      "itemLevel": 1,
+      "look": "wrap"
+    },
+    "boarhide_boots": {
+      "name": "Boarhide Boots",
+      "nameTh": "รองเท้าหนังหมูป่า",
+      "slot": "boots",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 3,
+        "maxHp": 8,
+        "moveSpeedPct": 2
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "boar_hide",
+      "itemLevel": 1
+    },
+    "crabshell_vest": {
+      "name": "Crabshell Vest",
+      "nameTh": "เกราะกระดองปู",
+      "slot": "armor",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "stats": {
+        "defense": 7.5,
+        "maxHp": 12
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "crab_shell",
+      "itemLevel": 1,
+      "look": "shell"
+    },
+    "beetle_gloves": {
+      "name": "Beetle Gloves",
+      "nameTh": "ถุงมือกระดองด้วง",
+      "slot": "gloves",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "stats": {
+        "defense": 3.2,
+        "maxHp": 10
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "beetle_shell",
+      "itemLevel": 6,
+      "look": "shell"
+    },
+    "beetle_boots": {
+      "name": "Beetle Boots",
+      "nameTh": "รองเท้ากระดองด้วง",
+      "slot": "boots",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "stats": {
+        "defense": 4.2,
+        "maxHp": 15,
+        "moveSpeedPct": 0.9
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "beetle_shell",
+      "itemLevel": 6
+    },
+    "sporeweave_boots": {
+      "name": "Sporeweave Boots",
+      "nameTh": "รองเท้าทอสปอร์",
+      "slot": "boots",
+      "requirementStat": "INT",
+      "optionPool": [
+        "mp_flat",
+        "heal_pct",
+        "defense_flat",
+        "hp_flat",
+        "summon_pct"
+      ],
+      "stats": {
+        "defense": 3,
+        "maxMp": 18,
+        "healPct": 8
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 6
+    },
+    "wolfpelt_hood": {
+      "name": "Wolfpelt Hood",
+      "nameTh": "ฮู้ดหนังหมาป่า",
+      "slot": "helm",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 4.8,
+        "maxHp": 20,
+        "critChancePct": 3.2
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_pelt",
+      "itemLevel": 6,
+      "look": "hood"
+    },
+    "burrowguard_armor": {
+      "name": "Burrowguard Armor",
+      "nameTh": "เกราะผู้พิทักษ์โพรง",
+      "slot": "armor",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "stats": {
+        "defense": 13.5,
+        "maxHp": 33.7,
+        "hpRegen": 1.2
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "rootdigger_claw",
+      "itemLevel": 6,
+      "look": "shell"
+    },
+    "burrowguard_helm": {
+      "name": "Burrowguard Helm",
+      "nameTh": "หมวกผู้พิทักษ์โพรง",
+      "slot": "helm",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "stats": {
+        "defense": 5.6,
+        "maxHp": 20,
+        "barrierPct": 5.3
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "rootdigger_claw",
+      "itemLevel": 6,
+      "look": "beetle"
+    },
+    "burrowguard_gloves": {
+      "name": "Burrowguard Gloves",
+      "nameTh": "ถุงมือผู้พิทักษ์โพรง",
+      "slot": "gloves",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "stats": {
+        "defense": 2.2,
+        "maxHp": 7.5,
+        "attack": 1.2
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "rootdigger_claw",
+      "itemLevel": 6,
+      "look": "plate"
+    },
+    "burrowguard_boots": {
+      "name": "Burrowguard Boots",
+      "nameTh": "รองเท้าผู้พิทักษ์โพรง",
+      "slot": "boots",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "stats": {
+        "defense": 4.5,
+        "maxHp": 18.7
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "rootdigger_claw",
+      "itemLevel": 6
+    },
+    "mirrorwing_robe": {
+      "name": "Mirrorwing Robe",
+      "nameTh": "เสื้อคลุมปีกกระจก",
+      "slot": "armor",
+      "requirementStat": "INT",
+      "optionPool": [
+        "mp_flat",
+        "barrier_pct",
+        "spell_pct",
+        "defense_flat",
+        "magic_flat"
+      ],
+      "stats": {
+        "defense": 10.8,
+        "maxMp": 57.5,
+        "barrierPct": 9.6
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "mirror_scale",
+      "itemLevel": 6,
+      "look": "mantle"
+    },
+    "mirrorwing_hood": {
+      "name": "Mirrorwing Hood",
+      "nameTh": "ฮู้ดปีกกระจก",
+      "slot": "helm",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "stats": {
+        "defense": 4,
+        "maxMp": 32,
+        "spellDamagePct": 5.3
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "mirror_scale",
+      "itemLevel": 6,
+      "look": "hood"
+    },
+    "mirrorwing_gloves": {
+      "name": "Mirrorwing Gloves",
+      "nameTh": "ถุงมือปีกกระจก",
+      "slot": "gloves",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "stats": {
+        "magic": 2.8,
+        "critChancePct": 2.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "mirror_scale",
+      "itemLevel": 6,
+      "look": "wrap"
+    },
+    "mirrorwing_boots": {
+      "name": "Mirrorwing Boots",
+      "nameTh": "รองเท้าปีกกระจก",
+      "slot": "boots",
+      "requirementStat": "INT",
+      "optionPool": [
+        "mp_flat",
+        "move_pct",
+        "cdr_pct",
+        "defense_flat",
+        "barrier_pct"
+      ],
+      "stats": {
+        "defense": 2.4,
+        "moveSpeedPct": 3,
+        "maxMp": 15
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "mirror_scale",
+      "itemLevel": 6
+    },
+    "fernstep_coat": {
+      "name": "Fernstep Coat",
+      "nameTh": "เสื้อคลุมก้าวเฟิร์น",
+      "slot": "armor",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 11.7,
+        "maxHp": 27,
+        "moveSpeedPct": 5.9
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "fern_ear_tuft",
+      "itemLevel": 6,
+      "look": "pelt"
+    },
+    "fernstep_cap": {
+      "name": "Fernstep Cap",
+      "nameTh": "หมวกก้าวเฟิร์น",
+      "slot": "helm",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 4,
+        "maxHp": 20,
+        "critChancePct": 4.8
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "fern_ear_tuft",
+      "itemLevel": 6,
+      "look": "cap"
+    },
+    "fernstep_gloves": {
+      "name": "Fernstep Gloves",
+      "nameTh": "ถุงมือก้าวเฟิร์น",
+      "slot": "gloves",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 2.2,
+        "critChancePct": 2.4,
+        "projectileDamagePct": 4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "fern_ear_tuft",
+      "itemLevel": 6,
+      "look": "pelt"
+    },
+    "fernstep_boots": {
+      "name": "Fernstep Boots",
+      "nameTh": "รองเท้าก้าวเฟิร์น",
+      "slot": "boots",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 2.7,
+        "moveSpeedPct": 4.7
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "fern_ear_tuft",
+      "itemLevel": 6
+    },
+    "moonleaf_robe": {
+      "name": "Moonleaf Robe",
+      "nameTh": "เสื้อคลุมใบจันทร์",
+      "slot": "armor",
+      "requirementStat": "INT",
+      "optionPool": [
+        "defense_flat",
+        "mp_flat",
+        "cdr_pct",
+        "heal_pct",
+        "magic_flat"
+      ],
+      "stats": {
+        "defense": 14.5,
+        "maxMp": 112.5,
+        "cooldownPct": 10.7
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 11,
+      "look": "tunic"
+    },
+    "moonleaf_cowl": {
+      "name": "Moonleaf Cowl",
+      "nameTh": "ผ้าคลุมใบจันทร์",
+      "slot": "helm",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "stats": {
+        "defense": 7.1,
+        "maxMp": 50,
+        "healPct": 14.3
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 11,
+      "look": "cowl"
+    },
+    "moonleaf_gloves": {
+      "name": "Moonleaf Gloves",
+      "nameTh": "ถุงมือใบจันทร์",
+      "slot": "gloves",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "stats": {
+        "magic": 4.3,
+        "maxMp": 14.3,
+        "cooldownPct": 2.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 11,
+      "look": "wrap"
+    },
+    "moonleaf_pendant": {
+      "name": "Moonleaf Pendant",
+      "nameTh": "จี้ใบจันทร์",
+      "slot": "charm",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "heal_pct",
+        "cdr_pct",
+        "spell_pct"
+      ],
+      "stats": {
+        "maxMp": 17.7,
+        "magic": 1.2,
+        "healPct": 3.5
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "sea_pearl",
+      "itemLevel": 11
+    },
+    "storm_gloves": {
+      "name": "Storm Gloves",
+      "nameTh": "ถุงมือพายุ",
+      "slot": "gloves",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 5.7,
+        "critChancePct": 6.2,
+        "projectileDamagePct": 10.3
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "hawk_feather",
+      "itemLevel": 16,
+      "look": "pelt"
+    },
+    "wisp_robe": {
+      "name": "Wisp Robe",
+      "nameTh": "เสื้อคลุมแสงวิญญาณ",
+      "slot": "armor",
+      "requirementStat": "INT",
+      "optionPool": [
+        "mp_flat",
+        "spell_pct",
+        "defense_flat",
+        "magic_flat",
+        "area_pct"
+      ],
+      "stats": {
+        "defense": 27.8,
+        "maxMp": 162.1,
+        "spellDamagePct": 15.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wisp_core",
+      "itemLevel": 16,
+      "look": "tunic"
+    },
+    "wisp_hood": {
+      "name": "Wisp Hood",
+      "nameTh": "ฮู้ดแสงวิญญาณ",
+      "slot": "helm",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "stats": {
+        "defense": 8.2,
+        "maxMp": 72.1,
+        "cooldownPct": 8.6
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "glow_dust",
+      "itemLevel": 16,
+      "look": "hood"
+    },
+    "wisp_boots": {
+      "name": "Wisp Boots",
+      "nameTh": "รองเท้าแสงวิญญาณ",
+      "slot": "boots",
+      "requirementStat": "INT",
+      "optionPool": [
+        "mp_flat",
+        "move_pct",
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 6.9,
+        "mpRegenPct": 30.9,
+        "moveSpeedPct": 5.5
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "glow_dust",
+      "itemLevel": 16
+    },
+    "wardenstalker_boots": {
+      "name": "Wardenstalker Boots",
+      "nameTh": "รองเท้าพรานผู้พิทักษ์",
+      "slot": "boots",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 9.1,
+        "moveSpeedPct": 7.2,
+        "maxHp": 37.8,
+        "critChancePct": 6
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "greyfang_mane",
+      "itemLevel": 21
     }
   },
   "gearOptions": {

@@ -10,6 +10,8 @@ import { attachMonsterModel } from './monsterSkin.js';
 import { MIDHIGH_BUILDERS, MIDHIGH_SCALE } from './monsters-midhigh.js';
 import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
 import MOTION from '../../data/monster-motion.json';
+import FX from '../../data/combat-fx.json';
+import { createRollFx } from './roll-fx.js';
 import { motionConfig, advanceGait, poseLegs, poseSplayedLegs, legCycle, wander, breath } from './monster-motion.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
@@ -793,6 +795,11 @@ function buildWarden() {
 
 const WARDEN_KNEE = (n) => n.replace('leg', 'knee');
 
+// the warden's brace before a roll (shield arm forward and across, elbow bent so the shield stands on
+// the ground in front of it, hips dropped behind it)
+const BRACE = { armX: 0.9, armZ: 0.55, armZL: -0.4, elbow: -0.5, hips: 0.35 };
+const ROLL_SPIN = 2.2;
+
 function animWarden(r, s, dt, time) {
   const b = r.bones;
   const c = r.motion;
@@ -809,6 +816,7 @@ function animWarden(r, s, dt, time) {
   let torsoY = -Math.sin(ph) * c.sway * w;
   let hipsY = 1.45 - drop - c.bob * thud;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  const T = wardenForm(r, s, k, dt);
   if (s.windup === 'slam') {
     armX = [-2.6 * k, -2.6 * k];
     armZ = [0.1, -0.1];
@@ -833,6 +841,17 @@ function animWarden(r, s, dt, time) {
     torsoX = 0.55 * hold;
     hipsY -= 0.2 * hold;
     headX = 0.2 * hold;
+  } else if (s.windup === 'roll') {
+    // first it braces behind its shield: the shield swings round in front and its foot is planted on
+    // the ground, the body crouched low behind it, the free fist pressed to its back; then it curls
+    const p = clamp01(k / 0.35);
+    const e = p * p * (3 - 2 * p);
+    armX = [-0.55 * e, -BRACE.armX * e];
+    armZ = [0.25 + (BRACE.armZL - 0.25) * e, -0.25 + (BRACE.armZ + 0.25) * e];
+    torsoX = 0.2 + 0.35 * e;
+    hipsY -= BRACE.hips * e;
+    headX = -0.15 * e;
+    r.braceElbow = BRACE.elbow * e;
   } else if (s.state === 'act') {
     headX = 0.55;
     torsoX = 0.7;
@@ -851,6 +870,15 @@ function animWarden(r, s, dt, time) {
     headX = Math.sin(time * 10) * 0.2;
     torsoX = 0.5;
   }
+  // while its stones come apart or together it crouches into the ball, rising as it assembles
+  const crouch = T ? 1 - T.a : 0;
+  if (crouch > 0) {
+    torsoX += (1.2 - torsoX) * crouch;
+    headX += (0.7 - headX) * crouch;
+    hipsY -= 0.75 * crouch;
+    armX = [armX[0] + (0.7 - armX[0]) * crouch, armX[1] + (0.7 - armX[1]) * crouch];
+    armZ = [armZ[0] + (-0.65 - armZ[0]) * crouch, armZ[1] + (0.65 - armZ[1]) * crouch];
+  }
   if (s.hurt > 0) torsoX -= 0.12 * s.hurt;
   b.torso.rotation.x = damp(b.torso.rotation.x, torsoX, 10, dt);
   b.torso.rotation.y = damp(b.torso.rotation.y, torsoY, s.state === 'recover' ? 22 : 10, dt);
@@ -861,7 +889,8 @@ function animWarden(r, s, dt, time) {
     b[n].rotation.z = damp(b[n].rotation.z, armZ[i], 10, dt);
   });
   b.elbowL.rotation.x = damp(b.elbowL.rotation.x, s.windup === 'slam' ? -0.4 : -0.35, 10, dt);
-  b.elbowR.rotation.x = damp(b.elbowR.rotation.x, s.windup === 'slam' ? -0.4 : -0.35, 10, dt);
+  b.elbowR.rotation.x = damp(b.elbowR.rotation.x, s.windup === 'slam' ? -0.4 : s.windup === 'roll' ? -0.35 + (r.braceElbow || 0) : -0.35, 10, dt);
+  if (s.windup !== 'roll') r.braceElbow = 0;
   r.hipsY = damp(r.hipsY ?? 1.45, hipsY + drop + c.bob * thud, 14, dt);
   b.hips.position.y = r.hipsY - drop - c.bob * thud;
   b.hips.rotation.z = Math.sin(ph) * c.roll * w;
@@ -872,6 +901,67 @@ function animWarden(r, s, dt, time) {
   b.tail.rotation.z = r.tailSpring.update(Math.sin(time * 3) * 0.3 + Math.sin(ph) * 0.3 * w + clampAbs(s.turn * 0.3, 0.5), dt);
   const glow = s.enraged ? 1.4 + Math.sin(time * 8) * 0.4 : 0.6;
   b.rune.scale.setScalar(glow);
+  // the boulder form, spinning forward while it rolls
+  const form = r.ballForm;
+  if (form && T) {
+    form.visible = T.ball > 0;
+    if (form.visible) {
+      const rad = form.userData.radius;
+      form.position.set(0, rad, 0.2);
+      // spun faster than it travels (SPIN x the rolling rate), so it reads as a fast, heavy roll
+      const spin = s.state === 'act' ? ROLL_SPIN * (s.attack?.speed || 10) / (rad * (r.baseScale || 1)) : 0;
+      r.rollAngle = T.dormant ? 0 : ((r.rollAngle || 0) + spin * dt) % (Math.PI * 2);
+      form.rotation.set(r.rollAngle, 0, 0);
+      const pop = 0.9 + 0.1 * T.ball;
+      form.scale.setScalar(pop);
+      // rolling fast it stretches a little along its path (anime motion blur), with its afterimages
+      if (s.state === 'act') form.scale.set(pop * 0.96, pop * 0.96, pop * 1.1);
+    } else r.rollAngle = 0;
+    r.rollFx?.update(form.visible && s.lastAttack === 'roll' && s.state === 'act', r.rollAngle, dt);
+  }
+}
+
+/**
+ * The warden golem <-> boulder timeline (its stones move on the GPU, monsterSkin.js ASSEMBLE): out of
+ * combat it lies as the boulder (after walking home it folds into it on the spot); a fight wakes it,
+ * the boulder breaks into its stones and they fly up into the golem, feet first; before a roll it
+ * braces behind its shield planted on the ground, folds into the ball and rolls; then it unfolds.
+ * Returns {a: assembled 0..1, ball: boulder model 0..1, dormant}.
+ */
+function wardenForm(r, s, k, dt) {
+  const A = r.assemble, form = r.ballForm;
+  if (!A || !form) return null;
+  const dormant = s.state === 'idle' && !s.aggro;
+  if (!dormant) r.homeCurl = s.state === 'return';
+  r.curlT = dormant ? (r.homeCurl ? (r.curlT || 0) + dt : 9) : 0;
+  if (s.state === 'act' && s.lastAttack === 'roll') r.rolled = true;
+  let a = 1, ball = 0;
+  // fold c 0..1: the stones gather into a ball, then the boulder model takes over from them
+  const fold = (c) => { a = 1 - c; ball = clamp01((c - 0.85) / 0.15); };
+  if (dormant) fold(clamp01(r.curlT / 1.2));
+  else if (s.state === 'emerge') {
+    const w = clamp01(s.actT / (s.actionTotal || 1.8));
+    ball = 1 - clamp01(w / 0.1);
+    a = clamp01((w - 0.1) / 0.9);
+  } else if (s.windup === 'roll') fold(clamp01((k - 0.55) / 0.4)); // braced behind the shield, then it curls
+  else if (s.state === 'act' && s.lastAttack === 'roll') { a = 0; ball = 1; }
+  else if (r.rolled && (s.state === 'recover' || s.state === 'stunned')) {
+    const t = s.actT;
+    ball = 1 - clamp01(t / 0.12);
+    a = clamp01((t - 0.12) / 0.7);
+    if (a >= 1) r.rolled = false;
+  } else r.rolled = false;
+  const hull = r.modelMeshes.slice(1), body = r.modelMeshes[0];
+  const rad = form.userData.radius;
+  A.uAssemble.value = a;
+  A.uPack.value = 1 - ball;
+  A.uBall.value.set(0, rad, 0.2, rad);
+  // the outline hull and the shadow follow the plain skinned golem: only while it is whole
+  const whole = a >= 1;
+  for (const h of hull) h.visible = whole;
+  body.castShadow = whole;
+  body.visible = ball < 1;
+  return { a, ball, dormant };
 }
 
 // ---------- registry ----------
@@ -1025,7 +1115,7 @@ export function buildMonster(type, level = 1, boss = false) {
   const rig = build();
   // an imported model, once loaded, replaces the procedural parts on the same bones
   const model = monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type);
-  if (model) { attachMonsterModel(rig, model); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
+  if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
   rig.animate = anim;
   rig.motion = motionConfig(MOTION, type);
   rig.seed = Math.random() * 10;

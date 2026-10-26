@@ -60,3 +60,12 @@ Also inspected `CFXR2 Ground Hit (Alt) + Debris (Lit)`, `CFXR2 Debris Hit (Lit)`
 ### Monster strikes — 2026-10-08
 
 The gallery host was blocked by this session's network policy, so no gallery clip was inspected for this pass. A first version drew claw/fang/pincer shapes as camera-facing marks on the hero; the owner rejected it because it looked like images pasted on top and did not come from the monster. The current version follows the same rule as the hero's blade trail: thin ribbons recorded from the real tip of the striking limb (paw claws, jaws/tusks, crab claws, mantis blades), bright only while that tip moves fast, with the strike animations sweeping across the body so the trail reads from the game camera. No reference media was copied. Re-check against relevant gallery claw/bite/hit clips when the host is reachable.
+
+### Warden boulder roll — 2026-10-26
+
+The gallery host returned 403 to this session again, so no clip was inspected. The roll uses the anime
+motion language the owner asked for: a few fading afterimages of the ball itself behind it (motion blur
+read as cel frames), thin cream speed lines streaking back from its silhouette in staggered pulses, a
+soft dust streak on the ground and a slight stretch of the ball along its path. Original procedural
+shapes (`src/render/roll-fx.js`, numbers in `data/combat-fx.json` `roll`); nothing copied. Re-check
+against relevant gallery dash/rush/speed-line clips when the host is reachable.

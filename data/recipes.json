@@ -2271,6 +2271,531 @@
         "gold": 40
       },
       "grade": "B"
+    },
+    "travel_cap": {
+      "type": "gear",
+      "result": "travel_cap",
+      "cost": {
+        "boar_hide": 5,
+        "shore_feather": 2,
+        "gold": 20
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "itemLevel": 1
+    },
+    "travel_gloves": {
+      "type": "gear",
+      "result": "travel_gloves",
+      "cost": {
+        "boar_hide": 5,
+        "salt_gel": 2,
+        "gold": 20
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "itemLevel": 1
+    },
+    "boarhide_boots": {
+      "type": "gear",
+      "result": "boarhide_boots",
+      "cost": {
+        "boar_hide": 5,
+        "shore_feather": 2,
+        "gold": 20
+      },
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "itemLevel": 1
+    },
+    "crabshell_vest": {
+      "type": "gear",
+      "result": "crabshell_vest",
+      "cost": {
+        "crab_shell": 5,
+        "salt_gel": 2,
+        "gold": 20
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "itemLevel": 1
+    },
+    "beetle_gloves": {
+      "type": "gear",
+      "result": "beetle_gloves",
+      "cost": {
+        "beetle_shell": 6,
+        "venom_gland": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "itemLevel": 6
+    },
+    "beetle_boots": {
+      "type": "gear",
+      "result": "beetle_boots",
+      "cost": {
+        "beetle_shell": 6,
+        "hermit_fragment": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "itemLevel": 6
+    },
+    "sporeweave_boots": {
+      "type": "gear",
+      "result": "sporeweave_boots",
+      "cost": {
+        "spore_sac": 16,
+        "glow_dust": 3,
+        "gold": 60
+      },
+      "optionPool": [
+        "mp_flat",
+        "heal_pct",
+        "defense_flat",
+        "hp_flat",
+        "summon_pct"
+      ],
+      "itemLevel": 6
+    },
+    "wolfpelt_hood": {
+      "type": "gear",
+      "result": "wolfpelt_hood",
+      "cost": {
+        "wolf_pelt": 6,
+        "hermit_fragment": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "itemLevel": 6
+    },
+    "burrowguard_armor": {
+      "type": "gear",
+      "result": "burrowguard_armor",
+      "cost": {
+        "rootdigger_claw": 6,
+        "fern_ear_tuft": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "itemLevel": 6
+    },
+    "burrowguard_helm": {
+      "type": "gear",
+      "result": "burrowguard_helm",
+      "cost": {
+        "rootdigger_claw": 6,
+        "fern_ear_tuft": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "itemLevel": 6
+    },
+    "burrowguard_gloves": {
+      "type": "gear",
+      "result": "burrowguard_gloves",
+      "cost": {
+        "rootdigger_claw": 6,
+        "boar_tusk": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "itemLevel": 6
+    },
+    "burrowguard_boots": {
+      "type": "gear",
+      "result": "burrowguard_boots",
+      "cost": {
+        "rootdigger_claw": 6,
+        "fern_ear_tuft": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "block_pct"
+      ],
+      "itemLevel": 6
+    },
+    "mirrorwing_robe": {
+      "type": "gear",
+      "result": "mirrorwing_robe",
+      "cost": {
+        "mirror_scale": 6,
+        "glow_dust": 3,
+        "spore_sac": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "mp_flat",
+        "barrier_pct",
+        "spell_pct",
+        "defense_flat",
+        "magic_flat"
+      ],
+      "itemLevel": 6
+    },
+    "mirrorwing_hood": {
+      "type": "gear",
+      "result": "mirrorwing_hood",
+      "cost": {
+        "mirror_scale": 6,
+        "fern_ear_tuft": 3,
+        "spore_sac": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "itemLevel": 6
+    },
+    "mirrorwing_gloves": {
+      "type": "gear",
+      "result": "mirrorwing_gloves",
+      "cost": {
+        "mirror_scale": 6,
+        "glow_dust": 3,
+        "spore_sac": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "itemLevel": 6
+    },
+    "mirrorwing_boots": {
+      "type": "gear",
+      "result": "mirrorwing_boots",
+      "cost": {
+        "mirror_scale": 6,
+        "fern_ear_tuft": 3,
+        "spore_sac": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "mp_flat",
+        "move_pct",
+        "cdr_pct",
+        "defense_flat",
+        "barrier_pct"
+      ],
+      "itemLevel": 6
+    },
+    "fernstep_coat": {
+      "type": "gear",
+      "result": "fernstep_coat",
+      "cost": {
+        "fern_ear_tuft": 6,
+        "mirror_scale": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "itemLevel": 6
+    },
+    "fernstep_cap": {
+      "type": "gear",
+      "result": "fernstep_cap",
+      "cost": {
+        "fern_ear_tuft": 6,
+        "glow_dust": 3,
+        "boar_tusk": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "itemLevel": 6
+    },
+    "fernstep_gloves": {
+      "type": "gear",
+      "result": "fernstep_gloves",
+      "cost": {
+        "fern_ear_tuft": 6,
+        "rootdigger_claw": 3,
+        "boar_tusk": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "itemLevel": 6
+    },
+    "fernstep_boots": {
+      "type": "gear",
+      "result": "fernstep_boots",
+      "cost": {
+        "fern_ear_tuft": 6,
+        "rootdigger_claw": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "itemLevel": 6
+    },
+    "moonleaf_robe": {
+      "type": "gear",
+      "result": "moonleaf_robe",
+      "cost": {
+        "spore_sac": 28,
+        "sea_pearl": 4,
+        "venom_gland": 10,
+        "gold": 150
+      },
+      "optionPool": [
+        "defense_flat",
+        "mp_flat",
+        "cdr_pct",
+        "heal_pct",
+        "magic_flat"
+      ],
+      "itemLevel": 11
+    },
+    "moonleaf_cowl": {
+      "type": "gear",
+      "result": "moonleaf_cowl",
+      "cost": {
+        "spore_sac": 28,
+        "sea_pearl": 4,
+        "venom_gland": 10,
+        "gold": 150
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "itemLevel": 11
+    },
+    "moonleaf_gloves": {
+      "type": "gear",
+      "result": "moonleaf_gloves",
+      "cost": {
+        "spore_sac": 28,
+        "glow_dust": 4,
+        "venom_gland": 10,
+        "gold": 150
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "itemLevel": 11
+    },
+    "moonleaf_pendant": {
+      "type": "gear",
+      "result": "moonleaf_pendant",
+      "cost": {
+        "sea_pearl": 8,
+        "spore_sac": 24,
+        "venom_gland": 10,
+        "gold": 150
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "heal_pct",
+        "cdr_pct",
+        "spell_pct"
+      ],
+      "itemLevel": 11
+    },
+    "storm_gloves": {
+      "type": "gear",
+      "result": "storm_gloves",
+      "cost": {
+        "hawk_feather": 10,
+        "viper_scale": 4,
+        "beetle_shell": 12,
+        "boar_tusk": 25,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "itemLevel": 16
+    },
+    "wisp_robe": {
+      "type": "gear",
+      "result": "wisp_robe",
+      "cost": {
+        "wisp_core": 10,
+        "viper_scale": 4,
+        "spore_sac": 37,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "optionPool": [
+        "mp_flat",
+        "spell_pct",
+        "defense_flat",
+        "magic_flat",
+        "area_pct"
+      ],
+      "itemLevel": 16
+    },
+    "wisp_hood": {
+      "type": "gear",
+      "result": "wisp_hood",
+      "cost": {
+        "glow_dust": 10,
+        "wisp_core": 4,
+        "spore_sac": 37,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "itemLevel": 16
+    },
+    "wisp_boots": {
+      "type": "gear",
+      "result": "wisp_boots",
+      "cost": {
+        "glow_dust": 10,
+        "viper_scale": 4,
+        "spore_sac": 37,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "optionPool": [
+        "mp_flat",
+        "move_pct",
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat"
+      ],
+      "itemLevel": 16
+    },
+    "wardenstalker_boots": {
+      "type": "gear",
+      "result": "wardenstalker_boots",
+      "cost": {
+        "greyfang_mane": 2,
+        "dusk_pelt": 17,
+        "wolf_pelt": 9,
+        "hawk_feather": 17,
+        "boar_hide": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "itemLevel": 21
     }
   }
 }

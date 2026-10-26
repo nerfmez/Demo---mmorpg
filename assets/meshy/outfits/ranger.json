@@ -1,0 +1,59 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for reference sheet 01: sized from its arm axis (no scale given), cut at the neck, sleeve ends (cuff) and boot tops; landmarks as travel.json.",
+ "id": "ranger",
+ "src": "assets/meshy/outfits/ranger_meshy.glb",
+ "neck": 0.89,
+ "cuff": 0.405,
+ "bootTop": 0.25,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.42,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/ranger_coat.glb",
+  "boots": null
+ },
+ "chinCut": 0.07,
+ "chinBack": 0.19,
+ "collar": {
+  "from": 0.82,
+  "top": 0.96,
+  "half": 0.24,
+  "inflate": 0.006,
+  "spread": 1.0,
+  "lift": 0.0,
+  "back": -0.03
+ },
+ "drape": 0.1,
+ "drapeY": -0.04,
+ "weightSmooth": 6,
+ "shoulderRise": 0.45
+}

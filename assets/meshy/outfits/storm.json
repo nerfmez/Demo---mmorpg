@@ -1,0 +1,46 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for reference sheet 05: sized from its arm axis (no scale given), cut at the neck, sleeve ends (cuff) and boot tops; landmarks as travel.json.",
+ "id": "storm",
+ "src": "assets/meshy/outfits/storm_meshy.glb",
+ "neck": 0.915,
+ "cuff": 0.19,
+ "bootTop": 0.115,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.36,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/storm_mantle.glb",
+  "boots": "public/models/outfits/wisp_slippers.glb"
+ },
+ "smoothOut": 0.3,
+ "weightSmooth": 30
+}

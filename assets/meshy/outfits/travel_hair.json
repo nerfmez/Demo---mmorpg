@@ -1,0 +1,7 @@
+{
+ "src": "assets/meshy/outfits/travel_meshy.glb",
+ "scale": 0.6,
+ "lift": 0.6,
+ "chin": 0.905,
+ "out": "public/models/hero_chibi_hair.glb"
+}

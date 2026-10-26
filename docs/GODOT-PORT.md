@@ -798,6 +798,7 @@ instead of 90; lighting still uses the unchanged sampled terrain normal.
 Road paint is affine in its centre tone: combine bare-earth/road layer weights
 first and evaluate their identical procedural spatial detail only once. Preserve
 the original final colour; no paint texture, light or ground height is changed.
+Outside the town zones (`1 - town` mask) a road blends into the meadow: its earth weight is `smoothstep(.10, .95, edge)` instead of the town's `smoothstep(.40, .54, edge)`, scaled down by noise-broken grass (`.18 + .62 * (1 - smoothstep(.25, 1.05, edge + noise))`), and the darker under-overhang line is 85% weaker (owner, 26 October 2026: no hard road lines in the country).
 Evaluate the four value-noise corner hashes as a vec4 with the original
 operation order and interpolation. Preserve scalar/vector float equality and
 actual-game pixel equality; do not approximate noise or alter its constants.

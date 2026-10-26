@@ -154,7 +154,11 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   wob*=1.0-town*.7;
   float tufts=max(brush.g,brush.b)*smoothstep(.12,.55,splat.r)*(1.0-smoothstep(.75,1.0,splat.r))*(1.0-town);
   float roadEdge=splat.r+wob-tufts*${f(art.ground.roadEdgeTufts)};
-  float onRoad=smoothstep(.40,.54,roadEdge);
+  // outside the town a path blends into the meadow (owner, 26 October 2026: no hard road
+  // lines in the country): a long soft edge, and grass breaking through towards it
+  float country=1.0-town;
+  float onRoad=smoothstep(mix(.40,.10,country),mix(.54,.95,country),roadEdge);
+  onRoad*=1.0-country*(.18+.62*(1.0-smoothstep(.25,1.05,roadEdge+(mid-.5)*.7+(F1.x-.5)*.5)));
   // earth and its textures are only painted where soil, bare ground or a road actually shows
   vec3 col=grass;
   if(soil+bare+onRoad>.002){
@@ -170,7 +174,7 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
     }
   }
   // darker soil just inside the border, under the grass overhang
-  col*=1.0-.12*onRoad*(1.0-smoothstep(.54,.78,roadEdge));
+  col*=1.0-.12*onRoad*(1.0-smoothstep(.54,.78,roadEdge))*(1.0-country*.85);
   if(splat.b>.05){
     float damp=1.0-smoothstep(water+.12,water+1.15,y);
     vec3 bank=paintedEarth(w,damp*.78);

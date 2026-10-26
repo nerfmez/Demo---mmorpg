@@ -164,6 +164,20 @@ test('the Conch Coast lies west of the arrival beach on the Frontier coast, as a
  // the Frontier shore follows the scene's own shore inside its bounds
  for(const [x,z] of scene.shore.filter(p=>p[0]>b[0]+4&&p[0]<b[1]-4))assert.ok(Math.abs(polylineZ(frontier.sea.shore,x)-z)<.01,'shore at '+x);
 });
+test('the Conch Coast is a hidden cove: one ramp is the only way in',()=>{
+ // owner, 26 October 2026: rock all round, one entrance (the conch-ring ramp above the stair gully)
+ const fw=worlds[frontier.id],[ox,oz]=frontier.atlas.offset,ring=frontier.acceptedScenes.edgeCliffs.find(c=>c.id==='conch-ring');
+ assert.equal(ring.points.filter(p=>p[2]==='ramp').length,1);
+ assert.ok(!frontier.acceptedScenes.edgeCliffs.some(c=>c.points.some(p=>p[2]==='ramp'&&c!==ring)));
+ // walk in metre steps (only where the game's move succeeds) from the land and beaches outside
+ const reach=blocked=>{const key=(i,j)=>i+','+j,starts=[[-306,68],[-270,10],[-300,20],[-200,20],[-175,30]],seen=new Set(starts.map(s=>key(...s))),q=[...starts];
+  while(q.length){const [i,j]=q.shift();for(const [di,dj] of[[1,0],[-1,0],[0,1],[0,-1]]){const ni=i+di,nj=j+dj,k=key(ni,nj);if(seen.has(k)||ni<-320||ni>-150||nj<0||nj>100||blocked(ni,nj))continue;
+   const m=fw.move(i-ox,j-oz,.45,di,dj);if(Math.hypot(m.x-(ni-ox),m.z-(nj-oz))>.03)continue;seen.add(k);q.push([ni,nj]);if(Math.hypot(ni+232,nj-82)<3)return true;}}
+  return false;};
+ assert.ok(reach(()=>false),'the cove cannot be reached at all');
+ const [rx,rz]=ring.points.find(p=>p[2]==='ramp').map((v,i)=>i===0?v+ox:i===1?v+oz:v);
+ assert.ok(!reach((x,z)=>Math.abs(x-rx-6)<16&&Math.abs(z-rz-2)<12),'a second way into the cove');
+});
 test('the arrival beach ends on the left in a high headland joined to the Conch Coast, open to the right',async()=>{
  const {edgeCliffAt}=await import('../../src/core/edge-cliffs.js');
  const fw=worlds[frontier.id],[ox,oz]=frontier.atlas.offset,ground=(x,z)=>x<data.world.bounds.minX?fw.groundY(x-ox,z-oz):world.groundY(x,z);
@@ -182,9 +196,9 @@ test('the arrival beach ends on the left in a high headland joined to the Conch 
  // the face is a cliff: walking west from the beach stops at it
  let x=-140;for(;x>-158;x-=.2){const m=world.move(x,70,.45,-.2,0);if(m.x>x-.18)break;}
  assert.ok(x>-153,'the face blocks the beach at '+x.toFixed(1));
- // the north side is a ramp: walk up onto the top from the land behind
- let z=44;for(;z<70;z+=.2){const m=fw.move(-172-ox,z-oz,.45,0,.2);assert.ok(m.z>z-oz+.18,'blocked climbing the ramp at '+z.toFixed(1));}
- assert.ok(fw.groundY(-172-ox,70-oz)>mine.top-.6);
+ // the north side is rock too (the Conch Coast is a hidden cove): walking up from the land behind stops at it
+ let z=30;for(;z<50;z+=.2){const m=fw.move(-172-ox,z-oz,.45,0,.2);if(m.z<z-oz+.18)break;}
+ assert.ok(z<44&&fw.groundY(-172-ox,z-oz)<1,'climbed the north side at '+z.toFixed(1));
  // the shore to the right is open, level ground: a walk (half-metre steps round props)
  // leads from the spawn to the first monsters' coast where the Conch Coast stood
  const S=.5,key=(i,j)=>i+','+j,start=[Math.round(data.world.playerSpawn[0]/S),Math.round(data.world.playerSpawn[1]/S)],seen=new Set([key(...start)]),queue=[start];let reached=false;

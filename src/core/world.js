@@ -5,6 +5,7 @@
 
 import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders,sceneWeight} from './accepted-scenes.js';
 import {outsideClearingWeight,sceneKeep} from './ground-regions.js';
+import {edgeCliffColliders} from './edge-cliffs.js';
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToPolylineBounds, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
@@ -536,6 +537,8 @@ export function createWorld(worldData) {
     }
     for(const key of Object.keys(decor))decor[key]=decor[key].filter(c=>!suppressNativeSceneProp(worldData,c.x,c.z)&&!connectorClear(worldData,c.x,c.z,1));
     for(const c of acceptedColliders(worldData))(c.hx===undefined?circles:boxes).push(c);
+    // an edge cliff's face is solid along its steep band: only its ramps lead up
+    for(const c of edgeCliffColliders(worldData,(x,z)=>hf.heightAt(x,z)))circles.push(c);
     plantSceneSurrounds();
   }
 

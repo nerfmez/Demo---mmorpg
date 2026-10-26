@@ -332,3 +332,15 @@ Owner: "why not make it one piece" (the crack between the conch wall's end and t
 - Scene trail paint stops on the plateau, and a small scene piece (a palm trunk, a frond, a stone: connected triangles under 8 m across) that reaches into the plateau is left out whole instead of being clipped to a headless trunk at the face. Large meshes (cliffs) keep the per-triangle rule. No measurable build cost (Frontier scenery 2.0 s either way in Node).
 
 Checks: core 616/616, render 50/51 (skirt, also on main). Inspected at the owner's camera, low from the beach, from the sea and from above.
+
+### Follow-up: a hidden cove with one way in (26 October 2026)
+
+Owner: "enclose it as a secret place with only one entrance" (circling the open slope behind the left headland and the beach strip west of the cove).
+
+- **Rock ring** (`edgeCliffs` `conch-ring`, Frontier only): a 6.5 m rock rise round the Conch Coast's west and north backs, from the sea cliff west of the cove (x −286) to the west headland's plateau, with open edges where it meets the scene's own tops. Its one opening is a grass ramp on the north side above the stair gully (world x −259…−246, z 28): up onto the back, down the stairs to the conch beach.
+- **West headland:** its north grass ramp is now rock as well, so the whole rise (ring, Conch Coast tops, headland) has that one way up.
+- **No climb along the faces:** walking down a cliff is allowed in the game and only uphill slopes are limited, so a shallow walk across a face could climb it. Each face taller than 1.8 m now has solid circles along its steep band (`edgeCliffColliders`, type `edge-cliff`).
+- **Apron removed** on the Frontier Conch Coast (sides `{}`), along with the scene's `outer` ground and `outerFill`: the ring replaces the slopes that ran from its tops into the land.
+- **Rock faces without holes:** the bank behind a face is steepest half way up, so a course set back that far sank into the grass and showed green holes, more on the new ring. A course now stands out on the bank where the ground mesh (its own triangles, not the bilinear game height) would cover its corners or middle, and the courses below come out as far, so a face never overhangs. Faces are only ever moved outwards; a few courses show an extra fold. Holes measured over all faces: 178 m² → 18 m² (Frontier) and 25 m² → 0 (Azure); what is left is mostly the foot, which is sunk 0.3 m on purpose.
+
+Checks: core 617/617 (new: from outside, a walk reaches the conch beach; with the ring ramp blocked it does not), render 50/51 (skirt, also on main). Inspected from the sea, above, the west, the north entrance, the west face, the north walls and the arrival face, at normal capture with the hero's see-through dither off for the free-camera views.

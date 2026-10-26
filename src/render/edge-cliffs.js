@@ -30,12 +30,22 @@ function insideParts(S, b) {
 }
 export function edgeCliffGeometry(world) {
   const pos = [], col = [], tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), nn = new THREE.Vector3(), shade = new THREE.Color();
-  const quad = (a, b, c, d, out, color) => {
+  // each triangle faces `out` on its own: a quad bent over the bank must not show a culled half
+  const tri = (a, b, c, out, color) => {
     tmpA.subVectors(b, a); tmpB.subVectors(c, a); nn.crossVectors(tmpA, tmpB);
-    for (const v of nn.dot(out) >= 0 ? [a, b, c, a, c, d] : [a, c, b, a, d, c]) { pos.push(v.x, v.y, v.z); col.push(color.r, color.g, color.b); }
+    for (const v of nn.dot(out) >= 0 ? [a, b, c] : [a, c, b]) { pos.push(v.x, v.y, v.z); col.push(color.r, color.g, color.b); }
   };
+  const quad = (a, b, c, d, out, color) => { tri(a, b, c, out, color); tri(a, c, d, out, color); };
   const stone = STONE.map(h => new THREE.Color(h)), moss = MOSS.map(h => new THREE.Color(h)), F = [0, .32, .66, 1];
   const ground = (x, z) => world.groundY(x, z);
+  // the drawn ground: the heightfield split into the triangles the ground mesh draws
+  // (render/ground.js), which on a steep bank stands up to a metre off the bilinear groundY
+  const hf = world.heightfield, drawn = (x, z) => {
+    const fx = Math.min(Math.max((x - hf.ox) / hf.res, 0), hf.w - 1.0001), fz = Math.min(Math.max((z - hf.oz) / hf.res, 0), hf.h - 1.0001);
+    const i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j, k = j * hf.w + i, D = hf.data;
+    return u + v <= 1 ? D[k] + (D[k + 1] - D[k]) * u + (D[k + hf.w] - D[k]) * v : D[k + hf.w + 1] + (D[k + hf.w] - D[k + hf.w + 1]) * (1 - u) + (D[k + 1] - D[k + hf.w + 1]) * (1 - v);
+  };
+  const bank = (q, o) => Math.max(drawn(q.x + q.nx * o, q.z + q.nz * o), drawn(q.x + q.nx * o + q.nz * .25, q.z + q.nz * o - q.nx * .25), drawn(q.x + q.nx * o - q.nz * .25, q.z + q.nz * o + q.nx * .25));
   for (const cliff of world.data.acceptedScenes?.edgeCliffs || []) {
     const random = rng([...cliff.id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)), R = (a, b) => a + (b - a) * random(), pick = l => l[Math.floor(random() * l.length)];
     const lean = cliff.lean;
@@ -71,10 +81,31 @@ export function edgeCliffGeometry(world) {
         i0 = i1;
       }
       const top = (C, q) => q.top + C.rise;
-      const vtx = (C, i, r, f = F[r]) => {
-        const q = S[i], u = (q.s - C.s0) / Math.max(.01, C.s1 - C.s0), c = Math.min(r, F.length - 2);
+      const raw = (C, i, c, f) => {
+        const q = S[i], u = (q.s - C.s0) / Math.max(.01, C.s1 - C.s0);
         const ridge = C.ridge * (u < C.peak ? u / C.peak : (1 - u) / (1 - C.peak));
-        const o = .12 + C.off + C.slope * (q.s - C.mid) + ridge + C.rows[c] + (c === 0 ? .2 : 0) - (lean + C.lean) * f;
+        return .12 + C.off + C.slope * (q.s - C.mid) + ridge + C.rows[c] + (c === 0 ? .2 : 0) - (lean + C.lean) * f;
+      };
+      // the bank behind is steepest half way up: a course set back that far would sink
+      // into the grass and leave a green hole in the face, so it stands out on the bank
+      // (checked at the course's middle too, where the bank curves over a straight course)
+      const pushed = (C, i, c, f) => {
+        const q = S[i], h = top(C, q) - q.base, y = q.base + h * f;
+        let o = raw(C, i, c, f);
+        if (f <= 0) return o; // the foot is sunk on purpose
+        const fl = F[F.indexOf(f) - 1] ?? 0, ol = fl > 0 ? pushed(C, i, c, fl) : raw(C, i, c, fl), ym = q.base + h * (f + fl) / 2;
+        for (let k = 0; k < 14 && (bank(q, o) > y - .12 || bank(q, (o + ol) / 2) > ym - .12); k++) o += .1;
+        return o;
+      };
+      const vtx = (C, i, r, f = F[r]) => {
+        const q = S[i], c = Math.min(r, F.length - 2);
+        let o = pushed(C, i, c, f);
+        // ...and the courses below it come out as far, so the face never overhangs (an
+        // overhang shows its culled underside to the camera above)
+        for (let m = 1; m < F.length; m++) if (F[m] > f + 1e-6) for (const cc of [m - 1, Math.min(m, F.length - 2)]) {
+          const p = pushed(C, i, cc, F[m]);
+          if (p > raw(C, i, cc, F[m]) + 1e-6) o = Math.max(o, p);
+        }
         return new THREE.Vector3(q.x + q.nx * o, q.base + (top(C, q) - q.base) * f, q.z + q.nz * o);
       };
       // a dark backing behind the columns, so cracks show shadowed stone

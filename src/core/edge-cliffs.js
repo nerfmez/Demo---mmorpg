@@ -71,3 +71,25 @@ export function edgeCliffRuns(cliff) {
   }
   return runs;
 }
+/** Solid circles along each cliff stretch's steep band (from the edge to `lean` inside), so
+ *  the face cannot be climbed by walking along it at a shallow angle; only ramps lead up.
+ *  Left out where the face is under 1.8 m (the ground in front almost as high). */
+export function edgeCliffColliders(data, groundY) {
+  const out = [];
+  for (const cliff of data.acceptedScenes?.edgeCliffs || []) {
+    const lean = cliff.lean;
+    for (const run of edgeCliffRuns(cliff)) for (let i = 0; i < run.length - 1; i++) {
+      const a = run[i], b = run[i + 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(len / .8));
+      let nx = (b[1] - a[1]) / len, nz = -(b[0] - a[0]) / len;
+      const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
+      if (edgeCliffAt(cliff, mx + nx * .8, mz + nz * .8) > -Infinity) { nx = -nx; nz = -nz; }
+      for (let k = 0; k <= n; k++) {
+        const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n;
+        const top = edgeCliffAt(cliff, x - nx * (lean + .4), z - nz * (lean + .4)), foot = groundY(x + nx * 1.4, z + nz * 1.4);
+        if (!(top - foot >= 1.8)) continue;
+        out.push({ x: x - nx * lean * .5, z: z - nz * lean * .5, r: lean * .5 + .2, type: 'edge-cliff', cliff: cliff.id });
+      }
+    }
+  }
+  return out;
+}

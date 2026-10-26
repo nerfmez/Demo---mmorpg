@@ -73,8 +73,18 @@ const BUILD = {
     rb.add('chest', new THREE.SphereGeometry(0.17, 16, 6, 0, PI * 2, 0, PI * 0.32).scale(1.15, 0.8, 1.0).translate(0, 0.2, -0.01), P.accent);
     rb.add('chest', new THREE.TorusGeometry(0.17 * Math.sin(PI * 0.32), 0.012, 4, 24).rotateX(PI / 2).scale(1.15, 1, 1.0).translate(0, 0.2 + 0.17 * 0.8 * Math.cos(PI * 0.32), -0.01), P.trim);
   },
+  // a soft cloth cowl round the neck with a rolled rim and a crescent clasp (the moonleaf cowl);
+  // it covers no hair
+  cowl(rb, P) {
+    rb.add('chest', new THREE.CylinderGeometry(0.105, 0.145, 0.1, 20, 1, true).translate(0, 0.31, -0.005), P.main);
+    rb.add('chest', new THREE.TorusGeometry(0.108, 0.02, 6, 22).rotateX(PI / 2).translate(0, 0.36, -0.005), P.main);
+    rb.add('chest', new THREE.TorusGeometry(0.145, 0.008, 4, 24).rotateX(PI / 2).translate(0, 0.26, -0.005), P.trim, { plain: true });
+    rb.add('chest', new THREE.TorusGeometry(0.03, 0.007, 4, 12, PI * 1.3).rotateZ(PI * 0.6).translate(0.05, 0.3, 0.135), P.accent, { plain: true });
+  },
 };
 export const HELM_KINDS = Object.keys(BUILD);
+/** Headwear that leaves the hair whole (drawn round it or below it). */
+export const HAIR_WHOLE = ['circlet', 'cowl'];
 
 /** Add a resolved helm (resolveOutfit().helm) to a RigBuilder's head. */
 export function buildHeadwear(rb, helm) {

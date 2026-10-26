@@ -1,0 +1,44 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for the moonleaf set: the front view of its equipment turnaround (assets-source/equipment/20261026, moonleaf-turnaround), meshy-t2 image-to-3d in T-pose (task 01a17807-228c-7160-ab2c-d1855129fee8) and a Meshy 6 retexture from the same image (task 01a17807-cb2d-73c9-bd62-b2b218c6c609); sized from its arm axis, cut at the neck, sleeve ends (cuff) and boot tops read off the model.",
+ "id": "moonleaf",
+ "src": "assets/meshy/outfits/moonleaf_meshy.glb",
+ "neck": 0.93,
+ "cuff": 0.13,
+ "bootTop": 0.14,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.4,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/moonleaf_robe.glb",
+  "boots": null
+ }
+}

@@ -932,13 +932,13 @@
     "outfit_shell_guard": {
       "file": "models/outfits/shell_guard.glb",
       "chibiOutfit": "armor",
-      "tris": 2022,
+      "tris": 1786,
       "source": "The chibi in the shell_guard set (the owner's reference sheet 07 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-18c6-7520-9ac0-04afd470c2e0), Meshy 6 retexture (task 01a16f6d-ef38-76e5-8732-7ca23f451f39); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/shell.json)."
     },
     "outfit_tide_boots": {
       "file": "models/outfits/tide_boots.glb",
       "chibiOutfit": "boots",
-      "tris": 486,
+      "tris": 614,
       "source": "The boots of the same model as outfit_shell_guard, cut below the boot tops by scripts/fit-chibi-outfit.py."
     },
     "outfit_wardenstalker_coat": {
@@ -976,6 +976,132 @@
       "chibiOutfit": "boots",
       "tris": 900,
       "source": "The boots of the same model as outfit_wolfpelt_coat, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_crabshell_vest": {
+      "file": "models/outfits/crabshell_vest.glb",
+      "chibiOutfit": "armor",
+      "tris": 2067,
+      "source": "The crabshell set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-1e78-701f-9918-b405cbba451b), Meshy 6 retexture (task 01a17807-c669-7437-b34b-a00beeabf939); assets/meshy/outfits/crabshell_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/crabshell.json)."
+    },
+    "outfit_crabshell_helm": {
+      "file": "models/outfits/crabshell_helm.glb",
+      "chibiOutfit": "helm",
+      "tris": 898,
+      "source": "The crabshell set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-1e78-701f-9918-b405cbba451b), Meshy 6 retexture (task 01a17807-c669-7437-b34b-a00beeabf939); assets/meshy/outfits/crabshell_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/crabshell.json crabshell_helm."
+    },
+    "outfit_moonleaf_robe": {
+      "file": "models/outfits/moonleaf_robe.glb",
+      "chibiOutfit": "armor",
+      "tris": 2040,
+      "source": "The moonleaf set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-228c-7160-ab2c-d1855129fee8), Meshy 6 retexture (task 01a17807-cb2d-73c9-bd62-b2b218c6c609); assets/meshy/outfits/moonleaf_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/moonleaf.json)."
+    },
+    "outfit_burrowguard_armor": {
+      "file": "models/outfits/burrowguard_armor.glb",
+      "chibiOutfit": "armor",
+      "tris": 1470,
+      "source": "The burrowguard set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7), Meshy 6 retexture (task 01a17807-cfb8-748b-83eb-5d1f87e06040); assets/meshy/outfits/burrowguard_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/burrowguard.json)."
+    },
+    "outfit_burrowguard_boots": {
+      "file": "models/outfits/burrowguard_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 861,
+      "source": "The burrowguard set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7), Meshy 6 retexture (task 01a17807-cfb8-748b-83eb-5d1f87e06040); assets/meshy/outfits/burrowguard_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/burrowguard.json)."
+    },
+    "outfit_burrowguard_helm": {
+      "file": "models/outfits/burrowguard_helm.glb",
+      "chibiOutfit": "helm",
+      "tris": 534,
+      "source": "The burrowguard set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7), Meshy 6 retexture (task 01a17807-cfb8-748b-83eb-5d1f87e06040); assets/meshy/outfits/burrowguard_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/burrowguard.json burrowguard_helm."
+    },
+    "outfit_wisp_robe": {
+      "file": "models/outfits/wisp_robe.glb",
+      "chibiOutfit": "armor",
+      "tris": 1926,
+      "source": "The wisp set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-29ef-77c6-8c8d-8e46b8f5e9c6), Meshy 6 retexture (task 01a17807-d4bd-76f4-8e3b-3f5fedb17824); assets/meshy/outfits/wisp_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wisp.json)."
+    },
+    "outfit_wisp_boots": {
+      "file": "models/outfits/wisp_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 618,
+      "source": "The wisp set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-29ef-77c6-8c8d-8e46b8f5e9c6), Meshy 6 retexture (task 01a17807-d4bd-76f4-8e3b-3f5fedb17824); assets/meshy/outfits/wisp_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wisp.json)."
+    },
+    "outfit_wisp_hood": {
+      "file": "models/outfits/wisp_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 539,
+      "source": "The wisp set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-29ef-77c6-8c8d-8e46b8f5e9c6), Meshy 6 retexture (task 01a17807-d4bd-76f4-8e3b-3f5fedb17824); assets/meshy/outfits/wisp_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/wisp.json wisp_hood."
+    },
+    "outfit_mirrorwing_robe": {
+      "file": "models/outfits/mirrorwing_robe.glb",
+      "chibiOutfit": "armor",
+      "tris": 1883,
+      "source": "The mirrorwing set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1), Meshy 6 retexture (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); assets/meshy/outfits/mirrorwing_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/mirrorwing.json)."
+    },
+    "outfit_mirrorwing_boots": {
+      "file": "models/outfits/mirrorwing_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 562,
+      "source": "The mirrorwing set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1), Meshy 6 retexture (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); assets/meshy/outfits/mirrorwing_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/mirrorwing.json)."
+    },
+    "outfit_mirrorwing_hood": {
+      "file": "models/outfits/mirrorwing_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 1170,
+      "source": "The mirrorwing set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1), Meshy 6 retexture (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); assets/meshy/outfits/mirrorwing_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/mirrorwing.json mirrorwing_hood."
+    },
+    "outfit_fernstep_coat": {
+      "file": "models/outfits/fernstep_coat.glb",
+      "chibiOutfit": "armor",
+      "tris": 2134,
+      "source": "The fernstep set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5), Meshy 6 retexture (task 01a17807-e0b0-7681-85a7-5108deaaba6e); assets/meshy/outfits/fernstep_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/fernstep.json)."
+    },
+    "outfit_fernstep_boots": {
+      "file": "models/outfits/fernstep_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 604,
+      "source": "The fernstep set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5), Meshy 6 retexture (task 01a17807-e0b0-7681-85a7-5108deaaba6e); assets/meshy/outfits/fernstep_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/fernstep.json)."
+    },
+    "outfit_fernstep_cap": {
+      "file": "models/outfits/fernstep_cap.glb",
+      "chibiOutfit": "helm",
+      "tris": 447,
+      "source": "The fernstep set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5), Meshy 6 retexture (task 01a17807-e0b0-7681-85a7-5108deaaba6e); assets/meshy/outfits/fernstep_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/fernstep.json fernstep_cap."
+    },
+    "outfit_travel_cap": {
+      "file": "models/outfits/travel_cap.glb",
+      "chibiOutfit": "helm",
+      "tris": 513,
+      "source": "The travel set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-37d7-7123-9458-1a4b7b937d62), Meshy 6 retexture (task 01a17807-e577-7518-a8f9-627beac78cf5); assets/meshy/outfits/travel2_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/travel2.json travel_cap."
+    },
+    "outfit_beetle_boots": {
+      "file": "models/outfits/beetle_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 770,
+      "source": "The beetle set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-3bd4-713c-893e-5c94cd4e4740), Meshy 6 retexture (task 01a17808-3b2a-758f-b556-598e7376f5a0); assets/meshy/outfits/beetle_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/beetle.json)."
+    },
+    "outfit_sporeweave_boots": {
+      "file": "models/outfits/sporeweave_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 1008,
+      "source": "The spore set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-3f5f-74c7-8dfd-a735e9f145ef), Meshy 6 retexture (task 01a17808-4208-768e-969c-4989426edce3); assets/meshy/outfits/spore2_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/spore2.json)."
+    },
+    "outfit_wardenstalker_boots": {
+      "file": "models/outfits/wardenstalker_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 833,
+      "source": "The wardenstalker set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-42df-71a1-8d73-5291139672e1), Meshy 6 retexture (task 01a17808-4693-70a6-9fad-f949cb0722ff); assets/meshy/outfits/warden3_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden3.json)."
+    },
+    "outfit_wolfpelt_hood": {
+      "file": "models/outfits/wolfpelt_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 741,
+      "source": "The wolfpelt set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-c142-7333-9aa0-bd7d31764605), Meshy 6 retexture (task 01a17809-42a1-7188-96fc-87ae68533af9); assets/meshy/outfits/wolf2_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/wolf2.json wolfpelt_hood."
+    },
+    "outfit_boarhide_boots": {
+      "file": "models/outfits/trail_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 1144,
+      "source": "The hide set's modelled boots, shared with outfit_trail_boots (the boarhide turnaround draws the same fur-topped boots)."
     },
     "outfit_sporeweave_vest": {
       "file": "models/outfits/sporeweave_vest.glb",

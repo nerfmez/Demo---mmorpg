@@ -73,7 +73,8 @@ the same shaders, reading the chibi's bind position times `SCALE` so the cuts ke
 - **Gloves** (`gloves`): a hand-and-forearm shell of length `len`, with a cuff band, wraps or
   plates, and parts (fur cuffs, claws, studs, a glowing gem).
 - **Helms** (`helms`): a `kind` built in `src/render/headwear.js` (`cap`, `shell` with
-  optional `spikes`, `pointedHood`, `circlet`, `horned`, `furHood`) and its palette.
+  optional `spikes`, `pointedHood`, `circlet`, `horned`, `furHood`, `cowl`: a cloth collar
+  round the neck that, like the circlet, leaves the hair whole) and its palette.
 
 **Accessories** (charms, pendants, rings) are not drawn on the character.
 

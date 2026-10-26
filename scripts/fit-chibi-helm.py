@@ -63,6 +63,8 @@ def head(g, neck):
     front = min((f.calc_center_median().y for f in eye), default=0)
     eye = [f for f in eye if f.calc_center_median().y < front + 0.03]
     ec = {sd: np.mean([tuple(f.calc_center_median()) for f in eye if (f.calc_center_median().x > 0) == sd], axis=0) for sd in (True, False)}
+    # eyes too pale to find by colour (grey) are given (`eyes`: left and right middles, x > 0 first)
+    if C.get('eyes') and g is not ref: ec = {True: np.array(C['eyes'][0], float), False: np.array(C['eyes'][1], float)}
     if any(np.isnan(v).any() for v in ec.values()): raise SystemExit('no eyes')
     # the face: the skin colour at the cheek under an eye, flooded across faces of that colour
     tree = BVHTree.FromBMesh(bm)

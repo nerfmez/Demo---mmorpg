@@ -300,6 +300,103 @@
       "trousers": {
         "pattern": 3
       }
+    },
+    "crabshell_vest": {
+      "style": "shell",
+      "palette": {
+        "main": "#e8704a",
+        "sleeve": "#c85a36",
+        "trim": "#b84a2a",
+        "accent": "#f6c0a0",
+        "metal": "#f08a5a",
+        "pants": "#3a3030"
+      },
+      "trousers": {
+        "pattern": 3
+      }
+    },
+    "burrowguard_armor": {
+      "style": "shell",
+      "palette": {
+        "main": "#6a4a30",
+        "sleeve": "#5a3e28",
+        "trim": "#3a2a1c",
+        "accent": "#e6d8c0",
+        "metal": "#8a6a48",
+        "pants": "#3a2e26"
+      },
+      "trousers": {
+        "pattern": 2
+      }
+    },
+    "mirrorwing_robe": {
+      "style": "mantle",
+      "palette": {
+        "main": "#26304e",
+        "sleeve": "#26304e",
+        "trim": "#c8d4e0",
+        "accent": "#9fd0f0",
+        "pattern": "#9fd0f0",
+        "gem": "#9fd0f0",
+        "pants": "#1e2438"
+      },
+      "trousers": {
+        "pattern": 1
+      }
+    },
+    "fernstep_coat": {
+      "style": "coat",
+      "palette": {
+        "main": "#5f7a3a",
+        "sleeve": "#5f7a3a",
+        "trim": "#efe6d0",
+        "accent": "#7a5232",
+        "cuff": "#efe6d0",
+        "fur": "#efe6d0",
+        "pants": "#3e4a2e"
+      },
+      "cut": {
+        "cuff": 0.82
+      },
+      "trousers": {
+        "pattern": 1
+      }
+    },
+    "moonleaf_robe": {
+      "style": "tunic",
+      "palette": {
+        "main": "#efe8d6",
+        "sleeve": "#efe8d6",
+        "trim": "#6f8a3a",
+        "accent": "#c8c0a8",
+        "pants": "#4f6a3a"
+      },
+      "skirt": {
+        "length": 0.4,
+        "flare": 0.1,
+        "opening": 0.2
+      },
+      "trousers": {
+        "pattern": 1
+      }
+    },
+    "wisp_robe": {
+      "style": "tunic",
+      "palette": {
+        "main": "#efe8d8",
+        "sleeve": "#efe8d8",
+        "trim": "#2f8f8a",
+        "accent": "#4fb8b0",
+        "pants": "#2f5a5a"
+      },
+      "skirt": {
+        "length": 0.5,
+        "flare": 0.12,
+        "opening": 0.3
+      },
+      "trousers": {
+        "pattern": 1
+      }
     }
   },
   "boots": {
@@ -403,6 +500,110 @@
       "parts": [
         "leafTips"
       ]
+    },
+    "boarhide_boots": {
+      "len": 0.6,
+      "palette": {
+        "main": "#6a4028",
+        "trim": "#e6d2a8",
+        "accent": "#3c2516",
+        "sole": "#3a2618"
+      },
+      "parts": [
+        "furCuffs",
+        "bootStraps"
+      ]
+    },
+    "beetle_boots": {
+      "len": 0.7,
+      "pattern": 3,
+      "palette": {
+        "main": "#6fae3a",
+        "trim": "#35601d",
+        "accent": "#a8d860",
+        "sole": "#2e3a24"
+      },
+      "parts": [
+        "shinGuards"
+      ]
+    },
+    "sporeweave_boots": {
+      "len": 0.3,
+      "pattern": 2,
+      "palette": {
+        "main": "#efe6d0",
+        "trim": "#e0ac3e",
+        "accent": "#f7f0dc",
+        "sole": "#8a5a2a"
+      },
+      "parts": [
+        "bootCuffs"
+      ]
+    },
+    "burrowguard_boots": {
+      "len": 0.7,
+      "pattern": 1,
+      "palette": {
+        "main": "#6a4a30",
+        "trim": "#e6d8c0",
+        "accent": "#3a2a1c",
+        "sole": "#2e2218"
+      },
+      "parts": [
+        "bootStraps"
+      ]
+    },
+    "mirrorwing_boots": {
+      "len": 0.6,
+      "pattern": 3,
+      "palette": {
+        "main": "#26304e",
+        "trim": "#c8d4e0",
+        "accent": "#9fd0f0",
+        "sole": "#1a1e30"
+      },
+      "parts": [
+        "ankleWings"
+      ]
+    },
+    "fernstep_boots": {
+      "len": 0.6,
+      "palette": {
+        "main": "#5f7a3a",
+        "trim": "#efe6d0",
+        "accent": "#6a4a30",
+        "sole": "#3a2a1c"
+      },
+      "parts": [
+        "furCuffs",
+        "leafTips"
+      ]
+    },
+    "wisp_boots": {
+      "len": 0.45,
+      "pattern": 1,
+      "palette": {
+        "main": "#efe8d8",
+        "trim": "#4fb8b0",
+        "accent": "#c8a060",
+        "sole": "#8a6a40"
+      },
+      "parts": [
+        "bootStraps"
+      ]
+    },
+    "wardenstalker_boots": {
+      "len": 0.62,
+      "palette": {
+        "main": "#3e5a36",
+        "trim": "#d2c8b4",
+        "accent": "#6a4a2a",
+        "sole": "#2c2a24"
+      },
+      "parts": [
+        "furCuffs",
+        "bootStraps"
+      ]
     }
   },
   "gloves": {
@@ -494,6 +695,79 @@
         "gloveFur",
         "claws"
       ]
+    },
+    "travel_gloves": {
+      "len": 0.3,
+      "pattern": 1,
+      "palette": {
+        "main": "#efe6d2",
+        "trim": "#4f8f8a",
+        "accent": "#8a5634"
+      },
+      "parts": []
+    },
+    "beetle_gloves": {
+      "len": 0.5,
+      "pattern": 3,
+      "palette": {
+        "main": "#6fae3a",
+        "trim": "#35601d",
+        "accent": "#a8d860"
+      },
+      "parts": []
+    },
+    "burrowguard_gloves": {
+      "len": 0.55,
+      "pattern": 3,
+      "palette": {
+        "main": "#6a4a30",
+        "trim": "#e6d8c0",
+        "accent": "#3a2a1c"
+      },
+      "parts": [
+        "claws"
+      ]
+    },
+    "mirrorwing_gloves": {
+      "len": 0.6,
+      "palette": {
+        "main": "#26304e",
+        "trim": "#c8d4e0",
+        "accent": "#9fd0f0"
+      },
+      "parts": []
+    },
+    "fernstep_gloves": {
+      "len": 0.5,
+      "palette": {
+        "main": "#6a4a30",
+        "trim": "#5f7a3a",
+        "accent": "#efe6d0"
+      },
+      "parts": [
+        "gloveStraps"
+      ]
+    },
+    "moonleaf_gloves": {
+      "len": 0.4,
+      "pattern": 1,
+      "palette": {
+        "main": "#efe8d6",
+        "trim": "#6f8a3a",
+        "accent": "#c0c8c8"
+      },
+      "parts": []
+    },
+    "storm_gloves": {
+      "len": 0.5,
+      "palette": {
+        "main": "#3a3440",
+        "trim": "#8a4a2a",
+        "accent": "#4aa8e8"
+      },
+      "parts": [
+        "gloveGem"
+      ]
     }
   },
   "helms": {
@@ -559,6 +833,60 @@
         "main": "#3a5434",
         "trim": "#cfc3ae",
         "accent": "#5e3f26"
+      }
+    },
+    "travel_cap": {
+      "kind": "cap",
+      "palette": {
+        "main": "#efe6d2",
+        "trim": "#4f8f8a"
+      }
+    },
+    "wolfpelt_hood": {
+      "kind": "furHood",
+      "palette": {
+        "main": "#8a7a66",
+        "trim": "#ddd4c6",
+        "accent": "#5e5246"
+      }
+    },
+    "burrowguard_helm": {
+      "kind": "shell",
+      "palette": {
+        "main": "#7a5232",
+        "trim": "#3a2a1c",
+        "accent": "#e6d8c0"
+      }
+    },
+    "mirrorwing_hood": {
+      "kind": "furHood",
+      "palette": {
+        "main": "#26304e",
+        "trim": "#c8d4e0",
+        "accent": "#9fd0f0"
+      }
+    },
+    "fernstep_cap": {
+      "kind": "cap",
+      "palette": {
+        "main": "#5f7a3a",
+        "trim": "#efe6d0"
+      }
+    },
+    "moonleaf_cowl": {
+      "kind": "cowl",
+      "palette": {
+        "main": "#efe8d6",
+        "trim": "#6f8a3a",
+        "accent": "#c8ccd4"
+      }
+    },
+    "wisp_hood": {
+      "kind": "furHood",
+      "palette": {
+        "main": "#efe8d8",
+        "trim": "#4fb8b0",
+        "accent": "#2f8f8a"
       }
     }
   }

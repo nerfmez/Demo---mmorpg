@@ -37,3 +37,23 @@ fit settings for `scripts/fit-chibi-outfit.py` (see `docs/OUTFIT-BASE.md`, "Mode
 - The warden hood was regenerated on the new chibi base (`warden2_reference.png` → `warden2_meshy.glb`,
   Meshy image-to-image then Meshy 6 image-to-3d, about 38 credits; `warden2.json`): the first hood's
   back was made for a lower head and left a gap behind the neck.
+
+## Set pieces from the equipment turnarounds (2026-10-26)
+
+The 29 set pieces proposed with the equipment turnarounds (`assets-source/equipment/20261026`,
+icons in `assets-source/equipment/20261025/icons`) are live items (`scripts/set-pieces.mjs`). Their
+models come from the front view of each set's turnaround (`<id>_reference.png`, the backdrop
+flooded to white): meshy-t2 image-to-3d in T-pose, untextured, then a Meshy 6 retexture from the
+same image with the lighting removed (15 credits each; task ids in each `<id>.json` and
+`data/models.json`). Cut heights were read off renders of each model in the fit frame.
+
+- New sets: `crabshell` (crabshell_vest, crabshell_helm; its boots stay `tide_boots`), `moonleaf`
+  (moonleaf_robe; the existing `moonleaf_slippers` stay, the cowl is the built `cowl` headwear, a
+  collar its model has no separate piece for), `burrowguard`, `wisp`, `mirrorwing` and `fernstep`
+  (armour, boots and helm each).
+- One missing piece of an existing set: `travel2` (travel_cap), `beetle` (beetle_boots), `spore2`
+  (sporeweave_boots), `warden3` (wardenstalker_boots), `wolf2` (wolfpelt_hood). Only that piece is
+  exported (`out` null for the rest).
+- `boarhide_boots` use the hide set's modelled boots (`trail_boots.glb`): the boarhide turnaround
+  draws the same fur-topped boots, so no model was generated for them.
+- Gloves stay the code-built shells, like every other glove.

@@ -177,6 +177,21 @@ for f in bm.faces:
                 if o not in _seen: _seen.add(o); comp.append(o); todo.append(o)
     if len(comp) < C.get('minFloat', 60) and min(g.calc_center_median().z for g in comp) > C['neck'] - 0.02:
         _float += comp
+# `dropPieces`: small loose pieces whose middle is in one of these boxes ([|x| from, |x| to, z from,
+# z to]) go too (an earring hanging below the neck cut from the cut-away head)
+if 'dropPieces' in C:
+    _seen2 = set()
+    for f in bm.faces:
+        if f in _seen2: continue
+        comp, todo = [f], [f]; _seen2.add(f)
+        while todo:
+            t = todo.pop()
+            for e in t.edges:
+                for o in e.link_faces:
+                    if o not in _seen2: _seen2.add(o); comp.append(o); todo.append(o)
+        c = sum((g.calc_center_median() for g in comp), Vector()) / len(comp)
+        if len(comp) < C.get('ornament', 150) and any(b[0] < abs(c.x) < b[1] and b[2] < c.z < b[3] for b in C['dropPieces']):
+            _float += [g for g in comp if g not in _float]
 bmesh.ops.delete(bm, geom=_float, context='FACES')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
 # `proud`: a small loose ornament standing off the garment (a fang toggle) is pressed flat onto it:

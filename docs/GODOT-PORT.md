@@ -486,7 +486,8 @@ and seat after the retarget.
 Its hair (`characters.hero_chibi_hair`, cut from the Travel Tunic's dressed chibi by
 `scripts/fit-chibi-hair.py`, its own painted texture) is parented to the head bone and fitted per
 axis to the head's bind bounds (`fit`, from the hair's fixed `box`); under a helm other than a
-circlet the hair above and behind `underHelm` is not drawn, so it cannot poke through. In Godot
+circlet or a cowl (`headwear.js` `HAIR_WHOLE`: the moonleaf cowl is a collar round the neck) the
+hair above and behind `underHelm` is not drawn, so it cannot poke through. In Godot
 attach it to the head bone with the same scale and offset and the same under-helm cut. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is

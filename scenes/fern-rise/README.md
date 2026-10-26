@@ -1,6 +1,6 @@
-# Fern Rise — standalone scene in owner review
+# Fern Rise — preliminarily accepted standalone scene
 
-**Owner status: in review, 26 October 2026**, artifact version 1:
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 26 October 2026** ("โอเคต่อไป"), artifact version 1:
 https://claude.ai/artifact/KbQwZdwcNs42peJmAdscX8.
 
 Concept: `fern-rise.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`

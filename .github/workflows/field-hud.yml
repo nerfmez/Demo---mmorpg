@@ -10,7 +10,7 @@ concurrency:
 jobs:
   field-hud:
     runs-on: ubuntu-24.04 # Playwright 1.56 has no browser build for ubuntu-latest (26.04)
-    timeout-minutes: 12
+    timeout-minutes: 20 # apt dependencies for the browser can take ~8 min on a cold runner
     strategy:
       fail-fast: false
       matrix:

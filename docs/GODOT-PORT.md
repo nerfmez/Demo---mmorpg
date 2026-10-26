@@ -176,7 +176,22 @@ Crafted C/B/A/S gear has 2/3/4/5 unique affixes. Every base/recipe pool supports
 Grade promotion retains existing rolls and +N, adding one unique affix. Enhancement
 +1..+5 changes base stats by 4% per step. Both upgrades use materials/gold only: no
 character-level or stat gate. Skill ranks 2..5 retain their separate Lv4/10/17/24 and
-stat gates, 6% direct growth and 5% MP growth; mods supply behavioural growth.
+stat gates, 6% direct growth and 12% MP growth; mods supply behavioural growth.
+
+MP economy (owner, 2026-10-26, after Path of Exile and Undecember): every combat skill has a
+`cost` (an aura reserves MP instead); the quick main attacks are cheap, physical ones cheaper than
+the spell. `computeSkill` sets `costScale` = (1 + `skillUpgrade.manaPerLevel` x (rank - 1)) x
+(1 - `manaCostReductionPct`/100) x the product of every active mod's `effect.costMult` (every
+combat mod has one, 1.15-1.4; Mana Siphon 1; movement mods none), then `cost = def.cost x
+costScale` and a channel's `manaPerSecond x costScale`. A rank raises the cost faster than the damage
+(12% against 6%), and cast speed spends it faster, so damage and speed without MP investment end
+MP-bound (`balance.js longFightDps` takes `mods` and `gear` and counts MP gained on hit). MP on
+hit (`mpOnHit`, derived stat): `s.mpOnHit` is the derived value plus Mana Siphon's, for Attack
+skills only; `hitMonster` adds it to MP (up to `manaLimit`) for each enemy a direct hit lands on
+(not damage over time, not allies). Sources: gear option `mp_on_hit` on attack weapons, gloves and
+charms (`growth: "percent"` overrides the flat item-level growth in `crafting.js optionRange`), the
+MP journal line's notables (+2 each) and the Mana Siphon mod. Spell gear rolls `mp_regen_pct` and
+`mana_cost_pct` instead. Tested in `tests/core/mana-economy.test.js`.
 
 `gearRequirements(item,data)` returns `{level: equipmentItemLevel(data,item)}` for
 `armor`, `helm`, `gloves`, `boots`, and `charm` (41 bases: 9/8/8/8/8). Only raw
@@ -265,7 +280,7 @@ fixed-size captions. New derived stats: `damagePct` (Damage tag),
 `attackDamagePct` (Attack tag), `elementalDamagePct` (Fire/Cold/Lightning/Poison tags),
 `critMultPct` (multiplies `critMult`), `castSpeedPct` (divides cast time AND cooldown),
 `penetrationPct` (multiplies monster defence by `1 - pct/100` in `hitMonster`),
-`movementRechargePct` and `manaCostReductionPct`. Caps and soft caps are in
+`movementRechargePct`, `manaCostReductionPct` and `mpOnHit` (MP per enemy an attack hits). Caps and soft caps are in
 `progression.json`. `balance.js` `lineEffects`, `linePath` and `longFightDps` model them.
 The journal pages the stage overview (6 pages per spread, 4 on phones and short screens). A
 grid page taller than the view scrolls, and "fit" stops at the readable zoom. Both are

@@ -81,7 +81,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
     // castSpeedPct is action speed: casting and the cooldown after it both run faster.
     cooldown: (def.cooldown * (1 - derived.cooldownPct / 100)) / (1 + (derived.castSpeedPct || 0) / 100),
     castTime: def.castTime / (1 + (derived.castSpeedPct || 0) / 100),
-    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostReductionPct || 0) / 100),
+    // the mana cost grows with the rank faster than the damage, and each active mod multiplies it (below)
+    costScale: (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostReductionPct || 0) / 100),
+    costMult: 1,
     speed: (def.speed || 0) * (1 + derived.projectileSpeedPct / 100),
     projectileRadius: def.projectileRadius || 0.3,
     delay: def.delay || 0,
@@ -214,6 +216,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
       s.summon.damage *= 1 + lv(e.summonDamage, L);
     }
     if (e.trigger) s.trigger = { on: e.trigger, icd: lv(e.internalCooldown, L), damageMult: lv(e.damageMult, L) };
+    if (e.costMult) s.costMult *= e.costMult;
+    if (e.mpOnHit) s.mpOnHit = (s.mpOnHit || 0) + lv(e.mpOnHit, L);
   }
   if (s.damage) {
     const finalLineInc = lineInc(tags, s.element);
@@ -233,6 +237,12 @@ export function computeSkill(ch, data, derived, slotIndex) {
   s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
   compileFrontier(s, def, activeMods);
   if (s.damage !== undefined) s.damage *= s.damageMult;
+  // Mana (owner, after PoE/Undecember): every mod raises the cost, and so does a channel's drain;
+  // only attacks gain MP on hit (gear options, the MP journal line, a mod).
+  s.costScale *= s.costMult;
+  s.cost = def.cost * s.costScale;
+  if (s.channel) s.channel.manaPerSecond = def.channel.manaPerSecond * s.costScale;
+  s.mpOnHit = tags.has('Attack') ? (s.mpOnHit || 0) + (derived.mpOnHit || 0) : 0;
   return s;
 }
 

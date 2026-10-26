@@ -34,8 +34,9 @@ export function referenceMonster(data, level) {
   };
 }
 
-/** A character of `kit` at `level`: stat points spent per the kit's build, main skill slotted. */
-export function referenceHero(data, kit, level, jobNodes = null) {
+/** A character of `kit` at `level`: stat points spent per the kit's build, main skill slotted
+ * (with `mods`, mod ids socketed at their top level). */
+export function referenceHero(data, kit, level, jobNodes = null, mods = []) {
   const b = data.progression.balance, build = b.builds[kit];
   const ch = createCharacter(data, { kit });
   ch.level = level;
@@ -49,6 +50,10 @@ export function referenceHero(data, kit, level, jobNodes = null) {
   ch.stats.VIT += points - spent;
   ch.slots = [{ skill: build.skill, mods: [] }, ...ch.slots.slice(1).map(() => ({ skill: null, mods: [] }))];
   ch.skills[build.skill] = skillRankAt(data, level);
+  if (mods.length) {
+    ch.mods = mods.map((id, i) => ({ uid: 'ref' + i, id, level: 3 }));
+    ch.slots[0].mods = ch.mods.map((m) => m.uid);
+  }
   if (jobNodes) ch.jobNodes = [data.jobtree.origin, ...jobNodes];
   // Expected gear stands in for items: a weapon pair/two-hand weapon and an armour set.
   ch.gear = [];
@@ -146,17 +151,23 @@ export function lineEffects(data, lineId) {
 
 /**
  * Damage per second over a long fight (a boss) with no walking to refill MP: casting is
- * limited by the cooldown or by MP (pool + regeneration over the fight), whichever binds.
+ * limited by the cooldown or by MP (pool + regeneration + MP gained on hit over the fight),
+ * whichever binds. `mods` are socketed in the main skill; `gear` adds stats (e.g. { mpOnHit: 4 }).
  */
-export function longFightDps(data, kit, level, jobNodes = null, seconds = 90) {
-  const b = data.progression.balance;
-  const { ch, d } = referenceHero(data, kit, level, jobNodes);
+export function longFightDps(data, kit, level, jobNodes = null, seconds = 90, mods = [], gear = {}) {
+  const b = data.progression.balance, base = data.progression.character.base;
+  const { ch, d } = referenceHero(data, kit, level, jobNodes, mods);
+  for (const [k, v] of Object.entries(gear)) d[k] = (d[k] || 0) + v;
+  if (gear.mpRegenPct) d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
   const s = computeSkill(ch, data, d, 0), m = referenceMonster(data, level);
   const crit = 1 + d.critChance * (d.critMult - 1);
   const mdef = m.defense * (1 - (d.penetrationPct || 0) / 100);
-  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * defenseFactor(mdef, data);
+  const hits = 1 + (s.repeats || 0); // one target: a boss
+  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * (1 + (s.repeats || 0) * (s.repeatMult || 0)) * defenseFactor(mdef, data);
   const byRate = b.uptime / Math.max(s.cooldown, s.castTime, 0.35);
-  const byMana = s.cost ? (d.maxMp + d.mpRegen * seconds) / seconds / s.cost : Infinity;
+  // casts per second MP allows: pool + regen over the fight, and each cast hands back its hits' MP
+  const net = s.cost - hits * (s.mpOnHit || 0);
+  const byMana = net > 0 ? (d.maxMp + d.mpRegen * seconds) / seconds / net : Infinity;
   return { dps: Math.round(perCast * Math.min(byRate, byMana) * 10) / 10, manaLimited: byMana < byRate };
 }
 

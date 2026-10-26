@@ -330,7 +330,8 @@
         "magic_flat",
         "crit_pct",
         "melee_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "STR",
@@ -352,7 +353,8 @@
         "magic_flat",
         "crit_pct",
         "projectile_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "DEX",
@@ -374,7 +376,9 @@
         "magic_flat",
         "crit_pct",
         "spell_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "INT",
@@ -398,7 +402,8 @@
         "melee_pct",
         "crit_pct",
         "poison_on_hit",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "STR",
@@ -420,7 +425,8 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "DEX",
@@ -442,7 +448,8 @@
         "crit_pct",
         "leech_pct",
         "poison_on_hit",
-        "melee_pct"
+        "melee_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "wolf_fang",
       "requirementStat": "DEX",
@@ -465,7 +472,9 @@
         "spell_pct",
         "mp_flat",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT",
@@ -489,7 +498,9 @@
         "spell_pct",
         "summon_pct",
         "poison_on_hit",
-        "cdr_pct"
+        "cdr_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
@@ -511,7 +522,8 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "STR",
@@ -533,7 +545,8 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "storm_quill",
       "requirementStat": "DEX",
@@ -556,7 +569,8 @@
         "melee_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "greyfang_mane",
       "requirementStat": "AGI",
@@ -578,7 +592,8 @@
         "melee_pct",
         "crit_pct",
         "hp_flat",
-        "defense_flat"
+        "defense_flat",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "warden_horn",
       "requirementStat": "STR",
@@ -601,7 +616,9 @@
         "spell_pct",
         "heal_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT",
@@ -624,7 +641,8 @@
         "hp_flat",
         "barrier_pct",
         "regen_flat",
-        "shield_flat"
+        "shield_flat",
+        "mp_regen_pct"
       ],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "VIT",
@@ -716,7 +734,9 @@
         "move_pct",
         "magic_flat",
         "shield_flat",
-        "shield_pct"
+        "shield_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT",
@@ -805,7 +825,8 @@
         "summon_pct",
         "regen_flat",
         "magic_flat",
-        "shield_flat"
+        "shield_flat",
+        "mp_regen_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
@@ -830,7 +851,9 @@
         "crit_pct",
         "magic_flat",
         "shield_flat",
-        "shield_pct"
+        "shield_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT",
@@ -875,7 +898,8 @@
         "hp_flat",
         "barrier_pct",
         "regen_flat",
-        "material_find"
+        "material_find",
+        "mp_regen_pct"
       ],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "AGI",
@@ -919,7 +943,8 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "material_find"
+        "material_find",
+        "mp_regen_pct"
       ],
       "upgradeMaterial": "glow_dust",
       "requirementStat": "INT",
@@ -963,7 +988,8 @@
         "projectile_pct",
         "defense_flat",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "DEX",
@@ -988,7 +1014,9 @@
         "gear_find",
         "gold_find",
         "shield_flat",
-        "shield_pct"
+        "shield_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT",
@@ -1011,7 +1039,8 @@
         "poison_on_hit",
         "mp_flat",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "mp_regen_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
@@ -1034,7 +1063,8 @@
         "crit_pct",
         "attack_flat",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "AGI",
@@ -1081,7 +1111,8 @@
         "cdr_pct",
         "leech_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT",
@@ -1129,7 +1160,8 @@
         "defense_flat",
         "hp_flat",
         "mp_flat",
-        "material_find"
+        "material_find",
+        "mp_regen_pct"
       ],
       "upgradeMaterial": "crab_shell",
       "requirementStat": "AGI",
@@ -1156,7 +1188,9 @@
         "summon_pct",
         "gear_find",
         "gold_find",
-        "shield_flat"
+        "shield_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "sea_pearl",
       "requirementStat": "INT",
@@ -1178,7 +1212,8 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "beetle_shell",
       "requirementStat": "STR",
@@ -1268,7 +1303,8 @@
         "crit_pct",
         "hp_flat",
         "defense_flat",
-        "melee_pct"
+        "melee_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "STR",
@@ -1312,7 +1348,8 @@
         "crit_pct",
         "projectile_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "wolf_pelt",
       "requirementStat": "DEX",
@@ -1334,7 +1371,9 @@
         "spell_pct",
         "cdr_pct",
         "mp_flat",
-        "area_pct"
+        "area_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "glow_dust",
       "requirementStat": "INT",
@@ -1357,7 +1396,8 @@
         "hp_flat",
         "attack_flat",
         "melee_pct",
-        "block_pct"
+        "block_pct",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "STR",
@@ -1374,7 +1414,8 @@
         "crit_pct",
         "projectile_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 102,
@@ -1396,7 +1437,8 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 166,
@@ -1418,7 +1460,8 @@
         "melee_pct",
         "area_pct",
         "hp_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 216,
@@ -1440,7 +1483,9 @@
         "spell_pct",
         "area_pct",
         "mp_flat",
-        "cdr_pct"
+        "cdr_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "stats": {
         "attack": 40,
@@ -1462,7 +1507,8 @@
         "melee_pct",
         "crit_pct",
         "leech_pct",
-        "hp_flat"
+        "hp_flat",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 187,
@@ -1484,7 +1530,9 @@
         "spell_pct",
         "poison_on_hit",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "stats": {
         "attack": 31,
@@ -1506,7 +1554,8 @@
         "melee_pct",
         "area_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 374,
@@ -1528,7 +1577,9 @@
         "spell_pct",
         "summon_pct",
         "poison_on_hit",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "stats": {
         "attack": 68,
@@ -1550,7 +1601,8 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 402,
@@ -1572,7 +1624,8 @@
         "crit_pct",
         "poison_on_hit",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 251,
@@ -1594,7 +1647,9 @@
         "spell_pct",
         "heal_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "stats": {
         "attack": 44,
@@ -1616,7 +1671,8 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 408,
@@ -1638,7 +1694,8 @@
         "melee_pct",
         "area_pct",
         "hp_flat",
-        "defense_flat"
+        "defense_flat",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 532,
@@ -1660,7 +1717,9 @@
         "spell_pct",
         "area_pct",
         "barrier_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "stats": {
         "attack": 97,
@@ -1682,7 +1741,8 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 571,
@@ -1772,7 +1832,8 @@
         "crit_pct",
         "poison_on_hit",
         "leech_pct",
-        "move_pct"
+        "move_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "defense": 32,
@@ -1819,7 +1880,8 @@
         "leech_pct",
         "melee_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "mp_on_hit"
       ],
       "stats": {
         "critChancePct": 3.5,
@@ -1841,7 +1903,8 @@
         "melee_pct",
         "crit_pct",
         "cdr_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 344,
@@ -1863,7 +1926,8 @@
         "crit_pct",
         "cdr_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 325,
@@ -1885,7 +1949,9 @@
         "spell_pct",
         "summon_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "stats": {
         "attack": 57,
@@ -1907,7 +1973,8 @@
         "melee_pct",
         "area_pct",
         "hp_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 528,
@@ -1929,7 +1996,8 @@
         "melee_pct",
         "area_pct",
         "move_pct",
-        "hp_flat"
+        "hp_flat",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 690,
@@ -1997,7 +2065,8 @@
         "melee_pct",
         "crit_pct",
         "hp_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 423,
@@ -2019,7 +2088,8 @@
         "crit_pct",
         "poison_on_hit",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 399,
@@ -2041,7 +2111,9 @@
         "spell_pct",
         "area_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "stats": {
         "attack": 71,
@@ -2063,7 +2135,8 @@
         "projectile_pct",
         "crit_pct",
         "cdr_pct",
-        "move_pct"
+        "move_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 910,
@@ -2084,7 +2157,8 @@
         "mp_flat",
         "heal_pct",
         "magic_flat",
-        "summon_pct"
+        "summon_pct",
+        "mp_regen_pct"
       ],
       "stats": {
         "defense": 103,
@@ -2107,7 +2181,8 @@
         "heal_pct",
         "summon_pct",
         "mp_flat",
-        "poison_on_hit"
+        "poison_on_hit",
+        "mp_regen_pct"
       ],
       "stats": {
         "magic": 22,
@@ -2131,7 +2206,8 @@
         "defense_flat",
         "hp_flat",
         "heal_pct",
-        "material_find"
+        "material_find",
+        "mp_regen_pct"
       ],
       "stats": {
         "defense": 52,
@@ -2200,7 +2276,8 @@
         "crit_pct",
         "projectile_pct",
         "leech_pct",
-        "move_pct"
+        "move_pct",
+        "mp_on_hit"
       ],
       "stats": {
         "attack": 73,
@@ -2230,7 +2307,8 @@
         "attack_flat",
         "projectile_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "fern_ear_tuft",
       "requirementStat": "AGI",
@@ -2253,7 +2331,9 @@
         "cdr_pct",
         "barrier_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "mirror_scale",
       "requirementStat": "INT",
@@ -2301,7 +2381,8 @@
         "move_pct",
         "crit_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "mp_on_hit"
       ],
       "upgradeMaterial": "rootdigger_claw",
       "requirementStat": "DEX",
@@ -2449,6 +2530,29 @@
       "stat": "hpRegen",
       "min": 10,
       "max": 20
+    },
+    "mp_on_hit": {
+      "label": "+{v} MP per attack hit",
+      "labelTh": "ได้ MP เมื่อตีโดน +{v}",
+      "stat": "mpOnHit",
+      "growth": "percent",
+      "_doc": "Attacks only, per enemy hit (core/skills.js s.mpOnHit). Grows with item level like a percentage so a flat gain stays small next to skill costs.",
+      "min": 2,
+      "max": 4
+    },
+    "mp_regen_pct": {
+      "label": "+{v}% MP regeneration",
+      "labelTh": "ฟื้น MP +{v}%",
+      "stat": "mpRegenPct",
+      "min": 5,
+      "max": 12
+    },
+    "mana_cost_pct": {
+      "label": "{v}% less MP cost",
+      "labelTh": "ใช้ MP น้อยลง {v}%",
+      "stat": "manaCostReductionPct",
+      "min": 2,
+      "max": 5
     },
     "block_pct": {
       "label": "+{v}% Block Chance",
@@ -2685,6 +2789,8 @@
       "barrierPct": 0.15,
       "healPct": 0.15,
       "mpRegenPct": 0.15,
+      "mpOnHit": 0.6,
+      "manaCostReductionPct": 0.6,
       "blockChancePct": 0.6
     }
   },

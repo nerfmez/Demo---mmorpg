@@ -896,6 +896,8 @@ export class Game {
         if (!m.boss && m.state === 'windup') m.stateT = Math.max(0, m.stateT - 0.25); // knocks the rhythm back a little
       }
       if (opts.leech && !opts.byAlly) this.healPlayer((Math.min(dmg, hpBefore) * opts.leech) / 100, true);
+      // an attack gains MP for each enemy it hits (s.mpOnHit: gear, the MP line, a mod)
+      if (opts.mpOnHit && !opts.byAlly) this.player.mp = Math.min(manaLimit(this), this.player.mp + opts.mpOnHit);
     } else setAggro(this, m, this.player);
     if (m.hp <= 0) this.killMonster(m);
     return dmg;
@@ -1067,7 +1069,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */

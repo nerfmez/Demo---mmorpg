@@ -40,7 +40,7 @@ export function recipeBlocker(ch, data, recipeId) {
  * level (items.grades.optionLevelGrowth), then the grade's band of that (items.grades.optionRoll). */
 export function optionRange(data, id, grade, itemLevel = 1) {
   const g = data.items.grades, def = data.items.gearOptions[id], band = g.optionRoll?.[grade] || [0, 1];
-  const growth = g.optionLevelGrowth?.[def.stat.endsWith('Pct') ? 'percent' : 'flat'] || 0, m = 1 + growth * (Math.max(1, itemLevel) - 1);
+  const growth = g.optionLevelGrowth?.[def.growth || (def.stat.endsWith('Pct') ? 'percent' : 'flat')] || 0, m = 1 + growth * (Math.max(1, itemLevel) - 1);
   const lo = def.min * m, hi = def.max * m;
   const min = Math.max(Math.round(lo), Math.round(lo + band[0] * (hi - lo)));
   return { min, max: Math.max(min, Math.round(lo + band[1] * (hi - lo))) };

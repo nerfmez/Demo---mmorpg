@@ -792,6 +792,7 @@ const EFFECT_TH = {
   penetrationPct: 'เจาะเกราะ %',
   movementRechargePct: 'สกิลเคลื่อนที่ฟื้นไว %',
   manaCostReductionPct: 'ใช้ MP น้อยลง %',
+  mpOnHit: 'ได้ MP เมื่อตีโดน',
   magic: 'พลังเวท',
   defense: 'ป้องกัน',
   maxHp: 'HP',

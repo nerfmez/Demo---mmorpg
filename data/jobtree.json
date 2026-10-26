@@ -6801,7 +6801,8 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "manaCostReductionPct": 1.5
+        "manaCostReductionPct": 1.5,
+        "mpOnHit": 2
       },
       "note": "เลือกต่อจาก คลังพลัง 2 หรือ ประหยัด 2 ภายในกลุ่มนี้",
       "descTh": "เลือกต่อจาก คลังพลัง 2 หรือ ประหยัด 2 ภายในกลุ่มนี้",
@@ -8778,7 +8779,8 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "manaCostReductionPct": 1.88
+        "manaCostReductionPct": 1.88,
+        "mpOnHit": 2
       },
       "note": "เลือกต่อจาก คลังพลัง 3 หรือ ประหยัด 3 ภายในกลุ่มนี้",
       "descTh": "เลือกต่อจาก คลังพลัง 3 หรือ ประหยัด 3 ภายในกลุ่มนี้",
@@ -11085,7 +11087,8 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "manaCostReductionPct": 2.25
+        "manaCostReductionPct": 2.25,
+        "mpOnHit": 2
       },
       "note": "เลือกต่อจาก คลังพลัง 3 หรือ ประหยัด 3 ภายในกลุ่มนี้",
       "descTh": "เลือกต่อจาก คลังพลัง 3 หรือ ประหยัด 3 ภายในกลุ่มนี้",
@@ -13119,7 +13122,8 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "manaCostReductionPct": 2.63
+        "manaCostReductionPct": 2.63,
+        "mpOnHit": 2
       },
       "note": "เลือกต่อจาก คลังพลัง 2 หรือ ประหยัด 2 ภายในกลุ่มนี้",
       "descTh": "เลือกต่อจาก คลังพลัง 2 หรือ ประหยัด 2 ภายในกลุ่มนี้",
@@ -15351,7 +15355,8 @@
       ],
       "cost": 1,
       "effects": {
-        "manaCostReductionPct": 1.58
+        "manaCostReductionPct": 1.58,
+        "mpOnHit": 2
       },
       "note": "ต่อจาก ชำนาญ MP 8 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญ MP 8 ภายในกลุ่มนี้",

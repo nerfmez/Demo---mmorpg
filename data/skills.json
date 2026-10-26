@@ -26,7 +26,7 @@
       "arc": 120,
       "cooldown": 0.5,
       "castTime": 0.18,
-      "cost": 0,
+      "cost": 14,
       "element": "physical",
       "requires": {},
       "upgradeMaterial": "boar_tusk",
@@ -93,7 +93,7 @@
       "projectileRadius": 0.3,
       "cooldown": 0.55,
       "castTime": 0.2,
-      "cost": 0,
+      "cost": 14,
       "element": "physical",
       "requires": {},
       "upgradeMaterial": "boar_tusk",
@@ -124,7 +124,7 @@
       "projectileRadius": 0.3,
       "cooldown": 0.5,
       "castTime": 0.2,
-      "cost": 0,
+      "cost": 16,
       "element": "arcane",
       "requires": {},
       "upgradeMaterial": "glow_dust",
@@ -156,7 +156,7 @@
       "projectileRadius": 0.35,
       "cooldown": 0.7,
       "castTime": 0.22,
-      "cost": 60,
+      "cost": 56,
       "element": "fire",
       "burnChance": 0.25,
       "requires": {},
@@ -283,7 +283,7 @@
       "projectileRadius": 0.2,
       "cooldown": 0.6,
       "castTime": 0.2,
-      "cost": 0,
+      "cost": 12,
       "element": "poison",
       "requires": {
         "DEX": 6
@@ -555,7 +555,7 @@
       "range": 2.5,
       "cooldown": 0.5,
       "castTime": 0.18,
-      "cost": 0,
+      "cost": 12,
       "element": "physical",
       "requires": {
         "DEX": 5
@@ -1059,7 +1059,7 @@
     "cross_cut": {
       "name": "Cross Cut",
       "nameTh": "ฟันไขว้",
-      "desc": "ฟันมีดไขว้ด้านหน้า 2 ครั้งติดกัน ใช้กับมีดสั้น",
+      "desc": "ท่าหลักมีดสั้น ฟันไขว้ด้านหน้า 2 ครั้งติดกัน โดนทุกตัวในวงหน้า ตีโดน 2 ครั้งต่อการกด (ได้ผลตอนตีโดนสองเท่า เช่น ดูดมานา)",
       "tags": [
         "Attack",
         "Melee",
@@ -1071,17 +1071,17 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 120,
-        "scale": 1
+        "base": 60,
+        "scale": 0.7
       },
       "range": 2.2,
       "arc": 100,
       "repeats": 1,
       "repeatMult": 1,
       "repeatDelay": 0.14,
-      "cooldown": 2.5,
+      "cooldown": 0.75,
       "castTime": 0.22,
-      "cost": 60,
+      "cost": 24,
       "element": "physical",
       "requires": {
         "DEX": 8

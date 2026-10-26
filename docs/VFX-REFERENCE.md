@@ -256,6 +256,11 @@ chevrons) are gone: air is drawn in to the mouth through the cast, then sound wa
 one after another at head height to the true radius, a blast of arcs ")))" bursts ahead of the mouth
 and the camera rumbles; the speed trails stay while it lasts. Owner: no wavy lines; the rings are smooth.
 
+Stand Firm (ยืนหยัด, a duelist guard buff: 15% less damage taken for 8 s within 8 m), the same
+`BuffFx` in guard blue: the shout (ring and echo to the true radius, shout lines, spirit streaks, a cold
+glint), a shield emblem that pops up over each body the buff reached and holds, and small streaks
+circling each buffed body while it lasts.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

@@ -1253,8 +1253,7 @@
       "upgradeMaterial": "ram_horn",
       "upgradeStat": "VIT",
       "job": "duelist",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "team_stand": {
       "name": "Hold the Line",

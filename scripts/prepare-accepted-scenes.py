@@ -52,6 +52,26 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
  src=src.replace('mergeGeometries(stoneParts)','rigidParts(mergeGeometries(stoneParts,true))').replace('mergeGeometries(stoneLines)','rigidParts(mergeGeometries(stoneLines,true))')
  src=src.replace('HERO.x','heroStub.x').replace('HERO.z','heroStub.z').replace('HERO.face','heroStub.face')
  if name=='forest':
+  # Owner, 26 October 2026 (drawing): higher ground rings the cherry's hollow, its rock faces turned to
+  # the paths, in world metres (the scene stands at -112, -64, scale 0.62). The north rise joins the
+  # stair level and leaves trail-1 its pass on the east, under the arch; lower rises south-west and
+  # south-east leave the south entrance open. Their faces are the added rock (second pass).
+  old="// signed distance to a terrace outline: negative inside"
+  new=("for (const [top, W] of [[H(3.3), [[-123.0,-90.0],[-118.5,-93.0],[-111.2,-94.6],[-103.1,-95.6],[-96.5,-97.0],[-92.0,-98.8],[-90.0,-101.5],[-89.6,-105.5],[-89.5,-112],[-127,-112],[-127,-90.0]]],\n"
+       "  [3.0, [[-127.2,-69.8],[-125.9,-66.4],[-123.0,-62.8],[-120.2,-59.0],[-119.6,-50],[-150,-50],[-150,-67.6],[-140,-67.8]]],\n"
+       "  [3.0, [[-90.3,-73.5],[-91.8,-68.2],[-95.0,-64.6],[-99.5,-62.0],[-103.5,-59.6],[-105.2,-55.5],[-105.4,-50],[-74,-50],[-74,-67.6],[-86,-68]]]]) {\n"
+       "  const curve = new THREE.CatmullRomCurve3(W.map(([x, z]) => new V3((x + 112) / 0.62, 0, (z + 64) / 0.62)), true, 'centripetal');\n"
+       "  const pts = curve.getSpacedPoints(Math.ceil(curve.getLength() / 1.3)).slice(0, -1).map(q => ({ x: q.x, z: q.z, wall: 1 })), xs = pts.map(p => p.x), zs = pts.map(p => p.z);\n"
+       "  TERRACES.push({ top, ledge: true, ring: true, pts, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) });\n"
+       "}\nlet RING_ON = true;\n"+old)
+  assert src.count(old)==1,(name,old);src=src.replace(old,new)
+  # trees and bush masses are placed by their spot in the authored frame, lifted onto the ground they
+  # stand on; the rises must not move them, only raise them
+  for old,new in[("    const d = polyAt(T, x, z);\n    if (d === null) continue;","    if (T.ring && !RING_ON) continue;\n    const d = polyAt(T, x, z);\n    if (d === null) continue;"),
+                 ("    const top = height(x, z) > 1 ? height(x, z) : 0;","    RING_ON = false; const top = height(x, z) > 1 ? height(x, z) : 0; RING_ON = true;"),
+                 ("    const top = height(x0, z0); if (top > 1) [cx, cz] = P(u, v, top);","    RING_ON = false; const top = height(x0, z0); RING_ON = true; if (top > 1) [cx, cz] = P(u, v, top);")]:
+   assert src.count(old)==1,(name,old);src=src.replace(old,new)
+ if name=='forest':
   # In the game the whole forest is seen, not only the authored frame: every terrace edge with a
   # real drop gets the same rock columns (owner: "make them all the same rock"). The authored walls
   # are built exactly as before; the added ones in a second pass with their own random seed, so
@@ -73,8 +93,9 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
   for old,new in[("{ top: H(3.3), ledge: false, pts: [[0.2, 0.1, 't'], [0.32, 0.1, 't'], [0.33, -0.5, 't'], [0.18, -0.5, 't']] },","{ top: H(3.3), ledge: false, pts: [[0.2, 0.1, 't'], [0.32, 0.1, 't'], [0.3257, 0.0798, 't'], [0.3309, 0.0604, 't'], [0.3357, 0.0417, 't'], [0.3398, 0.0238, 't'], [0.3432, 0.0065, 't'], [0.3459, -0.0101, 't'], [0.3476, -0.0261, 't'], [0.3470, -0.0413, 't'], [0.3449, -0.0560, 't'], [0.3424, -0.0701, 't'], [0.3397, -0.0838, 't'], [0.3370, -0.0970, 't'], [0.3343, -0.1099, 't'], [0.3318, -0.1224, 't'], [0.3296, -0.1345, 't'], [0.3275, -0.1463, 't'], [0.3255, -0.1578, 't'], [0.3245, -0.1690, 't'], [0.3247, -0.1800, 't'], [0.3248, -0.1907, 't'], [0.3250, -0.2011, 't'], [0.3252, -0.2113, 't'], [0.3254, -0.2212, 't'], [0.3255, -0.2308, 't'], [0.3257, -0.2401, 't'], [0.3258, -0.2493, 't'], [0.3260, -0.2582, 't'], [0.3261, -0.2669, 't'], [0.33, -0.5, 't'], [0.18, -0.5, 't']] },"),
                  ("    const [ax, az] = P(0.975, 0.335, H(3.4)), [bx, bz] = P(0.93, 0.25, 0), [cx, cz] = P(0.86, 0.26, 0), [dx2, dz2] = P(0.78, 0.29, 0), [ex, ez] = P(0.715, 0.27, H(3.7));\n"
                   "    const a = TS, core = new THREE.CatmullRomCurve3([new V3(ax, H(3.2), az), new V3(bx, 6.6 + LIFT, bz), new V3(cx, 8.0 + LIFT, cz), new V3(dx2, 7.4 + LIFT, dz2), new V3(ex + 0.5, 5.4 + LIFT, ez), new V3(ex, H(3.55), ez)], false, 'centripetal');",
-                  # one smooth arch: rising straight from both feet, a round crest, a slight bow forward
-                  "    const [ax, az] = P(0.975, 0.335, H(3.4)), [ex, ez] = P(0.685, 0.185, H(3.7)), ya = H(3.2), ye = H(3.55), rise = 11.5 + LIFT - (ya + ye) / 2;\n"
+                  # one smooth arch over trail-1's north pass (owner's drawing): from the north rise to the right
+                  # terrace, rising straight from both feet to a round crest, bowing slightly forward
+                  "    const L = (x, z) => [(x + 112) / 0.62, (z + 64) / 0.62], [ax, az] = L(-92.6, -102.2), [ex, ez] = L(-79.6, -103.6), ya = H(3.1), ye = H(3.2), rise = 11.5 + LIFT - (ya + ye) / 2;\n"
                   "    const arc = t => { const s = Math.sin(Math.PI * t); return [ax + (ex - ax) * t, ya + (ye - ya) * t + rise * Math.pow(s, 0.7), az + (ez - az) * t + 1.2 * s]; };\n"
                   "    const [bx, , bz] = arc(0.25), [cx, , cz] = arc(0.5);\n"
                   "    const a = TS, core = new THREE.CatmullRomCurve3([0, 0.05, 0.15, 0.3, 0.5, 0.7, 0.85, 0.95, 1].map(t => new V3(...arc(t))), false, 'centripetal');"),

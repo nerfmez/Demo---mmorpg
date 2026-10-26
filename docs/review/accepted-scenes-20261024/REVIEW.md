@@ -384,3 +384,13 @@ Checks: core 640/640; render 52/53 (the skirt test, also red on main). Inspected
 Owner, on that round: "move the root back a little, and the rock face runs straight, not natural". The arching tree is now one smooth, round arch (owner: "further back again, and a beautiful curve"): it rises straight from both feet to a rounded crest about 3 m higher than before, bowing slightly forward, and its island foot stands about 5 m further back along the island's rim (its collider moves with it), and the stair level's east bank north of the stairs and the north-east bank (both straight lines in the source outline) now wind like the other faces, the ground with them (`data/accepted-scenes/forest.json` heights near those banks only). Both are game-side patches in `scripts/prepare-accepted-scenes.py`; the rest of the scene is unchanged (image diff: only those walls and the arch).
 
 Owner: the winding bank north of the stairs "bends unnaturally" (it zigzagged every few metres). Both added curves are now one broad bow with a small counter-bend, sampled every 1.4 m so the face has no kinks, fading back to the source line past the scene.
+
+### Follow-up: a ring of cliffs round the cherry (26 October 2026)
+
+Owner (drawing): "can you make cliffs ring the cherry tree, and move the arch's root to where I drew and pointed".
+
+- Three rises ring the cherry's hollow, their rock faces turned to the paths: a north rise at the stair level (it takes in the bank north of the stairs and stops 2 m short of trail-1), and lower rises south-west and south-east (about 1.9 m above the paths, a step below the side terraces) that leave the south entrance open. Each face stays at least 2.5 m clear of the trails (forest/trail-0..3 keep their grades).
+- The arching tree now stands over trail-1's north pass between the north rise and the right terrace, as a gate, one round arch as before.
+- Trees and bush masses are placed by their spot in the authored frame and lifted onto the ground; the rises lift them where they stand instead of moving them (`RING_ON` in the patch). Only the new faces, the arch and the things standing on the raised ground differ from the previous build (image diff).
+
+Checks: core 640/640 (roads walkable, scene edges continuous). Inspected from above, at the south entrance in the play camera, along the north rise and through the gate.

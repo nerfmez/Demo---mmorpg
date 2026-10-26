@@ -390,6 +390,14 @@ const TERRACES = [
   const xs = pts.map(p => p.x), zs = pts.map(p => p.z);
   return { ...T, pts, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) };
 });
+for (const [top, W] of [[H(3.3), [[-123.0,-90.0],[-118.5,-93.0],[-111.2,-94.6],[-103.1,-95.6],[-96.5,-97.0],[-92.0,-98.8],[-90.0,-101.5],[-89.6,-105.5],[-89.5,-112],[-127,-112],[-127,-90.0]]],
+  [3.0, [[-127.2,-69.8],[-125.9,-66.4],[-123.0,-62.8],[-120.2,-59.0],[-119.6,-50],[-150,-50],[-150,-67.6],[-140,-67.8]]],
+  [3.0, [[-90.3,-73.5],[-91.8,-68.2],[-95.0,-64.6],[-99.5,-62.0],[-103.5,-59.6],[-105.2,-55.5],[-105.4,-50],[-74,-50],[-74,-67.6],[-86,-68]]]]) {
+  const curve = new THREE.CatmullRomCurve3(W.map(([x, z]) => new V3((x + 112) / 0.62, 0, (z + 64) / 0.62)), true, 'centripetal');
+  const pts = curve.getSpacedPoints(Math.ceil(curve.getLength() / 1.3)).slice(0, -1).map(q => ({ x: q.x, z: q.z, wall: 1 })), xs = pts.map(p => p.x), zs = pts.map(p => p.z);
+  TERRACES.push({ top, ledge: true, ring: true, pts, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) });
+}
+let RING_ON = true;
 // signed distance to a terrace outline: negative inside
 function polyAt(T, x, z) {
   if (x < T.minX - 3 || x > T.maxX + 3 || z < T.minZ - 3 || z > T.maxZ + 3) return null;
@@ -459,6 +467,7 @@ const shadeAt = (x, z) => SHADE.reduce((m, s) => Math.max(m, 1 - smooth(s.r * 0.
 function field(x, z) {
   let y = 0, top = 0;
   for (const T of TERRACES) {
+    if (T.ring && !RING_ON) continue;
     const d = polyAt(T, x, z);
     if (d === null) continue;
     const w = T.ledge ? 1 - smooth(-0.35, 0.05, d) : 1 - smooth(-0.9, 0.25, d);   // cliffs drop sharply, banks roll
@@ -889,7 +898,7 @@ function build() {
     if (v < 0.25) h *= 0.62;   // the back row: lower trunks keep the bigger crowns in the top of the frame
     let [x, z] = P(u, v, 0);
     if (trailAt(x, z) < 1.2 * s) continue;   // keep the trails open
-    const top = height(x, z) > 1 ? height(x, z) : 0;
+    RING_ON = false; const top = height(x, z) > 1 ? height(x, z) : 0; RING_ON = true;
     if (top > 1) [x, z] = P(u, v, top);
     broadleaf(x, z, s, seed); treeItems[treeItems.length - 1].h = h;
     if (u === 0.565) treeItems[treeItems.length - 1].sakura = true;   // the island tree is a cherry in bloom
@@ -901,7 +910,7 @@ function build() {
   // the arching tree: a thick trunk rising from the right terrace, leaning over the trail and
   // rooting again on the island, with a crown above the arch
   {
-    const [ax, az] = P(0.975, 0.335, H(3.4)), [ex, ez] = P(0.685, 0.185, H(3.7)), ya = H(3.2), ye = H(3.55), rise = 11.5 + LIFT - (ya + ye) / 2;
+    const L = (x, z) => [(x + 112) / 0.62, (z + 64) / 0.62], [ax, az] = L(-92.6, -102.2), [ex, ez] = L(-79.6, -103.6), ya = H(3.1), ye = H(3.2), rise = 11.5 + LIFT - (ya + ye) / 2;
     const arc = t => { const s = Math.sin(Math.PI * t); return [ax + (ex - ax) * t, ya + (ye - ya) * t + rise * Math.pow(s, 0.7), az + (ez - az) * t + 1.2 * s]; };
     const [bx, , bz] = arc(0.25), [cx, , cz] = arc(0.5);
     const a = TS, core = new THREE.CatmullRomCurve3([0, 0.05, 0.15, 0.3, 0.5, 0.7, 0.85, 0.95, 1].map(t => new V3(...arc(t))), false, 'centripetal');
@@ -944,7 +953,7 @@ function build() {
     [0.98, 0.25, 2.5, 6, [0.9, 1.5]], [0.17, 0.12, 2.0, 4, [0.8, 1.3]], [0.88, 0.05, 2.0, 4, [0.8, 1.2]], [0.04, 0.12, 2.0, 4, [0.8, 1.3]], [0.76, 0.08, 1.5, 3, [0.7, 1.1]]];
   for (const [u, v, rad, n, [s0, s1]] of BUSHES) {
     const [x0, z0] = P(u, v, 0); let [cx, cz] = [x0, z0];
-    const top = height(x0, z0); if (top > 1) [cx, cz] = P(u, v, top);
+    RING_ON = false; const top = height(x0, z0); RING_ON = true; if (top > 1) [cx, cz] = P(u, v, top);
     for (let k = 0; k < n * K * K; k++) {
       const a = R(0, 6.28), r = Math.sqrt(rand()) * rad * K, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
       if (trailEdge(x, z) < 0.2 || trunkAt.some(([tx, tz, tr]) => Math.hypot(x - tx, z - tz) < tr)) continue;

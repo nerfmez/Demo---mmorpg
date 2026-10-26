@@ -94,6 +94,7 @@ FOL.leaf=['#2a6e50','#5a963e','#b9ce4e'];FOL.shrub=['#2b6b4b','#5e9639','#acbf45
 function clearCourt(){
  for(const list of[shrubItems,grassItems,flowerItems])for(let i=list.length-1;i>=0;i--){
   const item=list[i],st=stairsAt(item.x,item.z),radius=Math.max(item.sx||item.s||.1,item.sz||item.s||.1)*.60;
+  if(Math.hypot(item.x-GATE.x,item.z-GATE.z)<GATE.span*.85)continue;   // the gate's ivy stays
   if((polyAt(PLAZA,item.x,item.z)??1)<-.2||(st.s<st.half+radius+.28&&Math.abs(item.y-st.y)<M(.75)))list.splice(i,1);
  }
 }

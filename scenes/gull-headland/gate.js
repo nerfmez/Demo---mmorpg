@@ -19,13 +19,13 @@ function stoneGate(){
  // two square pillars of stacked drums, each a little narrower than the one below
  for(const[x,z]of[[ax,az],[bx,bz]]){
   const n=5;let y=y0;
-  for(let i=0;i<n;i++){const h=(top-lintel*.2)/n,w=pw*(1-i*.035);block(x,y,z,w,h*1.01,w,ry+R(-.03,.03),i===0?.3:.12,{base:pick(GATE_STONE)});y+=h;}
+  for(let i=0;i<n;i++){const h=(top-lintel*.2)/n,w=pw*(1-i*.035);block(x,y,z,w,h*1.01,w,ry+R(-.03,.03),i===0?.55:.45,{base:pick(GATE_STONE)});y+=h;}
   block(x,y0-.1,z,pw*1.35,M(.32),pw*1.35,ry,.35,{base:'#b9b4ad'});
   COLLIDERS.push({x,z,r:pw*.62});
  }
  // the lintel overhangs both pillars; a lower crossbeam carries the gull
  const L=span+pw*2.2;
- block(mx,y0+top-lintel*.2,mz,L,lintel,pw*1.05,ry,.25,{base:'#d3cdc4'});
+ block(mx,y0+top-lintel*.2,mz,L,lintel,pw*1.05,ry,.75,{base:'#d3cdc4'});
  block(mx,y0+beam,mz,span+pw*.9,M(.30),pw*.72,ry,.1,{base:'#c8c2ba'});
  // the gull: a white carved bird on a plaque at the crossbeam's middle
  const face=new V3(Math.sin(ry),0,Math.cos(ry)),py=y0+beam+M(.15),birdY=py+M(.42);
@@ -35,7 +35,24 @@ function stoneGate(){
  const parts=[wing(-1),wing(1),new THREE.BoxGeometry(M(.22),M(.16),M(.08))];
  const tail=new THREE.BoxGeometry(M(.12),M(.14),M(.06));tail.translate(0,-M(.13),0);parts.push(tail);
  const mesh=new THREE.Mesh(mergeGeometries(parts.map(g=>coloredPart(g,gull))),paint({vertexColors:true,shade:[.62,.62,.66],mid:[.92,.92,.9]}));
- mesh.position.set(mx+face.x*(pw*.2+M(.12)),birdY,mz+face.z*(pw*.2+M(.12)));mesh.rotation.y=ry;mesh.castShadow=true;bird.add(mesh);
+ mesh.position.set(mx+face.x*(pw*.2+M(.12)),birdY,mz+face.z*(pw*.2+M(.12)));mesh.rotation.y=ry;mesh.scale.setScalar(1.6);mesh.castShadow=true;bird.add(mesh);
+ // ivy and moss, as the reference's: creepers climb both pillars on the side toward the court,
+ // a mat of leaves lies along the lintel and strands hang from it
+ const front=face.z>0?face:face.clone().negate(),side=new V3(ux,0,uz),ivy=(x,y,z,r)=>addBush(x,y,z,r,{sy:.75,tint:R(-.25,.15)});
+ for(const[x,z,s]of[[ax,az,-1],[bx,bz,1]]){
+  for(let y=y0+M(.2);y<y0+top-lintel*.3;y+=M(R(.22,.38))){
+   const o=pw*.52,a=R(-.9,.9),q=new V3(x,0,z).addScaledVector(front,o*Math.cos(a)).addScaledVector(side,o*Math.sin(a)*.9);
+   ivy(q.x,y,q.z,R(.32,.55));
+  }
+  // a thick clump round each foot
+  for(let k=0;k<4;k++){const a=R(0,6.28),r=pw*R(.6,.9);ivy(x+Math.cos(a)*r,y0+.15,z+Math.sin(a)*r,R(.5,.8));}
+ }
+ for(let t=-.55;t<=.55;t+=.07){
+  const p=new V3(mx,0,mz).addScaledVector(side,L*t);
+  ivy(p.x+front.x*R(-.1,.3),y0+top+lintel*.75,p.z+front.z*R(-.1,.3),R(.35,.6));
+  // strands hanging over the front edge, longer near the pillars
+  if(rand()<.6){const n=1+Math.floor(R(1,4)*(Math.abs(t)>.35?1.4:1));for(let k=0;k<n;k++){const q=p.clone().addScaledVector(front,pw*.58);ivy(q.x,y0+top-lintel*.2-k*M(.38),q.z,R(.2,.32));}}
+ }
  GATE={x:mx,z:mz,y:y0,span,ry,group:bird};
  return bird;
 }

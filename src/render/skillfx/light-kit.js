@@ -34,6 +34,18 @@ export const starTexture = (el) => canvasTexture('star|' + el, (g) => {
   for (let i = 0; i < 8; i++) { const a = (i / 8) * 6.283 - Math.PI / 2, r = i % 2 ? 16 : 58; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); }
   g.closePath(); g.fillStyle = fill; g.fill(); g.lineWidth = 6; g.strokeStyle = stroke; g.stroke();
 });
+// a lens-flare glint: a hot round core, four long thin rays and four short diagonal ones
+export const flareTexture = (el) => canvasTexture('flare|' + el, (g) => {
+  const st = lightOf(el).stops, ray = (ang, len, w) => {
+    g.save(); g.translate(64, 64); g.rotate(ang);
+    const gr = g.createLinearGradient(0, 0, len, 0); gr.addColorStop(0, st[0]); gr.addColorStop(0.35, st[1]); gr.addColorStop(1, st[3]);
+    g.fillStyle = gr; g.beginPath(); g.moveTo(0, -w); g.lineTo(len, 0); g.lineTo(0, w); g.closePath(); g.fill(); g.restore();
+  };
+  g.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 4; i++) { ray(i * Math.PI / 2, 63, 3.2); ray(i * Math.PI / 2 + Math.PI / 4, 30, 2.2); }
+  const c = g.createRadialGradient(64, 64, 0, 64, 64, 26); c.addColorStop(0, st[0]); c.addColorStop(0.4, st[1]); c.addColorStop(1, st[3]);
+  g.fillStyle = c; g.fillRect(0, 0, 128, 128);
+});
 export function lightSprite(scene, map, additive, order = 9) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthWrite: false, transparent: true, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, depthTest: !!additive, toneMapped: false }));
   sp.visible = false; sp.renderOrder = order; scene.add(sp); return sp;

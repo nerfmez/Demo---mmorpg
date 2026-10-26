@@ -2,17 +2,17 @@
 // as nested see-through shells cut from flowing noise in Firebolt's heat ramp (meteor-flame.js),
 // smooth every frame, with Firebolt's fluttering embers (FireExtras). Sized for a job skill (10 s
 // cooldown); rules in docs/VFX-REFERENCE.md.
-//   Warning (the rules' delay): a crisp two-tone edge at the true radius over a low fill; a hatched
-//   fill grows from the centre and reaches the edge on the landing frame. A glow brightens in the sky
-//   behind the target with a four-point star.
-//   Fall (the last FALL seconds): a dark rock with molten cracks leads a comet of fire that wraps it
-//   and streams back up the path; embers peel off behind; the ground under it lights up.
+//   Warning and fall (the rules' delay): a crisp two-tone edge at the true radius over a low fill; a
+//   plain fill grows from the centre and reaches the edge on the landing frame. The meteor is in view
+//   the whole time: a dark rock with molten cracks leading a comet of fire, far up the sky at first,
+//   speeding up as it comes; embers peel off behind; the ground under it lights up as it nears.
 //   Impact ('burst'): Firebolt's ragged flash and fire puff at meteor size, a dome of fire that bursts
 //   up out of the ground, then tears into tongues and burns away as it cools; embers flutter out;
-//   glowing rock chunks fly and land; cracks open in the ground and cool. Cosmetic only.
+//   glowing rock chunks fly and land; a round crater is left, its molten floor cooling, then fades.
+//   Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, placeV, place, conformPlane, fxGround, addLight, NOISE } from './fx-common.js';
-import { CORE_FS, GLOW_FS, lightOf, glowTexture, starTexture, lightSprite, W, lineGlowW, taperW } from './light-kit.js';
+import { mulberry32, placeV, place, conformPlane, fxGround, addLight, NOISE } from './fx-common.js';
+import { glowTexture, lightSprite } from './light-kit.js';
 import { warnDisc } from './anime-kit.js';
 import { FireExtras } from './fire-extras.js';
 import { flameMaterial, cometShell, domeShell } from './meteor-flame.js';
@@ -40,18 +40,35 @@ function rockGeometry(seed) {
   g.computeVertexNormals(); return g;
 }
 
-const SLOTS = 2, FALL = 0.6, APEX = 7, BACK = 2.8, CRACKS = 9, CHUNKS = 5;
+const SLOTS = 2, APEX = 7, BACK = 2.8, FAR = 1.5, CHUNKS = 5, CRATER = 4.2;
 const ROCK = 0.85, HEAD = 1.15, TAIL = 4.2, DOME = 2.0;
 const X = new THREE.Vector3(1, 0, 0), UP = new THREE.Vector3(0, 1, 0);
 const HEAT_FS = `varying vec2 vP; uniform float uA; void main(){ float r=length(vP); if(r>1.0) discard; float a=pow(1.0-r,1.6); gl_FragColor=vec4(vec3(1.0,0.45,0.12)*a*uA, 1.0); }`;
 const HEAT_VS = `varying vec2 vP; void main(){ vP=uv*2.0-1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `;
+// the crater, a decal on the ground (radius 1 = the bowl's lip; the plane spans 1.7): a sunken bowl,
+// its wall lit on the side facing the sun (the far wall) and shaded on the near one, a raised broken
+// lip, soot round it, a molten floor that cools (uGlow), fading out (uA)
+const CRATER_FS = `varying vec2 vP; uniform float uA; uniform float uGlow; uniform float uSeed;` + NOISE + `
+  void main(){
+    vec2 p = vP*1.7; float r = length(p), an = atan(p.y, p.x);
+    float n = fbm(vec2(cos(an), sin(an))*2.0 + uSeed), lip = 1.0 + 0.1*(n - 0.5);
+    float soot = (1.0 - smoothstep(lip, 1.65, r)) * (0.55 + 0.45*fbm(p*2.3 + uSeed));
+    if (r > 1.65 || (r > lip + 0.12 && soot < 0.05)) discard;
+    vec2 d = p/max(r, 1e-3), L = normalize(vec2(-0.55, -0.83));            // the sun's side on the ground plane
+    float wall = smoothstep(0.25, 0.9, r/lip) * (1.0 - smoothstep(0.9, 1.0, r/lip));
+    float lit = dot(-d, L);                                                   // a wall facing the sun is lit
+    vec3 c = mix(vec3(0.17, 0.12, 0.1), vec3(0.3, 0.22, 0.17), smoothstep(0.0, 0.85, r/lip));
+    c *= 1.0 + 0.55*lit*wall;
+    float a = 0.92;
+    if (r > lip*0.9) { float k = (r - lip*0.9)/(lip*0.22); c = mix(vec3(0.46, 0.36, 0.26), vec3(0.33, 0.25, 0.19), clamp(k, 0.0, 1.0)) * (1.0 - 0.35*lit); }
+    if (r > lip + 0.12) { c = vec3(0.14, 0.1, 0.09); a = 0.5*soot; }
+    float m = (1.0 - smoothstep(0.2, 0.62, r)) * smoothstep(0.42, 0.62, fbm(p*3.0 + uSeed*2.0) + 0.25*(1.0 - r));
+    c = mix(c, mix(vec3(1.0, 0.45, 0.1), vec3(1.0, 0.85, 0.4), smoothstep(0.6, 0.9, m)), clamp(m*1.6, 0.0, 1.0)*uGlow);
+    gl_FragColor = vec4(c, a*uA); }`;
 
 export class MeteorFx {
   constructor(scene, camera) {
     this.camera = camera;
-    this.core = new Ribbon(scene, camera, 3000, CORE_FS, THREE.NormalBlending);
-    this.glow = new Ribbon(scene, camera, 3000, GLOW_FS, THREE.AdditiveBlending);
-    this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
     this.embers = new FireExtras(scene, camera);
     this.rnd = mulberry32(61); this.clock = 0;
     // drawn over its own fire: the rock leads, the fire wraps round behind it
@@ -71,14 +88,14 @@ export class MeteorFx {
       const heat = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 12, 12), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 } }, vertexShader: HEAT_VS, fragmentShader: HEAT_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
       heat.rotation.x = -Math.PI / 2; heat.renderOrder = 1; heat.visible = false; scene.add(heat);
       const rock = new THREE.Mesh(rockGeometry(11 + i * 7), this.rockMat); rock.visible = false; rock.renderOrder = 12; scene.add(rock);
+      const crater = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 16, 16), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uGlow: { value: 0 }, uSeed: { value: i * 5.3 } }, vertexShader: HEAT_VS, fragmentShader: CRATER_FS, transparent: true, depthWrite: false }));
+      crater.rotation.x = -Math.PI / 2; crater.renderOrder = 2; crater.visible = false; scene.add(crater);
       return {
-        live: false, t: 0, delay: 1, x: 0, z: 0, radius: 3, look: lightOf('fire'), landedAt: -1, salt: i * 101, grow: 1,
-        apex: new THREE.Vector3(), dir: new THREE.Vector3(), head: new THREE.Vector3(),
-        warn: warnDisc(scene), sky: lightSprite(scene, glowTexture('fire'), true, 9), star: lightSprite(scene, starTexture('fire'), false, 10),
-        halo: lightSprite(scene, glowTexture('fire'), true, 4),
-        comet, dome, heat, rock, emberAt: 0,
+        live: false, t: 0, delay: 1, x: 0, z: 0, radius: 3, landedAt: -1, salt: i * 101, grow: 1,
+        from: new THREE.Vector3(), to: new THREE.Vector3(), dir: new THREE.Vector3(), head: new THREE.Vector3(),
+        warn: warnDisc(scene), halo: lightSprite(scene, glowTexture('fire'), true, 4),
+        comet, dome, heat, rock, crater, emberAt: 0,
         chunks: Array.from({ length: CHUNKS }, (_, j) => { const m = new THREE.Mesh(rockGeometry(31 + j * 5 + i), this.chunkMat); m.visible = false; scene.add(m); return { m, p: new THREE.Vector3(), v: new THREE.Vector3(), spin: new THREE.Vector3(), size: 0.2, landed: -1 }; }),
-        cracks: Array.from({ length: CRACKS }, () => Array.from({ length: 5 }, () => new THREE.Vector3())),
       };
     });
     this.light = addLight(scene, new THREE.PointLight('#ffae5a', 0, 12, 1.6));
@@ -89,9 +106,11 @@ export class MeteorFx {
     const s = this.slots.find((q) => !q.live) || this.slots[0];
     this.hide(s);
     const dx = e.x - from.x, dz = e.z - from.z, l = Math.hypot(dx, dz) || 1;
-    Object.assign(s, { live: true, t: 0, delay: Math.max(0.6, e.delay), x: e.x, z: e.z, radius: e.radius, look: lightOf(element), landedAt: -1, emberAt: 0 });
-    s.apex.set(e.x + dx / l * BACK, APEX, e.z + dz / l * BACK);
-    s.dir.set(e.x - s.apex.x, -APEX, e.z - s.apex.z).normalize();
+    Object.assign(s, { live: true, t: 0, delay: Math.max(0.6, e.delay), x: e.x, z: e.z, radius: e.radius, landedAt: -1, emberAt: 0.15 });
+    // the line it falls along: down from behind the target, starting FAR metres beyond the old apex
+    s.to.set(e.x, 0.9, e.z);
+    s.dir.set(-dx / l * BACK, -APEX, -dz / l * BACK).normalize();
+    s.from.copy(s.to).addScaledVector(s.dir, -((APEX - 0.9) / -s.dir.y + FAR));
     const U = s.warn.material.uniforms; U.uR.value = e.radius; U.uK.value = 0; U.uOpen.value = 0;
     place(s.warn, e.x, 0.04, e.z); s.warn.scale.setScalar(e.radius * 2 * 1.06); conformPlane(s.warn); s.warn.visible = true;
     place(s.heat, e.x, 0.05, e.z); s.heat.scale.setScalar(e.radius * 2.2); conformPlane(s.heat); s.heat.visible = true; s.heat.material.uniforms.uA.value = 0;
@@ -101,8 +120,9 @@ export class MeteorFx {
     const s = this.slots.find((q) => q.live && q.landedAt < 0 && Math.hypot(q.x - e.x, q.z - e.z) < 0.05);
     if (!s) return;
     s.landedAt = s.t;
-    for (const m of [s.sky, s.star, s.halo, s.comet, s.rock, s.warn]) m.visible = false;
+    for (const m of [s.halo, s.comet, s.rock, s.warn]) m.visible = false;
     const r = this.rnd, R = s.radius, gy = fxGround.y(s.x, s.z);
+    place(s.crater, s.x, 0.06, s.z); s.crater.scale.setScalar(R * 0.62 * 1.7 * 2); conformPlane(s.crater); s.crater.visible = true;
     // Firebolt's ragged flash and fire puff, at meteor size, and its embers
     this.embers.impact(s.x, gy + 1.2, s.z, false, 2.8);
     this.embers.burst(s.x, gy + 0.3, s.z, 18, 2.2, R * 0.5);
@@ -113,15 +133,13 @@ export class MeteorFx {
       c.p.set(s.x + Math.cos(a) * 0.4, 0.6, s.z + Math.sin(a) * 0.4); c.v.set(Math.cos(a) * sp, 4 + r() * 4, Math.sin(a) * sp);
       c.spin.set(r() * 9, r() * 9, r() * 9); c.size = 0.16 + r() * 0.16; c.landed = -1; c.m.visible = true;
     });
-    s.cracks.forEach((c, j) => { const a = (j / CRACKS) * 6.283 + (r() - 0.5) * 0.4, len = R * (0.55 + r() * 0.4); for (let i = 0; i < 5; i++) { const u = i / 4, jj = i ? (r() - 0.5) * 0.35 : 0; c[i].set(s.x + Math.cos(a + jj * 0.4) * len * u, 0.03, s.z + Math.sin(a + jj * 0.4) * len * u); } });
   }
   hide(s) {
-    for (const m of [s.sky, s.star, s.halo, s.comet, s.dome, s.rock, s.warn, s.heat]) m.visible = false;
+    for (const m of [s.halo, s.comet, s.dome, s.rock, s.warn, s.heat, s.crater]) m.visible = false;
     for (const c of s.chunks) c.m.visible = false;
   }
   update(dt) {
     this.clock += dt;
-    this.core.begin(); this.glow.begin();
     let light = 0;
     for (const s of this.slots) {
       if (!s.live) continue;
@@ -130,43 +148,32 @@ export class MeteorFx {
     }
     this.light.intensity = light;
     this.embers.update(dt, this.tip);
-    this.core.end(); this.glow.end();
   }
   warn(s, dt) {
     const k = Math.min(1, s.t / s.delay);
-    // the true area: a crisp edge, a low fill, and a hatched fill growing to the edge on the landing frame
+    // the true area: a crisp edge, a low fill, and a fill growing to the edge on the landing frame
     const U = s.warn.material.uniforms; U.uOpen.value = Math.min(1, s.t / 0.15); U.uK.value = k;
-    const fallAt = s.delay - FALL;
-    if (s.t < fallAt) {
-      // a glow brightening in the sky behind the target, a star twinkling in it
-      const u = Math.min(1, s.t / Math.max(0.1, fallAt)), tw = 0.85 + 0.15 * Math.sin(s.t * 30);
-      s.sky.visible = true; placeV(s.sky, s.apex); s.sky.scale.setScalar((0.8 + 1.8 * u) * tw);
-      s.star.visible = true; placeV(s.star, s.apex); s.star.scale.setScalar((0.4 + 0.8 * u) * tw); s.star.material.rotation = s.t * 1.5;
-      s.heat.material.uniforms.uA.value = 0.1 * u;
-      return 0;
-    }
-    s.sky.visible = s.star.visible = false;
-    const f = Math.min(1, (s.t - fallAt) / FALL), e = f * f * 0.65 + f * 0.35;
-    s.head.set(s.apex.x + (s.x - s.apex.x) * e, s.apex.y * (1 - e) + 0.9 * e, s.apex.z + (s.z - s.apex.z) * e);
-    s.grow = Math.min(1, 0.4 + f * 2.5);
-    // the rock, tumbling, its leading face red-hot
+    // the meteor, in view the whole time: far up the sky at first, speeding up as it comes
+    const e = Math.pow(k, 1.8);
+    s.head.lerpVectors(s.from, s.to, e);
+    s.grow = 0.45 + 0.55 * e;
     s.rock.visible = true; placeV(s.rock, s.head); s.rock.scale.setScalar(ROCK * s.grow); s.rock.rotation.x += dt * 5; s.rock.rotation.z += dt * 3.2;
     this.rockMat.uniforms.uDir.value.copy(s.dir);
-    // the comet of fire round it, its tail growing in as it leaves the sky
+    // the comet of fire round it, its tail stretching out as it speeds up
     s.comet.visible = true; this.p.copy(s.head).addScaledVector(s.dir, 0.15 * s.grow); placeV(s.comet, this.p);
     s.comet.quaternion.copy(this.q.setFromUnitVectors(X, s.dir));
-    s.comet.scale.set(s.grow * (0.35 + 0.65 * Math.min(1, f * 2)), s.grow, s.grow);
+    s.comet.scale.set(s.grow * (0.4 + 0.6 * Math.min(1, k * 1.6)), s.grow, s.grow);
     for (const m of s.comet.children) m.material.uniforms.uTime.value = this.clock;
     s.halo.visible = true; placeV(s.halo, s.head); s.halo.scale.setScalar(3.2 * s.grow); s.halo.material.opacity = 0.3;
     // embers peel off behind it
     while (s.emberAt < s.t) { s.emberAt += 0.02; this.p.copy(s.head).addScaledVector(s.dir, -1.2 * s.grow); this.embers.burst(this.p.x, this.p.y + fxGround.y(this.p.x, this.p.z), this.p.z, 1, 0.9, 0.8); }
     // the ground under it lights up as it nears
-    s.heat.material.uniforms.uA.value = 0.1 + 0.55 * f * f;
+    s.heat.material.uniforms.uA.value = 0.05 + 0.6 * e * e;
     placeV(this.light, s.head);
-    return 6 * f;
+    return 6 * e;
   }
   after(s, t, dt) {
-    const L = s.look, R = s.radius;
+    const R = s.radius;
     // the dome: bursts up out of the ground in a few frames, then tears into tongues and burns away
     const grow = 1 - Math.pow(1 - Math.min(1, t / 0.16), 3), size = R * 0.72 * (0.35 + 0.65 * grow) * (1 + 0.12 * Math.min(1, t / 0.9));
     const cut = Math.max(0, t - 0.22) / 0.75, fade = Math.max(0, Math.min(1, (1.05 - t) / 0.2));
@@ -187,10 +194,9 @@ export class MeteorFx {
       const k = c.landed < 0 ? 1 : Math.max(0, 1 - (t - c.landed) / 0.6);
       c.m.visible = k > 0; placeV(c.m, c.p); c.m.scale.setScalar(c.size * k);
     }
-    // glowing cracks: open fast, glow, cool
-    const ck = Math.min(1, t / 0.12), cool = Math.max(0, 1 - Math.max(0, t - 0.6) / 1.2);
-    if (cool > 0) for (const c of s.cracks) { W.v = 0.07 * ck; this.glow.strip(c, lineGlowW, cool, L.glow); this.core.strip(c, taperW, cool, L.edge); }
-    if (t > 2) { s.live = false; this.hide(s); }
+    // the crater: its molten floor cools, then it fades away
+    const C = s.crater.material.uniforms; C.uGlow.value = Math.max(0, 1 - t / 1.6); C.uA.value = Math.min(1, t / 0.06) * Math.max(0, Math.min(1, (CRATER - t) / 0.8));
+    if (t > CRATER) { s.live = false; this.hide(s); }
     this.p.set(s.x, 1.5, s.z); placeV(this.light, this.p);
     return 14 * Math.max(0, 1 - t / 0.7);
   }

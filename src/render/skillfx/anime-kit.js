@@ -52,7 +52,8 @@ export function spikeMaterial(el = 'fire') {
 }
 
 // The area warning on the ground: a crisp two-tone edge at the true radius, a low fill, and an inner
-// fill growing from the centre to the edge over the warning so the player can read when it lands.
+// fill growing from the centre to the edge over the warning so the player can read when it lands
+// (plain: the owner did not want dense hatching).
 const WARN_FS = `varying vec2 vUv; uniform float uR; uniform float uK; uniform float uOpen; uniform float uA;
   uniform vec3 uEdge; uniform vec3 uHot; uniform vec3 uFill;
   void main(){
@@ -63,10 +64,8 @@ const WARN_FS = `varying vec2 vUv; uniform float uR; uniform float uK; uniform f
     float inEdge = smoothstep(R - lw - aa, R - lw, r);
     float g = uK * R;
     vec3 c = uFill; float a = 0.1;
-    // the growing fill: hot diagonal hatching, so the ground (and anything standing on it) stays readable
-    vec2 w = (vUv*2.0-1.0) * 1.06 * uR;
-    float hatch = step(0.55, fract((w.x + w.y) * 2.2));
-    if (r < g) { c = uHot; a = 0.12 + 0.5 * hatch; }
+    // the growing fill: plain, light enough that the ground (and anything standing on it) stays readable
+    if (r < g) { c = uHot; a = 0.3; }
     if (r < g && r > g - 0.08) { c = uEdge; a = 0.9; }
     if (inEdge > 0.0) { c = mix(c, r > R - lw*0.5 ? uEdge : uHot, inEdge); a = mix(a, 0.95, inEdge); }
     a *= 1.0 - smoothstep(R, R + 0.02, r);

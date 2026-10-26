@@ -218,7 +218,7 @@ Owner: daggers should not reach that far; make it quick short spins round the bo
 two quick spins 0.15 s apart within 1.8 m (0.9 s, 22 MP), two small rings, a light burst; `bladeStorm`
 is two quick turns.
 
-Backstab (แบ็กสแตบ, daggers, the blade job's 8 s cooldown that replaced Blade Storm's slot), `skillfx/shadow-fx.js`:
+Backstab (แทงหลัง, daggers, the blade job's 8 s cooldown that replaced Blade Storm's slot), `skillfx/shadow-fx.js`:
 on the rules' `shadowStep` the hero vanishes in a spray of violet shards with a closing ground ring, a
 violet streak arcs low from there to behind the target, shards gather in where the hero appears and a
 violet light flashes. The stab is Flank Thrust's spear and hard burst (`ThrustFx`, `violet`) in the
@@ -231,6 +231,8 @@ bright thread swings out round the target's side to its back (a curve, never thr
 afterimages of the hero's pose are left where it stood and along the curve, and a tall violet slit
 flashes where it appears. Also asked: target skills should lock by dragging the button, so a drag on
 Backstab picks the monster it points at within 7 m (target ring) and steps behind that one.
+Owner: no effect on the ground, and the Thai name is แทงหลัง. The shadow pools are gone; the ink wisps
+now leave the body (0.45-1.35 m up) and curl outward instead of rising from the ground.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

@@ -901,8 +901,10 @@ function build() {
   // the arching tree: a thick trunk rising from the right terrace, leaning over the trail and
   // rooting again on the island, with a crown above the arch
   {
-    const [ax, az] = P(0.975, 0.335, H(3.4)), [bx, bz] = P(0.93, 0.25, 0), [cx, cz] = P(0.86, 0.26, 0), [dx2, dz2] = P(0.78, 0.255, 0), [ex, ez] = P(0.7, 0.22, H(3.7));
-    const a = TS, core = new THREE.CatmullRomCurve3([new V3(ax, H(3.2), az), new V3(bx, 6.6 + LIFT, bz), new V3(cx, 8.0 + LIFT, cz), new V3(dx2, 7.4 + LIFT, dz2), new V3(ex + 0.5, 5.4 + LIFT, ez), new V3(ex, H(3.55), ez)], false, 'centripetal');
+    const [ax, az] = P(0.975, 0.335, H(3.4)), [ex, ez] = P(0.685, 0.185, H(3.7)), ya = H(3.2), ye = H(3.55), rise = 11.5 + LIFT - (ya + ye) / 2;
+    const arc = t => { const s = Math.sin(Math.PI * t); return [ax + (ex - ax) * t, ya + (ye - ya) * t + rise * Math.pow(s, 0.7), az + (ez - az) * t + 1.2 * s]; };
+    const [bx, , bz] = arc(0.25), [cx, , cz] = arc(0.5);
+    const a = TS, core = new THREE.CatmullRomCurve3([0, 0.05, 0.15, 0.3, 0.5, 0.7, 0.85, 0.95, 1].map(t => new V3(...arc(t))), false, 'centripetal');
     const M = 32, fr = core.computeFrenetFrames(M, false);
     // one thick trunk, swelling into buttresses at both feet, with ropy roots wound round it and half
     // sunk into it, so the bark reads as twisted cords rather than separate pipes

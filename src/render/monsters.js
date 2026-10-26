@@ -10,6 +10,8 @@ import { attachMonsterModel } from './monsterSkin.js';
 import { MIDHIGH_BUILDERS, MIDHIGH_SCALE } from './monsters-midhigh.js';
 import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
 import MOTION from '../../data/monster-motion.json';
+import FX from '../../data/combat-fx.json';
+import { createRollFx } from './roll-fx.js';
 import { motionConfig, advanceGait, poseLegs, poseSplayedLegs, legCycle, wander, breath } from './monster-motion.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
@@ -943,7 +945,10 @@ function animWarden(r, s, dt, time) {
       form.rotation.set(r.rollAngle, 0, 0);
       const pop = s.windup === 'roll' ? 0.85 + 0.15 * clamp01((k - 0.8) / 0.2) : dormant ? 0.85 + 0.15 * clamp01((r.curlT - 0.8) / 0.2) : 1;
       form.scale.setScalar(pop);
+      // rolling fast it stretches a little along its path (anime motion blur), with its afterimages
+      if (s.state === 'act') form.scale.set(pop * 0.96, pop * 0.96, pop * 1.1);
     } else r.rollAngle = 0;
+    r.rollFx?.update(form.visible && s.lastAttack === 'roll' && s.state === 'act', r.rollAngle, dt);
   }
 }
 
@@ -1098,7 +1103,7 @@ export function buildMonster(type, level = 1, boss = false) {
   const rig = build();
   // an imported model, once loaded, replaces the procedural parts on the same bones
   const model = monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type);
-  if (model) { attachMonsterModel(rig, model); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
+  if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
   rig.animate = anim;
   rig.motion = motionConfig(MOTION, type);
   rig.seed = Math.random() * 10;

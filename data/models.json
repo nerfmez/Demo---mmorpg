@@ -3220,8 +3220,9 @@
       "outlineWidth": 0.02,
       "source": "The owner's stone golem sheet, second version (assets/meshy/monsters/crag_titan): meshy-t2 image-to-3d with a Meshy 6 retexture, its loose rubble cleared by scripts/clear-golem-rubble.py (task ids in tasks.json there); the rolled boulder form is `ball`",
       "ball": {
+        "glow": 0.3,
         "file": "models/monsters/horned_warden_ball.glb",
-        "tris": 1699,
+        "tris": 1799,
         "scale": 1.7,
         "source": "same sheet, the curled-up boulder (meshy-t2 + Meshy 6 retexture); rubble dropped and its stone recoloured to the golem's by scripts/close-boulder-base.py"
       },

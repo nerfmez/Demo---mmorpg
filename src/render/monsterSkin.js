@@ -175,7 +175,8 @@ export function attachMonsterModel(rig, T) {
     const form = new THREE.Group();
     form.name = 'ball';
     form.visible = false;
-    const bmat = modelMaterial(T.ball.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.glow ?? 0);
+    // `ball.glow`: it lights itself a little, so its far side does not go dark as it spins
+    const bmat = modelMaterial(T.ball.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.ball.glow ?? cfg.glow ?? 0);
     const bm = [bmat];
     if (cfg.outline !== false) {
       const hull = hullMaterial(cfg.outline || '#2a2230', cfg.outlineWidth ?? 0.02);

@@ -323,7 +323,10 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
   quake. In the renderer the warden's model carries a second form (`data/models.json` monsters
   `horned_warden.ball`, `prepareMonsterForm`): a rigid boulder shown at the end of the curl and while
   it rolls, spinning at speed / radius, with the skinned golem hidden. In Godot keep both meshes under
-  the monster and toggle them the same way.
+  the monster and toggle them the same way. While it rolls (`act`) the boulder stretches 10%
+  along its path and `src/render/roll-fx.js` draws its afterimages (copies of the ball, flat-shaded,
+  fading behind it), speed lines (a shader scrolling crossed strips back from the silhouette) and a
+  ground dust streak, all in the rig's space; tuning in `data/combat-fx.json` `roll`.
 - **`dormant`** (`{wake}`, the warden): out of combat the monster lies still (no wandering); on aggro
   from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
   the warden's boulder while dormant and stacks the golem from it during `emerge` (legs, body, arms,

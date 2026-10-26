@@ -323,7 +323,10 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
   quake. In the renderer the warden's model carries a second form (`data/models.json` monsters
   `horned_warden.ball`, `prepareMonsterForm`): a rigid boulder shown at the end of the curl and while
   it rolls, spinning at speed / radius, with the skinned golem hidden. In Godot keep both meshes under
-  the monster and toggle them the same way. While it rolls (`act`) the boulder stretches 10%
+  the monster and toggle them the same way. The golem is skinned `rigid`: each separate stone (and
+  the shield) follows the one bone that pulls it most (a piece shared between bones keeps smooth
+  weights), so stones never stretch between joints; its hollow stones draw both sides and its outline
+  hull is pushed back in depth so it never covers a thin piece seen from behind. While it rolls (`act`) the boulder stretches 10%
   along its path and `src/render/roll-fx.js` draws its afterimages (copies of the ball, flat-shaded,
   fading behind it), speed lines (a shader scrolling crossed strips back from the silhouette) and a
   ground dust streak, all in the rig's space; tuning in `data/combat-fx.json` `roll`.

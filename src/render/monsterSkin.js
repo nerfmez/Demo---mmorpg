@@ -69,12 +69,53 @@ export function prepareMonsterModel(gltf, cfg) {
       sw[i * 4 + k] = w[j] / sum;
     });
   }
+  // `rigid`: a model built of separate hard pieces (the warden golem's stones and shield) moves each
+  // piece whole with the one bone that pulls it most, so stones never stretch or shear between bones
+  if (cfg.rigid) rigidPieces(g, si, sw, names.length, cfg.rigid === true ? 0.6 : cfg.rigid);
   g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
   g.userData.shared = true;
   const map = mesh.material.map || null;
   if (map) map.userData.shared = true;
   return { geometry: g, map, bones: names, cfg };
+}
+
+/** Give every connected piece of the mesh (joined by shared corners, across UV seams) that one bone
+ * pulls with at least `share` of its weight to that bone alone. */
+function rigidPieces(g, si, sw, bones, share = 0.6) {
+  const pos = g.attributes.position, n = pos.count, parent = new Int32Array(n);
+  for (let i = 0; i < n; i++) parent[i] = i;
+  const find = (i) => { while (parent[i] !== i) i = parent[i] = parent[parent[i]]; return i; };
+  const join = (a, b) => { a = find(a); b = find(b); if (a !== b) parent[a] = b; };
+  const seen = new Map();
+  for (let i = 0; i < n; i++) {
+    const key = `${pos.getX(i).toFixed(4)},${pos.getY(i).toFixed(4)},${pos.getZ(i).toFixed(4)}`;
+    if (seen.has(key)) join(i, seen.get(key)); else seen.set(key, i);
+  }
+  const ix = g.index ? g.index.array : null;
+  if (ix) for (let t = 0; t < ix.length; t += 3) { join(ix[t], ix[t + 1]); join(ix[t], ix[t + 2]); }
+  else for (let t = 0; t < n; t += 3) { join(t, t + 1); join(t, t + 2); }
+  const pull = new Map();
+  for (let i = 0; i < n; i++) {
+    const r = find(i);
+    let w = pull.get(r);
+    if (!w) pull.set(r, (w = new Float32Array(bones)));
+    for (let k = 0; k < 4; k++) w[si[i * 4 + k]] += sw[i * 4 + k];
+  }
+  // a piece one bone mostly pulls goes whole with it; a piece shared between bones (the lava knot of
+  // an elbow or knee, bridging two limbs) keeps its smooth weights, so it stays joined to both
+  const best = new Map();
+  for (const [r, w] of pull) {
+    let total = 0, top = 0, b = 0;
+    for (let j = 0; j < bones; j++) { total += w[j]; if (w[j] > top) { top = w[j]; b = j; } }
+    best.set(r, top >= share * total ? b : -1);
+  }
+  for (let i = 0; i < n; i++) {
+    const b = best.get(find(i));
+    if (b < 0) continue;
+    si.fill(0, i * 4, i * 4 + 4); sw.fill(0, i * 4, i * 4 + 4);
+    si[i * 4] = b; sw[i * 4] = 1;
+  }
 }
 
 /**
@@ -154,10 +195,15 @@ export function attachMonsterModel(rig, T) {
   // rest space -> bone space, so effects can find a limb's tip on the posed rig (monster-trails.js)
   rig.restInverse = Object.fromEntries(T.bones.map((n, i) => [n, skeleton.boneInverses[i]]));
   const mat = modelMaterial(T.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.glow ?? 0);
+  // a model of open shells (Meshy's stones are hollow at their backs): their insides are drawn in
+  // their own texture, not the dark outline behind them, when a limb swings round
+  if (cfg.rigid) mat.side = THREE.DoubleSide;
   const mats = [mat];
   if (cfg.outline !== false) {
     const hull = hullMaterial(cfg.outline || '#2a2230', cfg.outlineWidth ?? 0.02);
     hull.userData.rig = true;
+    // behind a thin open piece (a shield seen from its back) the hull would draw over it: pushed back
+    if (cfg.rigid) Object.assign(hull, { polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 8 });
     mats.push(hull);
   }
   rig.modelMeshes = [];

@@ -3214,6 +3214,7 @@
         0.36
       ],
       "yaw": 0,
+      "rigid": true,
       "sharpness": 6,
       "minWeight": 0.18,
       "outline": "#221a14",

@@ -181,6 +181,11 @@ Owner review: Cross Cut became a dagger main skill (two cuts per press, MP econo
 its own motion, candidate B picked by the owner: `crossCut`, the first two cuts of Quaternius
 Sword_Light_Combo (a diagonal cut down across the body on the hit, a backhand out the other way on the
 repeat), so the hero's two cuts match the two crescents and the X lands with the backhand.
+Owner review ("กากบาทเหมือนรูปแปะ", and asked for violet): the ready-made X floating between the hero
+and its targets is gone. The crescents are violet, and each monster the cuts reach gets the cuts' own
+lines across its body: the first zips in as the first cut lands and waits, the second crosses it,
+then both flare with a burst of sparks and thin away. A line in the hero's vertical plane was tried
+first and read edge-on from the high game camera, so the lines lie across the camera's view.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

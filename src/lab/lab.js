@@ -128,7 +128,7 @@ function buildHero() {
 }
 buildHero();
 // the game's hero: the chibi body and hair (the poses and carries are made for it), the base as fallback
-loadModels({ characters: { hero_base: MODELS.characters.hero_base, hero_chibi: MODELS.characters.hero_chibi, hero_chibi_hair: MODELS.characters.hero_chibi_hair, hero_chibi_hair_back: MODELS.characters.hero_chibi_hair_back }, weapons: MODELS.weapons, monsters: { thornback_wolf: MODELS.monsters.thornback_wolf } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); removeSpiritReveal(wolfReveal); disposeObject(wolf.root); wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible=false; wolfReveal=installSpiritReveal(wolf); wolfReplay=null; });
+loadModels({ characters: { hero_base: MODELS.characters.hero_base, hero_chibi: MODELS.characters.hero_chibi, hero_chibi_hair: MODELS.characters.hero_chibi_hair }, weapons: MODELS.weapons, monsters: { thornback_wolf: MODELS.monsters.thornback_wolf } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); removeSpiritReveal(wolfReveal); disposeObject(wolf.root); wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible=false; wolfReveal=installSpiritReveal(wolf); wolfReplay=null; });
 
 function placeDummy() {
   dummy.position.set(-state.distance, 0, 0);

@@ -30,7 +30,7 @@ import { ThunderFx } from './skillfx/thunder-fx.js';
 import { BlizzardFx } from './skillfx/blizzard-fx.js';
 import { ShatterFx } from './skillfx/shatter-fx.js';
 import { RendFx } from './skillfx/rend-fx.js';
-import { CrossFx } from './skillfx/cross-fx.js';
+import { CrossFx, CROSS_PALETTE } from './skillfx/cross-fx.js';
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut']);
@@ -126,7 +126,7 @@ export class SkillFx {
     const sweep = ACTIONS[playing && ACTIONS[playing]?.sweep !== undefined ? playing : pickAction(s.id, 'melee_arc', this.host.weapon(), this.swingStep)]?.sweep;
     // Cross Cut: its two cuts take fixed opposite steep tilts and sweep opposite ways, drawing an X
     const cross = s.id === 'cross_cut' ? (this.crossI++ % 2 ? -1 : 1) : 0;
-    return { palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), tilt: cross ? cross * 0.95 : undefined, where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
+    return { palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : s.id === 'cross_cut' ? CROSS_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), tilt: cross ? cross * 0.95 : undefined, where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
   }
   play(action, dur, step, hit, kind) { this.host.anim().play(action, dur, this.host.weapon(), step, hit, kind); }
   // the bench's look for the Firebolt charge: only the smooth filled core of the game's charge
@@ -152,7 +152,7 @@ export class SkillFx {
         }
         if (e.charge !== undefined) this.release(e.charge); // a charged shot looses: its arrow and impact grow with the charge
         this.play(e.skill, e.total + (POST[e.skill] ?? 0.28), e.kind === 'melee_arc' ? this.nextSwingStep() : e.step, e.total, e.kind);
-        if (e.skill === 'cross_cut') { this.crossI = 0; this.cross.cross(g.player.x, g.player.z, g.player.facing, s.range, e.total + (s.repeatDelay || 0.14)); }
+        if (e.skill === 'cross_cut') this.crossI = 0;
         if (e.kind === 'melee_arc') { this.primarySwing = true; if (!OWN_STRIKE.has(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
         if (e.kind === 'projectile' && !OWN_PROJECTILES.has(e.skill)) {
           host.vfx.beginCast(e, s.element);
@@ -269,7 +269,7 @@ export class SkillFx {
         const c = this.centerOf(e.id); if (!c) return true;
         if (e.skill === 'flame_stream') this.flame.lick(c);
         if (e.skill === 'frontline_split') this.split.cut(c);
-        if (e.skill === 'cross_cut') this.cross.hit(c);
+        if (e.skill === 'cross_cut') this.cross.hit(e.id, c, e.fromX, e.fromZ);
         if (e.skill === 'interrupt_slam' || e.skill === 'sky_shatter') this.mace.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'riposte') this.riposte.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'shield_bash') this.bash.hit(e.id, c, e.fromX, e.fromZ, this.skillOf('shield_bash')?.taunt?.duration || 3);

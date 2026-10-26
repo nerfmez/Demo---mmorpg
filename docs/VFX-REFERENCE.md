@@ -201,6 +201,9 @@ Owner: the X must read from the hero's point of view, not from above. The two th
 upright in front of the hero, facing it, crossing as an X in the air ahead (the bench's `?cam=pov`
 looks over the hero's shoulder). From the high game camera an upright X facing the hero is seen
 edge-on when the hero faces across the screen.
+The owner's iPad recording confirmed it ("เปลี่ยนมุมก็มั่ว มองไม่เห็น": turning, the X vanished). The X now leans
+back about 60° from upright: from the hero's view it is still the X cut in front, and the game camera
+reads it in every facing (checked aiming up, down, left, right and diagonally).
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

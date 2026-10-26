@@ -159,15 +159,19 @@ export class SlashFx {
     c.core.material.depthTest = c.glow.material.depthTest = !p.overlay;
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
   }
-  // A cut set upright in front of the caster, facing it (Cross Cut: the owner wants the X as the hero
-  // sees it, two cuts crossing in the air ahead, not an X on the ground): the crescent's band crosses a
-  // point `ahead` metres in front, bulging toward `face` radians from straight up (positive to the
-  // caster's right), and the cut drifts forward at `drift` m/s.
+  // A cut set in front of the caster, leaning back (Cross Cut: the owner wants the X as the hero cuts it,
+  // two cuts crossing in the air ahead; upright it is edge-on to the high game camera whenever the hero
+  // faces across the screen, flat it reads only from above). The plane leans back by `lean` radians from
+  // upright, so the camera above sees it whatever the facing; the crescent's band crosses a point `ahead`
+  // metres in front, bulging toward `face` radians from the plane's up (positive to the caster's right),
+  // and the cut drifts forward at `drift` m/s.
   standFront(c, p, at) {
-    const fx = Math.sin(at.angle), fz = Math.cos(at.angle);
-    const toward = this._y.set(-fx, 0, -fz); // the plane's normal: back toward the caster
-    const bulge = this._z.set(Math.cos(at.angle) * Math.sin(p.face), Math.cos(p.face), -Math.sin(at.angle) * Math.sin(p.face));
-    this._m.makeBasis(this._x.crossVectors(toward, bulge), toward, bulge);
+    const fx = Math.sin(at.angle), fz = Math.cos(at.angle), cl = Math.cos(p.lean || 0), sl = Math.sin(p.lean || 0);
+    const normal = this._y.set(-fx * cl, sl, -fz * cl); // back toward the caster, tipped up
+    const rx = Math.cos(at.angle), rz = -Math.sin(at.angle), cf = Math.cos(p.face), sf = Math.sin(p.face);
+    // the plane's up (up tipped forward) turned toward the caster's right by `face`
+    const bulge = this._z.set(fx * sl * cf + rx * sf, cl * cf, fz * sl * cf + rz * sf);
+    this._m.makeBasis(this._x.crossVectors(normal, bulge), normal, bulge);
     c.g.quaternion.setFromRotationMatrix(this._m);
     const d = p.ahead ?? c.reach;
     place(c.g, at.x + fx * d, 1.0 + (p.y ?? 0), at.z + fz * d);

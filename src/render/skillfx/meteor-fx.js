@@ -19,6 +19,7 @@ import { glowTexture, flareTexture, lightSprite } from './light-kit.js';
 import { warnDisc } from './anime-kit.js';
 import { FireExtras } from './fire-extras.js';
 import { flameMaterial, cometShell, domeShell } from './meteor-flame.js';
+import { rockGeometry, craterMesh } from './ground-kit.js';
 
 // the rock: two flat cel bands, molten cracks in flat fire bands, the face it falls on red-hot
 const ROCK_VS = `varying vec3 vN; varying vec3 vO;
@@ -31,49 +32,12 @@ const ROCK_FS = `varying vec3 vN; varying vec3 vO; uniform vec3 uDir;` + NOISE +
     float hot = dot(N, uDir);
     if (hot > 0.35) c = hot > 0.72 ? vec3(1.0,0.82,0.25) : vec3(1.0,0.48,0.1);
     gl_FragColor = vec4(c, 1.0); }`;
-function rockGeometry(seed) {
-  const g = new THREE.IcosahedronGeometry(1, 2), p = g.attributes.position; let a = seed;
-  const r = () => ((a = (a * 9301 + 49297) % 233280) / 233280), o = [r() * 6, r() * 6, r() * 6];
-  const v = new THREE.Vector3();
-  for (let i = 0; i < p.count; i++) {
-    v.fromBufferAttribute(p, i);
-    const f = 0.86 + 0.16 * Math.sin(v.x * 2.3 + o[0]) * Math.cos(v.y * 2.1 + o[1]) + 0.08 * Math.sin(v.z * 3.7 + o[2]);
-    p.setXYZ(i, v.x * f * 1.05, v.y * f * 0.88, v.z * f);
-  }
-  g.computeVertexNormals(); return g;
-}
 
 const SLOTS = 2, FALL = 0.6, APEX = 11, CHUNKS = 5, CRATER = 4.2;
 const ROCK = 0.85, HEAD = 1.15, TAIL = 4.2, DOME = 2.0;
 const X = new THREE.Vector3(1, 0, 0), UP = new THREE.Vector3(0, 1, 0);
 const HEAT_FS = `varying vec2 vP; uniform float uA; void main(){ float r=length(vP); if(r>1.0) discard; float a=pow(1.0-r,1.6); gl_FragColor=vec4(vec3(1.0,0.45,0.12)*a*uA, 1.0); }`;
 const HEAT_VS = `varying vec2 vP; void main(){ vP=uv*2.0-1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `;
-// the crater, a decal on the ground (1 = the bowl's lip; the plane spans 1.7): shaded in the game's
-// three toon steps from a height field (a sunken bowl, a raised broken lip), lit by the sun; soot
-// round it; a molten floor that cools (uGlow); fading out (uA)
-const CRATER_FS = `varying vec2 vP; uniform float uA; uniform float uGlow; uniform float uSeed;` + NOISE + `
-  float lipR(vec2 p){ float an = atan(p.y, p.x); return 1.0 + 0.09*(fbm(vec2(cos(an), sin(an))*2.0 + uSeed) - 0.5); }
-  float H(vec2 p){
-    float u = length(p)/lipR(p);
-    float h = u < 1.0 ? -0.5*(1.0 - u*u) : 0.0;
-    h += 0.2*exp(-pow((u - 1.0)/0.14, 2.0))*(0.75 + 0.5*fbm(p*3.0 + uSeed));
-    return h + 0.05*(fbm(p*4.5 + uSeed*1.3) - 0.5); }
-  void main(){
-    vec2 p = vP*1.7; float r = length(p), u = r/lipR(p);
-    float soot = (1.0 - smoothstep(1.1, 1.65, u))*(0.5 + 0.5*fbm(p*2.3 + uSeed));
-    if (u > 1.65 || (u > 1.2 && soot < 0.12)) discard;
-    float e = 0.02;
-    vec3 N = normalize(vec3(-(H(p + vec2(e, 0.0)) - H(p - vec2(e, 0.0)))/(2.0*e), -(H(p + vec2(0.0, e)) - H(p - vec2(0.0, e)))/(2.0*e), 1.0));
-    float l = dot(N, normalize(vec3(-0.33, -0.49, 0.82)));            // the sun, in this plane's frame
-    vec3 c = l > 0.9 ? vec3(0.62, 0.48, 0.34) : (l > 0.62 ? vec3(0.47, 0.35, 0.25) : vec3(0.3, 0.21, 0.16));
-    if (u < 1.0) c *= mix(0.62, 1.0, smoothstep(0.3, 1.0, u));         // scorched inside
-    float a = 1.0;
-    if (u > 1.2) { c = vec3(0.17, 0.13, 0.11); a = 0.55*soot; }
-    else if (u > 1.08) a = 1.0 - smoothstep(1.08, 1.2, u)*(1.0 - 0.55*soot);
-    float m = (1.0 - smoothstep(0.15, 0.55, u))*smoothstep(0.4, 0.62, fbm(p*3.0 + uSeed*2.0) + 0.25*(1.0 - u));
-    c = mix(c, mix(vec3(1.0, 0.42, 0.1), vec3(1.0, 0.82, 0.38), smoothstep(0.6, 0.9, m)), clamp(m*1.6, 0.0, 1.0)*uGlow);
-    gl_FragColor = vec4(c, a*uA); }`;
-
 export class MeteorFx {
   constructor(scene, camera) {
     this.camera = camera;
@@ -101,8 +65,7 @@ export class MeteorFx {
       const heat = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 12, 12), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 } }, vertexShader: HEAT_VS, fragmentShader: HEAT_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
       heat.rotation.x = -Math.PI / 2; heat.renderOrder = 1; heat.visible = false; scene.add(heat);
       const rock = new THREE.Mesh(rockGeometry(11 + i * 7), this.rockMat); rock.visible = false; rock.renderOrder = 12; scene.add(rock);
-      const crater = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 16, 16), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uGlow: { value: 0 }, uSeed: { value: i * 5.3 } }, vertexShader: HEAT_VS, fragmentShader: CRATER_FS, transparent: true, depthWrite: false }));
-      crater.rotation.x = -Math.PI / 2; crater.renderOrder = 2; crater.visible = false; scene.add(crater);
+      const crater = craterMesh(scene, i * 5.3);
       return {
         live: false, t: 0, delay: 1, x: 0, z: 0, radius: 3, landedAt: -1, salt: i * 101, grow: 1,
         apex: new THREE.Vector3(), dir: new THREE.Vector3(), head: new THREE.Vector3(),

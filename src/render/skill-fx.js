@@ -28,13 +28,14 @@ import { MoveFx } from './skillfx/move-fx.js';
 import { MeteorFx } from './skillfx/meteor-fx.js';
 import { ThunderFx } from './skillfx/thunder-fx.js';
 import { BlizzardFx } from './skillfx/blizzard-fx.js';
+import { ShatterFx } from './skillfx/shatter-fx.js';
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
-const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam', 'shield_bash']);
+const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam', 'shield_bash', 'sky_shatter']);
 const SWING_LEAD = 0.12;
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
@@ -72,6 +73,7 @@ export class SkillFx {
     this.meteor = new MeteorFx(scene, camera);
     this.thunder = new ThunderFx(scene, camera);
     this.blizzard = new BlizzardFx(scene, camera);
+    this.shatter = new ShatterFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
@@ -149,6 +151,7 @@ export class SkillFx {
         }
         if (e.kind === 'chain') this.chain.beginCharge(e.total, s.element);
         if (e.kind === 'melee_line') this.split.windup(e.total, s.range, s.width, s.element);
+        if (e.skill === 'sky_shatter') this.shatter.charge(g.player.x, g.player.z, e.total);
         if (e.kind === 'nova') { this.frost.setElement(s.element); this.frost.beginCharge(g.player.x, g.player.z, e.total, s.radius); }
         return true;
       }
@@ -232,6 +235,7 @@ export class SkillFx {
         if (e.skill === 'shield_bash') this.bash.bash(p.x, p.z, e.angle, e.range, e.arc);
         if (e.skill === 'weakpoint') this.thrust.thrust(p.x, 1.15, p.z, e.angle, e.range);
         if (e.skill === 'interrupt_slam') this.mace.slam(p.x, p.z, p.facing, s.range, s.arc);
+        if (e.skill === 'sky_shatter') { this.shatter.slam(p.x, p.z, p.facing, s.range, s.arc); host.shake(0.3, 0.25); }
         const primary = this.primarySwing; this.primarySwing = false;
         // Multistrike: each repeat replays this skill's own motion, landing on the repeat's hit time
         if (primary && !e.triggered && s.repeats) {
@@ -254,7 +258,7 @@ export class SkillFx {
         const c = this.centerOf(e.id); if (!c) return true;
         if (e.skill === 'flame_stream') this.flame.lick(c);
         if (e.skill === 'frontline_split') this.split.cut(c);
-        if (e.skill === 'interrupt_slam') this.mace.hit(c, e.fromX, e.fromZ);
+        if (e.skill === 'interrupt_slam' || e.skill === 'sky_shatter') this.mace.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'riposte') this.riposte.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'shield_bash') this.bash.hit(e.id, c, e.fromX, e.fromZ, this.skillOf('shield_bash')?.taunt?.duration || 3);
         if (e.skill === 'armor_cleave') { this.sunder.hit(c, e.fromX, e.fromZ); host.shake(0.06, 0.14); }
@@ -326,13 +330,14 @@ export class SkillFx {
     this.meteor.update(dt);
     this.thunder.update(dt, this.game.monsters);
     this.blizzard.update(dt);
+    this.shatter.update(dt);
   }
   // the offscreen flame passes, right before the main render
   prerender() { this.flame.prerender(); }
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter]) fx.clear();
     this.timers.length = 0;
   }
 }

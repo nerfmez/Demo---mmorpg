@@ -985,8 +985,7 @@
       "upgradeMaterial": "ram_horn",
       "upgradeStat": "STR",
       "job": "heavy",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "earth_rend": {
       "name": "Earth Rend",

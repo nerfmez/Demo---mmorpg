@@ -140,6 +140,15 @@ monsters inside stay readable; snow streaks and flakes spiral round the centre (
 their own orbit); at the end the wall tears apart and the frost melts inward. Passed by the owner, who chose
 not to add more swirling snow for fear of the cost on the iPad: keep these zones light.
 
+### Job melee skills — 2026-10-26
+
+Sky Shatter (heavy weapons, a 0.7 s wind-up, a 140 degree stunning slam), `skillfx/shatter-fx.js`:
+pebbles lift and tremble round the hero through the wind-up; on the contact a ragged flash and light
+rays at the landing point, a round crater (the shared `ground-kit.js` crater, also Meteor's), three
+rows of jagged stone spikes bursting up over the true arc and range a beat apart (leaning outward,
+dust off their feet, then sinking back), the pebbles flung forward; Breakbeat Slam's stun stars on
+the struck monsters; the hero plays Breakbeat Slam's motion.
+
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
 Reference (owner): **the effects already made on the FX bench** (`fx-test.html`, published bench),

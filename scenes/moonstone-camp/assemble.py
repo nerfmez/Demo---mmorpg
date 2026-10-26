@@ -27,11 +27,12 @@ hero=re.sub(r'function blocked\(x, z\) \{.*?\n\}', '''function blocked(x,z){
  if(s>1.25&&!stairsAt(x,z).inside)return true;
  return COLLIDERS.some(c=>{if(c.seg){const dx=c.x1-c.x,dz=c.z1-c.z,t=Math.max(0,Math.min(1,((x-c.x)*dx+(z-c.z)*dz)/(dx*dx+dz*dz)));return Math.hypot(x-c.x-dx*t,z-c.z-dz*t)<c.r+.3;}if(!c.box)return Math.hypot(x-c.x,z-c.z)<c.r+.3;const dx=x-c.x,dz=z-c.z,co=Math.cos(c.ry),si=Math.sin(c.ry);return Math.abs(dx*co-dz*si)<c.w/2+.3&&Math.abs(dx*si+dz*co)<c.d/2+.3;});
 }''',hero,flags=re.S)
-runtime=r[r.index('function resize()'):].replace('  updatePetals(timeU.value);','').replace('ready: true','camp: {ports:CAMP_PORTS,junctions:ROAD_JUNCTIONS,routes:ROUTES,moonstone:MOONSTONE,blocked,hero:HERO,height}, ready: true')
+runtime=r[r.index('function resize()'):].replace('  updatePetals(timeU.value);','').replace('ready: true','camp: {ports:CAMP_PORTS,junctions:ROAD_JUNCTIONS,routes:ROUTES,waypoint:WP,blocked,hero:HERO,height}, ready: true')
 plantSource=(here.parent/'shell-beach/scene.js').read_text()
 plants=plantSource[plantSource.index('function placeCoastPlants(){'):plantSource.index("FOL.leaf=")]
 plants=plants.replace('const items=frondItems.filter(f=>f.young===young),geo=', 'const items=frondItems.filter(f=>f.young===young);if(!items.length)continue;const geo=')
-js='\n'.join([page,renderer,(here/'world.js').read_text(),glsl,stones,foliage,palms,hero,plants,(here/'camp.js').read_text(),(here/'scene.js').read_text(),runtime])
+wp=block('// ---------- the waypoint:','// ---------- sea:')
+js='\n'.join([page,renderer,(here/'world.js').read_text(),glsl,stones,foliage,palms,hero,wp,plants,(here/'camp.js').read_text(),(here/'scene.js').read_text(),runtime])
 # A default CDN build and a fully offline build both work independently of Sites.
 module_source=Path(a.modules_from).read_text() if a.modules_from else b
 modules=re.search(r'<script type="importmap">(.*?)</script>',module_source,re.S)[1]

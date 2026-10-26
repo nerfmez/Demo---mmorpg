@@ -147,7 +147,7 @@ const poly = (pts, h) => {
 };
 // the plaza: a ring of dirt round the stone circle, traced from the concept; grass in the middle
 // the camp's packed earth: the clearing and the ground round the fire before the tents
-const PLAZA=poly([[.31,.44],[.36,.37],[.44,.35],[.55,.355],[.62,.39],[.70,.43],[.77,.48],[.78,.58],[.72,.68],[.65,.78],[.58,.87],[.44,.87],[.36,.78],[.32,.66],[.30,.55]],0);
+const PLAZA=poly([[.31,.44],[.30,.37],[.33,.31],[.42,.29],[.52,.30],[.60,.31],[.66,.36],[.70,.43],[.77,.48],[.78,.58],[.72,.68],[.65,.78],[.58,.87],[.44,.87],[.36,.78],[.32,.66],[.30,.55]],0);
 const PLAZA_HOLE=poly([[2,2],[2.1,2],[2.1,2.1]],0);
 // distance from the dirt's edge: negative on the dirt
 function trailAt(x, z) {

@@ -72,19 +72,31 @@ function firewood(u,v){
  for(let r=0;r<3;r++)for(let i=0;i<4-r;i++){const g=new THREE.CylinderGeometry(.09,.09,M(.6),6);g.rotateX(Math.PI/2);g.translate(x+(i-(3-r)/2)*.2,y+.1+r*.17,z);campParts.push(coloredPart(g,i%2?'#7c5a3a':'#8d6a45'));}
  COLLIDERS.push({x,z,r:M(.35)});
 }
-// The moonstone: a tall pale stone on a rock pedestal, a crescent glowing blue in its face and a
-// soft blue light on the stone at its foot, as the region concept shows it.
-function moonstone(u,vFoot,vTop){
- const[x,z]=P(u,vFoot,0),y=height(x,z),pw=wide(u-.045,u+.045,vFoot,0),ph=M(.75);
- addStone(x,y-.3,z,pw*.78,ph+.3,pw*.7,{extra:9,chamfer:.14,jitter:.12,moss:.65,base:pick(MOON_STONE),ry:R(-.4,.4)});
- const top=y+ph*.92,H=tall(x,z,top,vTop)*1.05,bw=pw*.5,g=new THREE.CylinderGeometry(bw*.5,bw*.56,H,10,6);
- // a tall standing stone with a rounded crown, flattened face-on, as the region concept's moonstone
- const p=g.attributes.position;for(let i=0;i<p.count;i++){const t=(p.getY(i)+H/2)/H,crown=t>.8?Math.sqrt(Math.max(0,1-((t-.8)/.2)**2)):1;p.setX(i,p.getX(i)*crown);p.setZ(i,p.getZ(i)*.55*crown);}
- g.translate(x,top+H/2-.05,z);const stone=new THREE.Mesh(coloredPart(g,'#d3dde5'),paint({vertexColors:true,shade:[.6,.68,.78],mid:[.9,.94,.98]}));stone.castShadow=true;scene.add(stone);
- const cres=new THREE.RingGeometry(bw*.16,bw*.26,22,1,Math.PI*.2,Math.PI*1.2);cres.translate(x,top+H*.6,z+bw*.56*.55+.05);
- const glowMat=new THREE.MeshBasicMaterial({color:'#86dcff',transparent:true,opacity:.95});scene.add(new THREE.Mesh(cres,glowMat));
- const halo=new THREE.Mesh(new THREE.CircleGeometry(bw*1.1,24),new THREE.MeshBasicMaterial({color:'#7fd6ff',transparent:true,opacity:.25,depthWrite:false}));halo.rotation.x=-Math.PI/2;halo.position.set(x,top+.05,z);scene.add(halo);
- COLLIDERS.push({x,z,r:pw*.55});MOONSTONE={x,z,y,top,H};
+// The camp's warp pillar (owner: the stone here is a warp pillar): the arrival beach's heap of
+// carved blocks that rebuilds itself into a pillar when the hero walks up, at this scene's scale,
+// inside a ring of mossy rubble on a low rock dais.
+const WP_SCALE=1.8;
+function warpPillar(u,v){
+ const[x,z]=P(u,v,0),y=height(x,z);WP.x=x;WP.z=z;
+ const R1=2.3*WP_SCALE;
+ for(let k=0;k<11;k++){
+  if(k===3||k===7)continue;
+  const a=k/11*Math.PI*2+.2,px=x+Math.cos(a)*R1,pz=z+Math.sin(a)*R1;
+  addStone(px,height(px,pz)-.2,pz,1.05*WP_SCALE,.55*WP_SCALE,.55*WP_SCALE,{chamfer:.12,jitter:.06,extra:4,ry:-a+Math.PI/2+R(-.08,.08),moss:.55,base:pick(MOON_STONE)});
+ }
+ for(let k=0;k<12;k++){const a=R(0,Math.PI*2),r=R(1.25,1.6)*R1,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r,sz=R(.25,.45)*WP_SCALE;addStone(px,height(px,pz)-.05,pz,sz,sz*.9,sz,{chamfer:.14,extra:3,ry:R(0,3),moss:.35});}
+ for(let k=0;k<14;k++){const a=k*2.1+R(-.4,.4),r=R(1.1,2.1)*WP_SCALE,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r,sz=R(.3,.62)*WP_SCALE;addStone(px,height(px,pz)-.15,pz,sz*R(1,1.5),sz*R(.6,1),sz,{chamfer:.1,jitter:.05,extra:2,ry:R(0,3),rz:R(-.2,.2),moss:.5});}
+ COLLIDERS.push({x,z,r:2.1*WP_SCALE});
+ const root=buildWaypoint();root.scale.setScalar(WP_SCALE);scene.add(root);
+ MOONSTONE={x,z,y};
+}
+let wpLast=null;
+function updateWarp(t){
+ if(!WP.root)return;const dt=wpLast===null?0:Math.min(.1,t-wpLast);wpLast=t;
+ const d=Math.hypot(HERO.x-WP.x,HERO.z-WP.z);
+ if(WP.lock&&d>4.6*WP_SCALE)WP.lock=false;
+ if(!WP.active&&!WP.lock&&d<3.4*WP_SCALE)WP.active=true;
+ updateWaypoint(dt,t);
 }
 // Bark in the game trunk's own style (render/anime-study.js animeTrunk): nine flat facets round
 // a curve, each toned light, mid or shadow by the sun, so roots match the trees (as Mirror Pond's).

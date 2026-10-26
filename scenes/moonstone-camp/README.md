@@ -1,6 +1,6 @@
 # Moonstone Camp — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 1:
+**Owner status: in review, 26 October 2026**, artifact version 2:
 https://claude.ai/artifact/PqbowbCkpB7D95dBY2AfR6.
 
 Concept: `moonstone-camp.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -27,3 +27,12 @@ the clearing, Moonroot's colours), `fill.js`, `routes.js` (`south`, `west`, `lef
 `south`, `west`, `north`, `northeast`), `paving.js` (stone flights where a route climbs), `camp.js`
 (tents, banner, campfire, benches, crates, firewood, moonstone, bark-style rooted trees, glowing
 plants) and `scene.js`. `window.__scene.camp` exposes `ports`, `junctions`, `routes` and `moonstone`.
+
+Owner, on version 1: the stone is to be a warp pillar; the camp does not yet have the reference's
+mood; some trees can be big, as said before, and Moonroot has many big trees. The moonstone is
+replaced by the arrival beach's warp pillar (`WP`: the heap of carved blocks that rebuilds itself
+into a pillar when the hero walks up; 1.8 times its beach size, in a ring of mossy rubble; the game
+can wire it as the region's `camp` waypoint the way it wires the beach's). The camp now sits in a
+rocky alcove: big mossy blocks at varied heights break the terrace wall, bushes at their feet and
+on top, packed earth under the tents, and more gear (barrels, a bedroll, a cooking pot, a second
+woodpile). Six great old trees (about twice the others) stand round the clearing.

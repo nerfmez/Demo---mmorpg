@@ -160,7 +160,11 @@ Frontline Split's lane on the ground through the wind-up; on 'lineStrike' a ragg
 the weapon lands, then a rift races down the lane (a chasm decal: dark depth, the sun-side wall lit, a
 broken lip, the rift wandering), both banks heave up as blunt slabs tilted away from it, dust bursts off
 the running front and rock chunks are thrown up; the slabs sink back and the chasm closes from the far
-end. Stone, dust and slab pieces are shared from `ground-kit.js`.
+end. Stone, dust and slab pieces are shared from `ground-kit.js`. Owner review ("ยังไม่สวย": the banks and the lack of power):
+the slabs became one continuous heaved ridge on each bank (a mesh rebuilt per frame: a torn wall into
+the chasm, broken plates shoved up at different heights and tilts, a ragged outer edge), and the run
+got beats: the front speeds up, every fifth of the way a dust column and rock chunks burst up with a
+shake pulse, and the far end ends in a big burst.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

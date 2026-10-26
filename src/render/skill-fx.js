@@ -79,7 +79,7 @@ export class SkillFx {
     this.shatter = new ShatterFx(scene, camera);
     this.rend = new RendFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte]) fx.onShake = shake;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
@@ -193,7 +193,7 @@ export class SkillFx {
         return true;
       }
       case 'lineStrike':
-        if (e.skill === 'earth_rend') { this.split.clear(); this.rend.strike(e); host.shake(0.28, 0.3); return true; }
+        if (e.skill === 'earth_rend') { this.split.clear(); this.rend.strike(e); return true; }
         this.split.strike(e); return true;
       case 'guardStance': { const s = this.skillOf('riposte') || g.player.riposte?.skill; this.riposte.guard(e.duration, s?.guard?.arc || 110); return true; }
       case 'playerHit': {

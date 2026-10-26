@@ -73,6 +73,31 @@ compact flash, two shock rings sized to the landing radius, short ground cracks,
 a few chips.
 
 
+### Anime style for job skills — 2026-10-26 (current)
+
+The owner rejected the light-and-ribbon job effects as low quality, asked for research, and then picked
+the **anime (sakuga)** style from two quality references (a painted and an anime fireball sheet). The
+research source is the MIT-licensed `rng-vfx` guide (https://github.com/MRRengi/rng-vfx), itself
+drawn from Riot's League of Legends VFX style guide, Arc System Works' Guilty Gear Xrd GDC talk and
+Gilland's *Elemental Magic*; most VFX sites are blocked from the build container. Rules we follow:
+
+- Designed shapes, hard edges, flat fills: a white core, one saturated band, a darker hue-shifted
+  shadow band (never black); bands follow the shape's body, not only its age. No soft additive haze.
+- Shapes are redrawn on a 12-drawings-per-second grid (`drawingOf`); positions may move smoothly.
+  Nothing designed is held unchanged for more than 2 drawings.
+- Projectile heads are stretched along the motion (a comet, not a ball); trails taper to nothing.
+- No straight cuts: every shape narrows or ends inside its quad or strip.
+- Telegraphs show the true area: a crisp edge, a low fill, and a fill growing from the centre to the
+  edge on the landing frame (hatched so the ground and monsters stay readable).
+- Smoke is solid cel smoke (two lit bands, round scallops), dies by holes opening, then shrinks; fire
+  chunks cool into smoke from the outside in.
+- Few big shapes and many small accents (about 1 : 0.5 : 0.15), staggered by 1-3 frames.
+- Impacts: a compressed core then the full shape in 1-2 drawings, never a slow grow; no closed even
+  rings (they read as a selection circle), no concentric star plus ring plus disc (a reticle).
+
+Shared pieces: `skillfx/anime-kit.js` (comet, cel puff, spiky flash, ground warning). Meteor's warning
+and fall use it; its impact, Thunderstorm and Blizzard are still the light version below until redone.
+
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
 Reference (owner): **the effects already made on the FX bench** (`fx-test.html`, published bench),

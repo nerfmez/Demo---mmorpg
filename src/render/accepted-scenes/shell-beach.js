@@ -1379,5 +1379,5 @@ build();
 const routes=typeof ROUTES!=='undefined'?ROUTES:typeof ST!=='undefined'&&ST.rows?[{id:'stairs',...ST}]:[];
 const trails=typeof TRAILS!=='undefined'?TRAILS:[];
 return {root:scene,height,field,colliders:COLLIDERS,routes,trails,landmark:typeof MILL!=='undefined'?MILL:typeof WELL!=='undefined'?WELL:typeof GAZEBO!=='undefined'?GAZEBO:null,P:typeof P!=='undefined'?P:null,trailDistance:typeof trailEdge!=='undefined'?trailEdge:(x,z)=>Math.abs(x-pathX(z))-2.6,shore:typeof zShore!=='undefined'?zShore:null,
-waypoint:typeof WP!=='undefined'?WP:null,update(dt,t,on){timeU.value=t;/* ambient particles remain game-owned */}};
+waypoint:typeof WP!=='undefined'?WP:null,crossing:typeof CROSSING!=='undefined'?CROSSING:null,pond:typeof POND!=='undefined'?{...POND,radius:pondRadius,waterY:SEA_Y}:null,update(dt,t,on){timeU.value=t;/* ambient particles remain game-owned */}};
 }

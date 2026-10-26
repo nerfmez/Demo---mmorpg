@@ -1069,12 +1069,27 @@ the Azure/Frontier sides stay open grass (no layout change there).
 
 Layout data used here: `ruins.zone` (the zone strewn with fallen stones, default `ruins`),
 `ruins.scatter` (tries, default 90), `ruins.paving: false` (a grassy ring, no paved floor);
-`town.trees` for the elder tree in the ring; `town.surfaces` with a `dirt` polygon so the camp has no
-cobbled plaza. Monsters: `fern_ear_hare` (behaviour `hare`), `mirrorwing_moth` (`moth`, flyer),
+`town` anchors (workbench, trainer, well, shop) on Moonstone Camp's clearing, with no trees or
+surfaces of their own (the scene draws the clearing). Monsters: `fern_ear_hare` (behaviour `hare`), `mirrorwing_moth` (`moth`, flyer),
 `rootdigger_mole` (`mole`), procedural rigs in `render/monsters-grove.js`. Each rig now wears a
 Meshy model (`data/models.json` → `monsters`, skinned to the same bones by `render/monsterSkin.js`;
 the procedural parts remain the fallback until the model loads). The moth's model keeps the concept's
 raised wings, which the rig flaps about the body axis; its extra tail from Meshy was cut off.
+
+Accepted scenes (26 October 2026): the five approved Moonroot scenes (`scenes/root-warren`,
+`moonstone-camp`, `mirror-pond`, `fern-rise`, `stone-ring`) stand west to east along local z 0 at
+x -135, -75, -5, 65 and 135 (`region: moonroot-grove-v1`, s 0.42), as the region concept lays them
+out; `moonroot-grove.json.acceptedScenes` enables them with the same apron, grass-bank, foliage
+(tree scale 1: their roots are drawn for those trunks) and surround settings as the other maps, and
+final connectors join their roads to `grove_road`, `south_trail`, `ring_trail` and
+`headland_trail`. The scenes replace the native camp (`camp` key removed: Moonstone Camp draws its
+own tents and fire), the elder tree and the ring's pillars (cleared like any native prop inside a
+scene). Per-scene exports: a scene whose factory has a waypoint names its id (`waypoint: 'camp'`;
+the camp's warp pillar is the beach's rebuilding waypoint at 1.8 scale, rebuilt once the waypoint is
+discovered); Mirror Pond exports `pond` (centre, water y and 72 shore radii) and `crossing` (its
+stepping-stone line). The pond is blocked by circles in `ponds`, and its stones are a dock of kind
+`stepstone`: walkable over the water at the stones' tops, never drawn by the harbour or the map image
+(the scene draws the stones). A port uses its normal dock support for it.
 
 Packs: a spawn entry may carry `pack: {size, radius, spacing}` (the hare: packs of 6 or 4, small
 and weak). `encounterLayout()` places each pack's leader under the normal rules, then its mates
@@ -1183,7 +1198,7 @@ Authentication, shared combat and authoritative saves remain future milestones.
 
 ## Accepted concept scenes (integration trial, 24 October 2026)
 
-`data/accepted-scenes.json` contains six source-scene transforms, bounds, sampled heights and path distances, plain circle/OBB solids and source road guides. Each scene lies in one map's local metres: `region` names the map (Azure Coast when unset; the Conch Coast, `shell-beach`, lies on the Greenhollow Frontier coast west of the arrival beach), and `acceptedScenes(data)` returns the scenes of the map whose `acceptedScenes.enabled` is set. `data/world.json.acceptedScenes` (and `data/maps/frontier-wilds.json.acceptedScenes` for its scene, with its own roads, connectors, apron, foliage and shore) enables them and declares graded connector height profiles. `core/accepted-scenes.js` applies them to the same heightfield consumed by collision, spawning and native terrain. `export:layout` now includes the accepted-scene settings and the final roads; its heightmap already includes the replacement terrain and aprons.
+`data/accepted-scenes.json` lists the thirteen accepted scenes (`data/accepted-scenes/<id>.json`: source-scene transforms, bounds, sampled heights and path distances, plain circle/OBB solids and source road guides). Each scene lies in one map's local metres: `region` names the map (Azure Coast when unset; the Conch Coast, `shell-beach`, lies on the Greenhollow Frontier coast west of the arrival beach), and `acceptedScenes(data)` returns the scenes of the map whose `acceptedScenes.enabled` is set. `data/world.json.acceptedScenes` (and `data/maps/frontier-wilds.json` and `moonroot-grove.json` `acceptedScenes` for theirs, with its own roads, connectors, apron, foliage and shore) enables them and declares graded connector height profiles. `core/accepted-scenes.js` applies them to the same heightfield consumed by collision, spawning and native terrain. `export:layout` now includes the accepted-scene settings and the final roads; its heightmap already includes the replacement terrain and aprons.
 
 Scene lift and edges. `acceptedScenes.lift[scene]` raises a whole scene (its sampled surface, meshes, plants, animated parts and the scene ends of its connectors) by that many metres; `acceptedTarget` adds it. Where a scene meets the map, `apron.scene[scene].continue` replaces the ramp with the scene's own ground past its bounds: `data/accepted-scenes/<id>.json` may carry `outer` (the factory's height function sampled on a 1 m grid in a ring round the bounds), softened by two 7 m box passes and faded into the map over `continue` metres, so the scene's uplands and banks run on instead of ending at the bound (its rock faces still end at the bound). `inland` lets the apron reach low dry ground. A raised scene next to a map seam lists the same `rises` (span, height, ease in each map's local coordinates) on both maps' seams; `seamRise` adds them to the generated profile, so the hill continues across the border. The forest's factory builds rock columns on every terrace edge with a real drop, not only those in its authored frame (a second pass with its own seed). Its game patch also adds three rises ringing the cherry's hollow (world-metre outlines, `ring: true` terraces) and moves the arching tree over trail-1's north pass; frame-placed trees are lifted onto the rises, not moved. `acceptedScenes.grassBanks` lists scenes whose steep ground is painted as grass (the ground shader reads it as level through the `aBank` vertex attribute); their rock faces are their own meshes. A connector marked `final` carries heights taken from the finished ground, so `apronConnectors` leaves it as authored. A port applies the same lift, outer ground and seam rises to its heightmap.
 

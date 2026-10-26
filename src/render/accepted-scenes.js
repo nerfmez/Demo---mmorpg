@@ -9,6 +9,11 @@ import {createAcceptedScene as meadow} from './accepted-scenes/azure-meadow.js';
 import {createAcceptedScene as rose} from './accepted-scenes/rose-garden.js';
 import {createAcceptedScene as ranger} from './accepted-scenes/ranger-forest.js';
 import {createAcceptedScene as headland} from './accepted-scenes/gull-headland.js';
+import {createAcceptedScene as warren} from './accepted-scenes/root-warren.js';
+import {createAcceptedScene as camp} from './accepted-scenes/moonstone-camp.js';
+import {createAcceptedScene as pond} from './accepted-scenes/mirror-pond.js';
+import {createAcceptedScene as fern} from './accepted-scenes/fern-rise.js';
+import {createAcceptedScene as ring} from './accepted-scenes/stone-ring.js';
 import {acceptedScenes,connectorClear,sceneWeight,sceneSample,sceneLift} from '../core/accepted-scenes.js';
 import {distToPolyline} from '../core/math.js';
 import {timeUniform} from './patch.js';
@@ -20,7 +25,7 @@ import {edgeCliffGeometry} from './edge-cliffs.js';
 import {animeConfig,animeFoliageMaterial,animeTrunkMaterial} from './anime-study.js';
 import {hullMaterial} from './patch.js';
 import {grassMaterial,attachGrassSurfaceSteps} from './grass.js';
-const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose,'ranger-forest':ranger,'gull-headland':headland};
+const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose,'ranger-forest':ranger,'gull-headland':headland,'root-warren':warren,'moonstone-camp':camp,'mirror-pond':pond,'fern-rise':fern,'stone-ring':ring};
 export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  const root=new THREE.Group();root.name='accepted-concept-scenes';adopt?.(root);
  const animations=[],waypoints=new Map(),textures=new Set(),depthMaterials=new Set();let cliffLook=null;
@@ -37,7 +42,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
   const keep=o=>o?.traverse(n=>dynamic.add(n));
   if(result.waypoint){
    const stone=result.waypoint.root;keep(stone);stone.name='arrival-waypoint-rebuilding-stone';
-   stone.userData.updateAccepted=(dt,t,on,px,pz)=>result.update(dt,t,on&&(result.waypoint.active||Math.hypot(px-stone.matrixWorld.elements[12],pz-stone.matrixWorld.elements[14])<4.8));stone.userData.waypointId='landing';waypoints.set('landing',stone);
+   stone.userData.updateAccepted=(dt,t,on,px,pz)=>result.update(dt,t,on&&(result.waypoint.active||Math.hypot(px-stone.matrixWorld.elements[12],pz-stone.matrixWorld.elements[14])<4.8));const id=spec.waypoint?.id||'landing';stone.userData.waypointId=id;waypoints.set(id,stone);
   }
   // The rotor remains separate from the static scenery batches.
   if(result.landmark?.rotor){keep(result.landmark.rotor);result.landmark.rotor.userData.spatialDynamic=true;animations.push(result);}

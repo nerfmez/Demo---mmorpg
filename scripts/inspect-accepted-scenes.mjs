@@ -17,7 +17,16 @@ const specs=[
  // the two coastal zones on the east coast (owner, 26 October 2026: headland at the north-east corner, the
  // ranger forest below it); y puts each scene's sea (SEA_Y = -7.18 scene units) at the map's water level
  {id:'gull-headland',x:189.3,z:-92.7,s:.42,y:2.62,box:[-65,65,-65,30]},
- {id:'ranger-forest',x:189.3,z:-34.7,s:.42,y:2.62,box:[-65,65,-65,30]}
+ {id:'ranger-forest',x:189.3,z:-34.7,s:.42,y:2.62,box:[-65,65,-65,30]},
+ // the five Moonroot Grove zones (owner, 26 October 2026), west to east as the region concept lays
+ // them out, in Moonroot's local metres: Root Warren, Moonstone Camp (its warp pillar is the region's
+ // camp waypoint), Mirror Pond (y puts its water, SEA_Y = -1.404 scene units, at the water level),
+ // Fern Rise, the Old Root Stone Ring
+ {id:'root-warren',region:'moonroot-grove-v1',x:-135,z:0,s:.42,y:.3,box:[-65,65,-65,30]},
+ {id:'moonstone-camp',region:'moonroot-grove-v1',x:-75,z:0,s:.42,y:.3,box:[-65,65,-65,30],waypoint:'camp'},
+ {id:'mirror-pond',region:'moonroot-grove-v1',x:-5,z:0,s:.42,y:.19,box:[-65,65,-65,30]},
+ {id:'fern-rise',region:'moonroot-grove-v1',x:65,z:0,s:.42,y:.3,box:[-65,65,-65,30]},
+ {id:'stone-ring',region:'moonroot-grove-v1',x:135,z:0,s:.42,y:.3,box:[-65,65,-65,30]}
 ];
 const round=n=>Math.round(n*1000)/1000,scenes=[];
 // Morphological closing (a max then a min filter over a square r metres each way, 1 m grid).
@@ -61,6 +70,11 @@ for(const spec of specs){
  // ravine, the cove behind a wall) close over instead of running on as ravines
  if(spec.outerFill)close(oy,ow,oh,spec.outerFill);
  scene.outer={grid:{ox:o[0],oz:o[2],res:r,w:ow,h:oh},heights:oy};}
+ // the warp pillar's place, for the waypoint it stands for (render wires the pillar to it)
+ if(a.waypoint&&spec.waypoint)scene.waypoint={id:spec.waypoint,x:round(spec.x+a.waypoint.x*spec.s),z:round(spec.z+a.waypoint.z*spec.s)};
+ // Mirror Pond: its waterline (world metres round the pond's centre) and the stepping stones' crossing
+ if(a.pond){const P0=a.pond;scene.pond={x:round(spec.x+P0.cx*spec.s),z:round(spec.z+P0.cz*spec.s),y:round(P0.waterY*spec.s+spec.y),radius:Array.from({length:72},(_,i)=>round(P0.radius(-Math.PI+i/72*Math.PI*2)*spec.s))};}
+ if(a.crossing)scene.crossing={line:a.crossing.line.map(([x,z])=>[round(spec.x+x*spec.s),round(spec.z+z*spec.s)]),stones:a.crossing.stones.map(st=>({x:round(spec.x+st.x*spec.s),z:round(spec.z+st.z*spec.s),r:round(st.r*spec.s),top:round(st.top*spec.s+spec.y)}))};
  if(a.shore)scene.shore=Array.from({length:Math.ceil((bounds[1]-bounds[0])/2)+1},(_,i)=>{const x=bounds[0]+i*2;return[round(x),round(spec.z+a.shore((x-spec.x)/spec.s)*spec.s)];});
  scenes.push(scene);console.log(spec.id,{colliders:colliders.length,roads:roads.length,bounds,meshes:a.root.children.length});
 }

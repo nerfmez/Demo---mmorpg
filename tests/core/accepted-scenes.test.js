@@ -10,11 +10,11 @@ import {OpenWorldGame} from '../../src/core/open-world-game.js';
 import {encounterLayout} from '../../src/core/encounters.js';
 const data=loadData(),world=createWorld(data.world);
 // scenes lie in their own region (scene.region, Azure Coast when unset)
-const frontier=data.maps['frontier-wilds-v1'],worlds={[data.world.id]:world,[frontier.id]:createWorld(frontier)};
+const frontier=data.maps['frontier-wilds-v1'],moonroot=data.maps['moonroot-grove-v1'],worlds={[data.world.id]:world,[frontier.id]:createWorld(frontier),[moonroot.id]:createWorld(moonroot)};
 const regionOf=s=>s.region||data.world.id,home=s=>worlds[regionOf(s)],homeData=s=>data.maps[regionOf(s)];
 test('all approved areas share real roads, collision and continuous edge heights',()=>{
- const N=acceptedSceneLayout.scenes.length;assert.equal(N,8);
- for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){const a=acceptedSceneLayout.scenes[i].bounds,b=acceptedSceneLayout.scenes[j].bounds;assert.ok(Math.min(a[1],b[1])<=Math.max(a[0],b[0])||Math.min(a[3],b[3])<=Math.max(a[2],b[2]),'scene footprints must not overlap');}
+ const N=acceptedSceneLayout.scenes.length;assert.equal(N,13);
+ for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){if(regionOf(acceptedSceneLayout.scenes[i])!==regionOf(acceptedSceneLayout.scenes[j]))continue;const a=acceptedSceneLayout.scenes[i].bounds,b=acceptedSceneLayout.scenes[j].bounds;assert.ok(Math.min(a[1],b[1])<=Math.max(a[0],b[0])||Math.min(a[3],b[3])<=Math.max(a[2],b[2]),'scene footprints must not overlap');}
  let samples=0;
  for(const world of Object.values(worlds)){
  for(const road of world.roads)assert.ok(Number.isFinite(road.width)&&road.width>0,'finite road width '+road.id);
@@ -218,4 +218,25 @@ test('the arrival beach ends on the left in a high headland joined to the Conch 
  while(queue.length&&!reached){const [i,j]=queue.shift();for(const [di,dj] of[[1,0],[-1,0],[0,1],[0,-1]]){const ni=i+di,nj=j+dj;if(seen.has(key(ni,nj))||ni*S<-150||ni*S>-50||nj*S<50||nj*S>90)continue;
   const m=world.move(i*S,j*S,.45,di*S,dj*S);if(Math.hypot(m.x-ni*S,m.z-nj*S)>.03||Math.abs(world.groundY(ni*S,nj*S))>1.2)continue;seen.add(key(ni,nj));queue.push([ni,nj]);if(ni*S>=-60)reached=true;}}
  assert.ok(reached,'no level walk from the spawn east along the shore');
+});
+test('Moonroot\'s five scenes: the camp\'s pillar is its waypoint, the pond blocks walking but its stepping stones cross it',()=>{
+ const w=worlds[moonroot.id],scenes=acceptedSceneLayout.scenes.filter(s=>s.region===moonroot.id);
+ assert.deepEqual(scenes.map(s=>s.id).sort(),['fern-rise','mirror-pond','moonstone-camp','root-warren','stone-ring']);
+ assert.equal(moonroot.camp,undefined,'the camp scene draws its own tents and fire');
+ const camp=scenes.find(s=>s.id==='moonstone-camp'),wp=moonroot.waypoints.find(p=>p.id===camp.waypoint.id);
+ assert.ok(wp&&Math.hypot(wp.pos[0]-camp.waypoint.x,wp.pos[1]-camp.waypoint.z)<6,'the map waypoint stands at the warp pillar');
+ for(const p of moonroot.waypoints)assert.ok(!w.isWater(p.pos[0],p.pos[1],1),p.id);
+ const pond=scenes.find(s=>s.id==='mirror-pond');
+ for(const dx of[-3.5,3.5])assert.ok(!w.isFree(pond.pond.x+dx,pond.pond.z,.45),'open water beside the stones blocks walking');
+ // walk the stones from shore to shore, both ways
+ const line=pond.crossing.line;let wet=0;
+ for(let i=0;i<line.length-1;i++){
+  const a=line[i],b=line[i+1],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.2)),dx=(b[0]-a[0])/n,dz=(b[1]-a[1])/n;
+  for(let k=0;k<n;k++){
+   const x=a[0]+dx*k,z=a[1]+dz*k;if(w.isWater(x,z,0))wet++;
+   for(const sign of[1,-1]){const sx=sign>0?x:x+dx,sz=sign>0?z:z+dz,m=w.move(sx,sz,.45,dx*sign,dz*sign);
+    assert.ok(Math.hypot(m.x-sx-dx*sign,m.z-sz-dz*sign)<.025,`stone crossing blocked at ${sx.toFixed(1)},${sz.toFixed(1)}`);}
+  }
+ }
+ assert.ok(wet>0||line.some(([x,z])=>moonroot.ponds.some(([px,pz,r])=>Math.hypot(x-px,z-pz)<r)),'the crossing runs over the pond');
 });

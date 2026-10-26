@@ -204,7 +204,7 @@ export function mapImage(world) {
     }
   }
   if(world.data.city?.enabled){
-    for(const dock of world.docks)poly(dock,'#ad8b5b','#736548');
+    for(const dock of world.docks)if(dock.kind!=='stepstone')poly(dock,'#ad8b5b','#736548');
     const f=world.data.city.fountain;
     g.beginPath();g.arc(tx(f.x),tz(f.z),f.r*PX,0,Math.PI*2);g.fillStyle='#80babb';g.fill();g.lineWidth=2;g.strokeStyle='#e5dcc6';g.stroke();
   }

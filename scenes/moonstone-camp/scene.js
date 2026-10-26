@@ -26,7 +26,9 @@ function campClutter(){
  // in loose clusters of two to four, bushes and ferns between them, as the reference's alcove
  for(const[u,v,w,h,n]of[[.26,.31,.06,.10,3],[.32,.255,.045,.07,2],[.40,.215,.04,.06,3],[.47,.205,.035,.05,2],[.56,.235,.05,.09,3],[.645,.245,.04,.06,2],[.72,.31,.05,.08,3],[.785,.29,.04,.07,2]]){
   for(let k=0;k<n;k++){
-   const du=R(-.6,.6)*w,dv=R(-.25,.35)*w,sc=k?R(.45,.7):1,[x,y,z]=onGround(u+du,v+dv),width=wide(u-w/2,u+w/2,v,y)*sc,hh=tall(x,z,y,v-h)*sc;
+   const du=R(-.6,.6)*w,dv=R(-.25,.35)*w,sc=k?R(.45,.7):1;let[x,y,z]=onGround(u+du,v+dv);const width=wide(u-w/2,u+w/2,v,y)*sc,hh=tall(x,z,y,v-h)*sc;
+   // a boulder that would sit on a path is set just off it, on the side it stood
+   {const st=stairsAt(x,z);if(st.s<st.half+width*.55){let best=null;for(const r of ROUTES)for(const q of r.rows){const d=Math.hypot(x-q.x,z-q.z);if(!best||d<best.d)best={d,q};}const q=best.q,d=best.d||1,to=st.half+width*.6;x=q.x+(x-q.x)/d*to;z=q.z+(z-q.z)/d*to;y=height(x,z);}}
    fieldStone(x,y-M(.3)*sc,z,width*R(.85,1),hh+M(.3)*sc,width*R(.7,.9),{ry:R(0,6.28),rz:R(-.06,.06),moss:R(.45,.7),base:pick(MOON_STONE),chamfer:R(.35,.5)});
    if(!k)COLLIDERS.push({x,z,r:width*.42});
    for(let j=0;j<2;j++)addBush(x+R(-.6,.6)*width,y+R(0,.25)*hh,z+width*R(.2,.6),M(R(.28,.48)),{sy:.65,tint:R(-.1,.2)});

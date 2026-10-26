@@ -33,7 +33,7 @@ def gameFoliageParts(name,src):
   assert src.count(old)==1,(name,old);src=src.replace(old,'sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s))')
  return src
 
-for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden','ranger-forest','gull-headland']:
+for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden','ranger-forest','gull-headland','mirror-pond','moonstone-camp','stone-ring','fern-rise','root-warren']:
  if name=='beach':
   src=b[b.index('// ---------- world layout'):b.index('function resize()')]
   src=src[:src.index('// ---------- renderer')]+src[src.index('// ---------- shared GLSL'):]
@@ -116,12 +116,12 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
  camera+="const CAM={target:new V3(.96,0,-4.02),pitch:38,dist:51.9,yaw:-7.3};\n" if name=='beach' else f"const CAM={{target:new V3(0,0,-7.2),pitch:40,dist:{72 if name=='forest' else 93.6},yaw:0}};\n"
  pre="export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={},foliage=null}={}){\nconst scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=g=>{g.userData.rigidParts=true;return g;};\n"+gameFoliageHelpers+helpers+camera+cam+"const SUN=new V3(-.6,.77,-.2).normalize();\n"
  if name=='shell-beach':pre+="const CONCH_ASSET=assets.conch||null;   // preloaded by render/accepted-assets.js\n"
- if name=='beach':
+ if 'function updateWaypoint' in src:   # the rebuilding warp pillar: the beach's, and Moonstone Camp's
   src=src.replace('const pos = new V3(), q = new THREE.Quaternion(), spinQ = new THREE.Quaternion();','const pos = wpPosition, q = wpRotation, spinQ = wpSpinRotation;').replace('new V3(0, 1, 0), t * 0.9 * G','wpAxis, t * 0.9 * G').replace('new V3(0, 1, 0), WP.spin','wpAxis, WP.spin')
   pre+='const wpPosition=new V3(),wpRotation=new THREE.Quaternion(),wpSpinRotation=new THREE.Quaternion(),wpAxis=new V3(0,1,0);\n'
  meta="const routes=typeof ROUTES!=='undefined'?ROUTES:typeof ST!=='undefined'&&ST.rows?[{id:'stairs',...ST}]:[];\nconst trails=typeof TRAILS!=='undefined'?TRAILS:[];\n"
- end="\nbuild();\n"+meta+"return {root:scene,height,field,colliders:COLLIDERS,routes,trails,landmark:typeof MILL!=='undefined'?MILL:typeof WELL!=='undefined'?WELL:typeof GAZEBO!=='undefined'?GAZEBO:null,P:typeof P!=='undefined'?P:null,trailDistance:typeof trailEdge!=='undefined'?trailEdge:(x,z)=>Math.abs(x-pathX(z))-2.6,shore:typeof zShore!=='undefined'?zShore:null,\nwaypoint:typeof WP!=='undefined'?WP:null,update(dt,t,on){timeU.value=t;"
- if name=='beach':end+="WP.active=on;updateWaypoint(dt,t);"
+ end="\nbuild();\n"+meta+"return {root:scene,height,field,colliders:COLLIDERS,routes,trails,landmark:typeof MILL!=='undefined'?MILL:typeof WELL!=='undefined'?WELL:typeof GAZEBO!=='undefined'?GAZEBO:null,P:typeof P!=='undefined'?P:null,trailDistance:typeof trailEdge!=='undefined'?trailEdge:(x,z)=>Math.abs(x-pathX(z))-2.6,shore:typeof zShore!=='undefined'?zShore:null,\nwaypoint:typeof WP!=='undefined'?WP:null,crossing:typeof CROSSING!=='undefined'?CROSSING:null,pond:typeof POND!=='undefined'?{...POND,radius:pondRadius,waterY:SEA_Y}:null,update(dt,t,on){timeU.value=t;"
+ if 'function updateWaypoint' in src:end+="WP.active=on;updateWaypoint(dt,t);"
  if 'function updateAmbience' in src:end+="/* ambient particles remain game-owned */"
  if name=='forest':end+=""
  if name=='hill-windmill':end+="if(typeof MILL!=='undefined'&&MILL.rotor)MILL.rotor.rotation.z=Math.PI/4+t*.55;"

@@ -157,7 +157,7 @@ export function mapImage(world) {
         shape([[-1.6,-.1],[-1.5,-1.15],[-.5,-1.25],[0,-1.9],[1,-1.2],[.6,-.3],[-.1,0],[-.7,.5]],light,null);
         if(c.type==='willow'){g.strokeStyle='#a9c995';g.lineWidth=.15;for(const x of [-1,0,1]){g.beginPath();g.moveTo(x,-.4);g.lineTo(x,.6);g.stroke();}}
       }
-    } else if(['rock','boulder'].includes(c.type)){
+    } else if(['rock','boulder','landscape_rock'].includes(c.type)){
       const r=Math.max(.45,c.r);g.scale(r,r);
       shape([[-1,.25],[-.7,-.65],[.1,-.95],[.9,-.4],[1,.65],[-.2,.85]],'#9ea58b','#727e68',.14);
       shape([[-.7,-.65],[.1,-.95],[.9,-.4],[.2,.3],[-1,.25]],'#ced0ac',null);
@@ -180,7 +180,7 @@ export function mapImage(world) {
       g.beginPath();corners.forEach((p,i)=>i?g.lineTo(tx(p.x),tz(p.z)):g.moveTo(tx(p.x),tz(p.z)));g.closePath();g.fillStyle=bx.type==='house'?'#dfa379':bx.awningColor||'#f7edcc';g.fill();
       g.beginPath();g.moveTo(tx(ridge[0].x),tz(ridge[0].z));g.lineTo(tx(ridge[1].x),tz(ridge[1].z));g.lineWidth=1.2;g.strokeStyle='#735e46';g.stroke();
     } else if(bx.type==='workbench')poly(bx,'#aa8050','#695c3e');
-    else if(bx.type==='ruin_wall')poly(bx,'#e1d7b6','#89977b');
+    else if(['ruin_wall','landscape_wall'].includes(bx.type))poly(bx,'#e1d7b6','#89977b');
     else if(bx.type==='fence')poly(bx,'#a18a55','#6c764e');
     else if(bx.type==='city_wall')poly(bx,'#d7cdb0','#7b8274');
   }

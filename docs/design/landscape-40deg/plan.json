@@ -1,0 +1,692 @@
+{
+  "version": 1,
+  "status": "design-only-not-runtime",
+  "sourceMain": "6f3a7c237dc5323c7b94b2bdb3d7cd647c04d281",
+  "cameraReference": {
+    "pullRequest": 137,
+    "sha": "ff8d525debf8ff2f8c2bf2dbd195e1fc2aa4c951",
+    "pitchAboveHorizonDegrees": 40,
+    "distanceMetres": 23.3,
+    "fovLandscapeDegrees": 36,
+    "fovPortraitDegrees": 52,
+    "viewFrom": "south"
+  },
+  "coordinates": "Feature points use their region's native XZ metres. Atlas = native + the source region atlas.offset. North is -Z.",
+  "placementPolicy": {
+    "roadExtraClearanceMetres": 3.5,
+    "waterExtraClearanceMetres": 3,
+    "spawnClearanceMetres": 12,
+    "waypointClearanceMetres": 8,
+    "landmarkExtraClearanceMetres": 4,
+    "seamBandMetres": 24,
+    "cityFloorClearanceMetres": 5,
+    "note": "The planning renderer masks every proposed mass away from protected routes, anchors, water, city floors and the full shared seam bands. Masks do not prove navigability; final geometry, ramps, spawn relocation and route tests are implementation work. Existing roads and anchors remain the registration basis."
+  },
+  "features": [
+    {
+      "id": "A1",
+      "region": "azure-harbor-v1",
+      "kind": "wooded_scarp",
+      "nameTh": "ผาป่าโปร่งริมฝั่ง",
+      "points": [
+        [
+          -146,
+          -108
+        ],
+        [
+          -130,
+          -101
+        ],
+        [
+          -117,
+          -88
+        ],
+        [
+          -113,
+          -66
+        ],
+        [
+          -120,
+          -40
+        ]
+      ],
+      "width": 13,
+      "terrainHeightMetres": [
+        2,
+        4
+      ],
+      "silhouetteHeightMetres": [
+        6,
+        10
+      ],
+      "kit": "coastal-rock-and-broadleaf",
+      "note": "Break the back wall into rooted scarp groups; keep west_pass and the existing lookout clear."
+    },
+    {
+      "id": "A2",
+      "region": "azure-harbor-v1",
+      "kind": "meadow_bank",
+      "nameTh": "คันดินทุ่งและแนวสวน",
+      "points": [
+        [
+          -45,
+          -77
+        ],
+        [
+          -28,
+          -67
+        ],
+        [
+          -14,
+          -64
+        ],
+        [
+          7,
+          -68
+        ],
+        [
+          27,
+          -63
+        ]
+      ],
+      "width": 8,
+      "terrainHeightMetres": [
+        1,
+        2.5
+      ],
+      "silhouetteHeightMetres": [
+        2,
+        5
+      ],
+      "kit": "earth-bank-and-orchard",
+      "note": "Low retaining banks and orchard groups; broad open meadow courts between masses."
+    },
+    {
+      "id": "A3",
+      "region": "azure-harbor-v1",
+      "kind": "coastal_cliff",
+      "nameTh": "ผาแหลมเหนือเมือง",
+      "points": [
+        [
+          151,
+          -107
+        ],
+        [
+          168,
+          -115
+        ],
+        [
+          187,
+          -114
+        ],
+        [
+          203,
+          -105
+        ],
+        [
+          204,
+          -85
+        ]
+      ],
+      "width": 12,
+      "terrainHeightMetres": [
+        3,
+        6
+      ],
+      "silhouetteHeightMetres": [
+        4,
+        8
+      ],
+      "kit": "coastal-rock-and-broadleaf",
+      "note": "Retain shrine and headland pad, authored road becomes the ramp approach. No new mountain range."
+    },
+    {
+      "id": "A4",
+      "region": "azure-harbor-v1",
+      "kind": "beach_backbank",
+      "nameTh": "ผาหลังหาดผู้มาเยือน",
+      "points": [
+        [
+          -151,
+          43
+        ],
+        [
+          -139,
+          39
+        ],
+        [
+          -126,
+          42
+        ],
+        [
+          -109,
+          46
+        ],
+        [
+          -93,
+          40
+        ],
+        [
+          -79,
+          36
+        ]
+      ],
+      "width": 10,
+      "terrainHeightMetres": [
+        1.5,
+        3
+      ],
+      "silhouetteHeightMetres": [
+        3,
+        7
+      ],
+      "kit": "coastal-rock-and-broadleaf",
+      "note": "Rock shoulders behind the sand, grass and palms on upper soil only; preserve wreck, landing and 5.5m arrival road."
+    },
+    {
+      "id": "F1",
+      "region": "frontier-wilds-v1",
+      "kind": "forest_rootwall",
+      "nameTh": "ผารากไม้ป่ารากตะไคร่",
+      "points": [
+        [
+          142,
+          -76
+        ],
+        [
+          120,
+          -68
+        ],
+        [
+          100,
+          -75
+        ],
+        [
+          83,
+          -87
+        ],
+        [
+          65,
+          -94
+        ],
+        [
+          44,
+          -90
+        ],
+        [
+          20,
+          -86
+        ],
+        [
+          -10,
+          -90
+        ]
+      ],
+      "width": 11,
+      "terrainHeightMetres": [
+        2.5,
+        4.5
+      ],
+      "silhouetteHeightMetres": [
+        7,
+        11
+      ],
+      "kit": "forest-root-and-scarp",
+      "note": "Rear scarp tracks 10-16m behind the existing forest trail where anchor masks permit. Maintain Elder Mosstree and Greyfang clearings; do not put all scenery beyond the 40-degree camera footprint."
+    },
+    {
+      "id": "F2",
+      "region": "frontier-wilds-v1",
+      "kind": "highland_terrace",
+      "nameTh": "ชั้นผาที่ราบสูง",
+      "points": [
+        [
+          -211,
+          -103
+        ],
+        [
+          -192,
+          -115
+        ],
+        [
+          -173,
+          -100
+        ],
+        [
+          -151,
+          -112
+        ],
+        [
+          -132,
+          -109
+        ],
+        [
+          -110,
+          -114
+        ],
+        [
+          -88,
+          -120
+        ],
+        [
+          -65,
+          -113
+        ]
+      ],
+      "width": 17,
+      "terrainHeightMetres": [
+        4,
+        8
+      ],
+      "silhouetteHeightMetres": [
+        5,
+        10
+      ],
+      "kit": "highland-cliff-and-ruin",
+      "note": "Staggered shelves with long walkable ramps to existing trails; no stairs-only chokepoint."
+    },
+    {
+      "id": "F3",
+      "region": "frontier-wilds-v1",
+      "kind": "ruin_wall",
+      "nameTh": "แนวกำแพงโบราณแตก",
+      "points": [
+        [
+          -216,
+          -24
+        ],
+        [
+          -202,
+          -29
+        ],
+        [
+          -190,
+          -24
+        ],
+        [
+          -177,
+          -30
+        ],
+        [
+          -165,
+          -23
+        ]
+      ],
+      "width": 6,
+      "terrainHeightMetres": [
+        0,
+        0.5
+      ],
+      "silhouetteHeightMetres": [
+        3,
+        6
+      ],
+      "kit": "highland-cliff-and-ruin",
+      "note": "Broken masonry faces and buttresses on the existing plateau; multiple 8m openings, boss ring protected."
+    },
+    {
+      "id": "F4",
+      "region": "frontier-wilds-v1",
+      "kind": "thorn_grove",
+      "nameTh": "สันดินป่าหนาม",
+      "points": [
+        [
+          132,
+          84
+        ],
+        [
+          151,
+          94
+        ],
+        [
+          170,
+          93
+        ],
+        [
+          187,
+          108
+        ],
+        [
+          203,
+          121
+        ]
+      ],
+      "width": 12,
+      "terrainHeightMetres": [
+        1.5,
+        3
+      ],
+      "silhouetteHeightMetres": [
+        4,
+        7
+      ],
+      "kit": "earth-bank-and-orchard",
+      "note": "Short thorn banks and broadleaf groups surround open hunt courts, not solid enclosing fences."
+    },
+    {
+      "id": "F5",
+      "region": "frontier-wilds-v1",
+      "kind": "wetland_bank",
+      "nameTh": "โคกดินต้นหลิว",
+      "points": [
+        [
+          -125,
+          3
+        ],
+        [
+          -112,
+          -9
+        ],
+        [
+          -98,
+          -14
+        ],
+        [
+          -84,
+          -21
+        ],
+        [
+          -64,
+          -25
+        ],
+        [
+          -40,
+          -23
+        ]
+      ],
+      "width": 10,
+      "terrainHeightMetres": [
+        0.8,
+        2
+      ],
+      "silhouetteHeightMetres": [
+        4,
+        8
+      ],
+      "kit": "wetland-bank-and-willow",
+      "note": "Low dry islands plus tall willow silhouettes at rear; water and causeway remain readable."
+    },
+    {
+      "id": "F6",
+      "region": "frontier-wilds-v1",
+      "kind": "coastal_cliff",
+      "nameTh": "ผาชายฝั่งตะวันรอน",
+      "points": [
+        [
+          -198,
+          134
+        ],
+        [
+          -177,
+          128
+        ],
+        [
+          -153,
+          131
+        ],
+        [
+          -129,
+          122
+        ]
+      ],
+      "width": 11,
+      "terrainHeightMetres": [
+        2,
+        4
+      ],
+      "silhouetteHeightMetres": [
+        3,
+        6
+      ],
+      "kit": "coastal-rock-and-broadleaf",
+      "note": "Interrupted weathered rock arms frame coves without sealing the coast routes."
+    },
+    {
+      "id": "M1",
+      "region": "moonroot-grove-v1",
+      "kind": "root_bluff",
+      "nameTh": "ผารากไม้เหนือโพรงตุ่น",
+      "points": [
+        [
+          -168,
+          -44
+        ],
+        [
+          -150,
+          -42
+        ],
+        [
+          -129,
+          -45
+        ],
+        [
+          -109,
+          -41
+        ],
+        [
+          -87,
+          -46
+        ]
+      ],
+      "width": 11,
+      "terrainHeightMetres": [
+        2.5,
+        4
+      ],
+      "silhouetteHeightMetres": [
+        7,
+        11
+      ],
+      "kit": "forest-root-and-scarp",
+      "note": "Roots interlock with cliff faces, camp and root arch remain exposed from south."
+    },
+    {
+      "id": "M2",
+      "region": "moonroot-grove-v1",
+      "kind": "pond_backbluff",
+      "nameTh": "ผาด้านหลังสระกระจก",
+      "points": [
+        [
+          -54,
+          -46
+        ],
+        [
+          -32,
+          -46
+        ],
+        [
+          -8,
+          -45
+        ],
+        [
+          15,
+          -45
+        ],
+        [
+          38,
+          -42
+        ]
+      ],
+      "width": 10,
+      "terrainHeightMetres": [
+        2,
+        3.5
+      ],
+      "silhouetteHeightMetres": [
+        5,
+        9
+      ],
+      "kit": "forest-root-and-scarp",
+      "note": "Upright rear pond edge and root curtains; keep the whole pond loop and waypoint unobstructed."
+    },
+    {
+      "id": "M3",
+      "region": "moonroot-grove-v1",
+      "kind": "fern_scarp",
+      "nameTh": "ผาเฟิร์นและวงหิน",
+      "points": [
+        [
+          66,
+          -43
+        ],
+        [
+          88,
+          -45
+        ],
+        [
+          110,
+          -43
+        ],
+        [
+          137,
+          -45
+        ],
+        [
+          160,
+          -38
+        ]
+      ],
+      "width": 12,
+      "terrainHeightMetres": [
+        2,
+        4
+      ],
+      "silhouetteHeightMetres": [
+        5,
+        9
+      ],
+      "kit": "forest-root-and-scarp",
+      "note": "Fern shelves lead toward the old stone ring; existing altar, tree and ring trail retain a clear foreground."
+    }
+  ],
+  "openCourts": [
+    {
+      "id": "C1",
+      "region": "azure-harbor-v1",
+      "at": [
+        -24,
+        -36
+      ],
+      "diameter": 22
+    },
+    {
+      "id": "C2",
+      "region": "azure-harbor-v1",
+      "at": [
+        -112,
+        67
+      ],
+      "diameter": 20
+    },
+    {
+      "id": "C3",
+      "region": "frontier-wilds-v1",
+      "at": [
+        57.6,
+        -64
+      ],
+      "diameter": 22
+    },
+    {
+      "id": "C4",
+      "region": "frontier-wilds-v1",
+      "at": [
+        -73.6,
+        -76.8
+      ],
+      "diameter": 20
+    },
+    {
+      "id": "C5",
+      "region": "frontier-wilds-v1",
+      "at": [
+        -195.2,
+        9.6
+      ],
+      "diameter": 30
+    },
+    {
+      "id": "C6",
+      "region": "moonroot-grove-v1",
+      "at": [
+        126,
+        -6
+      ],
+      "diameter": 22
+    },
+    {
+      "id": "C7",
+      "region": "moonroot-grove-v1",
+      "at": [
+        -111,
+        2
+      ],
+      "diameter": 20
+    }
+  ],
+  "regionalModules": [
+    {
+      "kit": "coastal-rock-and-broadleaf",
+      "modules": [
+        "4/8m eroded cliff straight",
+        "inside/outside corner",
+        "sloping end",
+        "grass cap",
+        "two palm silhouettes",
+        "rock shoulder"
+      ]
+    },
+    {
+      "kit": "forest-root-and-scarp",
+      "modules": [
+        "4/8m root-covered scarp",
+        "root arch with separate ground route",
+        "large trunk and connected crown",
+        "low foreground shrub",
+        "walkable grass ramp"
+      ]
+    },
+    {
+      "kit": "earth-bank-and-orchard",
+      "modules": [
+        "low earth bank",
+        "short dry-stone retaining wall",
+        "orchard group",
+        "broken fence end"
+      ]
+    },
+    {
+      "kit": "highland-cliff-and-ruin",
+      "modules": [
+        "4/8m rock terrace",
+        "long ramp",
+        "broken 3/5m wall",
+        "buttress",
+        "open gate",
+        "rubble toe"
+      ]
+    },
+    {
+      "kit": "wetland-bank-and-willow",
+      "modules": [
+        "low dry bank",
+        "short root toe",
+        "willow crown",
+        "low reed group",
+        "causeway edge"
+      ]
+    }
+  ],
+  "runtimeAcceptance": [
+    "Review at the owner's 40-degree camera on desktop and iPad, including portrait and landscape HUD occlusion.",
+    "Each changed route and hunt court must remain connected; do not turn the open world into a corridor maze.",
+    "Collision and visible cliff boundaries must share one authored footprint; cliffs are never decorative walk-through surfaces.",
+    "Use a continuous heightfield with ramps for all traversable elevations; do not author traversable overhangs or a bridge-over-road without explicit engine support.",
+    "Keep the default source look. PR137 cel/frieren are opt-in experiments, not an owner approval to change the game's palette.",
+    "At pitch40, projected ground occlusion is roughly h / tan(40deg) = 1.19h before perspective. Use this as an initial placement estimate only; verify actual projected silhouettes, hero, enemies, telegraphs, loot and touch targets.",
+    "Put the largest masses behind or beside combat. Foreground close to the player uses low objects or proven hero/enemy visibility treatment.",
+    "New modules must share materials, batch by bounded spatial cells, reuse existing resident preparation/disposal, and avoid large transparent overdraw or per-frame scene assembly.",
+    "Measure rendering counts and memory against matched 40-degree source cameras. No FPS or percent-quality claim without device evidence."
+  ],
+  "heightDefinition": "Terrain height ranges specify proposed relief above the local lower grade, not an additive raise on top of existing plateaus."
+}

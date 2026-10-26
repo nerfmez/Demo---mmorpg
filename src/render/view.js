@@ -32,7 +32,12 @@ import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
 import { fxGround, fxConfig, cachedGround } from './skillfx/fx-common.js';
 
-const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
+// Owner-selected camera: 40 degrees above the horizon, same hero distance.
+const CAM_DISTANCE = 23.3, CAM_PITCH = 40;
+const pitchParam = typeof location !== 'undefined' ? parseFloat(new URLSearchParams(location.search).get('pitch')) : NaN;
+const camAngle = (pitchParam >= 15 && pitchParam <= 80 ? pitchParam : CAM_PITCH) * Math.PI / 180;
+const CAM_OFFSET = new THREE.Vector3(0, CAM_DISTANCE * Math.sin(camAngle), CAM_DISTANCE * Math.cos(camAngle));
+
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)

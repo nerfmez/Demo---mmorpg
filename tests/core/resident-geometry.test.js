@@ -43,12 +43,12 @@ test('unit buffers shrink while topology, positions, UV, bounds and shared geome
 test('shared attributes keep their aliases across geometries; ground weights retain precise decoded values', () => {
   const region = fixture(), other = new THREE.BufferGeometry();
   other.setAttribute('position', region.geometry.attributes.position);other.setAttribute('normal', region.geometry.attributes.normal);
-  for (const name of ['aSplat', 'aCoast', 'aTown', 'aTintL', 'aTintD', 'beachWash', 'coastJoin'])
+  for (const name of ['aSplat', 'aCoast', 'aTown', 'aLandscape', 'aTintL', 'aTintD', 'beachWash', 'coastJoin'])
     other.setAttribute(name, new THREE.Float32BufferAttribute([0,.345678,1], 1));
   region.root.add(new THREE.Mesh(other, new THREE.MeshBasicMaterial()));
   const originalNormal = region.geometry.attributes.normal;
   compactResidentGeometry(region);assert.equal(other.attributes.normal, region.geometry.attributes.normal);assert.notEqual(other.attributes.normal, originalNormal);
-  for (const name of ['aSplat', 'aCoast', 'aTown', 'aTintL', 'aTintD', 'beachWash', 'coastJoin']) {
+  for (const name of ['aSplat', 'aCoast', 'aTown', 'aLandscape', 'aTintL', 'aTintD', 'beachWash', 'coastJoin']) {
     const a = other.attributes[name];assert.ok(a.array instanceof Uint16Array);assert.equal(a.getX(0), 0);assert.equal(a.getX(2), 1);
     assert.ok(Math.abs(a.getX(1) - Math.fround(.345678)) <= RESIDENT_ATTRIBUTE_ERROR.unit);
   }

@@ -51,23 +51,7 @@ ${outline ? 'uniform float outlineWidth;' : ''}`
 }\n`;
     vs = vs.replace('#include <begin_vertex>', `#include <begin_vertex>\n${body}`);
     shader.vertexShader = vs;
-    if (see) {
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform vec2 uSeeCenter; uniform float uSeeRadius; uniform float uSeeDepth;')
-        .replace(
-          'void main() {',
-          `void main() {
-  {
-    float sd = distance(gl_FragCoord.xy, uSeeCenter);
-    if (sd < uSeeRadius && gl_FragCoord.z < uSeeDepth) {
-      vec2 q = mod(floor(gl_FragCoord.xy), 4.0);
-      float bayer = fract((q.x * 4.0 + mod(q.x + q.y * 2.0, 4.0) * 3.0 + q.y) / 16.0 * 1.618 + q.y * 0.25);
-      float kk = smoothstep(uSeeRadius, uSeeRadius * 0.55, sd);
-      if (bayer < kk * 0.8) discard;
-    }
-  }`
-        );
-    }
+    if (see) applySeeThrough(shader);
   };
   material.customProgramCacheKey = () => `patch|w${wind ? 1 : 0}|o${outline ? 1 : 0}|s${see ? 1 : 0}|${material.type}`;
   material.needsUpdate = true;
@@ -99,4 +83,24 @@ export function attachWindShadow(mesh) {
   }
   mesh.customDepthMaterial = depth;
   return true;
+}
+
+/** The same opaque dither for props and their raised ground, with an optional unit mask. */
+export function applySeeThrough(shader, mask = '1.0') {
+  Object.assign(shader.uniforms, seeUniforms);
+  shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform vec2 uSeeCenter; uniform float uSeeRadius; uniform float uSeeDepth;')
+        .replace(
+          'void main() {',
+          `void main() {
+  {
+    float sd = distance(gl_FragCoord.xy, uSeeCenter);
+    if (${mask} > .01 && sd < uSeeRadius && gl_FragCoord.z < uSeeDepth) {
+      vec2 q = mod(floor(gl_FragCoord.xy), 4.0);
+      float bayer = fract((q.x * 4.0 + mod(q.x + q.y * 2.0, 4.0) * 3.0 + q.y) / 16.0 * 1.618 + q.y * 0.25);
+      float kk = smoothstep(uSeeRadius, uSeeRadius * 0.55, sd);
+      if (bayer < kk * 0.8) discard;
+    }
+  }`
+        );
 }

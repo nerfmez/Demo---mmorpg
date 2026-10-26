@@ -1,0 +1,194 @@
+{
+  "browser": "chromium",
+  "base": "http://127.0.0.1:4310/",
+  "captures": [
+    {
+      "name": "beach-normal",
+      "region": "azure-harbor-v1",
+      "native": [
+        -125,
+        60
+      ],
+      "zoom": 1,
+      "position": [
+        -125,
+        60
+      ],
+      "camera": [
+        -125,
+        14.884032209345696,
+        77.84883552467218
+      ],
+      "calls": 181,
+      "triangles": 389912,
+      "geometries": 1860,
+      "textures": 61
+    },
+    {
+      "name": "beach-wide",
+      "region": "azure-harbor-v1",
+      "native": [
+        -125,
+        60
+      ],
+      "zoom": 1.45,
+      "position": [
+        -125,
+        60
+      ],
+      "camera": [
+        -125,
+        21.62366029690906,
+        85.88081151077468
+      ],
+      "calls": 230,
+      "triangles": 580017,
+      "geometries": 1861,
+      "textures": 65
+    },
+    {
+      "name": "forest-normal",
+      "region": "frontier-wilds-v1",
+      "native": [
+        89,
+        -65
+      ],
+      "zoom": 1,
+      "position": [
+        -295,
+        -157
+      ],
+      "camera": [
+        -295,
+        14.432063345739243,
+        -139.15116447532782
+      ],
+      "calls": 154,
+      "triangles": 605995,
+      "geometries": 1862,
+      "textures": 67
+    },
+    {
+      "name": "forest-wide",
+      "region": "frontier-wilds-v1",
+      "native": [
+        89,
+        -65
+      ],
+      "zoom": 1.45,
+      "position": [
+        -295,
+        -157
+      ],
+      "camera": [
+        -295,
+        21.171691433302605,
+        -131.11918848922534
+      ],
+      "calls": 180,
+      "triangles": 712710,
+      "geometries": 1863,
+      "textures": 71
+    },
+    {
+      "name": "ruins-normal",
+      "region": "frontier-wilds-v1",
+      "native": [
+        -194,
+        -5
+      ],
+      "zoom": 1,
+      "position": [
+        -578,
+        -98
+      ],
+      "camera": [
+        -578,
+        18.174540941545366,
+        -80.15116447532782
+      ],
+      "calls": 236,
+      "triangles": 1742514,
+      "geometries": 1867,
+      "textures": 83
+    },
+    {
+      "name": "ruins-wide",
+      "region": "frontier-wilds-v1",
+      "native": [
+        -194,
+        -5
+      ],
+      "zoom": 1.45,
+      "position": [
+        -578,
+        -98
+      ],
+      "camera": [
+        -578,
+        24.914169029108727,
+        -72.11918848922532
+      ],
+      "calls": 268,
+      "triangles": 2137260,
+      "geometries": 1867,
+      "textures": 84
+    }
+  ],
+  "errors": [],
+  "physicalDeviceFPS": "not measured; software GL",
+  "startup": {
+    "elapsedMs": 25805,
+    "modelsReady": true,
+    "worldPrepared": true,
+    "dependencies": {
+      "models": {
+        "state": "ready",
+        "startedMs": 1584.5,
+        "elapsedMs": 5627.5
+      },
+      "world": {
+        "state": "ready",
+        "startedMs": 1584.5,
+        "elapsedMs": 22956.5
+      },
+      "contact": {
+        "state": "ready",
+        "startedMs": 1584.5,
+        "elapsedMs": 4598
+      },
+      "frost": {
+        "state": "ready",
+        "startedMs": 1584.5,
+        "elapsedMs": 4598.29999999993
+      },
+      "approvedClips": {
+        "state": "ready",
+        "startedMs": 1584.5,
+        "elapsedMs": 4766.899999999907
+      }
+    },
+    "jobs": [],
+    "regions": [
+      {
+        "id": "azure-harbor-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "error": ""
+      },
+      {
+        "id": "frontier-wilds-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "error": ""
+      },
+      {
+        "id": "moonroot-grove-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "error": ""
+      }
+    ]
+  },
+  "status": "passed"
+}

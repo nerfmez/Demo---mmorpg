@@ -55,7 +55,9 @@ test('landmarks stand on dry land beside the road, never on it or on a service s
 
 test('the landmarks do not change the rest of the layout or crowd out monsters', () => {
   for (const [id, wd] of Object.entries(data.maps)) {
-    const bare = createWorld({ ...wd, landmarks: [] }), w = worlds[id];
+    // Check landmark carving independently; authored terrain/dressing has its own preservation checks.
+    const native={...wd};delete native.landscape;
+    const bare = createWorld({ ...native, landmarks: [] }), w = createWorld(native);
     const keyed = (list) => new Set(list.filter((c) => c.type !== 'landmark').map((c) => `${c.type}@${c.x.toFixed(3)},${c.z.toFixed(3)}`));
     const before = keyed(bare.circles), after = keyed(w.circles);
     for (const k of after) assert.ok(before.has(k), `${id}: ${k} was not moved`);

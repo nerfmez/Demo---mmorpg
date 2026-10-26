@@ -1,0 +1,32 @@
+{
+  "cell": 24,
+  "rock": {
+    "light": "#cacbbd",
+    "mid": "#afb8b1",
+    "shadow": "#8c9c9d"
+  },
+  "coast": {
+    "light": "#d8d1b5",
+    "mid": "#babdaa",
+    "shadow": "#93a3a2"
+  },
+  "masonry": {
+    "light": "#d6cfb7",
+    "mid": "#bfbdaa",
+    "shadow": "#929998",
+    "courseHeight": 0.64,
+    "columns": 3,
+    "gap": 0.025,
+    "chip": 0.055
+  },
+  "roots": {
+    "light": "#9c8060",
+    "mid": "#7e664b",
+    "shadow": "#604c3d",
+    "radius": 0.16,
+    "length": 2.9,
+    "branches": 3,
+    "sides": 5,
+    "segments": 12
+  }
+}

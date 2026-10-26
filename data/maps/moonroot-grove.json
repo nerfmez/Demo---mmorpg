@@ -1570,5 +1570,241 @@
         ]
       }
     ]
+  },
+  "landscape": {
+    "revision": "landscape-40deg-1",
+    "seed": 61473,
+    "edgeWobble": 0.28,
+    "heightWobble": 0.12,
+    "clearance": {
+      "road": 4.6,
+      "water": 3,
+      "spawn": 12,
+      "waypoint": 8,
+      "landmark": 4,
+      "seam": 24,
+      "city": 5,
+      "service": 8,
+      "border": 3,
+      "blend": 3
+    },
+    "wall": {
+      "length": 3.6,
+      "thickness": 1.25,
+      "height": [
+        3.4,
+        5.1
+      ],
+      "pattern": [
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1
+      ]
+    },
+    "rock": {
+      "spacing": 3.8,
+      "chance": 0.95,
+      "radius": [
+        1.45,
+        1.8
+      ],
+      "heightScale": [
+        0.85,
+        1.15
+      ]
+    },
+    "features": [
+      {
+        "id": "M1",
+        "region": "moonroot-grove-v1",
+        "kind": "root_bluff",
+        "nameTh": "ผารากไม้เหนือโพรงตุ่น",
+        "points": [
+          [
+            -168,
+            -44
+          ],
+          [
+            -150,
+            -42
+          ],
+          [
+            -129,
+            -45
+          ],
+          [
+            -109,
+            -41
+          ],
+          [
+            -87,
+            -46
+          ]
+        ],
+        "width": 11,
+        "terrainHeightMetres": [
+          2.5,
+          4
+        ],
+        "silhouetteHeightMetres": [
+          7,
+          11
+        ],
+        "kit": "forest-root-and-scarp",
+        "note": "Roots interlock with cliff faces, camp and root arch remain exposed from south.",
+        "height": 3.2,
+        "edge": 2.2,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.15,
+            1.85
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": true
+        }
+      },
+      {
+        "id": "M2",
+        "region": "moonroot-grove-v1",
+        "kind": "pond_backbluff",
+        "nameTh": "ผาด้านหลังสระกระจก",
+        "points": [
+          [
+            -54,
+            -46
+          ],
+          [
+            -32,
+            -46
+          ],
+          [
+            -8,
+            -45
+          ],
+          [
+            15,
+            -45
+          ],
+          [
+            38,
+            -42
+          ]
+        ],
+        "width": 10,
+        "terrainHeightMetres": [
+          2,
+          3.5
+        ],
+        "silhouetteHeightMetres": [
+          5,
+          9
+        ],
+        "kit": "forest-root-and-scarp",
+        "note": "Upright rear pond edge and root curtains; keep the whole pond loop and waypoint unobstructed.",
+        "height": 2.8,
+        "edge": 2.2,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.15,
+            1.85
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": true
+        }
+      },
+      {
+        "id": "M3",
+        "region": "moonroot-grove-v1",
+        "kind": "fern_scarp",
+        "nameTh": "ผาเฟิร์นและวงหิน",
+        "points": [
+          [
+            66,
+            -43
+          ],
+          [
+            88,
+            -45
+          ],
+          [
+            110,
+            -43
+          ],
+          [
+            137,
+            -45
+          ],
+          [
+            160,
+            -38
+          ]
+        ],
+        "width": 12,
+        "terrainHeightMetres": [
+          2,
+          4
+        ],
+        "silhouetteHeightMetres": [
+          5,
+          9
+        ],
+        "kit": "forest-root-and-scarp",
+        "note": "Fern shelves lead toward the old stone ring; existing altar, tree and ring trail retain a clear foreground.",
+        "height": 3.0,
+        "edge": 2.2,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.15,
+            1.85
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": true
+        }
+      }
+    ],
+    "openCourts": [
+      {
+        "id": "C6",
+        "region": "moonroot-grove-v1",
+        "at": [
+          126,
+          -6
+        ],
+        "diameter": 22
+      },
+      {
+        "id": "C7",
+        "region": "moonroot-grove-v1",
+        "at": [
+          -111,
+          2
+        ],
+        "diameter": 20
+      }
+    ]
   }
 }

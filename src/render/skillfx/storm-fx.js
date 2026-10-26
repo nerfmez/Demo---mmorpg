@@ -1,16 +1,16 @@
-// Blade Storm (daggers: four spins 0.3 s apart, hitting all round within the radius), held to the
-// owner's bar (.claude/skills/skill-vfx). The spins themselves are the bench's slash crescents drawn
-// round the whole circle in the blade job's violet (the director starts one per 'whirl' event, each a
-// little higher, so the four stack like a whirlwind of blades); this adds the storm: a few wind streaks
-// spiralling up round the hero through the spins, and on the last spin a burst of sparks flung outward,
-// a flash of light and a short shake. Few strips in one ribbon pair, pooled sparks: light on an iPad.
+// Blade Storm (a dagger main skill: two quick spins 0.15 s apart, hitting all round at close range),
+// held to the owner's bar (.claude/skills/skill-vfx). The spins themselves are the bench's slash
+// crescents drawn round the whole circle in the blade job's violet (the director starts one per 'whirl'
+// event, the second a little higher); this adds the storm: a few wind streaks whipping round the hero
+// through the spins, and on the last spin a small burst of sparks flung outward and a flash of light.
+// Few strips in one ribbon pair, pooled sparks: light on an iPad, and it is cast often.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, addLight } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W, tailW, tailGlowW, drawSparks, spark } from './light-kit.js';
 
-const STREAKS = 6, SEG = 10, SPARKS = 90;
+const STREAKS = 4, SEG = 8, SPARKS = 60;
 const LOOK = { edge: [0.97, 0.9, 1.0], glow: [0.56, 0.22, 1.0] };
-const SPIN = -9; // rad/s, the way the hero turns (its spin channel runs negative)
+const SPIN = -14; // rad/s, the way the hero turns (its spin channel runs negative)
 
 export class StormFx {
   constructor(scene, camera) {
@@ -33,17 +33,16 @@ export class StormFx {
   }
   // the caster moves while it spins: the storm follows
   follow(x, z) { this.c.x = x; this.c.z = z; }
-  // the last spin: sparks flung out round the circle, a flash, a short shake
+  // the last spin: sparks flung out round the circle and a flash
   burst(x, z) {
     const r = this.rnd;
-    for (let i = 0; i < 28; i++) {
-      const a = (i / 28) * Math.PI * 2 + r() * 0.2, sp = 7 + r() * 5;
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2 + r() * 0.3, sp = 4 + r() * 3;
       this.v.set(Math.sin(a) * sp, 1 + r() * 2.5, Math.cos(a) * sp);
       this.three[2].set(x + Math.sin(a) * 0.6, 0.9 + r() * 0.5, z + Math.cos(a) * 0.6);
       spark(this.sparks, this.free, SPARKS, this.three[2], this.v, 0.18 + r() * 0.16, 0.03, LOOK);
     }
     this.light.position.set(x, 1.2, z); this.flash = 1;
-    this.onShake?.(0.25, 0.2);
   }
   update(dt) {
     this.core.begin(); this.glow.begin();
@@ -52,8 +51,8 @@ export class StormFx {
       const u = this.t / this.life, fade = Math.min(1, this.t / 0.15) * Math.min(1, (this.life - this.t) / 0.25);
       for (const s of this.streaks) {
         // each streak climbs a turn of the spiral, then starts again low: the wind keeps rising
-        const k = (u * 2.2 + s.phase) % 1;
-        const r0 = this.radius * (0.35 + 0.55 * k), y0 = 0.15 + 1.6 * k, a0 = s.a + this.t * SPIN;
+        const k = (u * 1.5 + s.phase) % 1;
+        const r0 = this.radius * (0.5 + 0.45 * k), y0 = 0.3 + 1.0 * k, a0 = s.a + this.t * SPIN;
         for (let i = 0; i < SEG; i++) {
           const q = i / (SEG - 1), a = a0 - q * 1.3 * Math.sign(SPIN); // the tail trails behind the turn
           this.pts[i].set(this.c.x + Math.sin(a) * r0, y0 - q * 0.25, this.c.z + Math.cos(a) * r0);

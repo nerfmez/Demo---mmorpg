@@ -44,7 +44,7 @@ const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
 // a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
 const stormSpan = (s) => (s.repeats || 0) * ((s.repeatDelay || 0) + 0.1);
-const POST = { sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 1.2 };
+const POST = { sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**
@@ -196,11 +196,11 @@ export class SkillFx {
       }
       case 'whirl': {
         if (e.skill !== 'blade_storm') return false;
-        // Blade Storm: each spin is a crescent round the whole circle in the blade job's violet, each a
-        // little higher than the last, so the four stack like a whirlwind; the last one bursts
+        // Blade Storm (a dagger main skill): each quick spin is a crescent round the whole circle in the
+        // blade job's violet, the second a little higher than the first; the last one bursts
         const s = this.skillOf(e.skill), i = this.stormI++, p = g.player;
         this.storm.follow(e.x, e.z);
-        this.slash.swing(0, { palette: CROSS_PALETTE, range: e.radius, arc: 340, reach: 1, inner: 0.55, tilt: (i % 2 ? -1 : 1) * 0.1, y: -0.25 + 0.17 * i, dir: -1, hold: 0.06, where: () => ({ x: p.x, z: p.z, angle: p.facing }) });
+        this.slash.swing(0, { palette: CROSS_PALETTE, range: e.radius, arc: 340, reach: 1, inner: 0.45, tilt: (i % 2 ? -1 : 1) * 0.1, y: -0.2 + 0.2 * i, dir: -1, hold: 0.04, where: () => ({ x: p.x, z: p.z, angle: p.facing }) });
         if (s && i >= s.repeats) this.storm.burst(e.x, e.z);
         return true;
       }

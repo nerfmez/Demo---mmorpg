@@ -214,6 +214,9 @@ slash crescent round the whole circle in the blade job's violet (Cross Cut's), e
 than the last so the four stack like a whirlwind of blades; wind streaks spiral up round the hero
 through the spins; the last spin flings sparks outward with a flash and a short shake. The hero
 spins with Whirl Blade's approved `whirlSpin` run four turns (`bladeStorm`).
+Owner: daggers should not reach that far; make it quick short spins round the body and a main skill. Now
+two quick spins 0.15 s apart within 1.8 m (0.9 s, 22 MP), two small rings, a light burst; `bladeStorm`
+is two quick turns.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

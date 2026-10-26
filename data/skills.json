@@ -1097,7 +1097,7 @@
     "blade_storm": {
       "name": "Blade Storm",
       "nameTh": "พายุมีด",
-      "desc": "หมุนตัวฟันรอบทิศ 4 รอบติดกัน ใช้กับมีดสั้น",
+      "desc": "ท่าหลักมีดสั้น หมุนตัวฟันรอบตัวเร็วๆ 2 รอบ ระยะสั้น 1.8 ม. โดนทุกตัวที่ประชิดรอบตัว",
       "tags": [
         "Attack",
         "Melee",
@@ -1110,20 +1110,20 @@
       "kind": "melee_nova",
       "power": "attack",
       "damage": {
-        "base": 80,
-        "scale": 0.75
+        "base": 50,
+        "scale": 0.55
       },
-      "range": 3,
-      "radius": 3,
-      "repeats": 3,
+      "range": 1.8,
+      "radius": 1.8,
+      "repeats": 1,
       "repeatMult": 1,
-      "repeatDelay": 0.2,
-      "cooldown": 7,
-      "castTime": 0.3,
-      "cost": 140,
+      "repeatDelay": 0.05,
+      "cooldown": 0.9,
+      "castTime": 0.15,
+      "cost": 22,
       "element": "physical",
       "requires": {
-        "DEX": 12
+        "DEX": 8
       },
       "requiresWeapon": [
         "dagger"

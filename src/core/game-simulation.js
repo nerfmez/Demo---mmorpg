@@ -460,10 +460,17 @@ export class Game {
       this.emit({ type: 'chargeStart', slot: i, skill: s.id, weapon: this.derived.weaponType, total: s.charge.duration });
       return true;
     }
+    // Shadow Kill (s.shadowStep): the hero steps through the shadows to behind its target, then strikes.
+    // It needs a target within shadowStep.range (the locked one, else the nearest); with none it fails
+    // before anything is spent.
+    if (s.shadowStep && !this.shadowStep(s)) {
+      this.emit({ type: 'fail', reason: 'target', slot: i });
+      return false;
+    }
     const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'channel_cone', 'counter_stance'].includes(s.kind);
     // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
     // Pointer aim and touch drag are explicit overrides.
-    if (!point && directional && !this.input.manualAim) {
+    if (!point && directional && !this.input.manualAim && !s.shadowStep) { // a shadow step already chose its target
       const nearest = nearestTarget(p, this.monsters, s.range);
       const prevTarget = p.targetId;
       p.targetId = nearest ? nearest.id : null;
@@ -491,6 +498,26 @@ export class Game {
     p.facing = aim.angle;
     this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step, ...(s.charge ? { charge: Math.max(0, Math.min(1, chargeRatio || 0)) } : {}) });
     return true;
+  }
+
+  /** Shadow Kill: move the player behind its target (else beside, else in front); false without one. */
+  shadowStep(s) {
+    const p = this.player, r = s.shadowStep.range;
+    const locked = this.monsters.find((m) => m.id === p.targetId && !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) - m.r <= r);
+    const t = locked || nearestTarget(p, this.monsters, r);
+    if (!t) return false;
+    const gap = t.r + (s.shadowStep.gap ?? 0.7), f = t.facing || 0, from = angleTo(t.x, t.z, p.x, p.z);
+    // behind the way it faces, then either side, then the side the hero came from
+    for (const a of [f + Math.PI, f + Math.PI / 2, f - Math.PI / 2, from]) {
+      const x = t.x + Math.sin(a) * gap, z = t.z + Math.cos(a) * gap;
+      if (!this.world.isFree(x, z, p.r) || this.isSafe(x, z)) continue;
+      this.emit({ type: 'shadowStep', skill: s.id, fromX: p.x, fromZ: p.z, x, z, id: t.id });
+      p.x = x; p.z = z;
+      p.facing = angleTo(x, z, t.x, t.z);
+      if (p.targetId !== t.id) { p.targetId = t.id; this.emit({ type: 'target', id: t.id }); }
+      return true;
+    }
+    return false;
   }
 
   resolveAim(s, point) {

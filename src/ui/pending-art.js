@@ -7,6 +7,7 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   earth_rend: 'แผ่นดินแยก',
   iron_body: 'กายเหล็ก',
   cross_cut: 'ฟันไขว้',
+  shadow_kill: 'เงาสังหาร',
   blade_storm: 'พายุมีด',
   rally: 'ปลุกใจ',
   frenzy_roar: 'คำรามคลั่ง',

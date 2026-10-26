@@ -9,7 +9,7 @@ import { createCharacter } from '../../src/core/character.js';
 import { computeSkill } from '../../src/core/skills.js';
 import { craft } from '../../src/core/crafting.js';
 
-const BATCH = ['sky_shatter', 'earth_rend', 'iron_body', 'cross_cut', 'blade_storm', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'meteor', 'blizzard', 'thunderstorm', 'holy_bell', 'light_chain', 'spell_wave'];
+const BATCH = ['sky_shatter', 'earth_rend', 'iron_body', 'cross_cut', 'blade_storm', 'shadow_kill', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'meteor', 'blizzard', 'thunderstorm', 'holy_bell', 'light_chain', 'spell_wave'];
 
 const fixture = (id) => {
   const ch = createCharacter(data, { kit: 'bow' });
@@ -88,4 +88,29 @@ test('different buffs stack and each shows by name; reduction buffs cut damage t
   g.player.x = x0; g.executeSkill(iron, aim);
   g.damagePlayer(10, { kind: 'monster', x: g.player.x - 1, z: g.player.z }, { knock: { angle: Math.PI / 2, force: 10 } });
   assert.equal(g.player.x, x0, 'iron body: no knockback');
+});
+
+test('Shadow Kill steps behind its target and stabs; with no target in reach it fails and spends nothing', () => {
+  const { g, m } = fixture('shadow_kill');
+  Object.assign(m, { x: 5, z: 0, facing: -Math.PI / 2 }); // 5 m away, facing back toward the hero
+  g.input = { ...g.input, manualAim: false, aimFromPointer: false };
+  g.player.cooldowns = g.player.cooldowns.map(() => 0); g.player.cast = null; g.player.dash = null;
+  const mp = g.player.mp;
+  assert.equal(g.castSlot(0), true);
+  const step = g.drainEvents().find((e) => e.type === 'shadowStep');
+  assert.ok(step, 'a shadow step');
+  // behind it: on the far side from the way it faces, a body's width off
+  assert.ok(g.player.x > m.x + m.r, `behind (${g.player.x.toFixed(2)} vs ${m.x})`);
+  assert.equal(g.player.targetId, m.id);
+  assert.ok(g.player.mp < mp, 'MP spent on a real cast');
+  const c = g.player.cast; g.player.cast = null; g.executeSkill(c.skill, c.aim); // the cast completes
+  assert.ok(m.hp < 1e6, 'the stab lands');
+  // nothing in reach: no cast, no MP, no cooldown
+  const far = fixture('shadow_kill');
+  Object.assign(far.m, { x: 20, z: 0 });
+  far.g.player.cooldowns = far.g.player.cooldowns.map(() => 0); far.g.player.cast = null; far.g.player.dash = null;
+  const mp2 = far.g.player.mp, x2 = far.g.player.x;
+  assert.equal(far.g.castSlot(0), false);
+  assert.equal(far.g.player.mp, mp2); assert.equal(far.g.player.x, x2); assert.equal(far.g.player.cooldowns[0], 0);
+  assert.ok(far.g.drainEvents().some((e) => e.type === 'fail' && e.reason === 'target'));
 });

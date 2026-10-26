@@ -1133,6 +1133,46 @@
       "job": "blade",
       "iconPending": true
     },
+    "shadow_kill": {
+      "name": "Shadow Kill",
+      "nameTh": "เงาสังหาร",
+      "desc": "วาร์ปไปด้านหลังเป้าหมายในระยะ 7 ม. แล้วแทงแรง โดนจากด้านหลังแรงขึ้น 50% ต้องมีเป้าหมายในระยะ ใช้กับมีดสั้น",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Damage",
+        "Physical",
+        "Arc"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "damage": {
+        "base": 220,
+        "scale": 1.8
+      },
+      "positionalMult": 1.5,
+      "range": 1.8,
+      "arc": 70,
+      "shadowStep": {
+        "range": 7,
+        "gap": 0.7
+      },
+      "cooldown": 8,
+      "castTime": 0.25,
+      "cost": 90,
+      "element": "physical",
+      "requires": {
+        "DEX": 14
+      },
+      "requiresWeapon": [
+        "dagger"
+      ],
+      "upgradeMaterial": "dusk_pelt",
+      "upgradeStat": "DEX",
+      "job": "blade",
+      "iconPending": true
+    },
     "rally": {
       "name": "Rally",
       "nameTh": "ปลุกใจ",

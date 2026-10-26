@@ -416,6 +416,7 @@ export class Hud {
         if (e.reason === 'potion_none') this.toast((d.items.consumables.types[e.item]?.nameTh || 'ยา') + 'หมดแล้ว · ซื้อได้ที่ร้านค้าในเมือง', '#ff9a6a');
         if (e.reason === 'potion_cooldown') this.toast('ยังดื่มยาชนิดนี้ซ้ำไม่ได้ รอสักครู่', '#c8b8a0');
         if (e.reason === 'potion_full') this.toast((d.items.consumables.types[e.item]?.group === 'mp' ? 'MP' : 'HP') + ' เต็มอยู่แล้ว', '#c8b8a0');
+        if (e.reason === 'target') this.toast('ไม่มีเป้าหมายในระยะ', '#c8b8a0');
         if (e.reason === 'arrows') this.toast('ลูกธนูหมด · คราฟต์ได้ทุกที่นอกการต่อสู้ (กระเป๋า → มือซ้าย)', '#e08a3a');
         break;
       case 'playerDeath':

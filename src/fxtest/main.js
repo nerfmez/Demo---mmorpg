@@ -29,7 +29,7 @@ const state = {
   mods: [], // [{id, level}]
   fusion: null, // linked payload skill id
   speed: 1,
-  cam: ['hero', 'close'].includes(params.get('cam')) ? params.get('cam') : 'game', // game: exactly the game's camera (the default, owner 2026-10-26); hero: a close look at the hero's animation
+  cam: ['hero', 'close', 'pov'].includes(params.get('cam')) ? params.get('cam') : 'game', // game: exactly the game's camera (the default, owner 2026-10-26); hero: a close look at the hero's animation
   auto: false,
   holding: false,
 };
@@ -434,7 +434,7 @@ function renderPanel() {
   }
   ctl.append(speed);
   const cams = h('div', 'seg');
-  for (const [k, label] of [['hero', 'กล้องตัวละคร'], ['close', 'กล้องใกล้'], ['game', 'กล้องเกม']]) {
+  for (const [k, label] of [['hero', 'กล้องตัวละคร'], ['pov', 'มุมตัวละคร'], ['close', 'กล้องใกล้'], ['game', 'กล้องเกม']]) {
     const b = h('button', k === state.cam ? 'on' : '', label);
     b.addEventListener('click', () => { state.cam = k; layout(); renderPanel(); });
     cams.append(b);
@@ -478,6 +478,10 @@ function layout() {
   if (state.cam === 'game') {
     camera.position.copy(GAME_OFFSET);
     camera.lookAt(0, 0.8, 0);
+  } else if (state.cam === 'pov') {
+    // over the hero's shoulder, looking where it faces (the bench hero faces +X): an effect as the hero sees it
+    camera.position.set(-2.4, 1.8, 0.35);
+    camera.lookAt(2.5, 1.0, 0);
   } else if (state.cam === 'hero') {
     // about 2.6 m around the hero fits the shorter side of the view
     const dist = Math.max(HERO_HALF / Math.tan(half), (HERO_HALF * 1.25) / (Math.tan(half) * camera.aspect));

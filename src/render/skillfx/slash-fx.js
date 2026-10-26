@@ -99,7 +99,7 @@ function arcGeometry(arcRad, r0, r1, segs = 72, rings = 8) {
 export class SlashFx {
   constructor(scene, camera) {
     this.scene = scene;
-    this._z = new THREE.Vector3();
+    this._m = new THREE.Matrix4(); this._x = new THREE.Vector3(); this._y = new THREE.Vector3(); this._z = new THREE.Vector3();
     this.geos = new Map();
     this.cuts = Array.from({ length: CUTS }, () => {
       const uniforms = { uHead: { value: 0 }, uFade: { value: 0 }, uDir: { value: 1 }, uThick: { value: 0.55 }, uSeed: { value: 0 },
@@ -142,7 +142,7 @@ export class SlashFx {
     c.core.geometry = c.glow.geometry = this.geometry(arcDeg, c.reach, p.inner);
     c.tilt.rotation.set(0, 0, 0);
     c.drift.set(0, 0, 0);
-    if (p.face !== undefined) this.layFlat(c, p, at);
+    if (p.face !== undefined) this.standFront(c, p, at);
     else {
       place(c.g, at.x, 1.0 + (p.y ?? pat.y), at.z);
       c.g.rotation.set(0, at.angle, 0);
@@ -159,17 +159,20 @@ export class SlashFx {
     c.core.material.depthTest = c.glow.material.depthTest = !p.overlay;
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
   }
-  // A cut laid flat, set by the skill (Cross Cut: its two crescents lie level at waist height in front of
-  // the hero and cross as an X whose arms reach forward, so it reads from the high game camera whatever
-  // the facing): the crescent's body crosses a point `ahead` metres in front of the caster, bulging
-  // toward the facing turned by `face` radians, and the cut drifts forward at `drift` m/s.
-  layFlat(c, p, at) {
-    const a = at.angle + p.face, bulge = this._z.set(Math.sin(a), 0, Math.cos(a));
-    c.g.rotation.set(0, a, 0);
+  // A cut set upright in front of the caster, facing it (Cross Cut: the owner wants the X as the hero
+  // sees it, two cuts crossing in the air ahead, not an X on the ground): the crescent's band crosses a
+  // point `ahead` metres in front, bulging toward `face` radians from straight up (positive to the
+  // caster's right), and the cut drifts forward at `drift` m/s.
+  standFront(c, p, at) {
+    const fx = Math.sin(at.angle), fz = Math.cos(at.angle);
+    const toward = this._y.set(-fx, 0, -fz); // the plane's normal: back toward the caster
+    const bulge = this._z.set(Math.cos(at.angle) * Math.sin(p.face), Math.cos(p.face), -Math.sin(at.angle) * Math.sin(p.face));
+    this._m.makeBasis(this._x.crossVectors(toward, bulge), toward, bulge);
+    c.g.quaternion.setFromRotationMatrix(this._m);
     const d = p.ahead ?? c.reach;
-    place(c.g, at.x + Math.sin(at.angle) * d, 1.0 + (p.y ?? 0), at.z + Math.cos(at.angle) * d);
-    c.g.position.addScaledVector(bulge, -c.reach * (1 + (p.inner ?? 0.25)) / 2); // the arc's centre behind the point, so its band crosses it
-    c.drift.set(Math.sin(at.angle), 0, Math.cos(at.angle)).multiplyScalar(p.drift || 0);
+    place(c.g, at.x + fx * d, 1.0 + (p.y ?? 0), at.z + fz * d);
+    c.g.position.addScaledVector(bulge, -c.reach * (1 + (p.inner ?? 0.25)) / 2); // the arc's centre below the point, so its band crosses it
+    c.drift.set(fx, 0, fz).multiplyScalar(p.drift || 0);
   }
   // world point on the reach edge at fraction s of the cut
   edgePoint(c, s, out) {

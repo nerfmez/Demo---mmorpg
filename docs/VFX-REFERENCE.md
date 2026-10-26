@@ -197,6 +197,10 @@ level at waist height, crossing as an X whose arms reach forward from the hero, 
 over the target.
 Checked close up from the game camera, the two usual fan-shaped crescents met like a ">": they are now
 thin curved bands crossing at their middles, drawn over the monster they cross so the X is whole.
+Owner: the X must read from the hero's point of view, not from above. The two thin crescents now stand
+upright in front of the hero, facing it, crossing as an X in the air ahead (the bench's `?cam=pov`
+looks over the hero's shoulder). From the high game camera an upright X facing the hero is seen
+edge-on when the hero faces across the screen.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

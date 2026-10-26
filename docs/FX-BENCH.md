@@ -20,7 +20,7 @@ prototype skill fusion. It is not the Skill Lab and not part of the game.
   slow motion ×0.5/×0.25, game/hero/close camera, auto-repeat, reset dummies. The game camera is the
   default for every skill (owner, 2026-10-26) and is exactly the game's: `CAM_OFFSET` (0, 19, 13.5) at
   zoom 1 from the hero, looking 0.8 m above it, fov 36 (52 in portrait); `?cam=hero` or `?cam=close`
-  pick the others.
+  pick the others; `?cam=pov` (มุมตัวละคร) looks over the hero's shoulder where it faces.
 - The effects are the game's: `src/render/skillfx/*-fx.js`, driven by the same director
   (`src/render/skill-fx.js`) in the bench and in the game View. A change made here is a change
   to the game. The bench keeps their point lights and the flame occluder pass; the game turns

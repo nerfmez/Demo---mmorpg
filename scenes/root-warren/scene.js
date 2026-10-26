@@ -21,11 +21,26 @@ function rootTo(x0,y0,z0,tu,tv,thick,lift){
  return pts;
 }
 function greatTree(u,v,s){
- const[x,y,z]=onGround(u,v);broadleaf(x,z,s,5);COLLIDERS.push({x,z,r:s*.42});
+ const[x,y,z]=onGround(u,v);broadleaf(x,z,s,5);
+ // a giant's trunk (owner: far thicker), as wide on screen as the reference's, flaring at its foot;
+ // the game trunk's crown stays on top of it
+ const Rt=wide(.55,.655,.12,y)/2,H=s*3.7;
+ {// a column core, and round it eight great strands twisting up the trunk (the reference's trunk is
+  // a bundle of fused roots); at the foot each strand splays out and down to the ground
+  const core=[];for(let i=0;i<=8;i++){const t=i/8;core.push(new V3(x+Math.sin(t*2.2)*Rt*.1,y-.4+H*t,z+Math.cos(t*1.7)*Rt*.06));}
+  rootParts.push(barkTube(core,Rt*.82,Rt*.62,16));
+  for(let k=0;k<8;k++){
+   const a0=k/8*Math.PI*2+R(-.15,.15),pts=[];
+   for(let i=0;i<=14;i++){const t=i/14,h=-.3+H*.85*t,a=a0+t*1.4,flare=1+1.1*Math.pow(Math.max(0,1-h/(Rt*1.4)),2),r=Rt*.62*flare*(1-.25*t);
+    pts.push(new V3(x+Math.cos(a)*r,y+h-(flare>1.6?Rt*.25*(flare-1.6):0),z+Math.sin(a)*r));}
+   rootParts.push(barkTube(pts.reverse(),Rt*.24,Rt*.34,30));
+  }
+ }
+ COLLIDERS.push({x,z,r:Rt*1.2});
  // [target u, v, thickness in concept metres] for each great root, left to right
  for(const[tu,tv,th,ang]of[[.31,.22,.24,-2.9],[.43,.36,.26,-2.1],[.36,.27,.30,-2.6],[.40,.33,.34,-2.3],[.47,.30,.28,-1.9],[.53,.37,.30,-1.6],[.635,.39,.32,-1.3],[.71,.36,.30,-.9],[.79,.45,.36,-.6],[.87,.46,.30,-.3],[.74,.18,.26,.2]]){
-  const thick=M(th*1.9),hs=.6,a0=ang,sx=x+Math.cos(a0)*trunkRadius(hs)*s*.3,sz=z+Math.sin(a0)*trunkRadius(hs)*s*.3;
-  const pts=rootTo(sx,y-.05,sz,tu,tv,thick,hs*s*.85);
+  const thick=M(th*2.3),a0=ang,sx=x+Math.cos(a0)*Rt*.75,sz=z+Math.sin(a0)*Rt*.75;
+  const pts=rootTo(sx,y-.05,sz,tu,tv,thick,Rt*.9);
   rootParts.push(barkTube(pts,thick*1.15,thick*.22,70));ROOT_PTS.push(...pts.map(p=>[p.x,p.z,thick*1.3]));
   // a fork off it, thinner, and a strand twisting round it
   const i0=Math.round(R(.45,.7)*(pts.length-1)),o=pts[i0],dir=new V3().subVectors(pts.at(-1),o).normalize(),side=new V3(-dir.z,0,dir.x).multiplyScalar(rand()<.5?-1:1),bl=M(R(1.2,2.2)),bp=[o.clone()];

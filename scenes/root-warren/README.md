@@ -1,6 +1,6 @@
 # Root Warren — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 2:
+**Owner status: in review, 26 October 2026**, artifact version 3:
 https://claude.ai/artifact/EuwKaqYC2DzvzctjRKvZVQ.
 
 Concept: `root-warren.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -36,3 +36,8 @@ pale earth-brown stones with nothing growing before their mouths; the bank's top
 the grass island lies in the middle of the clearing; squared, cracked, mossy blocks stand where the
 reference has them (on the bank, by the arch, in the clearing and in clusters in both front
 corners among dense bushes and ferns).
+
+Owner, on version 2: the trunk must be far thicker, it is a giant. The great tree now has a
+giant's trunk as wide on screen as the reference's: a column core with eight great strands
+twisting up round it (the reference's trunk reads as fused roots), each strand splaying out and
+down at the foot; the great roots leave from its surface.

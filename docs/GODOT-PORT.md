@@ -449,8 +449,8 @@ where no model replaces them) tuck the body the same way: the body triangles who
 region are covered and every body vertex inside it is pushed back in full (the shell's edge falls
 inside the body's edge triangles), and the shell keeps every triangle reaching into the region (`regionShell` `any`)
 while its shader discards past the region's line (`uCutD.w`, margin `uCutD.y`), so its edge is
-straight, not the body's triangles. Garments and modelled helms draw their back faces at `underCloth.inside`
-of their light, so a hollow pad or open collar reads as shaded cloth. The models load
+straight, not the body's triangles. Garments and modelled helms draw their back faces in their texture's mean colour (its smallest
+mip) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth. The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
 hair is and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn

@@ -601,16 +601,25 @@ export function paintedLight(material, k) {
 }
 
 /**
- * Draw a garment's inside (its back faces) at `k` of its light: a hollow pad or an open collar then
- * reads as shaded cloth, not as the outside's texture seen through it.
+ * Draw a garment's inside (its back faces) in its texture's mean colour (the smallest mip) at `k` of
+ * its light: a hollow pad or an open collar then reads as shaded cloth of the garment's own colour,
+ * not as the pale fur or lining the generated texture paints there.
  */
 export function darkInside(material, k) {
   if (!k) return material;
   const prev = material.onBeforeCompile, key = material.customProgramCacheKey;
   material.onBeforeCompile = (shader, renderer) => {
     prev?.call(material, shader, renderer);
-    shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>',
-      `outgoingLight *= gl_FrontFacing ? 1.0 : ${k.toFixed(3)};\n#include <opaque_fragment>`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+#ifdef USE_MAP
+if (!gl_FrontFacing) {
+  vec3 mean = texture2D(map, vMapUv, 16.0).rgb;
+  diffuseColor.rgb = diffuse * mean;
+  totalEmissiveRadiance = emissive * mean;
+}
+#endif`)
+      .replace('#include <opaque_fragment>', `outgoingLight *= gl_FrontFacing ? 1.0 : ${k.toFixed(3)};\n#include <opaque_fragment>`);
   };
   material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-inside${k}`;
   return material;

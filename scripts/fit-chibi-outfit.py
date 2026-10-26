@@ -167,6 +167,31 @@ for f in bm.faces:
         _float += comp
 bmesh.ops.delete(bm, geom=_float, context='FACES')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+# `proud`: a small loose ornament standing off the garment (a fang toggle) is pressed flat onto it:
+# every point more than `proud` off the rest is pulled in to `proud` plus `proudKeep` of the excess,
+# so seen from the side it lies on the cloth instead of floating out like a hook. Only where asked:
+# pads, plates and feathers are small loose parts too, and stand off the cloth by design
+_parts, _seen = [], set()
+for f in bm.faces:
+    if f in _seen: continue
+    comp, todo = [f], [f]; _seen.add(f)
+    while todo:
+        t = todo.pop()
+        for e in t.edges:
+            for o in e.link_faces:
+                if o not in _seen: _seen.add(o); comp.append(o); todo.append(o)
+    _parts.append(comp)
+_small = [c for c in _parts if len(c) < C.get('ornament', 150)]
+_main = [f for c in _parts if len(c) >= C.get('ornament', 150) for f in c]
+if 'proud' in C and _small and _main:
+    _mv = sorted({v for f in _main for v in f.verts}, key=lambda v: v.index); _mi = {v: k for k, v in enumerate(_mv)}
+    _tree = BVHTree.FromPolygons([v.co.copy() for v in _mv], [[_mi[v] for v in f.verts] for f in _main])
+    proud, keep = C['proud'], C.get('proudKeep', 0.15)
+    for comp in _small:
+        for v in {v for f in comp for v in f.verts}:
+            near = _tree.find_nearest(v.co)
+            if near[0] is not None and near[3] > proud:
+                v.co = near[0] + (v.co - near[0]) * ((proud + (near[3] - proud) * keep) / near[3])
 bm.verts.index_update()
 src = bm.verts.layers.int.new('src')  # each vertex's index here, kept through the per-piece copies
 for v in bm.verts: v[src] = v.index

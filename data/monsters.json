@@ -587,7 +587,7 @@
           "kind": "charge",
           "minRange": 5,
           "maxRange": 16,
-          "windup": 1.1,
+          "windup": 1.5,
           "speed": 12,
           "duration": 1.2,
           "recover": 1.1,

@@ -3215,6 +3215,10 @@
       ],
       "yaw": 0,
       "rigid": true,
+      "dropPiece": {
+        "segment": [[-1.87, 3.0, 0.4], [-1.87, 0.2, 0.4]],
+        "radius": 0.5
+      },
       "sharpness": 6,
       "minWeight": 0.18,
       "outline": "#221a14",

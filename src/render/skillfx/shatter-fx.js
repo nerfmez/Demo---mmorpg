@@ -54,6 +54,7 @@ export class ShatterFx {
     // the ground sinks in a fan over the true arc and reach (owner: the pit follows the cone), from just
     // the hero's feet (its point) out to the reach
     craterFan(this.crater, angle, arcDeg, 0.04);
+    this.crater.material.uniforms.uBurn.value = 0; // dug up, not burnt (owner): light soil, no scorch or soot
     place(this.crater, x, 0.05, z); this.crater.scale.setScalar(range * 1.7 * 2); conformPlane(this.crater); this.crater.visible = true;
     // rows of ground slabs pried up over the true arc, each row a beat later
     let i = 0;

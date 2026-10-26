@@ -236,6 +236,8 @@ now leave the body (0.45-1.35 m up) and curl outward instead of rising from the 
 
 Earth Heave (งัดพสุธา), owner: the pit should follow the cone. The round crater is now a fan-shaped pit
 (`craterFan`) over the true 140° arc and 3.2 m reach, its point at the hero's feet; Meteor's stays round.
+Owner: not as dark as Meteor's, nothing burns. It is freshly dug soil (`uBurn` 0): lighter browns, no
+scorched floor, loose soil instead of soot round it.
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

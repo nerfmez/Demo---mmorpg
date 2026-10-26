@@ -372,3 +372,11 @@ Owner: no more planting inside the scenes ("ไม่ต้องปลูกเ
 - **Grass banks:** the rose garden and meadow build their rock faces as their own meshes, like the windmill, so the game now paints their steep ground as grass (`acceptedScenes.grassBanks`). The grey slope strata it painted there read from above as pale ghostly slabs. The forest keeps its grey rock banks (owner: "why remove the cliffs?"), and the arrival beach keeps its sand.
 
 Checks: core 640/640; accepted-scene and data tests pass. Inspected from above over the forest, rose garden and meadow, and low over the rose garden's terraces.
+
+### Follow-up: the forest's banks are all rock (26 October 2026)
+
+Owner (circling four grey banks): "make them all the same rock".
+
+- The forest's rock columns were authored only for the terrace edges inside its design frame; outside it the drops were bare ground the game painted as grey strata. In the game (`scripts/prepare-accepted-scenes.py`) every terrace edge with a real drop (ground beside it 1.2 m or more below the terrace) now gets the same columns: north of the stairs, the north-east bank, and the south-west and south-east banks. The authored walls are built exactly as before and the added ones in a second pass with their own seed, so the trees, rocks and walls already there are unchanged. With rock on those faces the forest joins `grassBanks`, so no grey paint shows round their feet.
+
+Checks: core 640/640; render 52/53 (the skirt test, also red on main). Inspected from above and over each of the four banks; the island cherry and its walls match the previous build.

@@ -376,14 +376,14 @@ const TERRACES = [
   { top: 0.8, ledge: false, pts: [[-0.3, 0.6, 'b'], [0.05, 0.6, 'b'], [0.13, 0.645, 'b'], [0.2, 0.71, 'b'], [0.235, 0.8, 'b'], [0.25, 0.95, 'b'], [0.26, 1.3, 'b'], [-0.3, 1.3, 'b']] },
   { top: 0.7, ledge: false, pts: [[1.3, 0.58, 'b'], [0.95, 0.6, 'b'], [0.885, 0.68, 'b'], [0.845, 0.8, 'b'], [0.77, 0.865, 'b'], [0.71, 0.95, 'b'], [0.69, 1.3, 'b'], [1.3, 1.3, 'b']] },
 ].map(T => {
-  let pts = T.pts.map(([u, v, k]) => { const [x, z] = P(u, v, k === 't' ? T.top : 0); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
+  let pts = T.pts.map(([u, v, k]) => { const [x, z] = P(u, v, k === 't' ? T.top : 0); return { x, z, wall: T.ledge && k === 'b' && inFrame(u, v) ? 2 : 1, u, v }; });
   if (T.ledge) {
     // a smooth closed outline through the authored points, sampled about every 1.3 m; a sample's
     // wall flag says whether the stretch from it to the next one is cliff
     const n = pts.length, curve = new THREE.CatmullRomCurve3(pts.map(q => new V3(q.x, 0, q.z)), true, 'centripetal'), out = [];
     for (let j = 0; j < n; j++) {
       const a = pts[j], b = pts[(j + 1) % n], steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 1.3));
-      for (let k = 0; k < steps; k++) { const q = curve.getPoint((j + k / steps) / n); out.push({ x: q.x, z: q.z, wall: a.wall && b.wall }); }
+      for (let k = 0; k < steps; k++) { const q = curve.getPoint((j + k / steps) / n); out.push({ x: q.x, z: q.z, wall: Math.min(a.wall, b.wall) }); }
     }
     pts = out;
   }
@@ -560,10 +560,11 @@ function buildGround() {
 // The face follows the outline. It is split into columns by vertical cracks; each column is a few
 // flat facets (its own lean, set and ragged top), so the cliff reads as one cracked rock wall, not
 // stones set in a row. A grassy lip rolls over the top.
-function cliffRuns(T) {
+function cliffRuns(T, extra = false) {
   const p = T.pts, n = p.length;
   const onStairs = q => stairsAt(q.x, q.z).s < ST.half + 0.4 && stairsAt(q.x, q.z).a > -0.15 && stairsAt(q.x, q.z).a < 1.15;
-  const wall = i => p[i].wall && !onStairs(p[i]) && !onStairs(p[(i + 1) % n]);
+  const drop = q => Math.min(height(q.x + 2, q.z), height(q.x - 2, q.z), height(q.x, q.z + 2), height(q.x, q.z - 2)) < T.top - 1.2;
+  const wall = i => (extra ? p[i].wall === 1 && drop(p[i]) && drop(p[(i + 1) % n]) : p[i].wall > 1) && !onStairs(p[i]) && !onStairs(p[(i + 1) % n]);
   const runs = [];
   if (p.every((_, i) => wall(i))) return [{ pts: p.slice(), closed: true }];
   let k = p.findIndex((_, i) => !wall(i));
@@ -575,7 +576,7 @@ function cliffRuns(T) {
   }
   return runs;
 }
-function buildCliffs() {
+function buildCliffs(extra = false) {
   const pos = [], col = [], tmpA = new V3(), tmpB = new V3(), nn = new V3();
   const quad = (a, b, c, d, out, color) => {
     tmpA.subVectors(b, a); tmpB.subVectors(c, a); nn.crossVectors(tmpA, tmpB);
@@ -585,8 +586,8 @@ function buildCliffs() {
   const stone = STONE.map(h => new THREE.Color(h)), moss = MOSS.map(h => new THREE.Color(h));
   const F = [0, 0.32, 0.66, 1];   // the face's facet rows, as fractions of its height
   for (const T of TERRACES) {
-    if (!T.ledge) continue;
-    for (const run of cliffRuns(T)) {
+    if (!T.ledge && (!extra || T.top < 1.5)) continue;
+    for (const run of cliffRuns(T, extra)) {
       const R0 = run.pts.map(q => ({ x: q.x, z: q.z }));
       if (R0.length < 2) continue;
       if (run.closed) R0.push(R0[0]);
@@ -874,7 +875,7 @@ function build() {
   { const [x, z] = P(0.5, 0.8); heroStub.x = x; heroStub.z = z; heroStub.face = Math.PI - 0.25; }
   
   buildLedges();
-  {const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);}
+  {const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);const saved=seed;seed=20261026;const more=buildCliffs(true);seed=saved;more.name='accepted-cliffs';scene.add(more);}
   buildRocks();
   // trees: [u, v, scale, crown variant]; their base height comes from the ground
   // trees: [u, v, scale, crown variant, trunk stretch]; tall trunks, so the crowns sit high and

@@ -51,6 +51,22 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
  # Stones keep their parts as groups so the game can seat each one whole (render/accepted-scenes.js).
  src=src.replace('mergeGeometries(stoneParts)','rigidParts(mergeGeometries(stoneParts,true))').replace('mergeGeometries(stoneLines)','rigidParts(mergeGeometries(stoneLines,true))')
  src=src.replace('HERO.x','heroStub.x').replace('HERO.z','heroStub.z').replace('HERO.face','heroStub.face')
+ if name=='forest':
+  # In the game the whole forest is seen, not only the authored frame: every terrace edge with a
+  # real drop gets the same rock columns (owner: "make them all the same rock"). The authored walls
+  # are built exactly as before; the added ones in a second pass with their own random seed, so
+  # nothing else in the scene changes.
+  for old,new in[("wall: k === 'b' && inFrame(u, v), u, v","wall: T.ledge && k === 'b' && inFrame(u, v) ? 2 : 1, u, v"),
+                 ("wall: a.wall && b.wall","wall: Math.min(a.wall, b.wall)"),
+                 ("function cliffRuns(T) {","function cliffRuns(T, extra = false) {"),
+                 ("const wall = i => p[i].wall && !onStairs(p[i]) && !onStairs(p[(i + 1) % n]);",
+                  "const drop = q => Math.min(height(q.x + 2, q.z), height(q.x - 2, q.z), height(q.x, q.z + 2), height(q.x, q.z - 2)) < T.top - 1.2;\n"
+                  "  const wall = i => (extra ? p[i].wall === 1 && drop(p[i]) && drop(p[(i + 1) % n]) : p[i].wall > 1) && !onStairs(p[i]) && !onStairs(p[(i + 1) % n]);"),
+                 ("function buildCliffs() {","function buildCliffs(extra = false) {"),
+                 ("    if (!T.ledge) continue;\n    for (const run of cliffRuns(T)) {","    if (!T.ledge && (!extra || T.top < 1.5)) continue;\n    for (const run of cliffRuns(T, extra)) {"),
+                 ("{const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);}",
+                  "{const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);const saved=seed;seed=20261026;const more=buildCliffs(true);seed=saved;more.name='accepted-cliffs';scene.add(more);}")]:
+   assert src.count(old)==1,(name,old);src=src.replace(old,new)
  src=gameFoliageParts(name,src)
  camera="const camera=new THREE.PerspectiveCamera(32,1672/941,1,400);\n"
  camera+="const CAM={target:new V3(.96,0,-4.02),pitch:38,dist:51.9,yaw:-7.3};\n" if name=='beach' else f"const CAM={{target:new V3(0,0,-7.2),pitch:40,dist:{72 if name=='forest' else 93.6},yaw:0}};\n"

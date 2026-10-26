@@ -40,7 +40,7 @@ test('constellations cover every node and specialist subviews preserve the four 
 test('new small stat nodes spend Job Points only and retain old saved nodes',()=>{
  const ch=createCharacter(data);ch.jobPoints=20;const before=ch.statPoints;
  assert.ok(allocateJobNode(ch,data,'f_hp').done);assert.equal(ch.statPoints,before);assert.equal(ch.jobPoints,19);
- const base=createCharacter(data);assert.equal(derive(ch,data).maxHp-derive(base,data).maxHp,12);
+ const base=createCharacter(data);assert.equal(derive(ch,data).maxHp-derive(base,data).maxHp,data.jobtree.nodes.f_hp.effects.maxHp);
  const old={...ch,jobNodes:['origin','a1','a2','aj'],jobLevel:8};migrateCharacter(old,data);
  assert.deepEqual(old.jobNodes,['origin','a1','a2','aj']);assert.equal(old.version,CHARACTER_VERSION);
  assert.equal(data.jobtree.sections[data.jobtree.nodes.aoe_master.section].tier,4);assert.equal(data.jobtree.sections[data.jobtree.nodes.aoe_master.section].requiresSpent,17);assert.equal(jobNodeState(ch,data,'aoe_master').reason,'tier_points');

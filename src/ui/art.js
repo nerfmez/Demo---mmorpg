@@ -2,6 +2,7 @@ import {rasterIconMarkup,rasterIconUrl,MONSTER_PORTRAITS,SHARED_MONSTER_PORTRAIT
 import { SKILL_ART } from './skillart.js';
 import {MOD_ART} from './gemart.js';
 import { JOB_ART } from './jobart.js';
+import { PENDING_SKILL_ICONS, pendingSkillArt } from './pending-art.js';
 // Authored cel-style artwork. Identity is keyed by content ID, never grade or rarity.
 // Every named object has its own silhouette/details; UI glyphs live separately in icons.js.
 const ink = '#493c35';
@@ -237,6 +238,8 @@ function celObject(body,kind,id) {
 for (const [id,body] of Object.entries(gear)) gear[id]=celObject(body,'gear',id);
 for (const [id,body] of Object.entries(material)) material[id]=celObject(body,'material',id);
 Object.assign(skill,SKILL_ART);
+// Skills without a picture yet show a labelled stand-in (src/ui/pending-art.js).
+for (const [id, name] of Object.entries(PENDING_SKILL_ICONS)) if (!skill[id]) skill[id] = pendingSkillArt(name);
 
 // Forged gear (tiers 1-5, scripts/gear-tiers.mjs): one parametric silhouette per kind, coloured
 // per item, with more ornament (fuller, runes, a glowing gem) at higher tiers.

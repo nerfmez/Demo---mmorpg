@@ -1,6 +1,7 @@
 // Shared progression language for the bag, workbench and skill growth.
 import { computeSkill } from '../core/skills.js';
 import { derive, gearRequirements } from '../core/character.js';
+import { optionRange } from '../core/crafting.js';
 import { esc } from './buildmeta.js';
 
 export function gradeBadge(data, grade, count = data.items.grades.optionCount[grade], compact = false) {
@@ -11,8 +12,9 @@ export function gradeGuide(data) {
  const g=data.items.grades,total=Object.values(g.weights).reduce((a,b)=>a+b,0);
  return `<div class="grade-guide">${g.order.map(grade=>`<div>${gradeBadge(data,grade)}<small>โอกาส ${Math.round(g.weights[grade]/total*100)}%</small></div>`).join('')}</div><p class="muted">เกรดเพิ่มจำนวนออฟชั่น · ตีบวกเพิ่มเฉพาะค่าพื้นฐาน · คราฟต์แต่ละครั้งสุ่มใหม่</p>`;
 }
-export function optionList(data, options) {
- return `<div class="affix-list">${options.map(o=>{const def=data.items.gearOptions[o.id],quality=def.max===def.min?1:(o.value-def.min)/(def.max-def.min);return `<div class="affix-row"><span>${esc(def.labelTh.replace('{v}',o.value))}</span><small>ช่วง ${def.min}–${def.max}</small><meter min="0" max="1" value="${quality}" aria-label="คุณภาพออฟชั่น ${Math.round(quality*100)} เปอร์เซ็นต์"></meter></div>`;}).join('')||'<p class="muted">ไม่มีออฟชั่น · เลื่อนเกรดเพื่อเพิ่มได้</p>'}</div>`;
+// grade, itemLevel: the item's, whose range (items.grades.optionRoll, optionLevelGrowth) the text and the quality meter show
+export function optionList(data, options, grade, itemLevel = 1) {
+ return `<div class="affix-list">${options.map(o=>{const def=data.items.gearOptions[o.id],r=grade?optionRange(data,o.id,grade,itemLevel):def,quality=r.max===r.min?1:Math.max(0,Math.min(1,(o.value-r.min)/(r.max-r.min)));return `<div class="affix-row"><span>${esc(def.labelTh.replace('{v}',o.value))}</span><small>ช่วง ${r.min}–${r.max}${grade?' (เกรด '+grade+')':''}</small><meter min="0" max="1" value="${quality}" aria-label="คุณภาพออฟชั่น ${Math.round(quality*100)} เปอร์เซ็นต์"></meter></div>`;}).join('')||'<p class="muted">ไม่มีออฟชั่น · เลื่อนเกรดเพื่อเพิ่มได้</p>'}</div>`;
 }
 // One step per rank; `notes` is the requirement shown under each (ranks are not level-gated).
 export function upgradeTrack(notes, completed, prefix='Lv.',first=1) {
@@ -39,7 +41,7 @@ export function skillGrowthPreview(ch,data,id,describe) {
  const before=computeSkill(view,data,derived,slot),after=computeSkill({...view,skills:{...view.skills,[id]:ch.skills[id]+1}},data,derived,slot);
  return `<div class="growth-preview"><div><small>ตอนนี้</small><p>${describe(before)}</p></div><span>→</span><div><small>หลังอัป</small><p>${describe(after)}</p></div></div><p class="muted">MP ${before.cost.toFixed(1)} → ${after.cost.toFixed(1)} · คูลดาวน์ ${before.cooldown.toFixed(2)} วิ</p>`;
 }
-const MOD_EFFECTS={extraProjectiles:'กระสุนเพิ่ม',pierce:'ทะลุเป้า',chain:'เด้งเพิ่ม',damageMult:'ตัวคูณดาเมจ',burnChance:'โอกาสติดเผา',echoMult:'พลังร่ายซ้ำ',arcAdd:'มุมฟันเพิ่ม',rangeAdd:'ระยะเพิ่ม',repeatMult:'พลังฟันซ้ำ',chillSlow:'ชะลอ',knock:'ระยะกระเด็น',durationMult:'ตัวคูณเวลาพื้นที่',leechPct:'ดูดเลือด %',reflect:'สะท้อน',summonDamage:'พลังอัญเชิญเพิ่ม',internalCooldown:'คูลดาวน์ทริกเกอร์',poisonFraction:'แปลงเป็นพิษ',rampMax:'แรงสุดเมื่อค้าง',chargeMaxAdd:'แรงชาร์จเต็มเพิ่ม',momentumCastSpeed:'ร่ายเร็วขึ้นหลังเคลื่อนที่'};
+const MOD_EFFECTS={extraProjectiles:'ยิงเพิ่ม (ลูก)',pierce:'ทะลุเป้า',chain:'เด้งเพิ่ม',damageMult:'ตัวคูณดาเมจ',burnChance:'โอกาสติดเผา',echoMult:'พลังร่ายซ้ำ',arcAdd:'มุมฟันเพิ่ม',rangeAdd:'ระยะเพิ่ม',repeatMult:'พลังฟันซ้ำ',chillSlow:'ชะลอ',knock:'ระยะกระเด็น',durationMult:'ตัวคูณเวลาพื้นที่',leechPct:'ดูดเลือด %',mpOnHit:'ได้ MP เมื่อตีโดน',costMult:'ตัวคูณ MP ที่ใช้',reflect:'สะท้อน',summonDamage:'พลังอัญเชิญเพิ่ม',internalCooldown:'คูลดาวน์ทริกเกอร์',poisonFraction:'แปลงเป็นพิษ',rampMax:'แรงสุดเมื่อค้าง',chargeMaxAdd:'แรงชาร์จเต็มเพิ่ม',momentumCastSpeed:'ร่ายเร็วขึ้นหลังเคลื่อนที่'};
 export function modGrowthPreview(def,level) {
  return `<div class="mod-growth-preview">${Object.entries(def.effect).filter(([,v])=>Array.isArray(v)&&v[level]!==v[level-1]).map(([k,v])=>`<p>${MOD_EFFECTS[k]||'พลังม็อด'} <b>${v[level-1]} → ${v[level]}</b></p>`).join('')}</div>`;
 }

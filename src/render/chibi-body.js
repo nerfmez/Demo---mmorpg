@@ -1011,12 +1011,19 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
   // The weapon's direction stays the driver's. A shield or quiver is only seated in the fist.
   // A weapon in `gripMiddle` (a staff) is held at the middle of its length, not at its own grip
   // point: `shift` moves the fist that far along the weapon's axis.
+  // A weapon held blade-back, out of the fist's little-finger side (a dragged run carry: hero.js sets
+  // rig.gripTurn[i] from 0 to 1 for the right and left hand), keeps the thumb toward its pommel: the
+  // thumb's axis turns half a turn about the driver hand's x, the way the socket turned in it.
   const axis = (kind) => (kind === 'bow' ? Y : kind && kind !== 'shield' && kind !== 'quiver' ? Z : null);
   const seats = [['RightHand', rig.bones.weapon, weapon], ['LeftHand', rig.bones.offhand, offhand]]
-    .map(([n, socket, kind]) => ({ hand: body.getObjectByName(n), socket, along: axis(kind), centre: T.grip[n], thumb: T.thumb[n],
+    .map(([n, socket, kind], side) => ({ hand: body.getObjectByName(n), socket, side, along: axis(kind), centre: T.grip[n], thumb: T.thumb[n],
       shift: socket && T.gripMiddle.includes(kind) ? middleOf(socket) : 0 }))
     .filter((e) => e.hand && e.socket);
   rig.gripCenter = T.grip.RightHand;
+  rig.gripTurn = [0, 0];
+  // how far the weapon slides through the fist toward its head (weapon units; hero.js sets it from an
+  // action's gripSlide): a staff held near its foot to point its head at the target
+  rig.gripSlide = [0, 0];
   // The second hand on a two-handed haft (hero.js sets support.on and support.axis, the haft's
   // world direction): the left hand turns its thumb along the haft like a holding hand, and
   // support.offset gives its fist hole's offset from the wrist, so the animator can put the
@@ -1034,18 +1041,22 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
       handL.updateWorldMatrix(false, false);
       handL.localToWorld(rig.support.offset.copy(T.grip.LeftHand)).sub(handL.getWorldPosition(seat));
     }
-    for (const { hand, socket, along, centre, thumb, shift } of seats) {
+    for (const { hand, socket, along, centre, thumb, shift, side } of seats) {
       hand.updateWorldMatrix(true, false);
       if (along) {
         hand.getWorldQuaternion(qh);
         socket.getWorldQuaternion(qs);
-        qh.premultiply(qt.setFromUnitVectors(seat.copy(thumb).applyQuaternion(qh), dir.copy(along).applyQuaternion(qs)));
+        dir.copy(along).applyQuaternion(qs);
+        const turn = rig.gripTurn[side];
+        if (turn > 0.001) dir.applyAxisAngle(ax.copy(X).applyQuaternion(socket.parent.getWorldQuaternion(qp)), -Math.PI * turn);
+        qh.premultiply(qt.setFromUnitVectors(seat.copy(thumb).applyQuaternion(qh), dir));
         hand.quaternion.copy(hand.parent.getWorldQuaternion(qs).invert().multiply(qh));
         hand.updateWorldMatrix(false, false);
       }
       socket.parent.updateWorldMatrix(true, false);
       socket.position.copy(socket.parent.worldToLocal(hand.localToWorld(seat.copy(centre))));
       if (shift) socket.position.sub(seat.set(0, 0, shift).multiply(socket.scale).applyQuaternion(socket.quaternion));
+      if (rig.gripSlide[side]) socket.position.add(seat.set(0, 0, rig.gripSlide[side]).multiply(socket.scale).applyQuaternion(socket.quaternion));
     }
   };
   rig.syncSkin();
@@ -1060,6 +1071,9 @@ function middleOf(socket) {
   return box.isEmpty() ? 0 : socket.worldToLocal(box.getCenter(new THREE.Vector3())).z;
 }
 
+const X = new THREE.Vector3(1, 0, 0);
+const ax = new THREE.Vector3();
+const qp = new THREE.Quaternion();
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 const seat = new THREE.Vector3();

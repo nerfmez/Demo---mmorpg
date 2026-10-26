@@ -7,8 +7,12 @@ import { migrateQuestJournal } from './quests.js';
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
-export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 14;
+export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK']; // LUK: crit chance (DEX: crit damage)
+export const CHARACTER_VERSION = 15;
+/** Share of a hit armour lets through: 1 - defense / (defense + progression.combat.defenseConstant). */
+export const defenseFactor = (defense, data) => 1 - defense / (defense + data.progression.combat.defenseConstant);
+// v14: raw numbers (HP, attack, magic, defense, MP, regen) grew tenfold; rolled flat options of saved gear follow
+const RAW_SCALE_V14 = 10, RAW_OPTIONS_V14 = ['attack_flat', 'magic_flat', 'hp_flat', 'mp_flat', 'defense_flat', 'regen_flat'];
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -47,6 +51,7 @@ export function createCharacter(data, opts = {}) {
     equipped: Object.fromEntries((data.items.slots || ['weapon', 'armor']).map((s) => [s, null])),
     skills: opening ? {} : { [kit.basic]: 1 },
     movementSkills: [],
+    movementRanks: {}, // movement skill id -> rank above 1 (AGI upgrades, crafting.js upgradeMovement)
     movement: null,
     movementMods: [],
     mods: [],
@@ -169,7 +174,7 @@ export function migrateCharacter(ch, data) {
   for (const k of ['kills', 'collected', 'quests', 'bossKills', 'maps']) ch.progress[k] = ch.progress[k] || {};
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;
-  // v14: the look has a face (the chibi's drawn faces); older looks keep the painted one
+  // v15: the look has a face (the chibi's drawn faces); older looks keep the painted one
   if (ch.appearance && typeof ch.appearance === 'object' && !ch.appearance.face) ch.appearance.face = 'default';
   if (typeof ch.hideHelm !== 'boolean') ch.hideHelm = false; // saves before the helm show/hide toggle draw their helm
   const legacyOpening = !ch.opening;
@@ -190,6 +195,12 @@ export function migrateCharacter(ch, data) {
       && !ch.slots.some(s => s.mods.includes(uid))).slice(0, data.mods.maxMovementMods);
   ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
   normalizeItemMetadata(ch, data);
+  // (saves before v3 convert legacy rolls straight into today's ranges below)
+  // only a value still on the old scale moves: every old roll sits below today's minimum (old maximum
+  // attack 6, today's minimum 10), so a save written after the change, or migrated twice, is left alone
+  if ((ch.version || 1) >= 3 && (ch.version || 1) < 14)
+    for (const item of ch.gear) for (const o of item.options || [])
+      if (RAW_OPTIONS_V14.includes(o.id) && o.value < data.items.gearOptions[o.id].min) o.value *= RAW_SCALE_V14;
   if ((ch.version || 1) < 3) {
     for (const item of ch.gear) {
       item.options = item.options || [];
@@ -257,8 +268,15 @@ export function migrateCharacter(ch, data) {
   const notice = equipmentNotice(ch, data);
   if (notice) ch.progress.equipmentNotice = notice;
   else delete ch.progress.equipmentNotice;
+  // LUK joined the stats: an older hero gets the starting value, like a new one (no points taken)
+  ch.stats = ch.stats || {};
+  for (const s of STATS) if (!Number.isFinite(ch.stats[s])) ch.stats[s] = data.progression.character.startingStats[s];
   ch.movementSkills = (ch.movementSkills || []).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || null;
+  // movement ranks came with the AGI upgrades: an older hero has none (rank 1); bad entries are dropped
+  const maxMove = data.progression.movementUpgrade?.maxLevel || 1;
+  ch.movementRanks = Object.fromEntries(Object.entries(ch.movementRanks || {})
+    .filter(([id, n]) => data.skills.movement[id] && Number.isInteger(n) && n > 1).map(([id, n]) => [id, Math.min(n, maxMove)]));
   migrateQuestJournal(ch, data, { legacy: (ch.version || 1) < 8 || !hadQuestJournal });
   ch.version = CHARACTER_VERSION;
   return ch;
@@ -729,6 +747,8 @@ export function derive(ch, data) {
     maxHpPct: 0,
     maxMpPct: 0,
     barrierPct: 0,
+    maxShield: 0,
+    maxShieldPct: 0,
     healPct: 0,
     moveSpeedPct: 0,
     cooldownPct: 0,
@@ -757,6 +777,8 @@ export function derive(ch, data) {
     penetrationPct: 0,
     movementRechargePct: 0,
     manaCostReductionPct: 0,
+    mpOnHit: 0,
+    dodgeChancePct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
@@ -790,10 +812,13 @@ export function derive(ch, data) {
     d[stat] = limit < 0 ? Math.max(d[stat], limit) : Math.min(d[stat], limit);
   d.maxHp = Math.round((base.hp + base.hpPerLevel * (ch.level - 1) + base.hpPerVit * ch.stats.VIT + d.maxHp) * (1 + d.maxHpPct / 100));
   d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * ch.stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
+  d.maxShield = Math.round(d.maxShield * (1 + d.maxShieldPct / 100)); // spell shield: INT and gear only
   d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
-  d.critChance = d.critChancePct / 100;
-  d.critMult = pc.critMult * (1 + d.critMultPct / 100);
+  d.critChance = Math.min(1, d.critChancePct / 100); // no design cap on crit chance (owner, 2026-10-25); 100% means every hit crits
+  // crit chance past 100% turns into crit damage at a reduced rate, outside the crit damage caps (owner)
+  d.critOverflowPct = Math.max(0, d.critChancePct - 100) * (pc.critOverflowToMultPct || 0);
+  d.critMult = pc.critMult * (1 + (d.critMultPct + d.critOverflowPct) / 100);
   d.attack = Math.round(d.attack * 10) / 10;
   d.magic = Math.round(d.magic * 10) / 10;
   d.defense = Math.round(d.defense);

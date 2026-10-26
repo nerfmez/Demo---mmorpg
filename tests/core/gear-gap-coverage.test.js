@@ -29,7 +29,7 @@ test('additions remain inside existing slot budgets and retain deliberate tradeo
  const share={armor:.45,helm:.2,gloves:.1,boots:.15},g=data.progression.balance.gear;
  for(const id of Object.keys(plan)){
   const b=data.items.gearBases[id],il=b.itemLevel;
-  const target=(g.defense[0]+g.defense[1]*(il-1)+(g.maxHp[0]+g.maxHp[1]*(il-1))*data.items.requirements.weights.maxHp)*share[b.slot];
+  const W=data.items.requirements.weights,target=((g.defense[0]+g.defense[1]*(il-1))*W.defense+(g.maxHp[0]+g.maxHp[1]*(il-1))*W.maxHp)*share[b.slot];
   assert.ok(Math.abs(gearPower(b.stats,data)-target)<.15,id+' follows existing formula after rounding');
  }
  assert.equal(data.items.gearBases.moonleaf_slippers.stats.mpRegenPct,undefined);

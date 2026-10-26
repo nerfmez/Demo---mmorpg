@@ -16,8 +16,11 @@ prototype skill fusion. It is not the Skill Lab and not part of the game.
   Concentrated shrinks it, Knockback/Gathering Cut move the dummies, Shatter
   bursts on chilled dummies, Life Leech shows green heal numbers, Cast on Dodge fires
   the skill from the dodge button. Guard triggers are hidden (no guard skill on the bench).
-- Controls: tap the floor to aim, **ร่าย** casts (hold for Flame Stream), **หลบ** dashes,
-  slow motion ×0.5/×0.25, close/game camera, auto-repeat, reset dummies.
+- Controls: tap the floor to aim, **ร่าย** casts (hold for Flame Stream), **หลบ** uses the move picked in the panel's หลบ row (dash, roll, blink or leap; the leap arcs through the air as in the game, with the game's dodge effects),
+  slow motion ×0.5/×0.25, game/hero/close camera, auto-repeat, reset dummies. The game camera is the
+  default for every skill (owner, 2026-10-26) and is exactly the game's: `CAM_OFFSET` (0, 19, 13.5) at
+  zoom 1 from the hero, looking 0.8 m above it, fov 36 (52 in portrait); `?cam=hero` or `?cam=close`
+  pick the others; `?cam=pov` (มุมตัวละคร) looks over the hero's shoulder where it faces.
 - The effects are the game's: `src/render/skillfx/*-fx.js`, driven by the same director
   (`src/render/skill-fx.js`) in the bench and in the game View. A change made here is a change
   to the game. The bench keeps their point lights and the flame occluder pass; the game turns
@@ -31,10 +34,15 @@ that they change the events the effects draw. Review hooks: `__fxtest.freeze()` 
 
 ## Skill fusion (prototype)
 
+Only a skill with an authored recipe offers a fusion (the owner's rule). Pick the main skill first;
+its **สกิลผสานของ…** row then lists its recipes (tap one to fuse, tap it again or the main skill's
+tab to drop it). Other skills show no fusion row, and the generic link below is not offered in the
+panel (`fusion.js` keeps it for the rules tests).
+
 Rules live in `data/fusion.json`; `src/fxtest/fusion.js` applies them on top of the real
 rules without changing `src/core`. A physical attack with a short cooldown (the carrier,
-e.g. Slash) can link one fast damage spell (the payload, currently projectile spells:
-Firebolt, Arcane Bolt, Arcane Dart) into one of its mod sockets. When the carrier connects,
+e.g. Slash, Hunter's Shot) can link one fast damage spell (the payload: projectile spells such as
+Firebolt and Arcane Bolt, and Chain Spark) into one of its mod sockets. When the carrier connects,
 the payload fires once from the first struck target, flying on away from the caster and
 skipping that target, with its full behaviour and only its main damage scaled by
 `payloadDamageMult`. The fused skill uses the longer cooldown and the summed MP cost. A miss
@@ -57,6 +65,32 @@ the wave is a clean half-moon of fire (smooth front and inner arcs meeting in sh
 flowing cel bands, short tongues off the back edge, a soft glow) that widens and burns away
 from the back at the end of its range. With a cold element the blade frosts and the wave is
 an ice crescent, with ice chips on hits.
+
+### Recipe: Thunder Arrow / ศรอัสนี (Hunter's Shot + Chain Spark)
+
+`type: arrow_chain`. Hunter's Shot keeps its own shape: its usual cast and arrows, as fast as
+ever (no draw: charging is Power Draw's role, the owner's call), cooldown 0.95 s (the average of
+both), MP of both. Each arrow it looses is wrapped in lightning; on its first hit Chain Spark's
+lightning bursts from the struck target: it and up to Chain Spark's chain count of the nearest
+others within its chain range each take `chainDamageMult` (0.6) of Chain Spark's damage with its
+falloff, once per cast however many arrows land; the `chain` event carries `from` so the chain
+starts at the target, not the hand. Visuals in `src/fxtest/thunder-arrow-fx.js`: arcs crackling
+round the arrow through the short cast and a cold nock glow; the arrow (Hunter's Shot's own,
+`pr.fusion` marks it) wrapped in three re-struck lightning strands trailing behind its head with
+a head glow and shed sparks; the hit is Chain Spark's own lightning.
+
+### Recipe: Venom Arrow / ธนูพิษ (Hunter's Shot + Venom Bolt)
+
+The owner split the old bow skill Venom Arrow: its poison became a spell, **Venom Bolt / เวทพิษ**,
+and Venom Arrow became this fusion. Venom Bolt is a bench-only prototype skill (`data/fusion.json`
+`skills`, merged into the bench's skill list by `fusion.js benchData`; the game's data and its
+Venom Arrow are unchanged until fusion moves into the game, which also needs its icon and
+acquisition): a wand spell (Firebolt's push pose, `boltCast`) whose green orb (the generic
+projectile in the poison colours) stacks Venom Arrow's poison to five, with the poison splash on
+impact. The recipe (`type: arrow_poison`) keeps Hunter's Shot's own cast and speed (no charge),
+cooldown 0.6 s; its arrows turn poison: the poison element and Venom Bolt's stacking poison at
+`poisonMult` (0.5) of its stack strength (the core multiplies it by the hit), drawn as the old
+Venom Arrow (`look`: the projectile kind the renderer draws).
 
 ## Slash (bench look and rule trial)
 
@@ -93,6 +127,7 @@ numbers in `data/combat-fx.json`.
 
 ## Venom Arrow (rule trial of Venom Mire)
 
+On the bench this skill is now the Venom Arrow fusion (above); the game still has it as below.
 The owner did not want a poison pool, and a poison shot from the staff was too close to Firebolt.
 Venom Mire is now **Venom Arrow**, a bow attack (in the game too, `data/skills.json` `venom_mire`
 with core poison stacks): a fast thin arrow
@@ -114,7 +149,7 @@ pass, so no gallery clip was studied; it follows the cel rules in `docs/VFX-REFE
 
 `src/render/skillfx/rain-fx.js`, in the same light-and-ribbon language. The rules send one `area` event
 per wave, each with its delay, and a `burst` as each lands.
-- **Up-shot.** The hero plays a bench-only `bowSky` action: lean back, raise the bow, draw and
+- **Up-shot.** The hero plays the `bowSkyShot` clip action: lean back, raise the bow, draw and
   loose at the sky. As the volley's first `area` event arrives, a bright streak climbs from the bow
   and bursts above the target in a ragged flash.
 - **Rain.** Each wave's 26 arrows come down from around that burst as streaks of light with a
@@ -131,8 +166,8 @@ plays the plain bow action on the bench; the game's action table is unchanged.
 
 `src/render/skillfx/power-fx.js`, in the same light-and-ribbon language. Hold **ร่าย** to charge (the
 rules' `chargeStart`; release calls `releaseCharge`, auto-repeat holds about 1.6 s).
-- **Hero.** Raises and draws, then holds at full draw (bench-only `bowDraw`), and snaps the loose
-  on release (`bowLoose`).
+- **Hero.** Raises and draws, then holds at full draw (the `bowDrawHold` clip action), and snaps the loose
+  on release (`bowLooseShot`).
 - **Charge.** Streaks of light are drawn in to the arrow tip, where a soft round glow with a hot
   centre grows. Three arcs of light circle the arrow, widening and speeding up with the charge.
   Reaching full charge pings once (a burst and a ring) and the glow then pulses, so a full draw

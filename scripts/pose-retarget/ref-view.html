@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Reference clip view</title></head>
+<body style="margin:0;background:#cfd8e0"><canvas id="c" width="480" height="480"></canvas>
+<script type="module">
+// A reference clip on its own model, for picking clips and frames (ref-strip.mjs drives it).
+//   ?f=Knight.glb&anim=Rig_Medium_CombatMelee.glb (anim: another file's clips on f's model)
+// Without props (the Quaternius mannequin) a stand-in blade runs along the right fist.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true });
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#cfd8e0');
+scene.add(new THREE.HemisphereLight('#ffffff', '#667788', 2.2));
+const dl = new THREE.DirectionalLight('#ffffff', 1.5); dl.position.set(2, 4, 3); scene.add(dl);
+const grid = new THREE.GridHelper(4, 8, '#888', '#aaa'); scene.add(grid);
+const cam = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
+const q = new URLSearchParams(location.search), base = '/tests/browser/out/ual/';
+const loader = new GLTFLoader();
+const g = await loader.loadAsync(base + q.get('f'));
+const clips = q.get('anim') ? [...(await loader.loadAsync(base + q.get('anim'))).animations, ...g.animations] : g.animations;
+scene.add(g.scene);
+const mixer = new THREE.AnimationMixer(g.scene);
+window.clips = clips.map((a) => a.name);
+const O = (n) => g.scene.getObjectByName(n);
+const fingers = !!O('index_01_r');
+const blade = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.09, 0.9).translate(0, 0, 0.45), new THREE.MeshStandardMaterial({ color: '#d8dde6' }));
+scene.add(blade);
+// props: everything parented under a hand slot, plus capes and hats (shown only when listed)
+const PROPS = new Set();
+for (const s of ['handslot.l', 'handslot.r']) O(s)?.traverse((c) => { if (c !== O(s) && c.name) PROPS.add(c.name); });
+g.scene.traverse((o) => { if (/Cape|Hat|Helmet|Spellbook|Throwable|Mug|Shield|Sword|Axe|Staff|Wand|Crossbow|Knife|Bow|Quiver/.test(o.name)) PROPS.add(o.name); });
+window.props = (list) => {
+  for (const n of PROPS) { const o = O(n); if (o) o.visible = false; }
+  for (const n of list) O(n)?.traverse((c) => { c.visible = true; });
+};
+window.props([]);
+window.clipDur = (n) => THREE.AnimationClip.findByName(clips, n)?.duration ?? 0;
+const P = (n) => O(n).getWorldPosition(new THREE.Vector3());
+window.pose = (name, t, view) => {
+  mixer.stopAllAction();
+  mixer.clipAction(THREE.AnimationClip.findByName(clips, name)).play(); mixer.setTime(t); g.scene.updateMatrixWorld(true);
+  blade.visible = fingers && window.showBlade !== false;
+  if (fingers) {
+    const i = P('index_01_r'), pk = P('pinky_01_r'), h = P('hand_r'), k = P('middle_01_r');
+    const dir = i.clone().sub(pk).normalize(), grip = i.clone().add(pk).multiplyScalar(0.5).lerp(h, 0.25);
+    const fwd = k.clone().sub(h); fwd.addScaledVector(dir, -fwd.dot(dir)).normalize();
+    blade.position.copy(grip); blade.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(fwd, dir), fwd, dir));
+  }
+  // framed on the model's height; views around +Z (the model faces +Z)
+  const bb = new THREE.Box3().setFromObject(g.scene), H = Math.max(1, bb.max.y - bb.min.y), k = H / 1.8;
+  const v = { front: [0, 1.1, 3.6], side: [3.6, 1.1, 0], q: [2.6, 1.5, 2.6], back: [0, 1.3, -3.6], top: [0, 6.5, 4.5] }[view];
+  cam.position.set(...v.map((x) => x * k * 1.15)); cam.lookAt(0, H * 0.45, 0); grid.scale.setScalar(k);
+  r.render(scene, cam);
+};
+window.ready = true;
+</script>
+</body>
+</html>

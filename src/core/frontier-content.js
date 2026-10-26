@@ -183,7 +183,7 @@ export function applyGuard(g,amount,source,opts){
   r.guardUntil=0;r.readyUntil=g.time+r.skill.guard.readyDuration;
   // Spiked Ward returns the blocked part; Breaking Ward pushes the crowd back when the guard lands.
   const e=r.skill.modEffects||{};
-  if(r.skill.reflect>0&&source.kind==='monster'&&!source.dead)g.hitMonster(source,amount*(1-r.skill.guard.taken)*r.skill.reflect+4,{element:'physical'});
+  if(r.skill.reflect>0&&source.kind==='monster'&&!source.dead)g.hitMonster(source,amount*(1-r.skill.guard.taken)*r.skill.reflect+g.data.progression.combat.reflectFlat,{element:'physical'});
   if(e.barrierBreakKnock)pushAway(g,p,{knock:e.barrierBreakKnock,radius:e.barrierBreakRadius});
   return {amount:amount*r.skill.guard.taken,guarded:true};
 }

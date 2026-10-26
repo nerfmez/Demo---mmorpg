@@ -5,7 +5,7 @@
 import { createWorld } from './world.js';
 import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
-import { createCharacter, migrateCharacter, derive, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
+import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
@@ -24,6 +24,19 @@ const INTERACT_RADIUS = 3.6;
 const WAYPOINT_RADIUS = 3.8;
 const AI_RADIUS = 85; // monsters farther than this from the player sleep unless in a fight
 
+/** Sum of one field over a unit's active buffs (each buff skill keeps its own entry). */
+function buffSum(buffs, key) {
+  let n = 0;
+  for (const k in buffs) n += buffs[k][key] || 0;
+  return n;
+}
+/** Damage-taken multiplier from active buffs (takenMult; several multiply). */
+function buffTaken(buffs) {
+  let n = 1;
+  for (const k in buffs) if (buffs[k].taken) n *= buffs[k].taken;
+  return n;
+}
+
 export class Game {
   /**
    * @param {object} data game data
@@ -33,6 +46,8 @@ export class Game {
     this.data = data;
     this.world = world || createWorld(data.world);
     this.rng = createRng(seed);
+    // LUK's lucky dodge rolls on its own stream, so adding it changes no other seeded roll
+    this.luckRng = createRng((seed ^ 0x9e3779b9) >>> 0);
     this.time = 0;
     this.events = [];
     this.nextId = 1;
@@ -67,6 +82,9 @@ export class Game {
       mp: 1,
       barrier: 0,
       barrierT: 0,
+      shield: 0, // spell shield: taken before HP, recharges after progression.combat.spellShield.rechargeDelay
+      maxShield: 0,
+      shieldIdle: 0, // seconds since the hero last took damage
       reflect: 0,
       statuses: {},
       buffs: {},
@@ -148,19 +166,23 @@ export class Game {
     const p = this.player;
     this.cancelCharge();
     this.cancelChannel();
-    const oldMax = { hp: p.maxHp || 1, mp: p.maxMp || 1 };
+    const oldMax = { hp: p.maxHp || 1, mp: p.maxMp || 1, shield: p.maxShield || 0 };
     this.derived = derive(this.ch, this.data);
     this.refreshSkills();
     const oldMovementCharges = this.move?.charges || 0;
     this.move = movementSkill(this.ch, this.data, this.derived);
     p.maxHp = this.derived.maxHp;
     p.maxMp = this.derived.maxMp;
+    p.maxShield = this.derived.maxShield;
     if (full) {
       p.hp = p.maxHp;
       p.mp = p.maxMp;
+      p.shield = p.maxShield;
     } else {
       p.hp = Math.min(p.maxHp, Math.max(1, (p.hp / oldMax.hp) * p.maxHp));
       p.mp = Math.min(p.maxMp, (p.mp / oldMax.mp) * p.maxMp);
+      // a newly gained shield starts empty and recharges; an existing one keeps its share
+      p.shield = oldMax.shield > 0 ? Math.min(p.maxShield, (p.shield / oldMax.shield) * p.maxShield) : 0;
     }
     p.movement.charges = oldMovementCharges ? Math.min(p.movement.charges, this.move.charges) : this.move.charges;
     if (this.monsters) this.completeQuests(refreshQuests(this.ch, this.data));
@@ -536,10 +558,10 @@ export class Game {
       }
       p.facing = angle;
       if (mv.kind === 'blink') {
-        this.emit({ type: 'blinkPlayer', fromX: p.x, fromZ: p.z, x: nx, z: nz });
-        p.x = nx;
-        p.z = nz;
-        p.dash = { t: 0, dur: mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'blink' };
+        // a short gather in place (delay, invulnerable) before the body vanishes and reappears at the spot
+        const delay = mv.delay || 0;
+        p.dash = { t: 0, dur: delay + mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'blink', delay, toX: nx, toZ: nz, moved: false };
+        if (!delay) this.blinkPlayer(p);
       } else {
         p.dash = { t: 0, dur: mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'leap', fromX: p.x, fromZ: p.z, toX: nx, toZ: nz };
       }
@@ -553,6 +575,15 @@ export class Game {
     if (mv.momentum) p.momentum = { until: this.time + mv.duration + mv.momentum.window, speed: mv.momentum.speed };
     this.emit({ type: 'movement', kind: mv.id, angle });
     return true;
+  }
+
+  /** A blink's jump: the body leaves its spot for the aimed one (after the gather, dash.delay). */
+  blinkPlayer(p) {
+    const d = p.dash;
+    this.emit({ type: 'blinkPlayer', fromX: p.x, fromZ: p.z, x: d.toX, z: d.toZ });
+    p.x = d.toX;
+    p.z = d.toZ;
+    d.moved = true;
   }
 
   /** What the player can interact with right now. */
@@ -814,6 +845,7 @@ export class Game {
     this.refresh();
     p.hp = p.maxHp;
     p.mp = p.maxMp;
+    p.shield = p.maxShield;
     this.emit({ type: 'levelup', level: this.ch.level });
   }
 
@@ -824,8 +856,7 @@ export class Game {
   }
 
   playerDamageMult() {
-    const b = this.player.buffs.war_cry;
-    return b ? 1 + b.damage : 1;
+    return 1 + buffSum(this.player.buffs, 'damage');
   }
 
   /** Damage to a monster from the player, an ally or a damage-over-time effect. */
@@ -838,7 +869,7 @@ export class Game {
     if (crit) dmg *= this.derived.critMult;
     // Penetration ignores a share of the monster's defense.
     const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100);
-    if (!opts.dot) dmg *= 1 - def / (def + 60);
+    if (!opts.dot) dmg *= defenseFactor(def, this.data);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
     if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
     if (m.statuses.hex) dmg *= m.statuses.hex.taken;
@@ -865,6 +896,8 @@ export class Game {
         if (!m.boss && m.state === 'windup') m.stateT = Math.max(0, m.stateT - 0.25); // knocks the rhythm back a little
       }
       if (opts.leech && !opts.byAlly) this.healPlayer((Math.min(dmg, hpBefore) * opts.leech) / 100, true);
+      // an attack gains MP for each enemy it hits (s.mpOnHit: gear, the MP line, a mod)
+      if (opts.mpOnHit && !opts.byAlly) this.player.mp = Math.min(manaLimit(this), this.player.mp + opts.mpOnHit);
     } else setAggro(this, m, this.player);
     if (m.hp <= 0) this.killMonster(m);
     return dmg;
@@ -935,7 +968,7 @@ export class Game {
 
   damageAlly(a, amount, source) {
     if (a.dead) return 0;
-    let dmg = Math.max(1, Math.round(amount * 0.85));
+    let dmg = Math.max(1, Math.round(amount * 0.85 * buffTaken(a.buffs)));
     if(a.barrier>0){const absorbed=Math.min(a.barrier,dmg);a.barrier-=absorbed;dmg-=absorbed;if(a.barrier<=0)breakBarrier(this,a);}
     a.hp -= dmg;
     this.emit({ type: 'allyHit', id: a.id, amount: dmg, x: a.x, z: a.z });
@@ -952,8 +985,13 @@ export class Game {
       this.emit({ type: 'dodge', x: p.x, z: p.z });
       return 0;
     }
+    // LUK: a lucky dodge, a monster hit that misses entirely (never damage over time)
+    if (!opts.dot && this.derived.dodgeChancePct > 0 && this.luckRng.chance(this.derived.dodgeChancePct / 100)) {
+      this.emit({ type: 'dodge', x: p.x, z: p.z, lucky: true });
+      return 0;
+    }
     const guard=applyGuard(this,amount,source,opts);
-    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * (1 - this.derived.defense / (this.derived.defense + 60)) * (1 + this.derived.damageTakenPct / 100);
+    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100) * buffTaken(p.buffs);
     let blocked = guard.guarded;
     // A shield blocks hits from in front only; ground hazards (no source) are never blocked.
     if (this.derived.blockChance > 0 && source && source.x !== undefined && !opts.unblockable) {
@@ -973,12 +1011,14 @@ export class Game {
       if (p.reflect > 0 && source && source.kind === 'monster' && !source.dead) this.hitMonster(source, absorbed * p.reflect + 4, { element: 'physical' });
     }
     if(absorbed>0&&p.barrier<=0)breakBarrier(this,p);
+    const shielded = this.drainShield(dmg);
+    dmg -= shielded;
     p.hp -= dmg;
     if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;
-    this.emit({ type: 'playerHit', amount: dmg, absorbed, blocked, x: p.x, z: p.z });
+    this.emit({ type: 'playerHit', amount: dmg, absorbed, shielded, blocked, x: p.x, z: p.z });
     if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
-    if (opts.knock && dmg > 0) {
+    if (opts.knock && dmg > 0 && !Object.values(p.buffs).some((b) => b.steady)) {
       this.cancelCharge();
       this.cancelChannel();
       const d = dirFromAngle(opts.knock.angle);
@@ -1000,6 +1040,20 @@ export class Game {
     return dmg;
   }
 
+  /** The spell shield takes what it can of `amount` (after armour and barrier) and stops recharging for a while. */
+  drainShield(amount) {
+    const p = this.player;
+    p.shieldIdle = 0;
+    if (!(p.shield > 0) || amount <= 0) return 0;
+    const taken = Math.min(p.shield, amount);
+    p.shield -= taken;
+    if (p.shield <= 0) {
+      p.shield = 0;
+      this.emit({ type: 'shieldBreak', x: p.x, z: p.z });
+    }
+    return taken;
+  }
+
   healPlayer(amount, quiet = false) {
     const p = this.player;
     if (p.dead) return;
@@ -1015,7 +1069,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1095,6 +1149,8 @@ export class Game {
             triggered,
           });
         }
+        // a volley (base repeats) fires again along the current facing, without a new cast or arrow
+        if (repeat < s.repeats) this.later(s.repeatDelay, () => !p.dead && this.executeSkill(s, { ...aim, angle: p.facing }, { mult: s.repeatMult, repeat: repeat + 1, triggered }));
         return;
       }
       case 'chain': {
@@ -1204,10 +1260,11 @@ export class Game {
         return;
       }
       case 'buff': {
-        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff };
-        p.buffs.war_cry = { ...buff };
-        for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.buffs.war_cry = { ...buff };
-        this.emit({ type: 'buff', kind: 'war_cry', x: p.x, z: p.z, radius: s.radius });
+        // each buff skill keeps its own entry, so different buffs stack and the same one refreshes
+        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff, taken: s.takenMult, steady: s.steady };
+        p.buffs[s.id] = { ...buff };
+        for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.buffs[s.id] = { ...buff };
+        this.emit({ type: 'buff', kind: s.id, x: p.x, z: p.z, radius: s.radius });
         return;
       }
       case 'summon': {
@@ -1320,6 +1377,7 @@ export class Game {
         p.dead = false;
         p.hp = p.maxHp;
         p.mp = p.maxMp;
+        p.shield = p.maxShield;
         p.statuses = {};
         p.buffs = {};
         p.barrier = 0;
@@ -1331,6 +1389,9 @@ export class Game {
     const inTown = this.isSafe(p.x, p.z);
     p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen + (inTown ? p.maxHp * 0.08 : 0)) * dt);
     p.mp = Math.min(manaLimit(this), p.mp + (this.derived.mpRegen + (inTown ? p.maxMp * 0.08 : 0)) * dt);
+    const ss = this.data.progression.combat.spellShield;
+    p.shieldIdle += dt;
+    if (p.shield < p.maxShield && p.shieldIdle >= ss.rechargeDelay) p.shield = Math.min(p.maxShield, p.shield + (p.maxShield * ss.rechargePctPerSecond / 100) * dt);
     for (const k in p.itemCooldowns) p.itemCooldowns[k] = Math.max(0, p.itemCooldowns[k] - dt);
     for (let i = 0; i < p.cooldowns.length; i++) {
       p.cooldowns[i] = Math.max(0, p.cooldowns[i] - dt);
@@ -1360,6 +1421,7 @@ export class Game {
 
     if (p.dash) {
       p.dash.t += dt;
+      if (p.dash.kind === 'blink' && !p.dash.moved && p.dash.t >= p.dash.delay) this.blinkPlayer(p);
       if (p.dash.kind === 'leap') {
         const k = Math.min(1, p.dash.t / p.dash.dur);
         p.x = p.dash.fromX + (p.dash.toX - p.dash.fromX) * k;
@@ -1382,7 +1444,7 @@ export class Game {
     const mz = this.input.moveZ;
     const mlen = Math.hypot(mx, mz);
     const chill = p.statuses.chill ? 1 - p.statuses.chill.slow : 1;
-    const haste = p.buffs.war_cry ? 1 + p.buffs.war_cry.speed : 1;
+    const haste = 1 + buffSum(p.buffs, 'speed');
     const speed = this.derived.moveSpeed * (p.charging ? p.charging.skill.charge.moveMult : p.channeling ? p.channeling.skill.channel.moveMult : p.cast ? 0.4 : 1) * chill * haste;
     p.moving = mlen > 0.08;
     if (p.moving) {
@@ -1486,8 +1548,9 @@ export class Game {
       if (st.acc >= 2) {
         const n = Math.floor(st.acc);
         st.acc -= n;
-        p.hp -= n;
-        this.emit({ type: 'playerHit', amount: n, absorbed: 0, dot: true, x: p.x, z: p.z });
+        const shielded = this.drainShield(n);
+        p.hp -= n - shielded;
+        this.emit({ type: 'playerHit', amount: n - shielded, absorbed: 0, shielded, dot: true, x: p.x, z: p.z });
         if (p.hp <= 0) p.hp = 1; // poison alone never kills
       }
       if (st.t <= 0) delete p.statuses.poison;
@@ -1538,12 +1601,12 @@ export class Game {
         }
         a.targetId = t ? t.id : null;
       }
-      const haste = a.buffs.war_cry ? 1 + a.buffs.war_cry.speed : 1;
+      const haste = 1 + buffSum(a.buffs, 'speed');
       if (a.state === 'windup') {
         if (a.stateT >= 0.25) {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
-            const k = a.buffs.war_cry ? 1 + a.buffs.war_cry.damage : 1;
+            const k = 1 + buffSum(a.buffs, 'damage');
             this.hitMonster(tt, a.damage * k * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z });
             this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
@@ -1749,7 +1812,7 @@ export class Game {
             if (m.dead || dist(a.x, a.z, m.x, m.z) > a.radius + m.r) continue;
             this.hitMonster(m, a.damage, s ? this.hitOpts(s, { crit: this.rollCrit(), fromX: a.x, fromZ: a.z }) : { element: a.element });
           }
-          this.emit({ type: 'burst', kind: a.kind, element: a.element, echo: !!a.echo, x: a.x, z: a.z, radius: a.radius });
+          this.emit({ type: 'burst', kind: a.kind, element: a.element, echo: !!a.echo, x: a.x, z: a.z, radius: a.radius, generic: !!s?.def?.fxPending });
         } else if (a.owner === 'monster' && a.damage) {
           const src = this.monsterById(a.sourceId);
           // a ring (a.inner) leaves its middle safe

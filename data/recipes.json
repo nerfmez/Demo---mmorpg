@@ -14,7 +14,8 @@
         "melee_pct",
         "crit_pct",
         "poison_on_hit",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 1
     },
@@ -31,7 +32,8 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 1
     },
@@ -49,7 +51,8 @@
         "crit_pct",
         "leech_pct",
         "poison_on_hit",
-        "melee_pct"
+        "melee_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 6
     },
@@ -70,7 +73,9 @@
         "spell_pct",
         "mp_flat",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 16
     },
@@ -87,7 +92,9 @@
         "spell_pct",
         "summon_pct",
         "poison_on_hit",
-        "cdr_pct"
+        "cdr_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 1
     },
@@ -107,7 +114,8 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 21
     },
@@ -126,7 +134,8 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 16
     },
@@ -145,7 +154,8 @@
         "melee_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 11
     },
@@ -166,7 +176,8 @@
         "melee_pct",
         "crit_pct",
         "hp_flat",
-        "defense_flat"
+        "defense_flat",
+        "mp_on_hit"
       ],
       "itemLevel": 21
     },
@@ -188,7 +199,9 @@
         "spell_pct",
         "heal_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 21
     },
@@ -259,7 +272,11 @@
         "spell_pct",
         "cdr_pct",
         "move_pct",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "shield_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 16
     },
@@ -330,7 +347,9 @@
         "mp_flat",
         "summon_pct",
         "regen_flat",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "mp_regen_pct"
       ],
       "itemLevel": 6
     },
@@ -349,7 +368,11 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "shield_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 16
     },
@@ -387,7 +410,8 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -404,7 +428,9 @@
         "move_pct",
         "cdr_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "material_find",
+        "mp_regen_pct"
       ],
       "itemLevel": 1
     },
@@ -424,7 +450,8 @@
         "defense_flat",
         "regen_flat",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "material_find"
       ],
       "itemLevel": 21
     },
@@ -440,7 +467,10 @@
         "attack_flat",
         "melee_pct",
         "projectile_pct",
-        "defense_flat"
+        "defense_flat",
+        "gear_find",
+        "gold_find",
+        "mp_on_hit"
       ],
       "itemLevel": 1
     },
@@ -460,7 +490,13 @@
         "mp_flat",
         "spell_pct",
         "area_pct",
-        "heal_pct"
+        "heal_pct",
+        "gear_find",
+        "gold_find",
+        "shield_flat",
+        "shield_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 16
     },
@@ -477,7 +513,10 @@
         "regen_flat",
         "summon_pct",
         "poison_on_hit",
-        "mp_flat"
+        "mp_flat",
+        "gear_find",
+        "gold_find",
+        "mp_regen_pct"
       ],
       "itemLevel": 6
     },
@@ -496,7 +535,10 @@
         "cdr_pct",
         "projectile_pct",
         "crit_pct",
-        "attack_flat"
+        "attack_flat",
+        "gear_find",
+        "gold_find",
+        "mp_on_hit"
       ],
       "itemLevel": 16
     },
@@ -516,7 +558,9 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "crit_pct"
+        "crit_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 21
     },
@@ -537,7 +581,10 @@
         "magic_flat",
         "crit_pct",
         "cdr_pct",
-        "leech_pct"
+        "leech_pct",
+        "gear_find",
+        "gold_find",
+        "mp_on_hit"
       ],
       "itemLevel": 21
     },
@@ -758,6 +805,16 @@
       },
       "grade": "B"
     },
+    "mod_mana_siphon": {
+      "type": "mod",
+      "result": "mana_siphon",
+      "cost": {
+        "glow_dust": 2,
+        "wolf_fang": 1,
+        "gold": 30
+      },
+      "grade": "B"
+    },
     "mod_spiked_ward": {
       "type": "mod",
       "result": "spiked_ward",
@@ -817,7 +874,9 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "material_find",
+        "mp_regen_pct"
       ],
       "itemLevel": 1
     },
@@ -834,7 +893,12 @@
         "mp_flat",
         "spell_pct",
         "heal_pct",
-        "summon_pct"
+        "summon_pct",
+        "gear_find",
+        "gold_find",
+        "shield_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 1
     },
@@ -851,7 +915,9 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "material_find",
+        "mp_regen_pct"
       ],
       "itemLevel": 1
     },
@@ -870,7 +936,11 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "shield_flat",
+        "shield_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 16
     },
@@ -905,7 +975,8 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 6
     },
@@ -922,7 +993,8 @@
         "hp_flat",
         "block_pct",
         "regen_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "shield_flat"
       ],
       "itemLevel": 1
     },
@@ -976,7 +1048,8 @@
         "crit_pct",
         "hp_flat",
         "defense_flat",
-        "melee_pct"
+        "melee_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 1
     },
@@ -1011,7 +1084,8 @@
         "crit_pct",
         "projectile_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 6
     },
@@ -1031,7 +1105,9 @@
         "spell_pct",
         "cdr_pct",
         "mp_flat",
-        "area_pct"
+        "area_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 16
     },
@@ -1051,7 +1127,8 @@
         "hp_flat",
         "attack_flat",
         "melee_pct",
-        "block_pct"
+        "block_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 21
     },
@@ -1107,7 +1184,8 @@
         "crit_pct",
         "projectile_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "tusk_club": {
@@ -1124,7 +1202,8 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "tusk_greatblade": {
@@ -1141,7 +1220,8 @@
         "melee_pct",
         "area_pct",
         "hp_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "tide_staff": {
@@ -1158,7 +1238,9 @@
         "spell_pct",
         "area_pct",
         "mp_flat",
-        "cdr_pct"
+        "cdr_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "wolfbite_sword": {
@@ -1176,7 +1258,8 @@
         "melee_pct",
         "crit_pct",
         "leech_pct",
-        "hp_flat"
+        "hp_flat",
+        "mp_on_hit"
       ]
     },
     "venom_wand": {
@@ -1193,7 +1276,9 @@
         "spell_pct",
         "poison_on_hit",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "hermit_cleaver": {
@@ -1211,7 +1296,8 @@
         "melee_pct",
         "area_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "mp_on_hit"
       ]
     },
     "spore_staff": {
@@ -1228,7 +1314,9 @@
         "spell_pct",
         "summon_pct",
         "poison_on_hit",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "fang_bow": {
@@ -1245,7 +1333,8 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "frontier_kris": {
@@ -1264,7 +1353,8 @@
         "crit_pct",
         "poison_on_hit",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "moonleaf_wand": {
@@ -1282,7 +1372,9 @@
         "spell_pct",
         "heal_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "ranger_axe": {
@@ -1301,7 +1393,8 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "knight_greatsword": {
@@ -1320,7 +1413,8 @@
         "melee_pct",
         "area_pct",
         "hp_flat",
-        "defense_flat"
+        "defense_flat",
+        "mp_on_hit"
       ]
     },
     "tidecaller_staff": {
@@ -1339,7 +1433,9 @@
         "spell_pct",
         "area_pct",
         "barrier_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "dusk_longbow": {
@@ -1358,7 +1454,8 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "mp_on_hit"
       ]
     },
     "kite_shield": {
@@ -1431,7 +1528,8 @@
         "crit_pct",
         "poison_on_hit",
         "leech_pct",
-        "move_pct"
+        "move_pct",
+        "mp_on_hit"
       ]
     },
     "trail_boots": {
@@ -1450,7 +1548,8 @@
         "defense_flat",
         "hp_flat",
         "regen_flat",
-        "cdr_pct"
+        "cdr_pct",
+        "material_find"
       ]
     },
     "fang_talisman": {
@@ -1469,7 +1568,10 @@
         "attack_flat",
         "move_pct",
         "leech_pct",
-        "melee_pct"
+        "melee_pct",
+        "gear_find",
+        "gold_find",
+        "mp_on_hit"
       ]
     },
     "stormglass_blade": {
@@ -1489,7 +1591,8 @@
         "melee_pct",
         "crit_pct",
         "cdr_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "wisp_stiletto": {
@@ -1509,7 +1612,8 @@
         "crit_pct",
         "cdr_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "lantern_wand": {
@@ -1529,7 +1633,9 @@
         "spell_pct",
         "summon_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "thunder_maul": {
@@ -1548,7 +1654,8 @@
         "melee_pct",
         "area_pct",
         "hp_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "galebreaker": {
@@ -1568,7 +1675,8 @@
         "melee_pct",
         "area_pct",
         "move_pct",
-        "hp_flat"
+        "hp_flat",
+        "mp_on_hit"
       ]
     },
     "highland_shield": {
@@ -1608,7 +1716,8 @@
         "defense_flat",
         "cdr_pct",
         "hp_flat",
-        "projectile_pct"
+        "projectile_pct",
+        "material_find"
       ]
     },
     "oathblade": {
@@ -1629,7 +1738,8 @@
         "melee_pct",
         "crit_pct",
         "hp_flat",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "ruin_fang": {
@@ -1650,7 +1760,8 @@
         "crit_pct",
         "poison_on_hit",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ]
     },
     "relic_wand": {
@@ -1671,7 +1782,9 @@
         "spell_pct",
         "area_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "skyrender_bow": {
@@ -1691,7 +1804,8 @@
         "projectile_pct",
         "crit_pct",
         "cdr_pct",
-        "move_pct"
+        "move_pct",
+        "mp_on_hit"
       ]
     },
     "arrows_hunter": {
@@ -1717,7 +1831,8 @@
         "mp_flat",
         "heal_pct",
         "magic_flat",
-        "summon_pct"
+        "summon_pct",
+        "mp_regen_pct"
       ],
       "itemLevel": 6
     },
@@ -1734,7 +1849,8 @@
         "heal_pct",
         "summon_pct",
         "mp_flat",
-        "poison_on_hit"
+        "poison_on_hit",
+        "mp_regen_pct"
       ],
       "itemLevel": 6
     },
@@ -1752,7 +1868,9 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "heal_pct"
+        "heal_pct",
+        "material_find",
+        "mp_regen_pct"
       ],
       "itemLevel": 11
     },
@@ -1815,7 +1933,8 @@
         "crit_pct",
         "projectile_pct",
         "leech_pct",
-        "move_pct"
+        "move_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 21
     },
@@ -1886,7 +2005,10 @@
         "crit_pct",
         "cdr_pct",
         "attack_flat",
-        "projectile_pct"
+        "projectile_pct",
+        "gear_find",
+        "gold_find",
+        "mp_on_hit"
       ],
       "itemLevel": 6
     },
@@ -1904,7 +2026,11 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "barrier_pct"
+        "barrier_pct",
+        "gear_find",
+        "gold_find",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 6
     },
@@ -1922,7 +2048,9 @@
         "defense_flat",
         "block_pct",
         "regen_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 6
     },
@@ -1941,7 +2069,10 @@
         "magic_flat",
         "hp_flat",
         "move_pct",
-        "crit_pct"
+        "crit_pct",
+        "gear_find",
+        "gold_find",
+        "mp_on_hit"
       ],
       "itemLevel": 11
     },
@@ -2272,6 +2403,24 @@
       },
       "grade": "B"
     },
+    "learn_sky_shatter": {"type":"skill","result":"sky_shatter","cost":{"ram_horn":4,"crag_stone":3,"gold":60}},
+    "learn_earth_rend": {"type":"skill","result":"earth_rend","cost":{"crag_stone":4,"golem_heart":1,"gold":60}},
+    "learn_iron_body": {"type":"skill","result":"iron_body","cost":{"golem_heart":1,"ram_horn":3,"gold":55}},
+    "learn_cross_cut": {"type":"skill","result":"cross_cut","cost":{"mantis_scythe":3,"wolf_fang":2,"gold":45}},
+    "learn_blade_storm": {"type":"skill","result":"blade_storm","cost":{"dusk_pelt":3,"mantis_scythe":2,"gold":60}},
+    "learn_rally": {"type":"skill","result":"rally","cost":{"wolf_pelt":3,"greyfang_mane":1,"gold":45}},
+    "learn_frenzy_roar": {"type":"skill","result":"frenzy_roar","cost":{"greyfang_mane":2,"wolf_fang":3,"gold":50}},
+    "learn_stand_firm": {"type":"skill","result":"stand_firm","cost":{"ram_horn":3,"crab_shell":2,"gold":50}},
+    "learn_team_stand": {"type":"skill","result":"team_stand","cost":{"warden_horn":2,"crab_shell":3,"gold":60}},
+    "learn_blessing": {"type":"skill","result":"blessing","cost":{"sea_pearl":3,"glow_dust":3,"gold":55}},
+    "learn_rapid_volley": {"type":"skill","result":"rapid_volley","cost":{"storm_quill":3,"hawk_feather":2,"gold":50}},
+    "learn_killing_arrow": {"type":"skill","result":"killing_arrow","cost":{"hawk_feather":4,"storm_quill":2,"gold":60}},
+    "learn_meteor": {"type":"skill","result":"meteor","cost":{"rune_core":2,"golem_heart":1,"gold":70}},
+    "learn_blizzard": {"type":"skill","result":"blizzard","cost":{"sea_pearl":3,"wisp_core":2,"gold":65}},
+    "learn_thunderstorm": {"type":"skill","result":"thunderstorm","cost":{"storm_quill":3,"wisp_core":2,"gold":65}},
+    "learn_holy_bell": {"type":"skill","result":"holy_bell","cost":{"warden_horn":2,"glow_dust":3,"gold":55}},
+    "learn_light_chain": {"type":"skill","result":"light_chain","cost":{"mirror_scale":3,"glow_dust":2,"gold":45}},
+    "learn_spell_wave": {"type":"skill","result":"spell_wave","cost":{"rune_core":2,"mantis_scythe":2,"gold":55}},
     "travel_cap": {
       "type": "gear",
       "result": "travel_cap",
@@ -2302,7 +2451,8 @@
         "crit_pct",
         "projectile_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 1
     },
@@ -2319,7 +2469,8 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 1
     },
@@ -2372,7 +2523,8 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2389,7 +2541,9 @@
         "heal_pct",
         "defense_flat",
         "hp_flat",
-        "summon_pct"
+        "summon_pct",
+        "mp_regen_pct",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2479,7 +2633,8 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2497,7 +2652,9 @@
         "barrier_pct",
         "spell_pct",
         "defense_flat",
-        "magic_flat"
+        "magic_flat",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 6
     },
@@ -2515,7 +2672,9 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 6
     },
@@ -2533,7 +2692,9 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 6
     },
@@ -2551,7 +2712,9 @@
         "move_pct",
         "cdr_pct",
         "defense_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "mp_regen_pct",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2605,7 +2768,8 @@
         "crit_pct",
         "projectile_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 6
     },
@@ -2623,7 +2787,8 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 6
     },
@@ -2641,7 +2806,8 @@
         "mp_flat",
         "cdr_pct",
         "heal_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_regen_pct"
       ],
       "itemLevel": 11
     },
@@ -2659,7 +2825,9 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 11
     },
@@ -2677,7 +2845,9 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 11
     },
@@ -2695,7 +2865,11 @@
         "mp_flat",
         "heal_pct",
         "cdr_pct",
-        "spell_pct"
+        "spell_pct",
+        "mp_regen_pct",
+        "mana_cost_pct",
+        "gear_find",
+        "gold_find"
       ],
       "itemLevel": 11
     },
@@ -2715,7 +2889,8 @@
         "crit_pct",
         "projectile_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "mp_on_hit"
       ],
       "itemLevel": 16
     },
@@ -2734,7 +2909,9 @@
         "spell_pct",
         "defense_flat",
         "magic_flat",
-        "area_pct"
+        "area_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 16
     },
@@ -2753,7 +2930,9 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "itemLevel": 16
     },
@@ -2772,7 +2951,9 @@
         "move_pct",
         "cdr_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "mp_regen_pct",
+        "material_find"
       ],
       "itemLevel": 16
     },
@@ -2793,7 +2974,8 @@
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "material_find"
       ],
       "itemLevel": 21
     }

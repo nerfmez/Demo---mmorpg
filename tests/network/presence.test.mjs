@@ -49,7 +49,7 @@ test('health, anonymous identity, movement, room/map separation, leave, reconnec
   const c = await connect(); c.sendJSON(join()); assert.notEqual((await c.take('welcome')).id, bw.id); await a.take('join'); c.close(); await a.take('leave');
 });
 
-test('atlas poses agree across all starting origins; region metadata matches main boundary ownership and v13 saves stay local', () => {
+test('atlas poses agree across all starting origins; region metadata matches main boundary ownership and current-version saves stay local', () => {
   const wire = createProtocol(data), points = [[-160, -92], [-161, -92], [13, -120], [13, -121], [-160, -160.5], [-161, -160.5]];
   for (const initial of Object.keys(data.maps)) {
     const g = new OpenWorldGame({ ...data, world: data.maps[initial] }, { seed: 7 });

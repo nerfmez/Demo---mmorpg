@@ -13,10 +13,10 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 .bench { display: grid; grid-template-columns: 1fr minmax(300px, 34vw); height: 100%; }
 #stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; touch-action: none; }
 #view { display: block; width: 100%; height: 100%; touch-action: none; }
-#panel { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding-block: 12px calc(16px + env(safe-area-inset-bottom)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); -webkit-overflow-scrolling: touch; }
+#panel { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding-block: max(64px, calc(12px + env(safe-area-inset-top, 0px))) calc(16px + env(safe-area-inset-bottom)); /* the top strip stays clear: the iPad app's artifact viewer draws over it (the owner could not tap the top-centre tab) */ padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); -webkit-overflow-scrolling: touch; }
 @media (max-aspect-ratio: 1/1) {
   .bench { grid-template-columns: 1fr; grid-template-rows: 56% 1fr; }
-  #panel { border-left: 0; border-top: 1px solid var(--line); }
+  #panel { border-left: 0; border-top: 1px solid var(--line); padding-top: 12px; } /* below the scene: no viewer strip over it */
 }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .tab { flex: 1 1 28%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--chip); }
@@ -39,6 +39,10 @@ h2 { font-size: 14px; margin: 14px 0 6px; color: var(--muted); font-weight: 600;
 .seg button, .toggle { flex: 1; min-height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--chip); }
 .seg button.on, .toggle.on { background: var(--chip-on); }
 .stats { margin-top: 12px; font-size: 13px; color: var(--muted); min-height: 2.8em; }
+/* walk joystick (touch or mouse): drag the knob to walk the hero */
+#joy { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom)); width: 120px; height: 120px; border-radius: 50%; background: rgba(20,30,40,.28); border: 2px solid rgba(255,255,255,.55); touch-action: none; user-select: none; -webkit-user-select: none; }
+#joy::after { content: 'เดิน'; position: absolute; left: 0; right: 0; top: -22px; text-align: center; font-size: 13px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); pointer-events: none; }
+#knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff, #d9e6f2 60%, #9fb4c8); box-shadow: 0 3px 10px rgba(0,0,0,.35); pointer-events: none; }
 .actions { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom)); display: flex; align-items: flex-end; gap: 14px; }
 #cast, #dodge { border: 0; border-radius: 50%; font-weight: 700; color: #241a05; box-shadow: 0 4px 14px rgba(0,0,0,.35); user-select: none; -webkit-user-select: none; }
 #cast { width: 96px; height: 96px; background: radial-gradient(circle at 35% 30%, #fff1b8, #ffc94a 60%, #e09a22); font-size: 20px; }
@@ -54,3 +58,7 @@ h2 { font-size: 14px; margin: 14px 0 6px; color: var(--muted); font-weight: 600;
 .num { position: absolute; left: 0; top: 0; font-weight: 800; font-size: 18px; text-shadow: 0 2px 0 rgba(0,0,0,.55), 0 0 6px rgba(0,0,0,.4); white-space: nowrap; }
 .num.big { font-size: 24px; }
 #banner { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); padding: 6px 16px; border-radius: 18px; background: rgba(20,28,40,.75); color: #fff; font-weight: 700; opacity: 0; transition: opacity .25s; pointer-events: none; }
+
+/* weapon pickers: the buttons wrap under their label on a narrow panel */
+.lv.wpick { display: flex; flex-wrap: wrap; align-items: center; row-gap: 6px; margin: 0 0 8px; }
+.lv.wpick > span { flex: 0 0 100%; font-size: 13px; opacity: 0.75; }

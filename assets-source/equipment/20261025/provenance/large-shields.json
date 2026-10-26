@@ -1,9 +1,9 @@
 {
   "source_image": "large-shields-atlas.png",
   "source_sha256": "39174b5044cd8d24252bff00a0447e8346fc5b15ce45f204e43e8b5df55c0912",
-  "source_kind": "owner-supplied transparent sheet of six large shields",
+  "source_kind": "owner-supplied transparent sheet: three large shields, front (top row) and back (bottom row)",
   "status": "Artwork only; no game data changes",
-  "extraction_method": "alpha connected components (five specks under 500 px dropped)",
+  "extraction_method": "alpha connected components; only the fronts are icons, the back views are not used",
   "items": [
     {
       "id": "crab_tower_shield",
@@ -61,63 +61,6 @@
       ],
       "components": 1,
       "sha256": "ac1e0edf9354450002f66a9c779c7667096d2775a25eb346030ad9205606abf0"
-    },
-    {
-      "id": "crab_greatshield",
-      "name_th": "โล่ไม้ขอบกระดองปู",
-      "new_proposed_item": true,
-      "source_bounds": [
-        134,
-        567,
-        473,
-        978
-      ],
-      "content_bounds": [
-        61,
-        20,
-        450,
-        492
-      ],
-      "components": 1,
-      "sha256": "950dd0590cbf0543e6a8c970de81db1bf38e35a1cb1314d350f7f406f1bb94c6"
-    },
-    {
-      "id": "beetle_greatshield",
-      "name_th": "โล่ไม้ขอบกระดองด้วง",
-      "new_proposed_item": true,
-      "source_bounds": [
-        620,
-        569,
-        919,
-        978
-      ],
-      "content_bounds": [
-        83,
-        20,
-        428,
-        492
-      ],
-      "components": 1,
-      "sha256": "2f5be14edabd647880067f07d8d42385ee9ee1c0269e5e936c00ccad05119b15"
-    },
-    {
-      "id": "crag_greatshield",
-      "name_th": "โล่ไม้ขอบศิลาผา",
-      "new_proposed_item": true,
-      "source_bounds": [
-        1100,
-        598,
-        1408,
-        983
-      ],
-      "content_bounds": [
-        67,
-        20,
-        445,
-        491
-      ],
-      "components": 1,
-      "sha256": "893275ba3fed847b772076f6add5f99a8245a60a14dad23eb03886d1abfd20af"
     }
   ]
 }

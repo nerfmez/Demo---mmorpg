@@ -363,3 +363,12 @@ Owner: the main job is to make the finished scenes sit in the map harmoniously.
 - **Connector trenches:** the generated connectors run straight from a trail's end to the nearest map road, at a straight height ramp. Two crossed a scene's raised ground and carved it: `accepted/join-5` cut a 2.5 m deep, 29 m long trench through the rose garden's west terrace (its steep walls painted as grey rock, read as ghostly slabs), and `accepted/join-12` cut 2 m through the windmill's west hill (the straight road beside the lone wall piece). Both are removed: the rose garden keeps four exits and the windmill three, and the scenes' own trails fade out into grass at their ends. A new test fails any connector that digs a trench 2 m deep or 20 m long through the ground beside it (the forest's west ramp, a 1.5 m cutting down its plateau edge to the beach, stays).
 
 Checks: core 640/640; local hud and ux browser suites (dev load) pass. Inspected from above and in the play camera at the rose garden's west terrace and the windmill's west hill, and wide views of the windmill's wood.
+
+### Follow-up: straight connectors and grey banks (26 October 2026)
+
+Owner: no more planting inside the scenes ("ไม่ต้องปลูกเพิ่ม"); the windmill's outer wood stays.
+
+- **Straight connectors removed:** four more generated connectors ran as long straight dirt roads across a scene's ground to the nearest map road: `accepted/join-0` (48 m through the forest's east upland), `accepted/join-2` (40 m along the rose garden's south edge), `accepted/join-7` (35 m along the meadow's south lawn) and `accepted/join-9` (25 m down the meadow's east side, beside `accepted/join-11` to the same junction). Each scene keeps its other exits; the scene's own trails fade into grass at their ends.
+- **Grass banks:** the forest, rose garden and meadow build their rock faces as their own meshes, like the windmill, so the game now paints their steep ground as grass (`acceptedScenes.grassBanks`). The grey slope strata it painted there read from above as pale ghostly slabs. The arrival beach keeps its sand.
+
+Checks: core 640/640; accepted-scene and data tests pass. Inspected from above over the forest, rose garden and meadow, and low over the rose garden's terraces.

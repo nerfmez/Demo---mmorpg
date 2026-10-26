@@ -890,7 +890,9 @@ function animWarden(r, s, dt, time) {
   // out of combat the warden lies as its boulder (it curls up again when it gets home); when a fight
   // starts its stones stack into the golem from the ground up: legs, body, arms, then the head
   const dormant = s.state === 'idle' && !s.aggro;
-  r.curlT = dormant ? (r.curlT ?? 1) + dt : 0;
+  // it curls up on the spot only after walking home; a fresh spawn is already the boulder
+  if (!dormant) r.homeCurl = s.state === 'return';
+  r.curlT = dormant ? (r.homeCurl ? (r.curlT || 0) + dt : 1) : 0;
   if (dormant && r.curlT < 1) {
     const u = clamp01(r.curlT);
     b.torso.rotation.x = 0.2 + 1.0 * u;
@@ -922,9 +924,17 @@ function animWarden(r, s, dt, time) {
   if (form) {
     const rollingNow = s.lastAttack === 'roll' && (s.state === 'act' || s.state === 'recover' && s.actT < 0.2);
     const ball = (s.windup === 'roll' && k > 0.8) || rollingNow || (dormant && r.curlT >= 0.8);
-    form.visible = ball;
+    // waking: the boulder sinks and shrinks away as the golem's legs and body rise out of it
+    const breaking = s.state === 'emerge' && wake < 0.35;
+    form.visible = ball || breaking;
     for (const m of r.modelMeshes) m.visible = !ball;
-    if (ball) {
+    if (breaking) {
+      const q = wake / 0.35, rad = form.userData.radius;
+      form.position.set(0, rad * (1 - 0.6 * q), 0.2);
+      form.rotation.set(0, 0, 0);
+      form.scale.setScalar(1 - 0.7 * q * q);
+    }
+    if (ball && !breaking) {
       const rad = form.userData.radius;
       form.position.set(0, rad, 0.2);
       // a wobble on the curl, full spin while it rolls (rig units: speed / root scale)

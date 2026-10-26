@@ -34,4 +34,9 @@ The owner redrew the sheet and supplied it already cut out (`concept_sheet.png`,
 stone with orange lava cracks, the boulder cracked with lava as well. Each figure was put on white as it is
 (only the loose rocks floating apart from it dropped) and remade the same way (meshy-t2 + Meshy 6
 retexture, 30 credits; task ids in `tasks.json`). Meshy gave the boulder two horns, one either side.
-The first version is kept in `v1/`; the game uses the first version's models until the new ones are fitted.
+The first version is kept in `v1/`. In game now:
+- `public/models/monsters/horned_warden.glb`: `scripts/clear-golem-rubble.py` (the loose stones round its feet
+  dropped), then `prep-monster-glb.py` (3,502 triangles).
+- `public/models/monsters/horned_warden_ball.glb`: `scripts/close-boulder-base.py golem_meshy.glb` (rubble
+  dropped, its stone recoloured to the golem's grey: the two Meshy textures came out in different greys),
+  then `prep-monster-glb.py --tris 1700`.

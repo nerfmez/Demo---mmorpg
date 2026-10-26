@@ -3206,75 +3206,75 @@
     },
     "horned_warden": {
       "file": "models/monsters/horned_warden.glb",
-      "tris": 4263,
-      "scale": 2.0,
+      "tris": 3502,
+      "scale": 2.4,
       "offset": [
-        -0.25,
+        -0.12,
         0,
-        0.2
+        0.36
       ],
       "yaw": 0,
       "sharpness": 6,
       "minWeight": 0.18,
       "outline": "#221a14",
       "outlineWidth": 0.02,
-      "source": "The owner's stone golem sheet (assets/meshy/monsters/crag_titan): meshy-t2 image-to-3d (task 01a1770d-ef18-740f-a858-43b336515da8) with a Meshy 6 retexture (01a1770e-4860-7505-8f8a-1ae892e317f8); the rolled boulder form is `ball`",
+      "source": "The owner's stone golem sheet, second version (assets/meshy/monsters/crag_titan): meshy-t2 image-to-3d with a Meshy 6 retexture, its loose rubble cleared by scripts/clear-golem-rubble.py (task ids in tasks.json there); the rolled boulder form is `ball`",
       "ball": {
         "file": "models/monsters/horned_warden_ball.glb",
-        "tris": 1600,
-        "scale": 1.45,
-        "source": "same sheet, the curled-up boulder: meshy-t2 (01a1770d-f396-7173-9ec4-b9cd49d82dcd) + Meshy 6 retexture (01a1770f-9267-71e7-9107-cb6a303c5172), ground disc dropped"
+        "tris": 1699,
+        "scale": 1.7,
+        "source": "same sheet, the curled-up boulder (meshy-t2 + Meshy 6 retexture); rubble dropped and its stone recoloured to the golem's by scripts/close-boulder-base.py"
       },
       "bones": {
         "legL": [
-          0.72,
+          0.48,
           0,
           0
         ],
         "kneeL": [
-          0.03,
-          -0.75,
+          0.24,
+          -0.61,
           0
         ],
         "legR": [
-          -0.72,
+          -0.6,
           0,
           0
         ],
         "kneeR": [
-          -0.03,
-          -0.75,
+          -0.12,
+          -0.61,
           0
         ],
         "armL": [
-          0.75,
-          1.25,
-          -0.12
+          0.96,
+          1.31,
+          0
         ],
         "elbowL": [
-          0.4,
-          -0.8,
+          0.36,
+          -0.72,
           0
         ],
         "armR": [
-          -0.85,
-          1.25,
+          -0.84,
+          1.31,
           0
         ],
         "elbowR": [
-          -0.35,
-          -0.75,
-          0.1
+          -0.48,
+          -0.72,
+          0.55
         ],
         "head": [
           0,
-          1.55,
-          0
+          1.79,
+          0.24
         ],
         "rune": [
-          0.05,
-          0.8,
-          0.4
+          0.17,
+          1.07,
+          0.6
         ],
         "tail": [
           0,
@@ -3290,7 +3290,7 @@
             0
           ],
           [
-            0.6,
+            0.48,
             1.45,
             0
           ]
@@ -3299,146 +3299,146 @@
           [
             [
               0,
-              1.6,
+              1.55,
               0
             ],
             [
               0,
-              2.85,
+              2.9,
               0
             ]
           ],
           [
             [
-              -0.5,
-              2.3,
-              0.05
+              -0.55,
+              2.5,
+              0.1
             ],
             [
-              0.55,
-              2.3,
-              0.05
+              0.6,
+              2.5,
+              0.1
             ]
           ]
         ],
         "head": [
           [
-            -0.05,
-            2.95,
-            0
+            0,
+            3.0,
+            0.2
           ],
           [
             0,
-            3.45,
-            0
+            3.6,
+            0.2
           ]
         ],
         "armL": [
           [
-            0.75,
-            2.7,
-            -0.12
+            0.96,
+            2.76,
+            0
           ],
           [
-            1.15,
-            1.9,
-            -0.12
+            1.32,
+            2.04,
+            0
           ]
         ],
         "elbowL": [
           [
-            1.15,
-            1.9,
-            -0.12
+            1.32,
+            2.04,
+            0
           ],
           [
-            1.5,
-            0.95,
-            -0.1
+            1.32,
+            1.0,
+            0
           ]
         ],
         "armR": [
           [
-            -0.85,
-            2.7,
+            -0.84,
+            2.76,
             0
           ],
           [
-            -1.2,
-            1.95,
-            0.1
+            -1.32,
+            2.04,
+            0.55
           ]
         ],
         "elbowR": [
           [
             [
-              -1.2,
-              1.95,
-              0.1
+              -1.32,
+              2.04,
+              0.55
             ],
             [
-              -1.6,
+              -1.5,
               1.6,
-              0.3
+              1.0
             ]
           ],
           [
             [
-              -1.77,
-              2.6,
-              0.35
+              -1.56,
+              2.9,
+              1.08
             ],
             [
-              -1.77,
-              0.5,
-              0.35
+              -1.56,
+              0.45,
+              1.08
             ]
           ]
         ],
         "legL": [
           [
-            0.7,
+            0.48,
             1.45,
             0
           ],
           [
-            0.75,
-            0.7,
+            0.72,
+            0.84,
             0
           ]
         ],
         "kneeL": [
           [
-            0.75,
-            0.7,
+            0.72,
+            0.84,
             0
           ],
           [
-            0.75,
+            0.84,
             0,
             0.05
           ]
         ],
         "legR": [
           [
-            -0.7,
+            -0.6,
             1.45,
             0
           ],
           [
-            -0.75,
-            0.7,
+            -0.72,
+            0.84,
             0
           ]
         ],
         "kneeR": [
           [
-            -0.75,
-            0.7,
+            -0.72,
+            0.84,
             0
           ],
           [
-            -0.75,
+            -0.77,
             0,
             0.05
           ]

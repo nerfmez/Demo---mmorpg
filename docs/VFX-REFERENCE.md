@@ -234,6 +234,9 @@ Backstab picks the monster it points at within 7 m (target ring) and steps behin
 Owner: no effect on the ground, and the Thai name is แทงหลัง. The shadow pools are gone; the ink wisps
 now leave the body (0.45-1.35 m up) and curl outward instead of rising from the ground.
 
+Earth Heave (งัดพสุธา), owner: the pit should follow the cone. The round crater is now a fan-shaped pit
+(`craterFan`) over the true 140° arc and 3.2 m reach, its point at the hero's feet; Meteor's stays round.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

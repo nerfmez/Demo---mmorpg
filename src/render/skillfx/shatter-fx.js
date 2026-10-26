@@ -4,15 +4,15 @@
 // overhead on the contact), so the ground answers the blade.
 //   Wind-up (castStart): pebbles lift and tremble round the hero.
 //   The rip (the rules' 'slash' contact): a ragged flash and light rays where the blade tears out; the
-//   ground there sinks into a crater; blunt slabs of ground are pried up row after row over the true
-//   arc and range, tilted outward, each row a beat later, dust rolling off them (a stun is blunt force:
+//   ground over the hit's fan sinks into a fan-shaped pit; blunt slabs of ground are pried up row after
+//   row over the true arc and range, tilted outward, each row a beat later, dust rolling off them (a stun is blunt force:
 //   no sharp spikes, owner review); the pebbles are thrown up and forward with the blade and fall;
 //   a warm light; a heavy shake (the director). Struck monsters get Breakbeat Slam's stun stars
 //   (MaceFx.hit). Cosmetic only.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, flashMaterial, tintFlash, place, placeV, conformPlane, addLight, BILLBOARD_VS } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W, taperW, taperGlowW } from './light-kit.js';
-import { rockGeometry, slabGeometry, craterMesh, STONE_VS, STONE_FS, DUST_FS } from './ground-kit.js';
+import { rockGeometry, slabGeometry, craterMesh, craterFan, STONE_VS, STONE_FS, DUST_FS } from './ground-kit.js';
 
 const ROWS = [[1.25, 4], [2.05, 6], [2.85, 8]], SPIKES = 18, PEBBLES = 9, DUST = 22, RAYS = 6, CRATER = 2.6;
 const EDGE = [1.0, 0.95, 0.82], GLOW = [0.95, 0.7, 0.35];
@@ -51,8 +51,10 @@ export class ShatterFx {
   slam(x, z, angle, range, arcDeg) {
     const r = this.rnd, arc = (arcDeg * Math.PI) / 180, fx = Math.sin(angle), fz = Math.cos(angle), k = range / 3.2;
     this.slamAt = this.time; this.center.set(x + fx * 1.4 * k, 0, z + fz * 1.4 * k);
-    // the crater where the weapon lands
-    place(this.crater, this.center.x, 0.05, this.center.z); this.crater.scale.setScalar(0.9 * k * 1.7 * 2); conformPlane(this.crater); this.crater.visible = true;
+    // the ground sinks in a fan over the true arc and reach (owner: the pit follows the cone), from just
+    // the hero's feet (its point) out to the reach
+    craterFan(this.crater, angle, arcDeg, 0.04);
+    place(this.crater, x, 0.05, z); this.crater.scale.setScalar(range * 1.7 * 2); conformPlane(this.crater); this.crater.visible = true;
     // rows of ground slabs pried up over the true arc, each row a beat later
     let i = 0;
     ROWS.forEach(([d, n], row) => {

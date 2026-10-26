@@ -704,24 +704,292 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword points forward and down, ahead of the feet; the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); the dagger alone takes the low trailing guard of the Quaternius Sword_Idle clip (stance dagger_ready); dagger and wand use the dual carry with a second weapon. Heavy weapons are held in both hands at the belly, head forward, clear of the big head. The staff (staff_ready), the wand alone and dual (wand_ready) and the bow (bow_ready) come from the owner's picks (the mace held in one hand, beside a shield, takes the wand's carry) of KayKit Mage and Quaternius bow clips. On the run (run carries, owner's request): the sword trails low behind (the arm from Quaternius Sprint_Shield_Loop), heavy weapons are dragged in the right hand alone, the dagger runs like the sword with the body leaning forward; the run carries' blade rolls are matched to the actions while running (match-roll.mjs run). up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
         "sword": {
           "one": {
             "hand": [
-              -0.22,
-              0.93,
-              0.1
+              -0.296,
+              0.972,
+              0.821
             ],
             "dir": [
-              -0.12,
-              -0.55,
-              0.83
+              0.765,
+              0.632,
+              0.126
             ],
             "up": [
-              1,
-              0,
-              0
-            ]
+              -0.181,
+              0.398,
+              -0.899
+            ],
+            "stance": "sword_guard",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.2,
+                  0,
+                  -0.65
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.79,
+              "reverse": true,
+              "roll": 1.571
+            }
+          },
+          "dual": {
+            "hand": [
+              -0.545,
+              0.762,
+              0.062
+            ],
+            "dir": [
+              -0.16,
+              -0.01,
+              0.987
+            ],
+            "up": [
+              0.404,
+              0.913,
+              0.074
+            ],
+            "left": {
+              "hand": [
+                0.502,
+                0.769,
+                -0.079
+              ],
+              "dir": [
+                0.263,
+                -0.011,
+                0.965
+              ],
+              "up": [
+                -0.372,
+                0.921,
+                0.11
+              ]
+            },
+            "stance": "sword_ready",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.2,
+                  0,
+                  -0.65
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ],
+                "armL": [
+                  0.2,
+                  0,
+                  0.65
+                ],
+                "elbowL": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.79,
+              "reverse": true,
+              "roll": 1.571
+            }
+          }
+        },
+        "dagger": {
+          "one": {
+            "hand": [
+              -0.501,
+              0.642,
+              -0.542
+            ],
+            "dir": [
+              -0.855,
+              0.152,
+              0.496
+            ],
+            "up": [
+              0.394,
+              0.808,
+              0.435
+            ],
+            "stance": "dagger_ready",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.75,
+                  0,
+                  -0.55
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.35,
+              "roll": 1.571,
+              "reverse": true,
+              "lean": {
+                "torso": [
+                  0.35,
+                  0,
+                  0
+                ],
+                "chest": [
+                  0.2,
+                  0,
+                  0
+                ],
+                "head": [
+                  -0.4,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "dual": {
+            "hand": [
+              -0.501,
+              0.642,
+              -0.542
+            ],
+            "dir": [
+              -0.855,
+              0.152,
+              0.496
+            ],
+            "up": [
+              0.398,
+              0.805,
+              0.438
+            ],
+            "left": {
+              "hand": [
+                0.418,
+                0.686,
+                0.663
+              ],
+              "dir": [
+                0.855,
+                0.152,
+                0.496
+              ],
+              "up": [
+                -0.518,
+                0.213,
+                0.83
+              ]
+            },
+            "stance": "dagger_ready",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.75,
+                  0,
+                  -0.55
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ],
+                "armL": [
+                  0.75,
+                  0,
+                  0.55
+                ],
+                "elbowL": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.35,
+              "roll": 1.571,
+              "reverse": true,
+              "lean": {
+                "torso": [
+                  0.35,
+                  0,
+                  0
+                ],
+                "chest": [
+                  0.2,
+                  0,
+                  0
+                ],
+                "head": [
+                  -0.4,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        },
+        "wand": {
+          "one": {
+            "hand": [
+              -0.584,
+              0.778,
+              0.069
+            ],
+            "dir": [
+              -0.158,
+              -0.007,
+              0.987
+            ],
+            "up": [
+              0.472,
+              0.877,
+              0.082
+            ],
+            "stance": "wand_ready"
+          },
+          "dual": {
+            "hand": [
+              -0.584,
+              0.778,
+              0.069
+            ],
+            "dir": [
+              -0.158,
+              -0.007,
+              0.987
+            ],
+            "up": [
+              0.471,
+              0.879,
+              0.081
+            ],
+            "left": {
+              "hand": [
+                0.584,
+                0.778,
+                0.069
+              ],
+              "dir": [
+                0.158,
+                -0.007,
+                0.987
+              ],
+              "up": [
+                -0.471,
+                0.878,
+                0.081
+              ]
+            },
+            "stance": "wand_ready"
           }
         },
         "axe": {
@@ -740,7 +1008,31 @@
               1,
               0,
               0
-            ]
+            ],
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.34,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "reverse": true,
+              "roll": 1.571
+            }
           },
           "two": {
             "hand": [
@@ -759,26 +1051,76 @@
               1,
               0,
               0
-            ]
+            ],
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.34,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
+            }
           }
         },
         "mace": {
           "one": {
             "hand": [
-              -0.24,
-              0.95,
-              0.15
+              -0.584,
+              0.778,
+              0.069
             ],
             "dir": [
-              -0.1,
-              0.4,
-              0.9
+              -0.158,
+              -0.007,
+              0.987
             ],
             "up": [
-              1,
-              0,
-              0
-            ]
+              0.467,
+              0.88,
+              0.082
+            ],
+            "stance": "wand_ready",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.33,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "reverse": true,
+              "roll": 1.571
+            }
           },
           "two": {
             "hand": [
@@ -797,7 +1139,32 @@
               1,
               0,
               0
-            ]
+            ],
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.33,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
+            }
           }
         },
         "greatblade": {
@@ -818,22 +1185,73 @@
               1,
               0,
               0
-            ]
+            ],
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.52,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
+            }
           }
         },
         "staff": {
           "one": {
             "hand": [
-              -0.27,
-              0.8,
-              0.2
+              -0.486,
+              0.871,
+              0.485
             ],
             "dir": [
-              -0.04,
-              1,
-              0.2
+              -0.097,
+              0.807,
+              0.582
             ],
-            "castHold": true
+            "castHold": true,
+            "up": [
+              0.475,
+              0.551,
+              -0.686
+            ],
+            "stance": "staff_ready"
+          }
+        },
+        "bow": {
+          "one": {
+            "hand": [
+              -0.282,
+              0.935,
+              0.681
+            ],
+            "dir": [
+              0.091,
+              -0.819,
+              0.567
+            ],
+            "up": [
+              0.527,
+              0.523,
+              0.67
+            ],
+            "stance": "bow_ready"
           }
         }
       },

@@ -33,7 +33,7 @@ function geometry(mode, layer) {
   if(mode===1)g.setAttribute('aGather',g.attributes.position);
   g.userData.shared=true;geometryCache.set(key,g);return g;
 }
-const field = /* glsl */`
+export const V5_FIELD = /* glsl */`
 uniform vec3 uRim,uBody,uHot,uCore;
 float hash3(vec3 p) { p=fract(p*.1031); p+=dot(p,p.yzx+33.33); return fract((p.x+p.y)*p.z); }
 vec3 gradient(vec3 p) {
@@ -99,7 +99,7 @@ const fragmentShader=/* glsl */`
 uniform float uTime,uLayer,uMode,uFilled,uAlpha,uSeed,uChargeBuild;
 uniform vec3 uTail;
 varying vec3 vObject,vNormal,vEye;
-${field}
+${V5_FIELD}
 void main(){
  float l=uLayer,t=uMode>.5?uTime:.625+(uTime-.625)*uTail.z/18.; bool charge=uMode>.5; bool filled=uFilled>.5;
  vec3 scale=charge?vec3(5.2):vec3(1.25+.35*l,7.3-.7*l,7.3-.7*l);

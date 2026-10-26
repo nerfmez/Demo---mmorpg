@@ -13,31 +13,35 @@
       "AGI": 3,
       "VIT": 3,
       "INT": 3,
-      "DEX": 3
+      "DEX": 3,
+      "LUK": 3
     },
     "base": {
-      "hp": 99,
-      "hpPerLevel": 4,
-      "hpPerVit": 6,
-      "mp": 44.5,
-      "mpPerLevel": 1.2,
-      "mpPerInt": 2.5,
-      "mpRegen": 2.5,
-      "hpRegen": 0.6,
+      "hp": 990,
+      "hpPerLevel": 40,
+      "hpPerVit": 60,
+      "mp": 445,
+      "mpPerLevel": 12,
+      "mpPerInt": 25,
+      "mpRegen": 25,
+      "hpRegen": 6,
       "moveSpeed": 6,
-      "attack": 1.65,
-      "magic": 2.25,
-      "mpRegenPerInt": 0.025
+      "attack": 16.5,
+      "magic": 22.5,
+      "mpRegenPerInt": 0.25
     },
     "perStat": {
       "STR": {
-        "attack": 0.45
+        "attack": 4.5,
+        "maxHp": 20,
+        "meleeDamagePct": 0.3
       },
       "INT": {
-        "magic": 0.45
+        "magic": 4.5,
+        "maxShield": 8
       },
       "VIT": {
-        "defense": 0.25,
+        "defense": 2.5,
         "barrierPct": 0.6
       },
       "AGI": {
@@ -45,19 +49,28 @@
         "cooldownPct": 0.2
       },
       "DEX": {
-        "critChancePct": 0.15,
+        "critMultPct": 0.5,
         "projectileDamagePct": 0.45,
-        "attack": 0.2
+        "attack": 2
+      },
+      "LUK": {
+        "critChancePct": 0.15,
+        "dodgeChancePct": 0.05,
+        "gearFindPct": 0.03,
+        "materialFindPct": 0.03
       }
     },
     "critMult": 1.5,
+    "critOverflowToMultPct": 0.5,
+    "_lukDoc": "LUK (owner, 2026-10-25): crit chance, a lucky dodge (dodgeChancePct: a monster hit misses entirely, capped at caps.dodgeChancePct; damage over time is never dodged; rolled on its own RNG stream, core/game-simulation.js damagePlayer) and a small drop find.",
+    "_critOverflowDoc": "Crit chance past 100% (no cap, owner 2026-10-25) turns into crit damage: each point over adds critOverflowToMultPct to critMultPct, outside the critMultPct soft cap and cap (core/character.js derive).",
     "baseCritChancePct": 5,
     "caps": {
       "cooldownPct": 25,
-      "critChancePct": 40,
+      "dodgeChancePct": 15,
       "moveSpeedPct": 30,
       "damageTakenPct": -25,
-      "hpRegen": 5,
+      "hpRegen": 50,
       "leechPct": 8,
       "extraMovementCharges": 1,
       "blockChancePct": 50,
@@ -82,6 +95,7 @@
         "dotDamagePct",
         "maxHpPct",
         "barrierPct",
+        "maxShieldPct",
         "healPct",
         "elementalDamagePct",
         "critMultPct",
@@ -105,11 +119,23 @@
     "statsGoldPerLevel": 15,
     "jobGoldPerLevel": 12
   },
+  "movementUpgrade": {
+    "_doc": "AGI raises movement skill ranks (owner, 2026-10-25), at the same workbench or trainer and with the same skill crystals and gold as a combat skill. Each rank above the first shortens the recharge by rechargePerLevel and lengthens the move by distancePerLevel (core/skills.js movementSkill). The skill's upgradeStat (AGI) must reach the step's requiresStat.",
+    "maxLevel": 5,
+    "rechargePerLevel": 0.06,
+    "distancePerLevel": 0.04,
+    "steps": [
+      { "requiresStat": 5, "gold": 35, "skill_crystal": 1 },
+      { "requiresStat": 7, "gold": 90, "skill_crystal": 2 },
+      { "requiresStat": 9, "gold": 180, "skill_crystal": 3 },
+      { "requiresStat": 11, "gold": 320, "skill_crystal": 4 }
+    ]
+  },
   "skillUpgrade": {
     "_doc": "Skill crystals + gold raise skill rank at a workbench or trainer (including town.skillUpgradeStations), at any character level (only the stat requirement and the materials gate a rank). balanceLevel is not a gate: it is the level the balance model assumes a hero reaches each rank. Mods remain the source of behaviour changes. No failure or destruction.",
     "maxLevel": 5,
     "perLevel": 0.06,
-    "manaPerLevel": 0.05,
+    "manaPerLevel": 0.12,
     "steps": [
       {
         "balanceLevel": 4,
@@ -239,13 +265,20 @@
   },
   "slotCount": 4,
   "combat": {
-    "_doc": "Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
+    "_doc": "defenseConstant: armour takes defense / (defense + defenseConstant) of a hit (core/character.js defenseFactor; it grows with the raw numbers: 2026-10-25 every raw HP/attack/defense/damage/MP value was multiplied by 10). reflectFlat: the flat part of a guard reflect. Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
+    "defenseConstant": 600,
+    "reflectFlat": 40,
     "comboWindow": 1.1,
     "stagger": 0.14,
     "block": {
       "_doc": "A shield block lets through only `taken` of a hit from within arcDeg in front of the hero. Ground hazards and hits from behind are never blocked.",
       "arcDeg": 120,
       "taken": 0.3
+    },
+    "spellShield": {
+      "_doc": "Spell shield (owner, 2026-10-25): a white pool over HP. Damage that gets through armour, block and a skill barrier takes the shield first, then HP (poison ticks too). It never heals; after rechargeDelay seconds without taking damage it refills rechargePctPerSecond of its maximum each second. Max = maxShield (INT, gear) x (1 + maxShieldPct). core/game-simulation.js damagePlayer / tick.",
+      "rechargeDelay": 3,
+      "rechargePctPerSecond": 20
     }
   },
   "power": {
@@ -271,12 +304,12 @@
     "gear": {
       "gradeMult": 1.08,
       "defense": [
-        7,
-        5.5
+        70,
+        55
       ],
       "maxHp": [
-        18,
-        10
+        180,
+        100
       ]
     },
     "builds": {
@@ -339,8 +372,8 @@
       "_doc": "A Ranger who takes the whole farming line and shoots hunter arrows must out-earn a same-level sword hero after paying for the arrows, but the arrows must cost a noticeable share (tests/core/balance-model.test.js).",
       "find": {
         "goldFindPct": 49,
-        "materialFindPct": 44.3,
-        "gearFindPct": 40
+        "materialFindPct": 37.3,
+        "gearFindPct": 37.3
       },
       "arrow": "arrows_hunter",
       "plainArrow": "arrows_tusk",

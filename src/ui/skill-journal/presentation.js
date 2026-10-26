@@ -3,7 +3,7 @@ import {splitLineGroups,purchaseScope} from './line-groups.js';
 export const currentPresentation = {
   groups: [
     {id:'strike',name:'แรงปะทะ',note:'ประชิด · เกราะ · ยืนหยัด',icon:'camp',color:'#9a7256',categories:['melee'],branches:['vanguard']},
-    {id:'reach',name:'ระยะและความแม่นยำ',note:'กระสุน · ระยะไกล',icon:'horizon',color:'#56818b',categories:['projectile'],branches:['ranger']},
+    {id:'reach',name:'ระยะและความแม่นยำ',note:'ยิง · ระยะไกล',icon:'horizon',color:'#56818b',categories:['projectile'],branches:['ranger']},
     {id:'weave',name:'พลังและขอบเขต',note:'เวท · พื้นที่ · ควบคุม',icon:'book',color:'#7a729b',categories:['area','control'],branches:['arcanist']},
     {id:'shelter',name:'ดูแลและป้องกัน',note:'ฟื้นฟู · บาเรีย',icon:'tree',color:'#64836e',categories:['support'],branches:['warden']},
     {id:'company',name:'สิ่งที่ร่วมเดินทาง',note:'อัญเชิญ · ผลต่อเนื่อง',icon:'lantern',color:'#9a8557',categories:['summon','lasting'],branches:[]},

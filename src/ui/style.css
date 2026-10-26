@@ -184,6 +184,9 @@ button {
 .bar.hp > i.lag { background: #ff9a7a; transition: width 0.6s ease-out 0.2s; }
 .bar.hp > i.barrier { background: linear-gradient(#ffffffcc, var(--barrier)); opacity: 0.85; left: auto; right: 0; }
 .bar.mp > i.fill { background: linear-gradient(#7fb4ff, var(--mp) 55%, var(--mp-dark)); }
+.bar.shield { height: 10px; }
+.bar[hidden] { display: none; }
+.bar.shield > i.fill { background: linear-gradient(#ffffff, #dde7f3); }
 .bar.exp > i.fill { background: var(--exp); }
 .bar.job > i.fill { background: var(--job); }
 .bar span {
@@ -526,6 +529,7 @@ body.touch .hint {
 .fnum.mana { color: #7cc4ff; }
 .fnum.info { color: #ffe9a8; font-size: 14px; }
 .fnum.dodge { color: #cfe6ff; font-size: 14px; }
+.fnum.shield { color: #ffffff; font-size: 14px; }
 .mbar {
   position: absolute;
   width: 64px;

@@ -49,7 +49,7 @@ export class FireExtras {
             gl_FragColor = vec4(c, 0.95); }`, transparent: true, depthWrite: false }));
       for (const m of [flash, puff]) { m.visible = false; m.frustumCulled = false; scene.add(m); }
       flash.renderOrder = 8; puff.renderOrder = 7;
-      return { flash, puff, t: 9, pos: new THREE.Vector3() };
+      return { flash, puff, t: 9, k: 1, pos: new THREE.Vector3() };
     });
     this.wisps = []; this.embers = []; this.rnd = mulberry32(31); this.t = 0;
     this.emberFree = []; this.view = []; this.emberAlive = (m) => m.age < m.life || (this.emberFree.push(m), false);
@@ -76,18 +76,24 @@ export class FireExtras {
   }
   // a fire impact at (x, y, z): fluttering embers
   // embersOnly: just the sparks, no flash or puff (the fusion keeps only these from Firebolt)
-  impact(x, y, z, embersOnly = false) {
+  impact(x, y, z, embersOnly = false, size = 1) {
     const r = this.rnd;
     if (!embersOnly) {
       const pop = this.pops.find((q) => q.t > 0.4) || this.pops[0];
-      pop.t = 0; pop.pos.set(x, y, z); pop.puff.material.uniforms.uSeed.value = r() * 40;
+      pop.t = 0; pop.k = size; pop.pos.set(x, y, z); pop.puff.material.uniforms.uSeed.value = r() * 40;
     }
-    for (let i = 0; i < 22; i++) {
+    this.burst(x, y, z, Math.round(22 * Math.sqrt(size)), size);
+  }
+  // count fluttering embers from (x, y, z); size scales their speed, width and life (Meteor uses big ones)
+  burst(x, y, z, count, size = 1, from = null) {
+    const r = this.rnd;
+    for (let i = 0; i < count; i++) {
       // a random direction over the whole sphere and a spread of speeds: some fly, some just float off
-      const zc = r() * 2 - 1, a = r() * Math.PI * 2, rr = Math.sqrt(1 - zc * zc), sp = 0.6 + Math.pow(r(), 1.6) * 4;
+      const zc = r() * 2 - 1, a = r() * Math.PI * 2, rr = Math.sqrt(1 - zc * zc), sp = (0.6 + Math.pow(r(), 1.6) * 4) * size;
       const m = this.emberFree.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3(), store: Array.from({ length: HIST }, () => new THREE.Vector3()), hist: [] };
-      m.v.set(Math.cos(a) * rr * sp, zc * sp * 0.8 + 0.5, Math.sin(a) * rr * sp); m.p.set(x, y, z); m.hist.length = 0;
-      Object.assign(m, { age: 0, life: 0.35 + r() * 0.3, w: 0.02 + r() * 0.014, freq: 4 + r() * 5, phase: r() * 6.28, amp: 4 + r() * 4, flick: 8 + r() * 10 });
+      m.v.set(Math.cos(a) * rr * sp, zc * sp * 0.8 + 0.5 * size, Math.sin(a) * rr * sp); m.hist.length = 0;
+      if (from) m.p.set(x + (r() - 0.5) * from, y + (r() - 0.5) * from * 0.5, z + (r() - 0.5) * from); else m.p.set(x, y, z);
+      Object.assign(m, { age: 0, life: (0.35 + r() * 0.3) * (0.6 + 0.4 * size), w: (0.02 + r() * 0.014) * Math.sqrt(size), freq: 4 + r() * 5, phase: r() * 6.28, amp: 4 + r() * 4, flick: 8 + r() * 10 });
       this.embers.push(m);
     }
   }
@@ -99,10 +105,10 @@ export class FireExtras {
       if (q.t > 0.4) { q.flash.visible = q.puff.visible = false; continue; }
       q.t += dt;
       q.flash.visible = q.t < 0.12; placeV(q.flash, q.pos); q.flash.quaternion.copy(this.camera.quaternion);
-      q.flash.scale.setScalar(1.35 * (q.t < 0.03 ? 0.5 + q.t / 0.06 : 1)); q.flash.material.uniforms.uT.value = q.t / 0.12;
+      q.flash.scale.setScalar(1.35 * q.k * (q.t < 0.03 ? 0.5 + q.t / 0.06 : 1)); q.flash.material.uniforms.uT.value = q.t / 0.12;
       const u = Math.min(1, q.t / 0.4);
       q.puff.visible = true; placeV(q.puff, q.pos); q.puff.quaternion.copy(this.camera.quaternion);
-      q.puff.scale.setScalar(0.8 + 1.1 * (1 - (1 - u) * (1 - u))); q.puff.material.uniforms.uT.value = u;
+      q.puff.scale.setScalar((0.8 + 1.1 * (1 - (1 - u) * (1 - u))) * q.k); q.puff.material.uniforms.uT.value = u;
     }
     if (this.charge) {
       const ch = this.charge; ch.t += dt;
@@ -110,7 +116,7 @@ export class FireExtras {
       this.halo.visible = true; placeV(this.halo, tip);
       this.halo.scale.setScalar(0.2 + 0.6 * grow);
       this.halo.material.opacity = 0.3 + 0.35 * grow + 0.06 * Math.sin(ch.t * 40);
-      if (ch.t > ch.total + 0.05) this.release();
+      if (ch.t >= ch.total - 1e-4) this.release(); // gone on the release frame: the bolt carries the fire on
     }
     // gather wisps: spiral in, ease into the staff head
     for (const w of this.wisps) {

@@ -81,7 +81,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
     // castSpeedPct is action speed: casting and the cooldown after it both run faster.
     cooldown: (def.cooldown * (1 - derived.cooldownPct / 100)) / (1 + (derived.castSpeedPct || 0) / 100),
     castTime: def.castTime / (1 + (derived.castSpeedPct || 0) / 100),
-    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostReductionPct || 0) / 100),
+    // the mana cost grows with the rank faster than the damage, and each active mod multiplies it (below)
+    costScale: (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostReductionPct || 0) / 100),
+    costMult: 1,
     speed: (def.speed || 0) * (1 + derived.projectileSpeedPct / 100),
     projectileRadius: def.projectileRadius || 0.3,
     delay: def.delay || 0,
@@ -101,9 +103,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
     tauntRadius: 0,
     trigger: null,
     damageMult: 1,
-    repeats: 0,
-    repeatMult: 0,
-    repeatDelay: 0,
+    // a skill can strike more than once on its own (base repeats); a repeat mod adds to it
+    repeats: def.repeats || 0,
+    repeatMult: def.repeatMult || 0,
+    repeatDelay: def.repeatDelay || 0,
     knock: def.knock || 0,
     leech: derived.leechPct || 0,
     // Some skills need a weapon type in the right hand (requiresWeapon); stats and weapon both gate the cast.
@@ -133,8 +136,11 @@ export function computeSkill(ch, data, derived, slotIndex) {
     s.dealtMult = Math.max(0.5, 1 - (1 - def.dealtMult) * levelMult);
   }
   if (def.kind === 'buff') {
-    s.damageBuff = def.damageBuff * levelMult;
-    s.speedBuff = def.speedBuff;
+    s.damageBuff = (def.damageBuff || 0) * levelMult;
+    s.speedBuff = def.speedBuff || 0;
+    // takenMult: damage taken while buffed (0.8 = 20% less); a higher skill level cuts a little more
+    s.takenMult = def.takenMult ? Math.max(0.5, 1 - (1 - def.takenMult) * levelMult) : 1;
+    s.steady = !!def.steady; // no knockback while buffed
   }
   if (def.summon) {
     const sm = def.summon;
@@ -195,7 +201,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
       s.reflect = lv(e.reflect, L);
       s.tauntRadius = e.tauntRadius;
     }
-    if (e.repeats) {
+    if (e.repeats && s.def.repeats) s.repeats += lv(e.repeats, L);
+    else if (e.repeats) {
       s.repeats = lv(e.repeats, L);
       s.repeatMult = lv(e.repeatMult, L);
       s.repeatDelay = e.repeatDelay;
@@ -209,6 +216,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
       s.summon.damage *= 1 + lv(e.summonDamage, L);
     }
     if (e.trigger) s.trigger = { on: e.trigger, icd: lv(e.internalCooldown, L), damageMult: lv(e.damageMult, L) };
+    if (e.costMult) s.costMult *= e.costMult;
+    if (e.mpOnHit) s.mpOnHit = (s.mpOnHit || 0) + lv(e.mpOnHit, L);
   }
   if (s.damage) {
     const finalLineInc = lineInc(tags, s.element);
@@ -228,20 +237,32 @@ export function computeSkill(ch, data, derived, slotIndex) {
   s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
   compileFrontier(s, def, activeMods);
   if (s.damage !== undefined) s.damage *= s.damageMult;
+  // Mana (owner, after PoE/Undecember): every mod raises the cost, and so does a channel's drain;
+  // only attacks gain MP on hit (gear options, the MP journal line, a mod).
+  s.costScale *= s.costMult;
+  s.cost = def.cost * s.costScale;
+  if (s.channel) s.channel.manaPerSecond = def.channel.manaPerSecond * s.costScale;
+  s.mpOnHit = tags.has('Attack') ? (s.mpOnHit || 0) + (derived.mpOnHit || 0) : 0;
   return s;
 }
 
+/** A movement skill's rank (1 until AGI upgrades raise it). */
+export const movementRank = (ch, id) => ch.movementRanks?.[id] || 1;
+
 export function movementSkill(ch, data, derived) {
   const def = movementDef(data, ch.movement) || movementDef(data, 'dash');
+  const up = data.progression.movementUpgrade, rank = movementRank(ch, ch.movement || 'dash') - 1;
   const out = {
     id: ch.movement || 'dash', // none yet during the opening: the button shows the default
     def,
     charge: def.charge ? { ...def.charge } : null,
     kind: def.kind,
-    distance: def.distance,
+    distance: def.distance * (1 + (up?.distancePerLevel || 0) * rank),
     duration: def.duration,
+    delay: def.delay || 0, // a blink's gather in place before it jumps
     charges: ch.movement && ch.movementSkills.includes(ch.movement) ? def.charges + derived.extraMovementCharges : 0,
-    recharge: def.recharge * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
+    recharge: def.recharge * (1 - (up?.rechargePerLevel || 0) * rank) * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
+    rank: rank + 1,
     invulnerable: def.invulnerable,
   };
   out.mods = [];

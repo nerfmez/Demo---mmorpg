@@ -18,6 +18,13 @@ export function fusionPayloads(data, rules, carrierId) {
   return Object.keys(data.skills.combat).filter((id) => id !== carrierId && fusionCheck(rules, carrier, data.skills.combat[id]).ok);
 }
 
+// The game's data with the bench-only prototype spells (rules.skills, e.g. Venom Bolt) added to the
+// combat skills. The game's own data is left untouched.
+export function benchData(data, rules) {
+  if (!rules?.skills) return data;
+  return { ...data, skills: { ...data.skills, combat: { ...data.skills.combat, ...rules.skills } } };
+}
+
 export const fusionRecipe = (rules, carrierId, payloadId) => (rules.recipes || []).find((r) => r.carrier === carrierId && r.payload === payloadId) || null;
 
 // carrierSlot/payloadSlot: resolved skills in g.skills. The payload slot is not castable by itself.
@@ -54,6 +61,8 @@ export function installFusion(g, rules, carrierSlot = 0, payloadSlot = 1) {
 // An authored fusion: hold a charge, then the carrier's strike and the recipe's payload delivery.
 // Flame Wave Slash: a 1 s charge, then Slash and a piercing crescent of fire that hits each target once.
 function installRecipe(g, recipe, slot, carrier, payload) {
+  if (recipe.type === 'arrow_chain') return installArrowChain(g, recipe, slot, carrier, payload);
+  if (recipe.type === 'arrow_poison') return installArrowPoison(g, recipe, carrier, payload);
   carrier.cooldown = recipe.cooldown;
   carrier.cost += payload.cost;
   carrier.fusion = payload.id;
@@ -104,4 +113,76 @@ function installRecipe(g, recipe, slot, carrier, payload) {
     });
   }
   return { carrier, payload, recipe, waveElement: element };
+}
+
+// Thunder Arrow (type arrow_chain): the carrier keeps its own shape (Hunter's Shot fires as fast as
+// ever, no draw: a charge is Power Draw's role); each arrow it looses is wrapped in lightning and,
+// on its first hit, the payload's chain lightning bursts from the struck target and leaps on to the
+// nearest others. A target takes the lightning once per cast, however many arrows land.
+function installArrowChain(g, recipe, slot, carrier, payload) {
+  carrier.cooldown = recipe.cooldown;
+  carrier.cost += payload.cost;
+  carrier.fusion = payload.id;
+  carrier.recipe = recipe;
+  const arrows = [];
+  const run = g.executeSkill;
+  g.executeSkill = function (s, aim, opts = {}) {
+    if (s !== carrier) return run.call(this, s, aim, opts);
+    const before = new Set(this.projectiles);
+    run.call(this, s, aim, opts);
+    const struck = opts.struck || new Set(); // shared by the cast's arrows (split, repeats)
+    for (const pr of this.projectiles) if (!before.has(pr) && pr.owner === 'player') { pr.fusion = recipe.id; pr.struck = struck; arrows.push(pr); }
+  };
+  g.updateFusion = function () {
+    // an arrow that struck since the last step: the chain bursts from what it hit
+    for (let k = arrows.length - 1; k >= 0; k--) {
+      const pr = arrows[k];
+      if (pr.hit.size) { arrows.splice(k, 1); const m = this.monsters.find((o) => pr.hit.has(o.id)); if (m && !pr.struck.has(m.id)) chainFrom(this, m, pr.struck); }
+      else if (!this.projectiles.includes(pr)) arrows.splice(k, 1);
+    }
+  };
+  function chainFrom(game, first, struck) {
+    const points = [[first.x, first.z]];
+    let cur = first, dmg = payload.damage * recipe.chainDamageMult * game.playerDamageMult();
+    for (let i = 0; i <= payload.chain && cur; i++) {
+      if (i) points.push([cur.x, cur.z]);
+      struck.add(cur.id);
+      game.hitMonster(cur, dmg, game.hitOpts(payload, { crit: game.rollCrit() }));
+      dmg *= payload.chainFalloff;
+      let next = null, nd = payload.chainRange || 6;
+      for (const m of game.monsters) {
+        if (m.dead || struck.has(m.id)) continue;
+        const d = Math.hypot(m.x - cur.x, m.z - cur.z);
+        if (d < nd) { nd = d; next = m; }
+      }
+      cur = next;
+    }
+    game.emit({ type: 'chain', points, element: payload.element, from: recipe.id });
+    game.emit({ type: 'fusion', carrier: carrier.id, payload: payload.id, x: first.x, z: first.z, element: payload.element, recipe: recipe.id });
+  }
+  return { carrier, payload, recipe, waveElement: payload.element };
+}
+
+// Venom Arrow (type arrow_poison): the carrier's own arrows (no charge) dipped in the payload's
+// poison: poison element, and each hit adds a stack of the payload's poison (its stackDps scaled by
+// poisonMult; the core multiplies it by the hit). They keep the old Venom Arrow look (recipe.look,
+// the projectile kind the renderer draws).
+function installArrowPoison(g, recipe, carrier, payload) {
+  carrier.cooldown = recipe.cooldown;
+  carrier.cost += payload.cost;
+  carrier.fusion = payload.id;
+  carrier.recipe = recipe;
+  const poison = { ...payload.poison, stackDps: payload.poison.stackDps * recipe.poisonMult };
+  const skill = { ...carrier, element: payload.element, poison };
+  const run = g.executeSkill;
+  g.executeSkill = function (s, aim, opts = {}) {
+    if (s !== carrier) return run.call(this, s, aim, opts);
+    const before = new Set(this.projectiles);
+    run.call(this, s, aim, opts);
+    for (const pr of this.projectiles) {
+      if (before.has(pr) || pr.owner !== 'player') continue;
+      Object.assign(pr, { fusion: recipe.id, kind: recipe.look || pr.kind, element: payload.element, skill });
+    }
+  };
+  return { carrier, payload, recipe };
 }

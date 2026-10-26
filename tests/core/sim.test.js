@@ -121,6 +121,30 @@ test('roll gives invulnerability; a charging boar that hits a rock is stunned', 
   assert.ok(stunned);
 });
 
+test('blink gathers in place for its delay, then jumps to the aimed spot once', () => {
+  const g = new Game(data, { seed: 3 });
+  const mv = data.skills.movement.blink;
+  assert.ok(mv.delay > 0, 'blink has a gather delay');
+  g.ch.movement = 'blink';
+  g.ch.movementSkills = ['blink'];
+  g.refresh();
+  g.player.movement.charges = 1;
+  const x0 = g.player.x, z0 = g.player.z;
+  assert.ok(g.useMovement());
+  assert.equal(g.player.x, x0, 'still in place while gathering');
+  assert.equal(g.damagePlayer(50, null), 0, 'invulnerable through the gather');
+  let jumps = 0, t = 0;
+  for (; t < mv.delay + mv.duration + 0.1; t += 1 / 60) {
+    g.update(1 / 60);
+    const n = g.drainEvents().filter((e) => e.type === 'blinkPlayer').length;
+    if (n) assert.ok(t + 1 / 60 >= mv.delay - 1e-9, 'jumps only after the delay');
+    jumps += n;
+  }
+  assert.equal(jumps, 1);
+  assert.ok(Math.hypot(g.player.x - x0, g.player.z - z0) > 1, 'moved to the aimed spot');
+  assert.equal(g.player.dash, null);
+});
+
 test('cast on dodge fires the linked spell when a movement skill ends', () => {
   const g = new Game(data, { seed: 4 });
   g.ch.stats.AGI = 10;

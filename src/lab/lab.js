@@ -127,7 +127,8 @@ function buildHero() {
   hero.root.rotation.y = -Math.PI / 2; // facing the dummy to the west
 }
 buildHero();
-loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons, monsters: { thornback_wolf: MODELS.monsters.thornback_wolf } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); removeSpiritReveal(wolfReveal); disposeObject(wolf.root); wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible=false; wolfReveal=installSpiritReveal(wolf); wolfReplay=null; });
+// the game's hero: the chibi body and hair (the poses and carries are made for it), the base as fallback
+loadModels({ characters: { hero_base: MODELS.characters.hero_base, hero_chibi: MODELS.characters.hero_chibi, hero_chibi_hair: MODELS.characters.hero_chibi_hair }, weapons: MODELS.weapons, monsters: { thornback_wolf: MODELS.monsters.thornback_wolf } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); removeSpiritReveal(wolfReveal); disposeObject(wolf.root); wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible=false; wolfReveal=installSpiritReveal(wolf); wolfReplay=null; });
 
 function placeDummy() {
   dummy.position.set(-state.distance, 0, 0);
@@ -389,8 +390,10 @@ function ruleEvents(){
  if(!rulesGame)return;
  for(const e of rulesGame.drainEvents()){
   frontierFx.event(e);
-  if(e.type==='chargeStart'||e.type==='channelStart')heroAnim.play(e.skill,e.total+.28,e.weapon,0,e.total,e.type==='chargeStart'?'projectile':'channel_cone');
-  if(e.type==='chargeEnd'||e.type==='channelEnd')heroAnim.action=null;
+  // as the game (skill-fx.js): a charge holds the full draw until the loose, which goes on from it
+  if(e.type==='chargeStart')heroAnim.play('bowDrawHold',e.total*3,e.weapon,0,null,'projectile');
+  if(e.type==='channelStart')heroAnim.play(e.skill,e.total+.28,e.weapon,0,e.total,'channel_cone');
+  if(e.type==='channelEnd')heroAnim.action=null;
   if(e.type==='castStart'){heroAnim.play(e.skill,e.total+.28,e.weapon,e.step,e.total,e.kind);vfx.beginCast(e,rulesGame.skills[0]?.element);if(isMelee(rulesGame.skills[0]))vfx.beginSwing(e,rulesGame.skills[0].element);}
   if(e.type==='slash')vfx.slash(e,state.weapon);
   if(e.type==='impact')impact(e);

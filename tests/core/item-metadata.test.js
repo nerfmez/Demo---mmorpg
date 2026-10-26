@@ -68,9 +68,11 @@ test('mod grade has no effect on compilation, compatibility or upgrade costs and
   const gear=ch.gear[0],level=gear.itemLevel;assert.ok(upgradeGear(ch,data,gear.uid).ok);assert.equal(gear.itemLevel,level);assert.equal(gear.upgrade,1);
 });
 
-test('metadata neither changes gear rolls nor consumes extra RNG',()=>{
+// item level sizes option values since the owner's 2026-10-25 change (crafting.js optionRange): the grade,
+// the options rolled and the RNG used stay the same, only the values follow the level
+test('metadata keeps the grade and options rolled and consumes no extra RNG',()=>{
   const oldData=structuredClone(data);for(const base of Object.values(oldData.items.gearBases))delete base.itemLevel;for(const r of Object.values(oldData.recipes.recipes)){delete r.itemLevel;delete r.grade;}
   const fresh=funded(),old=structuredClone(fresh),a=createRng(531),b=createRng(531);
   const current=craft(fresh,data,'crag_axe',a).item,legacy=craft(old,oldData,'crag_axe',b).item;
-  const withoutLevel=({itemLevel,...rest})=>rest;assert.deepEqual(withoutLevel(current),withoutLevel(legacy));assert.equal(a.next(),b.next());
+  const shape=({itemLevel,options,...rest})=>({...rest,options:options.map(o=>o.id)});assert.deepEqual(shape(current),shape(legacy));assert.equal(a.next(),b.next());
 });

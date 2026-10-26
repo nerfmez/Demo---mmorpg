@@ -576,7 +576,7 @@ export class View {
         v.summon(e);
         break;
       case 'buff':
-        if (e.kind === 'war_cry') v.warcry(e);
+        v.warcry(e); // every buff skill uses the roar ring until it has its own look
         break;
       case 'curse':
         v.curse(e);
@@ -641,7 +641,7 @@ export class View {
       case 'movement':
         break;
       case 'blinkPlayer':
-        v.blink(e.fromX, e.fromZ, e.x, e.z,0xb4a2ff,this.hero);
+        if (!drawn) v.blink(e.fromX, e.fromZ, e.x, e.z,0xb4a2ff,this.hero);
         break;
       case 'surface':
         v.digDust(e.fromX, e.fromZ, 10);
@@ -890,12 +890,12 @@ export class View {
     this.heroAnim.update(dt, state);
     this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash, p);
-    r.root.visible = !(p.dash && p.dash.kind === 'blink');
+    r.root.visible = !(p.dash && p.dash.kind === 'blink' && p.dash.moved); // seen through the blink's gather, gone once it jumps
     this.heroFlash = Math.max(0, (this.heroFlash || 0) - dt);
     setFlash(r.material, this.heroFlash > 0 ? 0.5 : 0, 0, p.statuses?.chill ? 0.25 : 0);
     updateScarf(r, dt, p.moving || p.dash ? 8 : 0);
     this.vfx.syncMovement(p,y,dt,r);
-    if(p.dash?.kind==='leap')this.vfx.dashTrail(p.x,y,p.z,'leap');
+    if(p.dash?.kind==='leap'&&!this.skillFx)this.vfx.dashTrail(p.x,y,p.z,'leap'); // else skillfx/move-fx.js
     this.vfx.updateWard(p.barrier, time);
     if (p.buffs?.war_cry) this.vfx.buffAura(p.x, p.z, 0xffc860, dt);
   }

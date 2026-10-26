@@ -22,6 +22,7 @@ export const SIGILS = {
  concentrated:'M3 3l6 6M3 7V3h4M21 3l-6 6m6-2V3h-4M3 21l6-6m-6 2v4h4m14 0-6-6m6 2v4h-4',
  lingering:'M5 3h14M5 21h14M7 3v4l10 10v4M17 3v4L7 17v4M8 7h8m-8 10h8',
  life_leech:'M12 2c3 5 7 9 7 13a7 7 0 1 1-14 0c0-4 4-8 7-13zM9 15h6M12 12v6',
+ mana_siphon:'M12 2l6 8-6 12-6-12zM12 6v7M9.5 10.5L12 13l2.5-2.5',
  spiked_ward:'M12 4l7 3v6c0 5-7 8-7 8s-7-3-7-8V7zM12 1v3M2 5l3 3m14 0 3-3M1 13h4m14 0h4M12 8v9m-3-5h6',
  pack_leader:'M9 15a3 3 0 0 1 6 0l3 3q-1 5-6 2-5 3-6-2zM7 10a1.5 2 0 1 1-3 0 1.5 2 0 1 1 3 0m4-4a1.5 2 0 1 1-3 0 1.5 2 0 1 1 3 0m5 0a1.5 2 0 1 1-3 0 1.5 2 0 1 1 3 0m4 4a1.5 2 0 1 1-3 0 1.5 2 0 1 1 3 0',
  cast_on_dodge:'M2 8h7m-7 4h5m-5 4h3M17 2L9 13h6l-2 9 9-12h-6z',

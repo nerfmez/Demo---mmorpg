@@ -6,14 +6,15 @@ import { craftView } from './craftview.js';
 import { icon } from './icons.js';
 import { art, arrowArt } from './art.js';
 import { skillsView, modsWorkspace, movementWorkspace, growthWorkspace } from './skillview.js';
-import { tagsHtml, rulesHtml } from './buildmeta.js';
+import { tagsHtml, rulesHtml, TAGS as TAG_TH } from './buildmeta.js';
 import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse } from '../core/character.js';
+import { equipmentItemLevel } from '../core/item-metadata.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
-import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
+import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, upgradeMovement, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
 import { inventoryView } from './inventory.js';
 import { potionArt } from './potionart.js';
@@ -24,12 +25,7 @@ import { MENU_GROUPS, MENU_PAGES, groupOf } from './menu-map.js';
 
 const LOADOUT_TABS = new Set(['bag', 'skills', 'mods', 'movement']);
 
-const STAT_TH = { STR: 'พลังกาย · ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/เกราะ', INT: 'สติปัญญา · พลังเวท/MP', DEX: 'ความแม่น · คริ/กระสุน' };
-const TAG_TH = {
-  Attack: 'โจมตี', Spell: 'เวท', Melee: 'ประชิด', Projectile: 'กระสุน', Area: 'วงกว้าง', Damage: 'ดาเมจ', Fire: 'ไฟ', Earth: 'ดิน', Cold: 'น้ำแข็ง',
-  Lightning: 'สายฟ้า', Poison: 'พิษ', Chain: 'เด้งต่อ', Control: 'ควบคุม', Debuff: 'ดีบัฟ', Curse: 'คำสาป', Guard: 'การ์ด', Buff: 'บัฟ', Warcry: 'คำราม',
-  Heal: 'ฮีล', Persistent: 'ค้างพื้น', Summon: 'อัญเชิญ', Minion: 'ลูกสมุน', Movement: 'เคลื่อนที่', Trigger: 'ทริกเกอร์',
-};
+const STAT_TH = { STR: 'พลังกาย · พลังโจมตี/HP/ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/บาเรีย', INT: 'สติปัญญา · พลังเวท/MP/เกราะเวท', DEX: 'ความแม่น · แรงคริ/ยิง', LUK: 'โชค · คริ/หลบ/ดรอปเล็กน้อย' };
 const REASON_TH = { level: 'เลเวลตัวละครยังไม่ถึงขั้นที่กำหนด', invalid: 'การตั้งค่าคราฟต์ไม่ถูกต้อง', materials: 'วัตถุดิบไม่พอ', learned: 'เรียนแล้ว', max: 'สูงสุดแล้ว', full: 'ช่อง Mod เต็ม', duplicate: 'ใส่ Mod ซ้ำไม่ได้', requires: 'Stat ไม่ถึง', not_learned: 'ยังไม่ได้เรียน' };
 const TELEPORT_TH = { combat: 'กำลังต่อสู้อยู่ — ออกจากการต่อสู้ก่อนแล้วค่อยวาร์ป', locked: 'ยังไม่ได้ปลดล็อก — เดินไปแตะหินวาร์ปนั้นก่อน', dead: 'หมดสติอยู่', unknown: 'ไม่พบจุดวาร์ป' };
 const CRAFT_FILTERS = [
@@ -353,8 +349,8 @@ export class Panels {
           <button class="btn" data-act="respec-stats" ${!near.inTown || ch.gold < cost.stats ? 'disabled' : ''}>รีแต้ม · ${cost.stats} G</button></div>
       </section>
       <section class="pg-col">
-        <h4>การโจมตี</h4>${kv([['พลังโจมตี', d.attack], ['พลังเวท', d.magic], ['โอกาสคริ', `${Math.round(d.critChance * 100)}%`], pct('ดาเมจประชิด', d.meleeDamagePct), pct('ดาเมจกระสุน', d.projectileDamagePct), pct('ดาเมจเวท', d.spellDamagePct), pct('ดาเมจวงกว้าง', d.areaDamagePct), pct('ดาเมจอัญเชิญ', d.summonDamagePct), d.poisonChancePct ? ['โอกาสติดพิษ', `${d.poisonChancePct.toFixed(0)}%`] : null])}
-        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], pct('เกราะเวท', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null])}
+        <h4>การโจมตี</h4>${kv([['พลังโจมตี', d.attack], ['พลังเวท', d.magic], ['โอกาสคริ', `${Math.round(d.critChance * 100)}%`], ['แรงคริ', `×${d.critMult.toFixed(2)}`], d.dodgeChancePct ? ['โอกาสหลบ', `${d.dodgeChancePct.toFixed(1)}%`] : null, pct('ดาเมจประชิด', d.meleeDamagePct), pct('ดาเมจยิง', d.projectileDamagePct), pct('ดาเมจเวท', d.spellDamagePct), pct('ดาเมจวงกว้าง', d.areaDamagePct), pct('ดาเมจอัญเชิญ', d.summonDamagePct), d.poisonChancePct ? ['โอกาสติดพิษ', `${d.poisonChancePct.toFixed(0)}%`] : null])}
+        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], d.maxShield ? ['เกราะเวท', d.maxShield] : null, pct('บาเรีย', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null])}
         <h4>อื่น ๆ</h4>${kv([['ความเร็วเดิน', `${d.moveSpeed.toFixed(1)} m/s`], ['คูลดาวน์เร็วขึ้น', `${d.cooldownPct.toFixed(0)}%`], ['Gold', ch.gold.toLocaleString()]])}
       </section></div>`;
   }
@@ -387,7 +383,7 @@ export class Panels {
       ${wt ? `<div class="gear-implicit">${wt.nameTh} · ${Object.entries(imp)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>` : ''}
-      ${optionList(data,it.options)}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires)}`;
+      ${optionList(data,it.options,it.grade,equipmentItemLevel(data,it))}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires)}`;
   }
 
   render_bag() {
@@ -618,6 +614,11 @@ export class Panels {
         g.player.movement.charges = 0;
         g.player.movement.rechargeT = 0;
         return this.changed();
+      case 'move-up':
+        if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');
+        r = upgradeMovement(ch, data, t.dataset.id);
+        if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
+        return this.changed();
       case 'skill-up':
         if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');
         r = upgradeSkill(ch, data, t.dataset.skill);
@@ -791,12 +792,13 @@ const EFFECT_TH = {
   penetrationPct: 'เจาะเกราะ %',
   movementRechargePct: 'สกิลเคลื่อนที่ฟื้นไว %',
   manaCostReductionPct: 'ใช้ MP น้อยลง %',
+  mpOnHit: 'ได้ MP เมื่อตีโดน',
   magic: 'พลังเวท',
   defense: 'ป้องกัน',
   maxHp: 'HP',
   maxMp: 'MP',
   meleeDamagePct: 'ดาเมจประชิด %',
-  projectileDamagePct: 'ดาเมจกระสุน %',
+  projectileDamagePct: 'ดาเมจยิง %',
   areaDamagePct: 'ดาเมจวงกว้าง %',
   dotDamagePct: 'ดาเมจพื้นที่ต่อเนื่อง %',
   persistentDurationPct: 'ระยะเวลาพื้นที่คงอยู่ %',
@@ -805,7 +807,9 @@ const EFFECT_TH = {
   summonDamagePct: 'ดาเมจอัญเชิญ %',
   maxHpPct: 'HP %',
   maxMpPct: 'MP %',
-  barrierPct: 'เกราะเวท %',
+  barrierPct: 'บาเรีย %',
+  maxShield: 'เกราะเวท',
+  maxShieldPct: 'เกราะเวท %',
   healPct: 'การฟื้นฟู %',
   moveSpeedPct: 'ความเร็วเดิน %',
   cooldownPct: 'คูลดาวน์เร็วขึ้น %',
@@ -813,7 +817,7 @@ const EFFECT_TH = {
   damageTakenPct: 'ดาเมจที่ได้รับ %',
   hpRegen: 'ฟื้น HP/วิ',
   mpRegenPct: 'ฟื้น MP %',
-  projectileSpeedPct: 'ความเร็วกระสุน %',
+  projectileSpeedPct: 'ความเร็วลูกที่ยิง %',
   areaRadiusPct: 'รัศมีวงกว้าง %',
   echoDamagePct: 'ดาเมจ Echo %',
   extraMovementCharges: 'ชาร์จสกิลเคลื่อนที่',

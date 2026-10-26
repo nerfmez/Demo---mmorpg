@@ -38,6 +38,9 @@ body.ingame #hud .pframe .bars { gap: 5px; }
 body.ingame #hud .pname { font: 500 15px/1.1 Kanit, Mitr, sans-serif; border: 0; padding: 0; margin: 0; color: var(--hc-text); }
 body.ingame #hud .pframe .bar { height: 8px; border: 0; border-radius: 4px; background: var(--hc-track); box-shadow: 0 1px 3px rgba(10, 22, 32, .25); overflow: visible; margin-right: 74px; }
 body.ingame #hud .pframe .bar.mp { height: 5px; }
+body.ingame #hud .pframe .bar.shield { height: 5px; }
+body.ingame #hud .pframe .bar.shield[hidden] { display: none; }
+body.ingame #hud .pframe .shield > .fill { background: linear-gradient(90deg, #e6edf6, #ffffff); box-shadow: 0 0 4px rgba(255, 255, 255, .6); }
 body.ingame #hud .pframe .bar > i { border-radius: inherit; }
 body.ingame #hud .pframe .hp > .fill { background: linear-gradient(90deg, #4fc779, #8ae6a6); }
 body.ingame #hud .pframe .mp > .fill { background: linear-gradient(90deg, #4a86f0, #7cc0ff); }
@@ -205,6 +208,7 @@ body.ingame:not(.touch) #hud .hint { display: none; }
   body.ingame #hud .pframe .bars { gap: 4px; }
   body.ingame #hud .pframe .bar { height: 6px; margin-right: 64px; }
   body.ingame #hud .pframe .bar.mp { height: 4px; }
+  body.ingame #hud .pframe .bar.shield { height: 4px; }
   body.ingame #hud .pframe .bar span { font-size: 9px; left: calc(100% + 6px); }
   body.ingame #hud .left-column .quest-widget { width: 220px; }
   body.ingame #hud .quest-heading { height: 32px; min-height: 32px; font-size: 9.5px; }

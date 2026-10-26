@@ -350,6 +350,6 @@ Checks: core 617/617 (new: from outside, a walk reaches the conch beach; with th
 Owner: "the left cliff runs straight, not natural; the road going up is not natural" (circling the west face and the dirt strip above the stairs).
 
 - **West face:** the rock ring's west side follows a wavy line (up to 3 m in and out) with a rounded north-west corner instead of one straight 51 m face.
-- **Way up:** the scene's upper trail from the stairs winds over the bank in an S instead of a straight cut, and is narrower (the repair connector that grades it follows the same line, so the grade is gentler). The stair-gully fill is grass (it counts as raised ground, softer edges) instead of a bare dirt wedge. A new trail (`conch/entrance-trail`) continues from the top of the upper trail across the back to the ring's one ramp, so the route reads entrance → back → stairs → cove.
+- **Way up:** the scene's upper trail from the stairs winds over the bank in an S instead of a straight cut, and is narrower (the repair connector that grades it follows the same line, so the grade is gentler). The stair-gully fill is grass (it counts as raised ground, softer edges) instead of a bare dirt wedge. (A painted trail from the ring's ramp across the back was tried and removed at the owner's word: the back stays plain grass.)
 
 Checks: core and accepted-scene tests pass (one entrance still the only way in); inspected from above (the owner's camera), low over the stairs, the west face and the play camera on the trail and at the entrance.

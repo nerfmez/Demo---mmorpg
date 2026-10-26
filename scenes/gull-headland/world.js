@@ -40,16 +40,16 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // the top off screen, 'n' points at the foot of a grassy bank (`soft` metres wide, no rock). A
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES=[
- // the land: everything but the sea on the right; its coast is a rock face down to the water
- {top:0,base:SEA_FLOOR,ledge:true,soft:M(1.5),lean:M(.35),pts:[[-.5,1.5,'t'],[-.5,-.6,'t'],[.84,-.6,'t'],[.86,-.15,'n',PL],[.885,.05,'n',PL],[.895,.20,'n',PL],[.91,.33,'n',PL],[.895,.45,'n',PL],[.875,.58,'n',M(1.5)],[.885,.68,'b',M(1.5)],[.93,.74,'b',M(1.5)],[1.0,.78,'b',M(1.5)],[1.5,.82,'b',M(1.5)],[1.5,1.5,'t']]},
- // the headland's top: the gate court, its front cut by the curbed stair, its right edge the sea cliff
- {top:PL,base:M(1.5),ledge:true,soft:M(1.3),lean:M(.35),pts:[[.13,.31,'b'],[.20,.33,'b'],[.27,.345,'b'],[.33,.355,'b'],[.385,.365,'b'],[.44,.385,'n'],[.52,.395,'n'],[.585,.40,'n'],[.645,.405,'n'],[.69,.425,'b'],[.745,.44,'b'],[.80,.455,'b'],[.85,.455,'b'],[.895,.45,'b',PL],[.91,.33,'b',PL],[.895,.20,'b',PL],[.885,.05,'b',PL],[.86,-.15,'b',PL],[.84,-.6,'t'],[.16,-.6,'t'],[.15,.10,'n'],[.135,.22,'n']]},
+ // the land: everything but the sea; the headland ends right behind the gate (owner: the gate stands at the cliff's edge)
+ {top:0,base:SEA_FLOOR,ledge:true,soft:M(1.5),lean:M(.35),pts:[[-.5,1.5,'t'],[-.5,-.6,'t'],[.47,-.6,'t'],[0.49,0.0,'n',PL],[0.52,0.1,'n',PL],[0.56,0.155,'n',PL],[0.61,0.172,'n',PL],[0.66,0.175,'n',PL],[0.71,0.168,'n',PL],[0.77,0.155,'n',PL],[0.83,0.17,'n',PL],[0.87,0.22,'n',PL],[0.9,0.33,'n',PL],[0.895,0.45,'n',PL],[.875,.58,'n',M(1.5)],[.885,.68,'b',M(1.5)],[.93,.74,'b',M(1.5)],[1.0,.78,'b',M(1.5)],[1.5,.82,'b',M(1.5)],[1.5,1.5,'t']]},
+ // the headland top: the gate court; a rock face toward the middle tier (cut by the curbed stair) and a sea cliff behind
+ {top:PL,base:M(1.5),ledge:true,soft:M(1.3),lean:M(.35),pts:[[.13,.31,'n'],[.20,.33,'n'],[.27,.345,'b'],[.33,.355,'b'],[.385,.365,'b'],[.44,.385,'b'],[.52,.395,'b'],[.585,.40,'b'],[.645,.405,'b'],[.69,.425,'b'],[.745,.44,'b'],[.80,.455,'b'],[.85,.455,'b'],[0.895,0.45,'b',PL],[0.9,0.33,'b',PL],[0.87,0.22,'b',PL],[0.83,0.17,'b',PL],[0.77,0.155,'b',PL],[0.71,0.168,'b',PL],[0.66,0.175,'b',PL],[0.61,0.172,'b',PL],[0.56,0.155,'b',PL],[0.52,0.1,'b',PL],[0.49,0.0,'b',PL],[.47,-.6,'t'],[.16,-.6,'t'],[.15,.10,'n'],[.135,.22,'n']]},
  // the high ground at the top left, above the west path
  {top:M(4.2),base:0,ledge:true,soft:M(1.2),lean:M(.35),pts:[[-.3,.30,'b'],[.0,.30,'b'],[.05,.31,'b'],[.09,.27,'b'],[.11,.19,'b'],[.115,.10,'b'],[.12,.02,'b'],[.14,-.6,'t'],[-.3,-.6,'t']]},
- // the middle tier the path climbs onto, across the whole view
- {top:M(1.5),base:0,ledge:true,soft:M(1.2),lean:M(.32),pts:[[-.3,.665,'b'],[.0,.645,'b'],[.06,.625,'b'],[.12,.605,'b'],[.19,.625,'b'],[.25,.66,'b'],[.29,.715,'b'],[.33,.775,'b'],[.375,.79,'b'],[.42,.76,'n'],[.455,.735,'n'],[.60,.73,'n'],[.64,.735,'b'],[.70,.745,'b'],[.76,.76,'b'],[.81,.775,'b'],[.86,.73,'n'],[.875,.58,'n'],[.90,.45,'t'],[.88,.20,'t'],[.30,.20,'t'],[-.3,.22,'t']]},
+ // the middle tier the path climbs onto, a rock face at its front
+ {top:M(1.5),base:0,ledge:true,soft:M(1.2),lean:M(.32),pts:[[-.3,.665,'b'],[.0,.645,'b'],[.06,.625,'b'],[.12,.605,'b'],[.19,.625,'b'],[.25,.66,'b'],[.29,.715,'b'],[.33,.775,'b'],[.375,.79,'b'],[.42,.76,'n'],[.455,.735,'n'],[.60,.73,'n'],[.64,.735,'b'],[.70,.745,'b'],[.76,.76,'b'],[.81,.775,'b'],[.86,.73,'b'],[.875,.58,'n'],[.90,.45,'t'],[.88,.20,'t'],[.30,.20,'t'],[-.3,.22,'t']]},
  // the rock outcrop between the west path and the curbed stair
- {top:M(2.3),base:M(1.5),ledge:true,soft:M(1.0),lean:M(.3),pts:[[.395,.585,'b'],[.43,.615,'b'],[.48,.625,'b'],[.53,.62,'b'],[.575,.60,'b'],[.60,.555,'n'],[.585,.50,'n'],[.52,.47,'n'],[.45,.465,'n'],[.40,.50,'n']]}
+ {top:M(2.3),base:M(1.5),ledge:true,soft:M(1.0),lean:M(.3),pts:[[.395,.585,'b'],[.43,.615,'b'],[.48,.625,'b'],[.53,.62,'b'],[.575,.60,'b'],[.60,.555,'b'],[.585,.50,'n'],[.52,.47,'n'],[.45,.465,'n'],[.40,.50,'b']]}
 ].map(T => {
   let pts = T.pts.map(([u, v, k, h]) => { const [x, z] = P(u, v, h ?? (k === 't' ? T.top : T.base)); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
   // a smooth closed outline through the authored points, sampled about every 1.3 m; a sample's
@@ -88,7 +88,6 @@ const ROAD_NODES={
 const ROUTE_SPECS=[
  {id:'south',pts:[[.52,1.18,0,.11],[.50,1.0,0,.11],[.49,.87,0,.10],[.505,.78,.35,.09],ROAD_NODES.fork,ROAD_NODES.mid]},
  {id:'stair',pts:[ROAD_NODES.mid,[.68,.665,1.5,.06],[.75,.635,1.6,.055],[.77,.59,1.9,.05],[.735,.55,2.25,.048],[.67,.52,2.55,.046],[.64,.47,2.85,.046],[.63,.42,3.0,.046],ROAD_NODES.court]},
- {id:'gate',pts:[ROAD_NODES.court,[.635,.27,3.0,.06],[.645,.19,3.0,.055],[.65,.06,3.0,.055],[.655,-.12,3.0,.055]]},
  {id:'west',pts:[ROAD_NODES.fork,[.43,.645,1.5,.07],[.36,.575,1.6,.065],[.28,.515,1.7,.065],[.19,.465,1.9,.062],[.135,.40,2.2,.06],[.15,.345,2.6,.058],[.21,.31,3.0,.058],[.28,.27,3.0,.056],ROAD_NODES.westTop,[.305,.12,3.0,.055],[.28,.04,3.0,.055],[.27,-.12,3.0,.055]]},
  {id:'westcourt',pts:[ROAD_NODES.westTop,[.37,.218,3.0,.055],[.43,.232,3.0,.06]]}
 ];
@@ -136,7 +135,7 @@ function stairsAt(x,z){
  return result;
 }
 // World-space handles for later game placement. Translate with the terrain.
-const HEADLAND_PORTS=[['south','south',0],['northwest','west',-1],['north','gate',-1]].map(([id,routeId,index])=>{
+const HEADLAND_PORTS=[['south','south',0],['northwest','west',-1]].map(([id,routeId,index])=>{
  const route=ROUTES.find(r=>r.id===routeId),p=route.rows.at(index),sign=index===0?-1:1;
  return{id,route:routeId,x:p.x,y:p.y,z:p.z,width:p.w,dx:p.ux*sign,dz:p.uz*sign};
 });
@@ -152,7 +151,7 @@ const poly = (pts, h) => {
 };
 // the plaza: a ring of dirt round the stone circle, traced from the concept; grass in the middle
 // the packed earth of the gate court round the stone circle
-const PLAZA=poly([[.42,.235],[.48,.30],[.57,.345],[.67,.345],[.76,.31],[.80,.25],[.77,.20],[.70,.185],[.60,.19],[.52,.19],[.45,.20]],PL);
+const PLAZA=poly([[.42,.245],[.48,.30],[.57,.345],[.67,.345],[.76,.31],[.80,.25],[.76,.205],[.70,.20],[.62,.205],[.55,.205],[.47,.215]],PL);
 const PLAZA_HOLE=poly([[2,2],[2.1,2],[2.1,2.1]],0);
 // distance from the dirt's edge: negative on the dirt
 function trailAt(x, z) {
@@ -230,12 +229,12 @@ function fillAt(x,z){
 // x runs along the shore, z out to sea, so the approved beach water (built for a shore across the
 // screen) lies against this diagonal coast. seaDist is negative on land.
 // the cliff tops as the reference shows them, [u, v, plane]; the water meets their feet a little further out
-const COAST_UVH=[[.86,-.15,PL],[.885,.05,PL],[.895,.20,PL],[.91,.33,PL],[.895,.45,PL],[.875,.58,M(1.5)],[.885,.68,M(1.5)],[.93,.74,M(1.5)],[1.0,.78,M(1.5)],[1.5,.82,M(1.5)]];
+const COAST_UVH=[[.47,-.15,PL],[0.49,0.0,PL],[0.52,0.1,PL],[0.56,0.155,PL],[0.61,0.172,PL],[0.66,0.175,PL],[0.71,0.168,PL],[0.77,0.155,PL],[0.83,0.17,PL],[0.87,0.22,PL],[0.9,0.33,PL],[0.895,0.45,PL],[.875,.58,M(1.5)],[.885,.68,M(1.5)],[.93,.74,M(1.5)],[1.0,.78,M(1.5)],[1.5,.82,M(1.5)]];
 const COAST=COAST_UVH.map(([u,v,h])=>P(u,v,h)),FOOT_OUT=M(.45);
 const SEA_FRAME=(()=>{
  const[ox,oz]=COAST[0],[ex,ez]=COAST.at(-1),l=Math.hypot(ex-ox,ez-oz),ax=(ex-ox)/l,az=(ez-oz)/l;
  // out to sea: the side of the line away from the paths (the screen's lower left)
- const[px,pz]=P(.4,.6,0);let cx=-az,cz=ax;if((px-ox)*cx+(pz-oz)*cz>0){cx=-cx;cz=-cz;}
+ const[px,pz]=P(.35,.6,0);let cx=-az,cz=ax;if((px-ox)*cx+(pz-oz)*cz>0){cx=-cx;cz=-cz;}
  return{ox,oz,ax,az,cx,cz};
 })();
 const seaQ=(x,z)=>{const F=SEA_FRAME,dx=x-F.ox,dz=z-F.oz;return[dx*F.ax+dz*F.az,dx*F.cx+dz*F.cz];};
@@ -254,7 +253,7 @@ const SHORE_GLSL=(()=>{
  return g+`return ${f(Q.at(-1)[1]+FOOT_OUT)};}`;
 })();
 // the water plane: from the coast out past the frame's top right corner
-const[SEA_CX,SEA_CZ,SEA_W,SEA_D]=(()=>{const c=[P(.80,-.25,SEA_Y),P(1.6,-.25,SEA_Y),P(1.6,1.2,SEA_Y),P(.80,1.2,SEA_Y)],xs=c.map(p=>p[0]),zs=c.map(p=>p[1]);
+const[SEA_CX,SEA_CZ,SEA_W,SEA_D]=(()=>{const c=[P(.42,-.35,SEA_Y),P(1.6,-.35,SEA_Y),P(1.6,1.2,SEA_Y),P(.42,1.2,SEA_Y)],xs=c.map(p=>p[0]),zs=c.map(p=>p[1]);
  return[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...zs)+Math.max(...zs))/2,Math.max(...xs)-Math.min(...xs),Math.max(...zs)-Math.min(...zs)];})();
 
 // the shape of the land: height and how much of it is a raised top

@@ -9,7 +9,6 @@ const ROAD_NODES={
 const ROUTE_SPECS=[
  {id:'south',pts:[[.52,1.18,0,.11],[.50,1.0,0,.11],[.49,.87,0,.10],[.505,.78,.35,.09],ROAD_NODES.fork,ROAD_NODES.mid]},
  {id:'stair',pts:[ROAD_NODES.mid,[.68,.665,1.5,.06],[.75,.635,1.6,.055],[.77,.59,1.9,.05],[.735,.55,2.25,.048],[.67,.52,2.55,.046],[.64,.47,2.85,.046],[.63,.42,3.0,.046],ROAD_NODES.court]},
- {id:'gate',pts:[ROAD_NODES.court,[.635,.27,3.0,.06],[.645,.19,3.0,.055],[.65,.06,3.0,.055],[.655,-.12,3.0,.055]]},
  {id:'west',pts:[ROAD_NODES.fork,[.43,.645,1.5,.07],[.36,.575,1.6,.065],[.28,.515,1.7,.065],[.19,.465,1.9,.062],[.135,.40,2.2,.06],[.15,.345,2.6,.058],[.21,.31,3.0,.058],[.28,.27,3.0,.056],ROAD_NODES.westTop,[.305,.12,3.0,.055],[.28,.04,3.0,.055],[.27,-.12,3.0,.055]]},
  {id:'westcourt',pts:[ROAD_NODES.westTop,[.37,.218,3.0,.055],[.43,.232,3.0,.06]]}
 ];
@@ -57,7 +56,7 @@ function stairsAt(x,z){
  return result;
 }
 // World-space handles for later game placement. Translate with the terrain.
-const HEADLAND_PORTS=[['south','south',0],['northwest','west',-1],['north','gate',-1]].map(([id,routeId,index])=>{
+const HEADLAND_PORTS=[['south','south',0],['northwest','west',-1]].map(([id,routeId,index])=>{
  const route=ROUTES.find(r=>r.id===routeId),p=route.rows.at(index),sign=index===0?-1:1;
  return{id,route:routeId,x:p.x,y:p.y,z:p.z,width:p.w,dx:p.ux*sign,dz:p.uz*sign};
 });

@@ -12,9 +12,9 @@ function coloredPart(g,color,matrix){
 const GATE_STONE=['#cfcac3','#c4bfb8','#d6d0c7','#bdb8b1'];
 function stoneGate(){
  // feet and heights as the reference shows them, on the court level
- const[ax,az]=P(.588,.207,PL),[bx,bz]=P(.692,.212,PL),ya=height(ax,az),yb=height(bx,bz),y0=Math.min(ya,yb)-.2;
+ const[ax,az]=P(.588,.197,PL),[bx,bz]=P(.692,.199,PL),ya=height(ax,az),yb=height(bx,bz),y0=Math.min(ya,yb)-.2;
  const mx=(ax+bx)/2,mz=(az+bz)/2,span=Math.hypot(bx-ax,bz-az),ry=Math.atan2(bx-ax,bz-az)-Math.PI/2;
- const ux=(bx-ax)/span,uz=(bz-az)/span,pw=wide(.577,.600,.207,PL);
+ const ux=(bx-ax)/span,uz=(bz-az)/span,pw=wide(.577,.600,.197,PL);
  const top=tall(mx,mz,y0,.058),beam=tall(mx,mz,y0,.092),lintel=M(.32);
  // two square pillars of stacked drums, each a little narrower than the one below
  for(const[x,z]of[[ax,az],[bx,bz]]){
@@ -61,10 +61,15 @@ function stoneCircle(){
  block(cx,height(cx,cz)-.2,cz,M(.75),h+.2,M(.6),.3,.3,{base:'#cbc5bc'});COLLIDERS.push({x:cx,z:cz,r:M(.45)});
 }
 function standingStones(){
- for(const[u,v,w,h]of[[.47,.13,.03,.065],[.505,.155,.024,.045],[.405,.235,.03,.06],[.735,.165,.035,.07],[.445,.28,.018,.032],[.715,.27,.02,.03],[.755,.285,.022,.035],[.32,.075,.03,.07],[.36,.12,.025,.05]]){
+ // old pillars ring the court, as the reference's: [u, v, width, height] as screen fractions
+ for(const[u,v,w,h]of[[.47,.13,.03,.075],[.505,.17,.024,.055],[.405,.235,.03,.07],[.40,.30,.026,.06],[.44,.355,.022,.045],[.52,.375,.02,.035],[.72,.38,.024,.04],[.775,.33,.03,.06],[.815,.27,.03,.07],[.79,.205,.026,.06],[.445,.28,.018,.032],[.32,.075,.03,.07],[.36,.12,.025,.05],[.86,.36,.03,.08]]){
   const[x,z]=P(u,v,PL),y=height(x,z),width=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h);
-  if(stairsAt(x,z).s<stairsAt(x,z).half+width*.6)continue;
-  block(x,y-.3,z,width,hh+.3,width*R(.7,.9),R(-.6,.6),.4,{base:pick(GATE_STONE),rx:R(-.06,.06),rz:R(-.06,.06)});
+  if(stairsAt(x,z).s<stairsAt(x,z).half+width*.6||seaDist(x,z)>-1.2||(polyAt(PLAZA,x,z)??1)<-.5)continue;
+  // two stacked, weathered blocks, mossy on top
+  const H=hh*.72+.3,ry=R(-.6,.6),d=width*R(.7,.9);
+  block(x,y-.3,z,width,H*.58,d,ry,.25,{base:pick(GATE_STONE),rx:R(-.04,.04),rz:R(-.04,.04)});
+  block(x+R(-.08,.08),y-.3+H*.58,z+R(-.08,.08),width*R(.82,.95),H*.42,d*R(.82,.95),ry+R(-.12,.12),.7,{base:pick(GATE_STONE)});
+  addBush(x+width*.6,y,z,R(.55,.8),{sy:.6,tint:R(-.1,.1)});
   COLLIDERS.push({x,z,r:width*.5});
  }
 }

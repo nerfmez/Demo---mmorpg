@@ -48,7 +48,7 @@ const ZONE_FOG = {
 };
 
 export class View {
-  constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
+  constructor(canvas, world, { quality = 'high', worlds = null, resident = worlds } = {}) {
     this.unified = !!worlds;
     this.coordinateOrigin = [...(world.data.atlas?.offset || [0, 0])];
     this.worldPrepared = false;
@@ -126,7 +126,9 @@ export class View {
 
     this.raycaster = new THREE.Raycaster();
     this.resize();
-    this.worldReady = this.unified ? prepareResidentWorld(this, worlds) : this.region.ready.then(() => { this.worldPrepared = true; });
+    // `resident`: the maps prepared behind the loading card (every map in the game;
+    // the development load prepares the start map only, see main.js).
+    this.worldReady = this.unified ? prepareResidentWorld(this, resident) : this.region.ready.then(() => { this.worldPrepared = true; });
     this.cityReady = this.worldReady;
   }
 

@@ -225,11 +225,12 @@ function outlineHull(src, width, darkness) {
   const m = new THREE.MeshBasicMaterial({ map: src.map, color: new THREE.Color(darkness, darkness, darkness * 1.12), side: THREE.BackSide });
   m.userData.rig = true;
   m.onBeforeCompile = (shader) => {
+    shader.uniforms.hullWidth = { value: width };
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float outlineScale;')
-      .replace('#include <skinning_vertex>', `#include <skinning_vertex>\ntransformed += normalize(objectNormal) * ${width.toFixed(4)} * outlineScale;`);
+      .replace('#include <common>', '#include <common>\nattribute float outlineScale;\nuniform float hullWidth;')
+      .replace('#include <skinning_vertex>', '#include <skinning_vertex>\ntransformed += normalize(objectNormal) * hullWidth * outlineScale;');
   };
-  m.customProgramCacheKey = () => `chibi-hull-${width}`;
+  m.customProgramCacheKey = () => 'chibi-hull'; // one program for every width (a uniform)
   return m;
 }
 

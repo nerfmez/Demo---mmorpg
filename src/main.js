@@ -55,7 +55,14 @@ const world = coreWorld(data.world.id);
 for (const id of Object.keys(worlds)) coreWorld(id);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
-const view = new View(canvas, world, { quality, worlds });
+// Development load (?load=dev, or the preview server's frontier-load meta under
+// FRONTIER_LOAD=dev, which CI sets): only the start map's scene is prepared, so
+// tests and reviews open fast. The game itself (no flag) prepares every map before
+// play, as always: walking never builds a scene. Rules worlds are complete either way.
+const loadMode = params.get('load') || document.querySelector('meta[name="frontier-load"]')?.content || 'full';
+const resident = loadMode === 'dev' ? { [world.data.id]: world } : worlds;
+const view = new View(canvas, world, { quality, worlds, resident });
+view.loadMode = loadMode === 'dev' ? 'dev' : 'full';
 const releaseStartupScheduling = useStartupTaskScheduling(view.buildQueue);
 if (params.get('fireball') === 'legacy') view.vfx.fireballReviewVersion = 'legacy';
 view.coreWorld = coreWorld;

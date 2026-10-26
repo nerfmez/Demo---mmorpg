@@ -50,7 +50,7 @@ export function outlineMaterial(color = '#2a2230', width = 0.018) {
       .replace('#include <common>', '#include <common>\nuniform float outlineWidth;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * outlineWidth;');
   };
-  m.customProgramCacheKey = () => `outline-${width}`;
+  m.customProgramCacheKey = () => 'outline'; // one program for every width (a uniform)
   m.userData.outlineWidth = width;
   m.userData.shared = true;
   outlineCache.set(key, m);

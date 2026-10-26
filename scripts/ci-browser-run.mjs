@@ -1,6 +1,6 @@
 import { spawnSync, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { SUITES } from './ci-browser-plan.mjs';
+import { SUITES, FULL_LOAD } from './ci-browser-plan.mjs';
 import { validateEngineOwnership } from './ci-browser-engine.mjs';
 import { browserShard } from './ci-browser-shards.mjs';
 
@@ -31,7 +31,9 @@ for (const script of SUITES[suite]) {
     validateEngineOwnership(script, readFileSync(`tests/browser/${script}`, 'utf8'));
     // Preserve browser stderr and process-exit diagnostics for real crashes.
     // This adds evidence, never retries or changes assertions/timeouts.
-    const env = { ...process.env, ...selection.env, DEBUG: [process.env.DEBUG, 'pw:browser'].filter(Boolean).join(',') };
+    // Development load except for the scripts that walk or travel between maps,
+    // which keep the game's own full preload (see AGENTS.md, Validation).
+    const env = { ...process.env, ...selection.env, FRONTIER_LOAD: FULL_LOAD.has(script) ? 'full' : 'dev', DEBUG: [process.env.DEBUG, 'pw:browser'].filter(Boolean).join(',') };
     result = spawnSync(process.execPath, [`tests/browser/${script}`], { stdio: 'inherit', env });
   } catch (error) {
     console.error(error.message);

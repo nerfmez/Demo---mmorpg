@@ -15,6 +15,9 @@ Azure Coast, Greenhollow Frontier and Moonroot Grove share one fixed coordinate 
 - Adjacent gate road paint continues and fades through the existing seam band. Native gameplay roads, collider data, planting positions and heightfields stay unchanged.
 - Exterior backdrop trees are omitted wherever their centres fall inside an adjacent region's complete playable rectangle. This covers corners outside the old seam spans and stops the Grove's border forest covering the Frontier settlement. Native trees/colliders are unchanged; valid outer backdrop trees remain.
 
+- Development load (owner, 26 October 2026): `?load=dev` (or the preview server under `FRONTIER_LOAD=dev`, set by `scripts/ci-browser-run.mjs`) prepares only the start map's scene, for fast tests and reviews; past a seam nothing is drawn. The default game load is unchanged. Locally (Chromium, SwiftShader, 1180×820, `?fresh=1`): 41.2 s full, 29.1 s development load. The CI `world` suite keeps the full load.
+- Outline/hull widths are uniforms, so hulls of every width share one program (`outline`, `outline-batch`, `vrm-hull`, `chibi-hull`, `garment-hull`).
+
 ## Save and gameplay contracts
 
 Snapshots retain v13 `worldId` and map-local `pos`; loading can choose a different scene origin without changing the absolute atlas position. Native worlds remain immutable renderer/layout sources. Discovery stays map-qualified. Kills, collected totals and boss kills keep their existing global lifetime meaning; quest notifications and drop tables carry the originating region. Actors, summons, areas, projectiles, drops and spawn homes persist across boundaries.

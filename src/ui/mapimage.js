@@ -6,6 +6,7 @@ import {outsideClearingWeight,outsideRoadDistance,sceneClearingFade} from '../co
 
 import {cityFloorAt} from '../core/city.js';
 import art from '../../data/art.json' with {type:'json'};
+import {sceneBeach} from '../render/terrain-domain.js';
 
 const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
@@ -46,6 +47,7 @@ export function mapImage(world) {
   small.height = H;
   const sg = small.getContext('2d');
   const img = sg.createImageData(W, H);
+  const beachAt = sceneBeach(world.data);
   const pal = new Map(world.zones.map((z) => [z.id, [hex(z.palette?.[0] || '#8ac25a'), hex(z.palette?.[1] || '#6a9a44')]]));
   const town = world.data.town;
   for (let j = 0; j < H; j++) {
@@ -65,11 +67,11 @@ export function mapImage(world) {
         for (const s of town.surfaces) if (s.kind === 'paving' && pointInPolygon(s.points, x, z)) c = mix(c, PLAZA, s.strength ?? 1);
       } else if (Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
       if (world.data.sea) {
-        const d = world.coastAt(x, z).distance;
-        const beach = world.data.sea.beach || 14;
+        const coast = world.coastAt(x, z), d = coast.distance;
+        const beach = beachAt(x, z);
         // raised ground (a headland or terrace top) is not sand, as render/ground.js beachTop
         const top = art.ground.beachTop, h = world.terrainY(x, z), high = top ? Math.max(0, Math.min(1, (h - top[0]) / (top[1] - top[0]))) : 0;
-        if (world.isBeach(x, z)) c = mix(c, SAND, Math.min(1, (beach - d) / 5) * (1 - high * high * (3 - 2 * high)));
+        if (coast.kind === 'beach' && d < beach) c = mix(c, SAND, Math.min(1, (beach - d) / 5) * (1 - high * high * (3 - 2 * high)));
       }
       const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z,.8):outsideRoadDistance(world.data.city,world.roads,x,z,.8);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));

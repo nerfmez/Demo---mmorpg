@@ -301,3 +301,14 @@ Owner review: the left cliff had become "a thin rock wall", and the right side o
 - **Native layout:** the shore and terrain changes move part of the seeded native scatter (Azure: 38 of 178 props in the old conch area; Frontier: the props east of local x 98 re-roll). The city-boundary comparison now allows the few props a blocked candidate re-rolls.
 
 Checks: core 616/616 and render 50/51 (the skirt failure also on main). Inspected at 1180×820: the play camera at the spawn, the face, the right side (two points), the plateau top, the ramp, the junction, the Conch Coast; wide views from the sea, above and behind. Fixed during review: a short north face that rendered twisted (now a bank), a steep grey ridge behind the Conch Coast (apron smoothing), sand stripes between the sea-cliff columns.
+
+### Follow-up: the Conch Coast's path and back cliffs (26 October 2026)
+
+Owner review of the moved Conch Coast: "the path and the cliffs are not seamless yet", circling the stair gully behind the west headland and the right end of the back wall. The same two places were already in the Azure placement (compared at the same camera); the owner's circles are the direction to change them.
+
+- **Ramps** (`scenes/shell-beach/fill.js`, injected by `prepare.py`): the stair gully rises from the beach to the headland top as one slope (no 1 m hole beside the path), and the slot behind the cove right of the conch rises from the sand to 5.5 m under the wall top and joins the west headland's plateau. Ground already higher is kept; routes ride the ramp. Nothing else in the scene moves.
+- **Stairs on the ground:** stones beside the upper-apron repair connector were seated by the edit model, which does not see the repair cut, and floated about 1 m. Rigid parts within its reach now rest on the lowest actual ground under them; stones the old rule dropped as squashed are kept.
+- **Sand:** the Frontier beach band is 20 m wide, Azure's 11 m; inside the scene the band is 11 m again (`acceptedScenes.beach`), so the gully and banks are grass, as approved.
+- **Outer ground:** the back and west sides continue the scene's own ground (`continue`, as Hill Windmill) with narrow gullies closed (`outerFill`), instead of a smooth apron mound behind the wall.
+
+Checks: core 616/616, render 50/51 (skirt, also on main). Inspected the owner's view, the gully, the wall end, the stairs and the cove at the play camera; remaining floating cells are the scene's sea rocks, bottoms at the water line.

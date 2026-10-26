@@ -54,6 +54,11 @@ w=w.replace(' - f.rock * M(2.5));',' - f.rock * M(2.5) - Math.min(M(2),Math.max(
 w=w.replace('const trailEdge = (x, z) => trailAt(x, z) + edgeWob(x, z);','const trailEdge = (x,z) => {const st=stairsAt(x,z);return Math.min(trailAt(x,z)+edgeWob(x,z),st.a>-.02&&st.a<1.035?st.s-st.half:Infinity);};')
 # Side cliffs are much less stratified than the old ruin ridge.
 w=w.replace('const row=[0,.29,.59,.83,1]','const row=[0,.24,.56,.81,1]')
+# Smooth the stair gully and the slot behind the cove (fill.js, owner 26 October 2026); routes ride the fill.
+w=w.replace('// the shape of the land: height and how much of it is a raised top\nfunction field(x, z) {',(here/'fill.js').read_text()+'\n// the shape of the land: height and how much of it is a raised top\nfunction field(x, z) {',1)
+assert 'fillAt' in w
+w=w.replace("  const st=stairsAt(x,z);\n  if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){","  const fill=fillAt(x,z);if(fill>y+.01){y=fill;rock=0;}\n  const st=stairsAt(x,z);\n  if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){",1)
+w=w.replace("    y=st.y+(y-st.y)*k;","    const ry=Math.max(st.y,fillAt(x,z));y=ry+(y-ry)*k;",1)
 a=w.index('function buildLedges(){');w=w[:a]+(here/'paving.js').read_text()+'\n'
 w=w.replace('ST.half + ST.bank - 1','stairsAt(q.x,q.z).half + ST.bank + M(.7)')
 (here/'world.js').write_text(w.rstrip()+'\n')

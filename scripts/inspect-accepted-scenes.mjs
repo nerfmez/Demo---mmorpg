@@ -11,11 +11,19 @@ const specs=[
  {id:'forest',x:-112,z:-64,s:.62,y:.4,box:[-58,58,-70,20]},
  {id:'rose-garden',x:-100,z:20,s:.68,y:.4,box:[-60,60,-60,28]},
  // west of the arrival beach on the Greenhollow Frontier coast (Frontier local metres; world = local + atlas offset)
- {id:'shell-beach',region:'frontier-wilds-v1',x:152,z:176,s:.60,y:-.44,box:[-70,70,-65,50]},
+ {id:'shell-beach',region:'frontier-wilds-v1',x:152,z:176,s:.60,y:-.44,box:[-70,70,-65,50],outer:30,outerFill:7},
  {id:'azure-meadow',x:38,z:-85,s:.50,y:.4,box:[-65,65,-65,30]},
  {id:'hill-windmill',x:126,z:-85,s:.48,y:.4,box:[-65,65,-65,30],outer:30}
 ];
 const round=n=>Math.round(n*1000)/1000,scenes=[];
+// Morphological closing (a max then a min filter over a square r metres each way, 1 m grid).
+function close(a,w,h,r){
+ const pass=(src,pick)=>{const t=new Float64Array(src.length),out=new Float64Array(src.length);
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){let m=src[j*w+i];for(let k=Math.max(0,i-r);k<=Math.min(w-1,i+r);k++)m=pick(m,src[j*w+k]);t[j*w+i]=m;}
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){let m=t[j*w+i];for(let k=Math.max(0,j-r);k<=Math.min(h-1,j+r);k++)m=pick(m,t[k*w+i]);out[j*w+i]=m;}
+  return out;};
+ const c=pass(pass(a,Math.max),Math.min);for(let k=0;k<a.length;k++)a[k]=round(c[k]);
+}
 for(const spec of specs){
  const {createAcceptedScene}=await import('../src/render/accepted-scenes/'+spec.id+'.js');
  const a=createAcceptedScene({renderer,clipBounds:spec.box});
@@ -45,7 +53,10 @@ for(const spec of specs){
  // beyond the frame), so the world can continue the scene's forms instead of cutting them
  if(spec.outer){const m=spec.outer,o=[bounds[0]-m,bounds[1]+m,bounds[2]-m,bounds[3]+m],r=1,ow=Math.ceil((o[1]-o[0])/r)+1,oh=Math.ceil((o[3]-o[2])/r)+1,oy=[];
   for(let j=0;j<oh;j++)for(let i=0;i<ow;i++)oy.push(round(a.height((o[0]+i*r-spec.x)/spec.s,(o[2]+j*r-spec.z)/spec.s)*spec.s+spec.y));
-  scene.outer={grid:{ox:o[0],oz:o[2],res:r,w:ow,h:oh},heights:oy};}
+  // outerFill: gullies and slots narrower than about twice this many metres (a stair
+ // ravine, the cove behind a wall) close over instead of running on as ravines
+ if(spec.outerFill)close(oy,ow,oh,spec.outerFill);
+ scene.outer={grid:{ox:o[0],oz:o[2],res:r,w:ow,h:oh},heights:oy};}
  if(a.shore)scene.shore=Array.from({length:Math.ceil((bounds[1]-bounds[0])/2)+1},(_,i)=>{const x=bounds[0]+i*2;return[round(x),round(spec.z+a.shore((x-spec.x)/spec.s)*spec.s)];});
  scenes.push(scene);console.log(spec.id,{colliders:colliders.length,roads:roads.length,bounds,meshes:a.root.children.length});
 }

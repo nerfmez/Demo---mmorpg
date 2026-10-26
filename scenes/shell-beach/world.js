@@ -143,6 +143,43 @@ function zShore(x){
  return SHORE_POINTS.at(-1)[1]+.16*Math.sin(x*.7);
 }
 const SHORE_GLSL='float zShoreG(float x){'+SHORE_POINTS.slice(1).map((b,i)=>{const a=SHORE_POINTS[i];return `if(x<${b[0].toFixed(5)})return mix(${a[1].toFixed(5)},${b[1].toFixed(5)},clamp((x-(${a[0].toFixed(5)}))/${(b[0]-a[0]).toFixed(5)},0.,1.))+.16*sin(x*.7);`;}).join('')+`return ${SHORE_POINTS.at(-1)[1].toFixed(5)}+.16*sin(x*.7);}`;
+// Smooth paths and cliffs at the back (owner, 26 October 2026): two narrow slots read as
+// raw ravines from the game camera, the stair gully between the west headland and the
+// conch terrace, and the slot behind the cove right of the conch. Each is filled with a
+// ramp: inside its outline the ground rises from the sand at `mouth` to `top` at `back`
+// (smoothstep along z) and stays there behind; it fades out over RAMP_SOFT past the
+// outline. Ground already higher (terraces, banks) is kept, so the cliff faces stand over
+// a grassy slope instead of a slot. Routes ride the ramp (field() takes the higher).
+// Outlines in scene units: x = (world x + 232) / 0.6, z = (world z - 83) / 0.6 at the
+// game placement; heights in scene units (world y = 0.6 h - 0.44).
+const RAMP_SOFT=M(.6);
+const RAMPS=[
+  // stair gully, world x -255..-247, beach z 76 up to z 54 at 6 m
+  {pts:[[-38.3,-11.7],[-25,-11.7],[-25,-55],[-38.3,-55]],mouth:-11.7,back:-48.3,top:10.7},
+  // slot behind the cove, world x -212..-203 from the cove mouth z 66 up to z 54 at 5.5 m,
+  // joining the low ground north of the east headland to x -195
+  {pts:[[33.3,-28.3],[48.3,-28.3],[48.3,-48.3],[61.7,-51.7],[61.7,-68.3],[33.3,-68.3]],mouth:-28.3,back:-48.3,top:9.9},
+];
+function rampEdge(pts,x,z){
+  let inside=false,d=Infinity;
+  for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+    const [ax,az]=pts[j],[bx,bz]=pts[i];
+    if((az>z)!==(bz>z)&&x<(bx-ax)*(z-az)/(bz-az)+ax)inside=!inside;
+    const dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));
+    d=Math.min(d,Math.hypot(ax+dx*t-x,az+dz*t-z));
+  }
+  return inside?-d:d;
+}
+function fillAt(x,z){
+  let y=-Infinity;
+  for(const R of RAMPS){
+    const d=rampEdge(R.pts,x,z);if(d>RAMP_SOFT)continue;
+    const h=R.top*smooth(R.mouth,R.back,z)*(1-smooth(0,RAMP_SOFT,d));
+    y=Math.max(y,h);
+  }
+  return y;
+}
+
 // the shape of the land: height and how much of it is a raised top
 function field(x, z) {
   let y = 0, top = 0, rock = 0;
@@ -158,10 +195,11 @@ function field(x, z) {
     const b = T.base || 0;
     if (w > 0) { y = Math.max(y, b + ((T.topAt ? T.topAt(x) : T.top) - b) * w); top = Math.max(top, w); }
   }
+  const fill=fillAt(x,z);if(fill>y+.01){y=fill;rock=0;}
   const st=stairsAt(x,z);
   if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){
     const k=smooth(st.half-.05,st.half+ST.bank,st.s);
-    y=st.y+(y-st.y)*k;
+    const ry=Math.max(st.y,fillAt(x,z));y=ry+(y-ry)*k;
     if(st.inside)rock=0;
   }
   return { y, top, rock };

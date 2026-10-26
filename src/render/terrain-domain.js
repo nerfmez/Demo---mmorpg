@@ -3,13 +3,26 @@
 // Join its decorative skirt to the adjacent playable map without changing rules,
 // heightfields, colliders or any rendered height inside this map's playable bounds.
 import {distToPolyline} from '../core/math.js';
+import {acceptedScenes} from '../core/accepted-scenes.js';
 
 const contains = (hf, x, z) => x >= hf.ox && x <= hf.ox + (hf.w - 1) * hf.res &&
   z >= hf.oz && z <= hf.oz + (hf.h - 1) * hf.res;
 const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
+// The sand band inside an accepted scene (data: acceptedScenes.beach) is the width it
+// was approved with, easing back to the map's own over `fade` metres outside it.
+export function sceneBeach(data) {
+  const base = data.sea?.beach || 14, cfg = data.acceptedScenes?.beach;
+  if (!cfg) return () => base;
+  const scenes = acceptedScenes(data);
+  return (x, z) => {
+    let w = 0;
+    for (const s of scenes) { const q = s.bounds; w = Math.max(w, 1 - smooth(0, cfg.fade, Math.hypot(Math.max(q[0] - x, 0, x - q[1]), Math.max(q[2] - z, 0, z - q[3])))); }
+    return base + (cfg.width - base) * w;
+  };
+}
 export function terrainDomain(world, lookup) {
-  const offset = world.data.atlas?.offset || [0, 0];
+  const offset = world.data.atlas?.offset || [0, 0], beachAt = sceneBeach(world.data);
   const joins = (world.seams || []).map(seam => {
     const neighbour = lookup?.(seam.to);
     if (!neighbour) return {seam};
@@ -64,7 +77,7 @@ export function terrainDomain(world, lookup) {
     // then recover their authored beach inside the existing seam band. Rule
     // coastAt/isWater and the heightfield remain map-local and unchanged.
     coastAt(x, z) {
-      const native = world.coastAt(x, z), beach = world.data.sea?.beach || 14;
+      const native = world.coastAt(x, z), beach = beachAt(x, z);
       if (!world.data.sea || native.kind !== 'beach') return {...native, beach, blend: 0};
       for (const {seam: s, neighbour: n, dx, dz} of joins) {
         if (!n?.data.sea || !world.data.sea) continue;

@@ -81,7 +81,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
     const original=mesh.geometry;mesh.geometry=original.clone().applyMatrix4(matrix);
     // Seated parts are moved once, whole; the seated geometry no longer carries the flag.
     const rigid=!!mesh.geometry.userData.rigidParts;
-    if(rigid){yield* seatRigidParts(world,spec,mesh);mesh.userData.seatedParts=true;}
+    if(rigid){yield* seatRigidParts(world,spec,mesh,nearRepair);mesh.userData.seatedParts=true;}
     const positions=mesh.geometry.attributes.position,reach=acceptedEditReach(world.data,spec,world.heightfield.acceptedConnectors),lift=sceneLift(world.data,spec);
     if(!rigid)for(let i=0;i<positions.count;i++){
      if(i%16384===16383)yield;
@@ -187,15 +187,20 @@ function seatWhole(world,spec,o){
 // Stones are separate parts (factory groups): each moves whole with the ground
 // under its centre, and one the feather or a later edit would squash below half
 // its height is left out instead of being flattened into a wedge.
-function* seatRigidParts(world,spec,mesh){
+function* seatRigidParts(world,spec,mesh,nearRepair=()=>false){
  const g=mesh.geometry.index?mesh.geometry.toNonIndexed():mesh.geometry,pos=g.attributes.position,keep=[],reach=acceptedEditReach(world.data,spec,world.heightfield.acceptedConnectors);let kept=0;
  for(const group of g.groups){
   let cx=0,cz=0;for(let i=group.start;i<group.start+group.count;i++){cx+=pos.getX(i);cz+=pos.getZ(i);}
   cx/=group.count;cz/=group.count;
   if(edgeCliffCover(world.data,cx,cz,.5))continue;
-  const w=sceneWeight(spec,cx,cz),edit=w>=.999?(reach(cx,cz)?acceptedGroundEdit(world.data,spec,cx,cz,world.heightfield.acceptedConnectors):{shift:sceneLift(world.data,spec),keep:1}):null,share=edit?edit.keep:w;
+  // a repair connector lowers the ground under it past the edit model: follow the ground there
+  const w=sceneWeight(spec,cx,cz),edit=nearRepair(cx,cz)?null:w>=.999?(reach(cx,cz)?acceptedGroundEdit(world.data,spec,cx,cz,world.heightfield.acceptedConnectors):{shift:sceneLift(world.data,spec),keep:1}):null,share=edit?edit.keep:w;
   if(share<.5)continue;
-  const shift=edit?edit.shift:world.groundY(cx,cz)-sceneSample(spec,'heights',cx,cz);
+  let ground=world.groundY(cx,cz);
+  // by a repair connector, a part rests on the lowest ground under its footprint (the cut slopes)
+  if(!edit&&w>=.999){let x0=Infinity,x1=-Infinity,z0=Infinity,z1=-Infinity;for(let i=group.start;i<group.start+group.count;i++){const x=pos.getX(i),z=pos.getZ(i);x0=Math.min(x0,x);x1=Math.max(x1,x);z0=Math.min(z0,z);z1=Math.max(z1,z);}
+   for(const[x,z]of[[x0,z0],[x1,z0],[x0,z1],[x1,z1]])ground=Math.min(ground,world.groundY(x,z));}
+  const shift=edit?edit.shift:ground-sceneSample(spec,'heights',cx,cz);
   if(Math.abs(shift)>.002)for(let i=group.start;i<group.start+group.count;i++)pos.setY(i,pos.getY(i)+shift);
   keep.push(group);kept+=group.count;
   if(keep.length%256===0)yield;

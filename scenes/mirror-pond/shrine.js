@@ -110,35 +110,40 @@ function taperedTube(pts,r0,r1,segments=14,sides=6){
  for(let i=0;i<p.count;i++){const t=Math.floor(i/ring)/segments,q=curve.getPoint(t),r=r1+(r0-r1)*Math.pow(1-t,1.4);p.setXYZ(i,q.x+(p.getX(i)-q.x)*r,q.y+(p.getY(i)-q.y)*r,q.z+(p.getZ(i)-q.z)*r);}
  g.computeVertexNormals();return g;
 }
-// Old trees whose roots flare from the trunk as buttresses, dive into the soil, wander over it
-// half buried and fork, as the region concept's; toward the pond the roots run on over the rim
-// and down its face to the water.
-const rootParts=[];
-const ROOT_BARK=['#96705b','#8a6650','#a07a62'];
-function rootPath(x,z,y0,a,len,lift,r0,wobble){
- const pts=[],n=10;
- for(let j=0;j<=n;j++){
-  const t=j/n,r=r0+len*t,aa=a+Math.sin(t*2.6+wobble)*.32*t,px=x+Math.cos(aa)*r,pz=z+Math.sin(aa)*r;
-  const ground=Math.max(height(px,pz),SEA_Y-.15),rise=lift*Math.pow(1-smooth(0,.3,t),1.6),sink=M(.05)*smooth(.55,1,t);
-  pts.push(new V3(px,j===0?y0+lift:ground+rise+M(.035)-sink,pz));
+// the game trunk's radius (tree units) at height h, from its authored spine
+function trunkRadius(h){const sp=ANIME.trunk.spine;for(let i=1;i<sp.length;i++)if(h<=sp[i][1]){const t=(h-sp[i-1][1])/(sp[i][1]-sp[i-1][1]);return sp[i-1][3]+(sp[i][3]-sp[i-1][3])*t;}return sp.at(-1)[3];}
+// A root grows out of the trunk's side: it leaves the bark at height hs, curves down onto the
+// ground within a short flare and runs on over it, half buried at its end.
+function rootPath(x,z,y0,s,a,hs,len,wobble){
+ const pts=[],n=11,rt=trunkRadius(hs)*s,r0=trunkRadius(0)*s;
+ pts.push(new V3(x+Math.cos(a)*rt*.35,y0+hs*s,z+Math.sin(a)*rt*.35));
+ for(let j=1;j<=n;j++){
+  const t=j/n,r=r0*.85+len*t,aa=a+Math.sin(t*2.6+wobble)*.3*t,px=x+Math.cos(aa)*r,pz=z+Math.sin(aa)*r;
+  const ground=Math.max(height(px,pz),SEA_Y-.15),rise=hs*s*.85*Math.pow(1-smooth(0,.28,t),1.6),sink=M(.04)*smooth(.55,1,t);
+  pts.push(new V3(px,ground+rise+M(.02)-sink,pz));
   // a root that reaches the pond ends just past the waterline, dipping in
   if(j>=2&&pondIn(px,pz)>M(.2)){pts.at(-1).y=SEA_Y-M(.1);break;}
  }
  return pts;
 }
+// Old trees whose roots flare from the trunk as buttresses, run half buried over the ground and
+// fork, as the region concept's; toward the pond they run on to the water.
+const rootParts=[];
+const ROOT_BARK=['#96705b','#8d6955','#9c7660'];
 function rootTree(u,v,s,seed,toPond=false){
  const[x,y,z]=onGround(u,v),spill=toPond?Math.atan2(POND.cz-z,POND.cx-x):null;broadleaf(x,z,s,seed);COLLIDERS.push({x,z,r:s*.38});
- const n=5+Math.floor(rand()*3),start=R(0,Math.PI*2);
+ const y0=y-.05,n=6+Math.floor(rand()*3),start=R(0,Math.PI*2);
  for(let k=0;k<n;k++){
-  const a=start+k/n*Math.PI*2+R(-.35,.35),toward=spill!==null&&Math.cos(a-spill)>.55,len=M(R(1.0,1.7))*s*(toward?2.2:1),thick=M(R(.11,.15))*s;
-  const pts=rootPath(x,z,y,a,len,M(R(.16,.26))*s,M(.1)*s,R(0,6));
-  rootParts.push(coloredPart(taperedTube(pts,thick,M(.022),18,7),pick(ROOT_BARK)));
+  const a=start+k/n*Math.PI*2+R(-.3,.3),toward=spill!==null&&Math.cos(a-spill)>.55,hs=R(.22,.4),len=s*R(1.1,1.9)*(toward?1.8:1);
+  // as thick as the bark it grows from, so the trunk and its roots are one piece
+  const thick=trunkRadius(hs)*s*R(.6,.72),pts=rootPath(x,z,y0,s,a,hs,len,R(0,6));
+  rootParts.push(coloredPart(taperedTube(pts,thick,thick*.12,20,8),pick(ROOT_BARK)));
   // a fork or two off the main root, thinner, turning away from it
   for(let f=0;f<(rand()<.6?2:1);f++){
-   const t0=R(.3,.6),i0=Math.min(pts.length-2,Math.round(t0*10)),o=pts[i0],side=rand()<.5?-1:1,b=a+side*R(.45,.9),bl=len*R(.35,.55);
-   const bp=[o.clone()];for(let j=1;j<=6;j++){const t=j/6,px=o.x+Math.cos(b)*bl*t,pz=o.z+Math.sin(b)*bl*t;if(pondIn(px,pz)>0)break;bp.push(new V3(px,Math.max(height(px,pz),SEA_Y-.15)+M(.03)-M(.04)*t,pz));}
+   const i0=Math.min(pts.length-2,Math.max(3,Math.round(R(.35,.6)*(pts.length-1)))),o=pts[i0],side=rand()<.5?-1:1,b=a+side*R(.45,.9),bl=len*R(.3,.5);
+   const bp=[o.clone()];for(let j=1;j<=6;j++){const t=j/6,px=o.x+Math.cos(b)*bl*t,pz=o.z+Math.sin(b)*bl*t;if(pondIn(px,pz)>0)break;bp.push(new V3(px,Math.max(height(px,pz),SEA_Y-.15)+M(.02)-M(.04)*t,pz));}
    if(bp.length<3)continue;
-   rootParts.push(coloredPart(taperedTube(bp,thick*(1-t0)*.7,M(.01),10,6),pick(ROOT_BARK)));
+   rootParts.push(coloredPart(taperedTube(bp,thick*(1-i0/(pts.length-1))*.75,thick*.08,10,6),pick(ROOT_BARK)));
   }
  }
 }

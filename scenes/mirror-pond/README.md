@@ -1,6 +1,6 @@
 # Mirror Pond — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 2:
+**Owner status: in review, 26 October 2026**, artifact version 3:
 https://claude.ai/artifact/YRE8REPWfr1GbfzaNNPxw1.
 
 Concept: `mirror-pond.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -37,3 +37,7 @@ Owner, on version 1 (circling the left willow): "make that tree only strands, no
 all the roots". The willows are now strands only, springing from branch ends over the crown and
 falling in curtains; every tree's roots flare from the trunk as tapered buttresses, run half
 buried over the ground and fork, and the roots that reach the pond end just past its waterline.
+
+Owner, on version 2: "the roots don't join the real trunk". Each root now leaves the game trunk's
+bark (its authored spine radius at that height), as thick as the bark it grows from, and curves
+down onto the ground within a short flare, so trunk and roots read as one piece.

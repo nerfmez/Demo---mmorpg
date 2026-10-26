@@ -99,7 +99,6 @@ function arcGeometry(arcRad, r0, r1, segs = 72, rings = 8) {
 export class SlashFx {
   constructor(scene, camera) {
     this.scene = scene;
-    this._m = new THREE.Matrix4(); this._x = new THREE.Vector3(); this._y = new THREE.Vector3(); this._z = new THREE.Vector3();
     this.geos = new Map();
     this.cuts = Array.from({ length: CUTS }, () => {
       const uniforms = { uHead: { value: 0 }, uFade: { value: 0 }, uDir: { value: 1 }, uThick: { value: 0.55 }, uSeed: { value: 0 },
@@ -137,18 +136,16 @@ export class SlashFx {
     this.index = k; this.lastAt = this.t;
     const pat = PATTERN[k], at = p.where(), dir = p.dir || 1;
     const c = this.cuts.find((q) => !q.live) || this.cuts.reduce((a, b) => (a.t > b.t ? a : b));
-    const arcDeg = p.faceArc ?? p.arc; // a camera-facing cut may take a flatter arc than the skill's hit arc
+    const arcDeg = p.arcDeg ?? p.arc; // a skill may draw a narrower crescent than its hit arc
     c.reach = p.range * (p.reach ?? pat.reach); c.arc = (arcDeg * Math.PI) / 180; c.dir = dir; c.lastHead = 0; c.hold = p.hold ?? HOLD;
     c.core.geometry = c.glow.geometry = this.geometry(arcDeg, c.reach, p.inner);
     c.tilt.rotation.set(0, 0, 0);
-    c.drift.set(0, 0, 0);
-    if (p.face !== undefined) this.standFront(c, p, at);
-    else {
-      place(c.g, at.x, 1.0 + (p.y ?? pat.y), at.z);
-      c.g.rotation.set(0, at.angle, 0);
-      c.tilt.rotateZ(p.tilt ?? pat.tilt * dir); // the cut's plane rolls around the facing direction
-      c.tilt.rotateX(-0.06);
-    }
+    place(c.g, at.x, 1.0 + (p.y ?? pat.y), at.z);
+    c.g.rotation.set(0, at.angle, 0);
+    c.tilt.rotateZ(p.tilt ?? pat.tilt * dir); // the cut's plane rolls around the facing direction (a skill may fix it: Cross Cut)
+    c.tilt.rotateX(-0.06);
+    // a cut that flies on as a wave (Cross Cut), its sharp outer edge leading
+    c.drift.set(Math.sin(at.angle), 0, Math.cos(at.angle)).multiplyScalar(p.drift || 0);
     const u = c.uniforms;
     u.uDir.value = dir; u.uHead.value = 0; u.uFade.value = 0; u.uSeed.value = (this.seed = (this.seed * 7.31) % 97);
     const pal = p.palette || PALETTE; // a skill may bring its own colours (Sunder Cut: amber steel)
@@ -158,25 +155,6 @@ export class SlashFx {
     // a cut drawn over the bodies it crosses (Cross Cut: its X would be cut in half by the monster in front)
     c.core.material.depthTest = c.glow.material.depthTest = !p.overlay;
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
-  }
-  // A cut set in front of the caster, leaning back (Cross Cut: the owner wants the X as the hero cuts it,
-  // two cuts crossing in the air ahead; upright it is edge-on to the high game camera whenever the hero
-  // faces across the screen, flat it reads only from above). The plane leans back by `lean` radians from
-  // upright, so the camera above sees it whatever the facing; the crescent's band crosses a point `ahead`
-  // metres in front, bulging toward `face` radians from the plane's up (positive to the caster's right),
-  // and the cut drifts forward at `drift` m/s.
-  standFront(c, p, at) {
-    const fx = Math.sin(at.angle), fz = Math.cos(at.angle), cl = Math.cos(p.lean || 0), sl = Math.sin(p.lean || 0);
-    const normal = this._y.set(-fx * cl, sl, -fz * cl); // back toward the caster, tipped up
-    const rx = Math.cos(at.angle), rz = -Math.sin(at.angle), cf = Math.cos(p.face), sf = Math.sin(p.face);
-    // the plane's up (up tipped forward) turned toward the caster's right by `face`
-    const bulge = this._z.set(fx * sl * cf + rx * sf, cl * cf, fz * sl * cf + rz * sf);
-    this._m.makeBasis(this._x.crossVectors(normal, bulge), normal, bulge);
-    c.g.quaternion.setFromRotationMatrix(this._m);
-    const d = p.ahead ?? c.reach;
-    place(c.g, at.x + fx * d, 1.0 + (p.y ?? 0), at.z + fz * d);
-    c.g.position.addScaledVector(bulge, -c.reach * (1 + (p.inner ?? 0.25)) / 2); // the arc's centre below the point, so its band crosses it
-    c.drift.set(fx, 0, fz).multiplyScalar(p.drift || 0);
   }
   // world point on the reach edge at fraction s of the cut
   edgePoint(c, s, out) {

@@ -204,6 +204,10 @@ edge-on when the hero faces across the screen.
 The owner's iPad recording confirmed it ("เปลี่ยนมุมก็มั่ว มองไม่เห็น": turning, the X vanished). The X now leans
 back about 60° from upright: from the hero's view it is still the X cut in front, and the game camera
 reads it in every facing (checked aiming up, down, left, right and diagonally).
+Owner: "แกนยังไม่ตั้งตรง และฝั่งคม (สีอ่อน) ต้องพุ่งไปข้างหน้าตรง": the X must come out of the forward cut. The two crescents are
+now ordinary cuts around the hero, bulging forward with the bright sharp edge leading, rolled 45° either
+way about the facing so they make an upright X from the hero's view, and they fly on forward as a wave.
+From the high camera they read as forward-flying crescents in every facing.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

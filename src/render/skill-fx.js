@@ -124,11 +124,11 @@ export class SkillFx {
     // axe or mace plays the greatblade's cut), else the one picked for the weapon; the others alternate
     const playing = this.host.anim()?.action?.name;
     const sweep = ACTIONS[playing && ACTIONS[playing]?.sweep !== undefined ? playing : pickAction(s.id, 'melee_arc', this.host.weapon(), this.swingStep)]?.sweep;
-    // Cross Cut: its two crescents stand in front of the hero at opposite diagonals, leaning back so the
-    // high camera sees them whatever the facing (SlashFx standFront), drifting forward; the first is held
-    // until the second has swept across it, so the crescents themselves draw the X as the hero cuts it
+    // Cross Cut: two thin crescents bulging forward (their sharp outer edge leading), rolled 45 degrees
+    // either way about the facing so they cross as an upright X, flying on forward as a wave; the first
+    // is held until the second has swept across it (owner: the X comes out of the forward cut)
     const cross = s.id === 'cross_cut' ? (this.crossI++ % 2 ? -1 : 1) : 0;
-    return { ...(cross ? { face: cross * -0.785, lean: 1.05, faceArc: 64, inner: 0.72, overlay: true, reach: 1.0, ahead: s.range * 0.7, y: 0, drift: 3, hold: cross > 0 ? 0.2 : 0.06 } : {}), palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : s.id === 'cross_cut' ? CROSS_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
+    return { ...(cross ? { tilt: cross * 0.785, arcDeg: 90, inner: 0.58, overlay: true, reach: 1.0, y: 0.1, drift: 3, hold: cross > 0 ? 0.2 : 0.06 } : {}), palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : s.id === 'cross_cut' ? CROSS_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
   }
   play(action, dur, step, hit, kind) { this.host.anim().play(action, dur, this.host.weapon(), step, hit, kind); }
   // the bench's look for the Firebolt charge: only the smooth filled core of the game's charge

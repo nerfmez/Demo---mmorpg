@@ -8,10 +8,10 @@ import {modStatus} from '../../src/ui/buildmeta.js';
 import {skillCraftGuide} from '../../src/core/craft-order.js';
 import {writeSlot,loadSlot} from '../../src/save.js';
 const skills=Object.entries(data.skills.combat).filter(([,d])=>d.prototype);
-const mods=Object.entries(data.mods.mods).filter(([,d])=>d.prototype);
+const mods=Object.entries(data.mods.mods).filter(([,d])=>d.prototype&&!d.retired);
 const recipes=Object.entries(data.recipes.recipes).filter(([,r])=>(r.type==='skill'?skills:r.type==='mod'?mods:[]).some(([id])=>id===r.result));
-test('all 13 skills and 18 mods are crafted from real drops with exact atomic costs and durable ownership',()=>{
- assert.equal(skills.length,13);assert.equal(mods.length,18);assert.equal(recipes.length,31);
+test('all 13 skills and 17 live mods are crafted from real drops with exact atomic costs and durable ownership',()=>{
+ assert.equal(skills.length,13);assert.equal(mods.length,17);assert.equal(recipes.length,30);
  const drops=new Set(Object.values(data.monsters.monsters).flatMap(m=>m.drops.map(d=>d.item)));
  for(const [id,r]of recipes){
   const ch=createCharacter(data);ch.gold=0;ch.materials={};
@@ -44,7 +44,7 @@ test('complete catalogue socket/UI/compiled compatibility agrees and every new m
    assert.equal(socketMod(ch,data,0,100).ok,fit,mid+'/'+sid);
    if(fit){const s=computeSkill(ch,data,derive(ch,data),0);assert(s.mods[0].active,mid+'/'+sid);consumers++;}
   }
-  if(md.prototype&&mid!=='short_stride')assert(consumers>0,mid);
+  if(md.prototype&&!md.retired&&mid!=='short_stride')assert(consumers>0,mid);
  }
  const ch=createCharacter(data);ch.movementSkills=Object.keys(data.skills.movement);ch.stats.AGI=99;ch.mods=[{id:'short_stride',uid:100,level:1,grade:'C'}];
  for(const id of ch.movementSkills){ch.movement=id;ch.movementMods=[];assert(socketMovementMod(ch,data,100).ok,id);}

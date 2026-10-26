@@ -695,7 +695,9 @@
         "INT": 5
       },
       "prototype": true,
-      "id": "binding_field"
+      "id": "binding_field",
+      "retired": true,
+      "_doc": "Retired: it needs a damage field and Venom Mire (the only one) became the Venom Arrow. Kept so saved copies still load; no recipe makes it."
     },
     "healing_chain": {
       "name": "Mending Chain",

@@ -661,6 +661,40 @@
       "tris": 4442,
       "armDrop": 1.3,
       "gearScale": 0.65,
+      "flatten": [
+        {
+          "_doc": "Bands of the bind torso flattened at load (chibi-body.js flattenBody): between heights y0 and y1 the surface beyond depth z (front if above 0, back if below) moves back toward z by up to k. The Meshy body had a bust and round hips; the sheet's chibi is a boy.",
+          "y0": 0.64,
+          "y1": 0.8,
+          "z": 0.072,
+          "k": 1
+        },
+        {
+          "y0": 0.4,
+          "y1": 0.62,
+          "z": -0.045,
+          "k": 0.8
+        }
+      ],
+      "helmFit": {
+        "_doc": "Helms and hoods on the chibi go over its hair: the head fit scaled by `scale` about the head's centre and lifted `lift` head heights (chibi-body.js).",
+        "scale": 1.3,
+        "lift": 0.1
+      },
+      "faceShadow": {
+        "_doc": "Drawn face shadow (chibi-body.js faceShadowMaterial): on the front of the head (mask from `from` to `to` of the way forward) the toon ramp follows where the light stands around the head instead of the mesh normal; `curve` bows the shadow edge round the nose.",
+        "from": 0.15,
+        "to": 0.45,
+        "curve": 0.3
+      },
+      "headShape": {
+        "_doc": "Head reshape toward the sheet's round chibi head (chibi-body.js reshapeHead): wide widens the head, chin shortens the face below the eye line (eye, from the head's bottom), cheek fills the cheeks, soft bends the head normals toward its centre for one round toon shade.",
+        "wide": 0.08,
+        "chin": 0.15,
+        "cheek": 0.06,
+        "eye": 0.36,
+        "soft": 0.6
+      },
       "bodyMap": {
         "hips": 1.0,
         "scale": 0.45
@@ -818,7 +852,55 @@
           "bow"
         ]
       },
-      "source": "Meshy meshy-t2 smart-topology image-to-3d, T-pose, untextured (task 01a162c5-0125-7289-8cd7-59e93e89c4c4); Meshy 6 retexture from the concept image only (task 01a162e0-e0b9-7089-aa90-af14b6525dc7); auto-rig at 1.2 m (task 01a162e3-50ba-704c-8317-01e2a3b889f2). Opt-in with ?hero=chibi; see assets/meshy/hero_chibi"
+      "source": "Meshy meshy-t2 smart-topology image-to-3d, T-pose, untextured (task 01a162c5-0125-7289-8cd7-59e93e89c4c4); Meshy 6 retexture from the concept image only (task 01a162e0-e0b9-7089-aa90-af14b6525dc7); auto-rig at 1.2 m (task 01a162e3-50ba-704c-8317-01e2a3b889f2). The game's hero (?hero=classic keeps the HairSample one); see assets/meshy/hero_chibi"
+    },
+    "hero_chibi_hair": {
+      "file": "models/hero_chibi_hair.glb",
+      "chibiHair": true,
+      "tris": 3300,
+      "color": "#b9b8bf",
+      "fit": {
+        "width": 1.2,
+        "depth": 1.15,
+        "height": 0.95,
+        "lift": 0.12,
+        "back": 0.02,
+        "side": 0
+      },
+      "source": "Meshy web image-to-3d of the chibi character from the owner's sheet, untextured and detailed, made by the owner on the Meshy site (assets/meshy/hero_chibi/hair_meshy_web.glb, 8,429 tris, whole body); hair cut out by position with scripts/prep-chibi-hair.py --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03. Fitted by its fixed box, so re-cutting the model does not move the hair. Drawn in one colour.",
+      "box": [
+        [-0.2991, -0.0579, -0.2703],
+        [0.2991, 0.4763, 0.2742]
+      ],
+      "highlight": {
+        "_doc": "Anime highlight band on the hair (chibi-body.js hairHighlightMaterial): a jagged lighter band at height `at` of the hair model, `width` thick, on the side facing the camera, `strength` 0..1.",
+        "at": 0.72,
+        "width": 0.06,
+        "strength": 0.6
+      },
+      "keep": [
+        "front",
+        0.42
+      ]
+    },
+    "hero_chibi_hair_back": {
+      "file": "models/hero_chibi_hair_back.glb",
+      "chibiHair": true,
+      "tris": 3014,
+      "color": "#b9b8bf",
+      "keep": [
+        "back",
+        0.6
+      ],
+      "fit": {
+        "width": 1.2,
+        "depth": 1.25,
+        "height": 0.95,
+        "lift": 0.09,
+        "back": 0.06,
+        "side": 0
+      },
+      "source": "The back of the hair: the earlier meshy-t2 model of the sheet's chibi head (task 01a1681c-6a87-7494-abca-d5d86c39028f), head removed by scripts/prep-chibi-hair.py; only its back part is drawn (keep), joined to hero_chibi_hair's fringe."
     }
   },
   "monsters": {

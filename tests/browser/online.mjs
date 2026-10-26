@@ -64,7 +64,7 @@ try {
   const pose = { x: x + ox + 1, z: z + oz, region: 'moonroot-grove-v1', facing: .3, moving: false };
   peer.send(JSON.stringify({ type: 'join', map: WORLD_ID, room: 'lobby', pose, look, gear })); const welcome = await take('welcome');
   await page.waitForFunction(() => __online.presence.actors.actors.size === 1);
-  await page.waitForFunction(() => { const a = [...__online.presence.actors.actors.values()][0]; return a.rig.hairsample && a.rig.importedWeapon; }, null, { timeout: 10000 });
+  await page.waitForFunction(() => { const a = [...__online.presence.actors.actors.values()][0]; return a.rig.skin?.body && a.rig.importedWeapon; }, null, { timeout: 10000 });
   await capture('remote-ranger-sword'); ok('Real relay peer renders current main outfit and imported sword');
   let seq = 0;
   const action = async (skill, duration, phase = 'cast') => {

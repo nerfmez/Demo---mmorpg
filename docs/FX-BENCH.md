@@ -1,7 +1,7 @@
 # Skill FX bench
 
 `fx-test.html` (published at `<site>/fx-test.html`) is a separate test page for the
-Chain Spark, Frost Nova and Flame Stream effect prototypes (`docs/review/fx-prototypes`
+Chain Spark, Frost Nova, Flame Stream and Venom Shot effect prototypes (`docs/review/fx-prototypes`
 on `claude/fx-prototypes`), a new Slash look, Firebolt (the game's own renderer) and the
 prototype skill fusion. It is not the Skill Lab and not part of the game.
 
@@ -18,8 +18,12 @@ prototype skill fusion. It is not the Skill Lab and not part of the game.
   the skill from the dodge button. Guard triggers are hidden (no guard skill on the bench).
 - Controls: tap the floor to aim, **ร่าย** casts (hold for Flame Stream), **หลบ** dashes,
   slow motion ×0.5/×0.25, close/game camera, auto-repeat, reset dummies.
-- Effects are cosmetic prototypes in `src/fxtest/*-fx.js`. Porting one into the game
-  still means rebuilding it in `src/render/` with its numbers in `data/combat-fx.json`.
+- The effects are the game's: `src/render/skillfx/*-fx.js`, driven by the same director
+  (`src/render/skill-fx.js`) in the bench and in the game View. A change made here is a change
+  to the game. The bench keeps their point lights and the flame occluder pass; the game turns
+  them off. Only the skill fusion (`flame-slash-fx.js`, `fusion.js`) is bench-only.
+- The rule trials made here (Venom Arrow, the slam stun, the quick stab, no third-hit finisher)
+  are now game rules in `data/skills.json` and `src/core/`.
 
 `node --test tests/core/fx-bench.test.js` checks that the bench offers fitting mods and
 that they change the events the effects draw. Review hooks: `__fxtest.freeze()` then
@@ -56,7 +60,7 @@ an ice crescent, with ice chips on hits.
 
 ## Slash (bench look and rule trial)
 
-`src/fxtest/slash-fx.js` draws one clean crescent of light around the caster over the real range
+`src/render/skillfx/slash-fx.js` draws one clean crescent of light around the caster over the real range
 and arc: the outer edge is the reach and the inner edge bows in, so it is thick in the middle
 and pointed at both ends: a white-hot outer edge falling off to transparent toward the caster,
 a soft additive glow, thin speed lines sliding along the arc, a bright leading edge with the
@@ -70,13 +74,12 @@ outer line.
 Multistrike (game data): one extra strike at levels 1-2, two at level 3. Each repeat is a
 separate strike on its own time, and the bench plays a swing for each.
 
-Rule trial (bench only, `SINGLE_STRIKE` in `src/fxtest/sandbox.js`): Slash is one plain
-strike, with no 1-2-3 combo and therefore no finisher knockback. The game is unchanged
-until this is approved and moved into `data/skills.json` with a core rule and test.
+Every melee arc skill is one plain strike (owner request, now a game rule): swings in a row only
+alternate the arm; there is no third-hit finisher with extra damage and knockback.
 
 ## Firebolt additions
 
-The game's Firebolt renderer is unchanged. `src/fxtest/fire-extras.js` adds two bench layers:
+The game's Firebolt renderer is unchanged. `src/render/skillfx/fire-extras.js` adds two bench layers:
 flame wisps and embers that spiral in from around the staff head and arrive at release (the
 charge reads as fire being gathered within the real cast time), and impact embers that burst
 out, then sway, curl and drift upward while flickering and cooling, drawn as short curved
@@ -87,3 +90,172 @@ the charge reads as one ball growing as the fire gathers. Fire hits use a round 
 ragged flash and a fire puff that swells and burns away) instead of the game's one-sided
 contact splash, so nothing flies off in one direction. Porting them means moving them into `src/render/` with
 numbers in `data/combat-fx.json`.
+
+## Venom Arrow (rule trial of Venom Mire)
+
+The owner did not want a poison pool, and a poison shot from the staff was too close to Firebolt.
+Venom Mire is now **Venom Arrow**, a bow attack (in the game too, `data/skills.json` `venom_mire`
+with core poison stacks): a fast thin arrow
+(26 m/s, 14 m, cooldown 0.6 s, uses arrows, no pierce of its own) with a small direct hit. Every
+hit adds a poison stack on that target, up to 5, and refreshes its 4 s; each stack adds dps worth
+0.6 x that hit, so one target kept under fire ramps past a plain arrow while a single hit is weak.
+Firebolt is burst on whatever it hits; Venom Arrow rewards staying on one target. Arrow mods fit
+(Split, Pierce, Bounce, Returning Shot, Laceration...); field mods and element Shifts do not.
+
+`src/render/skillfx/venom-fx.js` uses the same language as the bench's Firebolt and Chain Spark (light,
+not solid shapes): the arrow is a thin hot yellow-green needle of light with a short trail and a
+fine wisp twisting round it; on impact a small ragged poison flash (`ELEMENT_LOOK.poison`), a puff
+and a few streaks; a poisoned dummy is tinted green by its stacks and gives off rising motes, more
+with more stacks, and a "พิษ ×N" label shows each new stack.
+The Cartoon FX gallery host was blocked for this
+pass, so no gallery clip was studied; it follows the cel rules in `docs/VFX-REFERENCE.md`.
+
+## Arrow Rain
+
+`src/render/skillfx/rain-fx.js`, in the same light-and-ribbon language. The rules send one `area` event
+per wave, each with its delay, and a `burst` as each lands.
+- **Up-shot.** The hero plays a bench-only `bowSky` action: lean back, raise the bow, draw and
+  loose at the sky. As the volley's first `area` event arrives, a bright streak climbs from the bow
+  and bursts above the target in a ragged flash.
+- **Rain.** Each wave's 26 arrows come down from around that burst as streaks of light with a
+  bright head. They land one after another, from 0.28 s before that wave's burst to 0.14 s after
+  it, not all at once.
+- **Landing.** Each landing leaves a short stub along its line of flight and a couple of sparks.
+- **Circle.** A thin cel circle with an inner guide ring marks the volley and pulses with each
+  wave.
+
+Echo, Wide Field and Concentrated show through the events; element Shifts recolour it. Venom Arrow
+plays the plain bow action on the bench; the game's action table is unchanged.
+
+## Power Draw
+
+`src/render/skillfx/power-fx.js`, in the same light-and-ribbon language. Hold **ร่าย** to charge (the
+rules' `chargeStart`; release calls `releaseCharge`, auto-repeat holds about 1.6 s).
+- **Hero.** Raises and draws, then holds at full draw (bench-only `bowDraw`), and snaps the loose
+  on release (`bowLoose`).
+- **Charge.** Streaks of light are drawn in to the arrow tip, where a soft round glow with a hot
+  centre grows. Three arcs of light circle the arrow, widening and speeding up with the charge.
+  Reaching full charge pings once (a burst and a ring) and the glow then pulses, so a full draw
+  reads at a glance.
+- **Shot.** A streak of light whose width and glow grow with the charge, with a small burst at the
+  bow. Over half charge, a ring of pushed air forms at the bow; near full, more rings keep coming
+  off its path.
+- **Impact.** A clean burst, all scaled by the charge (owner: no ragged flash, no bar): a round
+  glow that pops and fades, sharp rays of light with the longest thrown on along the shot, a thin
+  ring and a few sparks.
+
+## Frontline Split
+
+`src/render/skillfx/split-fx.js`, in the same light-and-ribbon language, with a greatblade.
+- **Hero.** Plays the overhead `slam`, raised during the rules' 0.65 s wind-up and chopping down
+  at the strike.
+- **Wind-up.** The lane it will cut (5 m x 1.4 m, turning with the aim since the skill aims during
+  the cast) is drawn on the ground as a thin cel outline. It fills from the hero outward, and light
+  gathers along the raised blade.
+- **Strike.** On the rules' `lineStrike` (owner: a vertical crescent and a harder hit):
+  - the blade hits the ground with a burst of upward rays and a shockwave ring;
+  - a tall **vertical crescent** of light (a mesh: tips up and down, bulging forward, white-hot
+    front edge, speed lines, a soft additive glow) flies down the lane;
+  - a cut line opens in the ground behind it;
+  - as the crescent reaches each struck target, a hard burst goes off on it (a glow that pops,
+    rays thrown on along the cut, a ring);
+  - the bench camera gives a short shake on the ground hit and on each target.
+
+## Sunder Cut
+
+`src/render/skillfx/sunder-fx.js`, with an axe (two-handed heavy swing). The cut is the bench Slash
+crescent in amber steel (`SUNDER_PALETTE`, passed to slash-fx). On each struck target:
+- a hard burst: a glow that pops, rays thrown on along the cut and a short camera shake;
+- angular armour shards of light breaking off and falling.
+
+While the rules keep the target's armour exposure (18 % for 5 s), a broken ring of light (six arcs
+with gaps) circles it at chest height, slowly turning and pulsing. A broken-shield icon (two
+amber halves split by a zigzag crack, drawn once into a canvas) pops in over its head and bobs
+there. Both fade as the exposure runs out.
+
+Frontline Split also cracks the ground open along the lane: a zigzag fissure with forked
+branches tears open just behind the crescent, glowing hot at first, then left as a dark crack with
+rubble thrown up; it lingers 1.8 s and fades.
+
+## Breakbeat Slam (slam and stun)
+
+The owner found the interrupt timing hard to use, so Breakbeat Slam stuns everything it hits (now a
+game rule, `stun` in `data/skills.json`): 1.2 s, bosses 0.4 s, using the rules' stunned state, which
+the bench clears after the time (its dummies run no AI).
+
+`src/render/skillfx/mace-fx.js`, with a mace (overhead `slam`). On contact (the rules' `slash`; no
+horizontal crescent, it is a downward blow):
+- a heavy ground impact in front: a popping glow and upward rays;
+- two shock rings racing out over the 65 degree cone and a ring at the impact point;
+- a hard burst on each struck target, and a camera shake;
+- a "มึน!" banner, with little stars of light circling each stunned head until it recovers.
+
+## Flank Thrust (the dagger's quick main stab)
+
+Owner: make it a main skill with a short cooldown and less damage, and less from the front too.
+It is now a 0.5 s, no-MP stab (game data too):
+- base damage 6 + 0.6 x power (it was 10 + 1.1 x power on a 2.5 s cooldown);
+- a front hit lands at 0.7x;
+- the rules' 1.6x side/back bonus is unchanged, so a stab from behind is about 2.3x a front stab.
+
+The game keeps its Flank Thrust until this is approved.
+
+`src/render/skillfx/thrust-fx.js`, with a dagger. It is a stab, not a cut, so the slash crescent is
+skipped. The hero plays a bench-only `thrust` action (pull the dagger back at the hip, lunge and
+drive it straight out). Multistrike repeats replay the skill's own motion and effect (`OWN_STRIKE`
+in main.js: Flank Thrust and Breakbeat Slam draw their own strike on each repeat's `slash`). The
+Slash crescent is only for skills that cut.
+- **Layout.** On the bench (`FACINGS` in sandbox) one dummy in the thrust faces the hero and one
+  turns its back. Each dummy's weak side is marked on the ground with a dashed gold half-ring
+  behind it.
+- **Contact** (the rules' `slash`). A narrow spear of light shoots out to the 2.5 m reach, with two
+  thin speed lines beside it.
+- **Front hit.** A small blue-white burst.
+- **Side or back hit** (the rules' 1.6x positional bonus, the same facing test as the rules):
+  - a hard gold burst with rays thrown on along the stab;
+  - a gold weak-point diamond that snaps shut on the target;
+  - a "จุดอ่อน!" label and a camera shake.
+
+## Shield Bash
+
+`src/render/skillfx/bash-fx.js`, with a sword and a shield (sandbox equips the skill's `requiresOffhand`).
+The hero plays a bench-only `shieldBash` action: the shield arm loads back across the body, then
+drives the shield straight out. It is not a crescent.
+- **Contact** (the rules' `slash`):
+  - a burst at the shield;
+  - two upright rings of light racing forward, facing the bash;
+  - a cone shock ring over the 90 degree arc on the ground;
+  - a short camera shake.
+- **Each struck target:**
+  - a hard burst;
+  - a fading skid streak on the ground as the rules' knock slides it back;
+  - for the rules' 3 s taunt, a red anime anger mark over its head and a red ring at its feet,
+    pulsing until it ends.
+
+## Measured Riposte
+
+`src/render/skillfx/riposte-fx.js`, with a sword. Something has to strike the hero, so on the bench the
+nearest dummy winds up (a red "!" over it, 1 s) every 3.2 s and then strikes the hero through the
+rules' `damagePlayer` (bench-only; the hero is never brought below 30% life).
+- **Guard** (first press, the rules' `guardStance`, 0.8 s): the hero plays a bench-only
+  `guardBlock` action (the sword brought up across the front) and a curved pane of light over
+  the guard's 110 degree arc stands in front of it, following its facing: crisp cel rims, a glassy
+  fill strongest at its foot, diagonal shine streaks sliding over it; it pops up with a little
+  overshoot and flickers out, with a matching arc on the ground.
+- **The blow:** a red lunge streak from the attacker. If the guard catches it (the rules'
+  `playerHit` with `blocked`), an anime clash (owner: the first parry was too weak):
+  - a big four-point star of light where blade meets blow, a second one turned 45 degrees behind
+    it, popping in and spinning out;
+  - a long thin glint across the contact and focus lines bursting out around it;
+  - a spray of hot metal sparks thrown back at the attacker and out to the sides;
+  - two upright shock rings facing the attacker and a ring on the ground;
+  - the guard wall breaks into shards; a hard camera shake and the banner "ปัดป้อง!".
+  A blow the guard misses flashes red on the hero.
+- **Counter window** (the rules' 1.5 s ready window): a gold ring pulses at the hero's feet, the
+  blade glows gold and the cast button gets a gold halo (its cooldown shade is hidden, since the
+  counter ignores the cooldown).
+- **Counter** (second press inside the window): a big cut with a gold crescent (the slash-fx
+  palette `RIPOSTE_PALETTE`) and a hard gold burst on each target, with a shake.
+
+Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
+flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

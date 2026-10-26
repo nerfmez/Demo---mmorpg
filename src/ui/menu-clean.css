@@ -120,6 +120,9 @@
 #atelier:is(#atelier) .stack-count { color: var(--mc-dim); background: none; }
 #atelier:is(#atelier) .worn { background: var(--mc-accent); color: #fff; }
 #atelier:is(#atelier) :is(.inventory-cell, .wear-slot).equipment-inactive { background: #fdecea; box-shadow: inset 0 0 0 2px var(--mc-bad); }
+/* an inactive item keeps its red border while selected (the selected ring would replace the inset one) */
+#atelier:is(#atelier) :is(.inventory-cell, .wear-slot).equipment-inactive,
+#atelier:is(#atelier) .bag-grid .inventory-cell[data-grade].equipment-inactive { border: 2px solid #c83b35; }
 #atelier:is(#atelier) .inventory-cell.equipment-inactive b { color: var(--mc-bad); }
 #atelier:is(#atelier) .grid-footer { color: var(--mc-dim); }
 #atelier:is(#atelier) .selection-shelf { margin: 0; border: 0; border-top: 1px solid var(--mc-hair); border-radius: 0; background: none; color: var(--mc-ink); }

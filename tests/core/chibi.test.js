@@ -21,3 +21,58 @@ test('the opt-in chibi hero is one textured skinned mesh the driver rig can driv
   const tris = j.meshes.flatMap((x) => x.primitives).reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
   assert.equal(tris, m.tris);
 });
+
+test('the chibi head reshape stays a small, bounded change', () => {
+  const h = data.models.characters.hero_chibi.headShape;
+  assert.ok(h, 'hero_chibi has a headShape');
+  for (const k of ['wide', 'chin', 'cheek']) assert.ok(h[k] >= 0 && h[k] <= 0.3, k + ' is a modest fraction');
+  assert.ok(h.eye > 0 && h.eye < 1, 'eye line inside the head');
+  assert.ok(h.soft >= 0 && h.soft <= 1, 'soft blends between mesh and sphere normals');
+});
+
+test('the chibi torso flatten bands are bounded', () => {
+  const bands = data.models.characters.hero_chibi.flatten;
+  assert.ok(Array.isArray(bands) && bands.length, 'hero_chibi flattens its torso');
+  for (const b of bands) {
+    assert.ok(b.y0 < b.y1 && b.y0 > 0 && b.y1 < 1.2, 'band inside the 1.2 m body');
+    assert.ok(Math.abs(b.z) < 0.2 && b.z !== 0, 'depth limit in front of (z > 0) or behind (z < 0) the body');
+    assert.ok(b.k > 0 && b.k <= 1, 'k is a strength 0..1');
+  }
+});
+
+test('the chibi face shadow and hair highlight settings are bounded', () => {
+  const f = data.models.characters.hero_chibi.faceShadow;
+  assert.ok(f && f.from < f.to && f.from >= 0 && f.to <= 1, 'face mask runs forward across the head');
+  assert.ok(f.curve >= 0 && f.curve < 1, 'curve bows the shadow edge a little');
+  const h = data.models.characters.hero_chibi_hair.highlight;
+  assert.ok(h && h.at > 0 && h.at < 1 && h.width > 0 && h.width < 0.3 && h.strength > 0 && h.strength <= 1, 'hair highlight band');
+});
+
+test('the chibi helm fit sits over the hair', () => {
+  const h = data.models.characters.hero_chibi.helmFit;
+  assert.ok(h && h.scale > 1 && h.scale < 1.6 && h.lift >= 0 && h.lift < 0.3, 'helms larger and a little higher than the head');
+});
+
+test('the chibi hair models are single meshes within the character budget', () => {
+  const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiHair);
+  assert.deepEqual(entries.map(([id]) => id).sort(), ['hero_chibi_hair', 'hero_chibi_hair_back']);
+  let drawn = 0;
+  for (const [id, m] of entries) {
+    const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
+    const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
+    assert.equal(j.meshes.length, 1, id);
+    assert.ok(m.color || j.images?.length === 1, id + ' a flat colour or its own painted texture');
+    const tris = j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
+    assert.equal(tris, m.tris, id);
+    for (const k of ['width', 'depth', 'height', 'lift', 'back', 'side']) assert.ok(Number.isFinite(m.fit[k]), id + ' fit.' + k);
+    if (m.box) {
+      // a fixed fit box must hold the model, so the fit cannot cut it off
+      const a = j.accessors[j.meshes[0].primitives[0].attributes.POSITION];
+      for (let c = 0; c < 3; c++) assert.ok(m.box[0][c] <= a.min[c] + 1e-4 && m.box[1][c] >= a.max[c] - 1e-4, id + ' box holds the model');
+    }
+    if (m.keep) assert.ok(['front', 'back'].includes(m.keep[0]) && m.keep[1] > 0 && m.keep[1] < 1, id + ' keep');
+    drawn += tris;
+  }
+  // the two halves together stay well inside the 8,000-tri character budget
+  assert.ok(drawn + data.models.characters.hero_chibi.tris < 12000);
+});

@@ -369,6 +369,6 @@ Checks: core 640/640; local hud and ux browser suites (dev load) pass. Inspected
 Owner: no more planting inside the scenes ("ไม่ต้องปลูกเพิ่ม"); the windmill's outer wood stays.
 
 - **Straight connectors removed:** four more generated connectors ran as long straight dirt roads across a scene's ground to the nearest map road: `accepted/join-0` (48 m through the forest's east upland), `accepted/join-2` (40 m along the rose garden's south edge), `accepted/join-7` (35 m along the meadow's south lawn) and `accepted/join-9` (25 m down the meadow's east side, beside `accepted/join-11` to the same junction). Each scene keeps its other exits; the scene's own trails fade into grass at their ends.
-- **Grass banks:** the forest, rose garden and meadow build their rock faces as their own meshes, like the windmill, so the game now paints their steep ground as grass (`acceptedScenes.grassBanks`). The grey slope strata it painted there read from above as pale ghostly slabs. The arrival beach keeps its sand.
+- **Grass banks:** the rose garden and meadow build their rock faces as their own meshes, like the windmill, so the game now paints their steep ground as grass (`acceptedScenes.grassBanks`). The grey slope strata it painted there read from above as pale ghostly slabs. The forest keeps its grey rock banks (owner: "why remove the cliffs?"), and the arrival beach keeps its sand.
 
 Checks: core 640/640; accepted-scene and data tests pass. Inspected from above over the forest, rose garden and meadow, and low over the rose garden's terraces.

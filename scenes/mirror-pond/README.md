@@ -1,6 +1,6 @@
-# Mirror Pond — standalone scene in owner review
+# Mirror Pond — preliminarily accepted standalone scene
 
-**Owner status: in review, 26 October 2026**, artifact version 6:
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 26 October 2026** ("โอเคฉากต่อไปได้"), artifact version 6:
 https://claude.ai/artifact/YRE8REPWfr1GbfzaNNPxw1.
 
 Concept: `mirror-pond.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`

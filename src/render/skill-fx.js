@@ -213,7 +213,7 @@ export class SkillFx {
         if (e.owner !== 'player') return false;
         const el = this.skillOf(e.kind)?.element;
         if (e.kind === 'arrow_rain') { this.rain.wave(e, el || 'physical', g.player); return true; }
-        if (e.kind === 'meteor') { this.meteor.begin(e, el || 'fire', g.player); return true; }
+        if (e.kind === 'meteor') { this.meteor.begin(e); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.begin(e, el || 'lightning'); return true; }
         if (e.kind === 'blizzard') { this.blizzard.begin(e); return true; }
         return false;

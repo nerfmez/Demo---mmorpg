@@ -114,10 +114,14 @@ ramp and colours on a comet shell round the rock and an explosion dome whose cut
 not a style name; polish one approach instead of swapping approaches; a shell in front of the rock
 hides it (draw the rock last, without depth test). Owner review (better, "ดีขึ้นมาก"): ground cracks
 replaced by a round sunken crater, shaded in three toon steps from a height field (a bowl, a raised
-broken lip; soot; a molten floor that cools) with the flying rock chunks left round it as rubble; the
+broken lip; soot; a molten floor that cools); the flying rock chunks land and shrink away (left as
+rubble was rejected); the
 warning fill is plain (no dense hatching). Showing the meteor the whole warning made the rock tumble
 oddly in the sky (rejected): it falls only in the last 0.6 s again, out of a sky cue made like
-Firebolt's charge: a small fire swelling as the gather wisps spiral in, with a turning flare glint. `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm and Blizzard are
+Firebolt's charge: a small fire swelling as the gather wisps spiral in, with a turning flare glint.
+Checked in the real game: its camera is far higher than the bench's (18.9 m up, 13.5 m back, fov 36),
+so a cue 7 m above the target is off the top of the screen; the fire is born 5.5 m up, 3.5 m to the
+screen's right and 3 m toward the camera, and the meteor falls from there. `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm and Blizzard are
 still the light version below until redone.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26

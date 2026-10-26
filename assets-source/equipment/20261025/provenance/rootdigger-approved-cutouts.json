@@ -8,8 +8,9 @@
       "component_ids": [
         2
       ],
-      "sha256": "695a94da30f5f4276dfc5b411ce22e6bfc27ef8c841e96ab62ddaac1b3569aa4",
-      "proposed_new_item": true
+      "sha256": "fd568d6970e3abb50e1376215b8c9c6daf03a830f35faca330096d0a78dd05ed",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
     },
     {
       "id": "burrowguard_gloves",
@@ -17,16 +18,18 @@
         3,
         5
       ],
-      "sha256": "85fc40c0b415c594cba942275d07b3d1c4d1580fd2ded5f33ad767647416caed",
-      "proposed_new_item": true
+      "sha256": "7260fcff0f4c6f402ce9713aaf9894025f5d15de7024ab1674ae8136c79904d6",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
     },
     {
       "id": "burrowguard_shield",
       "component_ids": [
         1
       ],
-      "sha256": "a372b3d03599cf25b805af08d7956913356a9f404715086373c6886da9b40588",
-      "proposed_new_item": true
+      "sha256": "5866aa34b3c2745c38216e0b809bf50d82f1cb575c3e0a8dd6546c73a056ff95",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
     }
   ]
 }

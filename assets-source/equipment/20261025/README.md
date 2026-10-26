@@ -16,7 +16,7 @@ The Storm atlas includes five existing shapes and proposed matching gloves. The 
 
 The starter travel atlas completes the existing tunic and boots with proposed cap and gloves.
 
-The three approved fern-hare, mirrorwing and rootdigger reference sheets were separated into nine more transparent icons. Combined with the earlier four-item completion pilot, the three proposed equipment sets have complete matching pieces.
+The three approved fern-hare, mirrorwing and rootdigger reference sheets were separated into nine more transparent icons. Their soft edges carried the cream paper colour (a pale outline on dark panels); those edge pixels are recoloured from the ink line beside them. Combined with the earlier four-item completion pilot, the three proposed equipment sets have complete matching pieces.
 
 The level-16 Wisp concept combines existing wraps, staff and pendant with proposed robe, hood and matching boots. The existing level-1 `wisp_slippers` remain a separate item; this source-art change does not alter item levels or recipes.
 

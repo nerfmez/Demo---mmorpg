@@ -1,0 +1,35 @@
+{
+  "source_image": "approved-rootdigger.png",
+  "source_kind": "owner-approved original concept sheet",
+  "extraction_method": "cream-paper mask and connected components",
+  "items": [
+    {
+      "id": "burrowguard_armor",
+      "component_ids": [
+        2
+      ],
+      "sha256": "ab1bbcf2e30813e41ef83e683fdfd6e6e101000914eb22f700d80ebd9589e493",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
+    },
+    {
+      "id": "burrowguard_gloves",
+      "component_ids": [
+        3,
+        5
+      ],
+      "sha256": "418efb4c6880cb85a8ebff140ba62392c5e0841134fcbc8b8f8874b480903f06",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line; enclosed paper gaps (between sleeves and body, between fingers) cut out"
+    },
+    {
+      "id": "burrowguard_shield",
+      "component_ids": [
+        1
+      ],
+      "sha256": "bd3aa569c6335ba169e27b6560484b86eb6937543f25f193cc5aacd217dc6a03",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "status": "illustrated proposed source art only; not game runtime assets",
+  "source_image": "exec-b6288689-25bc-4310-aa7d-2e7cd7ecc0ca.png",
+  "items": [
+    {
+      "id": "sporeweave_vest",
+      "source_cell": [
+        0,
+        0,
+        575,
+        548
+      ],
+      "source_alpha_bbox": [
+        63,
+        40,
+        552,
+        548
+      ],
+      "sha256": "d95f222d187bbf02b6de996eabab2154f1b924030dab59d9388c8463ae9c4230",
+      "proposed_new_item": false
+    },
+    {
+      "id": "spore_hood",
+      "source_cell": [
+        575,
+        0,
+        1030,
+        548
+      ],
+      "source_alpha_bbox": [
+        12,
+        68,
+        420,
+        529
+      ],
+      "sha256": "0fb984efafd13f713ed29729cf6f2e0a228dc31ca24525079d00ebd0627630c6",
+      "proposed_new_item": false
+    },
+    {
+      "id": "sporeweave_gloves",
+      "source_cell": [
+        1030,
+        0,
+        1536,
+        548
+      ],
+      "source_alpha_bbox": [
+        7,
+        104,
+        441,
+        530
+      ],
+      "sha256": "b5cbb2286a47ed151f9c8a270bd90d0d859645632a7e376871d4b1f8ded5ee1f",
+      "proposed_new_item": false
+    },
+    {
+      "id": "sporeweave_boots",
+      "source_cell": [
+        0,
+        548,
+        575,
+        1024
+      ],
+      "source_alpha_bbox": [
+        49,
+        45,
+        549,
+        433
+      ],
+      "sha256": "0afb8c3cb606f72559e389814c542e51d07eefc6b35d35762a19eac741db4502",
+      "proposed_new_item": true
+    },
+    {
+      "id": "spore_staff",
+      "source_cell": [
+        575,
+        548,
+        1030,
+        1024
+      ],
+      "source_alpha_bbox": [
+        12,
+        5,
+        440,
+        435
+      ],
+      "sha256": "2e3520199077c956a181af133c926ea2b9aade9c6941b4d574a3b44f61da474c",
+      "proposed_new_item": false
+    },
+    {
+      "id": "spore_amulet",
+      "source_cell": [
+        1030,
+        548,
+        1536,
+        1024
+      ],
+      "source_alpha_bbox": [
+        118,
+        23,
+        440,
+        414
+      ],
+      "sha256": "f0c7490927e5c4bba67839fe1f91731e8df0f3412f9d2d1fda8cfe4fbab49065",
+      "proposed_new_item": false
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "source_image": "approved-fern-hare.png",
+  "source_kind": "owner-approved original concept sheet",
+  "extraction_method": "cream-paper mask and connected components",
+  "items": [
+    {
+      "id": "fernstep_coat",
+      "component_ids": [
+        1
+      ],
+      "sha256": "04dae37160b6a0d5553ea57a71f3eab2d800c5de81e080e807a2d912c1d43a34",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line; enclosed paper gaps (between sleeves and body, between fingers) cut out"
+    },
+    {
+      "id": "fernstep_cap",
+      "component_ids": [
+        2
+      ],
+      "sha256": "ca7eec16d5d60e5f8064e510a7db88012902cc29b7b67325809c61686a18a210",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
+    },
+    {
+      "id": "fernstep_boots",
+      "component_ids": [
+        3,
+        7
+      ],
+      "sha256": "2fb0bec6e5c3135fb1442d4d5d6a19eb81a1de580dc818ffe06d31f8931154e9",
+      "proposed_new_item": true,
+      "edge_cleanup": "soft edge recoloured from the ink line (was cream paper)"
+    }
+  ]
+}

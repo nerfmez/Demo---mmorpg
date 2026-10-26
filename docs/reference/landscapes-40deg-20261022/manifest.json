@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "created": "2026-10-22",
+  "sourceRevision": "2109fef033724e3a8282617a37ca9baae0fb6242",
+  "purpose": "Landscape concept references; no runtime integration.",
+  "cameraTarget": {
+    "elevationDegrees": 40,
+    "viewDirection": "from south"
+  },
+  "artStyle": "Warm anime cel-shaded landscape matching the original reference series.",
+  "images": [
+    {
+      "id": "crag-highlands",
+      "nameThai": "ที่ราบสูงผาหิน",
+      "region": "greenhollow-frontier",
+      "file": "greenhollow-frontier/crag-highlands.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3435909,
+      "gitBlobSha": "c1c119e24254da8fe85e777cc79644b3018179d9"
+    },
+    {
+      "id": "glimmer-wetland",
+      "nameThai": "ที่ชุ่มน้ำประกายแสง",
+      "region": "greenhollow-frontier",
+      "file": "greenhollow-frontier/glimmer-wetland.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3601636,
+      "gitBlobSha": "42c38e5555ba67dd85b3a1bec09d5234d3dc5fbd"
+    },
+    {
+      "id": "bramble-glade",
+      "nameThai": "ทุ่งพุ่มหนาม",
+      "region": "greenhollow-frontier",
+      "file": "greenhollow-frontier/bramble-glade.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3645388,
+      "gitBlobSha": "03320ea37ce473b2ddf5787c38cabdd1823fe229"
+    },
+    {
+      "id": "greyfang-den",
+      "nameThai": "ถ้ำหมาป่าเกรย์แฟง",
+      "region": "greenhollow-frontier",
+      "file": "greenhollow-frontier/greyfang-den.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3483910,
+      "gitBlobSha": "9bc4f54909b9f3ae40cb450b119d8b712f37b14a"
+    },
+    {
+      "id": "sunny-meadow",
+      "nameThai": "ทุ่งหญ้าแดดอุ่น",
+      "region": "greenhollow-frontier",
+      "file": "greenhollow-frontier/sunny-meadow.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3782972,
+      "gitBlobSha": "75c64c7308f3879202a8e6774f966f1da96a0e5c"
+    },
+    {
+      "id": "sunfall-coast",
+      "nameThai": "ชายฝั่งตะวันรอน",
+      "region": "greenhollow-frontier",
+      "file": "greenhollow-frontier/sunfall-coast.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3639355,
+      "gitBlobSha": "c465fbe4d5875d1483f5d116e3696d53821051df"
+    },
+    {
+      "id": "frontier-settlement",
+      "nameThai": "นิคมชายแดน",
+      "region": "greenhollow-frontier",
+      "file": "greenhollow-frontier/frontier-settlement.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3674999,
+      "gitBlobSha": "ddab5d2110d1bb2d8e5932d2d24ff2ce0ad801db"
+    },
+    {
+      "id": "azure-port",
+      "nameThai": "เมืองท่าสีคราม",
+      "region": "azure-coast",
+      "file": "azure-coast/azure-port.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3495728,
+      "gitBlobSha": "9a6a1e00a24f4724c6032731a467e681cab65abc"
+    },
+    {
+      "id": "gull-headland",
+      "nameThai": "แหลมเหนือเมือง",
+      "region": "azure-coast",
+      "file": "azure-coast/gull-headland.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3782479,
+      "gitBlobSha": "15b1f9e7a1d4faba8cf13072f806b36caaf69776"
+    },
+    {
+      "id": "singing-conch-coast",
+      "nameThai": "หาดเปลือกหอย",
+      "region": "azure-coast",
+      "file": "azure-coast/singing-conch-coast.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3416516,
+      "gitBlobSha": "2af7e350d05bba2c8efc5587bfc87d73eab760c4"
+    },
+    {
+      "id": "coastal-ranger-forest",
+      "nameThai": "ป่าโปร่งริมฝั่ง",
+      "region": "azure-coast",
+      "file": "azure-coast/coastal-ranger-forest.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3498843,
+      "gitBlobSha": "a85b750b9878869a6657a589b100a45461a42de1"
+    },
+    {
+      "id": "rose-garden-glade",
+      "nameThai": "สวนและพุ่มริมทาง",
+      "region": "azure-coast",
+      "file": "azure-coast/rose-garden-glade.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3441775,
+      "gitBlobSha": "094c433bc87e168429f1c5a2dbb5a70c08aa2a53"
+    },
+    {
+      "id": "hill-windmill",
+      "nameThai": "เนินหลังเมือง",
+      "region": "azure-coast",
+      "file": "azure-coast/hill-windmill.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3673292,
+      "gitBlobSha": "b0e2961a8bfc1609939fbaa1b52a41ae91100bba"
+    },
+    {
+      "id": "azure-meadow-well",
+      "nameThai": "ทุ่งรอบเมือง",
+      "region": "azure-coast",
+      "file": "azure-coast/azure-meadow-well.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3892706,
+      "gitBlobSha": "98cfde3a398b150199fa7e42a01164a118e7814b"
+    },
+    {
+      "id": "moonstone-camp",
+      "nameThai": "แคมป์หินจันทร์",
+      "region": "moonroot-grove",
+      "file": "moonroot-grove/moonstone-camp.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3534406,
+      "gitBlobSha": "6d7a4092fc46be07441cc8bcd217e0f8c5ed80ac"
+    },
+    {
+      "id": "root-warren",
+      "nameThai": "โพรงรากตุ่น",
+      "region": "moonroot-grove",
+      "file": "moonroot-grove/root-warren.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3755803,
+      "gitBlobSha": "4317c266d2358076baa15a765e3384b1c54a918a"
+    },
+    {
+      "id": "mirror-pond",
+      "nameThai": "สระกระจกจันทร์",
+      "region": "moonroot-grove",
+      "file": "moonroot-grove/mirror-pond.png",
+      "width": 1671,
+      "height": 941,
+      "bytes": 3755316,
+      "gitBlobSha": "024f6ecb87ebd36a2fba883300989af7b611b049"
+    },
+    {
+      "id": "fern-rise",
+      "nameThai": "เนินเฟิร์น",
+      "region": "moonroot-grove",
+      "file": "moonroot-grove/fern-rise.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3538290,
+      "gitBlobSha": "fcb35bfae1b6211b81985f5c0b3226fe9006ab15"
+    },
+    {
+      "id": "old-root-stone-ring",
+      "nameThai": "วงหินรากโบราณ",
+      "region": "moonroot-grove",
+      "file": "moonroot-grove/old-root-stone-ring.png",
+      "width": 1672,
+      "height": 941,
+      "bytes": 3697674,
+      "gitBlobSha": "09d6557d056b4dd3eb6ccbcefc3913984bd2f027"
+    }
+  ]
+}

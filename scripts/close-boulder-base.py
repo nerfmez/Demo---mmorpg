@@ -5,6 +5,7 @@
 # - its stone is recoloured to the golem's (golem_meshy.glb): the two Meshy textures came out in
 #   different greys, and the boulder must read as the same stones. Grey pixels take the golem's
 #   stone mean, with less of the patchy shading (even colour); the lava (saturated) is left as it is;
+# - one horn, as on the sheet (Meshy gave it two);
 # - the stones are pulled onto a sphere so it rolls as a ball (the horns keep their shape), with a
 #   plain stone core inside, so the open base and the gaps between plates read as stone when it spins.
 #   PYTHONPATH=<bpy dir> python3 scripts/close-boulder-base.py -- <ball_meshy.glb> <golem_meshy.glb> <out.glb>
@@ -58,6 +59,14 @@ horn = set()
 for p in parts:
     if p[0] in set(drop) or not p[0].is_valid: continue
     if max((v.co - c).length for f in p for v in f.verts) > R * 1.18: horn |= {v for f in p for v in f.verts}
+# the sheet's boulder has one horn; Meshy gave it two: the one on its left (-X) goes
+hparts = [p for p in parts if p[0].is_valid and p[0] not in set(drop) and max((v.co - c).length for f in p for v in f.verts) > R * 1.18]
+if len(hparts) > 1:
+    gone = min(hparts, key=lambda p: sum(v.co.x for f in p for v in f.verts) / sum(len(f.verts) for f in p))
+    gv = {v for f in gone for v in f.verts}
+    horn -= gv
+    bmesh.ops.delete(bm, geom=gone, context='FACES'); bmesh.ops.delete(bm, geom=[v for v in gv if v.is_valid and not v.link_faces], context='VERTS')
+    print('horns', len(hparts), '-> 1')
 for v in bm.verts:
     if v in horn: continue
     d = v.co - c

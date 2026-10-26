@@ -224,6 +224,13 @@ violet streak arcs low from there to behind the target, shards gather in where t
 violet light flashes. The stab is Flank Thrust's spear and hard burst (`ThrustFx`, `violet`) in the
 blade job's colour with a shake, and "แทงหลัง!" when it lands from behind (the rules' 1.5x positional
 bonus); the hero plays `flankStab`.
+Owner: "เอฟเฟคตอนวาปยังธรรมดาไป". The gallery host was blocked again (403), so no clip was inspected.
+The step is now drawn as shadow, not light: a dark ink body with a violet rim reads on any ground. A
+noise-edged shadow pool opens under each end, ink tendrils whip up and sink, a thick ink streak with a
+bright thread swings out round the target's side to its back (a curve, never through the body), dark
+afterimages of the hero's pose are left where it stood and along the curve, and a tall violet slit
+flashes where it appears. Also asked: target skills should lock by dragging the button, so a drag on
+Backstab picks the monster it points at within 7 m (target ring) and steps behind that one.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 

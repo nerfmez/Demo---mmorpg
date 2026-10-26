@@ -87,11 +87,12 @@ export class SkillFx {
     this.storm = new StormFx(scene, camera);
     this.shadow = new ShadowFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm]) fx.onShake = shake;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
     this.center = new THREE.Vector3(); this.head = new THREE.Vector3(); this.from = new THREE.Vector3(); this.to = new THREE.Vector3(); this.mouth = new THREE.Vector3();
+    this.echoSpots = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
     this.markBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, facing: 0 })); this.marks = [];
     this.exposedBuf = Array.from({ length: 12 }, () => ({ x: 0, z: 0, t: 0, full: 5 })); this.exposed = [];
     this.headOf = (id) => { const b = host.body(id); return b ? this.head.set(b.x, b.h + 0.4, b.z) : null; };
@@ -242,7 +243,18 @@ export class SkillFx {
       // dodges: the blink's gather and jump, the leap's landing (skillfx/move-fx.js)
       case 'movement': if (e.kind === 'blink' && g.player.dash?.kind === 'blink') this.move.gather(g.player.x, g.player.z, g.player.dash.delay || 0.08); return false;
       // Backstab: the hero leaves in shards and appears behind its target (skillfx/shadow-fx.js)
-      case 'shadowStep': this.shadow.step(e.fromX, e.fromZ, e.x, e.z); return true;
+      case 'shadowStep': {
+        const t = g.monsters.find((m) => m.id === e.id), sh = this.shadow;
+        sh.step(e.fromX, e.fromZ, e.x, e.z, t?.x, t?.z, t?.r);
+        // dark afterimages: one where the body stood, two along the curve, each facing the way it runs
+        const spots = this.echoSpots; let k = 0;
+        for (const q of [0, 0.38, 0.72]) {
+          const a = sh.bez(q, this.from), b = sh.bez(q + 0.05, this.to);
+          const o = spots[k++]; o[0] = a.x; o[1] = a.z; o[2] = Math.atan2(b.x - a.x, b.z - a.z); o[3] = q * 0.1;
+        }
+        host.vfx?.shadowEchoes?.(spots, host.rig?.());
+        return true;
+      }
       case 'blinkPlayer': this.move.jump(e.fromX, e.fromZ, e.x, e.z); host.vfx.blinkEcho(e.fromX, e.fromZ, host.rig()); return true;
       case 'area': {
         if (e.owner !== 'player') return false;

@@ -114,3 +114,27 @@ test('Backstab steps behind its target and stabs; with no target in reach it fai
   assert.equal(far.g.player.mp, mp2); assert.equal(far.g.player.x, x2); assert.equal(far.g.player.cooldowns[0], 0);
   assert.ok(far.g.drainEvents().some((e) => e.type === 'fail' && e.reason === 'target'));
 });
+
+test('Backstab aimed by a drag steps behind the target it picked, not the nearest; a drag at nothing fails', () => {
+  const { g, m } = fixture('backstab');
+  const near = { ...m, id: 'near', x: 2, z: 0, statuses: {} };
+  Object.assign(m, { x: 0, z: 6, facing: Math.PI }); // the picked one: 6 m off, facing the hero
+  g.monsters = [m, near];
+  g.player.cooldowns = g.player.cooldowns.map(() => 0); g.player.cast = null; g.player.dash = null;
+  // the button's drag: a one-press manual aim with the picked target locked
+  g.setAimAngle(0, true); g.player.targetId = m.id;
+  assert.equal(g.castSlot(0), true);
+  assert.equal(g.drainEvents().find((e) => e.type === 'shadowStep')?.id, m.id);
+  assert.ok(g.player.z > m.z + m.r, `behind the picked one (z ${g.player.z.toFixed(2)})`);
+  assert.equal(g.input.manualAim, false, 'the drag aim lasts one press');
+  // a drag that points at nothing (no lock) does not fall back to the nearest
+  const b = fixture('backstab');
+  b.g.player.cooldowns = b.g.player.cooldowns.map(() => 0); b.g.player.cast = null; b.g.player.dash = null;
+  const mp = b.g.player.mp;
+  b.g.setAimAngle(Math.PI, true); b.g.player.targetId = null;
+  assert.equal(b.g.castSlot(0), false);
+  assert.equal(b.g.player.mp, mp); assert.equal(b.g.player.cooldowns[0], 0);
+  assert.equal(b.g.input.manualAim, false);
+  // the backstab's reach is the auto-lock range while it is equipped
+  assert.ok(b.g.acquireRange >= data.skills.combat.backstab.shadowStep.range);
+});

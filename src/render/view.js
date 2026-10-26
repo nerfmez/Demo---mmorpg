@@ -987,8 +987,8 @@ export class View {
         c.position.y = 2.95 + (on ? Math.sin(time * 2) * 0.12 : 0);
         c.rotation.y = on ? time : 0;
       }
-      // target ring
-      const t = g.target;
+      // target ring (while a drag on Backstab picks its target, the one it points at)
+      const lock = ui.aim?.lock, t = lock !== undefined ? (lock === null ? null : g.monsterById(lock)) : g.target;
       this.targetRing.visible = !!t && !t.dead;
       if (t) {
         this.targetRing.position.set(t.x, 0, t.z);

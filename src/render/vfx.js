@@ -1175,6 +1175,17 @@ export class Vfx {
     this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
   }
 
+  // Backstab's dark afterimages: where the body left, then along the shadow step's curve (skillfx/shadow-fx.js)
+  // spots: [[x, z, facing, delay], ...] (at most the echo pool's 3)
+  shadowEchoes(spots, rig) {
+    if(!rig)return;
+    for(const [x,z,a,delay] of spots){
+      const {ghost,release}=this.movementEchoAt(rig,0x240a3c);ghost.position.set(x,this.gy(x,z),z);ghost.rotation.set(0,a,0);
+      const life=delay+.32;
+      this.spawn(ghost,life,t=>{const age=t*life-delay;ghost.visible=age>=0;echoOpacity(ghost,age<0?0:.62*(1-age/.32));},release);
+    }
+  }
+
   syncMovement(player,y,dt,rig) {
     const d=player.dash;
     if(!d){this.movementSource=null;return;}

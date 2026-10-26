@@ -191,7 +191,7 @@ export class Game {
   /** Compile loadout changes without re-entering quest rewards or restoring resources. */
   refreshSkills() {
     this.skills = this.ch.slots.map((_, i) => computeSkill(this.ch, this.data, this.derived, i));
-    const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain'].includes(s.kind)).map((s) => s.range);
+    const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain'].includes(s.kind)).map((s) => s.shadowStep ? Math.max(s.range, s.shadowStep.range) : s.range);
     const ground = this.skills.filter((s) => s && ['ground_area', 'dot_zone', 'curse_zone'].includes(s.kind)).map((s) => s.range);
     this.acquireRange = ranges.length ? Math.max(...ranges) : ground.length ? Math.max(...ground) : 6;
   }
@@ -461,9 +461,10 @@ export class Game {
       return true;
     }
     // Backstab (s.shadowStep): the hero steps through the shadows to behind its target, then strikes.
-    // It needs a target within shadowStep.range (the locked one, else the nearest); with none it fails
-    // before anything is spent.
+    // It needs a target within shadowStep.range (the locked one, else on a tap the nearest); with none it
+    // fails before anything is spent.
     if (s.shadowStep && !this.shadowStep(s)) {
+      if (!this.input.aimFromPointer) this.input.manualAim = false; // a drag's aim lasts one press
       this.emit({ type: 'fail', reason: 'target', slot: i });
       return false;
     }
@@ -504,7 +505,8 @@ export class Game {
   shadowStep(s) {
     const p = this.player, r = s.shadowStep.range;
     const locked = this.monsters.find((m) => m.id === p.targetId && !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) - m.r <= r);
-    const t = locked || nearestTarget(p, this.monsters, r);
+    // an aimed press (a drag on the button, the mouse) takes only the target it picked; a tap falls back to the nearest
+    const t = locked || (this.input.manualAim ? null : nearestTarget(p, this.monsters, r));
     if (!t) return false;
     const gap = t.r + (s.shadowStep.gap ?? 0.7), f = t.facing || 0, from = angleTo(t.x, t.z, p.x, p.z);
     // behind the way it faces, then either side, then the side the hero came from

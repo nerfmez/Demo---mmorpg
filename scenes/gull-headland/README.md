@@ -1,4 +1,7 @@
-# Gull Headland — standalone scene (draft, owner review pending)
+# Gull Headland — preliminarily accepted standalone scene
+
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 26 October 2026** ("โอเคต่อไป"), artifact version 3:
+https://claude.ai/artifact/3hvjamnVTdp4HwGZDfhHv9.
 
 Concept: `gull-headland.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
 (branch `docs/landscape-concepts-40deg-20261022`), retained without recompression as `concept.png`.

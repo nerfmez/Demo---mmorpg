@@ -1008,7 +1008,7 @@
         ],
         "band": 24,
         "quiet": 16,
-        "rises": [{"span": [71, 131], "height": 5.5, "ease": 28, "note": "Hill Windmill's ridge from Azure Coast (its seam lists the same rise, offset by 25 m)"}],
+        "rises": [{"span": [71, 131], "height": 5.5, "ease": 28, "note": "Hill Windmill's ridge from Azure Coast (its seam lists the same rise, offset by 25 m)"}, {"span": [148, 161.5], "height": 5.6, "ease": 4, "note": "Gull Headland's court and cliffs from Azure Coast (its seam lists the same rise, offset by 25 m)"}, {"span": [139, 142], "height": 3.6, "ease": 2.5, "note": "Gull Headland's high west rock, on the windmill ridge's eastern ease (from Azure Coast, offset by 25 m)"}, {"span": [144.5, 145.5], "height": 2.2, "ease": 1.5, "note": "fills the dip between Gull Headland's west rock and its court rise (from Azure Coast, offset by 25 m)"}],
         "profile": [
           [
             -185,

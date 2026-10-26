@@ -13,7 +13,11 @@ const specs=[
  // west of the arrival beach on the Greenhollow Frontier coast (Frontier local metres; world = local + atlas offset)
  {id:'shell-beach',region:'frontier-wilds-v1',x:152,z:176,s:.60,y:-.44,box:[-70,70,-65,50]},
  {id:'azure-meadow',x:38,z:-85,s:.50,y:.4,box:[-65,65,-65,30]},
- {id:'hill-windmill',x:126,z:-85,s:.48,y:.4,box:[-65,65,-65,30],outer:30}
+ {id:'hill-windmill',x:126,z:-85,s:.48,y:.4,box:[-65,65,-65,30],outer:30},
+ // the two coastal zones on the east coast (owner, 26 October 2026: headland at the north-east corner, the
+ // ranger forest below it); y puts each scene's sea (SEA_Y = -7.18 scene units) at the map's water level
+ {id:'gull-headland',x:189.3,z:-92.7,s:.42,y:2.62,box:[-65,65,-65,30]},
+ {id:'ranger-forest',x:189.3,z:-34.7,s:.42,y:2.62,box:[-65,65,-65,30]}
 ];
 const round=n=>Math.round(n*1000)/1000,scenes=[];
 // Morphological closing (a max then a min filter over a square r metres each way, 1 m grid).

@@ -58,12 +58,13 @@ export function terrainDomain(world, lookup) {
     roadExtensions,
     // A native map's exterior forest is backdrop, not planting in a neighbour.
     // At a corner both seam-span checks can miss it; test the complete adjacent
-    // playable rectangles in atlas coordinates instead. Native layouts stay intact.
+    // playable rectangles in atlas coordinates instead, and the neighbour's sea
+    // (a map without a sea would stand its backdrop in it). Native layouts stay intact.
     edgeTreeAllowed(x, z) {
       return joins.every(({neighbour: n, dx, dz}) => {
         if (!n) return true;
         const b = n.bounds, nx = x + dx, nz = z + dz;
-        return nx < b.minX || nx > b.maxX || nz < b.minZ || nz > b.maxZ;
+        return (nx < b.minX || nx > b.maxX || nz < b.minZ || nz > b.maxZ) && !(n.data.sea && n.inSea(nx, nz, 2));
       });
     },
     roadWeight(road,x,z) {

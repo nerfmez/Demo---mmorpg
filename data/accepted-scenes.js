@@ -6,4 +6,6 @@ import s2 from './accepted-scenes/rose-garden.json' with {type:'json'};
 import s3 from './accepted-scenes/shell-beach.json' with {type:'json'};
 import s4 from './accepted-scenes/azure-meadow.json' with {type:'json'};
 import s5 from './accepted-scenes/hill-windmill.json' with {type:'json'};
-export default {...index,scenes:[s0,s1,s2,s3,s4,s5]};
+import s6 from './accepted-scenes/gull-headland.json' with {type:'json'};
+import s7 from './accepted-scenes/ranger-forest.json' with {type:'json'};
+export default {...index,scenes:[s0,s1,s2,s3,s4,s5,s6,s7]};

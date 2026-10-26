@@ -33,7 +33,7 @@ def gameFoliageParts(name,src):
   assert src.count(old)==1,(name,old);src=src.replace(old,'sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s))')
  return src
 
-for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden']:
+for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden','ranger-forest','gull-headland']:
  if name=='beach':
   src=b[b.index('// ---------- world layout'):b.index('function resize()')]
   src=src[:src.index('// ---------- renderer')]+src[src.index('// ---------- shared GLSL'):]

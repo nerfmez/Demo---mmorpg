@@ -7,6 +7,8 @@ import {createAcceptedScene as shell} from './accepted-scenes/shell-beach.js';
 import {createAcceptedScene as mill} from './accepted-scenes/hill-windmill.js';
 import {createAcceptedScene as meadow} from './accepted-scenes/azure-meadow.js';
 import {createAcceptedScene as rose} from './accepted-scenes/rose-garden.js';
+import {createAcceptedScene as ranger} from './accepted-scenes/ranger-forest.js';
+import {createAcceptedScene as headland} from './accepted-scenes/gull-headland.js';
 import {acceptedScenes,connectorClear,sceneWeight,sceneSample,sceneLift} from '../core/accepted-scenes.js';
 import {distToPolyline} from '../core/math.js';
 import {timeUniform} from './patch.js';
@@ -18,7 +20,7 @@ import {edgeCliffGeometry} from './edge-cliffs.js';
 import {animeConfig,animeFoliageMaterial,animeTrunkMaterial} from './anime-study.js';
 import {hullMaterial} from './patch.js';
 import {grassMaterial,attachGrassSurfaceSteps} from './grass.js';
-const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose};
+const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose,'ranger-forest':ranger,'gull-headland':headland};
 export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  const root=new THREE.Group();root.name='accepted-concept-scenes';adopt?.(root);
  const animations=[],waypoints=new Map(),textures=new Set(),depthMaterials=new Set();let cliffLook=null;

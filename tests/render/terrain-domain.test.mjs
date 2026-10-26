@@ -119,7 +119,8 @@ test('exterior forest cannot plant in an adjacent playable rectangle, including 
   const neighbours = w.seams.map(s=>worlds[s.to]);
   const intrudes = neighbours.some(n=>{
    const nx=x-n.data.atlas.offset[0],nz=z-n.data.atlas.offset[1],b=n.bounds;
-   return nx>=b.minX&&nx<=b.maxX&&nz>=b.minZ&&nz<=b.maxZ;
+   // nor in the neighbour's sea: Moonroot's corner forest once stood in Azure's bay beside Gull Headland
+   return nx>=b.minX&&nx<=b.maxX&&nz>=b.minZ&&nz<=b.maxZ||!!n.data.sea&&n.inSea(nx,nz,2);
   });
   assert.equal(domains[id].edgeTreeAllowed(tree.x,tree.z),!intrudes,`${id} tree at ${x},${z}`);
   if (intrudes) excluded++; else retained++;

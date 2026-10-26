@@ -400,3 +400,19 @@ Owner, on that round: "the path to the stairs need not bend sharply, make it nat
 ### Follow-up: the arrival beach's banks (26 October 2026)
 
 Owner: "next point". From above, the arrival beach showed a pale grey band below its stone-walled garden (grey slope strata on a steep grass bank, read as a ghostly slab). The beach joins `grassBanks`: its steep grass banks are grass; sand stays sand (the bank flag only changes the slope paint, not the beach). Checked from above both ways and in the play camera behind the beach.
+
+### Gull Headland and the Coastal Ranger Forest join Azure Coast (26 October 2026)
+
+Owner's choice: the headland at the north-east corner (x 162–216.6, z -120..-80.1), the ranger forest below it (z -62..-22.1); the Azure port is skipped for now and the approved city stays.
+
+- Both factories ship (`src/render/accepted-scenes/gull-headland.js`, `ranger-forest.js`) with their sampled data; each scene's sea sits at the map's water level (spec `y` 2.62) and uses the game's sea.
+- The east coastline follows both scenes' water line (traced at the water level): the forest's cove, the headland's stacks and the bay behind the gate. Moonroot Grove's edge is land, so the bay closes in a grassy shore about 8 m before the seam (the seam blend raises the sea floor there).
+- The headland's court and cliffs carry over the Moonroot seam as rises (both maps list them, offset 25 m), as the windmill's ridge does, so the seam blend does not pull the court down.
+- The old native headland (plateau, hill and the retained approach road) is gone under the scene. A low plateau between the two scenes (`terrain.plateaus` `coast-gap`) lifts the old shore so the forest's high back meets it on a grass slope.
+- Roads: the scenes' paths are world roads; final connectors join the headland's south port to the windmill's east path (join-13), the forest's south port to the town ring road, and the headland's west path to the seam. The forest stair's steep foot (1.2 in 1) is eased into one even flight (`accepted/ranger-stair-ease`, 0.74 in 1).
+- The Gull Shrine landmark is the scene's gate; the North Headland waypoint stands on its court. Both scenes paint grass on their banks (their rock faces are meshes); their trees take treeScale 0.9.
+- Render fix: Moonroot's exterior backdrop forest stood in Azure's sea east of the headland (it is outside both playable rectangles); backdrop trees now also stay out of a neighbour's sea (`render/terrain-domain.js`, test extended).
+
+Checks: core 640/640; render terrain-domain, coastal-seam, accepted-foliage/seating, ground, water-contact, footprints pass except the skirt test (also red on the base commit). Inspected in the play camera at the court, gate, bay, south port, the gap, the forest centre and its south port, the windmill junction; from above over both scenes, the bay and the east coast.
+
+Remaining: a small grey slope between the windmill and the headland's west rock near the seam (x 160–163, z -110..-120); the Moonroot side has no path yet where the headland's west path reaches the seam.

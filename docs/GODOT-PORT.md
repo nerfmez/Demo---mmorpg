@@ -747,7 +747,7 @@ that meet the adjacent playable map and finite grid cap. Preserve all playable
 vertex heights and the rule/collision heightfield. Seat retained edge-tree
 instances on their actual rendered owner's surface. Exterior backdrop trees must
 not stand inside an adjacent region's full playable rectangle, including corners
-outside a seam's span; omit only those render instances, preserving native trees
+outside a seam's span, nor in that region's sea (within 2 m of its coastline); omit only those render instances, preserving native trees
 and collider/layout data. See
 `TERRAIN-SEAM-REPAIR-20261007.md` and `render/terrain-domain.js`; this is tested for
 the current aligned one-metre map grids, not arbitrary irregular tessellation.

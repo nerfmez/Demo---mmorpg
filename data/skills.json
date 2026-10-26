@@ -1282,8 +1282,7 @@
       "upgradeMaterial": "warden_horn",
       "upgradeStat": "VIT",
       "job": "guardian",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "blessing": {
       "name": "Blessing of Light",

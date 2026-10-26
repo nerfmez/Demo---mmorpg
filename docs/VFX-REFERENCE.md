@@ -261,6 +261,11 @@ Stand Firm (ยืนหยัด, a duelist guard buff: 15% less damage taken f
 glint), a shield emblem that pops up over each body the buff reached and holds, and small streaks
 circling each buffed body while it lasts.
 
+Hold the Line (ยืนหยัดทีม, a guardian guard buff: 20% less damage taken and no knockback for 8 s
+within 9 m), the same `BuffFx` in guardian gold: Stand Firm's shout and emblem (drawn twice, one inside
+the other) plus a shield wall, eight shields snapping up one after another round the hero, held, then
+fading; small streaks circle each buffed body while it lasts.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

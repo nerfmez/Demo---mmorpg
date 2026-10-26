@@ -1,11 +1,12 @@
-// Party buff shouts (Rally, Frenzy Roar, Stand Firm; the other warcry buffs take their own look from LOOKS), held to the
+// Party buff shouts (Rally, Frenzy Roar, Stand Firm, Hold the Line; the other warcry buffs take their own look from LOOKS), held to the
 // owner's bar (.claude/skills/skill-vfx), in the bench's light-and-ribbon language.
 //  - rouse (the cast): embers spiral up round the hero, gathering speed (a roar: air drawn in to the mouth);
 //  - the shout (the rules' 'buff'): a ring of light races out at waist height to the buff's true
 //    radius (in the air: nothing on the ground) with an echo, shout lines burst out round the hero like
 //    a manga roar, spirit streaks shoot up round the hero with a star glint, and over every body the buff
 //    reached (the hero and allies in range) up-chevrons rise and fade: the anime "power up" mark (a guard
-//    buff: a shield emblem pops up over each body and holds);
+//    buff: a shield emblem pops up over each body and holds; a guardian's (wall): a ring of shields
+//    snaps up round the hero one after another, a shield wall);
 //  - a roar (Frenzy Roar, owner: it should look like its name) instead sends sound: smooth rings pulse out
 //    one after another at head height to the true radius, a blast of arcs ")))" bursts ahead of the
 //    mouth, and the camera rumbles;
@@ -18,16 +19,19 @@ import { CORE_FS, GLOW_FS, W, lineW, lineGlowW, tailW, tailGlowW, sparkW, sparkG
 
 // per skill: core/glow colours; flare = the glint's tint; symbol 'up' = rising chevrons (more damage),
 // 'shield' = a shield emblem (less damage taken); roar = sound waves instead of the shout; trail 'back' =
-// the lasting streaks stream back from the facing, 'orbit' = they circle the body
+// the lasting streaks stream back from the facing, 'orbit' = they circle the body; wall = a ring of shields
+// round the hero, double = the shield emblem drawn twice (one inside the other)
 export const LOOKS = {
   rally: { edge: [1.0, 0.6, 0.22], glow: [1.0, 0.24, 0.06], symbol: 'up' },
   frenzy_roar: { edge: [1.0, 0.3, 0.32], glow: [1.0, 0.04, 0.12], roar: true, trail: 'back' },
   stand_firm: { edge: [0.62, 0.86, 1.0], glow: [0.12, 0.42, 1.0], flare: 'cold', symbol: 'shield', trail: 'orbit' },
+  team_stand: { edge: [1.0, 0.88, 0.5], glow: [1.0, 0.55, 0.08], symbol: 'shield', double: true, wall: true, trail: 'orbit' },
 };
 const RING = 49, STREAKS = 10, STREAK_PTS = 6, SPARKS = 140, MARKS = 6, CHEV = 3, RAYS = 16, ARC = 13;
 const RING_LIFE = 0.45, STREAK_LIFE = 0.55, MARK_LIFE = 1.0, AURA_EVERY = 0.16, RAY_LIFE = 0.3;
 // a heater shield's outline (screen units: x right, y up), closed
 const SHIELD = [[-1, 1], [-0.33, 1.08], [0.33, 1.08], [1, 1], [1, 0.25], [0.8, -0.35], [0.45, -0.8], [0, -1.15], [-0.45, -0.8], [-0.8, -0.35], [-1, 0.25], [-1, 1]];
+const WALL = 8, WALL_R = 1.7, WALL_LIFE = 0.95;
 const WAVES = 5, WAVE_EVERY = 0.09, WAVE_LIFE = 0.6, BLASTS = 5, BLAST_EVERY = 0.06, BLAST_LIFE = 0.42, MOUTH = 1.35;
 const out2 = (k) => 1 - (1 - k) * (1 - k);
 
@@ -102,6 +106,11 @@ export class BuffFx {
       spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.35 + r() * 0.15, 0.07, look);
     }
   }
+  // one camera-facing shield outline (this.right/up must be set) at p, `sc` metres across its half-width
+  drawShield(p, sc, al, L, w = 0.13) {
+    for (let i = 0; i < SHIELD.length; i++) this.shield[i].copy(p).addScaledVector(this.right, SHIELD[i][0] * sc).addScaledVector(this.up, SHIELD[i][1] * sc);
+    W.v = w; this.glow.strip(this.shield, lineGlowW, 0.8 * al, L.glow); this.core.strip(this.shield, lineW, al, L.edge);
+  }
   update(dt) {
     this.core.begin(); this.glow.begin();
     const L = this.look, x = this.x, z = this.z;
@@ -166,8 +175,15 @@ export class BuffFx {
       m.t += dt; if (m.t < 0) continue;
       const k = m.t / MARK_LIFE, pop = Math.min(1, k * 6), sc = 0.42 * (pop < 1 ? pop * 1.15 : 1 + 0.15 * Math.max(0, 1 - (k - 1 / 6) * 8)), al = Math.min(1, k * 8) * (k > 0.7 ? 1 - (k - 0.7) / 0.3 : 1);
       this.p.set(m.x, 2.3 + 0.3 * out2(k), m.z);
-      for (let i = 0; i < SHIELD.length; i++) this.shield[i].copy(this.p).addScaledVector(this.right, SHIELD[i][0] * sc).addScaledVector(this.up, SHIELD[i][1] * sc);
-      W.v = 0.13; this.glow.strip(this.shield, lineGlowW, 0.8 * al, L.glow); this.core.strip(this.shield, lineW, al, L.edge);
+      this.drawShield(this.p, sc, al, L);
+      if (L.double) this.drawShield(this.p, sc * 0.68, al, L, 0.09);
+    }
+    // a guardian's shield wall: shields snapping up round the hero one after another, held, then fading
+    if (L.wall && this.t < 1.2) for (let j = 0; j < WALL; j++) {
+      const k = (this.t - 0.03 * j) / WALL_LIFE; if (k < 0 || k >= 1) continue;
+      const a = this.f + (j / WALL) * Math.PI * 2, pop = Math.min(1, k * 7), al = Math.min(1, k * 10) * (k > 0.65 ? 1 - (k - 0.65) / 0.35 : 1);
+      this.p.set(x + Math.sin(a) * WALL_R, 0.9 + 0.25 * pop, z + Math.cos(a) * WALL_R);
+      this.drawShield(this.p, 0.5 * (pop < 1 ? pop * 1.12 : 1), al, L, 0.11);
     }
     // the marks: chevrons rising over each body the buff reached, facing the camera
     if (L.symbol === 'up') {

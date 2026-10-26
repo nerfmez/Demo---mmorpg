@@ -1,6 +1,6 @@
-# Root Warren — standalone scene in owner review
+# Root Warren — preliminarily accepted standalone scene
 
-**Owner status: in review, 26 October 2026**, artifact version 5:
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 26 October 2026** ("ผ่านและทำต่อเลย"), artifact version 5:
 https://claude.ai/artifact/EuwKaqYC2DzvzctjRKvZVQ.
 
 Concept: `root-warren.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`

@@ -490,6 +490,22 @@ for _ in range(C.get('weightSmooth', 10)):
 W /= np.maximum(W.sum(1, keepdims=True), 1e-9)
 # the collar rides the upper chest: the shoulders' arm weights would tear it when the arms come down
 W[incollar] = 0; W[incollar, G.index('Spine02')] = 1
+# `rigidPads`: a loose plate round the shoulders (a pauldron) under this many vertices moves as one
+# piece, on its mean weights: blended per vertex between the chest and the arm, its corner was
+# stretched into a spike when the arm came down
+if C.get('rigidPads'):
+    _comp = -np.ones(len(P), int)
+    for s0 in range(len(P)):
+        if _comp[s0] >= 0: continue
+        _comp[s0] = s0; todo = [s0]
+        while todo:
+            i = todo.pop()
+            for o in nbr[i]:
+                if _comp[o] < 0: _comp[o] = s0; todo.append(o)
+    for c0 in np.unique(_comp):
+        m = _comp == c0
+        if m.sum() < C['rigidPads'] and P[m, 2].mean() > B(0.72) and (piece[m] == 1).all() and not incollar[m].any():
+            W[m] = W[m].mean(0); print('rigid pad', int(m.sum()), np.round(P[m].mean(0), 3))
 hips = G.index('Hips')
 sk = C.get('skirt')
 if sk:

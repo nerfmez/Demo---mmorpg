@@ -35,5 +35,6 @@
  "out": {
   "armor": "public/models/outfits/crabshell_vest.glb",
   "boots": null
- }
+ },
+ "rigidPads": 400
 }

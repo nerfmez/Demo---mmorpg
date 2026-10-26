@@ -131,7 +131,9 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    warps the generated body onto `hero_chibi`, pushes the cloth outside the body, copies the body's
    skin weights and records the body triangles each piece covers. Faces that a cut-away part covered
    in the generated model (a pad's top under the hood's fur) are repainted from the nearest faces of
-   their own part, since their texture there was never meant to be seen. Its settings per set live in
+   their own part, since their texture there was never meant to be seen. A loose shoulder plate can be
+   made to move as one piece on its mean weights (`rigidPads`, the crabshell pauldrons): blended
+   per vertex between the chest and the arm, its corner stretched into a spike when the arm came down. Its settings per set live in
    `assets/meshy/outfits/<set>.json` beside the Meshy source.
 3. In game (`render/chibi-garments.js`) the model replaces the shells it covers. The body under it is
    not removed: the covered vertices are tucked inside the cloth, shaded as its inside and pushed back

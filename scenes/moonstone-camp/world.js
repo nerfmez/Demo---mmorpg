@@ -39,7 +39,9 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES=[
  // the wooded rock terrace behind the camp, its faces over the tents
- {top:PL,base:0,ledge:true,soft:M(1.2),lean:M(.32),pts:[[.215,.36,'n'],[.255,.30,'b'],[.31,.245,'b'],[.37,.215,'b'],[.43,.20,'b'],[.49,.205,'b'],[.55,.215,'b'],[.61,.235,'b'],[.67,.26,'b'],[.725,.29,'b'],[.765,.30,'n'],[.79,.21,'n'],[.81,.06,'n'],[.82,-.4,'t'],[.27,-.4,'t'],[.25,.08,'n'],[.225,.20,'n']]},
+ // the wooded bank behind the camp (owner: the rock must look natural): an uneven grassy slope
+ // with its top rising and falling, broken by three outcrops of rock face, not one ring wall
+ {top:PL,topAt:x=>PL+M(.45)*Math.sin(x*.085+1.3)+M(.28)*Math.sin(x*.21+.4),base:0,ledge:true,soft:M(2.4),lean:M(.4),pts:[[.215,.37,'n'],[.245,.315,'b'],[.275,.27,'b'],[.305,.25,'b'],[.34,.232,'b'],[.375,.21,'n'],[.42,.19,'n'],[.46,.20,'n'],[.495,.192,'b'],[.535,.21,'b'],[.575,.215,'b'],[.605,.245,'b'],[.632,.24,'b'],[.665,.252,'n'],[.70,.285,'b'],[.735,.30,'b'],[.765,.315,'n'],[.79,.22,'n'],[.81,.06,'n'],[.82,-.4,'t'],[.27,-.4,'t'],[.25,.08,'n'],[.225,.20,'n']]},
  // the high wooded ground on the right, above the north-east stair
  {top:M(1.7),base:0,ledge:true,soft:M(1.2),lean:M(.32),pts:[[1.3,.55,'t'],[.93,.52,'n'],[.90,.45,'n'],[.92,.36,'b'],[.94,.26,'b'],[.92,.16,'n'],[.90,.05,'n'],[.90,-.4,'t'],[1.3,-.4,'t']]},
  // the block mound on the left of the clearing

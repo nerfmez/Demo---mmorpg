@@ -22,12 +22,15 @@ function scatteredRocks(){
  }
 }
 function campClutter(){
- // big mossy blocks before and on the rock wall at varied heights, as the reference's alcove
- for(const[u,v,w,h]of[[.255,.30,.07,.13],[.29,.24,.05,.10],[.41,.215,.05,.07],[.585,.24,.06,.15],[.62,.21,.04,.09],[.74,.33,.06,.11],[.785,.28,.05,.10],[.70,.255,.04,.07],[.47,.22,.035,.05]]){
-  const[x,y,z]=onGround(u,v),width=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h);
-  block(x,y-M(.3),z,width,hh+M(.3),width*R(.7,.9),R(-.25,.25),.7,{base:pick(MOON_STONE)});COLLIDERS.push({x,z,r:width*.45});
-  for(let k=0;k<3;k++)addBush(x+R(-.5,.5)*width,y+R(0,.2)*hh,z+width*R(.3,.6),M(R(.3,.5)),{sy:.65,tint:R(-.1,.2)});
-  addBush(x,y+hh-M(.15),z,width*.35,{sy:.5,tint:R(-.15,.1)});
+ // weathered boulders heaped on the bank's slopes and at the outcrops' feet: rounded, mossy,
+ // in loose clusters of two to four, bushes and ferns between them, as the reference's alcove
+ for(const[u,v,w,h,n]of[[.26,.31,.06,.10,3],[.32,.255,.045,.07,2],[.40,.215,.04,.06,3],[.47,.205,.035,.05,2],[.56,.235,.05,.09,3],[.645,.245,.04,.06,2],[.72,.31,.05,.08,3],[.785,.29,.04,.07,2]]){
+  for(let k=0;k<n;k++){
+   const du=R(-.6,.6)*w,dv=R(-.25,.35)*w,sc=k?R(.45,.7):1,[x,y,z]=onGround(u+du,v+dv),width=wide(u-w/2,u+w/2,v,y)*sc,hh=tall(x,z,y,v-h)*sc;
+   fieldStone(x,y-M(.3)*sc,z,width*R(.85,1),hh+M(.3)*sc,width*R(.7,.9),{ry:R(0,6.28),rz:R(-.06,.06),moss:R(.45,.7),base:pick(MOON_STONE),chamfer:R(.35,.5)});
+   if(!k)COLLIDERS.push({x,z,r:width*.42});
+   for(let j=0;j<2;j++)addBush(x+R(-.6,.6)*width,y+R(0,.25)*hh,z+width*R(.2,.6),M(R(.28,.48)),{sy:.65,tint:R(-.1,.2)});
+  }
  }
  // more of the camp's gear: barrels, a rolled bedroll, a cooking pot on the fire's edge, a log pile
  for(const[u,v]of[[.735,.395],[.75,.41]]){const[x,z]=P(u,v,0),y=height(x,z),g=new THREE.CylinderGeometry(M(.2),M(.22),M(.55),10);g.translate(x,y+M(.275),z);campParts.push(coloredPart(g,'#8f6b45'));for(const f of[.2,.8]){const h=new THREE.CylinderGeometry(M(.215),M(.215),M(.05),10,1,true);h.translate(x,y+M(.55)*f,z);campParts.push(coloredPart(h,'#5c5b52'));}COLLIDERS.push({x,z,r:M(.24)});}

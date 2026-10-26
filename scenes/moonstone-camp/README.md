@@ -1,6 +1,6 @@
 # Moonstone Camp — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 2:
+**Owner status: in review, 26 October 2026**, artifact version 3:
 https://claude.ai/artifact/PqbowbCkpB7D95dBY2AfR6.
 
 Concept: `moonstone-camp.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -36,3 +36,8 @@ can wire it as the region's `camp` waypoint the way it wires the beach's). The c
 rocky alcove: big mossy blocks at varied heights break the terrace wall, bushes at their feet and
 on top, packed earth under the tents, and more gear (barrels, a bedroll, a cooking pot, a second
 woodpile). Six great old trees (about twice the others) stand round the clearing.
+
+Owner, on version 2: the rock face is not yet natural. The terrace behind the camp is no longer
+one ring wall: it is an uneven grassy bank whose top rises and falls, broken by three short rock
+outcrops, with weathered rounded boulders (the shared field stone) heaped in loose clusters on
+its slopes and at the outcrops' feet, bushes between them.

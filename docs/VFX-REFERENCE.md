@@ -123,11 +123,14 @@ Checked in the real game: its camera is far higher than the bench's (18.9 m up, 
 so a cue 7 m above the target is off the top of the screen. The owner wanted it higher: the fire is
 born 11 m up where a ray through a point near the top of the screen, a little right of the target,
 meets that height, and the meteor falls from there. `skillfx/anime-kit.js` keeps the ground warning. Thunderstorm (owner pass on Meteor, then next) is built from Chain Spark's own
-lightning (`chain-fx.js` exports `zig`, its crackling core and glow shaders): a storm eye high up the
-sky in view of the game camera (`skyAbove` in fx-common, shared with Meteor) flickers with a ragged
-flash and crackling tendrils; each wave sends staggered angular bolts from it to the monsters in the
-circle (else to spots in it), each landing in a ragged flash with ground tendrils, sparks, a scorch
-mark and Chain Spark's shocked arcs; the last wave is a big bolt to the centre and the eye bursts out.
+lightning (`chain-fx.js` exports `zig`, its crackling core and glow shaders). Owner review: the storm
+eye high in the sky became a ball of lightning hovering 4.4 m over the circle and drifting slowly
+after the monsters in it (a plasma sphere: white-hot heart, electric-blue rim, flowing bands, normal
+blending so it stays blue over grass; short arcs crawling over it; a ragged flash flicker), and the
+bolts were too busy: two clean bolts a wave (one fork each, low jag, no second parallel bolt) drop
+from the ball to the monsters (else to spots in the circle); each lands in a ragged flash, a few flat
+tendrils, sparks, a scorch mark and Chain Spark's shocked arcs; the last wave is a big bolt to the
+centre and two more, and the ball bursts out. `skyAbove` (fx-common) places Meteor's sky fire.
 Blizzard is still the light version below until redone.
 
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26

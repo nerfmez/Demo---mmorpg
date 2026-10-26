@@ -324,7 +324,7 @@ export class SkillFx {
     if (p.dash?.kind === 'leap') this.move.leapAt(p.x, Math.sin(Math.min(1, p.dash.t / p.dash.dur) * Math.PI) * 1.5 + 0.8, p.z);
     this.move.update(dt);
     this.meteor.update(dt);
-    this.thunder.update(dt);
+    this.thunder.update(dt, this.game.monsters);
     this.blizzard.update(dt);
   }
   // the offscreen flame passes, right before the main render

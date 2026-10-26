@@ -1,6 +1,6 @@
 # Mirror Pond — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 1:
+**Owner status: in review, 26 October 2026**, artifact version 2:
 https://claude.ai/artifact/YRE8REPWfr1GbfzaNNPxw1.
 
 Concept: `mirror-pond.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -32,3 +32,8 @@ centre; `pondIn` is metres inside the water, used by the ground, the water shade
 stepping stones, shore blocks, islet, lily pads, willows, rooted trees, glowing plants) and
 `scene.js`. The hero can walk the stepping stones. `window.__scene.pond` exposes `ports`,
 `junctions`, `routes`, `moon` and `stones`.
+
+Owner, on version 1 (circling the left willow): "make that tree only strands, no bush, and improve
+all the roots". The willows are now strands only, springing from branch ends over the crown and
+falling in curtains; every tree's roots flare from the trunk as tapered buttresses, run half
+buried over the ground and fork, and the roots that reach the pond end just past its waterline.

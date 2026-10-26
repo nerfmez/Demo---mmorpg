@@ -29,7 +29,7 @@ function plantGrove(){
   rootTree(u,v,s*.95,seed);
  }
  // the great tree on the rim behind the islet, its roots over the face into the water
- rootTree(.625,.175,2.4,5,Math.PI/2);rootTree(.22,.255,1.9,9,0);
+ rootTree(.625,.175,2.4,5,true);rootTree(.22,.255,1.9,9,true);
  willow(.30,.235,1.0);willow(.69,.11,1.1);
  for(let i=0;i<1500;i++){
   const[x,y,z]=onGround(R(-.1,1.1),R(-.05,1.06));

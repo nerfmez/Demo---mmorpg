@@ -88,36 +88,58 @@ function willow(u,v,s){
  const[x,y,z]=onGround(u,v),parts=[],bark=[],H=M(2.4)*s,Rc=M(1.7)*s;
  const tr=new THREE.CylinderGeometry(M(.12)*s,M(.24)*s,H,8);tr.translate(x,y+H/2,z);bark.push(coloredPart(tr,'#8c7258'));
  for(let k=0;k<4;k++){const a=k*1.7+R(-.3,.3),b=new THREE.CylinderGeometry(M(.05)*s,M(.09)*s,Rc*1.1,6);b.translate(0,Rc*.55,0);b.rotateZ(.9);b.rotateY(a);b.translate(x,y+H*.85,z);bark.push(coloredPart(b,'#856b52'));}
- const cy=y+H+Rc*.15;
- // the crown: a broad soft dome of overlapping lumps
- const LEAF=['#6aa95e','#7fbb68','#95c972','#5a9a58','#a9d27e'];
- for(let i=0;i<22;i++){const a=R(0,Math.PI*2),r=Rc*Math.sqrt(R(0,1))*.8,g=new THREE.IcosahedronGeometry(Rc*R(.3,.45),1);g.scale(1,.62,1);g.translate(x+Math.cos(a)*r,cy+Rc*(.32-.3*(r/Rc)**2)+R(-.05,.05)*Rc,z+Math.sin(a)*r*.9);parts.push(coloredPart(g,pick(LEAF)));}
- // curtains of leafy strands arch out of the dome and fall, longest round its rim
- for(let i=0;i<360;i++){
-  const a=R(0,Math.PI*2),rr=Rc*Math.sqrt(R(.25,1)),px=x+Math.cos(a)*rr,pz=z+Math.sin(a)*rr*.9,top=cy+Rc*(.25-.3*(rr/Rc)**2);
-  const L=Math.max(.6,Math.min(top-height(px,pz)-.4,M(R(.9,2.1))*s*(.45+.55*rr/Rc))),out=M(.25)*(rr/Rc);
-  const pts=[new V3(px-Math.cos(a)*out*.6,top+.15,pz-Math.sin(a)*out*.6),new V3(px,top-.05,pz),new V3(px+Math.cos(a)*out,top-L*.45,pz+Math.sin(a)*out),new V3(px+Math.cos(a)*out*1.1,top-L,pz+Math.sin(a)*out*1.1)];
-  const g=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),5,M(.045),3,false);
-  {const p=g.attributes.position,c=new THREE.CatmullRomCurve3(pts);for(let k=0;k<p.count;k++){const seg=Math.floor(k/4)/5,q=c.getPoint(seg),w=1-seg*.75;p.setXYZ(k,q.x+(p.getX(k)-q.x)*w*1.0,q.y+(p.getY(k)-q.y)*w,q.z+(p.getZ(k)-q.z)*w);}}
-  parts.push(coloredPart(g,pick(LEAF)));
+ const cy=y+H+Rc*.35;
+ // no leafy dome (owner): the crown is only strands. They spring from the branch ends over the
+ // whole crown, arch up and out a little and fall in long curtains, the outer ones longest.
+ const LEAF=['#6aa95e','#7fbb68','#95c972','#5a9a58','#a9d27e','#b8da86'];
+ for(let i=0;i<1100;i++){
+  const a=R(0,Math.PI*2),f=Math.sqrt(R(0,1)),rr=Rc*f,px=x+Math.cos(a)*rr,pz=z+Math.sin(a)*rr*.9,top=cy+Rc*.3*(1-f*f)+R(-.15,.15);
+  const L=Math.max(.6,Math.min(top-height(px,pz)-.3,M(R(.7,1.5))*s*(.35+.85*f))),out=M(R(.15,.35))*(.3+f);
+  const pts=[new V3(px-Math.cos(a)*out*.5,top-.2,pz-Math.sin(a)*out*.5),new V3(px,top+.08,pz),new V3(px+Math.cos(a)*out*.8,top-L*.3,pz+Math.sin(a)*out*.8),new V3(px+Math.cos(a)*out,top-L*.7,pz+Math.sin(a)*out),new V3(px+Math.cos(a)*out*1.05,top-L,pz+Math.sin(a)*out*1.05)];
+  parts.push(coloredPart(taperedTube(pts,M(.032),M(.008),6,3),pick(LEAF)));
  }
+ // branches reach up into the crown to carry them
+ for(let k=0;k<7;k++){const a=k/7*Math.PI*2+R(-.3,.3),r=Rc*R(.35,.7),pts=[new V3(x,y+H*.8,z),new V3(x+Math.cos(a)*r*.45,cy+Rc*.05,z+Math.sin(a)*r*.45),new V3(x+Math.cos(a)*r,cy+Rc*.18,z+Math.sin(a)*r*.9)];bark.push(coloredPart(taperedTube(pts,M(.09)*s,M(.025)*s,8,5),'#856b52'));}
  const leaf=new THREE.Mesh(mergeGeometries(parts),paint({vertexColors:true,shade:[.52,.66,.62],mid:[.86,.95,.88]}));leaf.castShadow=true;scene.add(leaf);
  const trunk=new THREE.Mesh(mergeGeometries(bark),paint({vertexColors:true,shade:[.55,.5,.5],mid:[.86,.8,.74]}));trunk.castShadow=trunk.receiveShadow=true;scene.add(trunk);
  COLLIDERS.push({x,z,r:M(.3)*s});
 }
-// old trees whose roots spread over the ground and spill down the rim
+// A tube along points whose radius falls from r0 to r1 (faster toward the tip).
+function taperedTube(pts,r0,r1,segments=14,sides=6){
+ const curve=new THREE.CatmullRomCurve3(pts),g=new THREE.TubeGeometry(curve,segments,1,sides,false),p=g.attributes.position,ring=sides+1;
+ for(let i=0;i<p.count;i++){const t=Math.floor(i/ring)/segments,q=curve.getPoint(t),r=r1+(r0-r1)*Math.pow(1-t,1.4);p.setXYZ(i,q.x+(p.getX(i)-q.x)*r,q.y+(p.getY(i)-q.y)*r,q.z+(p.getZ(i)-q.z)*r);}
+ g.computeVertexNormals();return g;
+}
+// Old trees whose roots flare from the trunk as buttresses, dive into the soil, wander over it
+// half buried and fork, as the region concept's; toward the pond the roots run on over the rim
+// and down its face to the water.
 const rootParts=[];
-function rootTree(u,v,s,seed,spill=0){
- const[x,y,z]=onGround(u,v);broadleaf(x,z,s,seed);COLLIDERS.push({x,z,r:s*.38});
- const n=6+Math.floor(rand()*3);
+const ROOT_BARK=['#96705b','#8a6650','#a07a62'];
+function rootPath(x,z,y0,a,len,lift,r0,wobble){
+ const pts=[],n=10;
+ for(let j=0;j<=n;j++){
+  const t=j/n,r=r0+len*t,aa=a+Math.sin(t*2.6+wobble)*.32*t,px=x+Math.cos(aa)*r,pz=z+Math.sin(aa)*r;
+  const ground=Math.max(height(px,pz),SEA_Y-.15),rise=lift*Math.pow(1-smooth(0,.3,t),1.6),sink=M(.05)*smooth(.55,1,t);
+  pts.push(new V3(px,j===0?y0+lift:ground+rise+M(.035)-sink,pz));
+  // a root that reaches the pond ends just past the waterline, dipping in
+  if(j>=2&&pondIn(px,pz)>M(.2)){pts.at(-1).y=SEA_Y-M(.1);break;}
+ }
+ return pts;
+}
+function rootTree(u,v,s,seed,toPond=false){
+ const[x,y,z]=onGround(u,v),spill=toPond?Math.atan2(POND.cz-z,POND.cx-x):null;broadleaf(x,z,s,seed);COLLIDERS.push({x,z,r:s*.38});
+ const n=5+Math.floor(rand()*3),start=R(0,Math.PI*2);
  for(let k=0;k<n;k++){
-  const a=k/n*Math.PI*2+R(-.3,.3),len=M(R(.55,.95))*s*(spill&&Math.cos(a-spill)>.5?2.2:1),pts=[];
-  for(let j=0;j<=8;j++){const t=j/8,r=M(.08)*s+len*t,px=x+Math.cos(a+Math.sin(t*3+k)*.25)*r,pz=z+Math.sin(a+Math.sin(t*3+k)*.25)*r;pts.push(new V3(px,Math.max(height(px,pz),SEA_Y-.2)+M(.03)*(1-t)+.02,pz));}
-  pts[0].y=y+M(.22)*s;
-  const g=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,M(.045)*s,6,false);
-  {const p=g.attributes.position,c=new THREE.CatmullRomCurve3(pts);for(let i=0;i<p.count;i++){const seg=Math.floor(i/7)/16,k2=1-seg*.8,q=c.getPoint(seg);p.setXYZ(i,q.x+(p.getX(i)-q.x)*k2,q.y+(p.getY(i)-q.y)*k2,q.z+(p.getZ(i)-q.z)*k2);}}
-  const p=g.attributes.position,lens=[];for(let i=0;i<p.count;i++)lens.push(0);
-  rootParts.push(coloredPart(g,pick(['#8a6f55','#7d634c','#957a5e'])));
+  const a=start+k/n*Math.PI*2+R(-.35,.35),toward=spill!==null&&Math.cos(a-spill)>.55,len=M(R(1.0,1.7))*s*(toward?2.2:1),thick=M(R(.11,.15))*s;
+  const pts=rootPath(x,z,y,a,len,M(R(.16,.26))*s,M(.1)*s,R(0,6));
+  rootParts.push(coloredPart(taperedTube(pts,thick,M(.022),18,7),pick(ROOT_BARK)));
+  // a fork or two off the main root, thinner, turning away from it
+  for(let f=0;f<(rand()<.6?2:1);f++){
+   const t0=R(.3,.6),i0=Math.min(pts.length-2,Math.round(t0*10)),o=pts[i0],side=rand()<.5?-1:1,b=a+side*R(.45,.9),bl=len*R(.35,.55);
+   const bp=[o.clone()];for(let j=1;j<=6;j++){const t=j/6,px=o.x+Math.cos(b)*bl*t,pz=o.z+Math.sin(b)*bl*t;if(pondIn(px,pz)>0)break;bp.push(new V3(px,Math.max(height(px,pz),SEA_Y-.15)+M(.03)-M(.04)*t,pz));}
+   if(bp.length<3)continue;
+   rootParts.push(coloredPart(taperedTube(bp,thick*(1-t0)*.7,M(.01),10,6),pick(ROOT_BARK)));
+  }
  }
 }
 // Moonroot's glow: little cyan bell-flowers and curled white sprouts in the shade

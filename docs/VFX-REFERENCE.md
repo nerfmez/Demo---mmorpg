@@ -155,6 +155,13 @@ blade. The rip read too fast: the rise was spread to about a quarter second and 
 held overhead pose plays over 0.6 s; the skill is renamed Earth Heave (งัดพสุธา, id kept
 `sky_shatter` for saves) to match the motion.
 
+Earth Rend (แผ่นดินแยก, heavy weapons, an 8 m x 1.8 m line after a 0.8 s wind-up), `skillfx/rend-fx.js`:
+Frontline Split's lane on the ground through the wind-up; on 'lineStrike' a ragged flash and dust where
+the weapon lands, then a rift races down the lane (a chasm decal: dark depth, the sun-side wall lit, a
+broken lip, the rift wandering), both banks heave up as blunt slabs tilted away from it, dust bursts off
+the running front and rock chunks are thrown up; the slabs sink back and the chasm closes from the far
+end. Stone, dust and slab pieces are shared from `ground-kit.js`.
+
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
 Reference (owner): **the effects already made on the FX bench** (`fx-test.html`, published bench),

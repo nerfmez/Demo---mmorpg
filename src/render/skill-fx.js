@@ -29,9 +29,10 @@ import { MeteorFx } from './skillfx/meteor-fx.js';
 import { ThunderFx } from './skillfx/thunder-fx.js';
 import { BlizzardFx } from './skillfx/blizzard-fx.js';
 import { ShatterFx } from './skillfx/shatter-fx.js';
+import { RendFx } from './skillfx/rend-fx.js';
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -76,6 +77,7 @@ export class SkillFx {
     this.thunder = new ThunderFx(scene, camera);
     this.blizzard = new BlizzardFx(scene, camera);
     this.shatter = new ShatterFx(scene, camera);
+    this.rend = new RendFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
@@ -190,7 +192,9 @@ export class SkillFx {
         if (echo) host.banner('สะท้อนซ้ำ!');
         return true;
       }
-      case 'lineStrike': this.split.strike(e); return true;
+      case 'lineStrike':
+        if (e.skill === 'earth_rend') { this.split.clear(); this.rend.strike(e); host.shake(0.28, 0.3); return true; }
+        this.split.strike(e); return true;
       case 'guardStance': { const s = this.skillOf('riposte') || g.player.riposte?.skill; this.riposte.guard(e.duration, s?.guard?.arc || 110); return true; }
       case 'playerHit': {
         const r = g.player.riposte;
@@ -333,13 +337,14 @@ export class SkillFx {
     this.thunder.update(dt, this.game.monsters);
     this.blizzard.update(dt);
     this.shatter.update(dt);
+    this.rend.update(dt);
   }
   // the offscreen flame passes, right before the main render
   prerender() { this.flame.prerender(); }
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend]) fx.clear();
     this.timers.length = 0;
   }
 }

@@ -1024,8 +1024,7 @@
       "upgradeMaterial": "crag_stone",
       "upgradeStat": "STR",
       "job": "heavy",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "iron_body": {
       "name": "Iron Body",

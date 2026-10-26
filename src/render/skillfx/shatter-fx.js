@@ -10,27 +10,12 @@
 //   a warm light; a heavy shake (the director). Struck monsters get Breakbeat Slam's stun stars
 //   (MaceFx.hit). Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, flashMaterial, tintFlash, place, placeV, conformPlane, addLight, NOISE, BILLBOARD_VS } from './fx-common.js';
+import { Ribbon, mulberry32, flashMaterial, tintFlash, place, placeV, conformPlane, addLight, BILLBOARD_VS } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W, taperW, taperGlowW } from './light-kit.js';
-import { rockGeometry, slabGeometry, craterMesh } from './ground-kit.js';
+import { rockGeometry, slabGeometry, craterMesh, STONE_VS, STONE_FS, DUST_FS } from './ground-kit.js';
 
 const ROWS = [[1.25, 4], [2.05, 6], [2.85, 8]], SPIKES = 18, PEBBLES = 9, DUST = 22, RAYS = 6, CRATER = 2.6;
 const EDGE = [1.0, 0.95, 0.82], GLOW = [0.95, 0.7, 0.35];
-// stone, lit in the game's three toon steps
-const STONE_VS = `varying vec3 vN; void main(){ vN = normalize(mat3(modelMatrix)*normal); gl_Position = projectionMatrix*viewMatrix*modelMatrix*vec4(position,1.0); }`;
-const STONE_FS = `varying vec3 vN; uniform float uA;
-  void main(){ float l = dot(normalize(vN), normalize(vec3(-0.33, 0.82, 0.49)));
-    vec3 c = l > 0.55 ? vec3(0.74, 0.66, 0.55) : (l > 0.1 ? vec3(0.55, 0.48, 0.4) : vec3(0.36, 0.31, 0.27));
-    gl_FragColor = vec4(c, uA); }`;
-// dust: a soft puff that swells and thins, two warm tones (Firebolt's puff shape in dust colours)
-const DUST_FS = `varying vec2 vUv; uniform float uT; uniform float uSeed;` + NOISE + `
-  void main(){ float r = length(vUv);
-    float n = fbm(vUv*2.0 + uSeed + vec2(0.0, -uT*1.2));
-    float body = n*1.15 - r*0.95 - uT*0.7;
-    if (body < 0.04) discard;
-    vec3 c = body > 0.24 ? vec3(0.86, 0.78, 0.64) : vec3(0.66, 0.57, 0.45);
-    gl_FragColor = vec4(c, 0.85*(1.0 - uT*0.5)); }`;
-
 export class ShatterFx {
   constructor(scene, camera) {
     this.camera = camera; this.rnd = mulberry32(23); this.time = 0;

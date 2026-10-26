@@ -32,6 +32,21 @@ export function slabGeometry(seed) {
   }
   const flat = g.toNonIndexed(); flat.computeVertexNormals(); g.dispose(); return flat;   // flat faces: chipped stone
 }
+// stone, lit in the game's three toon steps
+export const STONE_VS = `varying vec3 vN; void main(){ vN = normalize(mat3(modelMatrix)*normal); gl_Position = projectionMatrix*viewMatrix*modelMatrix*vec4(position,1.0); }`;
+export const STONE_FS = `varying vec3 vN; uniform float uA;
+  void main(){ float l = dot(normalize(vN), normalize(vec3(-0.33, 0.82, 0.49)));
+    vec3 c = l > 0.55 ? vec3(0.74, 0.66, 0.55) : (l > 0.1 ? vec3(0.55, 0.48, 0.4) : vec3(0.36, 0.31, 0.27));
+    gl_FragColor = vec4(c, uA); }`;
+// dust: a soft puff that swells and thins, two warm tones (Firebolt's puff shape in dust colours)
+export const DUST_FS = `varying vec2 vUv; uniform float uT; uniform float uSeed;` + NOISE + `
+  void main(){ float r = length(vUv);
+    float n = fbm(vUv*2.0 + uSeed + vec2(0.0, -uT*1.2));
+    float body = n*1.15 - r*0.95 - uT*0.7;
+    if (body < 0.04) discard;
+    vec3 c = body > 0.24 ? vec3(0.86, 0.78, 0.64) : vec3(0.66, 0.57, 0.45);
+    gl_FragColor = vec4(c, 0.85*(1.0 - uT*0.5)); }`;
+
 export const DECAL_VS = `varying vec2 vP; void main(){ vP=uv*2.0-1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `;
 // the crater, a decal on the ground (1 = the bowl's lip; the plane spans 1.7): shaded in the game's
 // three toon steps from a height field (a sunken bowl, a raised broken lip), lit by the sun; soot

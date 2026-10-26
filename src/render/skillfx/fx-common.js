@@ -102,8 +102,15 @@ export class Ribbon {
     }
   }
   end() {
-    for (const k of ['position', 'uv', 'alpha', 'tint']) this.geo.attributes[k].needsUpdate = true;
-    this.geo.index.needsUpdate = true;
+    // Upload only the strips written this frame, and nothing while the ribbon stays empty:
+    // re-sending the whole fixed buffer every frame cost seconds on software GL.
+    if (this.i || this.drawn) {
+      for (const [k, size] of [['position', 3], ['uv', 2], ['alpha', 1], ['tint', 3]]) {
+        const a = this.geo.attributes[k]; a.clearUpdateRanges(); a.addUpdateRange(0, Math.max(1, this.v) * size); a.needsUpdate = true;
+      }
+      const index = this.geo.index; index.clearUpdateRanges(); index.addUpdateRange(0, Math.max(1, this.i)); index.needsUpdate = true;
+    }
+    this.drawn = this.i;
     this.geo.setDrawRange(0, this.i);
   }
   dispose() { this.mesh.removeFromParent(); this.geo.dispose(); this.mesh.material.dispose(); }

@@ -14,12 +14,15 @@ import { regionShift } from './region-shift.js';
 import art from '../../data/art.json' with {type:'json'};
 
 const colour = hex => { const c = new THREE.Color(hex); return `vec3(${c.r},${c.g},${c.b})`; };
+// hypot only where the squared distance can still win (bit-identical result, as core/city.js)
 const edgeDistance = (points,x,z) => {
-  let best=Infinity;
+  let best=Infinity,best2=Infinity;
   for(let i=0;i<points.length;i++){
     const a=points[i],b=points[(i+1)%points.length],dx=b[0]-a[0],dz=b[1]-a[1];
     const t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz||1)));
-    best=Math.min(best,Math.hypot(x-a[0]-t*dx,z-a[1]-t*dz));
+    const ex=x-a[0]-t*dx,ez=z-a[1]-t*dz,d2=ex*ex+ez*ez;
+    if(d2>best2)continue;
+    const d=Math.hypot(ex,ez);if(d<best){best=d;best2=d*d*(1+1e-9)+1e-12;}
   }
   return best;
 };

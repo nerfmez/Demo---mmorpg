@@ -50,13 +50,16 @@ export function mapImage(world) {
   const beachAt = sceneBeach(world.data);
   const pal = new Map(world.zones.map((z) => [z.id, [hex(z.palette?.[0] || '#8ac25a'), hex(z.palette?.[1] || '#6a9a44')]]));
   const town = world.data.town;
+  // heights on the sample grid with a one-sample border, read for the slope (one query per point)
+  const GW = W + 2, heights = new Float64Array(GW * (H + 2));
+  for (let j = 0; j < H + 2; j++) for (let i = 0; i < GW; i++) heights[j * GW + i] = world.terrainY(b.minX + i - 0.5, b.minZ + j - 0.5);
   for (let j = 0; j < H; j++) {
     const z = b.minZ + j + 0.5;
     for (let i = 0; i < W; i++) {
       const x = b.minX + i + 0.5;
-      const h = world.terrainY(x, z);
-      const dx = world.terrainY(x + 1, z) - world.terrainY(x - 1, z);
-      const dz = world.terrainY(x, z + 1) - world.terrainY(x, z - 1);
+      const g = (j + 1) * GW + i + 1, h = heights[g];
+      const dx = heights[g + 1] - heights[g - 1];
+      const dz = heights[g + GW] - heights[g - GW];
       const [light, dark] = pal.get(world.zoneAt(x, z).id);
       // patchy grass from a cheap hash so big zones do not look flat
       const n = Math.sin(x * 0.37 + Math.sin(z * 0.21) * 2) * Math.sin(z * 0.29 + x * 0.05);
@@ -70,7 +73,7 @@ export function mapImage(world) {
         const coast = world.coastAt(x, z), d = coast.distance;
         const beach = beachAt(x, z);
         // raised ground (a headland or terrace top) is not sand, as render/ground.js beachTop
-        const top = art.ground.beachTop, h = world.terrainY(x, z), high = top ? Math.max(0, Math.min(1, (h - top[0]) / (top[1] - top[0]))) : 0;
+        const top = art.ground.beachTop, high = top ? Math.max(0, Math.min(1, (h - top[0]) / (top[1] - top[0]))) : 0;
         if (coast.kind === 'beach' && d < beach) c = mix(c, SAND, Math.min(1, (beach - d) / 5) * (1 - high * high * (3 - 2 * high)));
       }
       const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z,.8):outsideRoadDistance(world.data.city,world.roads,x,z,.8);

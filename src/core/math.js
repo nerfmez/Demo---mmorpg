@@ -64,12 +64,17 @@ export function distToPolylineBounds(px, pz, pts) {
   return Math.hypot(dx, dz);
 }
 
-/** Distance from a point to a polyline [[x,z],...]. */
+/** Distance from a point to a polyline [[x,z],...]. The same arithmetic as
+ *  distToSegment (identical results), without an object per segment: road and
+ *  path queries run per ground sample and map pixel. */
 export function distToPolyline(px, pz, pts) {
   let best = Infinity;
   for (let i = 0; i < pts.length - 1; i++) {
-    const r = distToSegment(px, pz, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
-    if (r.d < best) best = r.d;
+    const ax = pts[i][0], az = pts[i][1], vx = pts[i + 1][0] - ax, vz = pts[i + 1][1] - az;
+    const len2 = vx * vx + vz * vz;
+    const t = clamp(len2 > 0 ? ((px - ax) * vx + (pz - az) * vz) / len2 : 0, 0, 1);
+    const dx = ax + vx * t - px, dz = az + vz * t - pz, d = Math.sqrt(dx * dx + dz * dz);
+    if (d < best) best = d;
   }
   return best;
 }

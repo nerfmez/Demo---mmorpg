@@ -142,7 +142,7 @@ function build(){
  const[x,z]=P(.50,.80);HERO.x=x;HERO.z=z;HERO.face=-2.9;
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();
  greatTree(.62,.19,10);rootArch(.12,.32,.29,.31,.16);warrenRocks();
- burrow(.455,.38,.032);burrow(.585,.375,.032);burrow(.675,.415,.032);
+ burrow(.455,.38,.032);burrow(.585,.375,.032);burrow(.675,.415,.032);bankFace();
  scatteredRocks();plantGrove();glowPlants();
  const ferns=new THREE.Mesh(mergeGeometries(fernParts),paint({vertexColors:true,shade:[.5,.62,.5],mid:[.86,.95,.8]}));ferns.material.side=THREE.DoubleSide;ferns.receiveShadow=true;scene.add(ferns);
  if(rootParts.length){const roots=new THREE.Mesh(mergeGeometries(rootParts),barkPaint());roots.castShadow=roots.receiveShadow=true;scene.add(roots);}

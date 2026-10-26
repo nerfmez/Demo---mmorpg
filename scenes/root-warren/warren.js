@@ -26,12 +26,43 @@ const BURROWS=[];
 // A burrow, as the reference's: a dark round mouth in the bank's face under an arch of small
 // earth-brown stones, a little spoil heap and pebbles before it.
 function burrow(u,v,w){
- const[x,y,z]=onGround(u,v),r=wide(u-w/2,u+w/2,v,y)/2*1.2,g=new THREE.CircleGeometry(r,18);
- g.scale(1,.85,1);g.translate(x,y+r*.6,z+.05);fernParts.push(coloredPart(g,'#221c17'));
+ const[x,y,z]=onGround(u,v),r=wide(u-w/2,u+w/2,v,y)/2*1.2;
+ // the mouth: a dark tunnel running back into the bank, darker deeper in
+ for(const[d,k,c]of[[0,1,'#2a221b'],[r*.5,.82,'#1b1612'],[r*1.0,.62,'#100d0b']]){const g=new THREE.CircleGeometry(r*k,18);g.scale(1,.85,1);g.translate(x,y+r*.6-d*.12,z+.05-d);fernParts.push(coloredPart(g,c));}
+ // a rim of small earth-brown stones round its arch, set into the face, as the reference's
  const n=11;for(let i=0;i<=n;i++){const a=Math.PI*i/n,px=x+Math.cos(a)*r*1.18,py=y+r*.6+Math.sin(a)*r*1.05;
-  const st=new THREE.BoxGeometry(r*.34,r*.26,r*.3);st.rotateZ(a-Math.PI/2);st.translate(px,py,z+r*.35);fernParts.push(coloredPart(st,pick(['#b29473','#a3866a','#bd9f7e'])));}
+  addStone(px,py-r*.14,z+r*.2,r*R(.3,.38),r*R(.24,.3),r*R(.3,.36),{extra:3,chamfer:.35,noLine:true,moss:i>3&&i<8?.35:.05,base:pick(['#b29473','#a3866a','#bd9f7e']),ry:a});}
  BURROWS.push([x,z,r]);
- for(let k=0;k<5;k++)addStone(x+R(-1.3,1.3)*r,y-.05,z+r*R(.6,1.3),r*R(.2,.35),r*R(.1,.2),r*R(.2,.3),{extra:3,chamfer:.3,noLine:true,moss:0,base:'#9b7a58'});
+ // dug earth spread before it, pebbles, and a few small mushrooms by the mouth
+ for(let k=0;k<10;k++)addStone(x+R(-1.4,1.4)*r,y-.05,z+r*R(.5,1.6),r*R(.15,.3),r*R(.1,.18),r*R(.15,.25),{extra:3,chamfer:.3,noLine:true,moss:0,base:pick(['#9b7a58','#a98a68','#8f7154'])});
+ for(let k=0;k<(rand()<.7?3:2);k++){const px=x+R(-1.4,1.4)*r,pz=z+r*R(.3,.8),py=height(px,pz),h=r*R(.4,.6);
+  const st=new THREE.CylinderGeometry(h*.2,h*.25,h,6);st.translate(px,py+h/2,pz);fernParts.push(coloredPart(st,'#efe6d3'));
+  const cap=new THREE.SphereGeometry(h*.42,8,5,0,Math.PI*2,0,Math.PI/2);cap.scale(1,.7,1);cap.translate(px,py+h*.92,pz);fernParts.push(coloredPart(cap,pick(['#c9814f','#d79a63','#b56f44'])));}
+}
+// The warren bank's face, as the reference's: earth set with small rounded stones, thin roots
+// hanging over its lip, grass and flowers spilling from the top, ferns and flowers along its foot.
+function bankFace(){
+ const pts=[];
+ for(let i=0;i<5000&&pts.length<260;i++){
+  const[x,y,z]=onGround(R(.34,.84),R(.30,.47)),g=Math.max(Math.abs(height(x+.3,z)-y),Math.abs(height(x,z+.3)-y))/.3;
+  if(g<.9||BURROWS.some(([bx,bz,r])=>Math.hypot(x-bx,z-bz)<r*1.5))continue;pts.push([x,y,z]);
+ }
+ for(const[x,y,z]of pts){const r=M(R(.09,.2));addStone(x,y-r*.35,z+r*.1,r*R(1.1,1.6),r,r*R(.9,1.2),{extra:4,chamfer:.38,noLine:true,moss:rand()<.25?.4:0,base:pick(['#9c7c5c','#8c6e52','#a6876a','#b09276','#7f6650']),ry:R(0,6)});}
+ // the lip: walk along the top of the face, grass and flowers spilling over it, roots hanging down
+ for(let i=0;i<=60;i++){
+  const u=.34+.5*i/60;let lip=null;
+  for(let v=.28;v<.5;v+=.004){const[x,y,z]=onGround(u,v),g=Math.max(Math.abs(height(x+.3,z)-y),Math.abs(height(x,z+.3)-y))/.3;if(g>.9){lip=[x,y,z];break;}}
+  if(!lip)continue;const[x,y,z]=lip;
+  for(let k=0;k<3;k++){const px=x+R(-.4,.4),pz=z-R(0,.3);grassItems.push({x:px,y:height(px,pz)-.02,z:pz,s:R(.9,1.3),ry:R(0,6.28),k:R(.9,1.08)});if(rand()<.5)flowerItems.push({x:px,y:height(px,pz)+.02,z:pz,s:R(.7,1),ry:R(0,6.28),c:rand()<.6?'#fff6dc':'#f7da54'});}
+  if(i%3===0)addBush(x,y-.15,z+.1,M(R(.22,.36)),{sy:.55,tint:R(-.05,.25)});
+  if(rand()<.45&&!BURROWS.some(([bx,bz,r])=>Math.abs(x-bx)<r*1.4)){
+   const rp=[];let pz=z-.2;for(let j=0;j<10;j++){rp.push(new V3(x+Math.sin(j*.9+i)*.08,height(x,pz)+.06,pz));pz+=.22;if(height(x,pz)<y-PL*.9)break;}
+   if(rp.length>2)rootParts.push(barkTube(rp,M(R(.035,.06)),M(.012),12));
+  }
+ }
+ // ferns and flowers along the foot of the face
+ for(let i=0;i<40;i++){const[x,y,z]=onGround(R(.36,.82),R(.40,.47));const g=Math.max(Math.abs(height(x+.3,z)-y),Math.abs(height(x,z+.3)-y))/.3;if(g>.5||BURROWS.some(([bx,bz,r])=>Math.hypot(x-bx,z-bz-r)<r*1.8))continue;
+  if(rand()<.35)fernClump(x,y-.05,z,M(R(.6,1)));else for(let k=0;k<3;k++){const px=x+R(-.5,.5),pz=z+R(-.3,.3);flowerItems.push({x:px,y:height(px,pz)+.02,z:pz,s:R(.75,1),ry:R(0,6.28),c:rand()<.6?'#fff6dc':'#f7da54'});}}
 }
 // Bark in the game trunk's own style (render/anime-study.js animeTrunk): nine flat facets round
 // a curve, each toned light, mid or shadow by the sun, so roots match the trees (as Mirror Pond's).

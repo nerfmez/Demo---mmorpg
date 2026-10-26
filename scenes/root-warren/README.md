@@ -1,6 +1,6 @@
 # Root Warren — standalone scene in owner review
 
-**Owner status: in review, 26 October 2026**, artifact version 4:
+**Owner status: in review, 26 October 2026**, artifact version 5:
 https://claude.ai/artifact/EuwKaqYC2DzvzctjRKvZVQ.
 
 Concept: `root-warren.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
@@ -47,3 +47,9 @@ Owner, on version 3: the stones are not yet natural. Each block is now a weather
 shades; some broad and low, some tall, some split into two stacked pieces; a smaller broken piece
 leaning on it, rubble at its foot, moss on its top, and grass, flowers, a fern and a bush growing
 up round its base.
+
+Owner, on version 4: improve the burrows' area a little. The bank's face is now earth set with
+small rounded brown stones (`bankFace`), thin roots hang over its lip, grass, flowers and bushes
+spill from its top, and ferns and flowers grow along its foot. Each burrow is a tunnel growing
+darker inward under an arch of small earth-brown stones set into the face, with pebbles and a few
+small orange mushrooms before its mouth.

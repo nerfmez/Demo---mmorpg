@@ -30,18 +30,21 @@ import { ThunderFx } from './skillfx/thunder-fx.js';
 import { BlizzardFx } from './skillfx/blizzard-fx.js';
 import { ShatterFx } from './skillfx/shatter-fx.js';
 import { RendFx } from './skillfx/rend-fx.js';
+import { StormFx } from './skillfx/storm-fx.js';
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
 const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam', 'shield_bash', 'sky_shatter']);
 const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
-const POST = { sky_shatter: 0.6, earth_rend: 0.5 };
+// a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
+const stormSpan = (s) => (s.repeats || 0) * ((s.repeatDelay || 0) + 0.1);
+const POST = { sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 1.2 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**
@@ -80,9 +83,10 @@ export class SkillFx {
     this.blizzard = new BlizzardFx(scene, camera);
     this.shatter = new ShatterFx(scene, camera);
     this.rend = new RendFx(scene, camera);
+    this.storm = new StormFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend]) fx.onShake = shake;
-    this.timers = []; this.time = 0; this.crossI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm]) fx.onShake = shake;
+    this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
     this.center = new THREE.Vector3(); this.head = new THREE.Vector3(); this.from = new THREE.Vector3(); this.to = new THREE.Vector3(); this.mouth = new THREE.Vector3();
@@ -155,6 +159,7 @@ export class SkillFx {
         if (e.charge !== undefined) this.release(e.charge); // a charged shot looses: its arrow and impact grow with the charge
         this.play(e.skill, e.total + (POST[e.skill] ?? 0.28), e.kind === 'melee_arc' ? this.nextSwingStep() : e.step, e.total, e.kind);
         if (e.skill === 'cross_cut') this.crossI = 0;
+        if (e.skill === 'blade_storm') { this.stormI = 0; this.storm.start(g.player.x, g.player.z, s.radius, e.total + stormSpan(s) + 0.3); }
         if (e.kind === 'melee_arc') { this.primarySwing = true; if (!OWN_STRIKE.has(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
         if (e.kind === 'projectile' && !OWN_PROJECTILES.has(e.skill)) {
           host.vfx.beginCast(e, s.element);
@@ -187,6 +192,16 @@ export class SkillFx {
         // a chain bursting from a struck target (a fused arrow, e.from) starts there, not at the hand
         if (e.from) this.chain.play([e.points[0], ...e.points], e.element, this.tipV.set(e.points[0][0], 1.1, e.points[0][1]), false);
         else this.chain.play(e.points, e.element, this.staffTip(), miss);
+        return true;
+      }
+      case 'whirl': {
+        if (e.skill !== 'blade_storm') return false;
+        // Blade Storm: each spin is a crescent round the whole circle in the blade job's violet, each a
+        // little higher than the last, so the four stack like a whirlwind; the last one bursts
+        const s = this.skillOf(e.skill), i = this.stormI++, p = g.player;
+        this.storm.follow(e.x, e.z);
+        this.slash.swing(0, { palette: CROSS_PALETTE, range: e.radius, arc: 340, reach: 1, inner: 0.55, tilt: (i % 2 ? -1 : 1) * 0.1, y: -0.25 + 0.17 * i, dir: -1, hold: 0.06, where: () => ({ x: p.x, z: p.z, angle: p.facing }) });
+        if (s && i >= s.repeats) this.storm.burst(e.x, e.z);
         return true;
       }
       case 'nova': {
@@ -345,13 +360,14 @@ export class SkillFx {
     this.blizzard.update(dt);
     this.shatter.update(dt);
     this.rend.update(dt);
+    this.storm.update(dt);
   }
   // the offscreen flame passes, right before the main render
   prerender() { this.flame.prerender(); }
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm]) fx.clear();
     this.timers.length = 0;
   }
 }

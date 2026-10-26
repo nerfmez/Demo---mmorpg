@@ -1131,8 +1131,7 @@
       "upgradeMaterial": "dusk_pelt",
       "upgradeStat": "DEX",
       "job": "blade",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "rally": {
       "name": "Rally",

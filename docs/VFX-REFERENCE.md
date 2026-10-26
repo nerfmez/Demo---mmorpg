@@ -209,6 +209,12 @@ now ordinary cuts around the hero, bulging forward with the bright sharp edge le
 way about the facing so they make an upright X from the hero's view, and they fly on forward as a wave.
 From the high camera they read as forward-flying crescents in every facing.
 
+Blade Storm (พายุมีด, daggers, four spins 0.3 s apart over a 3 m circle), `skillfx/storm-fx.js`: each spin is a
+slash crescent round the whole circle in the blade job's violet (Cross Cut's), each a little higher
+than the last so the four stack like a whirlwind of blades; wind streaks spiral up round the hero
+through the spins; the last spin flings sparks outward with a flash and a short shake. The hero
+spins with Whirl Blade's approved `whirlSpin` run four turns (`bladeStorm`).
+
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
 Reference (owner): **the effects already made on the FX bench** (`fx-test.html`, published bench),

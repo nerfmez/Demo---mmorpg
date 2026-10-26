@@ -254,7 +254,7 @@ body while it lasts. A first pink tint read as cute, not frenzied; it is a deepe
 Owner: it should look like a roar, as its name says. The shout marks (jagged ring, shout lines,
 chevrons) are gone: air is drawn in to the mouth through the cast, then sound waves (wavy rings) pulse out
 one after another at head height to the true radius, a blast of arcs ")))" bursts ahead of the mouth
-and the camera rumbles; the speed trails stay while it lasts.
+and the camera rumbles; the speed trails stay while it lasts. Owner: no wavy lines; the rings are smooth.
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

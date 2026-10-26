@@ -5,7 +5,7 @@
 //    radius (in the air: nothing on the ground) with an echo, shout lines burst out round the hero like
 //    a manga roar, spirit streaks shoot up round the hero with a star glint, and over every body the buff
 //    reached (the hero and allies in range) up-chevrons rise and fade: the anime "power up" mark;
-//  - a roar (Frenzy Roar, owner: it should look like its name) instead sends sound: wavy rings pulse out
+//  - a roar (Frenzy Roar, owner: it should look like its name) instead sends sound: smooth rings pulse out
 //    one after another at head height to the true radius, a blast of arcs ")))" bursts ahead of the
 //    mouth, and the camera rumbles;
 //  - while it lasts: a few streaks of the same colour drift up off each buffed body (trail 'back': they
@@ -101,14 +101,11 @@ export class BuffFx {
     if (this.t < 1.2 && L.roar) {
       this.t += dt;
       const t = this.t;
-      // sound: wavy rings pulsing out one after another at head height to the true radius
+      // sound: rings pulsing out one after another at head height to the true radius
       for (let i = 0; i < WAVES; i++) {
         const k = (t - i * WAVE_EVERY) / WAVE_LIFE; if (k < 0 || k >= 1) continue;
         const rr = 0.5 + (this.radius - 0.5) * out2(k);
-        for (let j = 0; j < RING; j++) {
-          const a = (j / (RING - 1)) * Math.PI * 2, wob = 1 + (0.045 + Math.min(0.04, 0.08 / rr)) * Math.sin(a * 7 + t * 30 + i * 2);
-          this.ring[j].set(x + Math.sin(a) * rr * wob, MOUTH - 0.12 * i, z + Math.cos(a) * rr * wob);
-        }
+        circlePoints(this.ring, x, z, rr, MOUTH - 0.12 * i); // smooth rings (owner: no wavy lines)
         W.v = (i ? 0.13 : 0.22) * (1 - 0.7 * k); this.glow.strip(this.ring, lineGlowW, 0.9 * (1 - k), L.glow); this.core.strip(this.ring, lineW, (1 - k * k) * (i ? 0.8 : 1), L.edge);
       }
       // the blast ahead of the mouth: arcs ")))" racing out along the facing, widening

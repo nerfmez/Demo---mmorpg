@@ -332,12 +332,13 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
   ground dust streak, all in the rig's space; tuning in `data/combat-fx.json` `roll`.
 - **`dormant`** (`{wake}`, the warden): out of combat the monster lies still (no wandering); on aggro
   from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
-  the warden's boulder while dormant and stacks the golem from it during `emerge` (legs, body, arms,
-  then the head grow in with a small overshoot); back home it curls into the boulder again.
-- **`dormant`** (`{wake}`, the warden): out of combat the monster lies still (no wandering); on aggro
-  from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
-  the warden's boulder while dormant and stacks the golem from it during `emerge` (legs, body, arms,
-  then the head grow in with a small overshoot); back home it curls into the boulder again.
+  the warden's boulder while dormant; during `emerge` the boulder breaks into the golem's own stones,
+  which fly up into place feet first, each tumbling along an arc; back home it folds into the boulder
+  again. Before a `roll` (1.5 s wind-up) it dips to set its shield on the ground, then folds into
+  the ball; the shield stays standing where it was set down (`dropPiece` in data/models.json picks its
+  pieces) and flies back to the arm as the golem unfolds after the roll. All of it is done per stone
+  in the vertex shader after skinning (monsterSkin.js `ASSEMBLE`: each vertex carries its stone's
+  middle and when it moves, `pieceC`), driven by monsters.js `wardenForm`.
 - **`quake`:** the warden marks `steps` `quake` areas along the locked line at wind-up start;
   each erupts `stepDelay` after the previous one.
 - **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.

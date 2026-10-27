@@ -7,7 +7,7 @@
 import { completeOpeningUi } from './opening-helper.mjs';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { enterFullscreenGate } from './fullscreen-entry.mjs';
 import { initialUiReady, vrmHeroReady, chibiHeroReady } from './startup-ready.mjs';
 
@@ -420,7 +420,9 @@ async function chibiHero() {
   check(info.garments.includes('boots') && (info.garments.includes('armor') || ['pants', 'top'].every((k) => info.garments.includes(k))), `chibi hero: wears the outfit's top, trousers and boots (${info.garments})`);
   check(info.h > 0.15, `chibi hero: head stays above the hips while running (${info.h.toFixed(2)} m)`);
   check(info.grip < 0.001 && info.cross < 0.25, `chibi hero: sword held in the fist, fingers across the handle (${info.grip.toFixed(4)} m, ${info.cross.toFixed(2)})`);
-  check(info.fists?.join() === '1,0', `chibi hero: sword hand closed, empty left hand open (${info.fists})`);
+  // an empty hand rests part way curled (data/models.json hero_chibi.fist.relaxed)
+  const relaxed = JSON.parse(readFileSync(new URL('../../data/models.json', import.meta.url), 'utf8')).characters.hero_chibi.fist.relaxed ?? 0;
+  check(info.fists?.join() === `1,${relaxed}`, `chibi hero: sword hand closed, empty left hand relaxed (${info.fists})`);
   check(errors.length === 0, `chibi hero: no page errors ${errors.slice(0, 3).join(' | ')}`);
   await page.screenshot({ path: `${OUT}chibi-hero.png` });
   await ctx.close();

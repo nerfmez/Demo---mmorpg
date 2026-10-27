@@ -3,7 +3,8 @@
 // game's own API and saves screenshots to tests/browser/out/.
 // Screenshot waits allow slow software-GL shader compilation on CI; all gameplay assertions stay unchanged.
 // Usage: npm run build && npm run test:browser  (BROWSER=webkit to use WebKit if installed)
-// SMOKE_CASE=chibi runs the chibi hero case alone. (The VRM hero is no longer used: the owner, 2026-10-27.)
+// SMOKE_CASE=chibi runs the chibi hero case alone for focused startup diagnosis. The old opt-in
+// VRM body (?hero=vrm) is not the game's hero any more (owner, 27 October 2026) and has no smoke case.
 import { completeOpeningUi } from './opening-helper.mjs';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';

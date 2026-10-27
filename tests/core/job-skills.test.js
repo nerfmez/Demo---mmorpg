@@ -168,20 +168,25 @@ test('Spell Wave is the spellblade main skill: a short cooldown and cost like th
   }
 });
 
-test('Spell Wave is already magic: it cannot carry a fused spell or take an element shift', () => {
+test('Spell Wave is already magic: it cannot carry a fused spell, but (plain Arcane) it takes an element shift', () => {
   const fusion = JSON.parse(readFileSync(new URL('../../data/fusion.json', import.meta.url)));
   const combat = data.skills.combat;
   assert.equal(fusionCheck(fusion, combat.spell_wave, combat.firebolt).ok, false, 'no spell on a spell');
   assert.equal(fusionCheck(fusion, combat.slash, combat.firebolt).ok, true, 'a plain attack still carries one');
-  for (const id of ['fire_shift', 'frost_shift', 'poison_shift']) {
+  for (const [id, el] of [['fire_shift', 'fire'], ['frost_shift', 'cold'], ['poison_shift', 'poison']]) {
     const mod = data.mods.mods[id];
-    assert.equal(modFits(combat.spell_wave, mod).ok, false, `${id}: Spell Wave already has an element (Arcane)`);
+    assert.ok(modFits(combat.spell_wave, mod).ok, `${id}: Arcane has no effect of its own, so it may change`);
     assert.equal(modFits(combat.firebolt, mod).ok, false, `${id}: not on a spell`);
-    assert.ok(modFits(combat.slash, mod).ok && modFits(combat.hunter_shot, mod).ok, `${id}: fits an attack with no element`);
+    assert.equal(modFits({ ...combat.slash, tags: [...combat.slash.tags, 'Fire'] }, mod).ok, false, `${id}: not on an attack that already has an element with an effect`);
+    const { g } = fixture('spell_wave');
+    const s = computeSkill({ ...g.ch, mods: [{ id, uid: 901, level: 1, grade: 'C' }], slots: [{ skill: 'spell_wave', mods: [901] }], skills: { spell_wave: 1 } }, data, g.derived, 0);
+    assert.equal(s.element, el);
+    g.executeSkill(s, aim);
+    assert.equal(g.projectiles.find((pr) => pr.kind === 'spell_wave')?.element, el, 'the wave carries the element (the view recolours it)');
   }
-  // only attacks without an element tag take an element shift
-  const ELEMENT_TAGS = ['Fire', 'Cold', 'Lightning', 'Poison', 'Arcane', 'Earth'];
+  // only attacks with no element, or plain Arcane, take an element shift
+  const EFFECT_ELEMENTS = ['Fire', 'Cold', 'Lightning', 'Poison', 'Earth'];
   for (const [sid, s] of Object.entries(combat)) {
-    if (modFits(s, data.mods.mods.fire_shift).ok) assert.ok(s.tags.includes('Attack') && !s.tags.some((t) => ELEMENT_TAGS.includes(t)), sid);
+    if (modFits(s, data.mods.mods.fire_shift).ok) assert.ok(s.tags.includes('Attack') && !s.tags.some((t) => EFFECT_ELEMENTS.includes(t)), sid);
   }
 });

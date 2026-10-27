@@ -258,6 +258,12 @@ worn and `locked` items are refused.
 `core/balance.js` is a pure model of a reference hero per kit at each level, against the
 average monster of that level, wearing the expected gear tier (`progression.balance`).
 Port it with the data so the same targets can be checked; see [BALANCE-25.md](BALANCE-25.md).
+`core/build-rules.js` (2026-10-27) judges builds, not one number: `buildProfile` gives a build
+(kit, Job Tree nodes, a gear set from `progression.balance.rules.gearSets`, support skills) one value
+per axis (single, pack, survival, sustain, mobility, team, income); `auditBuilds` lists overpowered
+pairs (a build dominating another role's specialist), poor choices, builds with no weakness, roles
+that do not lead their axis and same-role gaps (`tests/core/build-rules.test.js`). Pure; port it with
+`balance.js` so new Job Tree content is checked the same way.
 Gear bases sit on tiers (item level 1/6/11/16/21). The six targeted garment additions
 (Sporeweave vest/gloves at 6, Moonleaf Slippers at 11, Wardenstalker coat/hood/gloves
 at 21) use the same stat-based wear, recipe, grade, enhancement and drop rules;

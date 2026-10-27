@@ -115,9 +115,10 @@ function recipeValue(data, r) {
 /**
  * Gold-equivalent income per hour at `level` for `kit`, with farming bonuses `find`
  * (goldFindPct/materialFindPct/gearFindPct) and the arrows a bow spends (`arrowRecipe`).
+ * `ttk` replaces the reference hero's kill time (a build's own, core/build-rules.js).
  */
-export function farmingIncome(data, kit, level, find = {}, arrowRecipe = null) {
-  const b = data.progression.balance, r = balanceAt(data, kit, level), m = referenceMonster(data, level);
+export function farmingIncome(data, kit, level, find = {}, arrowRecipe = null, ttk = null) {
+  const b = data.progression.balance, r = ttk === null ? balanceAt(data, kit, level) : { ttk };
   const normals = Object.values(data.monsters.monsters).filter((x) => !x.boss);
   const avg = (f) => normals.reduce((a, x) => a + f(x), 0) / normals.length;
   const gold = avg((x) => x.drops.filter((d) => d.item === 'gold').reduce((a, d) => a + d.chance * (d.min + d.max) / 2, 0)) * (1 + (find.goldFindPct || 0) / 100);

@@ -1,5 +1,5 @@
 {
-  "_doc": "Presentation only (src/render/hero.js). How the hero carries each weapon type when not attacking, and the arc a melee swing follows. Positions are the right palm in the hero's body space (x left, y up, z forward, metres); dir is where the weapon's long axis points (blade or shaft tip). two = the left hand also holds it (used when nothing is in the left hand), with grip = where along the weapon the left palm goes (metres from the right palm, + toward the head). one = the carry with a shield or second weapon in the left hand; dual (optional) = the carry with a second weapon there, whose left = that hand's palm, blade direction and flat (hero.js solveOffhand). presets keeps carries for other bodies. A carry may have run (hero.js runCarry): its hand, dir and up while moving (left for a dual carry), release to let a two-hand grip go, and lean: bone offsets and a drop added on the run; or arms: the carrying arm's own channels (armR/elbowR, with armL/elbowL for a dual carry; the wrist straight, no hand IK), socket: the weapon's turn in the fist (the weapon channel's x, rest 1.2; past pi/2 the blade leaves the little-finger side), roll: the blade turned about its length, reverse: the fist keeps its thumb toward the pommel (a blade dragged behind); all faded in by the walk/run blend. castHold keeps the weapon's carry angle (not the palm position) through spell actions, so a staff stays upright while the arm gestures. swing.radius is the right palm's distance from the body axis during a swing; actions.js swing keys give the angle (0 forward, + to the hero's left), blade elevation and palm height. stance names the idle body stance in stances (default relaxed): bone offsets (Euler XYZ radians, the same channels as actions.js) added to the standing pose and faded out as the hero walks; drop lowers the body (metres), shift moves it toward the hero's left (+) or right (-).",
+  "_doc": "Presentation only (src/render/hero.js). How the hero carries each weapon type when not attacking, and the arc a melee swing follows. Positions are the right palm in the hero's body space (x left, y up, z forward, metres); dir is where the weapon's long axis points (blade or shaft tip). two = the left hand also holds it (used when nothing is in the left hand), with grip = where along the weapon the left palm goes (metres from the right palm, + toward the head). one = the carry with a shield or second weapon in the left hand; dual (optional) = the carry with a second weapon there, whose left = that hand's palm, blade direction and flat (hero.js solveOffhand). presets keeps carries for other bodies. A carry may have run (hero.js runCarry): its hand, dir and up while moving (left for a dual carry), release to let a two-hand grip go, and lean: bone offsets and a drop added on the run; or arms: the carrying arm's own channels (armR/elbowR, with armL/elbowL for a dual carry; the wrist straight, no hand IK), socket: the weapon's turn in the fist (the weapon channel's x, rest 1.2; past pi/2 the blade leaves the little-finger side), roll: the blade turned about its length, reverse: the fist keeps its thumb toward the pommel (a blade dragged behind); all faded in by the walk/run blend. castHold keeps the weapon's carry angle (not the palm position) through spell actions, so a staff stays upright while the arm gestures. swing.radius is the right palm's distance from the body axis during a swing; actions.js swing keys give the angle (0 forward, + to the hero's left), blade elevation and palm height. stance names the idle body stance in stances (default relaxed): bone offsets (Euler XYZ radians, the same channels as actions.js) added to the standing pose and faded out as the hero walks; drop lowers the body (metres), shift moves it toward the hero's left (+) or right (-). keepGrip (the greatshield) keeps the left hand on the weapon through every action; a greatshield's dir runs from the right grip bar to the left one and up is its face.",
   "swing": {
     "radius": 0.42
   },
@@ -54,6 +54,16 @@
         "stance": "guard"
       }
     },
+    "greatshield": {
+      "two": {
+        "hand": [-0.09, 1.31, 0.522],
+        "dir": [0.986, -0.102, 0.129],
+        "up": [-0.129, 0.009, 0.992],
+        "grip": 0.28,
+        "keepGrip": true,
+        "stance": "greatshield_ready"
+      }
+    },
     "staff": {
       "one": {
         "hand": [-0.27, 1.0, 0.12],
@@ -88,6 +98,7 @@
   },
   "stances": {
     "creation": {"_from": "Quaternius Universal Animation Library (CC0) Idle_Loop at 0.5 s, retargeted onto the driver rig (scripts/pose-retarget/run.mjs --file UAL1.glb --clip Idle_Loop --time 0.5); the owner's pick (2026-10-27) for the character creation screen (view.js showPreview, HumanoidAnimator.stance)", "hips": [0, -0.233, 0], "torso": [-0.033, -0.062, 0], "chest": [0.258, -0.032, -0.011], "head": [-0.088, 0.285, 0.02], "legL": [-0.436, 0.182, 0.239], "legR": [-0.166, -0.717, -0.368], "kneeL": [0.351, 0, 0], "kneeR": [0.266, 0, 0], "footL": [0.027, -0.184, -0.057], "footR": [-0.224, 0.323, 0.118], "armL": [0.043, 0.054, 0.129], "armR": [0.211, 0.157, -0.124], "elbowL": [-0.242, 0, 0], "elbowR": [-0.509, 0, 0], "drop": -0.035, "shift": 0},
+    "greatshield_ready": {"_from": "Quaternius Universal Animation Library (CC0) Idle_Shield_Loop at 0.5 s, retargeted onto the driver rig, legs x0.6, mirrored (scripts/pose-retarget); the owner’s pick (2026-10-27) of three for the greatshield carry. The carry (holds.greatshield) takes this palm, moved to the body’s middle so both hands hold the shield, with the shield’s upright bars along the fist and its face forward", "hips": [0, 0.233, 0], "torso": [-0.029, 0.295, -0.022], "chest": [0.265, 0.133, -0.033], "head": [-0.051, -0.615, 0.085], "legL": [-0.099, 0.43, 0.221], "legR": [-0.261, -0.109, -0.143], "kneeL": [0.143, 0, 0], "kneeR": [0.194, 0, 0], "footL": [-0.134, -0.194, -0.071], "footR": [0.016, 0.111, 0.034], "armL": [0.147, 0.068, 0.092], "armR": [-0.191, 0.968, -0.87], "elbowL": [-0.509, 0, 0], "elbowR": [-1.041, 0, 0], "drop": -0.017, "shift": 0},
     "relaxed": {
       "legL": [-0.07, 0.12, 0.06],
       "legR": [0.03, -0.1, -0.05],

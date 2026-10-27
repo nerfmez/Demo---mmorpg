@@ -250,7 +250,7 @@
     "charm": "เครื่องราง"
   },
   "weaponTypes": {
-    "_doc": "Every weapon type has a built-in (implicit) bonus. Some skills need a weapon type (skills.json requiresWeapon). hands: light = either hand (two light weapons dual-wield with no penalty), heavy = right hand only (a shield or nothing in the left), two = both hands (bow: arrows in the left). Base stats follow handRules.baseFactor (two-hand 2.2x, a little more than two light weapons) x the light reference for the item level (base stats only, never options).",
+    "_doc": "Every weapon type has a built-in (implicit) bonus. Some skills need a weapon type (skills.json requiresWeapon). hands: light = either hand (two light weapons dual-wield with no penalty), heavy = right hand only (a shield or nothing in the left), two = both hands (bow: arrows in the left). shield: true (the greatshield) is held in both hands and counts as the shield in hand: it blocks and Shield Bash works with it. Base stats follow handRules.baseFactor (two-hand 2.2x, a little more than two light weapons) x the light reference for the item level (base stats only, never options).",
     "sword": {
       "nameTh": "ดาบ",
       "implicit": {
@@ -303,6 +303,15 @@
         "cooldownPct": 5
       },
       "hands": "light"
+    },
+    "greatshield": {
+      "nameTh": "โล่ใหญ่",
+      "hands": "two",
+      "shield": true,
+      "implicit": {
+        "defense": 40,
+        "maxHp": 150
+      }
     },
     "mace": {
       "nameTh": "กระบอง",
@@ -1282,6 +1291,80 @@
         "block_pct",
         "regen_flat",
         "barrier_pct"
+      ],
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "VIT",
+      "itemLevel": 21
+    },
+    "crab_greatshield": {
+      "starter": false,
+      "requires": {},
+      "name": "Crab Shell Greatshield",
+      "nameTh": "โล่ใหญ่กระดองปู",
+      "slot": "weapon",
+      "weaponType": "greatshield",
+      "stats": {
+        "attack": 150,
+        "defense": 60,
+        "blockChancePct": 10
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat"
+      ],
+      "upgradeMaterial": "crab_shell",
+      "requirementStat": "VIT",
+      "itemLevel": 1
+    },
+    "beetle_greatshield": {
+      "starter": false,
+      "requires": {},
+      "name": "Beetle Shell Greatshield",
+      "nameTh": "โล่ใหญ่กระดองด้วง",
+      "slot": "weapon",
+      "weaponType": "greatshield",
+      "stats": {
+        "attack": 260,
+        "defense": 110,
+        "maxHp": 200,
+        "blockChancePct": 12
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat"
+      ],
+      "upgradeMaterial": "beetle_shell",
+      "requirementStat": "VIT",
+      "itemLevel": 6
+    },
+    "crag_greatshield": {
+      "starter": false,
+      "requires": {},
+      "name": "Crag Greatshield",
+      "nameTh": "โล่ใหญ่ศิลาผา",
+      "slot": "weapon",
+      "weaponType": "greatshield",
+      "stats": {
+        "attack": 560,
+        "defense": 300,
+        "maxHp": 800,
+        "blockChancePct": 18
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat"
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "VIT",

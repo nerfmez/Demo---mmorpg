@@ -824,7 +824,9 @@ export function derive(ch, data) {
   d.defense = Math.round(d.defense);
   d.weaponType = main && gearEquipState(ch,data,main,'weapon').ok ? data.items.gearBases[main.base].weaponType : 'none';
   const off = gearItem(ch, ch.equipped.offhand), offOk = off && gearEquipState(ch,data,off,'offhand').ok;
-  d.offhand = offOk ? (handsOf(data, off) === 'off' ? 'shield' : 'weapon') : arrow ? 'arrows' : 'none';
+  // a greatshield (weapon type with `shield`) is held in both hands: it blocks and counts as the shield
+  const greatshield = data.items.weaponTypes[d.weaponType]?.shield;
+  d.offhand = offOk ? (handsOf(data, off) === 'off' ? 'shield' : 'weapon') : greatshield ? 'shield' : arrow ? 'arrows' : 'none';
   d.dualWield = d.offhand === 'weapon';
   d.blockChance = d.offhand === 'shield' ? d.blockChancePct / 100 : 0;
   return d;

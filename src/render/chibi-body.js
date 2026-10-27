@@ -1074,7 +1074,8 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
   // A weapon held blade-back, out of the fist's little-finger side (a dragged run carry: hero.js sets
   // rig.gripTurn[i] from 0 to 1 for the right and left hand), keeps the thumb toward its pommel: the
   // thumb's axis turns half a turn about the driver hand's x, the way the socket turned in it.
-  const axis = (kind) => (kind === 'bow' ? Y : kind && kind !== 'shield' && kind !== 'quiver' ? Z : null);
+  // a greatshield's bars stand along its +X (equipment.js greatshieldGrips)
+  const axis = (kind) => (kind === 'bow' ? Y : kind === 'greatshield' ? X : kind && kind !== 'shield' && kind !== 'quiver' ? Z : null);
   const seats = [['RightHand', rig.bones.weapon, weapon], ['LeftHand', rig.bones.offhand, offhand]]
     .map(([n, socket, kind], side) => ({ hand: body.getObjectByName(n), socket, side, along: axis(kind), centre: T.grip[n], thumb: T.thumb[n],
       shift: socket && T.gripMiddle.includes(kind) ? middleOf(socket) : 0 }))

@@ -11,8 +11,7 @@ Task ids are in `tasks.json`.
 - `crab_greatshield_meshy.glb`, `beetle_greatshield_meshy.glb`, `crag_greatshield_meshy.glb`: about
   4,000 triangles, one 2048 texture each. Their backs are Meshy's guess: plain, no straps.
 
-Not in game yet. The held shields are still the code-built ones (`src/render/equipment.js` `buildOffhand`).
-They still need:
-- shrinking to the iPad budget,
-- baking to the forearm grip,
-- a decision on which shield items use them.
+In the game since 2026-10-27 as the three greatshields (`data/items.json`, weapon type `greatshield`):
+`public/models/weapons/<id>.glb` is each one with its texture at 768 px (`scripts/shrink-glb-texture.py 768 76`)
+and decimated to 3,900 triangles (`scripts/decimate-glb.py`). The grip bars on the back are built in code
+(`src/render/equipment.js` `greatshieldGrips`); `data/models.json` fits each model onto them.

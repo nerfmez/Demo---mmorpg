@@ -139,15 +139,20 @@ test('Backstab aimed by a drag steps behind the target it picked, not the neares
   assert.ok(b.g.acquireRange >= data.skills.combat.backstab.shadowStep.range);
 });
 
-test('Spell Wave cuts through every monster on its narrow line, once each, and misses those beside it', () => {
-  const { g, m } = fixture('spell_wave');
-  const far = { ...m, id: 'far', x: 6, z: 0, statuses: {}, hp: 1e6 }, beside = { ...m, id: 'beside', x: 4, z: 1.6, statuses: {}, hp: 1e6 };
-  Object.assign(m, { x: 3, z: 0 });
-  g.monsters = [m, far, beside];
-  assert.ok(g.skills[0].pierce >= 10, 'its base pierce comes from data');
-  g.executeSkill(g.skills[0], aim);
-  const hits = [];
-  for (let i = 0; i < 120 && g.projectiles.length; i++) { g.updateProjectiles(1 / 60); for (const e of g.drainEvents()) if (e.type === 'hit') hits.push(e.id); }
-  assert.deepEqual([...new Set(hits)].sort(), [far.id, m.id].sort(), 'both on the line, not the one beside it');
-  assert.equal(hits.length, 2, 'each struck once');
+test('Spell Wave stops at the first monster on its line; the pierce mod lets it cut through more', () => {
+  const line = (s) => {
+    const { g, m } = fixture('spell_wave');
+    const mid = { ...m, id: 'mid', x: 5, z: 0, statuses: {}, hp: 1e6 }, far = { ...m, id: 'far', x: 7, z: 0, statuses: {}, hp: 1e6 }, beside = { ...m, id: 'beside', x: 4, z: 1.6, statuses: {}, hp: 1e6 };
+    Object.assign(m, { x: 3, z: 0 });
+    g.monsters = [m, mid, far, beside];
+    g.executeSkill(s(g), aim);
+    const hits = [];
+    for (let i = 0; i < 120 && g.projectiles.length; i++) { g.updateProjectiles(1 / 60); for (const e of g.drainEvents()) if (e.type === 'hit') hits.push(e.id); }
+    return { hits, m, mid, far };
+  };
+  const base = line((g) => g.skills[0]);
+  assert.equal(base.hits[0], base.m.id, 'no pierce of its own: the first one only');
+  assert.equal(base.hits.length, 1);
+  const modded = line((g) => computeSkill({ ...g.ch, mods: [{ id: 'pierce', uid: 900, level: 1, grade: 'C' }], slots: [{ skill: 'spell_wave', mods: [900] }], skills: { spell_wave: 1 } }, data, g.derived, 0));
+  assert.deepEqual(modded.hits, [modded.m.id, modded.mid.id, modded.far.id], 'the pierce mod (+2) carries it through two more, once each; the one beside the line is missed');
 });

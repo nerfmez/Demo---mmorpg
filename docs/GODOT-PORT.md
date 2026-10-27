@@ -294,9 +294,14 @@ by UI and rules; all previews are pure. Equipment state helpers check resources 
 `craftBatch()` allows 1..10 independent attempts, optional grade/affix/quality targets,
 and stops on target or the first unpaid attempt. Bill only completed attempts and notify
 quest progress once per item; preserve every result and UID. Never auto-equip or destroy
-unwanted rolls. A selected recipe opens one reusable `craftview.js` workshop; selection
-and comparison never craft or spend. Preserve its repeat button, goals, recent twenty
-result UIDs and a return-to-workshop path after bag comparison. All results stay in the bag.
+unwanted rolls. Crafting, enhancement (+N) and grade promotion share one full-screen
+workshop (`ui/workshop-view.js`, `workshop-model.js`, `workshop-controller.js`; docs/WORKSHOP.md):
+`craft` opens its recipe library, `forge` the owned equipment, and the bag links into it by UID.
+Selection and comparison never craft or spend. Each confirmed command runs synchronously through
+the core rules and saves at once; only then a one-strike hammer animation (850 ms, 240 ms with
+reduced motion) plays over the item, and it can pay, roll or change nothing. Preserve its repeat
+button, goals, recent result UIDs and the return path after bag comparison. All results stay in
+the bag. In Godot, the strike is a `Tween`/`AnimationPlayer` on a UI scene, after the command.
 
 The bag/workbench/growth views share grade pips, ranges and progression requirements via
 `ui/progressionview.js`. Port `tests/core/balance.test.js`, `crafting.test.js` and the mouse/

@@ -113,6 +113,8 @@ Owner clarification supersedes the earlier equipment level gates: upgrade freely
 materials, but wearing requires trained stats appropriate to the item's actual power.
 C/B/A/S now has 2/3/4/5 unique affixes. Each recipe opens a reusable workshop with one-click
 repeat, per-recipe goals/results and an easy return after comparing with equipped gear.
+Since 2026-10-27 crafting, enhancement and grade promotion share one dedicated workshop page
+with before/after stats and a hammer-strike animation (docs/WORKSHOP.md); the bag links to it.
 Character v4 adds missing old gear affixes once while keeping existing rolls, grade,
 enhancement and UIDs. Gear that no longer meets wear requirements stays in the bag.
 

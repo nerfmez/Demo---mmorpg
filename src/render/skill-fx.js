@@ -251,7 +251,7 @@ export class SkillFx {
         if (echo) host.banner('สะท้อนซ้ำ!');
         return true;
       }
-      // Arcane Draw Cut: the dash's streaks, then the lane cut on arrival (skillfx/draw-fx.js)
+      // Blink Draw: the dash's streaks, then the lane cut on arrival (skillfx/draw-fx.js)
       case 'dashStrike': {
         if (e.skill !== 'draw_cut') return false;
         this.draw.dash(e); this.drawEchoes = 0;
@@ -432,7 +432,7 @@ export class SkillFx {
     this.bladePoints();
     this.split.update(dt, p, p.facing, this.bladeBase, this.bladeTip);
     this.draw.update(dt, p, this.bladeBase, this.bladeTip);
-    // Arcane Draw Cut: afterimages of the body along the dash (the game's posed echoes, in its violet)
+    // Blink Draw: afterimages of the body along the dash (the game's posed echoes, in its violet)
     if (p.dash?.kind === 'draw_cut' && this.drawEchoes < 3 && p.dash.t >= p.dash.dur * (0.15 + 0.3 * this.drawEchoes)) { host.vfx?.drawCutEcho?.(host.rig?.()); this.drawEchoes++; }
     // Sunder Cut's open armour on what it struck
     this.exposed.length = 0;

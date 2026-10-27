@@ -1178,7 +1178,7 @@ export class Vfx {
     this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
   }
 
-  // Arcane Draw Cut's afterimages: the posed body left behind along the dash, in its violet
+  // Blink Draw's afterimages: the posed body left behind along the dash, in its violet
   drawCutEcho(rig) {
     if(!rig)return;
     const {ghost,release}=this.movementEchoAt(rig,0x9a8cff);

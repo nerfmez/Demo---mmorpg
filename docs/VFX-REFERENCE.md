@@ -373,7 +373,7 @@ soft dust streak on the ground and a slight stretch of the ball along its path. 
 shapes (`src/render/roll-fx.js`, numbers in `data/combat-fx.json` `roll`); nothing copied. Re-check
 against relevant gallery dash/rush/speed-line clips when the host is reachable.
 
-### Arcane Draw Cut — 2026-10-27
+### Blink Draw — 2026-10-27
 
 The spellblade's dash cut (`draw_cut`, `skillfx/draw-fx.js`), first round. The owner picked the hero's
 motion from Quaternius `Sword_Dash` (pick A) over searching for a hand-on-hilt reference, so the
@@ -401,3 +401,11 @@ and fading on its own. The cut runs down the lane from where the dash began (0.0
 curved cuts in the air, and on each monster a big curved slash drawn by a fast leading edge with a
 thinner slide beside it, a ragged arcane flash (Firebolt's `flashMaterial`, violet) and shards sprayed
 along the cut. The arrival glow and the lane's straight line and ground trace were removed.
+
+Round 4 (owner: "I did not ask to change the style, only that it was not good enough; I do not like the
+new hit at all"; and a new name, Blink Draw / ชักดาบพริบตา). Round 3 is reverted to round 2's look, without
+the draw's crescent. Every line is now a blade: many points, sharp at both ends and fullest just behind
+its leading end, with a faint shimmer; each is drawn by a fast leading edge and gives way from its tail
+(the dash streaks from where the hero left, the lane line after it parts) instead of popping in or out as
+a flat bar. The X on each monster is two such blades, the second a hair after the first, and the glow
+blobs became short spinning star glints.

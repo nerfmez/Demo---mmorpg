@@ -152,7 +152,7 @@ subtracted. The weapon direction comes from the prop (`--prop`), else from the f
 along the knuckle line, pinky to index.
 
 In use: `sword_draw_ready` (Quaternius UAL2 `Sword_Dash` at 0 s, legs 0.8; the owner's pick from the
-Arcane Draw Cut preview, 2026-10-27) is the chibi's one-hand sword carry: the sword held low and forward
+Blink Draw preview, 2026-10-27) is the chibi's one-hand sword carry: the sword held low and forward
 at the right hip, the up re-solved with `match-roll.mjs`. The earlier carry, `sword_guard` (UAL2
 `Sword_Block` at 0.2 s, legs 0.6, blade raised across the body), is kept in `presets.sword_guard_carry`. Measured Riposte's guard key
 (`guardUp` in `actions.js`) is pick B, the high guard of `Sword_Regular_A_Rec` at 0.05 s (`--face`,

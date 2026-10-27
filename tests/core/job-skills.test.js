@@ -191,9 +191,9 @@ test('Spell Wave is already magic: it cannot carry a fused spell, but (plain Arc
   }
 });
 
-// Arcane Draw Cut (owner, 2026-10-27): the spellblade's dash cut. A short wind-up, a dash of range m
+// Blink Draw (owner, 2026-10-27): the spellblade's dash cut. A short wind-up, a dash of range m
 // along the aim, and every monster in the lane it crossed cut once when it arrives.
-test('Arcane Draw Cut dashes along the aim and cuts the lane it crossed, once each', () => {
+test('Blink Draw dashes along the aim and cuts the lane it crossed, once each', () => {
   const def = data.skills.combat.draw_cut, r = data.recipes.recipes.learn_draw_cut;
   assert.ok(def.iconPending && def.job === 'spellblade' && r?.result === 'draw_cut');
   const drops = new Set(Object.values(data.monsters.monsters).flatMap((m) => m.drops.map((d) => d.item)));
@@ -222,7 +222,7 @@ test('Arcane Draw Cut dashes along the aim and cuts the lane it crossed, once ea
   assert.deepEqual(walled.hits.sort(), ['a', 'b'], 'the lane is only as long as the dash went');
 });
 
-test('Arcane Draw Cut is no dodge, takes the lane mods and its element can change', () => {
+test('Blink Draw is no dodge, takes the lane mods and its element can change', () => {
   const { g, s } = fixture('draw_cut');
   g.executeSkill(s, { angle: Math.PI / 2, x: 0, z: 0 });
   assert.equal(g.player.dash.inv, false, 'not invulnerable while dashing');

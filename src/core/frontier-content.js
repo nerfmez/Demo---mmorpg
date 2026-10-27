@@ -115,7 +115,7 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     return true;
   }
   if(s.kind==='melee_line'){strikeLane(g,s,p.x,p.z,aim.angle,s.range,mult);return true;}
-  // Arcane Draw Cut (dash_line): the hero dashes along the aim (walls and cliffs stop it, no
+  // Blink Draw (dash_line): the hero dashes along the aim (walls and cliffs stop it, no
   // invulnerability); the lane it crossed is cut when it arrives (Game.updatePlayer, strikeLane)
   if(s.kind==='dash_line'){
     const v=s.range/s.dashTime;

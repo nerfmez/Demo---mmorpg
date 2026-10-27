@@ -1,85 +1,90 @@
-// Arcane Draw Cut (the spellblade's dash cut: a short wind-up, a 7 m dash along the aim, the lane it
+// Blink Draw (the spellblade's dash cut: a short wind-up, a 7 m dash along the aim, the lane it
 // crossed cut a beat after the hero arrives), in the bench's light-and-ribbon language with Spell Wave's
 // arcane blue-violet (an element mod recolours it). Motion principles from the Cartoon FX sword trails
 // and hit sparks (docs/VFX-REFERENCE.md): a narrow taper, a fast leading edge, the cut shorter-lived than
-// the trail, a compact high-contrast contact read before its small fragments, directional shards.
-// Original geometry; nothing copied.
-// Round 3 (owner: no draw crescent; the white line along the path is stiff; the hits are weak):
+// the trail, directional shards after the contact. Original geometry; nothing copied.
+// Round 2 (owner: "stiff and plain"): the anime iaido beats, each with its own layer -
 //  - wind-up: a sheath of light closes along the blade, rune motes drift into the hilt, focus lines on
-//    the ground rush in to the hero's feet, a glint flares on the blade just before the draw;
-//  - the draw: a ring and kicked sparks where the hero leaves;
-//  - dash: no ruler line - a short comet tail that wavers behind the body and a slipstream of short
-//    speed dashes at many heights, each drifting back and fading on its own (and the director's violet
-//    afterimages); on arrival the tail collapses into the hero;
-//  - the cut: it runs down the lane from where the dash began, a ripple of quick curved cuts in the air,
-//    and on each monster struck a big curved slash drawn by a fast leading edge with a thinner one beside
-//    it (the slide), a ragged flash and shards sprayed along the cut; the sheath breaks into shards.
-// One ribbon pair, a few pooled flashes and sprites; no allocation per frame.
+//    the ground rush in to the hero's feet, and a glint flares on the blade just before the draw;
+//  - the draw: a ring and kicked sparks where the hero leaves (and the body's afterimages);
+//  - dash: three speed streaks from where the hero left to where it is; they hang on through the breath
+//    after it arrives, giving way from where it left;
+//  - arrival: a small glint at the blade, then the breath (the rules' cutDelay);
+//  - the cut: one white-hot line runs down the lane, holds a beat, then parts in two and gives way;
+//    two thinner cut lines cross it at a slant, a trace on the ground, the sheath breaks into shards at
+//    the hero, and on each monster in the lane an X of cuts with a glint.
+// Round 4 (owner: keep that look, make it good enough; round 3's hits are out): every line is a blade -
+// many points, sharp at both ends and fullest just behind its leading end, a faint shimmer along it -
+// and is drawn by a fast leading edge and gives way from its tail, never popping in or out as a bar.
+// One ribbon pair, a few pooled sprites and sparks; no allocation per frame.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, place, flashMaterial } from './fx-common.js';
-import { CORE_FS, GLOW_FS, W, lineW, lineGlowW, taperW, taperGlowW, tailW, tailGlowW, drawSparks, spark, circlePoints, flareTexture, lightSprite } from './light-kit.js';
+import { Ribbon, mulberry32, place } from './fx-common.js';
+import { CORE_FS, GLOW_FS, W, lineW, lineGlowW, tailW, tailGlowW, drawSparks, spark, circlePoints, flareTexture, lightSprite } from './light-kit.js';
 
 const LOOKS = {
-  arcane: { edge: [0.84, 0.88, 1.0], glow: [0.48, 0.36, 1.0], flash: ['#ffffff', '#cbbcff', '#6a4cff'] },
-  fire: { edge: [1.0, 0.78, 0.4], glow: [1.0, 0.42, 0.1], flash: ['#fff6d0', '#ffb040', '#d8401a'] },
-  cold: { edge: [0.85, 0.96, 1.0], glow: [0.35, 0.72, 1.0], flash: ['#ffffff', '#c4ecff', '#6fb4e6'] },
-  lightning: { edge: [0.8, 0.92, 1.0], glow: [0.3, 0.6, 1.0], flash: ['#ffffff', '#8ce0ff', '#4080ff'] },
-  poison: { edge: [0.8, 1.0, 0.55], glow: [0.32, 0.8, 0.15], flash: ['#f6ffd8', '#b4ee52', '#4f9a1e'] },
+  arcane: { edge: [0.84, 0.88, 1.0], glow: [0.48, 0.36, 1.0] },
+  fire: { edge: [1.0, 0.78, 0.4], glow: [1.0, 0.42, 0.1] },
+  cold: { edge: [0.85, 0.96, 1.0], glow: [0.35, 0.72, 1.0] },
+  lightning: { edge: [0.8, 0.92, 1.0], glow: [0.3, 0.6, 1.0] },
+  poison: { edge: [0.8, 1.0, 0.55], glow: [0.32, 0.8, 0.15] },
 };
 const SPRITE_EL = { fire: 'fire', cold: 'cold', lightning: 'lightning' }; // light-kit tints; the rest use arcane
 const lookOf = (el) => LOOKS[el] || LOOKS.arcane;
-const SPARKS = 160, MOTES = 40, SLASHES = 24, RAGGED = 8, FOCUS = 10, RING = 24, DASHES = 28, TAIL = 5, ARC = 13;
-const RING_T = 0.3, GLINT_T = 0.12, COLLAPSE = 0.2, RAG_T = 0.2;
-const RIPPLE = 0.016; // seconds per metre the cut runs down the lane
+const SPARKS = 120, MOTES = 40, CUTS = 8, FLASHES = 8, FOCUS = 10, RING = 24;
+const HOLD = 0.14, PART = 0.3, CUT_T = 0.32, LINE_Y = 1.0, STREAK_HANG = 0.3, RING_T = 0.3, GLINT_T = 0.12;
+const STREAKS = [[0, 1.0], [0.3, 0.7], [-0.26, 1.32]]; // side offset, height
+const SLANTS = [[0.12, 0.05], [-0.1, 0.11]]; // the crossing cut lines: tilt (rad about the lane), delay
 const out2 = (k) => 1 - (1 - k) * (1 - k);
+const N = 16; // points along a blade line
+// a blade line's width: sharp at both ends, fullest just behind its leading end (x = 1), a faint
+// shimmer along it (NW.s, NW.ph)
+const NW = { v: 0, s: 0, ph: 0 };
+const needleW = (x) => NW.v * Math.pow(Math.sin(Math.PI * x), 0.6) * (0.5 + 0.5 * x) * (1 + NW.s * Math.sin(x * 31 + NW.ph));
+const needleGlowW = (x) => needleW(x) * 2.8;
 
 export class DrawFx {
   constructor(scene, camera) {
-    this.rnd = mulberry32(83); this.camera = camera; this.time = 0;
+    this.rnd = mulberry32(83); this.time = 0;
     this.core = new Ribbon(scene, camera, 2400, CORE_FS, THREE.NormalBlending);
     this.glow = new Ribbon(scene, camera, 2400, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 9; this.glow.mesh.renderOrder = 8;
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.ring = Array.from({ length: RING }, () => new THREE.Vector3());
-    this.arc = Array.from({ length: ARC }, () => new THREE.Vector3());
-    this.tailPts = Array.from({ length: TAIL }, () => new THREE.Vector3());
-    this.p = new THREE.Vector3(); this.v = new THREE.Vector3(); this.a = new THREE.Vector3(); this.d = new THREE.Vector3();
+    this.line = Array.from({ length: N }, () => new THREE.Vector3());
+    this.p = new THREE.Vector3(); this.v = new THREE.Vector3();
     this.sparks = []; this.motes = []; this.free = [];
     this.look = LOOKS.arcane; this.el = 'arcane';
     this.textures = {}; // per element, made once
     this.glint = lightSprite(scene, this.tex('arcane'), true, 12);
-    this.quad = new THREE.PlaneGeometry(1, 1);
-    this.ragged = Array.from({ length: RAGGED }, (_, k) => { const m = new THREE.Mesh(this.quad, flashMaterial(23 + k * 3.7)); m.visible = false; m.renderOrder = 10; m.frustumCulled = false; scene.add(m); return { m, t: 9, delay: 0, x: 0, y: 1, z: 0, size: 1, seed: 0 }; }); this.ragI = 0;
-    this.el = null; this.setElement('arcane'); // the ragged flashes' colours
+    this.flashes = Array.from({ length: FLASHES }, () => ({ sp: lightSprite(scene, this.tex('arcane'), true, 11), t: 9, x: 0, y: 1, z: 0, size: 1, spin: 0 })); this.flashI = 0;
     this.sheath = { t: 9, total: 0.35 };
     this.focus = Array.from({ length: FOCUS }, () => ({ a: 0, r0: 3, len: 0.8 }));
     this.start = { t: 9, x: 0, z: 0 };
-    this.lane = { x: 0, z: 0, dx: 0, dz: 1 }; // where the dash began and its heading (the cut runs from there)
-    // the dash: its heading, the body's recent path (the comet tail), the tail's collapse after arrival
-    this.run = { live: false, t: 0, collapse: 9, x: 0, z: 0, dx: 0, dz: 1, emit: 0 };
-    this.trail = []; // recent body points, newest last (pooled vectors from tailPool)
-    this.tailPool = Array.from({ length: TAIL }, () => new THREE.Vector3());
-    this.dashes = Array.from({ length: DASHES }, () => ({ t: 9, life: 0.3, x: 0, y: 1, z: 0, len: 1, w: 0.05 })); this.dashI = 0;
-    // curved slashes: the ripple down the lane and the big ones on monsters struck
-    this.slashes = Array.from({ length: SLASHES }, () => ({ t: 9, delay: 0, x: 0, y: 1, z: 0, ax: 0, ay: 1, az: 0, dx: 0, dz: 1, rad: 0.9, span: 1.9, w: 0.1, al: 1, side: 0 })); this.slashI = 0;
+    this.run = { live: false, hang: 9, x: 0, z: 0, ex: 0, ez: 0, dx: 0, dz: 1 };
+    this.lane = { t: 9, x: 0, z: 0, ex: 0, ez: 0, dx: 0, dz: 1 };
+    this.cuts = Array.from({ length: CUTS }, () => ({ t: 9, delay: 0, x: 0, y: 1, z: 0, dx: 0, dz: 1, lean: 0.6 })); this.cutI = 0;
   }
   tex(el) { return this.textures[el] ||= flareTexture(SPRITE_EL[el] || 'arcane'); }
   setElement(el) {
     if (this.el === el) return;
     this.el = el; this.look = lookOf(el);
     this.glint.material.map = this.tex(el);
-    for (const g of this.ragged) { const u = g.m.material.uniforms, f = this.look.flash; u.uIn.value.set(f[0]); u.uMid.value.set(f[1]); u.uOut.value.set(f[2]); }
+    for (const f of this.flashes) f.sp.material.map = this.tex(el);
   }
-  raggedAt(x, y, z, size, delay) { const g = this.ragged[this.ragI++ % RAGGED]; g.t = 0; g.delay = delay; g.x = x; g.y = y; g.z = z; g.size = size; g.seed = this.rnd() * 40; }
+  flash(x, y, z, size) { const f = this.flashes[this.flashI++ % FLASHES]; f.t = 0; f.x = x; f.y = y; f.z = z; f.size = size; f.spin = this.rnd() * 3; }
   /**
-   * A curved slash at (x, y, z): its long axis tilted `tilt` from the across-lane horizontal toward up,
-   * bulging forward along the lane (dx, dz); rad its radius, span its angle, w its width, al its light,
-   * delay before it draws, side an offset across the lane (the slide's second line).
+   * A blade line from a to b (ground-relative), drawn between `from` and `to` (0..1 along it: a
+   * leading edge drawing it in, a tail giving way), w its width, al its light, wave a small rise and
+   * fall along it, glowK the halo's share.
    */
-  slashAt(x, y, z, dx, dz, tilt, rad, span, w, al, delay, side = 0) {
-    const q = this.slashes[this.slashI++ % SLASHES], c = Math.cos(tilt), s = Math.sin(tilt);
-    q.t = 0; q.delay = delay; q.x = x; q.y = y; q.z = z; q.dx = dx; q.dz = dz; q.ax = dz * c; q.ay = s; q.az = -dx * c;
-    q.rad = rad; q.span = span; q.w = w; q.al = al; q.side = side;
+  needle(ax, ay, az, bx, by, bz, from, to, w, al, wave = 0, glowK = 1) {
+    if (to - from < 0.02 || al <= 0) return;
+    for (let i = 0; i < N; i++) {
+      const u = from + (to - from) * (i / (N - 1));
+      this.line[i].set(ax + (bx - ax) * u, ay + (by - ay) * u + wave * Math.sin(u * 9 + this.time * 30) * Math.sin(Math.PI * u), az + (bz - az) * u);
+    }
+    NW.v = w; NW.s = 0.18; NW.ph = this.time * 40;
+    this.glow.strip(this.line, needleGlowW, glowK * al, this.look.glow); this.core.strip(this.line, needleW, al, this.look.edge);
   }
   windup(total, element) {
     this.setElement(element || 'arcane'); this.sheath.t = 0; this.sheath.total = Math.max(0.1, total);
@@ -88,9 +93,7 @@ export class DrawFx {
   // the rules' 'dashStrike': the hero leaves (x, z) along angle
   dash(e) {
     this.setElement(e.element || 'arcane'); this.sheath.t = 9;
-    const R = this.run, r = this.rnd; R.live = true; R.t = 0; R.collapse = 9; R.emit = 0; R.x = e.x; R.z = e.z; R.dx = Math.sin(e.angle); R.dz = Math.cos(e.angle);
-    this.trail.length = 0;
-    const L = this.lane; L.x = e.x; L.z = e.z; L.dx = R.dx; L.dz = R.dz;
+    const R = this.run, r = this.rnd; R.live = true; R.hang = 0; R.x = R.ex = e.x; R.z = R.ez = e.z; R.dx = Math.sin(e.angle); R.dz = Math.cos(e.angle);
     this.start.t = 0; this.start.x = e.x; this.start.z = e.z;
     for (let i = 0; i < 10; i++) { // kicked back off the ground where it left
       const a = (r() - 0.5) * 1.6, s = 2 + r() * 3;
@@ -98,41 +101,30 @@ export class DrawFx {
       spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.3 + r() * 0.2, 0.05, this.look);
     }
   }
-  // the rules' 'dashArrive': the tail collapses into the hero (then the breath before the cut)
-  arrive() { this.run.live = false; this.run.collapse = 0; }
+  // the rules' 'dashArrive': a small flash at the blade, then the breath before the cut
+  arrive(x, z, angle) { this.run.live = false; this.flash(x + Math.sin(angle) * 0.7, 0.6, z + Math.cos(angle) * 0.7, 0.7); }
   // the rules' 'lineStrike' (the cut, after the breath): x, z where the dash began, angle, range the distance it went
   strike(e) {
-    const r = this.rnd, dx = Math.sin(e.angle), dz = Math.cos(e.angle), ex = e.x + dx * e.range, ez = e.z + dz * e.range;
-    // the cut runs down the lane: quick curved cuts in the air, about one per 1.3 m
-    for (let d = 0.8; d < e.range - 0.3; d += 1.1 + r() * 0.5) {
-      const off = (r() - 0.5) * 0.9;
-      this.slashAt(e.x + dx * d + dz * off, 0.7 + r() * 0.7, e.z + dz * d - dx * off, dx, dz, (r() < 0.5 ? -1 : 1) * (0.5 + r() * 0.5), 0.5 + r() * 0.25, 1.6, 0.07, 0.75, d * RIPPLE);
-    }
+    const L = this.lane, r = this.rnd, dx = Math.sin(e.angle), dz = Math.cos(e.angle);
+    L.t = 0; L.x = e.x; L.z = e.z; L.dx = dx; L.dz = dz; L.ex = e.x + dx * e.range; L.ez = e.z + dz * e.range;
+    this.run.live = false; this.run.hang = Math.max(this.run.hang, STREAK_HANG - 0.05);
+    this.flash(L.ex, 0.9, L.ez, 1.6);
     // the sheath breaks at the hero's hip: shards thrown forward and out
     for (let i = 0; i < 16; i++) {
       const a = r() * 6.283, s = 2 + r() * 4;
-      this.p.set(ex - dz * 0.25, 0.9, ez + dx * 0.25); this.v.set(Math.sin(a) * s + dx * 2.5, 1 + r() * 3, Math.cos(a) * s + dz * 2.5);
+      this.p.set(L.ex - dz * 0.25, 0.9, L.ez + dx * 0.25); this.v.set(Math.sin(a) * s + dx * 2.5, 1 + r() * 3, Math.cos(a) * s + dz * 2.5);
       spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.32 + r() * 0.25, 0.05, this.look);
     }
   }
-  // a monster in the lane: a big curved slash with its slide, a ragged flash and shards along the cut,
-  // when the running cut reaches it
+  // a monster in the lane: an X of cuts across it with a flash, a hair after the lane falls apart
   hit(c) {
-    const r = this.rnd, L = this.lane;
-    const delay = Math.max(0, (c.x - L.x) * L.dx + (c.z - L.z) * L.dz) * RIPPLE, tilt = (r() < 0.5 ? -1 : 1) * (0.55 + r() * 0.25);
-    this.slashAt(c.x, c.y, c.z, L.dx, L.dz, tilt, 1.0, 1.9, 0.2, 1, delay);
-    this.slashAt(c.x, c.y, c.z, L.dx, L.dz, tilt, 0.85, 1.6, 0.08, 0.8, delay + 0.03, 0.22);
-    this.raggedAt(c.x, c.y, c.z, 1.7, delay);
-    // shards along the cut (both ways down its long axis) and a few thrown forward
-    const c0 = Math.cos(tilt), s0 = Math.sin(tilt), ax = L.dz * c0, ay = s0, az = -L.dx * c0;
-    for (let i = 0; i < 12; i++) {
-      const sg = i % 2 ? 1 : -1, s = 3 + r() * 4;
-      this.p.set(c.x, c.y, c.z); this.v.set(ax * s * sg + L.dx * (1 + r() * 2), ay * s * sg + 0.5 + r(), az * s * sg + L.dz * (1 + r() * 2));
-      const n = this.sparks.length;
-      spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.22 + r() * 0.2, 0.06, this.look);
-      if (this.sparks.length > n) this.sparks[n].life = -delay; // waits for the running cut
-    }
+    const q = this.cuts[this.cutI++ % CUTS], r = this.rnd, L = this.lane;
+    q.t = 0; q.delay = 0.02 + r() * 0.05; q.x = c.x; q.y = c.y; q.z = c.z; q.dx = L.dx; q.dz = L.dz; q.lean = 0.55 + r() * 0.2;
+    this.flash(c.x, c.y, c.z, 1.3);
+    for (let i = 0; i < 8; i++) { const a = r() * 6.283, s = 1.5 + r() * 3; this.p.set(c.x, c.y, c.z); this.v.set(Math.sin(a) * s + L.dx * 4, 0.6 + r() * 2.4, Math.cos(a) * s + L.dz * 4); spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.25 + r() * 0.2, 0.06, this.look); }
   }
+  // a line of light along `three` (set by the caller), w its width, al its light
+  stroke(fn, gfn, w, al, glowK = 0.9) { W.v = w; this.glow.strip(this.three, gfn, glowK * al, this.look.glow); this.core.strip(this.three, fn, al, this.look.edge); }
   // p: the hero (x, z), base/tip: the blade's hilt-side and tip points this frame (ground-relative)
   update(dt, p, base, tip) {
     this.time += dt;
@@ -144,18 +136,20 @@ export class DrawFx {
     if (S.t < S.total + 0.05) {
       S.t += dt; const k = Math.min(1, S.t / S.total), shut = out2(k), pulse = 0.85 + 0.15 * Math.sin(S.t * 40);
       three[0].copy(base); three[2].copy(base).lerp(tip, 0.15 + 0.85 * shut); three[1].copy(three[0]).lerp(three[2], 0.5);
-      W.v = (0.09 + 0.08 * k) * pulse; this.glow.strip(three, lineGlowW, 1.2 * (0.6 + 0.4 * k), LOOK.glow); this.core.strip(three, lineW, 0.6 + 0.4 * k, LOOK.edge);
+      this.stroke(lineW, lineGlowW, (0.09 + 0.08 * k) * pulse, 0.6 + 0.4 * k, 1.2);
       for (let n = 0; n < 2; n++) if (r() < 0.8) {
         this.p.copy(base).lerp(tip, r()); this.p.x += (r() - 0.5) * 0.7; this.p.y += (r() - 0.3) * 0.6; this.p.z += (r() - 0.5) * 0.7;
         this.v.copy(base).sub(this.p).multiplyScalar(3.5);
         spark(this.motes, this.free, MOTES, this.p, this.v, 0.22 + r() * 0.1, 0.045, LOOK);
       }
+      // focus lines on the ground, rushing in to the feet (anime speed lines), fading as they arrive
       const fk = Math.min(1, k * 1.15), fa = Math.sin(Math.PI * Math.min(1, k * 1.1));
       for (const f of this.focus) {
         const rr = f.r0 * (1 - 0.75 * out2(fk)), ca = Math.cos(f.a), sa = Math.sin(f.a);
         three[0].set(p.x + ca * (rr + f.len), 0.05, p.z + sa * (rr + f.len)); three[2].set(p.x + ca * rr, 0.05, p.z + sa * rr); three[1].copy(three[0]).lerp(three[2], 0.6);
-        W.v = 0.05; this.glow.strip(three, tailGlowW, 0.7 * fa, LOOK.glow); this.core.strip(three, tailW, 0.75 * fa, LOOK.edge);
+        this.stroke(tailW, tailGlowW, 0.05, 0.75 * fa);
       }
+      // the glint on the blade, just before the draw
       const gk = (S.t - (S.total - GLINT_T)) / GLINT_T;
       if (gk > 0 && gk < 1) {
         this.glint.visible = true; place(this.glint, tip.x, tip.y, tip.z);
@@ -169,69 +163,66 @@ export class DrawFx {
       circlePoints(this.ring, T.x, T.z, 0.4 + 1.6 * out2(k), 0.06);
       W.v = 0.07 * (1 - k); this.glow.strip(this.ring, lineGlowW, 0.9 * (1 - k), LOOK.glow); this.core.strip(this.ring, lineW, 1 - k, LOOK.edge);
     }
-    // ---- the dash: the body's comet tail and a slipstream of short speed dashes ----
+    // ---- the dash's streaks: from where it left to the hero, thick at the hero; they hang through the breath ----
     const R = this.run;
-    if (R.live) {
-      R.t += dt;
-      const tr = this.trail;
-      if (tr.length === TAIL) { const v = tr.shift(); tr.push(v); } else tr.push(this.tailPool[tr.length]);
-      tr[tr.length - 1].set(p.x, 1.0, p.z);
-      R.emit += dt;
-      while (R.emit > 0.009) { // a speed dash beside or behind the body, at its own height and length
-        R.emit -= 0.009;
-        const q = this.dashes[this.dashI++ % DASHES], side = (r() - 0.5) * 1.3, back = r() * 0.8;
-        q.t = 0; q.life = 0.22 + r() * 0.22; q.len = 0.8 + r() * 1.4; q.w = 0.015 + r() * 0.025; q.y = 0.25 + r() * 1.35;
-        q.x = p.x - R.dx * back + R.dz * side; q.z = p.z - R.dz * back - R.dx * side;
+    if (R.live) { R.ex = p.x; R.ez = p.z; } else R.hang += dt;
+    if (R.live || R.hang < STREAK_HANG) {
+      // they give way from where the hero left toward where it stands
+      const k = R.live ? 1 : 1 - R.hang / STREAK_HANG, from = R.live ? 0 : out2(R.hang / STREAK_HANG);
+      for (const [side, y] of STREAKS) {
+        this.needle(R.x + R.dz * side, y, R.z - R.dx * side, R.ex + R.dz * side * 0.4, y, R.ez - R.dx * side * 0.4, from, 1, side ? 0.07 : 0.13, k, side ? 0.03 : 0.05, 1.1);
       }
-    } else if (R.collapse < COLLAPSE) R.collapse += dt;
-    // the comet tail: the body's last points, wavering, thick at the body; it collapses into it on arrival
-    const tr = this.trail;
-    if (tr.length > 2 && (R.live || R.collapse < COLLAPSE)) {
-      const k = R.live ? 1 : 1 - R.collapse / COLLAPSE, n = tr.length, keep = Math.max(2, Math.round(n * k));
-      for (let i = 0; i < TAIL; i++) {
-        const src = tr[Math.min(n - 1, n - keep + Math.floor((i / (TAIL - 1)) * (keep - 1)))];
-        this.tailPts[i].set(src.x, src.y + 0.14 * Math.sin(i * 0.9 + this.time * 26) * (1 - i / TAIL), src.z);
+    }
+    // ---- the cut: a white-hot line runs down the lane, holds, then parts in two and gives way; two slanted
+    //      cuts cross it; a trace on the ground ----
+    const L = this.lane;
+    if (L.t < HOLD + PART + 0.12) {
+      L.t += dt;
+      const draw = out2(Math.min(1, L.t / 0.06)), part = Math.max(0, (L.t - HOLD) / PART), k = Math.max(0, 1 - part * part), gap = 0.16 * out2(Math.min(1, part));
+      if (part < 1) {
+        const from = 0.75 * out2(part), to = draw * (1 - 0.15 * part);
+        for (let s = part > 0 ? -1 : 0; s <= (part > 0 ? 1 : 0); s += 2) {
+          this.needle(L.x, LINE_Y + s * gap, L.z, L.ex, LINE_Y + s * gap, L.ez, from, to, (part > 0 ? 0.1 : 0.19) * (1 - 0.5 * part), k, 0.02, 1.15);
+        }
+        this.needle(L.x, 0.06, L.z, L.ex, 0.06, L.ez, from, to, 0.11, 0.6 * k);
       }
-      W.v = 0.1 * k; this.glow.strip(this.tailPts, tailGlowW, 1.1 * k, LOOK.glow); this.core.strip(this.tailPts, tailW, 0.5 * k, LOOK.edge);
-    }
-    for (const q of this.dashes) {
-      if (q.t >= q.life) continue;
-      q.t += dt; const u = q.t / q.life, k = 1 - u;
-      // each drifts back off the body and shrinks from its tail
-      const x0 = q.x - R.dx * 1.5 * q.t, z0 = q.z - R.dz * 1.5 * q.t, len = q.len * (1 - 0.6 * u);
-      three[2].set(x0, q.y, z0); three[0].set(x0 - R.dx * len, q.y, z0 - R.dz * len); three[1].copy(three[0]).lerp(three[2], 0.65);
-      W.v = q.w * k; this.glow.strip(three, tailGlowW, 0.9 * k, LOOK.glow); this.core.strip(three, tailW, 0.6 * k, LOOK.edge);
-    }
-    // ---- curved slashes: a fast leading edge draws each, then its tail retracts ----
-    for (const q of this.slashes) {
-      if (q.t >= q.delay + 0.32) continue;
-      q.t += dt; const u = q.t - q.delay; if (u < 0) continue;
-      const head = Math.min(1, u / 0.05), tail = Math.max(0, (u - 0.1) / 0.22); if (tail >= head) continue;
-      const fade = 1 - tail * tail, ox = q.dz * q.side, oz = -q.dx * q.side;
-      for (let i = 0; i < ARC; i++) {
-        const f = tail + (head - tail) * (i / (ARC - 1)), ang = (f - 0.5) * q.span, sw = Math.sin(ang) * q.rad, bw = (Math.cos(ang) - Math.cos(q.span / 2)) * q.rad * 0.55;
-        this.arc[i].set(q.x + ox + q.ax * sw + q.dx * bw, q.y + q.ay * sw, q.z + oz + q.az * sw + q.dz * bw);
+      for (const [tilt, delay] of SLANTS) {
+        const u = (L.t - delay) / 0.3; if (u <= 0 || u >= 1) continue;
+        const half = 0.5 * Math.hypot(L.ex - L.x, L.ez - L.z), cx = (L.x + L.ex) / 2, cz = (L.z + L.ez) / 2, rise = Math.tan(tilt) * half;
+        this.needle(cx - L.dx * half, LINE_Y - rise, cz - L.dz * half, cx + L.dx * half, LINE_Y + rise, cz + L.dz * half, out2(Math.max(0, (u - 0.35) / 0.65)), out2(Math.min(1, u * 5)), 0.08, 1 - u * u);
       }
-      W.v = q.w * (1 - 0.5 * tail); this.glow.strip(this.arc, taperGlowW, q.al * fade, LOOK.glow); this.core.strip(this.arc, taperW, q.al * fade, LOOK.edge);
+      if (part > 0 && k > 0 && r() < 0.9) {
+        const u = r(); this.p.set(L.x + (L.ex - L.x) * u, LINE_Y, L.z + (L.ez - L.z) * u); this.v.set((r() - 0.5) * 2 + L.dx * 1.5, 0.8 + r() * 1.5, (r() - 0.5) * 2 + L.dz * 1.5);
+        spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.3 + r() * 0.2, 0.035, LOOK);
+      }
     }
-    // ---- ragged flashes on the monsters struck ----
-    for (const g of this.ragged) {
-      if (g.t >= g.delay + RAG_T) { g.m.visible = false; continue; }
-      g.t += dt; const u = g.t - g.delay; if (u < 0) { g.m.visible = false; continue; }
-      g.m.visible = true; place(g.m, g.x, g.y, g.z); g.m.quaternion.copy(this.camera.quaternion);
-      g.m.scale.setScalar(g.size * (u < 0.03 ? 0.6 + u / 0.075 : 1));
-      g.m.material.uniforms.uT.value = u / RAG_T; g.m.material.uniforms.uSeed.value = g.seed + Math.floor(u * 30);
+    // ---- an X of cuts on each monster struck: each stroke drawn by a fast leading edge, the second a hair
+    //      after the first, then giving way from its tail ----
+    for (const q of this.cuts) {
+      if (q.t >= q.delay + CUT_T) continue;
+      q.t += dt; if (q.t < q.delay) continue;
+      for (let s = 0; s < 2; s++) {
+        const u = q.t - q.delay - s * 0.05; if (u <= 0) continue;
+        const to = out2(Math.min(1, u / 0.05)), from = out2(Math.max(0, (u - 0.1) / 0.2)), len = 1.25, lean = (s ? -1 : 1) * q.lean;
+        this.needle(q.x + q.dz * len, q.y + lean * len, q.z - q.dx * len, q.x - q.dz * len, q.y - lean * len, q.z + q.dx * len, from, to, s ? 0.15 : 0.21, 1 - from, 0, 1.2);
+      }
+    }
+    // ---- flashes ----
+    for (const f of this.flashes) {
+      if (f.t >= 0.18) { f.sp.visible = false; continue; }
+      f.t += dt; const k = f.t / 0.18;
+      f.sp.visible = true; place(f.sp, f.x, f.y, f.z); f.sp.scale.setScalar(f.size * Math.sin(Math.PI * Math.min(1, k * 1.4 + 0.15))); f.sp.material.rotation = f.spin + k * 0.8; f.sp.material.opacity = 1 - k * k;
     }
     drawSparks(this.motes, this.free, dt, this.core, this.glow, three, 0);
     drawSparks(this.sparks, this.free, dt, this.core, this.glow, three, 10);
     this.core.end(); this.glow.end();
   }
   clear() {
-    this.sheath.t = 9; this.start.t = 9; this.run.live = false; this.run.collapse = 9; this.trail.length = 0; this.glint.visible = false;
-    for (const q of this.dashes) q.t = 9; for (const q of this.slashes) q.t = 9;
-    for (const g of this.ragged) { g.t = 9; g.m.visible = false; }
+    this.sheath.t = 9; this.start.t = 9; this.run.live = false; this.run.hang = 9; this.lane.t = 9; this.glint.visible = false;
+    for (const q of this.cuts) q.t = 9;
+    for (const f of this.flashes) { f.t = 9; f.sp.visible = false; }
     for (const q of this.sparks) this.free.push(q); for (const q of this.motes) this.free.push(q);
     this.sparks.length = 0; this.motes.length = 0;
   }
-  get busy() { return this.run.live || this.run.collapse < COLLAPSE || this.slashes.some((q) => q.t < q.delay + 0.32) || this.sparks.length > 0 || this.motes.length > 0; }
+  get busy() { return this.run.live || this.lane.t < HOLD + PART + 0.12 || this.sparks.length > 0 || this.motes.length > 0; }
 }

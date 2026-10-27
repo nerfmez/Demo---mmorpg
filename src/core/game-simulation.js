@@ -1483,7 +1483,7 @@ export class Game {
           for (const m of this.monsters) if (!m.dead && dist(p.x, p.z, m.x, m.z) - m.r <= L.radius) this.hitMonster(m, L.damage * this.playerDamageMult(), { element: 'physical', crit: this.rollCrit(), knock: 1.2, fromX: p.x, fromZ: p.z });
           this.emit({ type: 'burst', kind: 'leap', element: 'physical', x: p.x, z: p.z, radius: L.radius });
         }
-        // Arcane Draw Cut: the lane the hero just crossed is cut on arrival; a skill's dash is no dodge
+        // Blink Draw: the lane the hero just crossed is cut on arrival; a skill's dash is no dodge
         if (d.kind === 'draw_cut') {
           // the anime beat: the hero arrives, a breath, then the lane falls apart (cutDelay)
           const len = dist(d.fromX, d.fromZ, p.x, p.z);

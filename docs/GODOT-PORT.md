@@ -335,7 +335,7 @@ labeled separately; only a fitting companion's `grants` add fit eligibility. Cal
 filter is needed. Failures return `{reason: 'needs'|'on'|'not'|'family', tags|family}`.
 Mod sockets come from `mods.json` `slotsByRank` indexed by the skill's rank (`modSlotsFor`);
 changing a slot's skill already clears its mods, so a lower-rank skill never inherits extras.
-**Dash cut (`dash_line`, Arcane Draw Cut `draw_cut`, owner 2026-10-27).** After its cast time the hero
+**Dash cut (`dash_line`, Blink Draw `draw_cut`, owner 2026-10-27).** After its cast time the hero
 dashes `range` m along the aim in `dashTime` s (`player.dash` kind `draw_cut`, `inv: false`; walls and
 cliffs stop it through `moveEntity`; the last frame of any dash moves only what is left, so a dash goes
 its distance exactly). On arrival the rules emit `dashArrive`; after `cutDelay` s (Game.later) `strikeLane` (frontier-content.js,

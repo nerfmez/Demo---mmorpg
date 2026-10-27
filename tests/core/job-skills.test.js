@@ -6,7 +6,9 @@ import assert from 'node:assert/strict';
 import { data } from './helpers.js';
 import { Game } from '../../src/core/game.js';
 import { createCharacter } from '../../src/core/character.js';
-import { computeSkill } from '../../src/core/skills.js';
+import { computeSkill, modFits } from '../../src/core/skills.js';
+import { fusionCheck } from '../../src/fxtest/fusion.js';
+import { readFileSync } from 'node:fs';
 import { craft } from '../../src/core/crafting.js';
 
 const BATCH = ['sky_shatter', 'earth_rend', 'iron_body', 'cross_cut', 'blade_storm', 'backstab', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'meteor', 'blizzard', 'thunderstorm', 'holy_bell', 'light_chain', 'spell_wave'];
@@ -164,5 +166,19 @@ test('Spell Wave is the spellblade main skill: a short cooldown and cost like th
     assert.ok(sw.cooldown <= 1 && Math.abs(sw.cooldown - main.cooldown) <= 0.35, `cooldown near ${id}`);
     assert.ok(sw.cost <= 2 * main.cost, `cost near ${id}`);
   }
-  assert.ok(sw.cooldown <= 2.5, 'short enough to carry a fused spell (data/fusion.json carrier.maxCooldown)');
+});
+
+test('Spell Wave is already magic: it cannot carry a fused spell, but element mods turn its wave', () => {
+  const fusion = JSON.parse(readFileSync(new URL('../../data/fusion.json', import.meta.url)));
+  const combat = data.skills.combat;
+  assert.equal(fusionCheck(fusion, combat.spell_wave, combat.firebolt).ok, false, 'no spell on a spell');
+  assert.equal(fusionCheck(fusion, combat.slash, combat.firebolt).ok, true, 'a plain attack still carries one');
+  for (const [id, el] of [['fire_shift', 'fire'], ['frost_shift', 'cold'], ['poison_shift', 'poison']]) {
+    assert.ok(modFits(combat.spell_wave, data.mods.mods[id]).ok, `${id} fits`);
+    const { g } = fixture('spell_wave');
+    const s = computeSkill({ ...g.ch, mods: [{ id, uid: 901, level: 1, grade: 'C' }], slots: [{ skill: 'spell_wave', mods: [901] }], skills: { spell_wave: 1 } }, data, g.derived, 0);
+    assert.equal(s.element, el);
+    g.executeSkill(s, aim);
+    assert.equal(g.projectiles.find((pr) => pr.kind === 'spell_wave')?.element, el, 'the wave carries the element (the view recolours it)');
+  }
 });

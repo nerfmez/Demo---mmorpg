@@ -330,7 +330,10 @@ Wave now cuts down (`splitChop`) and sends a tall upright crescent along a narro
 should not pierce on its own, since the pierce mod does that; it stops at the first monster unless the
 pierce mod carries it through more. Owner: it should be a main skill. It is now the spellblade's main attack
 (0.8 s cooldown, 24 MP, 90 + 0.9x, cast 0.24 s), and lighter to match: one afterimage, a shorter hanging
-line, fewer sparks; several waves can be in the air at once (pooled by projectile id).
+line, fewer sparks; several waves can be in the air at once (pooled by projectile id). Owner: a skill that is
+already magic cannot fuse with a spell but takes element mods: Spell Wave (Arcane) is no longer a fusion
+carrier (`data/fusion.json` carrier excludes Arcane), and a fire, frost or poison shift recolours the cut
+and the wave (`wavePalette`, per-wave colours from the projectile's element).
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

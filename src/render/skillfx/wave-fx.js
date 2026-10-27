@@ -1,6 +1,6 @@
 // Spell Wave (the spellblade's main sword skill: a downward cut that sends an upright blade of arcane light
 // out 10 m along a narrow line), held to the owner's bar (.claude/skills/skill-vfx),
-// in the bench's light-and-ribbon language with an arcane blue-violet. Owner: it must not repeat Flame Wave
+// in the bench's light-and-ribbon language with an arcane blue-violet (an element mod recolours it). Owner: it must not repeat Flame Wave
 // Slash's wide horizontal crescent, so it stands upright. The cut itself is the bench's slash crescent
 // stood on its edge in the same colours (the director starts it on the cast, the hero plays the downward
 // chop); this draws the wave it sends:
@@ -15,8 +15,21 @@ import * as THREE from 'three';
 import { Ribbon, mulberry32 } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W, lineW, lineGlowW, taperW, taperGlowW, drawSparks, spark } from './light-kit.js';
 
-export const WAVE_PALETTE = { hot: [0.95, 0.97, 1.0], body: [0.55, 0.65, 1.0], glow: [0.4, 0.3, 1.0] };
-const LOOK = { edge: [0.82, 0.9, 1.0], glow: [0.38, 0.32, 1.0] };
+// arcane by default; an element mod (fire, cold, poison shift) recolours the cut and the wave
+const PALETTES = {
+  arcane: { hot: [0.95, 0.97, 1.0], body: [0.55, 0.65, 1.0], glow: [0.4, 0.3, 1.0] },
+  fire: { hot: [1.0, 0.95, 0.8], body: [1.0, 0.62, 0.25], glow: [1.0, 0.38, 0.1] },
+  cold: { hot: [0.95, 1.0, 1.0], body: [0.62, 0.88, 1.0], glow: [0.3, 0.7, 1.0] },
+  poison: { hot: [0.95, 1.0, 0.85], body: [0.62, 0.95, 0.35], glow: [0.35, 0.8, 0.15] },
+};
+const LOOKS = {
+  arcane: { edge: [0.82, 0.9, 1.0], glow: [0.38, 0.32, 1.0] },
+  fire: { edge: [1.0, 0.78, 0.4], glow: [1.0, 0.42, 0.1] },
+  cold: { edge: [0.85, 0.96, 1.0], glow: [0.35, 0.72, 1.0] },
+  poison: { edge: [0.8, 1.0, 0.55], glow: [0.32, 0.8, 0.15] },
+};
+export const wavePalette = (el) => PALETTES[el] || PALETTES.arcane;
+const lookOf = (el) => LOOKS[el] || LOOKS.arcane;
 const ARC = 17, GHOSTS = 1, CUTS = 6, SPARKS = 40, WAVES = 4;
 const SPAN = 0.85, RAD = 1.3, DIE = 0.25, CUT = 0.25, HANG = 0.25, MID = 1.15;
 const out2 = (k) => 1 - (1 - k) * (1 - k);
@@ -31,9 +44,9 @@ export class WaveFx {
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.p = new THREE.Vector3(); this.v = new THREE.Vector3();
     this.sparks = []; this.free = [];
-    this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.dx = 0; this.dz = 1; // the latest wave's heading, for cut marks
-    this.waves = Array.from({ length: WAVES }, () => ({ id: null, live: false, seen: false, t: 0, die: 9, x: 0, z: 0, dx: 0, dz: 1, sx: 0, sz: 0 }));
-    this.cuts = Array.from({ length: CUTS }, () => ({ t: 9, x: 0, y: 1, z: 0, a: 0, dx: 0, dz: 1 })); this.cutI = 0;
+    this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.dx = 0; this.dz = 1; this.look = LOOKS.arcane; // the latest wave's heading and colour, for cut marks
+    this.waves = Array.from({ length: WAVES }, () => ({ id: null, live: false, seen: false, t: 0, die: 9, x: 0, z: 0, dx: 0, dz: 1, sx: 0, sz: 0, look: LOOKS.arcane }));
+    this.cuts = Array.from({ length: CUTS }, () => ({ t: 9, x: 0, y: 1, z: 0, a: 0, dx: 0, dz: 1, look: LOOKS.arcane })); this.cutI = 0;
   }
   syncProjectiles(projectiles, kind) {
     for (const w of this.waves) w.seen = false;
@@ -42,28 +55,28 @@ export class WaveFx {
       let w = this.waves.find((q) => q.id === pr.id);
       if (!w) { // a new wave takes a finished slot, else the one furthest through its fade
         w = this.waves.find((q) => !q.live && q.die >= DIE + HANG) || this.waves.reduce((a, q) => (!q.live && q.die > a.die ? q : a), this.waves[0]);
-        w.id = pr.id; w.t = 0; w.die = 0; w.sx = pr.x; w.sz = pr.z;
+        w.id = pr.id; w.t = 0; w.die = 0; w.sx = pr.x; w.sz = pr.z; w.look = lookOf(pr.element);
       }
       const sp = Math.hypot(pr.vx, pr.vz) || 1;
-      w.seen = true; w.live = true; w.x = pr.x; w.z = pr.z; w.dx = this.dx = pr.vx / sp; w.dz = this.dz = pr.vz / sp;
+      w.seen = true; w.live = true; w.x = pr.x; w.z = pr.z; w.dx = this.dx = pr.vx / sp; w.dz = this.dz = pr.vz / sp; this.look = w.look;
     }
     for (const w of this.waves) if (!w.seen && w.live) { w.live = false; w.die = 0; }
   }
   // a struck target: a cut mark across it
   hit(c) {
     const q = this.cuts[this.cutI++ % CUTS], r = this.rnd;
-    q.t = 0; q.x = c.x; q.y = c.y; q.z = c.z; q.a = (r() - 0.5) * 0.4; q.dx = this.dx; q.dz = this.dz; // the cut's lean off upright
-    for (let i = 0; i < 6; i++) { const a = r() * 6.283, s = 2 + r() * 3; this.p.set(c.x, c.y, c.z); this.v.set(Math.sin(a) * s + this.dx * 3, 0.5 + r() * 2, Math.cos(a) * s + this.dz * 3); spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.25 + r() * 0.2, 0.04, LOOK); }
+    q.t = 0; q.x = c.x; q.y = c.y; q.z = c.z; q.a = (r() - 0.5) * 0.4; q.dx = this.dx; q.dz = this.dz; q.look = this.look; // the cut's lean off upright
+    for (let i = 0; i < 6; i++) { const a = r() * 6.283, s = 2 + r() * 3; this.p.set(c.x, c.y, c.z); this.v.set(Math.sin(a) * s + this.dx * 3, 0.5 + r() * 2, Math.cos(a) * s + this.dz * 3); spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.25 + r() * 0.2, 0.04, q.look); }
   }
   // one crescent standing upright at (x, z), bulging forward along (dx, dz): radius rad, half-span span
   // (radians, up and down from its middle at MID), w its thickness, al its light
-  crescent(x, z, dx, dz, rad, span, w, al) {
+  crescent(x, z, dx, dz, rad, span, w, al, look) {
     const cx = x - dx * rad, cz = z - dz * rad;
     for (let i = 0; i < ARC; i++) {
       const a = ((i / (ARC - 1)) - 0.5) * 2 * span, c = Math.cos(a) * rad;
       this.arc[i].set(cx + dx * c, MID + Math.sin(a) * rad, cz + dz * c);
     }
-    W.v = w; this.glow.strip(this.arc, taperGlowW, 0.8 * al, LOOK.glow); this.core.strip(this.arc, taperW, al, LOOK.edge);
+    W.v = w; this.glow.strip(this.arc, taperGlowW, 0.8 * al, look.glow); this.core.strip(this.arc, taperW, al, look.edge);
   }
   update(dt) {
     this.time += dt;
@@ -73,7 +86,7 @@ export class WaveFx {
       if (!w.live && w.die >= DIE + HANG) continue;
       w.t += dt; if (!w.live) w.die += dt;
       const k = w.live ? 1 : Math.max(0, 1 - w.die / DIE), grow = out2(Math.min(1, w.t / 0.12)), rad = RAD * (0.6 + 0.4 * grow) * (1 + 0.3 * (1 - k));
-      const travelled = Math.hypot(w.x - w.sx, w.z - w.sz);
+      const travelled = Math.hypot(w.x - w.sx, w.z - w.sz), LOOK = w.look;
       // the line it cut, hanging in the air behind it
       const hk = w.live ? 1 : Math.max(0, 1 - w.die / (DIE + HANG));
       this.two[0].set(w.sx, MID, w.sz); this.two[1].set(w.x, MID, w.z);
@@ -82,9 +95,9 @@ export class WaveFx {
       // an afterimage, then the wave itself
       for (let g = GHOSTS; g >= 1; g--) {
         const back = Math.min(travelled, g * 0.6);
-        this.crescent(w.x - w.dx * back, w.z - w.dz * back, w.dx, w.dz, rad * (1 - 0.08 * g), SPAN, 0.3 * k, 0.4 * k / g);
+        this.crescent(w.x - w.dx * back, w.z - w.dz * back, w.dx, w.dz, rad * (1 - 0.08 * g), SPAN, 0.3 * k, 0.4 * k / g, LOOK);
       }
-      this.crescent(w.x, w.z, w.dx, w.dz, rad, SPAN * (1 + 0.15 * (1 - k)), 0.55 * k, k);
+      this.crescent(w.x, w.z, w.dx, w.dz, rad, SPAN * (1 + 0.15 * (1 - k)), 0.55 * k, k, LOOK);
       // speed lines off its top and bottom tips
       const cx = w.x - w.dx * rad, cz = w.z - w.dz * rad;
       for (let sgn = -1; sgn <= 1; sgn += 2) {
@@ -107,7 +120,7 @@ export class WaveFx {
         const len = (s ? 0.6 : 1.0) * grow, lean = q.a + (s ? 0.25 : 0), ox = q.dz * (s ? 0.18 : 0), oz = -q.dx * (s ? 0.18 : 0);
         three[0].set(q.x + ox - q.dz * lean * len, q.y + len, q.z + oz + q.dx * lean * len);
         three[2].set(q.x + ox + q.dz * lean * len, q.y - len, q.z + oz - q.dx * lean * len); three[1].copy(three[0]).lerp(three[2], 0.5);
-        W.v = (s ? 0.07 : 0.14) * (1 - k * 0.7); this.glow.strip(three, taperGlowW, 0.9 * (1 - k), LOOK.glow); this.core.strip(three, taperW, 1 - k * k, LOOK.edge);
+        W.v = (s ? 0.07 : 0.14) * (1 - k * 0.7); this.glow.strip(three, taperGlowW, 0.9 * (1 - k), q.look.glow); this.core.strip(three, taperW, 1 - k * k, q.look.edge);
       }
     }
     drawSparks(this.sparks, this.free, dt, this.core, this.glow, three, 3);

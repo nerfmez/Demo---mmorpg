@@ -306,6 +306,9 @@ true radius, stars burst outward and the camera shakes, and the stunned monsters
 then the bell lifts and fades. The first frames showed a vertical seam down the bell (its noise did not
 wrap round the lathe); the shell noise is now taken round a circle, also on Blessing's column and Rapid
 Volley's cone.
+Owner: could be better. The bell is richer (gold bands at its lip, waist and shoulder, a light glowing
+inside) and the toll a real event: a dome of sound races out with the rings, rays of light shoot up from
+the crown, a smaller echo toll follows, and each struck target rings with a ring round it and a star.
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

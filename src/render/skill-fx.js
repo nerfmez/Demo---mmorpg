@@ -337,6 +337,7 @@ export class SkillFx {
         if (e.skill === 'flame_stream') this.flame.lick(c);
         if (e.skill === 'rapid_volley') this.volley.hit(c, c.x - e.fromX, c.z - e.fromZ);
         if (e.skill === 'killing_arrow') this.kill.hit(c, c.x - e.fromX, c.z - e.fromZ);
+        if (e.skill === 'holy_bell') this.bell.hit(c);
         if (e.skill === 'frontline_split') this.split.cut(c);
         if (e.skill === 'interrupt_slam' || e.skill === 'sky_shatter') this.mace.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'riposte') this.riposte.hit(c, e.fromX, e.fromZ);

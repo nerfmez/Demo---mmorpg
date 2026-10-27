@@ -643,6 +643,12 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   edge across a thin surface following the beach heightfield, then draws it back. Sea tiles
   match the terrain grid and are culled independently. Port the time uniform and shoreline
   distance attribute; there is no per-frame mesh rebuild.
+- Sea colour (27 October 2026) follows the arrival beach scene (`scenes/beach` `buildSea`):
+  bands from the shoreline distance (`shore * .21`, the scene's depth units) run pale green
+  #93dfbf, turquoise #45d0c4, cyan #2cbfd0, blue #1b97c3, settling deeper 30-90 m out; the
+  scene's light web (the ponds' rounded Voronoi cells, one cell size, thinning past 25-70 m out)
+  and its sea grade (saturation 1.2, contrast 1.16 on sqrt colour). Alpha .46 over the sand to
+  .80 past the blue band, .88 far out. Foam, swash, port crests and contact foam are unchanged.
 - `river.depth` and `river.bankWidth` produce an ankle-deep bed with gentle banks. Keep the
   rendered water and movement masks separate when porting. Do not add a blocking river strip.
 - `render/ground.js`: small grouped grass strokes, warm earth, bevelled paving, mossy cracks,

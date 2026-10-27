@@ -500,6 +500,12 @@ function seaMaterial(world, contacts, domain) {
       varying float vDepth; varying float vShore; varying vec2 vW; varying vec2 vLocal; varying float vBeachWash;
       uniform vec3 uJoinCoast; varying float vCoastJoin;
       ${NOISE_GLSL}
+      // the arrival beach's light web (scenes/beach), shared with the ponds' water below
+      vec2 webHash(vec2 p){vec3 p3=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));p3+=dot(p3,p3.yzx+33.33);return fract((p3.xx+p3.yz)*p3.zy);}
+      vec2 webVoro(vec2 x,float t){vec2 n=floor(x),f=fract(x);float f1=8.,f2=8.;
+        for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){vec2 g=vec2(i,j);vec2 o=.5+.42*sin(t+6.2831*webHash(n+g));vec2 r=g+o-f;float d=dot(r,r);if(d<f1){f2=f1;f1=d;}else if(d<f2)f2=d;}
+        return vec2(sqrt(f1),sqrt(f2)-sqrt(f1));}
+      float webGap(vec2 x,float t){vec2 v=webVoro(x,t);return v.x/(v.x+v.y+1e-4);}
       // Graphic anime water: a curved crest with finite rounded strokes.
       // The row changes halfway between invisible crests, so reseeding cannot pop.
       vec3 portWave(vec2 p){
@@ -596,20 +602,36 @@ function seaMaterial(world, contacts, domain) {
         if(behind < -.14) discard;
         float cover=smoothstep(-.14,.12,behind);
         float d=max(0.0,vDepth);
-        // clear turquoise over the shallows, a saturated cobalt in deep water
-        vec3 col=mix(vec3(.20,.56,.50),vec3(.07,.36,.46),smoothstep(0.0,2.5,d));
-        col=mix(col,vec3(.03,.19,.36),smoothstep(2.0,8.0,d));
+        // the arrival beach's sea (scenes/beach): pale green over the sand, turquoise, cyan, then
+        // blue. The scene's bands run from the shoreline; here they are stretched to the map's
+        // scale (the scene reaches its blue 6 m out, the map's coast about 13 m out), and the open
+        // sea far from any shore settles a little deeper.
+        float sd=clamp(max(0.0,vShore)*.21,0.0,2.7);
+        vec3 col=mix(vec3(.292,.738,.521),vec3(.060,.631,.552),smoothstep(0.0,.8,sd));
+        col=mix(col,vec3(.025,.521,.631),smoothstep(.8,1.8,sd));
+        col=mix(col,vec3(.011,.309,.546),smoothstep(1.8,2.7,sd));
+        col=mix(col,vec3(.006,.205,.440),smoothstep(30.0,90.0,vShore));
         float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
-        col+=(drift-.5)*.035;
-        // Submerged light ripples deform independently and softly ebb in brightness.
-        // They never remain a crisp, world-fixed grid on top of the water.
-        if(d<3.0){
-          vec2 lightP=vW*.28+vec2(uTime*.035,-uTime*.06);
-          lightP+=vec2(sin(vW.y*.31+uTime*.47),cos(vW.x*.28-uTime*.39))*.65;
-          vec2 lightCell=foamCell(lightP,uTime*uMotion.z,0.0);
-          float caustic=1.0-smoothstep(.015,.13,abs(lightCell.x-.39));
-          float lightPulse=.5+.5*sin(uTime*.8+vW.x*.16+vW.y*.11);
-          col+=vec3(.022,.035,.028)*caustic*lightPulse*(1.0-smoothstep(.0,3.0,d));
+        col+=(drift-.5)*.03;
+        // the light web: small rounded wobbly cells parted by soft pale-green gaps, brighter in the
+        // shallows; whole stretches fade, so it never reads as one even net. One cell size (a
+        // depth-varying scale would shear the cells into streaks); it thins out on the open sea.
+        float webA=0.0;
+        {
+          float near=1.0-smoothstep(.3,1.5,sd);
+          vec2 q=vW/.8,pS=q*1.45;
+          pS+=.36*vec2(vnoise(pS*1.1+vec2(uTime*.18,0.)),vnoise(pS*1.1+vec2(5.,-uTime*.15)))-.18;
+          float gS=webGap(pS,uTime*.35);
+          float keep=smoothstep(.42,.74,vnoise(pS*.45+vec2(uTime*.05,-uTime*.04)+17.));
+          keep*=smoothstep(.25,.62,vnoise(q*.26+vec2(-uTime*.03,uTime*.02)+3.));
+          keep*=mix(1.0,.45,smoothstep(25.0,70.0,vShore));
+          float web=smoothstep(mix(.78,.74,near),mix(.9,.86,near),gS)*keep;
+          float glow=smoothstep(mix(.55,.5,near),mix(.9,.86,near),gS)*mix(.35,1.,keep);
+          float blob=(1.-glow)*mix(.15,.5,near)*smoothstep(-.3,.6,vShore);
+          col=mix(col,col*vec3(.102,.301,.227)*1.15,blob*.5);
+          col=mix(col,vec3(.807,1.,.644),web*mix(.26,.36,near));
+          col+=vec3(.658,1.,.552)*glow*keep*.08;
+          webA=web*.12+blob*near*.12;
         }
         // cel-shaded sky reflection: soft-edged pale patches drifting slowly over open water.
         // A turned domain warped on both axes, so the 22 m noise lattice does not line up
@@ -702,7 +724,13 @@ function seaMaterial(world, contacts, domain) {
         // cream-white membranes and broken leading crests rather than stripes.
         col=mix(col,vec3(.41,.67,.61),softFoam*.40);
         col=mix(col,uFoamColor,clamp(foam,0.0,1.0));
-        float alpha=mix(.22,.86,smoothstep(-1.0,5.0,vShore))*cover;
+        // the scene's colour grade for its sea (more saturation and contrast than the land)
+        {vec3 g=sqrt(max(col,0.0));float l=dot(g,vec3(.299,.587,.114));g=max((mix(vec3(l),g,1.2)-.5)*1.16+.5,0.0);col=g*g;}
+        // clear over the sand like the scene's wash, fuller out to sea
+        float alpha=mix(.46,.56,smoothstep(0.0,1.0,sd));
+        alpha=mix(alpha,.80,smoothstep(1.2,2.6,sd));
+        alpha=mix(alpha,.88,smoothstep(20.0,40.0,vShore));
+        alpha=(alpha*mix(.55,1.0,smoothstep(-1.0,.3,vShore))+webA)*cover;
         alpha=max(alpha,mix(.72,0.0,vBeachWash)*cover);
         alpha=max(alpha,foam*.94);
         gl_FragColor=vec4(col,alpha);

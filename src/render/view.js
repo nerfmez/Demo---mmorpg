@@ -56,7 +56,7 @@ const ZONE_FOG = {
 const NO_MARKS = [];
 
 export class View {
-  constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
+  constructor(canvas, world, { quality = 'high', worlds = null, resident = worlds } = {}) {
     this.unified = !!worlds;
     this.coordinateOrigin = [...(world.data.atlas?.offset || [0, 0])];
     this.worldPrepared = false;
@@ -147,7 +147,9 @@ export class View {
 
     this.raycaster = new THREE.Raycaster();
     this.resize();
-    this.worldReady = this.unified ? prepareResidentWorld(this, worlds) : this.region.ready.then(() => { this.worldPrepared = true; });
+    // `resident`: the maps prepared behind the loading card (every map in the game;
+    // the development load prepares the start map only, see main.js).
+    this.worldReady = this.unified ? prepareResidentWorld(this, resident) : this.region.ready.then(() => { this.worldPrepared = true; });
     this.cityReady = this.worldReady;
   }
 
@@ -291,7 +293,7 @@ export class View {
     const cfg = region.world.data.wreck;
     if (!cfg || region.wreck) return;
     const at = (o, [x,z], rot) => { o.position.set(x, region.world.groundY(x,z), z); o.rotation.y=rot; region.root.add(o); return o; };
-    region.wreck=at(buildWreck(),cfg.at,cfg.rot);
+    region.wreck=at(cfg.acceptedScene?new THREE.Group():buildWreck(),cfg.at,cfg.rot);
     region.weaponProps={};
     for(const [kit,o] of Object.entries(weaponProps())) { region.weaponProps[kit]=at(o,cfg.weapons[kit],.2); o.visible=false; }
   }
@@ -347,7 +349,7 @@ export class View {
     }
     if (fresh.length) {
       this.scene.add(tmp);
-      this.renderer.compile(this.scene, this.camera);
+      this.compileForDraw(this.scene);
       tmp.removeFromParent();
       for (const rig of fresh) this.releaseRig(rig);
     }
@@ -412,7 +414,7 @@ export class View {
       this.hero.root.scale.copy(previousRoot.scale);
     } else this.heroAnim = new HumanoidAnimator(this.hero);
     this.scene.add(this.hero.root);
-    this.vfx.prepareMovement(this.hero.root, this.renderer, this.camera);
+    this.vfx.prepareMovement(this.hero.root, this.renderer, this.camera, undefined, this.drawTarget());
     if (this.hero.scarf) this.scene.add(this.hero.scarf.mesh);
     this.heroLookKey = JSON.stringify([look, gear]);
     if (this.vfx.wardMesh) this.hero.root.add(this.vfx.wardMesh);
@@ -466,6 +468,21 @@ export class View {
     this.post ||= new PostFX(this.renderer, renderConfig.post);
     const size = this.renderer.getDrawingBufferSize(this._postSize ||= new THREE.Vector2());
     this.post.setSize(size.x, size.y);
+  }
+
+  /** The target the world is drawn into: the screen grade's, or the canvas (null). */
+  drawTarget() {
+    return this.post?.scene ?? null;
+  }
+
+  /** Compile the program variant the world is drawn with. Three keys programs for a
+   *  render target apart from canvas ones (no tone mapping, working colour space), so
+   *  canvas programs would go unused through the screen grade and the first frames
+   *  would compile the real ones, blocking. */
+  compileForDraw(scene, camera = this.camera, targetScene) {
+    const r = this.renderer, previous = r.getRenderTarget(), face = r.getActiveCubeFace(), mip = r.getActiveMipmapLevel();
+    r.setRenderTarget(this.drawTarget());
+    try { return r.compile(scene, camera, targetScene); } finally { r.setRenderTarget(previous, face, mip); }
   }
 
   /** Draw the scene to the canvas, through the screen grade when it is on. */
@@ -987,12 +1004,14 @@ export class View {
         if (!stone.visible) continue;
         const id = stone.userData.waypointId ?? key;
         const on = g.isWaypointUnlocked?.(id, stone.userData.worldId);
+        if(stone.userData.updateAccepted){stone.userData.updateAccepted(dt,time,on,g.player.x,g.player.z);continue;}
         const c = stone.userData.crystal;
         c.material.emissive.set(on ? '#3fb8e8' : '#223344');
         c.material.emissiveIntensity = on ? 0.9 + Math.sin(time * 3) * 0.25 : 1;
         c.position.y = 2.95 + (on ? Math.sin(time * 2) * 0.12 : 0);
         c.rotation.y = on ? time : 0;
       }
+      for(const region of this.regions.values())for(const a of region.acceptedAnimations||[])a.update(dt,time,false);
       // target ring
       const t = g.target;
       this.targetRing.visible = !!t && !t.dead;
@@ -1173,7 +1192,7 @@ export class View {
     }
     v.fx.burst(x, y + 1, z, 3, {});
     v.dust.burst(x, y + 1, z, 3, {});
-    this.renderer.compile(this.scene, this.camera);
+    this.compileForDraw(this.scene);
     this.draw(); // also compiles the screen grade
     tmp.removeFromParent();
     for (const rig of rigs) this.releaseRig(rig); // compiled models start the pool

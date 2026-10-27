@@ -141,9 +141,11 @@ function hullCopy(src, width, darkness) {
   const m = new THREE.MeshBasicMaterial({ map: src.map, color: new THREE.Color(darkness, darkness, darkness * 1.12), side: THREE.BackSide, alphaTest: src.alphaTest });
   m.userData.rig = true;
   m.onBeforeCompile = (shader) => {
-    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed += normalize(normal) * ${width.toFixed(4)};`);
+    shader.uniforms.hullWidth = { value: width };
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nuniform float hullWidth;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * hullWidth;');
   };
-  m.customProgramCacheKey = () => `vrm-hull-${width}`;
+  m.customProgramCacheKey = () => 'vrm-hull'; // one program for every width (a uniform)
   return m;
 }
 

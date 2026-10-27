@@ -99,3 +99,14 @@ test('Three marks no-extension programs ready immediately and polls real paralle
  assert.equal(parallel(),false);assert.equal(polls,1);completed=true;assert.equal(parallel(),true);assert.equal(polls,2);
  assert.equal(parallel(),true);assert.equal(polls,2,'a prepared program no longer polls the driver');
 });
+
+test('through the screen grade, materials compile with its target bound and the previous one restored',async()=>{
+ const {root}=sceneFixture(),c=queue(),post=new THREE.WebGLRenderTarget(1,1),earlier=new THREE.WebGLRenderTarget(1,1),bound=[];let current=earlier;
+ const renderer={getRenderTarget:()=>current,setRenderTarget:t=>{current=t;},compileAsync(){bound.push(current);return Promise.resolve();}};
+ const job=c.q.enqueue(compileRegionSteps({renderer,drawTarget:()=>post},root));
+ for(let i=0;i<4;i++){c.drain();await Promise.resolve();}c.drain();await job.promise;
+ assert.deepEqual(bound,[post,post,post],'every batch compiles for the target the world is drawn into');assert.equal(current,earlier);
+ const canvas=[],plain={getRenderTarget:()=>{throw Error('no target is bound without a screen grade');},compileAsync(){canvas.push(1);return Promise.resolve();}};
+ const steps=compileRegionSteps({renderer:plain,drawTarget:()=>null},root);for(let r=steps.next();!r.done;r=steps.next(await r.value));assert.equal(canvas.length,3);
+ post.dispose();earlier.dispose();
+});

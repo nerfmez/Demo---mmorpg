@@ -56,18 +56,20 @@ export function branchletTexture(shrub = false) {
   map.userData.shared=true;maps.set(shrub,map);return map;
 }
 
-export function animeFoliage(seed=3,shrub=false) {
-  const steps=animeFoliageSteps(seed,shrub);
+// palette: a map's own foliage colours ({leaf, shrub}: [shadow, mid, light]; data look.foliage),
+// otherwise the game's (art.json anime.palette)
+export function animeFoliage(seed=3,shrub=false,palette=null) {
+  const steps=animeFoliageSteps(seed,shrub,palette);
   for(;;){const step=steps.next();if(step.done)return step.value;}
 }
 
-export function* animeFoliageSteps(seed=3,shrub=false) {
+export function* animeFoliageSteps(seed=3,shrub=false,palette=null) {
   const rng=createRng(seed),p=[],n=[],c=[],uv=[];
   const cfg=animeConfig,clusters=shrub?cfg.shrubSprays:cfg.treeSprays;
   const count=shrub?cfg.shrubCardsPerSpray:cfg.treeCardsPerSpray;
   const sizes=shrub?cfg.shrubCardSize:cfg.treeCardSize;
   const shade=new THREE.Color(),vertexShade=new THREE.Color();
-  const prefix=shrub?'shrub':'leaf',colors=['Shadow','Mid','Light'].map(s=>new THREE.Color(cfg.palette[prefix+s]));
+  const prefix=shrub?'shrub':'leaf',colors=(palette?.[prefix]||['Shadow','Mid','Light'].map(s=>cfg.palette[prefix+s])).map(c=>new THREE.Color(c));
   const append=(center,normal,size,roll,tile,col)=>{
     const across=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),normal);
     if(across.lengthSq()<.001)across.set(1,0,0);else across.normalize();
@@ -137,9 +139,11 @@ export function shrubStems() {
 
 // Authored tapered trunk, buttress roots and branch junctions. Broad painted
 // facets replace the old repeating bark noise; creases are sparse tapered strokes.
-export function animeTrunk() {
+// bark: a map's own trunk colours ({light, mid, shadow, line, moss?}; data look.trunk), otherwise the game's
+export function animeTrunk(bark=null) {
   const cfg=animeConfig.trunk,p=[],n=[],c=[];
-  const pal=animeConfig.palette,sun=new THREE.Vector3(-.6,.55,.55).normalize();
+  const pal=bark?{trunkLight:bark.light,trunkMid:bark.mid,trunkShadow:bark.shadow,trunkLine:bark.line}:animeConfig.palette,sun=new THREE.Vector3(-.6,.55,.55).normalize();
+  const moss=bark?.moss?new THREE.Color(bark.moss):null;
   const light=new THREE.Color(pal.trunkLight),mid=new THREE.Color(pal.trunkMid),shadow=new THREE.Color(pal.trunkShadow),ink=new THREE.Color(pal.trunkLine);
   const paths=[cfg.spine,...cfg.roots];
   for(const [x,y,z] of animeConfig.treeSprays) {
@@ -163,6 +167,8 @@ export function animeTrunk() {
       const kk=(k+1)%cfg.sides,quad=[rings[j][k],rings[j][kk],rings[j+1][kk],rings[j+1][k]];
       const normal=quad[0].no.clone().add(quad[1].no).normalize(),lit=normal.dot(sun);
       const tone=lit>.33?mid.clone().lerp(light,THREE.MathUtils.smoothstep(lit,.33,.9)):shadow.clone().lerp(mid,THREE.MathUtils.smoothstep(lit,-.65,.33));
+      // moss settles on the faces that look up (the root flares' backs) and low on the trunk
+      if(moss)tone.lerp(moss,.55*THREE.MathUtils.smoothstep(normal.y,.25,.6)+.25*(1-THREE.MathUtils.smoothstep(quad[0].v.y,.1,.9))*(k%3===0?1:0));
       for(const id of [0,1,2,0,2,3])write(quad[id].v,normal,tone);
     }
   }

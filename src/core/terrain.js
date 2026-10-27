@@ -4,8 +4,12 @@
 //
 // Build order: rolling noise (amplitude per zone) + hills -> soften -> plateaus (cliff edges)
 // + mountains past the map edge -> flatten town / pads -> roads smoothed into ramps ->
-// river channel and ponds carved below the water level.
+// river channel and ponds carved below the water level -> accepted scenes, seams ->
+// edge cliffs (acceptedScenes.edgeCliffs).
 
+import { edgeCliffAt } from './edge-cliffs.js';
+import { pondReach, pondCircleDistance } from './ponds.js';
+import {applyAcceptedHeights,smoothAcceptedAprons,acceptedApronOffsets,apronConnectors} from './accepted-scenes.js';
 import { clamp, distToSegment, coastSample, toBoxLocal, fromBoxLocal } from './math.js';
 
 // ---------- noise (hash-based, deterministic, no RNG state) ----------
@@ -114,6 +118,28 @@ export function rasterPolyline(grid, pts, reach, visit) {
 export function seamOpen(worldData, edge, along) {
   for (const seam of worldData.atlas?.seams || []) if (seam.edge === edge && along >= seam.span[0] && along <= seam.span[1]) return seam;
   return null;
+}
+
+/** How strongly a seam pulls the ground at (x, z) onto its shared profile (0..1). */
+export function seamPull(worldData, seam, x, z) {
+  const alongX = seam.edge === 'minZ' || seam.edge === 'maxZ', inward = seam.edge.startsWith('max') ? -1 : 1, band = seam.band ?? 24;
+  const along = alongX ? x : z, past = Math.max(seam.span[0] - along, along - seam.span[1], 0);
+  if (past >= band) return 0;
+  const inside = ((alongX ? z : x) - worldData.bounds[seam.edge]) * inward; // metres inside the map
+  if (inside >= band) return 0;
+  return (1 - smoothstep(0, band, Math.max(0, inside))) * (1 - smoothstep(0, band, past));
+}
+
+/** Extra height a seam carries over a stretch (data: seam.rises, in each map's local
+ *  `along`): a raised accepted scene's hill continues across the border, and both maps
+ *  list the same rise. Kept apart from the generated profile (scripts/atlas-seams.mjs). */
+export function seamRise(seam, along) {
+  let h = 0;
+  for (const r of seam.rises || []) {
+    const out = Math.max(r.span[0] - along, along - r.span[1], 0);
+    if (out < r.ease) h += r.height * (1 - smoothstep(0, r.ease, out));
+  }
+  return h;
 }
 
 /** Height of a seam profile ([[along, h], ...] sorted by along) at `along`. */
@@ -318,12 +344,12 @@ export function buildHeightfield(worldData, zoneAt) {
       } else hf[k] = carve(hf[k], d, half, water);
     }
   }
-  for (const [px, pz, pr] of worldData.ponds || []) {
-    const reach = pr + 6;
+  for (const pond of worldData.ponds || []) {
+    const [px, pz, pr] = pond, reach = pondReach(pond) + 6;
     for (let j = Math.max(0, Math.floor((pz - reach - oz) / res)); j <= Math.min(h - 1, Math.ceil((pz + reach - oz) / res)); j++)
       for (let i = Math.max(0, Math.floor((px - reach - ox) / res)); i <= Math.min(w - 1, Math.ceil((px + reach - ox) / res)); i++) {
         const k = j * w + i;
-        hf[k] = carve(hf[k], Math.hypot(X(i) - px, Z(j) - pz), pr, water);
+        hf[k] = carve(hf[k], pondCircleDistance(pond, X(i), Z(j)), pr, water);
       }
   }
 
@@ -367,37 +393,65 @@ export function buildHeightfield(worldData, zoneAt) {
     }
   }
 
+  // The outer apron raises or lowers native ground round the accepted scenes to
+  // meet their edges. Native props are still placed against the ground without it
+  // (propSlopeAt), so their seeded layout does not move.
+  const apron = acceptedApronOffsets(worldData, grid, hf, water);
+  const native = apron ? hf.slice() : null;
+  if (apron) for (let k = 0; k < n; k++) hf[k] += apron[k];
+  const connectors = apronConnectors(worldData, grid, apron);
+  applyAcceptedHeights(worldData,grid,hf,connectors);smoothAcceptedAprons(worldData,grid,hf);
+  if (native) { applyAcceptedHeights(worldData, grid, native); smoothAcceptedAprons(worldData, grid, native); }
+
   // 8. seams: an edge shared with a neighbouring map (atlas.seams) blends to one
   // common height profile, so both maps meet on the same ground. Past the edge the
   // profile continues instead of the mountain wall.
   for (const seam of worldData.atlas?.seams || []) {
     if (!seam.profile?.length) continue;
-    const alongX = seam.edge === 'minZ' || seam.edge === 'maxZ', edgeAt = b[seam.edge], inward = seam.edge.startsWith('max') ? -1 : 1;
-    const band = seam.band ?? 24;
+    const alongX = seam.edge === 'minZ' || seam.edge === 'maxZ';
     for (let j = 0; j < h; j++)
       for (let i = 0; i < w; i++) {
-        const x = X(i), z = Z(j), along = alongX ? x : z;
-        const past = Math.max(seam.span[0] - along, along - seam.span[1], 0);
-        if (past >= band) continue;
-        const inside = ((alongX ? z : x) - edgeAt) * inward; // metres inside the map
-        if (inside >= band) continue;
-        const m = (1 - smoothstep(0, band, Math.max(0, inside))) * (1 - smoothstep(0, band, past));
-        hf[j * w + i] = hf[j * w + i] * (1 - m) + seamHeight(seam.profile, along) * m;
+        const m = seamPull(worldData, seam, X(i), Z(j));
+        if (!m) continue;
+        const k = j * w + i, to = seamHeight(seam.profile, alongX ? X(i) : Z(j)) + seamRise(seam, alongX ? X(i) : Z(j));
+        hf[k] = hf[k] * (1 - m) + to * m;
+        if (native) native[k] = native[k] * (1 - m) + to * m;
       }
   }
 
+  // 9. edge cliffs: a plateau behind an authored cliff line is a floor under the ground.
+  for (const cliff of worldData.acceptedScenes?.edgeCliffs || []) {
+    const xs = cliff.points.map(p => p[0]), zs = cliff.points.map(p => p[1]);
+    for (let j = 0; j < h; j++) {
+      const z = Z(j);
+      if (z < Math.min(...zs) || z > Math.max(...zs)) continue;
+      for (let i = 0; i < w; i++) {
+        const x = X(i);
+        if (x < Math.min(...xs) || x > Math.max(...xs)) continue;
+        const e = edgeCliffAt(cliff, x, z), k = j * w + i;
+        if (e > hf[k]) hf[k] = e;
+        if (native && e > native[k]) native[k] = e;
+      }
+    }
+  }
+
+  const slope = (data) => (x, z) => {
+    const e = res;
+    const dx = (sampleGrid(grid, data, x + e, z) - sampleGrid(grid, data, x - e, z)) / (2 * e);
+    const dz = (sampleGrid(grid, data, x, z + e) - sampleGrid(grid, data, x, z - e)) / (2 * e);
+    return Math.hypot(dx, dz);
+  };
   return {
     ...grid,
     data: hf,
     waterLevel: water,
     heightAt: (x, z) => sampleGrid(grid, hf, x, z),
     /** Surface normal (unnormalised y = 1 scaled) and slope magnitude. */
-    slopeAt(x, z) {
-      const e = res;
-      const dx = (sampleGrid(grid, hf, x + e, z) - sampleGrid(grid, hf, x - e, z)) / (2 * e);
-      const dz = (sampleGrid(grid, hf, x, z + e) - sampleGrid(grid, hf, x, z - e)) / (2 * e);
-      return Math.hypot(dx, dz);
-    },
+    slopeAt: slope(hf),
+    /** Slope without the accepted-scene apron, for seeded native prop placement. */
+    propSlopeAt: native ? slope(native) : slope(hf),
+    /** Connector profiles as applied (their outer ends ride the apron). */
+    acceptedConnectors: connectors,
   };
 }
 

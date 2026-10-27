@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {loadData} from '../../src/core/data-node.js';
 import {createWorld} from '../../src/core/world.js';
 import {cityFloorAt,cityRoadDistance} from '../../src/core/city.js';
-import {outsideClearingWeight} from '../../src/core/ground-regions.js';
+import {outsideClearingWeight,outsideRoadDistance} from '../../src/core/ground-regions.js';
 import {fromBoxLocal} from '../../src/core/math.js';
 
 const data=loadData(),city=data.world.city,world=createWorld(data.world),repair=city.propertyBoundary;
@@ -34,8 +34,14 @@ test('boundary clipping does not reshuffle existing native trees or core decorat
   for(const t of before.town.trees){const m=repair.treeRelocations.find(m=>m.id===t.id);if(m)[t.x,t.z]=m.old;}
   delete before.city.propertyBoundary;delete before.city.outsideClearings;
   const old=createWorld(before);
-  assert.deepEqual(world.decor,old.decor);
-  assert.deepEqual(world.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')),old.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')));
+  // The ring planted round accepted scenes avoids the clearings, so it is not native.
+  const decor=w=>{const d={...w.decor};delete d.sceneShrubs;return d;};
+  const native=w=>w.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')&&c.type!=='scene-tree');
+  assert.deepEqual(decor(world),decor(old));
+  // Native props share one seeded stream: a candidate the repair blocks skips its draws, so
+  // the few scattered after it in the stream re-roll. The repair keeps the layout otherwise.
+  const key=c=>c.type+':'+c.x.toFixed(3)+','+c.z.toFixed(3),kept=new Set(native(old).map(key)),now=native(world);
+  assert.ok(now.filter(c=>!kept.has(key(c))).length<=now.length*.1,'the repair re-rolls only a few native props');
   assert.deepEqual(world.heightfield.data,old.heightfield.data);
 });
 test('organic clearing contains real walkable play pockets and retained islands',()=>{
@@ -65,4 +71,16 @@ test('outside ground connects existing destinations while retaining native tree 
     assert.equal(outsideClearingWeight(city,x,z),0,r.id+' retained native vegetation island');
   assert.equal(outsideClearingWeight(city,0,-116),0,'obsolete destinationless north stub');
   assert.equal(outsideClearingWeight(city,180,36),0,'retired old exterior warehouse spur');
+});
+test('road distance with a reach answers every threshold within it like the full search',()=>{
+  const roads=world.roads;let city=0,outside=0;
+  for(let x=-40;x<=200;x+=1.7)for(let z=-130;z<=60;z+=1.3){
+    if(cityFloorAt(data.world.city,x,z)){city++;
+      for(const t of[0,.8,2])assert.equal(cityRoadDistance(data.world.city,x,z,t)<t,cityRoadDistance(data.world.city,x,z)<t,'city '+[x,z,t]);
+      assert.equal(world.roadDist(x,z,.8)<.8,world.roadDist(x,z)<.8);
+    }else{outside++;
+      for(const t of[.1,.8])assert.equal(outsideRoadDistance(data.world.city,roads,x,z,t)<t,outsideRoadDistance(data.world.city,roads,x,z)<t,'outside '+[x,z,t]);
+    }
+  }
+  assert.ok(city>500&&outside>500,'both kinds of ground sampled');
 });

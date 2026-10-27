@@ -119,7 +119,8 @@ test('exterior forest cannot plant in an adjacent playable rectangle, including 
   const neighbours = w.seams.map(s=>worlds[s.to]);
   const intrudes = neighbours.some(n=>{
    const nx=x-n.data.atlas.offset[0],nz=z-n.data.atlas.offset[1],b=n.bounds;
-   return nx>=b.minX&&nx<=b.maxX&&nz>=b.minZ&&nz<=b.maxZ;
+   // nor in the neighbour's sea: Moonroot's corner forest once stood in Azure's bay beside Gull Headland
+   return nx>=b.minX&&nx<=b.maxX&&nz>=b.minZ&&nz<=b.maxZ||!!n.data.sea&&n.inSea(nx,nz,2);
   });
   assert.equal(domains[id].edgeTreeAllowed(tree.x,tree.z),!intrudes,`${id} tree at ${x},${z}`);
   if (intrudes) excluded++; else retained++;
@@ -152,6 +153,36 @@ test('decorative road continuation retains every native meadow clump and flower 
  finally {field.road=paint;field.plantingRoad=native;}
  const actual=finishSteps(meadowPlantSteps(world,[]));
  assert.deepEqual(actual,expected,'painting across the map boundary must not remove or shift any grass/flowers');
+});
+
+test('accepted scenes paint only their own paths, not the town earth clearing',async()=>{
+ const {acceptedScenes,sceneWeight,sceneSample}=await import('../../src/core/accepted-scenes.js');
+ const {outsideClearingWeight,outsideRoadVisible}=await import('../../src/core/ground-regions.js');
+ const {distToPolyline}=await import('../../src/core/math.js');
+ const world=worlds[A],field=surfaceData(world),hf=world.heightfield;let checked=0;
+ // the connector roads that join each scene to the world keep their paint
+ const nearRoad=(x,z)=>world.roads.some(r=>outsideRoadVisible(world.data.city,r.id)&&distToPolyline(x,z,r.points)<r.width/2+2);
+ for(const scene of acceptedScenes(world.data))for(let j=0;j<hf.h;j+=2)for(let i=0;i<hf.w;i+=2){
+  const x=hf.ox+i*hf.res,z=hf.oz+j*hf.res;
+  if(sceneWeight(scene,x,z)<.999||outsideClearingWeight(world.data.city,x,z)<.5||sceneSample(scene,'trails',x,z)<1.5||world.isWater(x,z)||nearRoad(x,z))continue;
+  checked++;assert.ok(field.road[j*hf.w+i]<.05,`${scene.id} grass at ${x},${z} painted as earth`);
+ }
+ assert.ok(checked>100,'the meadow and windmill overlap the clearing: '+checked);
+});
+
+test('the ring round accepted scenes takes back the earth clearing but keeps routes and waypoints',async()=>{
+ const {sceneSurround,sceneKeep,outsideClearingWeight}=await import('../../src/core/ground-regions.js');
+ const {acceptedAt}=await import('../../src/core/accepted-scenes.js');
+ const world=worlds[A],field=surfaceData(world),hf=world.heightfield,cfg=world.data.acceptedScenes.surround,at=(x,z)=>Math.round((z-hf.oz)/hf.res)*hf.w+Math.round((x-hf.ox)/hf.res);
+ let ring=0;
+ for(let j=0;j<hf.h;j+=2)for(let i=0;i<hf.w;i+=2){
+  const x=hf.ox+i*hf.res,z=hf.oz+j*hf.res;
+  if(acceptedAt(world.data,x,z)||sceneSurround(world.data,x,z,cfg.clearRing)<.8||sceneKeep(world.data,world.roads,x,z)>0||outsideClearingWeight(world.data.city,x,z)<.5||world.isWater(x,z))continue;
+  ring++;assert.ok(field.dirt[j*hf.w+i]<.3&&field.road[j*hf.w+i]<.3,`clearing still painted at ${x},${z}`);
+ }
+ assert.ok(ring>40,'the meadow and windmill rings cross the clearing: '+ring);
+ for(const road of world.data.acceptedScenes.connectors)for(const[x,z]of road.points)if(!world.isWater(x,z))assert.ok(field.road[at(x,z)]>.6,road.id+' keeps its paint at '+[x,z]);
+ const forest=world.data.waypoints.find(w=>w.id==='forest').pos;assert.ok(field.road[at(...forest)]>.8,'the forest waypoint clearing stays earth');
 });
 
 test.after(()=>{for(const[id,g]of Object.entries(terrains)){disposeObject(g);releaseGroundCaches(worlds[id]);}});

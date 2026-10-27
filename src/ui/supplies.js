@@ -15,7 +15,7 @@ export class Supplies {
   }
   update() {
     const g=this.game,ch=g.ch,bow=!!g.data.items.weaponTypes[g.derived.weaponType]?.ammo;
-    this.ammo.hidden=!bow;
+    if(this.ammo.hidden!==!bow)this.ammo.hidden=!bow; // re-setting the attribute restyles the HUD
     if(bow){
       const use=arrowInUse(ch,g.data),count=ch.arrows.stock[use]||0,total=arrowTotal(ch);
       if(use!==this.lastUse||count!==this.lastCount||total!==this.lastTotal){

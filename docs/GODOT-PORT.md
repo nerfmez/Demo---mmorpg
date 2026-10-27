@@ -68,7 +68,7 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 | `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
 | `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
-| `maps.js`, `open-world-game.js`, `unified-world.js` | `Maps.gd` metadata registry + persistent world | `data.maps` registers content regions by id. `enterMap()` stores regional discovery under `progress.maps[id]` and restores the destination's (plus its free stones). `OpenWorldGame.activateRegion()` changes this metadata while one fixed world and every resident actor remain alive. Point exits and waypoint teleportation reposition within that world. Quests and loot retain their source `worldId`; no regional crossing changes scenes. |
+| `maps.js`, `open-world-game.js`, `unified-world.js` | `Maps.gd` metadata registry + persistent world | `data.maps` registers content regions by id. `enterMap()` stores regional discovery under `progress.maps[id]` and restores the destination's (plus its free stones). `OpenWorldGame.activateRegion()` changes this metadata while one fixed world and every resident actor remain alive. Point exits and waypoint teleportation reposition within that world. Quests and loot retain their source `worldId`; no regional crossing changes scenes. The web build has a development load (`?load=dev`, CI browser tests) that prepares only the start map's scene; the game itself prepares every map before play, and a port should do the same (a development shortcut is optional). |
 | `atlas.js` | `WorldAtlas.gd` | One world for the player: `toWorld`/`toLocal` (local + atlas.offset), discovery per map (`progress.maps`) read as one world (`worldTotals`), and stones on any map (`Game.teleportTo(id, mapId)` travels there). The minimap and world map draw every map's image at its offset (`ui/mapimage.js worldMapImage`); zone/stone selections are `mapId:id`. |
 | `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Dock clearance checks the actor footprint across the union of adjoining decks and dry shore; outer sea edges still block. `groundY()` interpolates from `startY` to `height` using dock-local Z after rotation. The render mesh shears in local Z so its XZ footprint matches collision exactly. Safe starting roads use distance to the `safeRoutes` polylines. |
 
@@ -646,7 +646,24 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
 - `river.depth` and `river.bankWidth` produce an ankle-deep bed with gentle banks. Keep the
   rendered water and movement masks separate when porting. Do not add a blocking river strip.
 - `render/ground.js`: small grouped grass strokes, warm earth, bevelled paving, mossy cracks,
-  cliff strata and shore foam. Water streaks use world coordinates, including round ponds.
+  cliff strata and shore foam.
+- Fresh water (`render/ground.js` `waterMaterial`, 27 October 2026), streams and ponds, in the
+  sea's cel style: soft depth bands on a per-vertex `tone` (a pond's depth, a stream's channel),
+  bed mottling in the shallows, sky patches on a turned warped domain, on ponds only, the arrival beach
+  scene's light web (rounded Voronoi cells, nearest/second-nearest ratio, pale-green gaps that fade in
+  patches; one cell size, since scaling world coordinates by a depth-varying factor shears the
+  cells), sparse twinkling glints,
+  and a broken foam lace of constant width at the waterline (`shore`: metres to the waterline per
+  vertex, from the bank's real zero crossing across a stream row, or the pond bank's 0.55 m/m
+  rise), which laps by a few centimetres. Streams carry `along`/`across` flow metres (`flow` 1)
+  and draw thin meandering current lines whose tapered dashes travel downstream; ponds (`flow` 0) draw slow drip rings. Ponds are polar meshes about
+  0.6 m apart out to their rim plus 1.6 m of bank. Pond outlines: a pond is `[x, z, r]` or
+  `[x, z, r, wobble]` (`core/ponds.js`): wobble bends the rim with four fixed harmonics seeded by
+  the centre (mean radius r), and terrain carving, `inPond`/collision, the apron fade, the mud
+  paint and the water mesh all read that rim. Pond water ends at the carved bank's waterline
+  (0.64 m past the rim) even over lower ground. A scene that exports `pond` (Mirror Pond) is drawn
+  to its 72 radii instead of its collision circles. In Godot use one shader with the same
+  attributes as custom vertex data and `TIME`; there is no per-frame mesh work.
 - `render/nature.js` / `leafpaint.js`: branched trunks, curved grass, petals, faceted rocks,
   shared alpha-cutout leaf and needle atlases; chunked instancing is preserved. In Godot use
   alpha scissor `StandardMaterial3D`/toon materials and MultiMesh chunks. These crown cards
@@ -738,7 +755,7 @@ Current layout revision is `azure-original-beach-8`, based on main `7102e4310ca7
 
 `town.placement` pins the original beach map source `88e2a2bc0a8d288909b05b86d6e9d1d394362f00`, original town centre `[62,22]`, reference offset `[78.4,34.5]`, reference pixel origin `[1230,400]` and scale `.42` m/pixel. The city is translated as one assembly. Keep the western arrival spawn `[-132,80]`, original landing checkpoint, forest/glade and pond at their old world coordinates. The town services and city scenery use their relocated authored coordinates. The outside coastline graft retains the original western beach while preserving the city cape/U bay. East/south bounds extend to fit the relocated port; original west/north bounds remain. The northern headland and farm beds are outside the enlarged city. Preserve this metadata when exporting/importing; do not translate the whole world.
 
-`shoreZ(x)` and `sea.shore/edgeKinds` remain the fallback for existing single-valued shores. Optional `sea.coastline` is an ordered coastal contour used for capes that genuinely require multiple land/water intervals at one X. Close its two distant northern endpoints for even/odd containment; that closing mainland edge is outside the playable/heightfield bounds and is not a surf segment. `seaContains()` uses the contour interior as land. `coastSample()` takes the nearest real coast segment and signs its distance with that same containment (positive inland). `sea.coastKinds` has one tag per real segment: beach, rock, quay, breakwater or shipyard. Do not infer water from a single `shoreZ` intersection on this layout.
+`shoreZ(x)` and `sea.shore/edgeKinds` remain the fallback for existing single-valued shores. Optional `sea.coastline` is an ordered coastal contour used for capes that genuinely require multiple land/water intervals at one X. Close its two distant northern endpoints for even/odd containment; that closing mainland edge is outside the playable/heightfield bounds and is not a surf segment. `seaContains()` uses the contour interior as land. `coastSample()` takes the nearest real coast segment and signs its distance with that same containment (positive inland). `sea.coastKinds` has one tag per real segment: beach, rock, quay, breakwater or shipyard. On long contours (more than 64 points) both queries use a cached index (runs of 16 segments with bounding boxes for the nearest segment, z bands for containment); a port may do the same, but the answers must equal the brute-force loops, including the lowest-index tie rule for the segment kind. Do not infer water from a single `shoreZ` intersection on this layout.
 
 Terrain carving, water collision/actor clearance, beach paint, surf distance/kind, water extents, quay coping and the static contact bake share this contour. The static contact texture clips its coast extents to `bounds` plus its existing 6 m side/north and 18 m south margins; distant mainland closure points must not reduce pier-pile resolution under the existing 2048 maximum dimension. Tests inspect all four submerged piles on every timber berth. Only beach segments receive sand/runup; quay, breakwater and repair frontage remain flat port water. `town.surfaces` holds `{kind:'paving',points:[[x,z],...],strength?,preserveRoad?}` polygons for the irregular market apron and shared residential courts; ground and map painting share them, with the legacy plaza-radius fallback when absent. Paving strength defaults to 1; `preserveRoad` gates court paving using the baked road mask so lanes remain readable. Authored dirt paint survives base noise. The layout exporter retains `layoutRevision`, `sea` and `town` along with docks, colliders, landmarks and spawns; the heightmap includes the carved contour and settlement plots.
 
@@ -860,7 +877,7 @@ that meet the adjacent playable map and finite grid cap. Preserve all playable
 vertex heights and the rule/collision heightfield. Seat retained edge-tree
 instances on their actual rendered owner's surface. Exterior backdrop trees must
 not stand inside an adjacent region's full playable rectangle, including corners
-outside a seam's span; omit only those render instances, preserving native trees
+outside a seam's span, nor in that region's sea (within 2 m of its coastline); omit only those render instances, preserving native trees
 and collider/layout data. See
 `TERRAIN-SEAM-REPAIR-20261007.md` and `render/terrain-domain.js`; this is tested for
 the current aligned one-metre map grids, not arbitrary irregular tessellation.
@@ -911,6 +928,7 @@ instead of 90; lighting still uses the unchanged sampled terrain normal.
 Road paint is affine in its centre tone: combine bare-earth/road layer weights
 first and evaluate their identical procedural spatial detail only once. Preserve
 the original final colour; no paint texture, light or ground height is changed.
+Outside the town zones (`1 - town` mask) a road blends into the meadow: its earth weight is `smoothstep(.10, .95, edge)` instead of the town's `smoothstep(.40, .54, edge)`, scaled down by noise-broken grass (`.18 + .62 * (1 - smoothstep(.25, 1.05, edge + noise))`), and the darker under-overhang line is 85% weaker (owner, 26 October 2026: no hard road lines in the country).
 Evaluate the four value-noise corner hashes as a vec4 with the original
 operation order and interpolation. Preserve scalar/vector float equality and
 actual-game pixel equality; do not approximate noise or alter its constants.
@@ -1181,12 +1199,63 @@ the Azure/Frontier sides stay open grass (no layout change there).
 
 Layout data used here: `ruins.zone` (the zone strewn with fallen stones, default `ruins`),
 `ruins.scatter` (tries, default 90), `ruins.paving: false` (a grassy ring, no paved floor);
-`town.trees` for the elder tree in the ring; `town.surfaces` with a `dirt` polygon so the camp has no
-cobbled plaza. Monsters: `fern_ear_hare` (behaviour `hare`), `mirrorwing_moth` (`moth`, flyer),
+`town` anchors (workbench, trainer, well, shop) on Moonstone Camp's clearing, with no trees or
+surfaces of their own (the scene draws the clearing). Monsters: `fern_ear_hare` (behaviour `hare`), `mirrorwing_moth` (`moth`, flyer),
 `rootdigger_mole` (`mole`), procedural rigs in `render/monsters-grove.js`. Each rig now wears a
 Meshy model (`data/models.json` → `monsters`, skinned to the same bones by `render/monsterSkin.js`;
 the procedural parts remain the fallback until the model loads). The moth's model keeps the concept's
 raised wings, which the rig flaps about the body axis; its extra tail from Meshy was cut off.
+
+Accepted scenes (26-27 October 2026): the five approved Moonroot scenes (`scenes/root-warren`,
+`moonstone-camp`, `mirror-pond`, `fern-rise`, `stone-ring`) stand where the region concept
+(`assets/moonroot/moonroot_grove_concept.jpg`, 370 x 117 m like the map) puts them, staggered rather
+than in a row (`region: moonroot-grove-v1`, s 0.42): Moonstone Camp (-108, -8) up on the west, Root
+Warren (-150, 36) below it by the Frontier gate (its moles, Lv 9-10, border the Frontier forest),
+Mirror Pond (7, 8) in the middle, Fern Rise (66, -26) in the north woods and the Stone Ring (138, 2)
+on the east. Winding paths (final connectors, each also a road `moon-path/...` so it is painted,
+kept clear of trees and drawn on the map) join every scene exit, the Frontier gate road and the
+three Azure seam trails. Zones follow the same woods (`root_warren` west, `fern_rise` north-east,
+`mirror_pond` between) and their encounter habitats (`data/encounters.json`) moved with them. Map
+look: `look.foliage` gives the map its own leaf and shrub [shadow, mid, light] colours (Moonroot's
+teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`); a zone's `soil`
+biases the open soil patches (Moonroot's woods have none); `acceptedScenes.bankShade` {strength,
+tone} gives a scene's steep grass banks a darker two-step cel tone in the terrain shader (vertex
+`aBank * (1 - normal.y)`), so the camp's terrace reads from above. `look.ground` [light, dark]
+stands in for the game's anime ground pair (Moonroot: the concept's pale olive and shaded teal).
+Natural borders (all maps): ground colour takes its zone at a point displaced by two octaves of
+noise (`core/ground-regions.js` `paintZoneAt`, up to about 22 m; terrain tint, grass and the map
+image; gameplay keeps `zoneAt`), and an open seam's shared tint reaches a wandering depth
+(`seamBandAt`: up to 0.35-2.6 times its band, about 9-37 m for a 24 m band, world-space noise, so both maps see one border shape),
+carried six bands past the span's ends. A seam with `edgeTreeDensity` thins the map's trees (and
+its scenes' surround trees) toward that density over the same wandering depth, by a fixed hash
+after the seeded passes, so nothing else moves.
+Moonroot's woods (27 October 2026): zone `treeScale` [min, max] spreads tree sizes (same seeded
+draw) and `giants` (share, by a fixed hash) x `giantScale` makes old giants where there is room
+(clear of props and at least 2 + scale m from a road). `look.roots` stands every tree on buttress roots grown from its
+trunk (`render/moonroot-flora.js` `rootFlareGeometry`, three shapes by place: Mirror Pond's approved
+`rootTree` path, leaving the bark at 0.22-0.4 m as thick as the trunk there, curving down within a
+short flare and running on half buried, some forked; instanced) and draws `decor.groundRoots`
+(surface roots from tree feet, `zone.groundRoots` per tree, stopping at roads, water, scenes and safe
+ground, half buried and arching up out of the ground once or twice: `arch` [centre, height]) as one
+merged mesh on the ground. `look.undergrowth` {seed} plants each zone's own plants
+(`zone.plants` {curl, glow}: clumps of 3-6 per 100 m2; own seed after every other pass): pale moon-curls and teal
+glow bulbs (unlit), instanced. A town's `well` is optional, `noticeBoard: false` and
+`lanterns: false` leave out the generic notice board and street lanterns (Moonstone Camp lights and
+furnishes itself). `look.trunk` {light, mid, shadow, line, moss} recolours every trunk and root in the map
+(`animeTrunk(bark)`, the flares and ground roots, moss on up-facing faces; the scenes' trees through
+`foliage.bark` and their own roots through `FOL.trunk`): Moonroot's pale grey-taupe bark.
+`look.rocks` {colors, moss, line} draws the map's scattered rocks as weathered boulders (a lumpy
+subdivided sphere, flat bed, squared top, flat-shaded) with a wavy moss cap on top
+(`mossyStone`). In Godot: MultiMesh per flare shape and plant kind, one mesh for ground roots. The scenes' layout is the
+region's; `moonroot-grove.json.acceptedScenes` enables them with the same apron, grass-bank, foliage
+(tree scale 1: their roots are drawn for those trunks) and surround settings as the other maps. The scenes replace the native camp (`camp` key removed: Moonstone Camp draws its
+own tents and fire), the elder tree and the ring's pillars (cleared like any native prop inside a
+scene). Per-scene exports: a scene whose factory has a waypoint names its id (`waypoint: 'camp'`;
+the camp's warp pillar is the beach's rebuilding waypoint at 1.8 scale, rebuilt once the waypoint is
+discovered); Mirror Pond exports `pond` (centre, water y and 72 shore radii) and `crossing` (its
+stepping-stone line). The pond is blocked by circles in `ponds`, and its stones are a dock of kind
+`stepstone`: walkable over the water at the stones' tops, never drawn by the harbour or the map image
+(the scene draws the stones). A port uses its normal dock support for it.
 
 Packs: a spawn entry may carry `pack: {size, radius, spacing}` (the hare: packs of 6 or 4, small
 and weak). `encounterLayout()` places each pack's leader under the normal rules, then its mates
@@ -1292,3 +1361,17 @@ explicit owned-resource disposal on cancel/leave/disconnect. Remote effects are
 capped at 24 with short lifetime; remote visibility is limited to 58 scene metres.
 See `MULTIPLAYER-PRESENCE.md` for protocol, commands and parent-owned free hosting.
 Authentication, shared combat and authoritative saves remain future milestones.
+
+## Accepted concept scenes (integration trial, 24 October 2026)
+
+`data/accepted-scenes.json` lists the thirteen accepted scenes (`data/accepted-scenes/<id>.json`: source-scene transforms, bounds, sampled heights and path distances, plain circle/OBB solids and source road guides). Each scene lies in one map's local metres: `region` names the map (Azure Coast when unset; the Conch Coast, `shell-beach`, lies on the Greenhollow Frontier coast west of the arrival beach), and `acceptedScenes(data)` returns the scenes of the map whose `acceptedScenes.enabled` is set. `data/world.json.acceptedScenes` (and `data/maps/frontier-wilds.json` and `moonroot-grove.json` `acceptedScenes` for theirs, with its own roads, connectors, apron, foliage and shore) enables them and declares graded connector height profiles. `core/accepted-scenes.js` applies them to the same heightfield consumed by collision, spawning and native terrain. `export:layout` now includes the accepted-scene settings and the final roads; its heightmap already includes the replacement terrain and aprons.
+
+Scene lift and edges. `acceptedScenes.lift[scene]` raises a whole scene (its sampled surface, meshes, plants, animated parts and the scene ends of its connectors) by that many metres; `acceptedTarget` adds it. Where a scene meets the map, `apron.scene[scene].continue` replaces the ramp with the scene's own ground past its bounds: `data/accepted-scenes/<id>.json` may carry `outer` (the factory's height function sampled on a 1 m grid in a ring round the bounds), softened by two 7 m box passes and faded into the map over `continue` metres, so the scene's uplands and banks run on instead of ending at the bound (its rock faces still end at the bound). `inland` lets the apron reach low dry ground. A raised scene next to a map seam lists the same `rises` (span, height, ease in each map's local coordinates) on both maps' seams; `seamRise` adds them to the generated profile, so the hill continues across the border. The forest's factory builds rock columns on every terrace edge with a real drop, not only those in its authored frame (a second pass with its own seed). Its game patch also adds three rises ringing the cherry's hollow (world-metre outlines, `ring: true` terraces) and moves the arching tree over trail-1's north pass; frame-placed trees are lifted onto the rises, not moved. `acceptedScenes.grassBanks` lists scenes whose steep ground is painted as grass (the ground shader reads it as level through the `aBank` vertex attribute); their rock faces are their own meshes. A connector marked `final` carries heights taken from the finished ground, so `apronConnectors` leaves it as authored. A port applies the same lift, outer ground and seam rises to its heightmap.
+
+The native procedural mesh factories under `render/accepted-scenes/` are generated from the unchanged approved `scenes/` sources by `scripts/prepare-accepted-scenes.py`. The generator swaps the scenes' outline signed-distance loop (`polyAt`) for a per-outline grid of candidate edges with identical results (`tests/render/accepted-polyat.test.mjs`); it only shortens loading, and a port that bakes the geometry does not need it. A Godot renderer can port their geometry or bake/import it; plain layout data never instantiates a web page. The arrival pillar keeps `landing` as its saved waypoint ID and its fallen/assembled poses are cosmetic. No character save migration is introduced. The windmill rotor and rebuilding pillar remain separate dynamic subtrees; fixed meshes can use the existing resident-cell batching/culling equivalent. Inside a scene (by its feathered weight) the ground painter drops the town's outside-clearing paint and road paint borrowed from a neighbouring map; only the scene's trails and the world's connector roads paint there, and the map image does the same. Conch Coast's conch is not procedural: it is the imported model `public/models/accepted-scenes/singing-conch.glb` (one mesh, one colour map), loaded before the factory runs and placed by `scenes/shell-beach/conch.js`; a port imports the GLB and applies the same transform. Its colliders are plain circles in the scene data and do not need the model.
+
+Surroundings (`acceptedScenes.apron`, `acceptedScenes.surround`, 25 October 2026). The heightfield build runs, after the dock recess: `acceptedApronOffsets` (an outer apron on the listed scene sides: native ground in a ring of `clamp(k*rise, min, max)` metres eases up or down to the scene edge, kept dry and off pond banks), then `apronConnectors` (each connector's outer end lifted by the apron there; the result is `heightfield.acceptedConnectors`), then `applyAcceptedHeights` and `smoothAcceptedAprons`, then seams. A second copy without the apron gives `heightfield.propSlopeAt`; native prop placement (`blockedForProp`) tests that slope, so the seeded native layout is identical with or without the apron. Render moves scene meshes by the same edits: `core/accepted-shift.js` `acceptedGroundEdit(data, scene, x, z, connectors)` returns the height change at a point (connectors, seams, shore) and `acceptedEditReach` is a cheap pre-test. Geometry marked `userData.rigidParts` (stone walls and steps) moves per part, rigidly, instead of per vertex. Instanced ground cover (geometry under 1.6 m, origin on the ground) is dropped where the game's sea covers a coastal scene's old shore. Ground paint: `ground-regions.js` `sceneSurround` (a wobbly ring outside each scene), `sceneKeep` (visible roads, connector extensions and waypoints) and `sceneClearingFade` take the outside-clearing earth and soil patches back to grass in that ring, while roads and waypoints keep their earth; the map image uses the same fade. The grass keeps the map's zone colours inside the scenes too. `world.js` `plantSceneSurrounds` then plants a ring per scene with its own seed after every native pass: trees as collision circles of type `scene-tree` (drawn as the map's normal tree, and on the map) and shrub clumps in `decor.sceneShrubs` (drawn as the normal low shrub), clear of roads, connectors, waypoints, water, beaches, paving and steep ground; `plant.scene[id]` overrides the tree and shrub settings for one scene (the Hill Windmill's dense framing wood). The sea shader's sky-reflection patches use a turned, two-axis-warped noise domain so they do not line up with the world grid.
+
+Edge cliffs (`acceptedScenes.edgeCliffs`, `core/edge-cliffs.js`). A plateau `top` m high inside a closed outline whose points mark cliff edges (a face `lean` m deep), ramp edges (a slope `ramp` m wide) or open edges (full height up to the edge, where the plateau meets ground as high, such as a scene's own headland; no face is drawn). It is applied after the scenes and seams as a floor under the ground (`edgeCliffAt`); `acceptedGroundEdit` mirrors it, scene props, rigid stones, triangles and colliders inside it are left out, and `render/edge-cliffs.js` draws the cliff edges as rock columns in the accepted scenes' column style (cosmetic randomness), in the Conch Coast cliff's material. The arrival beach's left end is one (`west-headland`): it runs from the Conch Coast's east headland (an open edge) over the Frontier seam to a cliff face over the beach and a sea cliff, and is rock on its north side too. On the Frontier coast a second outline, `conch-ring`, closes the Conch Coast's west and north backs; its one ramp edge is the only way onto the whole rise (tested by a walk). `edgeCliffColliders(data, groundY)` returns solid circles (type `edge-cliff`) along every face taller than 1.8 m, centred half way into its `lean` band, so the face cannot be climbed at a shallow angle (the game limits only uphill slope); `world.js` adds them after the scene colliders. An outline that crosses a seam is listed by both maps in their own local metres (the same outline in world metres, so both give one height at the seam); each map draws only the faces inside its bounds (one sample over, so the halves meet). A rock course never sinks into the bank behind it: where the drawn ground mesh (the heightfield's own triangles, split along the (i+1, j)–(i, j+1) diagonal) would cover a course corner or its middle, the course moves outwards in 0.1 m steps, and the courses below move out as far, so the face never overhangs; the foot stays sunk 0.3 m. Faces under 1.8 m (ground in front almost as high) are not drawn; that stretch is a grass bank. `raise` [x, z, radius, top] lifts the plateau's top near a higher wall (full within half the radius) so a face meets it level. Scene meshes inside a plateau are cut per triangle; small connected pieces (under 8 m) that reach inside go whole. The rock faces take a scene cliff material of their map (the Conch Coast's where it is present). Inside the accepted scenes of a map, `acceptedScenes.beach` {width, fade} sets the sand band width (`render/terrain-domain.js` `sceneBeach`; the map image uses the same), easing back to the map's `sea.beach` over `fade` metres outside their bounds: the Conch Coast keeps the 11 m band it was approved with on the Frontier coast's 20 m. A scene's `outer` ground may be exported with `outerFill` (inspect spec): a closing (max then min filter over that many metres) so narrow gullies close instead of running on past the bounds (the Conch Coast no longer exports `outer`: its rock ring replaces it). Rigid scene parts within reach of a `repair` connector rest on the lowest actual ground under their footprint, since a repair lowers the ground past the edit model. Beach paint: `art.ground.beachTop` [from, to] fades the sand weight on ground raised that high above the sea (a headland or terrace top is grass), and `sea.surf.filmTop` keeps the swash film under ground higher than that above the water.
+
+Scene foliage (`acceptedScenes.foliage`). In the game the scenes' trees, shrubs and grass are the map's own. The generator routes each factory's `animeFoliage`, `animeTrunk` and `meadowGrass` to the game's (`render/anime-study.js`, `render/nature.js`), and tags the geometry with `userData.gameFoliage` (`crown`, `shrub`, `trunk`, `grass`). It also gives crowns the game's proportions (2.5 × 1.7 × 2.25, centred 3.5 up). Tree sizes are fitted per scene: ordinary trees are the authored size times `treeScale[scene]`, which brings each scene's typical tree near the map's and keeps its own variation. Each tree in `bigTrees` (world position and world size, divided by the scene's `s` for the factory) stays big; these are the forest's cherry and the focal trees by the well, the gazebo and the mill. The bake (`render/accepted-scenes.js`) then gives tagged meshes the game's materials: `animeFoliageMaterial`, `animeTrunkMaterial` with the game's ink hull, crowns tinted `crownTint`, and grass sent through `attachGrassSurfaceSteps` into the map's grass colour bake. The cherry also keeps its authored blossom crown. Instanced scene plants (all but grass) are split into `chunk`-metre square pieces, as the map's own plants are, so a camera or the sun's shadow box draws only the pieces it reaches. A port draws scene trees with its normal tree and shrub scenes, and scene grass with its ground-coloured grass. Scene colliders are unchanged.

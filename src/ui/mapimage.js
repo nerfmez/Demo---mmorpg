@@ -2,9 +2,11 @@
 // landmarks), made once from the same world data the 3D view uses. The minimap and the world
 // map panel both draw from it.
 import { fromBoxLocal, pointInPolygon } from '../core/math.js';
-import {outsideClearingWeight,outsideRoadDistance} from '../core/ground-regions.js';
+import {outsideClearingWeight,outsideRoadDistance,sceneClearingFade,paintZoneAt} from '../core/ground-regions.js';
 
 import {cityFloorAt} from '../core/city.js';
+import art from '../../data/art.json' with {type:'json'};
+import {sceneBeach} from '../render/terrain-domain.js';
 
 const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
@@ -45,16 +47,20 @@ export function mapImage(world) {
   small.height = H;
   const sg = small.getContext('2d');
   const img = sg.createImageData(W, H);
+  const beachAt = sceneBeach(world.data);
   const pal = new Map(world.zones.map((z) => [z.id, [hex(z.palette?.[0] || '#8ac25a'), hex(z.palette?.[1] || '#6a9a44')]]));
   const town = world.data.town;
+  // heights on the sample grid with a one-sample border, read for the slope (one query per point)
+  const GW = W + 2, heights = new Float64Array(GW * (H + 2));
+  for (let j = 0; j < H + 2; j++) for (let i = 0; i < GW; i++) heights[j * GW + i] = world.terrainY(b.minX + i - 0.5, b.minZ + j - 0.5);
   for (let j = 0; j < H; j++) {
     const z = b.minZ + j + 0.5;
     for (let i = 0; i < W; i++) {
       const x = b.minX + i + 0.5;
-      const h = world.terrainY(x, z);
-      const dx = world.terrainY(x + 1, z) - world.terrainY(x - 1, z);
-      const dz = world.terrainY(x, z + 1) - world.terrainY(x, z - 1);
-      const [light, dark] = pal.get(world.zoneAt(x, z).id);
+      const g = (j + 1) * GW + i + 1, h = heights[g];
+      const dx = heights[g + 1] - heights[g - 1];
+      const dz = heights[g + GW] - heights[g - GW];
+      const [light, dark] = pal.get(paintZoneAt(world, x, z).id);
       // patchy grass from a cheap hash so big zones do not look flat
       const n = Math.sin(x * 0.37 + Math.sin(z * 0.21) * 2) * Math.sin(z * 0.29 + x * 0.05);
       let c = mix(light, dark, 0.3 + n * 0.13);
@@ -64,17 +70,22 @@ export function mapImage(world) {
         for (const s of town.surfaces) if (s.kind === 'paving' && pointInPolygon(s.points, x, z)) c = mix(c, PLAZA, s.strength ?? 1);
       } else if (Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
       if (world.data.sea) {
-        const d = world.coastAt(x, z).distance;
-        const beach = world.data.sea.beach || 14;
-        if (world.isBeach(x, z)) c = mix(c, SAND, Math.min(1, (beach - d) / 5));
+        const coast = world.coastAt(x, z), d = coast.distance;
+        const beach = beachAt(x, z);
+        // raised ground (a headland or terrace top) is not sand, as render/ground.js beachTop
+        const top = art.ground.beachTop, high = top ? Math.max(0, Math.min(1, (h - top[0]) / (top[1] - top[0]))) : 0;
+        if (coast.kind === 'beach' && d < beach) c = mix(c, SAND, Math.min(1, (beach - d) / 5) * (1 - high * high * (3 - 2 * high)));
       }
-      const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z):outsideRoadDistance(world.data.city,world.roads,x,z);
+      const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z,.8):outsideRoadDistance(world.data.city,world.roads,x,z,.8);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));
-      if(!world.isWater(x,z))c=mix(c,ROAD,outsideClearingWeight(world.data.city,x,z)*(.88+n*.08));
+      const water = world.isWater(x, z);
+      // accepted scenes and the ring round them keep their own paths (as render/ground.js)
+      const clearing=water?0:outsideClearingWeight(world.data.city,x,z);
+      if(clearing)c=mix(c,ROAD,clearing*(1-sceneClearingFade(world.data,world.roads,x,z))*(.88+n*.08));
       // hill shade: light from the north-west (slopes facing -x/-z are lit), high ground a bit lighter
       const shade = 0.97 + Math.max(-0.14, Math.min(0.14, (dx + dz) * 0.13)) + Math.max(-0.1, Math.min(0.12, h * 0.018));
       c = [c[0] * shade, c[1] * shade, c[2] * shade];
-      if (world.isWater(x, z)) {
+      if (water) {
         const depth = Math.max(0, world.waterLevel - h);
         c = mix(SHALLOW, DEEP, Math.min(1, depth / 1.6));
       }
@@ -133,7 +144,7 @@ export function mapImage(world) {
   // Broken contour hatching identifies traversable hills vs steep rock.
   g.strokeStyle='#4d664c27'; g.lineWidth=.6;
   for(let z=b.minZ+2;z<b.maxZ-2;z+=2) for(let x=b.minX+2;x<b.maxX-2;x+=2){
-    if(world.isWater(x,z)||world.roadDist(x,z)<1) continue;
+    if(world.isWater(x,z)||world.roadDist(x,z,1)<1) continue;
     const h=world.terrainY(x,z), next=world.terrainY(x+2,z);
     if(Math.floor(h/1.5)!==Math.floor(next/1.5)){
       g.beginPath();g.moveTo(tx(x),tz(z));g.lineTo(tx(x-.6),tz(z+1.6));g.stroke();
@@ -141,7 +152,7 @@ export function mapImage(world) {
   }
   for (const c of [...world.circles].sort((a,b)=>a.z-b.z)) {
     g.save();g.translate(tx(c.x),tz(c.z));g.scale(PX,PX);
-    const treeType=['tree','willow','birch','pine','palm'].includes(c.type);
+    const treeType=['tree','willow','birch','pine','palm','scene-tree'].includes(c.type);
     if(treeType){
       const scale=(c.scale||1)*1.05;g.scale(scale,scale);
       g.fillStyle='#294f3d33';g.beginPath();g.ellipse(.4,.5,2.1,1.3,0,0,Math.PI*2);g.fill();
@@ -193,7 +204,7 @@ export function mapImage(world) {
     }
   }
   if(world.data.city?.enabled){
-    for(const dock of world.docks)poly(dock,'#ad8b5b','#736548');
+    for(const dock of world.docks)if(dock.kind!=='stepstone')poly(dock,'#ad8b5b','#736548');
     const f=world.data.city.fountain;
     g.beginPath();g.arc(tx(f.x),tz(f.z),f.r*PX,0,Math.PI*2);g.fillStyle='#80babb';g.fill();g.lineWidth=2;g.strokeStyle='#e5dcc6';g.stroke();
   }

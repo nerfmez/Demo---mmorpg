@@ -2,6 +2,9 @@
 // The terrain is split into tiles so off-screen parts are culled. Per-vertex attributes carry
 // what the surface is (road, paving, mud, bare dirt) and the zone colours; the fragment shader
 // paints soft cel patches, blade speckles, rocky cliff faces, drifting cloud shadows.
+import { edgeCliffsAt } from '../core/edge-cliffs.js';
+import {acceptedAt,acceptedScenes,sceneSample,sceneWeight} from '../core/accepted-scenes.js';
+import {pondEdgeDistance,pondReach,pondRim} from '../core/ponds.js';
 import * as THREE from 'three';
 import {finishSteps} from './build-queue.js';
 import {clipRegionGeometrySteps} from './region-ownership.js';
@@ -15,7 +18,7 @@ import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 import { groundBrushUniform,groundBrushUniformSteps } from './ground-brush.js';
 import { coveredTerrainCell } from './city-terrain.js';
 import { cityFloorAt } from '../core/city.js';
-import { outsideClearingWeight, outsideRoadVisible } from '../core/ground-regions.js';
+import { outsideClearingWeight, outsideRoadVisible, sceneSurround, sceneClearingFade, paintZoneAt, seamBandAt } from '../core/ground-regions.js';
 import art from '../../data/art.json' with {type:'json'};
 import { regionShift } from './region-shift.js';
 
@@ -52,6 +55,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
   const mud = new Float32Array(n);
   const stone = new Float32Array(n);
   const dirt = new Float32Array(n);
+  const bank = new Float32Array(n), grassBanks = new Set(world.data.acceptedScenes?.grassBanks || []);
   const coast = new Float32Array(n * 2);
   // Planned town ground (streets, courts, lawns) instead of wild-meadow noise; blurred for the shader.
   const planned = new Float32Array(n), townZones = new Set(art.ground.townZones || []);
@@ -90,15 +94,18 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
   const town = wd.town;
   const ruins = wd.ruins;
   const b = world.bounds;
+  const surround = wd.acceptedScenes?.enabled ? wd.acceptedScenes.surround : null;
   for (let j = 0; j < h; j++) {
     if (j && j % 4 === 0) yield;
     const z = oz + j * res;
     for (let i = 0; i < w; i++) {
       const x = ox + i * res;
       const k = j * w + i;
-      for (const [px, pz, pr] of wd.ponds) {
-        const d = Math.hypot(x - px, z - pz);
-        if (d < pr + 3) mud[k] = Math.max(mud[k], 1 - smooth(pr - 0.3, pr + 2.2, d));
+      for (const pond of wd.ponds) {
+        const reach = pondReach(pond) + 3;
+        if (Math.abs(x - pond[0]) > reach || Math.abs(z - pond[1]) > reach) continue;
+        const e = pondEdgeDistance(pond, x, z);
+        if (e < 3) mud[k] = Math.max(mud[k], 1 - smooth(-0.3, 2.2, e));
       }
       if (wd.sea) {
         // sandy beach along the sea
@@ -106,6 +113,8 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         const beach = c.beach;
         // 1 on open sand, easing through a sandy-soil back-beach band to 0 at the meadow
         coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + (art.ground.backBeach ?? 3.5), d) : 0;
+        // ground raised well above the sea (a headland or terrace top) is not beach
+        if (art.ground.beachTop) coast[k * 2] *= 1 - smooth(art.ground.beachTop[0], art.ground.beachTop[1], hf.data[k]);
         // Remove only the obsolete coarse cobble paint beside the source cape;
         // its heightfield, cliffs, shoreline and existing dirt paths remain.
         const cape=wd.city?.capeTransition?.bounds;
@@ -144,8 +153,11 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const inside = x > b.minX && x < b.maxX && z > b.minZ && z < b.maxZ;
       const zn = inside ? world.zoneAt(x, z) : null;
       if (zn && zn.id === 'ruins' && stone[k] < 0.5 && valueNoise(x * 0.23, z * 0.23, 3) > 0.68) stone[k] = 0.62;
-      const dirtBias = zn ? { highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0 : 0.1;
-      dirt[k] = Math.max(dirt[k], (1 - planned[k]) * smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2));
+      // zone.soil: a zone's own bias for the open soil patches (Moonroot's woods: none, as the concept)
+      const dirtBias = zn ? zn.soil ?? ({ highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0) : 0.1;
+      // Round the accepted scenes the soil patches give way to their grass.
+      const soilFade = surround ? 1 - surround.soilFade * sceneSurround(wd, x, z, surround.soilRing) : 1;
+      dirt[k] = Math.max(dirt[k], (1 - planned[k]) * soilFade * smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2));
       for(const surface of wd.harbor?.workSurfaces||[]){
         const p=toBoxLocal(surface,x,z),radius=Math.hypot(p.lx/surface.rx,p.lz/surface.rz);
         if(radius>1.3)continue;
@@ -154,11 +166,21 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         dirt[k]=Math.max(dirt[k],patch*.92);
         road[k]=Math.max(road[k],patch*.55);
       }
+      const accepted=acceptedAt(wd,x,z),aw=accepted?sceneWeight(accepted,x,z):0;
       if(!cityFloorAt(wd.city,x,z)&&!world.isWater(x,z)){
-        const clearing=outsideClearingWeight(wd.city,x,z);
+        // An accepted scene paints its own paths: the town's earth clearing gives
+        // way to its grass, in the scene and in a ring round it, except along routes.
+        const raw=outsideClearingWeight(wd.city,x,z),clearing=raw&&raw*(1-(surround?sceneClearingFade(wd,world.roads,x,z):aw));
         dirt[k]=Math.max(dirt[k],clearing*.97);
         road[k]=Math.max(road[k],clearing*.92);
       }
+      // Scene trails narrow to a point across the feather instead of fading out
+      // square at the bounds; a connector or road that continues one paints itself.
+      if(accepted){const d=sceneSample(accepted,'trails',x,z),t=(1-aw)*1.8;road[k]=Math.max(road[k],(1-smooth(-.25-t,.45-t,d))*smooth(0,.25,aw));stone[k]*=1-aw;dirt[k]*=1-aw;
+        // scenes whose rock faces are their own meshes keep grass on their banks
+        if(grassBanks.has(accepted.id))bank[k]=aw;}
+      // an edge cliff's plateau is grass on its slopes too, never sand; its face is a rock mesh
+      if(edgeCliffsAt(wd,x,z)>-Infinity){bank[k]=1;coast[k*2]=0;if(accepted)road[k]=0;}
       road[k] *= 1 - stone[k] * .7;
     }
   }
@@ -169,7 +191,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
   let dr = new Float32Array(n);
   let dg = new Float32Array(n);
   let db = new Float32Array(n);
-  const cache = new Map();
+  const cache = new Map(), groundPair = wd.look?.ground || [animeConfig.palette.groundLight, animeConfig.palette.groundDark];
   const col = (hex) => {
     if (!cache.has(hex)) cache.set(hex, new THREE.Color(hex));
     return cache.get(hex);
@@ -179,14 +201,16 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
     const z = oz + j * res;
     for (let i = 0; i < w; i++) {
       const x = ox + i * res;
-      const zn = world.zoneAt(Math.min(b.maxX - 0.1, Math.max(b.minX, x)), Math.min(b.maxZ - 0.1, Math.max(b.minZ, z)));
+      const zn = paintZoneAt(world, x, z);
       const [L, D] = zn.palette || ['#9ccf5a', '#78b046'];
       const k = j * w + i;
       const ab=animeConfig.bounds;
       const blend=animeStudy?smooth(ab.minX-4,ab.minX+4,x)*(1-smooth(ab.maxX-4,ab.maxX+4,x))*smooth(ab.minZ-4,ab.minZ+4,z)*(1-smooth(ab.maxZ-4,ab.maxZ+4,z)):0;
       const mix=animeStudy?Math.max(blend,.5):0; // zones keep half of their own tint outside the sample area
-      const cl = mix?col(L).clone().lerp(col(animeConfig.palette.groundLight),mix):col(L);
-      const cd = mix?col(D).clone().lerp(col(animeConfig.palette.groundDark),mix):col(D);
+      // a map's own ground colours (look.ground [light, dark]) stand in for the game's anime pair
+      const cl = mix?col(L).clone().lerp(col(groundPair[0]),mix):col(L);
+      const cd = mix?col(D).clone().lerp(col(groundPair[1]),mix):col(D);
+      // The accepted scenes keep the map's zone colours too, so their grass matches.
       lr[k] = cl.r;
       lg[k] = cl.g;
       lb[k] = cl.b;
@@ -206,8 +230,12 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         const x = ox + i * res, z = oz + j * res, along = seam.alongX ? x : z;
         const past = Math.max(seam.span[0] - along, along - seam.span[1], 0);
         const inside = ((seam.alongX ? z : x) - b[seam.edge]) * -seam.outward;
-        if (past >= band || inside >= band) continue;
-        const m = (1 - smooth(0, band, Math.max(0, inside))) * (1 - smooth(0, band, past));
+        // a wandering depth (world metres, so both maps see the same border shape)
+        const [ox0, oz0] = world.data.atlas?.offset || [0, 0], reach = seamBandAt(x + ox0, z + oz0, band);
+        // past the span's ends (the backdrop beyond the map edges) the shared tint carries on a long
+        // way, so the two maps' outer ground never meets on a straight line either
+        if (past >= band * 6 || inside >= reach) continue;
+        const m = (1 - smooth(0, reach, Math.max(0, inside))) * (1 - smooth(0, band * 6, past));
         const at = seam.profile[Math.max(0, Math.min(seam.profile.length - 1, Math.round(((along - seam.profile[0][0]) / (seam.profile[seam.profile.length - 1][0] - seam.profile[0][0] || 1)) * (seam.profile.length - 1))))];
         const cl = col(at[2]), cd = col(at[3]), k = j * w + i;
         lr[k] += (cl.r - lr[k]) * m; lg[k] += (cl.g - lg[k]) * m; lb[k] += (cl.b - lb[k]) * m;
@@ -230,14 +258,15 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const nx=x+r.noiseShift[0],nz=z+r.noiseShift[1];
       const worn=((valueNoise(nx*.22,nz*.22,71)-.5)*.7+(valueNoise(nx*.85,nz*.85,72)-.5)*.22)*(1-planned[k]*.65);
       const mask=(1-smooth(half-.6+worn,half+1.05+worn,d))*domain.roadWeight(r,x,z);
-      road[k]=Math.max(road[k],mask);
+      const scene=acceptedAt(wd,x,z); // an accepted scene keeps only its own paths
+      road[k]=Math.max(road[k],mask*(scene?1-sceneWeight(scene,x,z):1));
     });
   }
   yield;
   const blur = function*(a){return yield* boxBlurSteps(yield* boxBlurSteps(a,w,h,6),w,h,4);};
   const blurred=[];for(const field of [lr,lg,lb,dr,dg,db])blurred.push(yield* blur(field));
   [lr,lg,lb,dr,dg,db]=blurred;
-  const result = { road, plantingRoad, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, town: yield* blur(planned) };
+  const result = { road, plantingRoad, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, bank, town: yield* blur(planned) };
   surfaceCache.set(world,result);
   return result;
 }
@@ -319,7 +348,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
       const tintL = new Float32Array(vw * vh * 3);
       const tintD = new Float32Array(vw * vh * 3);
       const coast = new Float32Array(vw * vh * 2);
-      const townMask = new Float32Array(vw * vh);
+      const townMask = new Float32Array(vw * vh), bankMask = new Float32Array(vw * vh);
       for (let j = 0; j < vh; j++)
         for (let i = 0; i < vw; i++) {
           const gi = ti + i;
@@ -340,6 +369,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
           splat[v * 4 + 2] = surf.mud[k];
           splat[v * 4 + 3] = surf.dirt[k];
           townMask[v] = surf.town[k];
+          bankMask[v] = surf.bank[k];
           coast[v * 2] = surf.coast[k * 2];
           coast[v * 2 + 1] = surf.coast[k * 2 + 1];
           tintL[v * 3] = surf.lr[k];
@@ -369,6 +399,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
       geo.setAttribute('aSplat', new THREE.BufferAttribute(splat, 4));
       geo.setAttribute('aCoast', new THREE.BufferAttribute(coast, 2));
       geo.setAttribute('aTown', new THREE.BufferAttribute(townMask, 1));
+      geo.setAttribute('aBank', new THREE.BufferAttribute(bankMask, 1));
       geo.setAttribute('aTintL', new THREE.BufferAttribute(tintL, 3));
       geo.setAttribute('aTintD', new THREE.BufferAttribute(tintD, 3));
       geo.setIndex(idx);
@@ -396,25 +427,29 @@ function terrainMaterial(world,mat,brush) {
     shader.uniforms.uWater = { value: world.waterLevel };
     shader.uniforms.uGroundBrush=brush;
     shader.uniforms.uRegionShift=shift;
+    // acceptedScenes.bankShade: a scene's steep grass banks keep the darker cel tone they were
+    // reviewed with (Moonroot's camp terrace), so a bank still reads as a bank from above
+    const bs=world.data.acceptedScenes?.bankShade,tone=new THREE.Color(bs?.tone??'#ffffff');
+    shader.uniforms.uBankShade={value:new THREE.Vector4(tone.r,tone.g,tone.b,bs?.strength??0)};
     Object.assign(shader.uniforms, groundFieldUniforms(world));
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
-attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; varying vec2 vCoast; varying float vTown;
+attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; attribute float aBank; varying vec2 vCoast; varying float vTown; varying float vBankSlope;
 varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; uniform vec3 uRegionShift;`
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y; vTown = aTown;`
+vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = mix(normal.y, 1.0, aBank); vBankSlope = aBank * (1.0 - normal.y); vTown = aTown;`
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
-varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast; varying float vTown;
-uniform float uTime; uniform vec3 uArena; uniform float uWater;
+varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast; varying float vTown; varying float vBankSlope;
+uniform float uTime; uniform vec3 uArena; uniform float uWater; uniform vec4 uBankShade;
 ${GROUND_COLOR_GLSL}`
       )
       .replace(
@@ -424,6 +459,10 @@ ${GROUND_COLOR_GLSL}`
   vec2 w = vWorldPos.xz;
   float y = vWorldPos.y;
   vec3 col=groundColor(w,y,vTintL,vTintD,vSplat,vCoast,vUp,uWater,vTown);
+  // a scene's grass bank: the steep face takes a darker cel tone, in two soft steps
+  // (1 - normal.y: about .05 on a 18 degree slope, .13 at 30 degrees)
+  float bankFace=smoothstep(.035,.06,vBankSlope)*.55+smoothstep(.10,.14,vBankSlope)*.45;
+  col=mix(col,col*uBankShade.rgb,bankFace*uBankShade.a);
   // boss arena rune circle
   float ad = distance(w, uArena.xy);
   float ring = (1.0-smoothstep(0.0,0.35,abs(ad-(uArena.z-3.0))))+(1.0-smoothstep(0.0,0.25,abs(ad-(uArena.z-4.2))));
@@ -572,9 +611,12 @@ function seaMaterial(world, contacts, domain) {
           float lightPulse=.5+.5*sin(uTime*.8+vW.x*.16+vW.y*.11);
           col+=vec3(.022,.035,.028)*caustic*lightPulse*(1.0-smoothstep(.0,3.0,d));
         }
-        // cel-shaded sky reflection: soft-edged pale patches drifting slowly over open water
-        vec2 skyP=vW*.045+vec2(uTime*.010,uTime*.004);
-        float sky=smoothstep(.56,.60,vnoise(skyP+vec2(vnoise(vW*.11+uTime*.02),0.0)*.6));
+        // cel-shaded sky reflection: soft-edged pale patches drifting slowly over open water.
+        // A turned domain warped on both axes, so the 22 m noise lattice does not line up
+        // into rows along the world grid.
+        vec2 skyP=mat2(.80,-.60,.60,.80)*vW*.045+vec2(uTime*.010,uTime*.004);
+        vec2 skyW=vec2(vnoise(vW*.11+uTime*.02),vnoise(vW.yx*.13-uTime*.017))-.5;
+        float sky=smoothstep(.56,.60,vnoise(skyP+skyW*1.2));
         col+=vec3(.05,.09,.10)*sky*uSparkle.w/.06*smoothstep(.6,2.5,d);
         // sun glints: sparse four-point stars that twinkle in and out on the open water
         vec2 gp=vW/uSparkle.z,gc=floor(gp),gl=fract(gp)-.5;
@@ -676,6 +718,11 @@ function seaMaterial(world, contacts, domain) {
   return material;
 }
 
+// Fresh water (streams and ponds), in the sea's cel style: soft depth bands from a pale
+// turquoise over the bed to deep teal, drifting sky patches, sparse twinkling glints and a
+// broken lace of foam that laps at the waterline. Streams carry streaks moving downstream
+// (flow coordinates: along/across in metres); ponds get slow drip rings instead.
+// `tone` (0 shallow .. 1 deep) is the look's depth: a pond's real depth, a stream's channel.
 function waterMaterial() {
   return new THREE.ShaderMaterial({
     uniforms: { uTime: timeUniform, uRegionShift: regionShift() },
@@ -683,33 +730,106 @@ function waterMaterial() {
     depthWrite: false,
     side: THREE.DoubleSide,
     vertexShader: /* glsl */ `
-      attribute float depth; attribute float along;
-      varying float vDepth; varying float vAlong; varying vec2 vW;
+      attribute float depth; attribute float along; attribute float across; attribute float tone; attribute float flow; attribute float shore;
+      varying float vDepth; varying float vAlong; varying float vAcross; varying float vTone; varying float vFlow; varying float vShore; varying vec2 vW;
       uniform vec3 uRegionShift;
-      void main(){ vDepth = depth; vAlong = along; vec4 wp = modelMatrix * vec4(position,1.0); vW = wp.xz - uRegionShift.xz; gl_Position = projectionMatrix * viewMatrix * wp; }`,
+      void main(){ vDepth = depth; vAlong = along; vAcross = across; vTone = tone; vFlow = flow; vShore = shore;
+        vec4 wp = modelMatrix * vec4(position,1.0); vW = wp.xz - uRegionShift.xz; gl_Position = projectionMatrix * viewMatrix * wp; }`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; varying float vDepth; varying float vAlong; varying vec2 vW;
+      uniform float uTime; varying float vDepth; varying float vAlong; varying float vAcross; varying float vTone; varying float vFlow; varying float vShore; varying vec2 vW;
       ${NOISE_GLSL}
+      // the arrival beach's light web (scenes/beach): cell points wobble in place; x is the
+      // distance to the nearest point, y to the cell border
+      vec2 webHash(vec2 p){vec3 p3=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));p3+=dot(p3,p3.yzx+33.33);return fract((p3.xx+p3.yz)*p3.zy);}
+      vec2 webVoro(vec2 x,float t){vec2 n=floor(x),f=fract(x);float f1=8.,f2=8.;
+        for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){vec2 g=vec2(i,j);vec2 o=.5+.42*sin(t+6.2831*webHash(n+g));vec2 r=g+o-f;float d=dot(r,r);if(d<f1){f2=f1;f1=d;}else if(d<f2)f2=d;}
+        return vec2(sqrt(f1),sqrt(f2)-sqrt(f1));}
+      // rounded cells: nearest/second-nearest ratio; its contours are circles, so the cells read as
+      // soft blobs and the gaps widen into small pools where three cells meet
+      float webGap(vec2 x,float t){vec2 v=webVoro(x,t);return v.x/(v.x+v.y+1e-4);}
       void main(){
-        float d = vDepth + (vnoise(vW * 1.3 + uTime * 0.4) - 0.5) * 0.06;
-        if (d <= 0.0) discard;
-        vec3 deep = vec3(0.09, 0.27, 0.31);
-        vec3 mid = vec3(0.19, 0.43, 0.41);
-        vec3 shallow = vec3(0.37, 0.54, 0.43);
-        vec3 col = mix(shallow, mid, smoothstep(0.05, 0.45, d));
-        col = mix(col, deep, smoothstep(0.5, 1.2, d));
-        // flowing streaks (rivers) and ripples (ponds)
-        float s = vnoise(vec2(vW.x * 2.4 + vW.y*.2 - uTime * .7, vW.y * 0.55));
-        col = mix(col, vec3(0.80, 0.95, 1.0), step(0.83, s) * 0.30 * smoothstep(0.2, 0.6, d));
-        // sun glints
-        float g = vnoise(vW * 2.6 + vec2(uTime * 0.7, -uTime * 0.5));
-        col = mix(col, vec3(1.0), step(0.92, g) * 0.6);
-        // foam along the shore
-        float foam = 1.0 - smoothstep(0.015, 0.065 + 0.012 * sin(uTime * 1.4 + vW.x), d);
-        float ribbon=(1.0-smoothstep(.016,.032,abs(d-(.27+.035*sin(vW.x*1.2+vW.y*.7-uTime*.8)))))*step(.40,vnoise(vW*.6));
-        col=mix(col,vec3(.7,.88,.82),ribbon*.38);
-        col = mix(col, vec3(0.97, 0.99, 1.0), foam * 0.9);
-        float a = mix(0.38, 0.87, smoothstep(0.0, 0.8, d));
+        // the waterline breathes a little, so the edge laps instead of standing still;
+        // shore: metres to the waterline (per vertex, from the bank's real crossing)
+        float lap = .07*sin(uTime*1.25+vnoise(vW*.45)*6.2831) + (vnoise(vW * 1.3 + uTime * 0.3) - 0.5) * 0.08;
+        float shore = vShore - lap;
+        float d = vDepth;
+        if (shore <= 0.0 || d <= 0.0) discard;
+        float tone = clamp(vTone, 0.0, 1.0);
+        vec3 shallow = vec3(0.22, 0.54, 0.50), mid = vec3(0.14, 0.47, 0.50), deep = vec3(0.07, 0.32, 0.43);
+        vec3 col = mix(shallow, mid, smoothstep(0.12, 0.36, tone));
+        col = mix(col, deep, smoothstep(0.60, 0.78, tone));
+        // the bed shows through the shallows as soft mottling
+        col += (vnoise(vW * 1.6) - 0.5) * 0.06 * (1.0 - smoothstep(0.1, 0.45, tone));
+        // flow space: a stream runs along +along; a pond has none
+        vec2 fp = vec2(vAlong, vAcross);
+        // cel-shaded sky reflection: pale patches on a turned, warped domain (no grid rows)
+        vec2 skyP = mat2(.80,-.60,.60,.80) * vW * .09 + vec2(uTime * .012, uTime * .005);
+        skyP.x -= vFlow * uTime * .05;
+        vec2 skyW = vec2(vnoise(vW * .21 + uTime * .02), vnoise(vW.yx * .25 - uTime * .017)) - .5;
+        float sky = smoothstep(.57, .61, vnoise(skyP + skyW * 1.2)), webAlpha = 0.0;
+        col += vec3(.06, .10, .10) * sky * smoothstep(0.15, 0.5, tone) * (1.0 - .75 * vFlow);
+        // the light web, as on the arrival beach's sea: small rounded wobbly cells parted by soft
+        // pale-green gaps, brighter in the shallows; whole stretches fade, so it never reads as one even
+        // net. The cell points wobble in place. Ponds only: a stream shows its current instead.
+        if (vFlow < 0.5) {
+          float near = 1.0 - smoothstep(.12, .55, tone);
+          // in the beach scene's metres (its scale 0.8)
+          vec2 q = vW / .8;
+          // one cell size: scaling world coordinates by a factor that varies with depth would shear
+          // the cells into dotted streaks wherever the depth changes
+          vec2 pS = q * 1.45;
+          pS += .36 * vec2(vnoise(pS * 1.1 + vec2(uTime * .18, 0.)), vnoise(pS * 1.1 + vec2(5., -uTime * .15))) - .18;
+          float gS = webGap(pS, uTime * .35);
+          float keep = smoothstep(.42, .74, vnoise(pS * .45 + vec2(uTime * .05, -uTime * .04) + 17.));
+          keep *= smoothstep(.25, .62, vnoise(q * .26 + vec2(-uTime * .03, uTime * .02) + 3.));
+          float web = smoothstep(mix(.78, .74, near), mix(.9, .86, near), gS) * keep;
+          float glow = smoothstep(mix(.55, .5, near), mix(.9, .86, near), gS) * mix(.35, 1., keep);
+          // the cells themselves are slightly darker, greener blobs, most visible in the shallows
+          float blob = (1. - glow) * mix(.15, .5, near) * smoothstep(.0, .6, vShore);
+          col = mix(col, col * vec3(.102, .301, .227) * 1.15, blob * .5);
+          col = mix(col, vec3(.807, 1., .644), web * mix(.26, .36, near));
+          col += vec3(.658, 1., .552) * glow * keep * .08;
+          webAlpha = web * .12 + blob * near * .12;
+        }
+        if (vFlow > 0.5) {
+          // current lines: thin lanes along the stream, each broken into dashes of its own
+          // that travel downstream (no noise iso-bands, which close into rings)
+          float laneP = fp.y * .85 + (vnoise(vec2(fp.x * .14, fp.y * .35)) - .5) * 1.1 + sin(fp.x * .31 + fp.y) * .12;
+          float lane = floor(laneP), inLane = abs(fract(laneP) - .5);
+          float n = vnoise(vec2(fp.x * .2 - uTime * (1.0 + hash12(vec2(lane, 4.0)) * .5), lane * 7.3));
+          // a dash swells from a point and tapers out again, like a fold of the current
+          float dash = smoothstep(.54, .72, n);
+          // never thinner than a pixel (a hairline would break into dots); the dash fades instead
+          float aa = fwidth(laneP), w = max(mix(.02, .06, dash), aa);
+          float line = 1.0 - smoothstep(w * .3, w + aa, inLane);
+          float banks = smoothstep(.3, 1.2, vShore);
+          col = mix(col, vec3(.72, .91, .87), line * dash * banks * (.22 + .18 * hash12(vec2(lane, 9.0))));
+        } else {
+          // slow drip rings: a few cells at a time grow a thin ring that fades as it widens
+          vec2 rp = vW / 3.4, rc = floor(rp);
+          float seed = hash12(rc), age = fract(uTime * .22 + seed * 7.0);
+          float on = step(.86, hash12(rc + floor(uTime * .22 + seed * 7.0) * 1.37));
+          vec2 c = rc + .25 + .5 * vec2(hash12(rc + 3.1), hash12(rc + 7.7));
+          float ring = 1.0 - smoothstep(.0, .035, abs(length(rp - c) - age * .42));
+          col = mix(col, vec3(.72, .90, .86), ring * on * (1.0 - age) * (1.0 - age) * .4 * smoothstep(0.12, 0.4, tone));
+        }
+        // sun glints: sparse four-point stars twinkling on open water
+        vec2 gp = vW / 2.3, gc = floor(gp), gl = fract(gp) - .5;
+        float gt = uTime * .8 + hash12(gc) * 7.0, gseed = hash12(gc + floor(gt) * 13.1);
+        vec2 gq = gl - (vec2(hash12(gc + 3.7), hash12(gc + 9.1)) - .5) * .6;
+        float star = max(1.0 - smoothstep(.0, .05, abs(gq.x) * .25 + abs(gq.y)), 1.0 - smoothstep(.0, .05, abs(gq.y) * .25 + abs(gq.x)));
+        col = mix(col, vec3(1.0, .98, .90), star * step(.965, gseed) * sin(fract(gt) * 3.14159) * smoothstep(.2, .5, tone) * .85);
+        // the waterline: a broken lace of foam, and a pale wet ribbon just inside it
+        vec2 lp = vW * 1.9 + vec2(uTime * .12, -uTime * .09) - vec2(vFlow * uTime * .6, 0.0);
+        float broken = smoothstep(.30, .55, vnoise(lp));
+        float lace = (1.0 - smoothstep(.06, .24, shore)) * mix(.35, 1.0, broken);
+        float ribbonAt = .55 + .12 * sin(vW.x * 1.1 + vW.y * .8 - uTime * .9);
+        float ribbon = (1.0 - smoothstep(.04, .11, abs(shore - ribbonAt))) * smoothstep(.45, .6, vnoise(vW * .8 + 5.0));
+        col = mix(col, vec3(.62, .84, .78), ribbon * .35);
+        col = mix(col, vec3(.96, .98, .95), lace * .85);
+        // clear over the bank, so the bed shows; fuller over deep water
+        float a = min(1.0, mix(0.30, 0.86, smoothstep(0.05, 0.6, tone)) + webAlpha) * smoothstep(0.0, 0.03, shore);
+        a = max(a, lace * .9);
         gl_FragColor = vec4(col, a);
         #include <colorspace_fragment>
       }`,
@@ -736,11 +856,8 @@ export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrain
       for (let k = 0; k < n; k++) dense.push([ax + ((bx - ax) * k) / n, az + ((bz - az) * k) / n]);
     }
     dense.push(pts[pts.length - 1]);
-    const cols = 12;
-    const pos = [];
-    const depth = [];
-    const along = [];
-    const idx = [];
+    const cols = 16;
+    const pos = [], depth = [], along = [], across = [], tone = [], flow = [], idx = [];
     let acc = 0;
     for (let i = 0; i < dense.length; i++) {
       const p0 = dense[Math.max(0, i - 1)];
@@ -755,36 +872,56 @@ export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrain
         const s = (c / cols) * 2 - 1;
         const x = dense[i][0] - tz * s * half;
         const z = dense[i][1] + tx * s * half;
+        const dp = wl - hY(x, z), channel = 1 - Math.min(1, Math.abs(s * half) / (river.width / 2));
         pos.push(x, wl, z);
-        depth.push(wl - hY(x, z));
+        depth.push(dp);
         along.push(acc);
+        across.push(s * half);
+        // a shallow stream reads by its channel: pale over the gravel at the banks, deeper in the middle
+        tone.push(Math.min(1, Math.max(dp / 1.2, channel * channel * 0.55)));
+        flow.push(1);
       }
     }
+    // metres to the waterline across each row: where the depth crosses zero on either bank
+    const shore = new Array(depth.length).fill(0), centre = cols / 2;
+    for (let i = 0; i < dense.length; i++)
+      for (const side of [-1, 1]) {
+        const at = (c) => i * (cols + 1) + c;
+        let edge = Math.abs(across[at(side < 0 ? 0 : cols)]);
+        for (let c = centre; side < 0 ? c > 0 : c < cols; c += side) {
+          const d0 = depth[at(c)], d1 = depth[at(c + side)];
+          if (d0 > 0 && d1 <= 0) { const u = d0 / (d0 - d1); edge = Math.abs(across[at(c)]) * (1 - u) + Math.abs(across[at(c + side)]) * u; break; }
+        }
+        for (let c = centre; side < 0 ? c >= 0 : c <= cols; c += side) shore[at(c)] = edge - Math.abs(across[at(c)]);
+      }
     for (let i = 0; i < dense.length - 1; i++)
       for (let c = 0; c < cols; c++) {
         const a = i * (cols + 1) + c;
         const b2 = a + cols + 1;
         idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
       }
-    group.add(waterMesh(pos, depth, along, idx, mat));
+    group.add(freshWaterMesh(pos, {depth, along, across, tone, flow, shore}, idx, mat));
   }
-  for (const [px, pz, pr] of world.data.ponds || []) {
-    const segs = 40;
-    const rings = 8;
-    const R = pr + 1.6;
-    const pos = [];
-    const depth = [];
-    const along = [];
-    const idx = [];
+  // A pond in polar rings out to its rim (rimAt(angle), angle = atan2(dz, dx)) plus 1.6 m of
+  // bank, about 0.6 m apart (reach: the largest rim plus the bank), so the waterline follows the outline.
+  const pond = (px, pz, rimAt, reach, depthAt) => {
+    const segs = Math.max(40, Math.ceil((2 * Math.PI * reach) / 0.6));
+    const rings = Math.max(8, Math.ceil(reach / 0.6));
+    const pos = [], depth = [], along = [], across = [], tone = [], flow = [], shore = [], idx = [];
     for (let r = 0; r <= rings; r++)
       for (let s = 0; s <= segs; s++) {
-        const a = (s / segs) * Math.PI * 2;
-        const rr = (r / rings) * R;
+        const a = (s / segs) * Math.PI * 2, rim = rimAt(Math.atan2(Math.cos(a), Math.sin(a)));
+        const rr = (r / rings) * (rim + 1.6);
         const x = px + Math.sin(a) * rr;
         const z = pz + Math.cos(a) * rr;
+        const [dp, toShore] = depthAt(x, z);
         pos.push(x, wl, z);
-        depth.push(wl - hY(x, z));
-        along.push(a * pr);
+        depth.push(dp);
+        shore.push(toShore);
+        along.push(0);
+        across.push(0);
+        tone.push(Math.min(1, Math.max(0, dp / 1.2)));
+        flow.push(0);
       }
     for (let r = 0; r < rings; r++)
       for (let s = 0; s < segs; s++) {
@@ -792,7 +929,31 @@ export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrain
         const b2 = a + segs + 1;
         idx.push(a, a + 1, b2, a + 1, b2 + 1, b2);
       }
-    group.add(waterMesh(pos, depth, along, idx, mat));
+    group.add(freshWaterMesh(pos, {depth, along, across, tone, flow, shore}, idx, mat));
+  };
+  // A scene that exports its pond's waterline (Mirror Pond: 72 radii from -PI) is drawn to that
+  // outline; the circles in `ponds` that fill it are only its collision.
+  const scenePonds = acceptedScenes(world.data).filter((s) => s.pond).map((s) => s.pond);
+  for (const sp of scenePonds) {
+    const n = sp.radius.length, rimAt = (a) => {
+      const f = ((a + Math.PI) / (2 * Math.PI)) * n, i = Math.floor(f), u = f - i;
+      return sp.radius[((i % n) + n) % n] * (1 - u) + sp.radius[(i + 1) % n] * u;
+    };
+    // the water ends just past the scene's waterline even where the ground there is low
+    pond(sp.x, sp.z, rimAt, Math.max(...sp.radius) + 1.6, (x, z) => {
+      const dx = x - sp.x, dz = z - sp.z, toRim = rimAt(Math.atan2(dz, dx)) + 0.3 - Math.hypot(dx, dz), ground = wl - hY(x, z);
+      return [Math.min(ground, toRim * 0.55), Math.min(toRim, ground / 0.55)];
+    });
+  }
+  for (const p of world.data.ponds || []) {
+    if (scenePonds.some((sp) => Math.hypot(p[0] - sp.x, p[1] - sp.z) + p[2] <= Math.max(...sp.radius) + 1)) continue;
+    // the water ends at the carved bank's waterline (0.64 m past the rim, core/terrain.js carve),
+    // even where the bank runs into lower ground: no water stands where the player can walk
+    // (metres to the waterline: the bank outside the rim rises 0.55 m per metre)
+    pond(p[0], p[1], (a) => pondRim(p, a), pondReach(p) + 1.6, (x, z) => {
+      const toRim = 0.64 - pondEdgeDistance(p, x, z), ground = wl - hY(x, z);
+      return [Math.min(ground, toRim * 0.55), Math.min(toRim, ground / 0.55)];
+    });
   }
   const sea = world.data.sea;
   if (sea) {
@@ -824,7 +985,10 @@ export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrain
         // Source city slabs are raised solid land, not beach film. A raised
         // swash vertex here made a bright strip along the imported shore edge.
         const beachFilm=c.kind==='beach'&&!cityFloorAt(world.data.city,x,z);
-        pos.push(x, beachFilm ? Math.max(wl + .015, hY(x,z) + .025) : wl+.015, z);
+        // The film stops at filmTop above the water: on a headland or terrace that
+        // stands beside the shoreline it sinks under the ground instead of climbing it.
+        const ground=hY(x,z),filmTop=sea.surf?.filmTop??Infinity;
+        pos.push(x, beachFilm ? (ground > wl + filmTop ? ground - .4 : Math.max(wl + .015, ground + .025)) : wl+.015, z);
         depth.push(wl - hY(x, z));
         along.push(x * 0.2);
         shore.push(shoreD); washMask.push(beachFilm ? 1 : 0); coastJoin.push(c.blend);
@@ -855,6 +1019,17 @@ export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrain
     yield;
   }
   return group;
+}
+
+function freshWaterMesh(pos, attributes, idx, mat) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  for (const [name, values] of Object.entries(attributes)) g.setAttribute(name, new THREE.Float32BufferAttribute(values, 1));
+  g.setIndex(idx);
+  g.computeBoundingSphere();
+  const m = new THREE.Mesh(g, mat);
+  m.renderOrder = 1;
+  return m;
 }
 
 function waterMesh(pos, depth, along, idx, mat, shore = null, washMask = null, coastJoin = null) {

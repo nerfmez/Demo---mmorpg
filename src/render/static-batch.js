@@ -40,7 +40,7 @@ function hullFor(m) {
       shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 hullColor;')
         .replace('#include <color_vertex>', '#include <color_vertex>\nvColor.rgb = hullColor;');
     };
-    h.customProgramCacheKey = () => `outline-batch-${width}`;
+    h.customProgramCacheKey = () => 'outline-batch'; // the width is the outline's uniform
     h.userData = { shared: true, outlineWidth: width };
     batchHull.set(width, h);
   }

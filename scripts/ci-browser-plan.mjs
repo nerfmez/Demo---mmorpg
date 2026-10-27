@@ -36,6 +36,9 @@ export const SUITES = {
   hud: ['fieldhud.mjs', 'gameplay-qol.mjs'],
 };
 export const FULL_SUITES = Object.keys(SUITES);
+// Scripts run with the game's real full preload (every map prepared before play);
+// the rest use the development load (start map only, FRONTIER_LOAD=dev).
+export const FULL_LOAD = new Set(SUITES.world);
 export const LEGACY_UI_SUITES = ['journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'save'];
 const UI_TESTS = new Set(['ux', 'journal', 'workspaces', 'passive-checks']);
 

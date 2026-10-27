@@ -93,6 +93,10 @@ jobs:
           BASELINE=1 RENDER_URL=http://127.0.0.1:4194/ node tests/browser/render-light.mjs
       - name: Current real render and quality round trip
         if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+        # the review's views are all on the start map: prepare only it (the game itself
+        # prepares every map; WebKit on a software GPU passes 90 s for the whole world)
+        env:
+          FRONTIER_LOAD: dev
         run: node tests/browser/render-light.mjs
       - uses: actions/upload-artifact@v4
         if: always() && matrix.suite == 'visual' && steps.scope.outputs.render == 'true'

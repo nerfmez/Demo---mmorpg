@@ -96,30 +96,40 @@ export function* transformGeometrySteps(g, matrix) {
 }
 
 export function* edgeGeometrySteps(geometry, angle = 1, owner) {
+  // three.js EdgesGeometry, keyed by numbers: each distinct (1e-4 rounded) position gets
+  // an id once, an edge is idA*2^26+idB. Same edges, same order (a Map keeps insertion
+  // order like the string-keyed object did), without strings per triangle edge.
   const dot = Math.cos(THREE.MathUtils.DEG2RAD * angle), idx = geometry.index, p = geometry.attributes.position;
   const count = idx ? idx.count : p.count, triangle = new THREE.Triangle(), normal = new THREE.Vector3();
-  const vs = [triangle.a, triangle.b, triangle.c], indices = [0, 0, 0], hashes = [], edges = {}, vertices = [];
+  const vs = [triangle.a, triangle.b, triangle.c], indices = [0, 0, 0], ids = [0, 0, 0], edges = new Map(), vertices = [];
+  const idOf = new Map(), byIndex = idx ? new Int32Array(p.count).fill(-1) : null, K = 67108864;
   for (let i = 0; i < count; i += 3) {
     if (i && i % 384 === 0) yield;
     for (let j = 0; j < 3; j++) {
-      indices[j] = idx ? idx.getX(i + j) : i + j; const v = vs[j].fromBufferAttribute(p, indices[j]);
-      hashes[j] = `${Math.round(v.x * 1e4)},${Math.round(v.y * 1e4)},${Math.round(v.z * 1e4)}`;
+      const index = indices[j] = idx ? idx.getX(i + j) : i + j; const v = vs[j].fromBufferAttribute(p, index);
+      let id = byIndex ? byIndex[index] : -1;
+      if (id < 0) {
+        const hash = `${Math.round(v.x * 1e4)},${Math.round(v.y * 1e4)},${Math.round(v.z * 1e4)}`;
+        id = idOf.get(hash); if (id === undefined) { id = idOf.size; idOf.set(hash, id); }
+        if (byIndex) byIndex[index] = id;
+      }
+      ids[j] = id;
     }
     triangle.getNormal(normal);
-    if (hashes[0] === hashes[1] || hashes[1] === hashes[2] || hashes[2] === hashes[0]) continue;
+    if (ids[0] === ids[1] || ids[1] === ids[2] || ids[2] === ids[0]) continue;
     for (let j = 0; j < 3; j++) {
-      const k = (j + 1) % 3, hash = `${hashes[j]}_${hashes[k]}`, reverse = `${hashes[k]}_${hashes[j]}`;
-      if (reverse in edges && edges[reverse]) {
-        if (normal.dot(edges[reverse].normal) <= dot) vertices.push(vs[j].x, vs[j].y, vs[j].z, vs[k].x, vs[k].y, vs[k].z);
-        edges[reverse] = null;
-      } else if (!(hash in edges)) edges[hash] = { a: indices[j], b: indices[k], normal: normal.clone() };
+      const k = (j + 1) % 3, hash = ids[j] * K + ids[k], reverse = ids[k] * K + ids[j], back = edges.get(reverse);
+      if (back) {
+        if (normal.dot(back.normal) <= dot) vertices.push(vs[j].x, vs[j].y, vs[j].z, vs[k].x, vs[k].y, vs[k].z);
+        edges.set(reverse, null);
+      } else if (!edges.has(hash)) edges.set(hash, { a: indices[j], b: indices[k], normal: normal.clone() });
     }
   }
   let n = 0;
-  for (const key in edges) {
+  for (const edge of edges.values()) {
     if (++n % 256 === 0) yield;
-    if (!edges[key]) continue;
-    const a = vs[0].fromBufferAttribute(p, edges[key].a), b = vs[1].fromBufferAttribute(p, edges[key].b);
+    if (!edge) continue;
+    const a = vs[0].fromBufferAttribute(p, edge.a), b = vs[1].fromBufferAttribute(p, edge.b);
     vertices.push(a.x, a.y, a.z, b.x, b.y, b.z);
   }
   const g = new THREE.BufferGeometry(); owner?.geometry(g);

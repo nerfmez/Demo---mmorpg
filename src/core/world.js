@@ -3,8 +3,12 @@
 // spawns; the renderer draws exactly the same layout.
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
+import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders,sceneWeight} from './accepted-scenes.js';
+import {outsideClearingWeight,sceneKeep,seamBandAt} from './ground-regions.js';
+import {edgeCliffColliders} from './edge-cliffs.js';
 import { createRng } from './rng.js';
-import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
+import { pondEdgeDistance } from './ponds.js';
+import { clamp, dist, distToPolyline, distToPolylineBounds, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
 import { cityFloorAt, cityRoadDistance, cityFloorHeight, cityPlantingFloorAt } from './city.js';
 
@@ -52,11 +56,13 @@ export function createWorld(worldData) {
 
   // ---------- roads / water ----------
   const roads = worldData.roads || [];
-  /** Distance from the edge of the nearest road (negative = on the road). */
-  const roadDist = (x, z) => {
-    if(cityFloorAt(worldData.city,x,z))return cityRoadDistance(worldData.city,x,z);
-    let best = Infinity;
+  /** Distance from the edge of the nearest road (negative = on the road). With reach,
+   *  a road farther than that may be left out: compare only with thresholds <= reach. */
+  const roadDist = (x, z, reach) => {
+    if(cityFloorAt(worldData.city,x,z))return cityRoadDistance(worldData.city,x,z,reach);
+    let best = reach ?? Infinity;
     for (const r of roads) {
+      if (distToPolylineBounds(x, z, r.points) - r.width / 2 >= best) continue;
       const d = distToPolyline(x, z, r.points) - r.width / 2;
       if (d < best) best = d;
     }
@@ -82,7 +88,7 @@ export function createWorld(worldData) {
     return deck;
   };
   const inRiver = (x, z, pad = 0) => !!river && distToPolyline(x, z, river.points) < river.width / 2 + pad;
-  const inPond = (x, z, pad = 0) => (worldData.ponds || []).some(([px, pz, r]) => dist(x, z, px, pz) < r + pad);
+  const inPond = (x, z, pad = 0) => (worldData.ponds || []).some((p) => pondEdgeDistance(p, x, z) < pad);
   // Single-valued shores keep their original contract. Concave port capes may
   // opt into an authored contour shared with terrain, painting and water.
   const shore = worldData.sea?.shore || null;
@@ -135,7 +141,7 @@ export function createWorld(worldData) {
   const boxes = []; // colliders {x,z,hx,hz,angle,type}
   const decor = {
     flowers: [], grass: [], bushes: [], ferns: [], mushrooms: [], reeds: [], lilies: [], lanterns: [], fences: [],
-    crates: [], bones: [], pebbles: [], shells: [], arches: [], banners: [], edgeTrees: [], logsDecor: [],
+    crates: [], bones: [], pebbles: [], shells: [], arches: [], banners: [], edgeTrees: [], logsDecor: [], sceneShrubs: [],
   };
   const PCELL = 4;
   const placed = new Map();
@@ -203,7 +209,7 @@ export function createWorld(worldData) {
     onBridge(x, z, r + 2) ||
     roadDist(x, z) < r + roadPad ||
     clearAreas.some((c) => dist(x, z, c.x, c.z) < c.r + r) ||
-    hf.slopeAt(x, z) > slope ||
+    hf.propSlopeAt(x, z) > slope ||
     overlaps(x, z, r);
 
   // ---------- town ----------
@@ -219,7 +225,7 @@ export function createWorld(worldData) {
   }
   if (!worldData.city?.enabled) {
     addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
-    addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
+    if (town.well) addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
   }
   for (const entry of worldData.city?.enabled ? [] : town.stalls || []) {
     const stall = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 1.6, hz: 1.1 } : entry;
@@ -258,8 +264,9 @@ export function createWorld(worldData) {
   decor.lanterns.push({ x: wallX + 1.5 * out, z: gateZ - 5 }, { x: wallX + 1.5 * out, z: gateZ + 5 });
   }
   if (!worldData.city?.enabled) {
-  decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
-  for (const a of [0.8, 2.4, 3.9, 5.5]) decor.lanterns.push({ x: town.centre[0] + Math.sin(a) * (town.plazaRadius + 0.5), z: town.centre[1] + Math.cos(a) * (town.plazaRadius + 0.5) });
+  // town.lanterns false: a camp that lights itself (Moonstone Camp's fire) has no street lanterns
+  if (town.lanterns !== false) decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
+  if (town.lanterns !== false) for (const a of [0.8, 2.4, 3.9, 5.5]) decor.lanterns.push({ x: town.centre[0] + Math.sin(a) * (town.plazaRadius + 0.5), z: town.centre[1] + Math.cos(a) * (town.plazaRadius + 0.5) });
   for (const entry of town.stalls || []) {
     if (!Array.isArray(entry)) continue; // Authored counters contain their own storage.
     const [x, z, a] = entry;
@@ -411,6 +418,22 @@ export function createWorld(worldData) {
   }
 
   // ---------- trees, rocks, crystals, logs by zone ----------
+  // An open seam with edgeTreeDensity: the map's woods thin toward the neighbour's density at the
+  // seam over a wandering depth (the same as its ground colour band), never along a straight line.
+  const treeSeams = (worldData.atlas?.seams || []).filter((s) => s.edgeTreeDensity !== undefined);
+  const [gox, goz] = worldData.atlas?.offset || [0, 0];
+  const seamPull = (x, z, s) => {
+    const alongX = s.edge === 'minZ' || s.edge === 'maxZ', along = alongX ? x : z;
+    if (along < s.span[0] || along > s.span[1]) return 0;
+    const inside = { minX: x - b.minX, maxX: b.maxX - x, minZ: z - b.minZ, maxZ: b.maxZ - z }[s.edge];
+    const reach = seamBandAt(x + gox, z + goz, (s.band ?? 24) * 1.4);
+    return inside >= reach ? 0 : 1 - smooth01(Math.max(0, inside) / reach);
+  };
+  const seamTreeDensity = (x, z, own) => {
+    let d = own;
+    for (const s of treeSeams) d += (s.edgeTreeDensity - d) * seamPull(x, z, s);
+    return d;
+  };
   for (let x = b.minX - 30; x < b.maxX + 30; x += 3.2) {
     for (let z = b.minZ - 30; z < b.maxZ + 30; z += 3.2) {
       const jx = x + rng.range(-1.4, 1.4);
@@ -430,7 +453,14 @@ export function createWorld(worldData) {
       const density = (zn.treeDensity || 0) * 0.3 * grove + edge + (zn.safe ? -0.3 : 0);
       const roll = rng.next();
       if (roll < density) {
-        const scale = rng.range(0.85, 1.35);
+        // zone.treeScale [min, max]: the spread of sizes (default 0.85-1.35); zone.giants: the
+        // share of old giants (scale x giantScale) where there is room, picked by a fixed hash
+        const [s0, s1] = zn.treeScale || [0.85, 1.35];
+        let scale = rng.range(s0, s1);
+        if (zn.giants && hash01(jx, jz) < zn.giants) {
+          const big = scale * (zn.giantScale || 1.9);
+          if (!blockedForProp(jx, jz, 0.75 * big + 0.8) && roadDist(jx, jz) > 2 + big) scale = big;
+        }
         let type = rng.pick(zn.trees || ['tree']);
         // coconut palms come from the shore grove pass below; inland the zone's broadleaf stands in
         if (type === 'palm') {
@@ -514,13 +544,151 @@ export function createWorld(worldData) {
     const [lx, lz] = lm.at, rot = lm.rot || 0, s = Math.sin(rot), c = Math.cos(rot);
     const parts = (lm.colliders || []).map(([px, pz, r]) => ({ x: lx + px * c + pz * s, z: lz - px * s + pz * c, r }));
     landmarks.push({ ...lm, x: lx, z: lz, parts });
-    if (lm.builtin) continue;
+    if (lm.builtin || lm.acceptedScene) continue;
     const clear = lm.clear || 0, inside = (o, pad = 0) => dist(o.x, o.z, lx, lz) < clear + pad;
     for (const list of [circles, boxes]) {
       for (let i = list.length - 1; i >= 0; i--) if (CARVED.has(list[i].type) && inside(list[i], list[i].r ?? list[i].hz)) list.splice(i, 1);
     }
     for (const key of SCATTER) decor[key] = decor[key].filter((o) => !inside(o, 0.4));
     for (const p of parts) circles.push({ ...p, type: 'landmark', landmark: lm.id, scale: 1, rot });
+  }
+
+  // Near an open seam with edgeTreeDensity the map's woods thin toward the neighbour's density over
+  // a wandering depth. Done after every seeded pass (by a fixed hash, not a draw), so the seeded
+  // layout, its backdrop trees and decor all keep their places; only trees are taken out.
+  if (treeSeams.length) for (let i = circles.length - 1; i >= 0; i--) {
+    const c = circles[i];
+    if (!['tree', 'birch', 'willow'].includes(c.type) || !inBounds(c.x, c.z)) continue;
+    const own = zoneAt(c.x, c.z).treeDensity || 0;
+    if (own > 0 && valueNoise(c.x * 3.1, c.z * 3.1, 20261033) >= seamTreeDensity(c.x, c.z, own) / own) circles.splice(i, 1);
+  }
+  // Replace the obsolete native scatter together with its collision, then install
+  // the approved solids. Stable waypoint IDs and town services stay game-owned.
+  if(acceptedScenes(worldData).length){
+    for(const list of[circles,boxes])for(let i=list.length-1;i>=0;i--){
+      // waypoints and the town's services stay game-owned: the camp's workbench is drawn and solid
+      const c=list[i];if(c.type==='waypoint'||c.type==='workbench'||c.type==='well')continue;
+      if(suppressNativeSceneProp(worldData,c.x,c.z)||connectorClear(worldData,c.x,c.z,(c.r??Math.hypot(c.hx,c.hz))+.6))list.splice(i,1);
+    }
+    for(const key of Object.keys(decor))decor[key]=decor[key].filter(c=>!suppressNativeSceneProp(worldData,c.x,c.z)&&!connectorClear(worldData,c.x,c.z,1));
+    for(const c of acceptedColliders(worldData))(c.hx===undefined?circles:boxes).push(c);
+    // an edge cliff's face is solid along its steep band: only its ramps lead up
+    for(const c of edgeCliffColliders(worldData,(x,z)=>hf.heightAt(x,z)))circles.push(c);
+    plantSceneSurrounds();
+  }
+  if (worldData.look?.undergrowth) plantUndergrowth(worldData.look.undergrowth);
+
+  // Undergrowth (data look.undergrowth, Moonroot): each zone's own plants (zone.plants:
+  // {kind: per 100 m2}) and surface roots snaking over the ground from the trees (zone.groundRoots:
+  // per tree). Its own seed, after every other pass: nothing else moves. Decor only, walkable.
+  function plantUndergrowth(cfg) {
+    const r = createRng(cfg.seed ?? 20261027), out = (decor.undergrowth = []), roots = (decor.groundRoots = []);
+    const clear = (x, z, pad) => inBounds(x, z, 2) && !isWater(x, z, pad + 0.6) && roadDist(x, z) > pad + 0.4 && !isSafe(x, z) &&
+      !acceptedScenes(worldData).some((s) => sceneWeight(s, x, z) > 0) && !connectorClear(worldData, x, z, pad + 0.4);
+    // plants grow in small clumps (3-6), not spread evenly: zone.plants is clumps per 100 m2
+    for (const zn of worldData.zones) {
+      for (const [kind, density] of Object.entries(zn.plants || {})) {
+        for (const rect of zn.rects) {
+          const n = Math.round(((rect[1] - rect[0]) * (rect[3] - rect[2]) / 100) * density);
+          for (let i = 0; i < n; i++) {
+            const cx = r.range(rect[0], rect[1]), cz = r.range(rect[2], rect[3]), m = 3 + Math.floor(r.next() * 4);
+            for (let k = 0; k < m; k++) {
+              const a = r.range(0, 6.28), d = r.range(0, 1.4), x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, s = r.range(0.7, 1.25), rot = r.range(0, 6.28);
+              if (zoneAt(x, z).id !== zn.id || !clear(x, z, 0.5) || overlaps(x, z, 0.4)) continue;
+              out.push({ x, z, kind, s, rot });
+            }
+          }
+        }
+      }
+    }
+    // surface roots: a root runs out from a tree's foot and arches up out of the ground once or
+    // twice along the way (arch: [centre 0..1, height m] per hump); it stops at a road or water
+    for (const c of circles) {
+      if (!['tree', 'birch', 'willow', 'scene-tree'].includes(c.type) || !inBounds(c.x, c.z)) continue;
+      const per = zoneAt(c.x, c.z).groundRoots || 0;
+      let count = Math.floor(per) + (r.next() < per % 1 ? 1 : 0);
+      for (let k = 0; k < count; k++) {
+        let a = r.range(0, 6.28), x = c.x + Math.cos(a) * c.r * 0.6, z = c.z + Math.sin(a) * c.r * 0.6;
+        const len = r.range(2.2, 3.8) * Math.max(1, Math.sqrt(c.scale)), steps = 10, pts = [[x, z]];
+        for (let i = 1; i <= steps; i++) {
+          a += r.range(-0.18, 0.18);
+          x += (Math.cos(a) * len) / steps; z += (Math.sin(a) * len) / steps;
+          if (!clear(x, z, 0.3)) break;
+          pts.push([x, z]);
+        }
+        const arch = [[r.range(0.35, 0.55), r.range(0.26, 0.42)]];
+        if (r.next() < 0.4) arch.push([r.range(0.7, 0.82), r.range(0.14, 0.24)]);
+        if (pts.length >= 7) roots.push({ points: pts, r: r.range(0.12, 0.17) * Math.max(1, Math.sqrt(c.scale)), arch });
+      }
+    }
+  }
+
+
+  // Scene-surround planting (data: acceptedScenes.surround.plant): a ring of trees
+  // and shrub clumps outside each accepted scene, so its woodland does not stop
+  // dead at the bounds. One seed per scene, after every native pass: no native
+  // placement moves. Trees are collision circles (type 'scene-tree'); shrubs are decor.
+  // plant.scene[id] overrides the tree and shrub settings for one scene.
+  function plantSceneSurrounds() {
+    const cfg = worldData.acceptedScenes.surround?.plant;
+    if (!cfg) return;
+    const scenes = acceptedScenes(worldData), inScene = (x, z) => scenes.some((s) => sceneWeight(s, x, z) > 0);
+    const sceneSolids = circles.filter((c) => c.type === 'accepted-scene');
+    const outside = (s, x, z) => { const q = s.bounds; return Math.hypot(Math.max(q[0] - x, 0, x - q[1]), Math.max(q[2] - z, 0, z - q[3])) || -Math.min(x - q[0], q[1] - x, z - q[2], q[3] - z); };
+    const pick = (r, s, kind) => { // a point in the ring, nearer the scene more often
+      const q = s.bounds, d = kind.inner + (kind.outer - kind.inner) * Math.pow(r.next(), 1.6);
+      for (let n = 0; n < 40; n++) {
+        const x = r.range(q[0] - d - 1, q[1] + d + 1), z = r.range(q[2] - d - 1, q[3] + d + 1);
+        if (Math.abs(outside(s, x, z) - d) < 1) return [x, z];
+      }
+      return null;
+    };
+    const hash = (id) => [...id].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7);
+    // Paved city ground and every road, raw polylines included (roadDist on paving
+    // only measures the city streets).
+    const nearTown = (x, z, pad) => [[0, 0], [pad, 0], [-pad, 0], [0, pad], [0, -pad]].some(([dx, dz]) => cityFloorAt(worldData.city, x + dx, z + dz));
+    const stones = circles.filter((c) => c.type === 'waypoint'), nearWaypoint = (x, z, pad) => stones.some((w) => dist(x, z, w.x, w.z) < pad);
+    const nearRoad = (x, z, pad) => roadDist(x, z) < pad || roads.some((rd) => distToPolylineBounds(x, z, rd.points) - rd.width / 2 < pad && distToPolyline(x, z, rd.points) - rd.width / 2 < pad);
+    const trees = [];
+    for (const s of scenes) {
+      const own = cfg.scene?.[s.id] ?? {}, t = { ...cfg.trees, ...own.trees }, sh = { ...cfg.shrubs, ...own.shrubs };
+      const r = createRng((cfg.seed ^ hash(s.id)) >>> 0), firstTree = trees.length;
+      for (let placedTrees = 0, tries = 0; placedTrees < t.perScene && tries < t.perScene * 40; tries++) {
+        const p = pick(r, s, t), scale = r.range(t.scale[0], t.scale[1]), rot = r.range(0, 6.28);
+        if (!p) continue;
+        const [x, z] = p, rad = 0.75 * scale;
+        if (!inBounds(x, z, 2) || inScene(x, z) || isWater(x, z, rad + 1) || isBeach(x, z, rad + 2) || docks.some((dk) => pointInBox(dk, x, z, rad + 0.8)) || onBridge(x, z, rad + 2)) continue;
+        if (nearRoad(x, z, rad + t.roadPad) || connectorClear(worldData, x, z, rad + t.roadPad) || clearAreas.some((c) => dist(x, z, c.x, c.z) < c.r + rad + 2) || nearWaypoint(x, z, rad + 4)) continue;
+        if (hf.slopeAt(x, z) > t.slope || outsideClearingWeight(worldData.city, x, z) > 0.05 || nearTown(x, z, rad + 1)) continue;
+        // a scene's woods thin out toward an open seam as the map's own do (no wall of trees on the border)
+        if (treeSeams.length && valueNoise(x * 3.1, z * 3.1, 20261034) < Math.max(...treeSeams.map((sm) => seamPull(x, z, sm)))) continue;
+        if (overlaps(x, z, rad) || trees.some((o) => dist(x, z, o.x, o.z) < t.spacing) || sceneSolids.some((o) => dist(x, z, o.x, o.z) < (o.r ?? 1) + rad + 0.6)) continue;
+        const tree = { x, z, r: rad, type: 'scene-tree', scale, rot };
+        trees.push(tree); circles.push(tree); placedTrees++;
+      }
+      // Shrubs grow in clumps, half of them at the foot of this scene's ring trees.
+      const shrubs = [], mine = trees.slice(firstTree);
+      const fits = (x, z) => {
+        if (!inBounds(x, z, 1) || scenes.some((o) => sceneWeight(o, x, z) > 0.1) || isWater(x, z, 0.8) || isBeach(x, z, 0.5) || nearRoad(x, z, 0.6) || nearWaypoint(x, z, 2.5) || connectorClear(worldData, x, z, 1)) return false;
+        if (hf.slopeAt(x, z) > sh.slope || nearTown(x, z, 1) || (outsideClearingWeight(worldData.city, x, z) > 0.05 && sceneKeep(worldData, roads, x, z) > 0.1)) return false;
+        return !shrubs.some((o) => dist(x, z, o.x, o.z) < sh.spacing) && !trees.some((o) => dist(x, z, o.x, o.z) < o.r + 0.6);
+      };
+      for (let placedShrubs = 0, tries = 0; placedShrubs < sh.perScene && tries < sh.perScene * 12; tries++) {
+        let centre;
+        if (mine.length && r.next() < sh.treeBase) {
+          const host = r.pick(mine), a = r.range(0, 6.28), d = host.r + r.range(0.7, 1.6);
+          centre = [host.x + Math.sin(a) * d, host.z + Math.cos(a) * d];
+        } else centre = pick(r, s, sh);
+        if (!centre) continue;
+        for (let k = 0, n = r.int(sh.clump[0], sh.clump[1]); k < n && placedShrubs < sh.perScene; k++) {
+          const a = r.range(0, 6.28), d = k ? r.range(0.8, sh.clumpRadius) : 0, size = r.range(sh.size[0], sh.size[1]);
+          const x = centre[0] + Math.sin(a) * d, z = centre[1] + Math.cos(a) * d;
+          if (!fits(x, z)) continue;
+          shrubs.push({ x, z, s: size }); placedShrubs++;
+        }
+      }
+      decor.sceneShrubs.push(...shrubs);
+    }
   }
 
   // ---------- collision grid ----------
@@ -714,6 +882,11 @@ function roadZAt(pts, x) {
   return 0;
 }
 
+// a fixed 0..1 value per point (no rng draw)
+function hash01(x, z) {
+  const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
+  return s - Math.floor(s);
+}
 function smooth01(t) {
   const c = t < 0 ? 0 : t > 1 ? 1 : t;
   return c * c * (3 - 2 * c);

@@ -236,13 +236,15 @@ export function garmentHull(kind, frame, uniforms, width = 0.01, darkness = 0.32
   m.userData.rig = true;
   const code = glslAll(frame);
   m.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms, { uKind: { value: KINDS.indexOf(kind) } });
+    Object.assign(shader.uniforms, uniforms, { uKind: { value: KINDS.indexOf(kind) }, hullWidth: { value: width }, hullDarkness: { value: darkness } });
     bindVarying(shader, frame.scale || 1);
-    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed += normalize(normal) * ${width.toFixed(4)};`);
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nuniform float hullWidth;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * hullWidth;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\n' + code)
-      .replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = garmentColor(vBind) * ${darkness.toFixed(3)};`);
+      .replace('#include <common>', '#include <common>\nuniform float hullDarkness;\n' + code)
+      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = garmentColor(vBind) * hullDarkness;');
   };
-  m.customProgramCacheKey = () => `garment-hull-${width}` + (frame.scale && frame.scale !== 1 ? '-' + frame.scale.toFixed(3) : '');
+  // one program for every width and darkness (uniforms); the bind scale is in the source
+  m.customProgramCacheKey = () => 'garment-hull' + (frame.scale && frame.scale !== 1 ? '-' + frame.scale.toFixed(3) : '');
   return m;
 }

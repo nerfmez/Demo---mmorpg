@@ -6,6 +6,7 @@ import { Game } from '../../src/core/game.js';
 import { CHARACTER_VERSION, createCharacter, migrateCharacter } from '../../src/core/character.js';
 import { characterMap, enterMap, selectMap } from '../../src/core/maps.js';
 import { questState, refreshQuests } from '../../src/core/quests.js';
+import { edgeCliffsAt } from '../../src/core/edge-cliffs.js';
 
 const AZURE = 'azure-harbor-v1', FRONTIER = 'frontier-wilds-v1';
 // Each map is played with its own data view; the shared registry is never mutated.
@@ -38,7 +39,8 @@ test('maps are registered by id and meet along open seams that agree in world sp
         const [ox, oz] = data.maps[seam.to].atlas.offset;
         assert.ok(Math.abs(world.terrainY(x, z) - there.terrainY(gx - ox, gz - oz)) < 0.08, `${id} seam step at ${along}`);
         const [px, pz] = seam.alongX ? [x, z + seam.outward * 12] : [x + seam.outward * 12, z];
-        assert.ok(world.terrainY(px, pz) < world.terrainY(x, z) + 1.5, `${id} no wall past the seam at ${along}`);
+        // an authored edge cliff that crosses the seam rises on both sides (its heights agree above)
+        if (edgeCliffsAt(world.data, px, pz) === -Infinity) assert.ok(world.terrainY(px, pz) < world.terrainY(x, z) + 1.5, `${id} no wall past the seam at ${along}`);
       }
       // The gate is walkable on both sides and one world point; a road reaches it from at least one
       // side (Moonroot Grove's trails end at open grass on the Azure/Frontier side, whose layouts stay untouched).

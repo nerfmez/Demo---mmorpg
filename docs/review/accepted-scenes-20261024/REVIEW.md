@@ -1,0 +1,418 @@
+# Accepted scenes: native game integration trial, 24 October 2026
+
+Owner request: replace finished scene areas in the real game, join the terrain and roads seamlessly, and use the new arrival-beach warp pillar. This is a **draft integration for owner/device review**, not final visual acceptance or merge approval.
+
+Base game: `4468c81251cec9d4ba496e78bed67d048a44b91e`.
+Accepted standalone source: `00bed638a57b6217f675e1a279fcc8fcf769dda7` (PR 137 retained unchanged).
+
+## Observable criteria
+
+- Arrival Beach, approved Forest Trail, Singing Conch Coast, Hill Windmill, Meadow Well and Rose Garden are actual native scenery, with one renderer, player, HUD and simulation.
+- Paths cross replacement boundaries at the same physical height without a portal, page load or scene switch. Old native scatter and colliders are removed together.
+- The new carved fallen-block pillar assembles, glows and floats under the existing saved `landing` waypoint ID; locked destinations still refuse travel. Opening weapon selection stays dry and reachable.
+- Preserve city V3, all spawn counts and progression/save identities. Keep the source review scenes intact. Do not integrate the still-unaccepted ruins.
+
+## Implementation
+
+`prepare-accepted-scenes.py` extracts scenery-only factories from the approved builders. The game does not embed standalone pages or their hero/input/renderer. `inspect-accepted-scenes.mjs` exports plain sampled heights, path distances and solids to `data/accepted-scenes/` (indexed by `accepted-scenes.json`). No Three, DOM or random rules code enters core.
+
+`connect-accepted-scenes.mjs` grades connector aprons into retained native roads, crops obsolete road sections, moves the three opening weapon markers to dry sand, and keeps population counts while adjusting the garden habitat and discovery rectangles to the replacement layout. Existing saves retain their waypoint IDs; no character schema/version change.
+
+Native terrain, road paint, physics, spawning and layout export share the same data. Scenery triangles are clipped to their region-local footprint; border heights feather into native terrain. The pillar and windmill rotor are excluded from static batching and spatial detachment. All buffers are prepared in the existing opaque startup phase; walking does not build scenes.
+
+## Checks and limits
+
+- Final focused checks: **77 passed, zero failures**, followed by **27 passed, zero failures** after the final connector extension (world, opening, maps, landmarks and integration/warp). Build succeeds. Focused world/opening tests and map/landmark checks run separately from visual inspection.
+- Route diagnostic samples every new path/connector in both directions: **8,264 probes of all new roads and the safe arrival route; zero solid/water/slope failures**. The focused test additionally executes the native movement function in both directions.
+- Real `OpenWorldGame.teleportTo` checks the new stone with saved landing/town discovery, rejects a locked forest destination and preserves gold/progress. All opening weapon spots and waypoint arrivals are free.
+- Encounter audit: every original spawn fits; no population-count reduction. Town service surface heights equal the retained city baseline.
+- Cloud browser attempt: `/game/?fresh=1&seed=9&quality=high` reaches the app, but this browser reports `GL_VENDOR = Disabled` / `Error creating WebGL context`. No repeated retries or browser installation. **A running WebGL frame, continuous pillar animation, touch controls, iPad/WebKit FPS and final integrated aesthetics remain unverified.**
+- Supported fallback: software projection/raster of the actual integrated Three geometry/material colours/textures, including the shared native terrain. It approximates toon bands, omits GPU effects/water/shadows and does not establish final visual quality. Captures are listed in the artifact receipt.
+
+No merge. Owner preliminary approval of each standalone scene does not approve this integrated trial.
+
+## Visual inspection record
+
+Inspected all six geometry contact views at 1254×706, 40° play pitch, time 0. The first Meadow view exposed cottages cut by the replacement border; the native extraction now omits entire distant cottages that cannot fit, and the regenerated Meadow view was re-inspected. Accepted standalone cottage sources are unchanged. Fixed an upper coast apron grade and kept the physical stairs clear; the diagnostic samples then passed. Roads and landmarks are readable in the fallback views; actual water, shadow/shader output, native surrounding scenery and device interaction still require the linked game trial. Artifact hashes are in ARTIFACTS.json.
+
+## CI follow-up and final layout corrections
+
+The first integration commit exposed obsolete preservation assertions and three integration issues in CI: the old arrival diagonal crossed the new beach cliff, source trail width came from `w` rather than `y`, and the garden/coast footprints overlapped. The coast now sits 21 m farther south with no footprint overlap; its shoreline feathers into the retained opening beach, west-map seam and city contour. Core heights correct the source seabed against that shared shoreline. All source road widths are finite. Connectors reach beyond the cropped native-road ends.
+
+`scripts/route-accepted-arrival.mjs` reuses the real game's bounded path search offline to author a bidirectionally walkable safe route from the unchanged spawn to town, with a larger authoring footprint to leave clearance around stalls. Its vegetation clearance stops outside the retained city. The original forest waypoint position is retained. Three coastal habitat extents and the meadow slime habitat follow the new dry land while all original monster counts, levels and drops stay unchanged. The lifetime harness now supplies the new scenery dependency, and the asynchronous route test waits for its bounded scheduled result instead of assuming a fixed 50 ms CPU window.
+
+Final inspected artifact: `layout-final.svg` / `layout-final.png`, a plot of actual final road coordinates, shore and non-overlapping footprints. **This is a layout inspection, not a WebGL game screenshot.** Earlier six-view software captures and their hashes in `ARTIFACTS.json` identify the first integration prototype; they precede these final position/road fixes and are not final graphics evidence. The linked live game remains an owner/device trial.
+
+## Owner feedback: one stone style, field, stairs (24 October 2026)
+
+The owner asked for every scene to share one look, especially the stone walls, and for three faults seen in game screenshots to be fixed.
+
+- **One stone family.** The arrival beach and forest stones are the reference: neutral greys (`#cbc6c2`…), moss on top faces, lavender shadow and cool half-tone (`shade [.34,.33,.42]`, `mid [.63,.61,.66]`, `band [-.34,.24]`) and the `#4c4852` ink shell. The ruins-derived scenes (Singing Conch Coast, Hill Windmill, Azure Meadow, Rose Garden) used a cream palette with a flat, bright light and drew no stone outlines. `scenes/ruins/scene.js` now carries the reference palette and light (each scene's `world.js` is regenerated from it), cliff faces are 8% darker, ruin-block tops take stronger moss, paving and shoulders are grey, and large rocks and walls draw the same outline shell.
+- **Meadow vegetable bed.** A 16×12 sheet sank under the curved bank, leaving a cut triangle. It is now 48×36, follows the ground (sampled once per grid point, so the Meadow factory builds in about 1.45 s against 1.13 s before; sampling per triangle corner had taken 5.3 s and made a single startup step take about 5 s), and has painted tilled ridges.
+- **Stairs (Meadow, Windmill, Rose Garden).** Short pale flights with earth gaps became one continuous stair on every authored flight and every section steeper than 0.2: a level course of grey stones every 0.42 K, square to the smoothed route direction, with risers and broken shoulders. The approved flights are replayed first for their seeded draws and discarded, and the new stairs use their own seed, so every later rock, tree and collider is unchanged.
+- **Rose Garden middle stones.** These are the concept's path island, not leftovers. They now share the outlined, mossy stone style. The authored island is too small to plant shrubs without crowding the path loop, so enlarging it is left to a layout change.
+
+Checks: `inspect-accepted-scenes.mjs` re-export matches the committed heights, trails, roads and collider positions (only the 13th digit of angles and float formatting differ), so data is unchanged. `npm test` passes 603/603. `check-accepted-routes.mjs` reports 0 failures. `tests/render/landmark-assets.test.mjs` fails one assertion (1 ≠ 6) identically before this change. Build succeeds.
+
+Visual record: production build, Chromium with ANGLE/SwiftShader WebGL (now available in this environment), 1180×820 touch viewport, high quality, monsters hidden, time paused. Inspected the meadow bed (close and wide), meadow stairs, meadow well, windmill hill, conch coast, rose gazebo and rose island, plus the unchanged arrival beach and forest for comparison. Faults found while reviewing: fill flights fanned on the windmill curves, so stairs were rebuilt as spaced courses; island shrubs were culled or hidden, so they were withdrawn. Owner follow-up ("I can't see what changed on the cliffs"): colour alone was too subtle, so the cliff faces of these four scenes now carry the beach ledge itself: `ledgeStones` in `scenes/ruins/scene.js` stacks faceted grey blocks in courses along every cliff run (mossy top course, ink outline), clear of stairs, with the old fractured face darkened behind them as the shadow between blocks. The blocks use their own seed; the collider/height re-export is unchanged. Remaining limits: iPad/WebKit FPS and touch play are unverified.
+
+## Owner round: redo the four unapproved scenes, lighter (24 October 2026)
+
+The owner keeps the arrival beach and the forest with the sakura island as approved and allowed the other four (Singing Conch Coast, Hill Windmill, Azure Meadow, Rose Garden) to be redone against their concepts and made lighter.
+
+- **Cliffs:** the forest's approved column cliff now builds every cliff in these four scenes (`columnCliffs` in `scenes/ruins/scene.js`). Columns are split into three stacked courses with shadowed seams, so they read as the concepts' stacked blocks. They have mossy caps, a dark backing, and bushes on the lip and at the foot. It replaces the fractured face and the earlier stacked-stone ledge, which was the heaviest part of these scenes. The old outline is still walked for its seeded draws, so every collider and plant placed after it is unchanged.
+- **Stone material:** the same plain beach/forest stone material is used everywhere, with no lichen variant, so there is one shader program less.
+- **Stairs:** only the authored flights remain, as in the concepts, instead of paving every steep section.
+- **Foliage:** tree crowns are about 20% fuller on the same trunks and colliders, which brings the scenes closer to the concepts' canopy.
+- **Lighter:** the loose-grass scatter loops run about 55% of their former iterations. The giant conch is tessellated 96×56 instead of 176×96, which looks the same at the play camera. Factory output before clipping: Conch 410k→254k vertices, Windmill 194k→78k, Meadow 212k→186k, Rose 155k→133k. Build time per scene is down 15-40%.
+
+Checks: re-exported heights, trails, roads and colliders are identical for all six scenes. `npm test` passes 605/605 and `check-accepted-routes` reports 0 failures. CI on 4a32b24 (before this round) already showed Chromium startup at 34-37 s (main: 48-51 s). WebKit passed the desktop and iPad startups but the third (VRM) load took 76 s, mostly region warm-up (8.9 s GPU upload in Azure) and scheduling; this round's geometry cuts target that.
+
+## Owner round: Conch Coast details (24 October 2026)
+
+The owner marked the upright block stones on the beach and in the shallows as unnatural, and asked for a new conch closer to the concept.
+
+- **Rocks:** the upright pillars and the cube-shaped stones (with plants on top) in the middle of the beach are gone, together with their colliders. The waterline outcrops are low, rounded mounds of a few leaning boulders with light moss and rubble at their feet. Their positions and sea-foam rings are unchanged.
+- **Conch:** a new coiled shell (`scenes/shell-beach/conch.js`). Six whorls grow on a logarithmic spiral with knobbed shoulders, a short canal, a horn-like mouth with a wavy flared lip and a pink interior that darkens inside. It lies on its side as in the concept: spire to the left, the lip rising over the mouth, which opens to the right towards the camera. It is three indexed meshes (about 9k vertices) instead of the earlier 176×96 loft. The footprint colliders are unchanged.
+- **Shells:** five more scallops on the sand.
+
+Checks: `data/accepted-scenes/shell-beach.json` was re-exported (24 colliders; heights, trails and roads unchanged; other scenes byte-identical). `npm test` passes 605/605 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view and next to the shell).
+
+## Owner round: the owner's Meshy conch (24 October 2026)
+
+The owner made the conch in Meshy (`Meshy_AI_Mossy_Conch_Shell_1024193542_texture.glb`, 15,786 triangles, four 2048 maps, 10 MB) and asked for its triangles to be reduced.
+
+- **Model:** `scenes/shell-beach/reduce-conch.py` (Blender's Python module) welds the split vertices, collapse-decimates to 40% and keeps only the base colour at 1024 JPEG: 6,313 triangles, 431 KB in `public/models/accepted-scenes/singing-conch.glb`. The script reproduces the shipped file byte for byte. 25% (3,945 triangles) was also tried; next to the shell its long faces showed as facets. The procedural conch it replaces was about 20k triangles.
+- **Loading:** the standalone page embeds the model like the hero and parses it before building. The game fetches it once (`render/accepted-assets.js`), starting before the terrain build, and hands the CPU copy to the Conch Coast factory, which builds it with the scene's own paint shader. Each build takes a texture clone, released with the region's other accepted-scene textures. The model keeps its own smooth normals (recomputed normals faceted it). If the fetch fails the scene is built without it and the game stays playable.
+- **Placement:** traced over the concept outline (spire left, mouth opening to the right and towards the camera), rolled a little so the opening tilts up, and bedded about 1 m in the sand so the body and the lip both rest on it. A warm tint keeps the near-white map from burning out in the game's sun.
+- **Colliders:** the six circles now follow the placed model's footprint at hero height (measured from its vertices), not the old traced line. The raised spire stays open.
+
+Checks: `data/accepted-scenes/shell-beach.json` was re-exported (only the six conch colliders changed; other scenes unchanged). `npm test` passes 605/605 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view and next to the shell). Local Chromium/SwiftShader startup stayed at 42–43 s. Not run: the long leak session (the texture uses the existing accepted-scene disposal path) and a WebKit pass.
+
+## Owner round: Azure Meadow stones, vegetable beds and overall pass (24 October 2026)
+
+The owner circled the upright bar-like stones and the vegetable bed, and asked for the whole scene to be improved. The bed was then reported as covered, at the wrong angle and floating.
+
+- **Ground:** the town's earth clearing (`outsideClearingWeight`) painted a broad brown patch over the meadow and windmill grass in game, so the scenes looked nothing like their concepts. Inside an accepted scene that paint, and road paint borrowed from the neighbouring map, now fade with the scene's weight: only the scene's own paths and its connector roads are painted. The world map follows the same rule. A render test (`tests/render/terrain-domain.test.mjs`) checks that scene grass inside the clearing is not painted as earth.
+- **Stones:** a shared `fieldStone` (in `scenes/ruins/scene.js`) welds the stone hull and smooth-shades it, with moss on its upward faces and the usual outline, so stones read as weathered rock rather than cut crystals. The meadow's field walls are rows of these rounded stones, in one or two courses. Its low terrace edges (marked `stones`) are dry-stone faces instead of rock columns. Its boulders are never taller than 0.62 of their width, and each has a smaller stone and plants at its foot. The stone mesh keeps its authored normals in game.
+- **Vegetable beds:** both beds are level rectangles on flat ground, away from the paths (2.8 m or more) and from the terrace edges. Under them the ground varies by only 0.15 m. Each is a raised bed of dark tilled soil whose rim drops below the grass. Ridges run along it with a row of cabbages on each (one instanced mesh), tomato canes stand on the left bed, and a rail fence runs along the front and the end towards the road. The old right bed lay across the trail and over a terrace cliff, which made it look like a floating wall. Two trees and the bushes that hid the left bed were moved back. The beds' random draws are isolated.
+- **Orchard:** every orchard tree now carries blossoms, as in the concept.
+
+Checks: only `data/accepted-scenes/azure-meadow.json` changed (colliders 151 to 155; heights, trails and roads unchanged; other scenes identical). `npm test` passes 606/606 and `check-accepted-routes` reports 0 failures. In the render tests, the new test passes. `closed skirt edges and finite grid end meet at the same rendered height` fails identically on the unmodified PR head (af0a356), so it is not from this change. Inspected the standalone page against the concept and the game at 1180×820 around the well, both beds, the north edge, the wide view and the windmill. Local Chromium/SwiftShader startup was 40 to 42 s.
+
+## Owner round: Rose Garden (the gazebo scene) (24 October 2026)
+
+The owner asked to continue with the gazebo scene, using the same approach as the meadow.
+
+- **Stones:** the boulders round the paths and the middle island are rounded `fieldStone`s, never taller than 0.62 of their width (0.7 on the island). Each has a smaller stone at its foot, so the upright cube stones on the middle terrace are gone. The four low terraces are dry-stone faces made of larger, blockier field stones (`blocks`), like the concept's mossy garden walls. The gazebo terrace and the two high terraces keep their rock columns.
+- **Stairs:** each stair course is now a level step whose top meets the ground at its uphill edge, so every course shows a riser. Two wide stones per course instead of narrow tiles. Before, the gazebo and east flights read as loose tiles laid on a ramp.
+- **Roses:** ten more flowering rose shrubs along the terrace walls and round the gazebo path, as in the concept.
+
+Checks: the scene data is unchanged (colliders, heights, trails and roads identical for all six scenes). `npm test` passes 606/606 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view, the gazebo, the middle terrace and the east stairs). Local startup was 45 s.
+
+## Owner round: Hill Windmill (24 October 2026)
+
+The owner asked to continue with the windmill scene.
+
+- **Terrace walls:** all six terraces are now dry-stone block walls (`stones`, `blocks`) instead of rock columns, as in the concept's mossy dressed-stone walls round the hill. The two high terraces stack three courses and the low ones one or two. Block walls (here and in the rose garden) also carry plants spilling over their crown.
+- **Boulders:** the scattered boulders are rounded `fieldStone`s, never taller than 0.62 of their width, each with a smaller stone at its foot.
+- **Stairs:** the same level-step courses as the rose garden, so each step shows its riser.
+
+Checks: the scene data is unchanged for all six scenes. `npm test` passes 606/606 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view, the mill, the south, west and east approaches, and the rose garden's walls after the shared change). Local startup, timed on its own, was 41.9 and 42.0 s. A 56.8 s reading came from a run with a second capture in parallel.
+
+
+## Owner round: blend the surroundings into the scenes (25 October 2026)
+
+The owner asked to put all the finished scenes into the game and adjust the nearby surroundings to fit them.
+
+Observable criteria: no wall, trench or floating mesh where a scene meets native ground; the town's bare-earth clearing and soil patches do not stop on a straight line at a scene's bounds; the scenes' woodland carries on past their edges; roads, connectors and waypoints keep their earth and stay walkable; no seeded native prop moves.
+
+- **Ground:** an outer apron (`acceptedScenes.apron`) raises or lowers native ground on the listed scene sides to meet each scene's edge, over 6–22 m depending on the rise, kept dry and off pond banks. Connectors are lifted with it. Scene meshes follow every height edit (`core/accepted-shift.js`); stone walls and steps move per part, rigidly, so they do not shear.
+- **Paint:** in a wobbly ring round each scene the earth clearing and soil patches give way to grass tinted toward the scenes' greens; visible roads, connector extensions and waypoints keep their earth.
+- **Planting:** about 16 trees and 90 shrubs per scene, in clumps, with their own seed after every native pass. None stand on roads, connectors, waypoints, beaches, water or paving.
+- **Sea:** the sky-reflection patches no longer repeat on a 22 m square grid. Scene grass and flowers no longer float on the game's sea in the Conch Coast cove.
+- **Tried and reverted:** turning the Conch Coast headland's east cove into land. It left a straight cliff and stair-stepped sand on the plateau, which looked worse than the existing cove.
+
+Checks: `npm test` 608/608. Render tests 45 passed and 2 failed; the same 2 tests (landmark import release, closed skirt edges) also fail on the base commit `a9e074a`. `check-accepted-routes` reports 0 failures. A native layout hash of all circles, boxes and decor (ring plants excluded) equals the base commit's. Startup (SwiftShader, timed one run at a time, alternating): this branch 67.5 and 72.4 s, base 69.0 and 70.4 s.
+
+Visual inspection: the game camera at zoom 2, 1180×820, HUD hidden. All 24 scene edges (north, south, east and west of each scene) were compared before and after. Faults found and fixed during the round:
+- ring trees on the beach sand: kept off beaches;
+- evenly sprinkled shrubs: grouped into clumps;
+- the headland cliff: reverted;
+- grass on the cove water: culled.
+
+Remaining limits:
+- The steep grey slope bands at the windmill's east side (a native plateau edge and a connector cut) are unchanged.
+- The Conch Coast cove is still drawn over sloping scene ground, inside the game's coastline.
+- iPad/WebKit frame rate is not measured here.
+
+## Owner round: scene colours and trees to match the map (25 October 2026)
+
+The owner asked for the scenes' colours to match the map: their trees were a different colour and bigger than the map's.
+
+Observable criteria: scene trees, shrubs and grass have the same colour, material and size range as the map's; scene ground grass has the map's zone colour; the forest's cherry stays the landmark.
+
+- **Foliage:** in the game the scenes' trees, shrubs and grass are the map's own:
+  - geometry, palette and lit material are the game's (previously each scene had its own brighter palette, an unlit cel material and a colour grade);
+  - crowns use the game's proportions and tint;
+  - trunks have the game's ink outline;
+  - grass takes the ground colour through the map's grass bake.
+- **Size:** scene trees now span world scale 0.63–1.15 with a median of 0.93; the map's trees span 0.68–1.14 with a median of 0.90. Before this round the scene trees reached 1.80, with crowns up to 3× the map's.
+- **Ground:** the grass inside the scenes, and in the ring round them, keeps the map's zone colours; the scenes' yellow-green tint is removed.
+- **Unchanged:**
+  - the forest's island cherry (its authored size and blossom);
+  - scene stones, walls, wood, flowers and water;
+  - scene data and colliders.
+
+Checks:
+- `npm test` 608/608.
+- Render tests 47 passed and 2 failed: the same 2 that also fail on the base commit. The new `tests/render/accepted-foliage.test.mjs` passes.
+- The scene data re-export is unchanged.
+- Per-stage construction CPU times match the base build. Startup (alternating, one at a time): this branch 74.5 and 70.6 s, base 67.0 and 72.1 s.
+
+Visual inspection: the game camera, 1180×820, HUD hidden. Compared before and after:
+- at zoom 1.4: the rose west, meadow west, forest east and windmill west borders;
+- at zoom 2: the centre of every scene, plus forest north and beach north.
+
+Faults found and fixed during the round:
+- The first build left scene trees at 0.78 because the cap was applied in scene units; it is now a world scale.
+- The cherry had shrunk; it keeps its landmark size.
+
+Remaining limits:
+- With map-sized trees the scenes are more open than the approved compositions, which counted on larger canopies.
+- iPad/WebKit frame rate is not measured here.
+
+### Follow-up: trees that should be big stay big
+
+The owner added that trees should generally be the map's size, but trees that should be big must be big (for example the cherry).
+
+- **Ordinary trees:** sizes are now fitted per scene (`treeScale`), not by one factor and a cap. Each scene's typical tree comes near the map's and the scene keeps its own variation.
+  - Beach, Conch Coast and Windmill were already about the map's size and barely change.
+  - Rose Garden and Meadow come down to the map's size.
+  - The forest giants come down to slightly above the map's (median 1.03).
+- **Big trees** (`bigTrees`, with an explicit world size):
+  - the forest's island cherry at its authored 2.16;
+  - the shade tree beside the meadow well at 1.5;
+  - the tree framing the rose gazebo at 1.5;
+  - the tree beside the windmill at 1.45.
+  The map's largest ordinary tree is 1.14. The three focal trees follow each concept's focal tree.
+- **Correction:** the forest trunks are wide and short (a height factor). Their size is the trunk width, which the earlier measurement had missed.
+
+The render test now checks that ordinary trees stay within the map's range and that each big tree has its size. Inspected at zoom 2: every scene's centre, forest north, rose west, and close views of the gazebo, mill and well trees.
+
+## Load time (25 October 2026)
+
+The owner asked for the pre-existing over-60-second load to be fixed. CI's WebKit readiness waits (60–90 s) were timing out: smoke at about 70 s, workspaces and opening just past their waits. equipment-inactive is a separate red-border assertion that the owner excluded.
+
+A startup profile (Chromium, software GL) showed the main thread busy throughout. Most time went to blocking shader first use (13.7 s) on 207 programs, then the map image, terrain, ground paint and scene builds.
+
+Changes:
+- **Shader variants:** the high quality preset draws the world into the screen grade's render target, and Three builds those programs separately from canvas ones. The region compile stage, `view.warmup()`, the monster-model swap and the movement-VFX compile compiled canvas variants that were never used. The world upload then compiled the real ones, blocking. They now compile for `view.drawTarget()` (`view.compileForDraw`), which brings startup to about 115 programs.
+- **Road distance:** `cityRoadDistance`, `roadDist` and `outsideRoadDistance` take an optional reach, and the visible-road list is cached. The map image and meadow plants pass their thresholds. Seeded core calls are unchanged (the native layout hash is identical). The map image dropped from about 4.3 s to about 3 s.
+- **Scene factories:** they reuse the game's shared leaf texture instead of drawing their own.
+- **Tried and reverted:** drawing the portrait after loading. With software GL it then appeared about 20 s into play.
+
+Measured locally (Chromium, SwiftShader; three alternating runs each, one at a time): the previous head took 64.9, 62.1 and 65.2 s; this change took 59.3, 57.7 and 59.9 s. That is about 5 s, or 8%, faster. WebKit is measured by CI.
+
+Tests:
+- core 609/609, with new tests for compiling against the post target and for road-distance reach;
+- routes 0 failures;
+- render tests show the same 2 failures as the base commit.
+
+## Load time, second round (25 October 2026)
+
+CI on the first round still timed out. The Chromium smoke waits up to 60 s for the world and then 10 frames (game time 0.5). The world was ready at about 56 s, but those frames took about 15 s more. WebKit's vrm phase and workspaces stalled the same way. The CI smoke runs at quality=low, where the world is drawn straight to the canvas.
+
+Found with a CPU profile, a GPU-process trace and a DOM-mutation probe (Chromium, SwiftShader, 1600 × 900, quality=low, as the smoke):
+- **Upload variant at low quality:** the resident upload drew into a private 8 × 8 render target. Three keys canvas output (sRGB, tone mapping) on null and XR targets only, so each upload linked a second, linear-output program that gameplay never uses, and blocked on it. This was about 9 s of blocking first use at startup, now about 5 s. The private target is now flagged as canvas output when there is no screen grade, so the upload links the gameplay program. At high quality nothing changes.
+- **HUD writes every frame:** HP/MP text, the level badge, the empty skill slots' classes, the summon commands and the ammo button were rewritten every frame even when unchanged. Each write restyled and repainted the whole HUD layer, which costs hundreds of milliseconds per frame with software GL. They are now written only on change; the probe sees no DOM mutations per frame when nothing changes.
+- **Loading bar:** it kept animating inside the faded card, repainting it every frame. It now stops, and the card is hidden after its fade.
+- **Scene plants per chunk:** each scene's instanced plants (all but grass) are split into 16 m pieces, as the map's own plants are, so the camera and the sun's shadow box draw only the pieces they reach. At high quality this cut triangles per frame from about 2.76 M to 1.53 M, with no visible change.
+- **Landmark test:** `tests/render/landmark-assets.test.mjs` still expected every authored landmark to import. Landmarks drawn by an accepted scene are skipped by design, so the test now expects that.
+
+Measured locally (Chromium, SwiftShader, quality=low, 1600 × 900, the smoke's readiness condition; runs alternated, one at a time):
+
+| Build | Ready (s) |
+|---|---|
+| previous head (4d4079c) | 70.6, 71.1 |
+| this change | 58.4, 58.2 |
+| main (14ebb0a) | 60.5, 53.5 |
+
+That is about 12 s faster than the previous head, on a par with main. Most of the gain is after the loading card: about 22 s down to about 12 s. WebKit is measured by CI. Local times vary by several seconds between batches, so only alternated runs are compared.
+
+Checked: screenshots after load (desktop and iPad viewports) show HP/MP text, the level badge, skill slots and the hidden loading card as before.
+
+Tests:
+- core 611/611, with a new test that the low-quality upload links the canvas program;
+- render 48/49; the one failure (closed skirt edges, `terrain-domain`) also fails on main.
+
+## Hill Windmill on its hill (25 October 2026)
+
+Owner direction: scenes are not pinned flat; a scene that should be high is raised and the ground round it adapts; read the scene and the terrain, and where a form (cliff, terrace, upland) meets the edge, carry it on so nothing looks cut and pasted; never change the scene's content to do it.
+
+- **Lift:** the whole scene is 2.5 m higher (`acceptedScenes.lift`), its meshes, plants, sails and connector ends with it.
+- **Edges:** the factory's own ground past the bounds is exported (`outer`, 30 m ring) and continued outward, softened and faded into the map. The scene's upland and banks run on west, east and south as its design draws them.
+- **Seam:** the north edge is 4 m from Moonroot Grove. Matching seam `rises` on both maps carry the upland across as a ridge instead of flattening it into the border.
+- **Terrace faces:** the dry-stone block walls from the 24 October fidelity pass read as a fortress wall, not the concept's rock ledges. The windmill's terraces, stairs and boulders are back to the earlier rock-cliff version (pre `a9e074a`); scene layout, colliders and routes unchanged.
+- **Capture fix:** free-camera review shots had shown floating stairs and holes because cells were culled for the play camera; captures now attach every resident cell.
+
+Checked: views from all four sides, the owner's circled angle, oblique overviews and the Moonroot side; native layout hashes of both maps unchanged. Tests: core 613/613 (new: lifted surface, continued edges with no sheer step outside, matching seam rises and meeting heights, connector ends); render 48/49 (terrain-domain skirt failure also on main).
+
+Remaining: the scene's low gullies still paint grey on their steep sides; some stair courses fan on curves (scene geometry).
+
+### Follow-up: no deep ravines, grass banks, the ring-trail path
+
+Owner review at the play camera: the stairs floated, and the ravines looked forced ("as if they were there only because they had to be"); the owner asked to remove the deep ravines entirely.
+
+- **Ravines filled:** the narrow channels between terraces (up to about 4.4 m deep, floor 0.4 m) are filled. In the generator (`scenes/hill-windmill/fill.js`, injected by `prepare.py`), the terrace ground is closed over 3.4 K, so any dip narrower than about 7 K rises toward its lower bank, stopping 0.9 K (about 1.5 m) below it, then is softened. Each terrace still ends in its rock face over a shallow grass floor. A first try filled to the bank and turned the cliffs into free-standing walls, so it was dropped. Routes ride the filled ground, so stairs no longer span gullies. Scene content and colliders are unchanged; only ground heights follow the fill.
+- **Grass banks:** in the game the windmill's slopes are painted grass, not grey strata (`acceptedScenes.grassBanks`; the `aBank` attribute in `render/ground.js` makes the ground shader treat them as level). The scene's own rock faces are unchanged.
+- **Ring-trail path:** Moonroot's ring trail met the seam north-east of the mill and stopped. A connector (`accepted/join-ring-trail`, `final`: its heights come from the finished ground, so the apron does not lift it again) and its painted road join it to the windmill's east paths.
+
+Visual inspection: the game camera, 1180×820, at the same 20 positions as the owner's sheet (W1–W4, E1–E4, S1–S5, N1–N3, C1–C4) plus the low south view.
+
+### Follow-up: floating stones and stairs
+
+The owner saw stones and stairs still floating.
+
+- **Cause in the game:** since the lift, stones and steps were raised twice. `seatRigidParts` replaced the geometry without its `rigidParts` flag, so the per-vertex pass ran again and added the lift (2.5 m) a second time; elsewhere it re-applied feather and connector edits. The render now remembers the flag before seating. `tests/render/accepted-seating.test.mjs` checks that each scene's stones stand on the ground (with the old code the windmill's were 2.35 m up).
+- **Cause in the scene:** a level step was set at the ground height of its centre, so on a steep slope or a hump its low end hung free. Each step and shoulder now rests on the lowest ground under its footprint (`footing` in `paving.js`), so it sinks into the slope instead.
+- **Remaining gully:** a narrow channel east of the mill (around 140, −90) lay between the east-north route's causeway and the terraces. The fill now counts route causeways as banks and bridges a channel across its width in four directions, so open-ended gullies fill too.
+
+Measured per stone after the fix: one windmill part (a 0.27 m pebble) sits 0.25 m above the ground; no other is above 0.15 m. Colliders: four small scattered parts moved with the filled ground (105 → 104).
+
+## Starting beach: open to the first monsters, a cliff on the left (25 October 2026)
+
+Owner direction: the starting beach at its normal level and blended with the shore; no "face" rising from the sand; then, after a first try put a rock cliff between the beach and the Conch Coast: "the early monsters are to the right", so the cliff goes to the left and the right is flattened and joined to the level-1 shore.
+
+- **The face on the sand:** the Conch Coast's west headland (6.3 m) ran past its box and was cut there; the feather made it a smooth 6 m sand wall beside the beach, with the shore foam drawn up it. Even at the old head the headland could not be climbed from the beach.
+- **Right side flattened:** the headland (terrace 0) is now beach-level ground in the game. Its terrace stays in the scene's list as `ghost`, so every seeded pass walks it as before and nothing else moves; `build()` clears what was placed on it (4 colliders, its rock faces, plants, palms) and only then gives the ground its flattened shape. The arrival road, which ran along the headland's north feather, climbs onto the remaining rise on a ramp (`accepted/arrival-ramp`, a final connector). From the spawn every level 1–2 spawn point on this shore and the Conch Coast cove is reachable on foot.
+- **Left side:** `acceptedScenes.edgeCliffs` `arrival-west`: a 5.5 m rock cliff at the beach's west end, into the sea, in the Conch Coast cliff's column style; the plateau ramps down to the Frontier Wilds seam behind it and to the upland at its north end. The shore crossing into Frontier Wilds along the beach is now closed; the land route north of the cliff stays open.
+- **Sand and foam:** sand no longer paints raised ground (`art.ground.beachTop`), the swash film stays under ground more than 1.5 m above the water (`sea.surf.filmTop`), and the Conch Coast's steep banks are grass (`grassBanks`).
+
+Checks: core accepted-scenes, world and data tests pass (new: the left cliff, the seam height, cleared colliders, walking east from the spawn); render tests 49/50 (the skirt failure also on main). Inspected wide and low views of both ends, the flattened shore, the road ramp and the play camera at the spawn and both ends.
+
+### Follow-up: the Conch Coast moves west; a solid headland on the left (25 October 2026)
+
+Owner review: the left cliff had become "a thin rock wall", and the right side of the beach was odd. Direction: move the Conch Coast to the left, away from the starting beach; make the left cliff the solid column cliff the owner liked on the Conch Coast, or long enough to join it; keep the right side a flat beach to the level-1 monsters.
+
+- **Conch Coast moved, unchanged:** the scene now lies on the Greenhollow Frontier coast, 30 m west of the seam (world x −274…−190; Frontier local centre 152, 176). Its sampled heights, trails and colliders are byte-identical to the approved scene; the earlier ghost flattening of its west headland is withdrawn. Layout scenes carry `region`, and `acceptedScenes(data)` returns the scenes of that map, so the Frontier map has its own `acceptedScenes` block (roads, the upper-apron repair connector, foliage, an apron on the back and west sides smoothed over 16 m, grass banks) and its shore follows the scene's shore. The Singing Conch landmark moved with it and still names Azure Coast's coast zone (`serves`).
+- **Azure shore restored:** east of the starting beach the shoreline returns from the beach's own shore to the original native line over 34 m; the scene's roads, connectors, landmark and the arrival ramp are gone from Azure. The right side is open beach and grass to the level-1 coast (a walk from the spawn is tested).
+- **West headland:** `edgeCliffs` `west-headland` replaces `arrival-west`: a 6.5 m plateau (the Conch Coast's east headland height) from that headland (an `open` edge, full height to its side) over the seam to a column face over the beach (x −151) and a sea cliff, with a grass ramp up its north side. Both maps list the same outline in world metres, each draws the faces inside its bounds, and the ground meets at the seam. A ramp edge may set its own width (a narrow bank where it meets the conch headland). Sand is not painted inside the plateau; the map image fades sand on raised ground as the game does.
+- **Native layout:** the shore and terrain changes move part of the seeded native scatter (Azure: 38 of 178 props in the old conch area; Frontier: the props east of local x 98 re-roll). The city-boundary comparison now allows the few props a blocked candidate re-rolls.
+
+Checks: core 616/616 and render 50/51 (the skirt failure also on main). Inspected at 1180×820: the play camera at the spawn, the face, the right side (two points), the plateau top, the ramp, the junction, the Conch Coast; wide views from the sea, above and behind. Fixed during review: a short north face that rendered twisted (now a bank), a steep grey ridge behind the Conch Coast (apron smoothing), sand stripes between the sea-cliff columns.
+
+### Follow-up: the Conch Coast's path and back cliffs (26 October 2026)
+
+Owner review of the moved Conch Coast: "the path and the cliffs are not seamless yet", circling the stair gully behind the west headland and the right end of the back wall. The same two places were already in the Azure placement (compared at the same camera); the owner's circles are the direction to change them.
+
+- **Ramps** (`scenes/shell-beach/fill.js`, injected by `prepare.py`): the stair gully rises from the beach to the headland top as one slope (no 1 m hole beside the path), and the slot behind the cove right of the conch rises from the sand to 5.5 m under the wall top and joins the west headland's plateau. Ground already higher is kept; routes ride the ramp. Nothing else in the scene moves.
+- **Stairs on the ground:** stones beside the upper-apron repair connector were seated by the edit model, which does not see the repair cut, and floated about 1 m. Rigid parts within its reach now rest on the lowest actual ground under them; stones the old rule dropped as squashed are kept.
+- **Sand:** the Frontier beach band is 20 m wide, Azure's 11 m; inside the scene the band is 11 m again (`acceptedScenes.beach`), so the gully and banks are grass, as approved.
+- **Outer ground:** the back and west sides continue the scene's own ground (`continue`, as Hill Windmill) with narrow gullies closed (`outerFill`), instead of a smooth apron mound behind the wall.
+
+Checks: core 616/616, render 50/51 (skirt, also on main). Inspected the owner's view, the gully, the wall end, the stairs and the cove at the play camera; remaining floating cells are the scene's sea rocks, bottoms at the water line.
+
+### Follow-up: the headland closes the Conch Coast's back in rock (26 October 2026)
+
+Owner: "join the cliff and close the path, so there is one way in, with rock covering it" (circling the slot behind the conch's cove and the sea corner between the two headlands).
+
+- `west-headland` now takes in the slot behind the cove: a rock face over the cove, open edges where it meets the conch wall and east headland (as high). The scene's cove trail up that slot (`shell-beach/trail-1`) is closed and left out of the roads, and the cove ramp of the previous round is withdrawn.
+- The sea cliff runs out into the water to the conch headland's tip, so no sand or slope shows between the two headlands.
+- The north side is rock along its whole length, routed round the conch's continued slopes so the face always stands over low ground; the grass ramp to the north-east is the one way up.
+- Rock faces shorter than 1.8 m are not drawn (render/edge-cliffs.js MIN_FACE): the plateau meets such ground as a grass bank instead of a loose slab.
+
+Checks: core 616/616, render 50/51 (skirt, also on main). Inspected from above, from the sea, the corner, the north face (two angles) and the cove.
+
+### Follow-up: one face with the conch wall (26 October 2026)
+
+Owner: "why not make it one piece" (the crack between the conch wall's end and the headland's face over the cove).
+
+- The headland's face over the cove now runs in line with the conch wall's face (z 67.5), so the cove pocket is gone and the beach meets one wall; near the wall the plateau's top rises to the wall's 7.8 m (`raise`), so the skyline is level across the join.
+- Scene trail paint stops on the plateau, and a small scene piece (a palm trunk, a frond, a stone: connected triangles under 8 m across) that reaches into the plateau is left out whole instead of being clipped to a headless trunk at the face. Large meshes (cliffs) keep the per-triangle rule. No measurable build cost (Frontier scenery 2.0 s either way in Node).
+
+Checks: core 616/616, render 50/51 (skirt, also on main). Inspected at the owner's camera, low from the beach, from the sea and from above.
+
+### Follow-up: a hidden cove with one way in (26 October 2026)
+
+Owner: "enclose it as a secret place with only one entrance" (circling the open slope behind the left headland and the beach strip west of the cove).
+
+- **Rock ring** (`edgeCliffs` `conch-ring`, Frontier only): a 6.5 m rock rise round the Conch Coast's west and north backs, from the sea cliff west of the cove (x −286) to the west headland's plateau, with open edges where it meets the scene's own tops. Its one opening is a grass ramp on the north side above the stair gully (world x −259…−246, z 28): up onto the back, down the stairs to the conch beach.
+- **West headland:** its north grass ramp is now rock as well, so the whole rise (ring, Conch Coast tops, headland) has that one way up.
+- **No climb along the faces:** walking down a cliff is allowed in the game and only uphill slopes are limited, so a shallow walk across a face could climb it. Each face taller than 1.8 m now has solid circles along its steep band (`edgeCliffColliders`, type `edge-cliff`).
+- **Apron removed** on the Frontier Conch Coast (sides `{}`), along with the scene's `outer` ground and `outerFill`: the ring replaces the slopes that ran from its tops into the land.
+- **Rock faces without holes:** the bank behind a face is steepest half way up, so a course set back that far sank into the grass and showed green holes, more on the new ring. A course now stands out on the bank where the ground mesh (its own triangles, not the bilinear game height) would cover its corners or middle, and the courses below come out as far, so a face never overhangs. Faces are only ever moved outwards; a few courses show an extra fold. Holes measured over all faces: 178 m² → 18 m² (Frontier) and 25 m² → 0 (Azure); what is left is mostly the foot, which is sunk 0.3 m on purpose.
+
+Checks: core 617/617 (new: from outside, a walk reaches the conch beach; with the ring ramp blocked it does not), render 50/51 (skirt, also on main). Inspected from the sea, above, the west, the north entrance, the west face, the north walls and the arrival face, at normal capture with the hero's see-through dither off for the free-camera views.
+
+### Follow-up: a natural west cliff and way up (26 October 2026)
+
+Owner: "the left cliff runs straight, not natural; the road going up is not natural" (circling the west face and the dirt strip above the stairs).
+
+- **West face:** the rock ring's west side follows a wavy line (up to 3 m in and out) with a rounded north-west corner instead of one straight 51 m face.
+- **Way up:** the scene's upper trail from the stairs winds over the bank in an S instead of a straight cut, and is narrower (the repair connector that grades it follows the same line, so the grade is gentler). The stair-gully fill is grass (it counts as raised ground, softer edges) instead of a bare dirt wedge. A footpath (`conch/entrance-trail`) runs from the ring's one ramp across the back to that trail.
+- **Paths blend into the country** (owner: "no hard road lines outside the town"): outside the town zones the ground shader turns a road into earth over a long soft edge and lets grass break through across it (`render/ground-color.js`, weighted by the town mask), so country roads and footpaths read as worn tracks; town lanes keep their short edge and kerbs.
+
+Checks: core and accepted-scene tests pass (one entrance still the only way in); inspected from above (the owner's camera), low over the stairs, the west face and the play camera on the trail and at the entrance.
+
+### Follow-up: a wood round the mill, and no connector trenches (26 October 2026)
+
+Owner: the main job is to make the finished scenes sit in the map harmoniously.
+
+- **Hill Windmill wood:** its concept sets the mill's hill in a dense wood. The surround planting takes per-scene overrides (`acceptedScenes.surround.plant.scene`); the windmill's ring is 80 larger trees and 260 shrubs out to 26 m (it was 18 trees, as for every scene). Other scenes' rings are unchanged. Nothing inside the scene changed.
+- **Connector trenches:** the generated connectors run straight from a trail's end to the nearest map road, at a straight height ramp. Two crossed a scene's raised ground and carved it: `accepted/join-5` cut a 2.5 m deep, 29 m long trench through the rose garden's west terrace (its steep walls painted as grey rock, read as ghostly slabs), and `accepted/join-12` cut 2 m through the windmill's west hill (the straight road beside the lone wall piece). Both are removed: the rose garden keeps four exits and the windmill three, and the scenes' own trails fade out into grass at their ends. A new test fails any connector that digs a trench 2 m deep or 20 m long through the ground beside it (the forest's west ramp, a 1.5 m cutting down its plateau edge to the beach, stays).
+
+Checks: core 640/640; local hud and ux browser suites (dev load) pass. Inspected from above and in the play camera at the rose garden's west terrace and the windmill's west hill, and wide views of the windmill's wood.
+
+### Follow-up: straight connectors and grey banks (26 October 2026)
+
+Owner: no more planting inside the scenes ("ไม่ต้องปลูกเพิ่ม"); the windmill's outer wood stays.
+
+- **Straight connectors removed:** four more generated connectors ran as long straight dirt roads across a scene's ground to the nearest map road: `accepted/join-0` (48 m through the forest's east upland), `accepted/join-2` (40 m along the rose garden's south edge), `accepted/join-7` (35 m along the meadow's south lawn) and `accepted/join-9` (25 m down the meadow's east side, beside `accepted/join-11` to the same junction). Each scene keeps its other exits; the scene's own trails fade into grass at their ends.
+- **Grass banks:** the rose garden and meadow build their rock faces as their own meshes, like the windmill, so the game now paints their steep ground as grass (`acceptedScenes.grassBanks`). The grey slope strata it painted there read from above as pale ghostly slabs. The forest keeps its grey rock banks (owner: "why remove the cliffs?"), and the arrival beach keeps its sand.
+
+Checks: core 640/640; accepted-scene and data tests pass. Inspected from above over the forest, rose garden and meadow, and low over the rose garden's terraces.
+
+### Follow-up: the forest's banks are all rock (26 October 2026)
+
+Owner (circling four grey banks): "make them all the same rock".
+
+- The forest's rock columns were authored only for the terrace edges inside its design frame; outside it the drops were bare ground the game painted as grey strata. In the game (`scripts/prepare-accepted-scenes.py`) every terrace edge with a real drop (ground beside it 1.2 m or more below the terrace) now gets the same columns: north of the stairs, the north-east bank, and the south-west and south-east banks. The authored walls are built exactly as before and the added ones in a second pass with their own seed, so the trees, rocks and walls already there are unchanged. With rock on those faces the forest joins `grassBanks`, so no grey paint shows round their feet.
+
+Checks: core 640/640; render 52/53 (the skirt test, also red on main). Inspected from above and over each of the four banks; the island cherry and its walls match the previous build.
+
+Owner, on that round: "move the root back a little, and the rock face runs straight, not natural". The arching tree is now one smooth, round arch (owner: "further back again, and a beautiful curve"): it rises straight from both feet to a rounded crest about 3 m higher than before, bowing slightly forward, and its island foot stands about 5 m further back along the island's rim (its collider moves with it), and the stair level's east bank north of the stairs and the north-east bank (both straight lines in the source outline) now wind like the other faces, the ground with them (`data/accepted-scenes/forest.json` heights near those banks only). Both are game-side patches in `scripts/prepare-accepted-scenes.py`; the rest of the scene is unchanged (image diff: only those walls and the arch).
+
+Owner: the winding bank north of the stairs "bends unnaturally" (it zigzagged every few metres). Both added curves are now one broad bow with a small counter-bend, sampled every 1.4 m so the face has no kinks, fading back to the source line past the scene.
+
+### Follow-up: a ring of cliffs round the cherry (26 October 2026)
+
+Owner (drawing): "can you make cliffs ring the cherry tree, and move the arch's root to where I drew and pointed".
+
+- Three rises ring the cherry's hollow, their rock faces turned to the paths: a north rise at the stair level (it takes in the bank north of the stairs and stops 2 m short of trail-1), and lower rises south-west and south-east (about 1.9 m above the paths, a step below the side terraces) that leave the south entrance open. Each face stays at least 2.5 m clear of the trails (forest/trail-0..3 keep their grades).
+- The arching tree now stands over trail-1's north pass between the north rise and the right terrace, as a gate, one round arch as before.
+- Trees and bush masses are placed by their spot in the authored frame and lifted onto the ground; the rises lift them where they stand instead of moving them (`RING_ON` in the patch). Only the new faces, the arch and the things standing on the raised ground differ from the previous build (image diff).
+
+Checks: core 640/640 (roads walkable, scene edges continuous). Inspected from above, at the south entrance in the play camera, along the north rise and through the gate.
+
+Owner, on that round: "the path to the stairs need not bend sharply, make it natural; the lower ring needs no divide". The north rise now leaves the stair top in one rounded curve instead of an L corner, and the south-west and south-east rises stand at their side terraces' height, so each side of the lower ring is one level: the old terrace bottom walls they bury are not drawn (their random draws still run, so nothing else moves).
+
+### Follow-up: the arrival beach's banks (26 October 2026)
+
+Owner: "next point". From above, the arrival beach showed a pale grey band below its stone-walled garden (grey slope strata on a steep grass bank, read as a ghostly slab). The beach joins `grassBanks`: its steep grass banks are grass; sand stays sand (the bank flag only changes the slope paint, not the beach). Checked from above both ways and in the play camera behind the beach.
+
+### Gull Headland and the Coastal Ranger Forest join Azure Coast (26 October 2026)
+
+Owner's choice: the headland at the north-east corner (x 162–216.6, z -120..-80.1), the ranger forest below it (z -62..-22.1); the Azure port is skipped for now and the approved city stays.
+
+- Both factories ship (`src/render/accepted-scenes/gull-headland.js`, `ranger-forest.js`) with their sampled data; each scene's sea sits at the map's water level (spec `y` 2.62) and uses the game's sea.
+- The east coastline follows both scenes' water line (traced at the water level): the forest's cove, the headland's stacks and the bay behind the gate. Moonroot Grove's edge is land, so the bay closes in a grassy shore about 8 m before the seam (the seam blend raises the sea floor there).
+- The headland's court and cliffs carry over the Moonroot seam as rises (both maps list them, offset 25 m), as the windmill's ridge does, so the seam blend does not pull the court down.
+- The old native headland (plateau, hill and the retained approach road) is gone under the scene. A low plateau between the two scenes (`terrain.plateaus` `coast-gap`) lifts the old shore so the forest's high back meets it on a grass slope.
+- Roads: the scenes' paths are world roads; final connectors join the headland's south port to the windmill's east path (join-13), the forest's south port to the town ring road, and the headland's west path to the seam. The forest stair's steep foot (1.2 in 1) is eased into one even flight (`accepted/ranger-stair-ease`, 0.74 in 1).
+- The Gull Shrine landmark is the scene's gate; the North Headland waypoint stands on its court. Both scenes paint grass on their banks (their rock faces are meshes); their trees take treeScale 0.9.
+- Render fix: Moonroot's exterior backdrop forest stood in Azure's sea east of the headland (it is outside both playable rectangles); backdrop trees now also stay out of a neighbour's sea (`render/terrain-domain.js`, test extended).
+
+Checks: core 640/640; render terrain-domain, coastal-seam, accepted-foliage/seating, ground, water-contact, footprints pass except the skirt test (also red on the base commit). Inspected in the play camera at the court, gate, bay, south port, the gap, the forest centre and its south port, the windmill junction; from above over both scenes, the bay and the east coast.
+
+Remaining: a small grey slope between the windmill and the headland's west rock near the seam (x 160–163, z -110..-120); the Moonroot side has no path yet where the headland's west path reaches the seam.

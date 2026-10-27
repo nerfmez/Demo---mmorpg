@@ -8,6 +8,8 @@ import * as THREE from 'three';
 import {importJob} from './import-job.js';
 import {cancelledBuild} from './build-queue.js';
 import { terrainSteps, waterSteps, releaseGroundCaches } from './ground.js';
+import {acceptedScenerySteps} from './accepted-scenes.js';
+import {prefetchAcceptedAssets} from './accepted-assets.js';
 import { environmentSteps } from './environment.js';
 import { batchStaticSteps } from './static-batch.js';
 import { bakeGrassSteps } from './grass.js';
@@ -75,6 +77,7 @@ export function* regionSteps(view, world, region, {asyncGPU = true,onTerrainRead
 
 function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
   const {root,shift}=region;
+  if(world.data.acceptedScenes?.enabled)prefetchAcceptedAssets(); // fetched while the terrain builds
   const domain = terrainDomain(world, id => view.ruleWorlds?.[id] || view.coreWorld?.(id));
   region.terrain = yield* timedRegionSteps(region,'terrain',inRegion(shift, terrainSteps(world,{domain,adopt:group=>root.add(group)})));
   root.add(region.terrain.group);
@@ -101,6 +104,10 @@ function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
     });
   }
   if (!world.data.city?.enabled) root.add(yield* timedRegionSteps(region,'water',inRegion(shift,waterSteps(world,env.root,{domain,adopt:group=>root.add(group)}))));
+  const accepted=yield* acceptedScenerySteps(world,view.renderer,{adopt:g=>env.root.add(g)});
+  for(const [id,stone]of accepted.waypoints){const old=env.waypoints.get(id);if(old)disposeObject(old);env.waypoints.set(id,stone);}
+  region.acceptedAnimations=accepted.animations;
+  region.importDisposers.push(accepted.root.userData.disposeAcceptedTextures);
   env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
   yield;
   useRegion(shift); // another build may have run in between
@@ -116,7 +123,7 @@ function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
   yield;
   useRegion(shift); // another build may have run in between
   // after the water-contact bake: merge fixed scenery that shares a material, per map cell
-  region.staticBatch = yield* timedRegionSteps(region,'staticBatch',inRegion(shift,batchStaticSteps(env.root, { exclude: [...(env.waypoints?.values?.() || [])] })));
+  region.staticBatch = yield* timedRegionSteps(region,'staticBatch',inRegion(shift,batchStaticSteps(env.root, { exclude: [...(env.waypoints?.values?.() || []),...accepted.animations.map(a=>a.landmark.rotor)] })));
   root.add(env.root);
   env.root.traverse((o) => o.userData.grassCulling && region.grass.push(o));
   region.waypointStones = env.waypoints;
@@ -306,13 +313,19 @@ export function* compileRegionSteps(view,root){
   // compiler and its programs are immediately marked ready. Unknown capability
   // keeps the conservative original sequencing too.
   const overlapPolling=view.renderer.extensions?.has?.('KHR_parallel_shader_compile')===false;
+  // Compile the variant gameplay draws (view.drawTarget): through the screen grade,
+  // canvas programs would go unused and the resident upload would compile the real
+  // ones again, blocking.
+  const target=view.drawTarget?.()??null;
   const batch=new THREE.Group(),pending=[];
   try{
     for(let i=0;i<objects.length;i+=16){
       // Borrow actual objects so instancing/skinning/geometry variants are exact.
       // No reparenting, disposal, or world-matrix changes through this container.
       batch.children=objects.slice(i,i+16);
-      const ready=Promise.resolve(view.renderer.compileAsync(batch,view.camera,view.scene));
+      const previous=target&&view.renderer.getRenderTarget();if(target)view.renderer.setRenderTarget(target);
+      let compiling;try{compiling=view.renderer.compileAsync(batch,view.camera,view.scene);}finally{if(target)view.renderer.setRenderTarget(previous);}
+      const ready=Promise.resolve(compiling);
       if(!overlapPolling){yield ready;continue;}
       // Three captures its material set during the synchronous compile call;
       // its readiness poll does not revisit the borrowed scene's children.

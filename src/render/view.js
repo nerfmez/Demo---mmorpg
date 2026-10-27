@@ -29,10 +29,14 @@ import { prepareResidentWorld, updateResidentVisibility, restoreResidentVisibili
 import { prepareSpatialRegion } from './spatial-region.js';
 import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
+import { GAME_CAMERA_OFFSET, cameraOffset } from './game-camera.js';
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
 import { fxGround, fxConfig, cachedGround } from './skillfx/fx-common.js';
 
-const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
+// The game camera (game-camera.js, 40 degrees above the horizon); `?pitch=` (15-80) previews
+// another angle for review.
+const pitchParam = typeof location !== 'undefined' ? parseFloat(new URLSearchParams(location.search).get('pitch')) : NaN;
+const CAM_OFFSET = pitchParam >= 15 && pitchParam <= 80 ? cameraOffset(pitchParam) : GAME_CAMERA_OFFSET;
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)

@@ -30,6 +30,7 @@ export class Menu {
     root.appendChild(this.el);
     this.el.addEventListener('click', (e) => this.onClick(e));
     this.el.addEventListener('input', (e) => this.onInput(e));
+    window.addEventListener('resize', () => { if (this.view.mode === 'create') this.placePreview(); });
   }
 
   hide() {
@@ -126,8 +127,9 @@ export class Menu {
         <button class="btn primary big" data-act="start">เริ่มผจญภัย ▶</button>
       </div></div>`, 'create');
     // the hair colour: any colour from the wheel; the hero's hair recolours live while dragging
+    this.placePreview();
     mountColorWheel(this.el.querySelector('#hairWheel'), this.look.hair, {
-      onPreview: (hex) => this.view.previewHero?.root.traverse((o) => o.material?.userData?.hairColor?.value.set(hex)),
+      onPreview: (hex) => { this.view.createFocus = 'face'; this.view.previewHero?.root.traverse((o) => o.material?.userData?.hairColor?.value.set(hex)); },
       onPick: (hex) => { this.look.hair = hex; this.refreshPreview(); },
     });
   }
@@ -135,6 +137,20 @@ export class Menu {
   refreshPreview() {
     // no weapon yet: the character picks one at the wreck
     this.view.showPreview(this.look, { weapon: null, unarmed: true, offhand: null, armor: 'tunic', helm: null, gloves: null, bases: {} });
+    this.placePreview();
+  }
+
+  /**
+   * Keep the hero clear of the panel: the share of the screen it covers on the left (side panel) or
+   * at the bottom (narrow screens); and zoom to the face while hair or face is being chosen.
+   */
+  placePreview(focus) {
+    const v = this.view, panel = this.el.querySelector('.create-panel');
+    if (!panel || !v.previewHero) return;
+    if (focus) v.createFocus = focus;
+    const r = panel.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+    const side = r.width < W * 0.7;
+    v.createInset = side ? { left: Math.min(0.6, r.right / W), bottom: 0 } : { left: 0, bottom: Math.min(0.65, (H - r.top) / H) };
   }
 
   rerenderCreate() {
@@ -173,7 +189,7 @@ export class Menu {
       }
       case 'new': {
         const n = firstEmptySlot();
-        if (n) this.showCreate(n);
+        if (n) { this.view.createFocus = 'body'; this.showCreate(n); }
         else this.showSlots('new');
         return;
       }
@@ -188,6 +204,7 @@ export class Menu {
         return this.showTitle();
       case 'create':
         if (loadSlot(slot) && !confirm(`เขียนทับเซฟช่อง ${slot}?`)) return;
+        this.view.createFocus = 'body';
         return this.showCreate(slot);
       case 'load':
         return this.startFromSlot(slot);
@@ -220,6 +237,7 @@ export class Menu {
       }
       case 'look':
         this.look[t.dataset.key] = t.dataset.val;
+        this.view.createFocus = ['hairStyle', 'face', 'hair', 'eyes'].includes(t.dataset.key) ? 'face' : 'body';
         return this.rerenderCreate();
       case 'random':
         for (const k of Object.keys(LOOK_OPTIONS)) this.look[k] = LOOK_OPTIONS[k][Math.floor(Math.random() * LOOK_OPTIONS[k].length)];

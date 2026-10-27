@@ -518,7 +518,9 @@ when the look is chosen and keep the moved hair and body meshes. The hair is tin
 the colour by the painted grey texture's brightness and lifts its highlights to white. The look's
 `face` (`FACES`) draws one of the owner's faces (`public/models/faces/<id>.png`) over the painted one
 (`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
-decal pass or a second texture in the head's shader. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
+decal pass or a second texture in the head's shader. Character creation shows the hero alone in a
+plain studio scene (`view.js` `createStudio`), straight from the front, zooming to the face while hair,
+face or eye colour is chosen (`createFocus`) and shifted clear of the menu panel (`createInset`). It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

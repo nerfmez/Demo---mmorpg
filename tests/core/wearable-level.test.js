@@ -58,8 +58,8 @@ test('missing metadata uses existing base fallback; valid custom level remains a
  migrateCharacter(ch,data);assert.equal(ch.level,30);assert.equal(ch.equipped.armor,it.uid);assert.equal(it.itemLevel,31);assert.ok(ch.gear.includes(it));assert.match(ch.progress.equipmentNotice,/สถานะไม่ได้ใช้/);
 });
 
-test('all 38 weapons and 5 shields retain stat gates, grade/upgrade scaling and ignore level metadata',()=>{
- const held=Object.entries(data.items.gearBases).filter(([,b])=>['weapon','offhand'].includes(b.slot));assert.equal(held.length,43);
+test('all 41 weapons and 5 shields retain stat gates, grade/upgrade scaling and ignore level metadata',()=>{
+ const held=Object.entries(data.items.gearBases).filter(([,b])=>['weapon','offhand'].includes(b.slot));assert.equal(held.length,46);
  for(const [id]of held){const ch=createCharacter(data),it=item(ch,id,{itemLevel:999});ch.level=1;const req=gearRequirements(it,data);assert.equal(req.level,undefined,id);
   for(const stat in req)ch.stats[stat]=req[stat];assert.ok(gearEquipState(ch,data,it).ok,id);
   ch.level=99;for(const stat in req)ch.stats[stat]=0;assert.equal(gearEquipState(ch,data,it).ok,false,id);

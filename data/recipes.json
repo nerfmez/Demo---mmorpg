@@ -1036,6 +1036,64 @@
       ],
       "itemLevel": 21
     },
+    "crab_greatshield": {
+      "type": "gear",
+      "result": "crab_greatshield",
+      "cost": {
+        "crab_shell": 7,
+        "salt_gel": 3,
+        "gold": 30
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat"
+      ],
+      "itemLevel": 1
+    },
+    "beetle_greatshield": {
+      "type": "gear",
+      "result": "beetle_greatshield",
+      "cost": {
+        "beetle_shell": 10,
+        "hermit_fragment": 4,
+        "boar_hide": 14,
+        "gold": 90
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat"
+      ],
+      "itemLevel": 6
+    },
+    "crag_greatshield": {
+      "type": "gear",
+      "result": "crag_greatshield",
+      "cost": {
+        "crag_stone": 40,
+        "golem_heart": 5,
+        "ram_horn": 10,
+        "boar_hide": 20,
+        "ruin_shard": 3,
+        "gold": 650
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat"
+      ],
+      "itemLevel": 21
+    },
     "hide_gloves": {
       "type": "gear",
       "result": "hide_gloves",

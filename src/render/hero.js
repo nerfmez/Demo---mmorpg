@@ -293,7 +293,7 @@ export class HumanoidAnimator {
     // a heavy weapon held in both hands (nothing in the left) swings like the greatblade
     const twoHanded = HOLDS.holds[weapon]?.two && !this.rig.offhandKind;
     const off = this.rig.offhandKind, dual = !!off && off !== 'shield' && off !== 'quiver'; // a second weapon: cuts alternate hands
-    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' ? 'greatblade' : weapon, step, dual);
+    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' && weapon !== 'greatshield' ? 'greatblade' : weapon, step, dual);
     this.combo = step + 1;
     dur = Math.max(0.25, dur);
     const hit = ACTIONS[name].hit;
@@ -510,7 +510,10 @@ export class HumanoidAnimator {
     const leftBusy = ikL && ikw?.[0] > 0.01 ? ikw[0] : 0;
     // carry weight: full when idle or moving, handing over to the action's own arm keys
     const busy = s.dead || (s.dash && s.dash.kind !== 'leap') || (this.action && (this.action.name === 'staffBolt' || this.action.name === 'bow'));
-    const holdW = busy || !hold ? 0 : swingV ? 1 : s.dash ? 0 : 1 - actionW;
+    // an action that pushes the carry out (pose.reach, body-space metres, already weighted: a greatshield's
+    // shove) leaves the hand and the weapon's facing to the carry and moves the hand by that much
+    const reach = pose.reach;
+    const holdW = busy || !hold ? 0 : swingV || reach ? 1 : s.dash ? 0 : 1 - actionW;
     if (b.weapon) b.weapon.position.copy(b.weapon.userData.rest.pos);
     // through a spell or shout the weapon keeps its carry angle (a staff stays upright, a heavy
     // weapon stays raised): only the hand moves. A two-handed weapon's left hand lets go meanwhile.
@@ -528,7 +531,7 @@ export class HumanoidAnimator {
       this.rig.gripTurn[0] = turn;
       this.rig.gripTurn[1] = hold?.run?.arms?.armL ? turn : 0;
     }
-    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW * armW, swingV, swingW, orientW * armW, swingLead);
+    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW * armW, swingV, swingW, orientW * armW, swingLead, reach);
     // a second weapon in the left hand (dual carry): its own palm and blade, handed back to the action
     if (hold?.left && b.offhand) this.solveOffhand(hold.left, (leftBusy ? 0 : holdW) * armW, hold.run?.socket, 1 - armW);
     // a left-handed strike: the left weapon follows the action's own channel or the mirrored swing arc
@@ -543,8 +546,9 @@ export class HumanoidAnimator {
       }
     }
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
+    // (a greatshield, hold.keepGrip, keeps both hands on its bars through every action)
     // a heavy weapon dragged one-handed on the run (hold.run.release) lets the left hand go
-    let gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
+    let gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - (hold.keepGrip ? 0 : gesture)) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
     if (own && hold?.grip !== undefined) gripW += ((pose.grip ? pose.grip[0] : 0) - gripW) * actionW;
     if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
       const root = this.rig.root;
@@ -590,7 +594,8 @@ export class HumanoidAnimator {
     if (support) support.on = gripW > 0.01 && !!b.weapon;
     if (support?.on) {
       this.rig.root.updateMatrixWorld(true);
-      support.axis.set(0, 0, 1).applyQuaternion(b.weapon.getWorldQuaternion(AIM_Q));
+      // the haft, or a greatshield's upright left bar (equipment.js greatshieldGrips)
+      (this.rig.weaponKind === 'greatshield' ? support.axis.set(1, 0, 0) : support.axis.set(0, 0, 1)).applyQuaternion(b.weapon.getWorldQuaternion(AIM_Q));
       // reachArm puts the driver palm (PALM below the wrist) on its target, so aim it where the palm
       // must be for the fist to land on the haft; the fist turns with the arm, so measure and reach
       // again until it settles
@@ -704,12 +709,13 @@ export class HumanoidAnimator {
    * the way the cut runs (1 to rising arc angles, -1 to falling) and the model's cutting side picks
    * which face of the blade goes first.
    */
-  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW, lead = 1) {
+  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW, lead = 1, reach = null) {
     const ik = this.rig.ikMap;
     const b = this.b, body = b.body;
     this.rig.root.updateMatrixWorld(true);
     if (hold) {
       W_HAND.fromArray(hold.hand);
+      if (reach) { W_HAND.x += reach[0]; W_HAND.y += reach[1]; W_HAND.z += reach[2]; }
       W_DIR.fromArray(hold.dir).normalize();
       // the blade's flat faces this way (default up); [1, 0, 0] stands the blade on its +X side,
       // flipped for a blade that cuts on its -X side, so the edge is the one toward the ground

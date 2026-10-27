@@ -6875,6 +6875,87 @@
         "source_sheet": "exec-89e7d420-451b-40fb-88ca-6fdf6107b066.png",
         "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
       }
+    },
+    {
+      "key": "gear/crab_greatshield",
+      "path": "assets/icons/gear/crab_greatshield.png",
+      "sha256": "9eb785cccde4d7070cd4c7622505f774c637c5954d59865f9394aa6e25de93c3",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 288034,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "Owner-supplied sheet",
+        "source_sheet": "assets-source/equipment/20261025/masters/large-shields-atlas.png",
+        "source_sheet_sha256": "39174b5044cd8d24252bff00a0447e8346fc5b15ce45f204e43e8b5df55c0912",
+        "extraction_bounds": [
+          57,
+          13,
+          524,
+          610
+        ],
+        "export": "Copied byte-for-byte from assets-source/equipment/20261025/icons (provenance/large-shields.json)"
+      }
+    },
+    {
+      "key": "gear/beetle_greatshield",
+      "path": "assets/icons/gear/beetle_greatshield.png",
+      "sha256": "cdd51002447b1a8bafd2af97eb5d369d9d31969e9198faf6898b65489e4d284a",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 259405,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "Owner-supplied sheet",
+        "source_sheet": "assets-source/equipment/20261025/masters/large-shields-atlas.png",
+        "source_sheet_sha256": "39174b5044cd8d24252bff00a0447e8346fc5b15ce45f204e43e8b5df55c0912",
+        "extraction_bounds": [
+          565,
+          23,
+          971,
+          614
+        ],
+        "export": "Copied byte-for-byte from assets-source/equipment/20261025/icons (provenance/large-shields.json)"
+      }
+    },
+    {
+      "key": "gear/crag_greatshield",
+      "path": "assets/icons/gear/crag_greatshield.png",
+      "sha256": "ac1e0edf9354450002f66a9c779c7667096d2775a25eb346030ad9205606abf0",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 312990,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "Owner-supplied sheet",
+        "source_sheet": "assets-source/equipment/20261025/masters/large-shields-atlas.png",
+        "source_sheet_sha256": "39174b5044cd8d24252bff00a0447e8346fc5b15ce45f204e43e8b5df55c0912",
+        "extraction_bounds": [
+          1026,
+          8,
+          1451,
+          614
+        ],
+        "export": "Copied byte-for-byte from assets-source/equipment/20261025/icons (provenance/large-shields.json)"
+      }
     }
   ],
   "pending_count": 0,

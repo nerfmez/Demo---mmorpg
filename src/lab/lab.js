@@ -584,7 +584,7 @@ function render() {
     });
     if(!isPrototype())row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => { state.element = v; state.editorOpen = false; state.reviewPhase = 'full'; clearReplay(); });
     if (!isPrototype()&&skillDef().kind === 'projectile') row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
-    if(!isPrototype())row('อาวุธ', [['sword', 'ดาบ'], ['dagger', 'มีด'], ['axe', 'ขวาน'], ['greatblade', 'ดาบใหญ่'], ['mace','ค้อน'], ['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['bow', 'ธนู'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
+    if(!isPrototype())row('อาวุธ', [['sword', 'ดาบ'], ['dagger', 'มีด'], ['axe', 'ขวาน'], ['greatblade', 'ดาบใหญ่'], ['greatshield', 'โล่ใหญ่'], ['mace','ค้อน'], ['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['bow', 'ธนู'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
       clearReplay();
       state.weapon = v;
       buildHero();

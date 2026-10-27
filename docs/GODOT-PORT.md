@@ -237,6 +237,10 @@ Two light weapons dual-wield with no penalty, but `wearRequirements` sums both i
 requirements for each of them. Shields add `blockChancePct` (cap 50); `damagePlayer`
 lets through `combat.block.taken` of a hit from within `arcDeg` in front, never from
 behind or from a sourceless hazard.
+A greatshield (`weaponTypes.greatshield`: `hands: two`, `shield: true`; crab, beetle and crag
+greatshields at item levels 1, 6 and 21) is a right-hand weapon held in both hands that also
+counts as the shield in hand: `derive` sets `offhand: 'shield'`, so its `blockChancePct` blocks
+and Shield Bash (`requiresOffhand: shield`) works with it; the basic attack (`slash`) accepts it.
 
 `ch.arrows = { use, stock }`. Attack+Projectile skills spend `arrowsPerCast` (perCast,
 plus multiShotExtra with extra projectiles); none left refuses the cast with a
@@ -598,7 +602,12 @@ channel `[angle, elevation, height]` with weight `sw`: the right palm follows a 
 `swing.radius` round the body and the blade points outward along it, keyed so the cut runs
 the same way and at the same time as the approved crescent (steps 1 and 3 lower right to
 upper left, step 2 reversed). During a non-swing action a `castHold` staff or a two-hand
-weapon keeps its carry angle while the arm gestures, and the two-hand left grip lets go.
+weapon keeps its carry angle while the arm gestures, and the two-hand left grip lets go
+(not a carry with `keepGrip`: the greatshield keeps both hands on its bars). An action's `reach`
+channel `[x, y, z]` (body-space metres) moves the carried weapon's palm while the carry keeps its
+facing: the greatshield's shove (`greatshieldShove`) pushes the shield out that way. A greatshield's
+weapon frame puts the right bar at the grip, the left bar `grip` along +Z and the face toward +Y;
+both fists turn their thumbs along the upright bars (+X).
 The standing pose is a neutral base plus the carry's `stance` (`stances`: `relaxed` shifts
 the weight onto the right leg, `guard` is the staggered two-hand ready stance): bone offsets,
 a body `drop` and sideways `shift`, faded out by the walk/run blend. Port as an idle pose

@@ -100,6 +100,33 @@ test('hands: heavy weapons take a shield but not a second weapon, two-hand weapo
   assert.equal(look.offhand, null);
 });
 
+test('a greatshield fills both hands, blocks as the shield and swings the basic attack and Shield Bash', () => {
+  const ch = strong(), d0 = derive(ch, data);
+  const great = give(ch, 'crag_greatshield'), shield = give(ch, 'beetle_buckler');
+  assert.equal(handsOf(data, great), 'two');
+  assert.ok(equip(ch, data, great.uid).ok);
+  assert.equal(equip(ch, data, shield.uid).reason, 'two_hand', 'no second shield beside it');
+  const d = derive(ch, data);
+  assert.equal(d.weaponType, 'greatshield');
+  assert.equal(d.offhand, 'shield', 'it counts as the shield in hand');
+  assert.ok(d.blockChancePct > d0.blockChancePct && d.blockChance === d.blockChancePct / 100 && d.blockChance > 0, 'its block chance counts');
+  // the basic attack and Shield Bash both accept it; a greatblade skill does not
+  const can = (id) => { const def = data.skills.combat[id]; return (!def.requiresWeapon || def.requiresWeapon.includes(d.weaponType)) && (!def.requiresOffhand || d.offhand === def.requiresOffhand); };
+  assert.ok(can('slash'));
+  assert.ok(can('shield_bash'));
+  assert.equal(can('frontline_split'), false);
+  const look = gearLook(ch, data);
+  assert.equal(look.weapon, 'greatshield');
+  assert.equal(look.offhand, null);
+  // the three greatshields follow their materials' tiers and are crafted at the workbench
+  for (const [id, il, part] of [['crab_greatshield', 1, 'crab_shell'], ['beetle_greatshield', 6, 'beetle_shell'], ['crag_greatshield', 21, 'crag_stone']]) {
+    assert.equal(data.items.gearBases[id].itemLevel, il, id);
+    assert.equal(data.items.gearBases[id].upgradeMaterial, part, id);
+    assert.equal(data.recipes.recipes[id].result, id);
+    assert.ok(data.recipes.recipes[id].cost[part] > 0, id + ' costs its own material');
+  }
+});
+
 test('gloves are their own slot and a shield blocks only frontal hits', () => {
   const ch = strong();
   const gloves = give(ch, 'hide_gloves'), shield = give(ch, 'crag_tower_shield');

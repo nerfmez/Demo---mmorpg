@@ -130,6 +130,9 @@ export class SkillFx {
     const cross = s.id === 'cross_cut' ? (this.crossI++ % 2 ? -1 : 1) : 0;
     return { ...(cross ? { tilt: cross * 0.785, arcDeg: 90, inner: 0.58, overlay: true, reach: 1.0, y: 0.1, drift: 3, hold: cross > 0 ? 0.2 : 0.06 } : {}), palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : s.id === 'cross_cut' ? CROSS_PALETTE : null), range: s.range, arc: s.arc, dir: cross || (sweep ?? (this.swingStep === 0 ? 1 : -1)), where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
   }
+  // a greatshield's basic strike is a shove, not a cut: the bash's push of light instead of the crescent
+  shove(skill) { return skill === 'slash' && this.host.weapon() === 'greatshield'; }
+  ownStrike(skill) { return OWN_STRIKE.has(skill) || this.shove(skill); }
   play(action, dur, step, hit, kind) { this.host.anim().play(action, dur, this.host.weapon(), step, hit, kind); }
   // the bench's look for the Firebolt charge: only the smooth filled core of the game's charge
   smoothCharge(mesh) {
@@ -155,7 +158,7 @@ export class SkillFx {
         if (e.charge !== undefined) this.release(e.charge); // a charged shot looses: its arrow and impact grow with the charge
         this.play(e.skill, e.total + (POST[e.skill] ?? 0.28), e.kind === 'melee_arc' ? this.nextSwingStep() : e.step, e.total, e.kind);
         if (e.skill === 'cross_cut') this.crossI = 0;
-        if (e.kind === 'melee_arc') { this.primarySwing = true; if (!OWN_STRIKE.has(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
+        if (e.kind === 'melee_arc') { this.primarySwing = true; if (!this.ownStrike(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
         if (e.kind === 'projectile' && !OWN_PROJECTILES.has(e.skill)) {
           host.vfx.beginCast(e, s.element);
           if (s.element === 'fire') { this.fire.gather(e.total); this.smoothCharge(host.vfx.castFlame?.mesh); }
@@ -245,7 +248,7 @@ export class SkillFx {
         if (!SKILL_FX.has(e.skill)) return false;
         const s = this.skillOf(e.skill), p = g.player;
         if (!s) return true;
-        if (e.skill === 'shield_bash') this.bash.bash(p.x, p.z, e.angle, e.range, e.arc);
+        if (e.skill === 'shield_bash' || this.shove(e.skill)) this.bash.bash(p.x, p.z, e.angle, e.range, e.arc);
         if (e.skill === 'weakpoint') this.thrust.thrust(p.x, 1.15, p.z, e.angle, e.range);
         if (e.skill === 'interrupt_slam') this.mace.slam(p.x, p.z, p.facing, s.range, s.arc);
         if (e.skill === 'sky_shatter') { this.shatter.slam(p.x, p.z, p.facing, s.range, s.arc); host.shake(0.3, 0.25); }
@@ -254,7 +257,7 @@ export class SkillFx {
         if (primary && !e.triggered && s.repeats) {
           for (let k = 1; k <= s.repeats; k++) {
             const at = this.time + k * s.repeatDelay - SWING_LEAD;
-            this.timers.push({ at, done: false, fn: () => { this.play(e.skill, 0.3, this.nextSwingStep(), SWING_LEAD, 'melee_arc'); if (!OWN_STRIKE.has(e.skill)) this.slash.swing(SWING_LEAD, this.slashOpts(s)); } });
+            this.timers.push({ at, done: false, fn: () => { this.play(e.skill, 0.3, this.nextSwingStep(), SWING_LEAD, 'melee_arc'); if (!this.ownStrike(e.skill)) this.slash.swing(SWING_LEAD, this.slashOpts(s)); } });
           }
         }
         return true;
@@ -274,6 +277,7 @@ export class SkillFx {
         if (e.skill === 'interrupt_slam' || e.skill === 'sky_shatter') this.mace.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'riposte') this.riposte.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'shield_bash') this.bash.hit(e.id, c, e.fromX, e.fromZ, this.skillOf('shield_bash')?.taunt?.duration || 3);
+        if (this.shove(e.skill)) this.bash.strike(c, e.fromX, e.fromZ);
         if (e.skill === 'armor_cleave') { this.sunder.hit(c, e.fromX, e.fromZ); host.shake(0.06, 0.14); }
         if (e.skill === 'weakpoint') {
           // struck from the side or behind the way it faces: the rules' positional bonus

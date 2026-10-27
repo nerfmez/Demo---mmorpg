@@ -536,8 +536,8 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   cliff strata and shore foam.
 - Fresh water (`render/ground.js` `waterMaterial`, 27 October 2026), streams and ponds, in the
   sea's cel style: soft depth bands on a per-vertex `tone` (a pond's depth, a stream's channel),
-  bed mottling in the shallows, sky patches on a turned warped domain, the arrival beach scene's
-  light web (rounded Voronoi cells, nearest/second-nearest ratio, pale-green gaps that fade in
+  bed mottling in the shallows, sky patches on a turned warped domain, on ponds only, the arrival beach
+  scene's light web (rounded Voronoi cells, nearest/second-nearest ratio, pale-green gaps that fade in
   patches; one cell size, since scaling world coordinates by a depth-varying factor shears the
   cells), sparse twinkling glints,
   and a broken foam lace of constant width at the waterline (`shore`: metres to the waterline per

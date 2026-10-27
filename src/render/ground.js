@@ -756,8 +756,8 @@ function waterMaterial() {
         col += vec3(.06, .10, .10) * sky * smoothstep(0.15, 0.5, tone) * (1.0 - .75 * vFlow);
         // the light web, as on the arrival beach's sea: small rounded wobbly cells parted by soft
         // pale-green gaps, brighter in the shallows; whole stretches fade, so it never reads as one even
-        // net. The cell points wobble in place.
-        {
+        // net. The cell points wobble in place. Ponds only: a stream shows its current instead.
+        if (vFlow < 0.5) {
           float near = 1.0 - smoothstep(.12, .55, tone);
           // in the beach scene's metres (its scale 0.8)
           vec2 q = vW / .8;

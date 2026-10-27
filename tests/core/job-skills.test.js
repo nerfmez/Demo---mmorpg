@@ -190,3 +190,43 @@ test('Spell Wave is already magic: it cannot carry a fused spell, but (plain Arc
     if (modFits(s, data.mods.mods.fire_shift).ok) assert.ok(s.tags.includes('Attack') && !s.tags.some((t) => EFFECT_ELEMENTS.includes(t)), sid);
   }
 });
+
+// Arcane Draw Cut (owner, 2026-10-27): the spellblade's dash cut. A short wind-up, a dash of range m
+// along the aim, and every monster in the lane it crossed cut once when it arrives.
+test('Arcane Draw Cut dashes along the aim and cuts the lane it crossed, once each', () => {
+  const def = data.skills.combat.draw_cut, r = data.recipes.recipes.learn_draw_cut;
+  assert.ok(def.iconPending && def.job === 'spellblade' && r?.result === 'draw_cut');
+  const drops = new Set(Object.values(data.monsters.monsters).flatMap((m) => m.drops.map((d) => d.item)));
+  for (const k of Object.keys(r.cost)) assert.ok(k === 'gold' || drops.has(k), k);
+  const setup = (wallAt = null) => {
+    const { g, m } = fixture('draw_cut');
+    const mk = (id, x, z) => ({ ...m, id, x, z, statuses: {}, hp: 1e6 });
+    g.monsters = [mk('a', 2.5, 0.2), mk('b', 4.6, -0.4), mk('c', 6.2, 0.3), mk('beside', 4, 2.4), mk('past', 9.5, 0), mk('behind', -3.5, 0)];
+    if (wallAt !== null) g.world.move = (x, z, rr, dx, dz) => (x + dx > wallAt ? { x: wallAt, z, blocked: true } : { x: x + dx, z: z + dz, blocked: false });
+    g.input.manualAim = true; g.input.aimAngle = Math.PI / 2; g.player.targetId = 'a'; g.player.facing = Math.PI / 2; // aimed through the first one
+    assert.ok(g.castSlot(0));
+    const hits = [];
+    for (let t = 0; t < 1; t += 1 / 60) { g.updatePlayer(1 / 60); for (const e of g.drainEvents()) if (e.type === 'hit') hits.push(e.id); }
+    return { g, hits };
+  };
+  const { g, hits } = setup();
+  assert.ok(Math.abs(Math.hypot(g.player.x, g.player.z) - def.range) < 0.05, 'the hero lands at the end of the dash: ' + g.player.x + ',' + g.player.z);
+  assert.deepEqual(hits.sort(), ['a', 'b', 'c'], 'the three in the lane, once each; not beside, past or behind it');
+  const walled = setup(4);
+  assert.ok(Math.abs(walled.g.player.x - 4) < 1e-9, 'a wall stops the dash');
+  assert.deepEqual(walled.hits.sort(), ['a', 'b'], 'the lane is only as long as the dash went');
+});
+
+test('Arcane Draw Cut is no dodge, takes the lane mods and its element can change', () => {
+  const { g, s } = fixture('draw_cut');
+  g.executeSkill(s, { angle: Math.PI / 2, x: 0, z: 0 });
+  assert.equal(g.player.dash.inv, false, 'not invulnerable while dashing');
+  let triggered = 0; g.fireTriggers = () => triggered++;
+  for (let t = 0; t < 0.5; t += 1 / 60) g.updatePlayer(1 / 60);
+  assert.equal(triggered, 0, 'a skill dash fires no on-dodge triggers');
+  const combat = data.skills.combat, M = data.mods.mods;
+  for (const id of ['long_rend', 'tip_strike', 'pierce_line', 'fire_shift', 'heavy_blow']) assert.ok(modFits(combat.draw_cut, M[id]).ok, id);
+  assert.ok(!combat.draw_cut.tags.includes('Signature'));
+  const long = computeSkill({ ...g.ch, mods: [{ id: 'long_rend', uid: 900, level: 1, grade: 'C' }], slots: [{ skill: 'draw_cut', mods: [900] }], skills: { draw_cut: 1 } }, data, g.derived, 0);
+  assert.ok(long.range > s.range, 'Long Rend dashes farther');
+});

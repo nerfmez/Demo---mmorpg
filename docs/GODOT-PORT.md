@@ -335,6 +335,14 @@ labeled separately; only a fitting companion's `grants` add fit eligibility. Cal
 filter is needed. Failures return `{reason: 'needs'|'on'|'not'|'family', tags|family}`.
 Mod sockets come from `mods.json` `slotsByRank` indexed by the skill's rank (`modSlotsFor`);
 changing a slot's skill already clears its mods, so a lower-rank skill never inherits extras.
+**Dash cut (`dash_line`, Arcane Draw Cut `draw_cut`, owner 2026-10-27).** After its cast time the hero
+dashes `range` m along the aim in `dashTime` s (`player.dash` kind `draw_cut`, `inv: false`; walls and
+cliffs stop it through `moveEntity`; the last frame of any dash moves only what is left, so a dash goes
+its distance exactly). On arrival `strikeLane` (frontier-content.js, shared with `melee_line`) cuts the
+lane from the start to where the hero stopped, `width` wide, every monster once, and emits
+`lineStrike` with the travelled length; a skill's dash fires no `on_movement` triggers. The build
+profile counts its distance as mobility.
+
 **Signature and basic mods (owner, 2026-10-27).** A damage skill whose base cooldown is at least
 `mods.json signatureCooldown` (12 s) carries the `Signature` tag, and every mod that multiplies a
 cast's hits (`extraProjectiles`, `repeats`, `echoDelay`, `trigger`, `returnMult`) lists `Signature`

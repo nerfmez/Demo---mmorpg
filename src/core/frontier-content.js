@@ -1,7 +1,7 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 
-export const EXTRA_FIELDS = ['shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
+export const EXTRA_FIELDS = ['dashTime','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -114,16 +114,14 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     }
     return true;
   }
-  if(s.kind==='melee_line'){
-    // Far End: the far end of the lane hits harder
-    const tip=e.tipMult?s.range*(1-e.tipShare):Infinity;
-    for(const m of g.monsters){
-      if(m.dead)continue;const dx=m.x-p.x,dz=m.z-p.z;
-      const forward=dx*Math.sin(aim.angle)+dz*Math.cos(aim.angle),side=dx*Math.cos(aim.angle)-dz*Math.sin(aim.angle);
-      if(forward < -m.r || forward>s.range+m.r || Math.abs(side)>s.width/2+m.r)continue;
-      g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,{crit:g.rollCrit()}));
-    }
-    g.emit({type:'lineStrike',skill:s.id,x:p.x,z:p.z,angle:aim.angle,range:s.range,width:s.width,element:s.element});return true;
+  if(s.kind==='melee_line'){strikeLane(g,s,p.x,p.z,aim.angle,s.range,mult);return true;}
+  // Arcane Draw Cut (dash_line): the hero dashes along the aim (walls and cliffs stop it, no
+  // invulnerability); the lane it crossed is cut when it arrives (Game.updatePlayer, strikeLane)
+  if(s.kind==='dash_line'){
+    const v=s.range/s.dashTime;
+    p.dash={t:0,dur:s.dashTime,vx:Math.sin(aim.angle)*v,vz:Math.cos(aim.angle)*v,inv:false,kind:'draw_cut',skill:s,mult,fromX:p.x,fromZ:p.z,angle:aim.angle};
+    g.emit({type:'dashStrike',skill:s.id,x:p.x,z:p.z,angle:aim.angle,range:s.range,time:s.dashTime,element:s.element});
+    return true;
   }
   if(s.kind==='wall'){
     const axis=aim.angle+Math.PI/2,half=s.wall.length/2,walls=[];
@@ -146,6 +144,20 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     }return true;
   }
   return false;
+}
+
+/** A straight lane from (x, z) along angle, range long and s.width wide: every monster in it is hit once. */
+export function strikeLane(g,s,x,z,angle,range,mult) {
+  const e=s.modEffects||{};
+  // Far End: the far end of the lane hits harder
+  const tip=e.tipMult?range*(1-e.tipShare):Infinity;
+  for(const m of g.monsters){
+    if(m.dead)continue;const dx=m.x-x,dz=m.z-z;
+    const forward=dx*Math.sin(angle)+dz*Math.cos(angle),side=dx*Math.cos(angle)-dz*Math.sin(angle);
+    if(forward < -m.r || forward>range+m.r || Math.abs(side)>s.width/2+m.r)continue;
+    g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,{crit:g.rollCrit(),fromX:x,fromZ:z}));
+  }
+  g.emit({type:'lineStrike',skill:s.id,x,z,angle,range,width:s.width,element:s.element});
 }
 
 export function adjustFrontierHit(g,m,amount,opts) {

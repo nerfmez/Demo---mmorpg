@@ -8,7 +8,7 @@ import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
-import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
@@ -192,7 +192,7 @@ export class Game {
   /** Compile loadout changes without re-entering quest rewards or restoring resources. */
   refreshSkills() {
     this.skills = this.ch.slots.map((_, i) => computeSkill(this.ch, this.data, this.derived, i));
-    const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain'].includes(s.kind)).map((s) => s.shadowStep ? Math.max(s.range, s.shadowStep.range) : s.range);
+    const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain', 'dash_line'].includes(s.kind)).map((s) => s.shadowStep ? Math.max(s.range, s.shadowStep.range) : s.range);
     const ground = this.skills.filter((s) => s && ['ground_area', 'dot_zone', 'curse_zone'].includes(s.kind)).map((s) => s.range);
     this.acquireRange = ranges.length ? Math.max(...ranges) : ground.length ? Math.max(...ground) : 6;
   }
@@ -475,7 +475,7 @@ export class Game {
       this.emit({ type: 'fail', reason: 'target', slot: i });
       return false;
     }
-    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'channel_cone', 'counter_stance'].includes(s.kind);
+    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance'].includes(s.kind);
     // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
     // Pointer aim and touch drag are explicit overrides.
     if (!point && directional && !this.input.manualAim && !s.shadowStep) { // a shadow step already chose its target
@@ -533,7 +533,7 @@ export class Game {
     const p = this.player;
     const t = this.target;
     let angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'channel_cone', 'counter_stance'].includes(s.kind)) {
+    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance'].includes(s.kind)) {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
@@ -1471,7 +1471,10 @@ export class Game {
         const k = Math.min(1, p.dash.t / p.dash.dur);
         p.x = p.dash.fromX + (p.dash.toX - p.dash.fromX) * k;
         p.z = p.dash.fromZ + (p.dash.toZ - p.dash.fromZ) * k;
-      } else if (p.dash.vx || p.dash.vz) this.moveEntity(p, p.dash.vx * dt, p.dash.vz * dt);
+      } else if (p.dash.vx || p.dash.vz) {
+        const step = Math.min(dt, p.dash.dur - (p.dash.t - dt)); // the last frame moves only what is left: a dash goes its distance exactly
+        this.moveEntity(p, p.dash.vx * step, p.dash.vz * step);
+      }
       if (p.dash.t >= p.dash.dur) {
         const d = p.dash;
         p.dash = null;
@@ -1480,7 +1483,9 @@ export class Game {
           for (const m of this.monsters) if (!m.dead && dist(p.x, p.z, m.x, m.z) - m.r <= L.radius) this.hitMonster(m, L.damage * this.playerDamageMult(), { element: 'physical', crit: this.rollCrit(), knock: 1.2, fromX: p.x, fromZ: p.z });
           this.emit({ type: 'burst', kind: 'leap', element: 'physical', x: p.x, z: p.z, radius: L.radius });
         }
-        this.fireTriggers('on_movement');
+        // Arcane Draw Cut: the lane the hero just crossed is cut on arrival; a skill's dash is no dodge
+        if (d.kind === 'draw_cut') strikeLane(this, d.skill, d.fromX, d.fromZ, d.angle, dist(d.fromX, d.fromZ, p.x, p.z), d.mult);
+        else this.fireTriggers('on_movement');
       }
       return;
     }

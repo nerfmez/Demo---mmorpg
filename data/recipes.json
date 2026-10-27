@@ -2592,6 +2592,7 @@
     "learn_holy_bell": {"type":"skill","result":"holy_bell","cost":{"warden_horn":2,"glow_dust":3,"gold":55}},
     "learn_light_chain": {"type":"skill","result":"light_chain","cost":{"mirror_scale":3,"glow_dust":2,"gold":45}},
     "learn_spell_wave": {"type":"skill","result":"spell_wave","cost":{"rune_core":2,"mantis_scythe":2,"gold":55}},
+    "learn_draw_cut": {"type":"skill","result":"draw_cut","cost":{"rune_core":2,"wisp_core":2,"gold":60}},
     "travel_cap": {
       "type": "gear",
       "result": "travel_cap",

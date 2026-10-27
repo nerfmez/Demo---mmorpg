@@ -33,7 +33,7 @@ export function packTargets(s, pack) {
   switch (s.kind) {
     case 'melee_arc': return byArea(Math.PI * s.range * s.range * (s.arc || 90) / 360);
     case 'melee_nova': case 'nova': case 'ground_area': case 'dot_zone': return byArea(Math.PI * (s.radius || 1) ** 2);
-    case 'melee_line': return byArea(s.range * (s.width || s.def?.width || 1));
+    case 'melee_line': case 'dash_line': return byArea(s.range * (s.width || s.def?.width || 1));
     case 'channel_cone': return byArea(Math.PI * s.range * s.range * (s.arc || 60) / 360);
     case 'chain': return Math.min(pack.size, 1 + (s.chain || 0));
     case 'projectile': return Math.min(pack.size, (1 + (s.pierce || 0)) * Math.max(1, s.projectiles || 1) + (s.chain || 0)); // a bounce jumps on
@@ -186,7 +186,7 @@ export function buildProfile(data, spec) {
   const selfHeal = [...attacks, ...helpers].reduce((a, s) => a + (s.heal ? s.heal * (s.kind === 'heal_zone' ? s.duration / s.tick : 1) / s.cooldown * (helpers.includes(s) ? helperShare : 1) : 0), 0);
   const net = incoming - (d.hpRegen || 0) - pct('leechPct') * single - skillLeech - shield - selfHeal;
   const survival = net <= 0 ? R.survivalCap : Math.min(R.survivalCap, (d.maxHp + (d.maxShield || 0)) / net);
-  const mobility = d.moveSpeed * (1 + selfSpeed * helperShare) + (mv.charges ? mv.distance / Math.max(0.1, mv.recharge) : 0);
+  const mobility = d.moveSpeed * (1 + selfSpeed * helperShare) + (mv.charges ? mv.distance / Math.max(0.1, mv.recharge) : 0) + attacks.reduce((a, s, i) => a + (s.kind === 'dash_line' ? s.range * rf[i] : 0), 0); // a dash cut moves the hero too
   // team: what the build gives allies (buff share x uptime; healing and barriers per second measured
   // against the pack's damage per second; an aura that cuts allies' damage taken)
   // our debuffs raise everyone's damage; our control spares allies too (teamShare of it)

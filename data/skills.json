@@ -1604,6 +1604,44 @@
       "upgradeStat": "INT",
       "job": "spellblade",
       "iconPending": true
+    },
+    "draw_cut": {
+      "name": "Arcane Draw Cut",
+      "nameTh": "พุ่งฟันเวท",
+      "desc": "เก็บดาบเข้าฝักแสงเวทตั้งท่า 0.35 วิ แล้วพุ่งไปตามทิศเล็ง 7 ม. ชักดาบฟันศัตรูทุกตัวในแนวที่พุ่งผ่าน (กว้าง 1.4 ม.) ตัวละครั้งเดียว หยุดเมื่อชนกำแพงหรือหน้าผา ระหว่างพุ่งไม่อมตะ ใช้พุ่งเข้าหรือออกจากวงมอนได้ ต้องถือดาบ",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Line",
+        "Damage",
+        "Arcane"
+      ],
+      "kind": "dash_line",
+      "power": "attack",
+      "damage": {
+        "base": 448,
+        "scale": 3.84
+      },
+      "range": 7,
+      "width": 1.4,
+      "dashTime": 0.16,
+      "aimDuringCast": true,
+      "cooldown": 6.4,
+      "castTime": 0.35,
+      "cost": 112,
+      "element": "arcane",
+      "requires": {
+        "STR": 8,
+        "INT": 8
+      },
+      "requiresWeapon": [
+        "sword"
+      ],
+      "upgradeMaterial": "rune_core",
+      "upgradeStat": "STR",
+      "job": "spellblade",
+      "iconPending": true
     }
   },
   "movement": {

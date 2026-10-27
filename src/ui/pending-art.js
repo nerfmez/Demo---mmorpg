@@ -22,6 +22,7 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   holy_bell: 'ระฆังศักดิ์สิทธิ์',
   light_chain: 'โซ่แสง',
   spell_wave: 'คลื่นดาบเวท',
+  draw_cut: 'พุ่งฟันเวท',
 });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

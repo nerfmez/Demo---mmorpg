@@ -225,7 +225,7 @@ export function createWorld(worldData) {
   }
   if (!worldData.city?.enabled) {
     addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
-    addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
+    if (town.well) addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
   }
   for (const entry of worldData.city?.enabled ? [] : town.stalls || []) {
     const stall = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 1.6, hz: 1.1 } : entry;
@@ -264,8 +264,9 @@ export function createWorld(worldData) {
   decor.lanterns.push({ x: wallX + 1.5 * out, z: gateZ - 5 }, { x: wallX + 1.5 * out, z: gateZ + 5 });
   }
   if (!worldData.city?.enabled) {
-  decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
-  for (const a of [0.8, 2.4, 3.9, 5.5]) decor.lanterns.push({ x: town.centre[0] + Math.sin(a) * (town.plazaRadius + 0.5), z: town.centre[1] + Math.cos(a) * (town.plazaRadius + 0.5) });
+  // town.lanterns false: a camp that lights itself (Moonstone Camp's fire) has no street lanterns
+  if (town.lanterns !== false) decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
+  if (town.lanterns !== false) for (const a of [0.8, 2.4, 3.9, 5.5]) decor.lanterns.push({ x: town.centre[0] + Math.sin(a) * (town.plazaRadius + 0.5), z: town.centre[1] + Math.cos(a) * (town.plazaRadius + 0.5) });
   for (const entry of town.stalls || []) {
     if (!Array.isArray(entry)) continue; // Authored counters contain their own storage.
     const [x, z, a] = entry;
@@ -452,7 +453,14 @@ export function createWorld(worldData) {
       const density = (zn.treeDensity || 0) * 0.3 * grove + edge + (zn.safe ? -0.3 : 0);
       const roll = rng.next();
       if (roll < density) {
-        const scale = rng.range(0.85, 1.35);
+        // zone.treeScale [min, max]: the spread of sizes (default 0.85-1.35); zone.giants: the
+        // share of old giants (scale x giantScale) where there is room, picked by a fixed hash
+        const [s0, s1] = zn.treeScale || [0.85, 1.35];
+        let scale = rng.range(s0, s1);
+        if (zn.giants && hash01(jx, jz) < zn.giants) {
+          const big = scale * (zn.giantScale || 1.9);
+          if (!blockedForProp(jx, jz, 0.75 * big + 0.8) && roadDist(jx, jz) > 2 + big) scale = big;
+        }
         let type = rng.pick(zn.trees || ['tree']);
         // coconut palms come from the shore grove pass below; inland the zone's broadleaf stands in
         if (type === 'palm') {
@@ -566,6 +574,45 @@ export function createWorld(worldData) {
     // an edge cliff's face is solid along its steep band: only its ramps lead up
     for(const c of edgeCliffColliders(worldData,(x,z)=>hf.heightAt(x,z)))circles.push(c);
     plantSceneSurrounds();
+  }
+  if (worldData.look?.undergrowth) plantUndergrowth(worldData.look.undergrowth);
+
+  // Undergrowth (data look.undergrowth, Moonroot): each zone's own plants (zone.plants:
+  // {kind: per 100 m2}) and surface roots snaking over the ground from the trees (zone.groundRoots:
+  // per tree). Its own seed, after every other pass: nothing else moves. Decor only, walkable.
+  function plantUndergrowth(cfg) {
+    const r = createRng(cfg.seed ?? 20261027), out = (decor.undergrowth = []), roots = (decor.groundRoots = []);
+    const clear = (x, z, pad) => inBounds(x, z, 2) && !isWater(x, z, pad + 0.6) && roadDist(x, z) > pad + 0.4 && !isSafe(x, z) &&
+      !acceptedScenes(worldData).some((s) => sceneWeight(s, x, z) > 0) && !connectorClear(worldData, x, z, pad + 0.4);
+    for (const zn of worldData.zones) {
+      for (const [kind, density] of Object.entries(zn.plants || {})) {
+        for (const rect of zn.rects) {
+          const n = Math.round(((rect[1] - rect[0]) * (rect[3] - rect[2]) / 100) * density);
+          for (let i = 0; i < n; i++) {
+            const x = r.range(rect[0], rect[1]), z = r.range(rect[2], rect[3]), s = r.range(0.7, 1.25), rot = r.range(0, 6.28);
+            if (zoneAt(x, z).id !== zn.id || !clear(x, z, 0.5) || overlaps(x, z, 0.4)) continue;
+            out.push({ x, z, kind, s, rot });
+          }
+        }
+      }
+    }
+    // surface roots: from a tree's foot outward, meandering, along the ground; stop at a road or water
+    for (const c of circles) {
+      if (!['tree', 'birch', 'willow', 'scene-tree'].includes(c.type) || !inBounds(c.x, c.z)) continue;
+      const per = zoneAt(c.x, c.z).groundRoots || 0;
+      let count = Math.floor(per) + (r.next() < per % 1 ? 1 : 0);
+      for (let k = 0; k < count; k++) {
+        let a = r.range(0, 6.28), x = c.x + Math.cos(a) * c.r * 0.9, z = c.z + Math.sin(a) * c.r * 0.9;
+        const len = r.range(2.5, 5) * Math.max(1, c.scale), steps = 7, pts = [[x, z]];
+        for (let i = 1; i <= steps; i++) {
+          a += r.range(-0.45, 0.45);
+          x += (Math.cos(a) * len) / steps; z += (Math.sin(a) * len) / steps;
+          if (!clear(x, z, 0.2)) break;
+          pts.push([x, z]);
+        }
+        if (pts.length >= 4) roots.push({ points: pts, r: r.range(0.13, 0.2) * Math.max(1, Math.sqrt(c.scale)) });
+      }
+    }
   }
 
   // Scene-surround planting (data: acceptedScenes.surround.plant): a ring of trees
@@ -826,6 +873,11 @@ function roadZAt(pts, x) {
   return 0;
 }
 
+// a fixed 0..1 value per point (no rng draw)
+function hash01(x, z) {
+  const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
+  return s - Math.floor(s);
+}
 function smooth01(t) {
   const c = t < 0 ? 0 : t > 1 ? 1 : t;
   return c * c * (3 - 2 * c);

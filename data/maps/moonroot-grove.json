@@ -8645,7 +8645,18 @@
           0
         ]
       },
-      "soil": -0.3
+      "soil": -0.3,
+      "treeScale": [
+        0.7,
+        1.4
+      ],
+      "giants": 0.2,
+      "giantScale": 2.0,
+      "plants": {
+        "curl": 3.5,
+        "glow": 2.5
+      },
+      "groundRoots": 0.8
     },
     {
       "id": "fern_rise",
@@ -8680,7 +8691,18 @@
         ],
         "ferns": true
       },
-      "soil": -0.3
+      "soil": -0.3,
+      "treeScale": [
+        0.55,
+        1.4
+      ],
+      "giants": 0.1,
+      "giantScale": 1.9,
+      "plants": {
+        "curl": 6.0,
+        "glow": 1.0
+      },
+      "groundRoots": 0.6
     },
     {
       "id": "mirror_pond",
@@ -8721,7 +8743,18 @@
         ],
         "mushrooms": true
       },
-      "soil": -0.3
+      "soil": -0.3,
+      "treeScale": [
+        0.6,
+        1.45
+      ],
+      "giants": 0.12,
+      "giantScale": 1.9,
+      "plants": {
+        "glow": 5.0,
+        "curl": 2.5
+      },
+      "groundRoots": 0.8
     },
     {
       "id": "root_warren",
@@ -8756,7 +8789,18 @@
         "ferns": true,
         "mushrooms": true
       },
-      "soil": -0.3
+      "soil": -0.3,
+      "treeScale": [
+        0.6,
+        1.5
+      ],
+      "giants": 0.14,
+      "giantScale": 2.0,
+      "plants": {
+        "glow": 3.0,
+        "curl": 1.5
+      },
+      "groundRoots": 1.4
     }
   ],
   "spawns": [
@@ -8901,10 +8945,6 @@
       -108.0,
       1.0
     ],
-    "well": [
-      -102.0,
-      -3.5
-    ],
     "buildings": [],
     "shop": [
       -101.0,
@@ -8916,7 +8956,9 @@
       -1.5708
     ],
     "trees": [],
-    "surfaces": []
+    "surfaces": [],
+    "noticeBoard": false,
+    "lanterns": false
   },
   "ruins": {
     "zone": "stone_ring",
@@ -9838,8 +9880,11 @@
     ]
   },
   "look": {
-    "_doc": "Moonroot's own colours (owner, 27 October 2026: the region concept's deep teal). foliage: leaf and shrub [shadow, mid, light] for every tree and shrub crown in this map, its own and its accepted scenes' (render/anime-study.js animeFoliage palette); the same colours the approved Moonroot scenes were reviewed with. ground: [light, dark] the meadow's paint pair, standing in for the game's anime ground pair (render/ground.js), so the grass takes the concept's pale olive and shaded teal.",
-    "ground": ["#9db86c", "#3b7660"],
+    "_doc": "Moonroot's own colours (owner, 27 October 2026: the region concept's deep teal). foliage: leaf and shrub [shadow, mid, light] for every tree and shrub crown in this map, its own and its accepted scenes' (render/anime-study.js animeFoliage palette); the same colours the approved Moonroot scenes were reviewed with. ground: [light, dark] the meadow's paint pair, standing in for the game's anime ground pair (render/ground.js), so the grass takes the concept's pale olive and shaded teal. roots: every tree stands on a long root flare and surface roots snake over the ground (decor.groundRoots, zone.groundRoots per tree). undergrowth: each zone's own plants (zone.plants {curl, glow} per 100 m2: pale moon-curls and teal glow bulbs, as the concept). Zones: treeScale [min, max] spreads tree sizes; giants (share) x giantScale makes old giants where there is room.",
+    "ground": [
+      "#9db86c",
+      "#3b7660"
+    ],
     "foliage": {
       "leaf": [
         "#143f40",
@@ -9851,6 +9896,10 @@
         "#33805f",
         "#8cc58a"
       ]
+    },
+    "roots": true,
+    "undergrowth": {
+      "seed": 20261027
     }
   },
   "acceptedScenes": {

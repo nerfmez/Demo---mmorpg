@@ -16,6 +16,7 @@ import { meadowPlantSteps } from './meadow.js';
 import { walkSurfaceMaterial } from './walk-surface.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { rootFlareGeometry, groundRootGeometry, curlGeometry, glowGeometry } from './moonroot-flora.js';
 import { createHarborSteps } from './harbor.js';
 import { marketBuilding, marketStall, marketQuay } from './market.js';
 import { districtBuilding } from './districts.js';
@@ -262,6 +263,20 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   root.add(yield* buildInstances(yield* cloudCrownSteps(7,false,look),cloudMat,cloudBirches,{receiveShadow:true}));
   // Jagged patches supply the entire crown; no spherical filler underneath.
   if(animeStudy)root.add(yield* buildInstances(animeTrunk(),animeTrunkMaterial(),animeTrunks,{outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
+  // look.roots (Moonroot): every tree stands on a long root flare (three shapes, picked by place),
+  // and the surface roots core/world.js laid over the ground (decor.groundRoots) follow it
+  if(world.data.look?.roots){
+    const flares=[[],[],[]],barkMat=animeTrunkMaterial(),line={outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth};
+    for(const c of world.circles){
+      if(!['tree','birch','willow','scene-tree'].includes(c.type))continue;
+      const s=c.scale*.85*(c.type==='birch'?.7:1),k=Math.abs(Math.floor(c.x*7.3+c.z*3.1))%3;
+      flares[k].push({x:c.x,z:c.z,y:gy(c.x,c.z)-.06,s,ry:c.rot});
+    }
+    for(let k=0;k<3;k++)if(flares[k].length)root.add(yield* buildInstances(rootFlareGeometry(20261027+k),barkMat,flares[k],line));
+    const ground=groundRootGeometry(world.decor.groundRoots||[],gy);
+    if(ground){const mesh=new THREE.Mesh(ground,barkMat);mesh.receiveShadow=true;mesh.name='moonroot-ground-roots';root.add(mesh);}
+    yield;
+  }
   const canopyGeo = leafCrown(3);
   const canopyMat = mat('#ffffff', { double:true, wind: 0.025, windBase: 1.2, see: true });
   canopyMat.map=leafTexture();canopyMat.alphaTest=.45;canopyMat.forceSinglePass=true;
@@ -452,6 +467,16 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   fernMat.onBeforeCompile=(s,r)=>{fernCompile.call(fernMat,s,r);s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');};
   fernMat.customProgramCacheKey=()=> 'ground-ferns-v1';
   root.add(yield* buildInstances(fernGeometry(),fernMat,yield* mapItems(d.ferns,(f)=>({x:f.x,z:f.z,y:gy(f.x,f.z)-.015,s:f.s,ry:f.rot})),{shadow:false}));
+  // each zone's own plants (core/world.js plantUndergrowth: Moonroot's moon-curls and glow bulbs)
+  if(d.undergrowth?.length){
+    const at=kind=>d.undergrowth.filter(u=>u.kind===kind).map(u=>({x:u.x,z:u.z,y:gy(u.x,u.z)-.02,s:u.s*1.7,ry:u.rot}));
+    const plantMat=new THREE.MeshLambertMaterial({vertexColors:true});
+    // the moon-curls glow faintly, pale against the grass as in the concept
+    root.add(yield* buildInstances(curlGeometry(),new THREE.MeshLambertMaterial({vertexColors:true,emissive:'#4a5a48'}),at('curl'),{shadow:false}));
+    const [stems,bulbs]=glowGeometry(),glow=at('glow');
+    root.add(yield* buildInstances(stems,plantMat,glow,{shadow:false}));
+    root.add(yield* buildInstances(bulbs,new THREE.MeshBasicMaterial({vertexColors:true}),glow,{shadow:false}));
+  }
   const stems = [];
   const caps = [];
   yield;
@@ -770,7 +795,8 @@ function* townSteps(world,rng,{adopt}={}) {
   hammer.rotation.y = 0.6;
   wb.add(hammer);
   g.add(wb);yield;
-  // notice board by the trainer
+  // notice board by the trainer (town.noticeBoard false: none, as Moonstone Camp)
+  if (t.noticeBoard !== false) {
   const by = gy(t.trainer[0], t.trainer[1]);
   const board = outlined(new THREE.BoxGeometry(1.8, 1.2, 0.12), toon('#a8744a'), { outline: '#3b2618', width: 0.02 });
   board.position.set(t.trainer[0] - 1.8, by + 1.5, t.trainer[1] + 0.5);
@@ -778,7 +804,9 @@ function* townSteps(world,rng,{adopt}={}) {
   const paper = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.8), toon('#f4ecd6'));
   paper.position.set(t.trainer[0] - 1.8, by + 1.5, t.trainer[1] + 0.57);
   g.add(paper);
-  // well
+  }
+  // well (town.well absent: none)
+  if (t.well) {
   const [wx, wz] = t.well;
   const wy = gy(wx, wz);
   const well = outlined(new THREE.CylinderGeometry(1.1, 1.2, 0.8, 12, 1, true), toon('#b8b2a8', { side: THREE.DoubleSide }), { outline: '#4b4640', width: 0.03 });
@@ -797,6 +825,7 @@ function* townSteps(world,rng,{adopt}={}) {
   roof.position.set(wx, wy + 2.2, wz);
   roof.rotation.y = Math.PI / 4;
   g.add(roof);
+  }
   for(const structure of g.children){outlineStructure(structure);yield;}
   return g;
 }

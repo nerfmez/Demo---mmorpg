@@ -1115,7 +1115,18 @@ image; gameplay keeps `zoneAt`), and an open seam's shared tint reaches a wander
 (`seamBandAt`: up to 0.35-2.6 times its band, about 9-37 m for a 24 m band, world-space noise, so both maps see one border shape),
 carried six bands past the span's ends. A seam with `edgeTreeDensity` thins the map's trees (and
 its scenes' surround trees) toward that density over the same wandering depth, by a fixed hash
-after the seeded passes, so nothing else moves. The scenes' layout is the
+after the seeded passes, so nothing else moves.
+Moonroot's woods (27 October 2026): zone `treeScale` [min, max] spreads tree sizes (same seeded
+draw) and `giants` (share, by a fixed hash) x `giantScale` makes old giants where there is room
+(clear of props and at least 2 + scale m from a road). `look.roots` puts a long root flare at every
+tree's foot (`render/moonroot-flora.js` `rootFlareGeometry`, three shapes by place, faceted bark in
+the trunk palette, instanced) and draws `decor.groundRoots` (meandering half-sunk surface roots from
+tree feet, `zone.groundRoots` per tree, stopping at roads, water, scenes and safe ground) as one
+merged mesh on the ground. `look.undergrowth` {seed} plants each zone's own plants
+(`zone.plants` {curl, glow} per 100 m2; own seed after every other pass): pale moon-curls and teal
+glow bulbs (unlit), instanced. A town's `well` is optional, `noticeBoard: false` and
+`lanterns: false` leave out the generic notice board and street lanterns (Moonstone Camp lights and
+furnishes itself). In Godot: MultiMesh per flare shape and plant kind, one mesh for ground roots. The scenes' layout is the
 region's; `moonroot-grove.json.acceptedScenes` enables them with the same apron, grass-bank, foliage
 (tree scale 1: their roots are drawn for those trunks) and surround settings as the other maps. The scenes replace the native camp (`camp` key removed: Moonstone Camp draws its
 own tents and fire), the elder tree and the ring's pillars (cleared like any native prop inside a

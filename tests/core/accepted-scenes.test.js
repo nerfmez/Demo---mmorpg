@@ -267,3 +267,16 @@ test('map borders wander: zone paint and seam bands follow noise, the woods thin
  const count=(z0,z1)=>w.circles.filter(c=>['tree','birch','willow'].includes(c.type)&&c.z>=z0&&c.z<z1&&c.x>-170&&c.x<170).length;
  assert.ok(count(46,58)<count(-46,-34)*.8,'woods thin toward the seam');
 });
+test('Moonroot\'s woods: small to giant trees, zone plants and surface roots clear of every path; the camp has no town well',()=>{
+ const w=worlds[moonroot.id];
+ assert.ok(!w.circles.some(c=>c.type==='well'),'Moonstone Camp has no generic well');
+ assert.equal(moonroot.town.noticeBoard,false);
+ const sizes=w.circles.filter(c=>c.type==='tree'||c.type==='birch').map(c=>c.scale);
+ assert.ok(Math.min(...sizes)<.7&&Math.max(...sizes)>2,'small and giant trees');
+ assert.ok(sizes.filter(s=>s>1.6).length>=10,'old giants');
+ for(const g of w.circles.filter(c=>c.scale>1.6&&c.type==='tree'))assert.ok(w.roadDist(g.x,g.z)>2,'a giant stands clear of the paths');
+ const kinds=new Set(w.decor.undergrowth.map(u=>w.zoneAt(u.x,u.z).id+':'+u.kind));
+ for(const k of ['fern_rise:curl','mirror_pond:glow','root_warren:glow'])assert.ok(kinds.has(k),k);
+ assert.ok(w.decor.groundRoots.length>100,'surface roots');
+ for(const r of w.decor.groundRoots)for(const [x,z] of r.points){assert.ok(w.roadDist(x,z)>0,'roots stay off the paths');assert.ok(!w.isWater(x,z),'and out of the water');}
+});

@@ -255,3 +255,15 @@ test('Moonroot\'s scenes stand staggered in its woods as the region concept, eve
  // each path is also a road, so it is painted and kept clear of trees
  for(const c of moonroot.acceptedScenes.connectors.filter(c=>!c.id.includes('stones')))assert.ok(moonroot.roads.some(r=>r.id==='moon-path/'+c.id.split('accepted/moon-')[1]),c.id);
 });
+test('map borders wander: zone paint and seam bands follow noise, the woods thin toward the seam',async()=>{
+ const {paintZoneAt,seamBandAt}=await import('../../src/core/ground-regions.js');
+ const w=worlds[moonroot.id];
+ // the painted border of the straight zone edge at x -60 bends by metres along its length
+ const border=[];for(let z=-50;z<=50;z+=5){let x=-100;while(x<-20&&paintZoneAt(w,x,z).id!=='mirror_pond')x+=.5;border.push(x);}
+ assert.ok(Math.max(...border)-Math.min(...border)>6,'paint border is not the rectangle edge');
+ const bands=[];for(let x=-500;x<=500;x+=10)bands.push(seamBandAt(x,-120,24));
+ assert.ok(Math.max(...bands)>Math.min(...bands)*2.5,'seam band depth wanders');
+ // fewer trees in the outer band of the Azure seam than deeper in the same woods
+ const count=(z0,z1)=>w.circles.filter(c=>['tree','birch','willow'].includes(c.type)&&c.z>=z0&&c.z<z1&&c.x>-170&&c.x<170).length;
+ assert.ok(count(46,58)<count(-46,-34)*.8,'woods thin toward the seam');
+});

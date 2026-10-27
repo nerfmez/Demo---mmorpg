@@ -1107,7 +1107,15 @@ look: `look.foliage` gives the map its own leaf and shrub [shadow, mid, light] c
 teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`); a zone's `soil`
 biases the open soil patches (Moonroot's woods have none); `acceptedScenes.bankShade` {strength,
 tone} gives a scene's steep grass banks a darker two-step cel tone in the terrain shader (vertex
-`aBank * (1 - normal.y)`), so the camp's terrace reads from above. The scenes' layout is the
+`aBank * (1 - normal.y)`), so the camp's terrace reads from above. `look.ground` [light, dark]
+stands in for the game's anime ground pair (Moonroot: the concept's pale olive and shaded teal).
+Natural borders (all maps): ground colour takes its zone at a point displaced by two octaves of
+noise (`core/ground-regions.js` `paintZoneAt`, up to about 22 m; terrain tint, grass and the map
+image; gameplay keeps `zoneAt`), and an open seam's shared tint reaches a wandering depth
+(`seamBandAt`: up to 0.35-2.6 times its band, about 9-37 m for a 24 m band, world-space noise, so both maps see one border shape),
+carried six bands past the span's ends. A seam with `edgeTreeDensity` thins the map's trees (and
+its scenes' surround trees) toward that density over the same wandering depth, by a fixed hash
+after the seeded passes, so nothing else moves. The scenes' layout is the
 region's; `moonroot-grove.json.acceptedScenes` enables them with the same apron, grass-bank, foliage
 (tree scale 1: their roots are drawn for those trunks) and surround settings as the other maps. The scenes replace the native camp (`camp` key removed: Moonstone Camp draws its
 own tents and fire), the elder tree and the ring's pillars (cleared like any native prop inside a

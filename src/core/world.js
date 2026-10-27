@@ -4,7 +4,7 @@
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
 import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders,sceneWeight} from './accepted-scenes.js';
-import {outsideClearingWeight,sceneKeep} from './ground-regions.js';
+import {outsideClearingWeight,sceneKeep,seamBandAt} from './ground-regions.js';
 import {edgeCliffColliders} from './edge-cliffs.js';
 import { createRng } from './rng.js';
 import { pondEdgeDistance } from './ponds.js';
@@ -417,6 +417,22 @@ export function createWorld(worldData) {
   }
 
   // ---------- trees, rocks, crystals, logs by zone ----------
+  // An open seam with edgeTreeDensity: the map's woods thin toward the neighbour's density at the
+  // seam over a wandering depth (the same as its ground colour band), never along a straight line.
+  const treeSeams = (worldData.atlas?.seams || []).filter((s) => s.edgeTreeDensity !== undefined);
+  const [gox, goz] = worldData.atlas?.offset || [0, 0];
+  const seamPull = (x, z, s) => {
+    const alongX = s.edge === 'minZ' || s.edge === 'maxZ', along = alongX ? x : z;
+    if (along < s.span[0] || along > s.span[1]) return 0;
+    const inside = { minX: x - b.minX, maxX: b.maxX - x, minZ: z - b.minZ, maxZ: b.maxZ - z }[s.edge];
+    const reach = seamBandAt(x + gox, z + goz, (s.band ?? 24) * 1.4);
+    return inside >= reach ? 0 : 1 - smooth01(Math.max(0, inside) / reach);
+  };
+  const seamTreeDensity = (x, z, own) => {
+    let d = own;
+    for (const s of treeSeams) d += (s.edgeTreeDensity - d) * seamPull(x, z, s);
+    return d;
+  };
   for (let x = b.minX - 30; x < b.maxX + 30; x += 3.2) {
     for (let z = b.minZ - 30; z < b.maxZ + 30; z += 3.2) {
       const jx = x + rng.range(-1.4, 1.4);
@@ -529,6 +545,15 @@ export function createWorld(worldData) {
     for (const p of parts) circles.push({ ...p, type: 'landmark', landmark: lm.id, scale: 1, rot });
   }
 
+  // Near an open seam with edgeTreeDensity the map's woods thin toward the neighbour's density over
+  // a wandering depth. Done after every seeded pass (by a fixed hash, not a draw), so the seeded
+  // layout, its backdrop trees and decor all keep their places; only trees are taken out.
+  if (treeSeams.length) for (let i = circles.length - 1; i >= 0; i--) {
+    const c = circles[i];
+    if (!['tree', 'birch', 'willow'].includes(c.type) || !inBounds(c.x, c.z)) continue;
+    const own = zoneAt(c.x, c.z).treeDensity || 0;
+    if (own > 0 && valueNoise(c.x * 3.1, c.z * 3.1, 20261033) >= seamTreeDensity(c.x, c.z, own) / own) circles.splice(i, 1);
+  }
   // Replace the obsolete native scatter together with its collision, then install
   // the approved solids. Stable waypoint IDs and town services stay game-owned.
   if(acceptedScenes(worldData).length){
@@ -579,6 +604,8 @@ export function createWorld(worldData) {
         if (!inBounds(x, z, 2) || inScene(x, z) || isWater(x, z, rad + 1) || isBeach(x, z, rad + 2) || docks.some((dk) => pointInBox(dk, x, z, rad + 0.8)) || onBridge(x, z, rad + 2)) continue;
         if (nearRoad(x, z, rad + t.roadPad) || connectorClear(worldData, x, z, rad + t.roadPad) || clearAreas.some((c) => dist(x, z, c.x, c.z) < c.r + rad + 2) || nearWaypoint(x, z, rad + 4)) continue;
         if (hf.slopeAt(x, z) > t.slope || outsideClearingWeight(worldData.city, x, z) > 0.05 || nearTown(x, z, rad + 1)) continue;
+        // a scene's woods thin out toward an open seam as the map's own do (no wall of trees on the border)
+        if (treeSeams.length && valueNoise(x * 3.1, z * 3.1, 20261034) < Math.max(...treeSeams.map((sm) => seamPull(x, z, sm)))) continue;
         if (overlaps(x, z, rad) || trees.some((o) => dist(x, z, o.x, o.z) < t.spacing) || sceneSolids.some((o) => dist(x, z, o.x, o.z) < (o.r ?? 1) + rad + 0.6)) continue;
         const tree = { x, z, r: rad, type: 'scene-tree', scale, rot };
         trees.push(tree); circles.push(tree); placedTrees++;

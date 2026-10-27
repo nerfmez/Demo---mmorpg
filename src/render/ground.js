@@ -18,7 +18,7 @@ import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 import { groundBrushUniform,groundBrushUniformSteps } from './ground-brush.js';
 import { coveredTerrainCell } from './city-terrain.js';
 import { cityFloorAt } from '../core/city.js';
-import { outsideClearingWeight, outsideRoadVisible, sceneSurround, sceneClearingFade } from '../core/ground-regions.js';
+import { outsideClearingWeight, outsideRoadVisible, sceneSurround, sceneClearingFade, paintZoneAt, seamBandAt } from '../core/ground-regions.js';
 import art from '../../data/art.json' with {type:'json'};
 import { regionShift } from './region-shift.js';
 
@@ -191,7 +191,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
   let dr = new Float32Array(n);
   let dg = new Float32Array(n);
   let db = new Float32Array(n);
-  const cache = new Map();
+  const cache = new Map(), groundPair = wd.look?.ground || [animeConfig.palette.groundLight, animeConfig.palette.groundDark];
   const col = (hex) => {
     if (!cache.has(hex)) cache.set(hex, new THREE.Color(hex));
     return cache.get(hex);
@@ -201,14 +201,15 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
     const z = oz + j * res;
     for (let i = 0; i < w; i++) {
       const x = ox + i * res;
-      const zn = world.zoneAt(Math.min(b.maxX - 0.1, Math.max(b.minX, x)), Math.min(b.maxZ - 0.1, Math.max(b.minZ, z)));
+      const zn = paintZoneAt(world, x, z);
       const [L, D] = zn.palette || ['#9ccf5a', '#78b046'];
       const k = j * w + i;
       const ab=animeConfig.bounds;
       const blend=animeStudy?smooth(ab.minX-4,ab.minX+4,x)*(1-smooth(ab.maxX-4,ab.maxX+4,x))*smooth(ab.minZ-4,ab.minZ+4,z)*(1-smooth(ab.maxZ-4,ab.maxZ+4,z)):0;
       const mix=animeStudy?Math.max(blend,.5):0; // zones keep half of their own tint outside the sample area
-      const cl = mix?col(L).clone().lerp(col(animeConfig.palette.groundLight),mix):col(L);
-      const cd = mix?col(D).clone().lerp(col(animeConfig.palette.groundDark),mix):col(D);
+      // a map's own ground colours (look.ground [light, dark]) stand in for the game's anime pair
+      const cl = mix?col(L).clone().lerp(col(groundPair[0]),mix):col(L);
+      const cd = mix?col(D).clone().lerp(col(groundPair[1]),mix):col(D);
       // The accepted scenes keep the map's zone colours too, so their grass matches.
       lr[k] = cl.r;
       lg[k] = cl.g;
@@ -229,8 +230,12 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         const x = ox + i * res, z = oz + j * res, along = seam.alongX ? x : z;
         const past = Math.max(seam.span[0] - along, along - seam.span[1], 0);
         const inside = ((seam.alongX ? z : x) - b[seam.edge]) * -seam.outward;
-        if (past >= band || inside >= band) continue;
-        const m = (1 - smooth(0, band, Math.max(0, inside))) * (1 - smooth(0, band, past));
+        // a wandering depth (world metres, so both maps see the same border shape)
+        const [ox0, oz0] = world.data.atlas?.offset || [0, 0], reach = seamBandAt(x + ox0, z + oz0, band);
+        // past the span's ends (the backdrop beyond the map edges) the shared tint carries on a long
+        // way, so the two maps' outer ground never meets on a straight line either
+        if (past >= band * 6 || inside >= reach) continue;
+        const m = (1 - smooth(0, reach, Math.max(0, inside))) * (1 - smooth(0, band * 6, past));
         const at = seam.profile[Math.max(0, Math.min(seam.profile.length - 1, Math.round(((along - seam.profile[0][0]) / (seam.profile[seam.profile.length - 1][0] - seam.profile[0][0] || 1)) * (seam.profile.length - 1))))];
         const cl = col(at[2]), cd = col(at[3]), k = j * w + i;
         lr[k] += (cl.r - lr[k]) * m; lg[k] += (cl.g - lg[k]) * m; lb[k] += (cl.b - lb[k]) * m;

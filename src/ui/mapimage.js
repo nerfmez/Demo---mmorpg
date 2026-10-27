@@ -2,7 +2,7 @@
 // landmarks), made once from the same world data the 3D view uses. The minimap and the world
 // map panel both draw from it.
 import { fromBoxLocal, pointInPolygon } from '../core/math.js';
-import {outsideClearingWeight,outsideRoadDistance,sceneClearingFade} from '../core/ground-regions.js';
+import {outsideClearingWeight,outsideRoadDistance,sceneClearingFade,paintZoneAt} from '../core/ground-regions.js';
 
 import {cityFloorAt} from '../core/city.js';
 import art from '../../data/art.json' with {type:'json'};
@@ -60,7 +60,7 @@ export function mapImage(world) {
       const g = (j + 1) * GW + i + 1, h = heights[g];
       const dx = heights[g + 1] - heights[g - 1];
       const dz = heights[g + GW] - heights[g - GW];
-      const [light, dark] = pal.get(world.zoneAt(x, z).id);
+      const [light, dark] = pal.get(paintZoneAt(world, x, z).id);
       // patchy grass from a cheap hash so big zones do not look flat
       const n = Math.sin(x * 0.37 + Math.sin(z * 0.21) * 2) * Math.sin(z * 0.29 + x * 0.05);
       let c = mix(light, dark, 0.3 + n * 0.13);

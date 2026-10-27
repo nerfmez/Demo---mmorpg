@@ -57,6 +57,23 @@ export function outsideRoadDistance(city,roads,x,z,reach=Infinity){
 // The ring outside the accepted scenes (data: acceptedScenes.surround), where
 // native paint eases into the scenes' look. 1 at a scene's bounds and inside it,
 // 0 `ring` metres out; the outer edge wobbles so it never reads as a band.
+// Ground colour regions meet on natural, wandering lines, not on the zones' straight rectangle
+// edges: the zone whose colour a point takes is read at a point displaced by two octaves of
+// noise (up to about 22 m, and deep bays where the noise runs high). Paint only (terrain tint,
+// grass and the map image); gameplay keeps world.zoneAt.
+export function paintZoneAt(world,x,z){
+  const b=world.bounds;
+  const wx=(valueNoise(x*.018,z*.018,20261027)-.5)*32+(valueNoise(x*.07,z*.07,20261028)-.5)*12;
+  const wz=(valueNoise(x*.018,z*.018,20261029)-.5)*32+(valueNoise(x*.07,z*.07,20261030)-.5)*12;
+  return world.zoneAt(Math.min(b.maxX-.1,Math.max(b.minX,x+wx)),Math.min(b.maxZ-.1,Math.max(b.minZ,z+wz)));
+}
+// An open seam's colour band reaches a wandering depth into each map (0.35 to 2.6 times its band,
+// varying over tens of metres in world space), so the border between two maps' grass is never a
+// straight line. At the seam itself both maps still take the shared seam tint.
+export function seamBandAt(gx,gz,band){
+  const n=valueNoise(gx*.022,gz*.022,20261031)*.7+valueNoise(gx*.075,gz*.075,20261032)*.3;
+  return band*(.35+2.25*n*n);
+}
 export function sceneSurround(data,x,z,ring){
   const cfg=data.acceptedScenes?.surround;if(!cfg||!ring)return 0;
   let d=Infinity;

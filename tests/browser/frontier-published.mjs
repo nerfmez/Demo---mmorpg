@@ -54,7 +54,8 @@ try{
  await page.waitForFunction(()=>__frontier.weaponModelsReady());await page.reload();await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);await activate('[data-act="continue"]');await ready();
  await page.evaluate(()=>{__frontier.paused=true;__frontier.input.reset();});
  const loaded=await page.evaluate(keys=>Object.fromEntries(keys.map(k=>[k,__frontier.game.ch[k]])),Object.keys(state));assert.deepEqual(loaded,state,'save/reload preserves crafted loadout and tree');
- assert(await page.locator('.sbtn.attack [data-art="skill/charged_shot"] svg').count(),'charged icon');
+ // the approved skill art is a raster image; authored vectors remain for skills without one
+ assert(await page.locator('.sbtn.attack [data-art="skill/charged_shot"] :is(img,svg)').count(),'charged icon');
  const charge=await page.evaluate(()=>{
   const g=__frontier.game,s=g.skills[0],p=g.player;g.monsters=[];g.derived.mpRegen=0;
   const arrows=()=>Object.values(g.ch.arrows.stock).reduce((a,b)=>a+b,0),before={mp:p.mp,arrows:arrows()};

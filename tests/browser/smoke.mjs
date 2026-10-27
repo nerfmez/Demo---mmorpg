@@ -3,16 +3,17 @@
 // game's own API and saves screenshots to tests/browser/out/.
 // Screenshot waits allow slow software-GL shader compilation on CI; all gameplay assertions stay unchanged.
 // Usage: npm run build && npm run test:browser  (BROWSER=webkit to use WebKit if installed)
-// SMOKE_CASE=vrm runs the unchanged Medium VRM case alone for focused startup diagnosis.
+// SMOKE_CASE=chibi runs the chibi hero case alone for focused startup diagnosis. The old opt-in
+// VRM body (?hero=vrm) is not the game's hero any more (owner, 27 October 2026) and has no smoke case.
 import { completeOpeningUi } from './opening-helper.mjs';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { enterFullscreenGate } from './fullscreen-entry.mjs';
-import { initialUiReady, vrmHeroReady, chibiHeroReady } from './startup-ready.mjs';
+import { initialUiReady, chibiHeroReady } from './startup-ready.mjs';
 
 const smokeCase = process.env.SMOKE_CASE ?? 'all';
-if (!['all', 'vrm', 'chibi'].includes(smokeCase)) throw new Error('SMOKE_CASE must be all, vrm or chibi');
+if (!['all', 'chibi'].includes(smokeCase)) throw new Error('SMOKE_CASE must be all or chibi');
 
 const OUT = new URL('./out/', import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });
@@ -338,46 +339,6 @@ async function run(name, contextOpts) {
   await ctx.close();
 }
 
-// the opt-in VRM hero (?hero=vrm) loads, is driven by the animator and renders
-async function vrmHero() {
-  const ctx = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
-  const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', (e) => errors.push(String(e)));
-  page.on('console', (m) => {
-    if (m.type() === 'error' && !/fonts\.g|Failed to load resource/.test(m.text())) errors.push(m.text());
-  });
-  await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=medium&hero=vrm`);
-  await waitForStartupReady(page, initialUiReady, { device: 'vrm', phase: 'initialUiReady', errors });
-  // models load in the background; the hero is rebuilt with the VRM body only once it has arrived
-  await waitForStartupReady(page, vrmHeroReady, { device: 'vrm', phase: 'vrmHeroReady', errors });
-  const info = await page.evaluate(async () => {
-    const { game, view } = window.__frontier;
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-    game.setMove(1, 0);
-    for (let k = 0; k < 40; k++) game.update(1 / 30);
-    await wait(500);
-    const body = view.hero.skin?.body;
-    let skinned = 0, tris = 0;
-    body?.traverse((o) => {
-      if (o.isSkinnedMesh) {
-        skinned++;
-        tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
-      }
-    });
-    const head = body?.getObjectByName('J_Bip_C_Head');
-    const hips = body?.getObjectByName('J_Bip_C_Hips');
-    const h = head && hips ? head.getWorldPosition(head.position.clone()).y - hips.getWorldPosition(hips.position.clone()).y : 0;
-    return { skinned, tris, h, face: typeof view.hero.setFace };
-  });
-  check(info.skinned >= 6 && info.tris > 10000, `vrm hero: skinned meshes load (${JSON.stringify(info)})`);
-  check(info.h > 0.4, `vrm hero: head stays above the hips while running (${info.h.toFixed(2)} m)`);
-  check(info.face === 'function', 'vrm hero: has an expression switch');
-  check(errors.length === 0, `vrm hero: no page errors ${errors.slice(0, 3).join(' | ')}`);
-  await page.screenshot({ path: `${OUT}vrm-hero.png` });
-  await ctx.close();
-}
-
 // the opt-in chibi hero (?hero=chibi) loads with its own texture, is driven by the animator and renders
 async function chibiHero() {
   const ctx = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
@@ -433,8 +394,7 @@ try {
     await run('desktop', { viewport: { width: 1600, height: 900 } });
     await run('ipad', { viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
   }
-  if (smokeCase !== 'chibi') await vrmHero();
-  if (smokeCase !== 'vrm') await chibiHero();
+  await chibiHero();
 } finally {
   await browser.close();
   stopServer();

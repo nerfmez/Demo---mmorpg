@@ -104,9 +104,10 @@ export class Menu {
       <button class="mbtn" data-act="title">← กลับ</button></div>`);
   }
 
-  showCreate(slot) {
+  /** The creation screen; `look` keeps the choices made so far when it is drawn again (rerenderCreate). */
+  showCreate(slot, look = { ...DEFAULT_LOOK }) {
     this.slot = slot;
-    this.look = { ...DEFAULT_LOOK };
+    this.look = look;
     this.name = '';
     this.view.mode = 'create';
     this.refreshPreview();
@@ -157,15 +158,13 @@ export class Menu {
     const name = this.el.querySelector('#heroName')?.value || '';
     const scroll = this.el.querySelector('.create-panel')?.scrollTop || 0;
     const slot = this.slot;
-    const look = this.look;
-    this.showCreate(slot);
-    this.look = look;
+    // the look goes in before the controls are drawn: the colour wheel starts from its hair colour
+    this.showCreate(slot, this.look);
     this.name = name;
     // re-apply state to the freshly drawn controls
     this.el.querySelector('#heroName').value = name;
     this.el.querySelectorAll('[data-act="look"]').forEach((b) => b.classList.toggle('on', this.look[b.dataset.key] === b.dataset.val));
     this.el.querySelector('.create-panel').scrollTop = scroll;
-    this.refreshPreview();
   }
 
   onInput(e) {

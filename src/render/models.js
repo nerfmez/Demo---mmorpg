@@ -132,12 +132,15 @@ export function chibiFace(id) {
 }
 
 /**
- * Only the current hands and worn outfit models (and which hair styles have loaded) affect this
- * readiness key, so stale requests cannot refresh new gear.
+ * Only the current hands and worn outfit models (and which hair styles and faces have loaded) affect
+ * this readiness key, so stale requests cannot refresh new gear, and a rig (a remote player, a
+ * portrait) built while its hair or face was loading is rebuilt once it arrives.
  */
 export function weaponModelKey(bases = {}) {
   const has = (k) => +loaded.has(k);
-  return `${has(`weapons/${bases.weapon}`)}:${has(`weapons/${bases.offhand}`)}:${outfitIds(bases).map((id) => has(`characters/${id}`)).join('')}:${[...hairStyles.values()].map((id) => has(`characters/${id}`)).join('')}`;
+  let faceCount = 0;
+  for (const t of faces.values()) if (t) faceCount++;
+  return `${has(`weapons/${bases.weapon}`)}:${has(`weapons/${bases.offhand}`)}:${outfitIds(bases).map((id) => has(`characters/${id}`)).join('')}:${[...hairStyles.values()].map((id) => has(`characters/${id}`)).join('')}:${faceCount}`;
 }
 
 /** Portraits may wait for current demanded assets; absent/failed assets use fallback. */

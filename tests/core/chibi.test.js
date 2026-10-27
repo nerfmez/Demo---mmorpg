@@ -136,6 +136,13 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
     assert.ok(['armor', 'boots', 'helm'].includes(m.chibiOutfit), id + ' piece');
     // its insides take the cloth's colour round each point (darkInside) only when it says so
     if (m.localInside != null) assert.equal(typeof m.localInside, 'boolean', id + ' localInside');
+    // a neckline cut clean (necklineCut): a V from below the neck up to a cut round it, a thin trim
+    if (m.neckline) {
+      const n = m.neckline, neck = body.fit.neck;
+      for (const k of ['tip', 'x', 'slope', 'z', 'cut', 'ring', 'trim']) assert.ok(Number.isFinite(n[k]), id + ' neckline.' + k);
+      assert.ok(n.tip < n.cut && n.cut <= neck && n.tip > neck - 0.15 && n.slope > 0 && n.ring > 0 && n.trim > 0 && n.trim < 0.03, id + ' neckline shape');
+      assert.match(n.color, /^#[0-9a-f]{6}$/i, id + ' neckline colour');
+    }
     // the game finds the model by the worn item's id (hero.js: outfit_<item>)
     const table = { armor: 'armor', boots: 'boots', helm: 'helms' }[m.chibiOutfit];
     assert.ok(outfits[table][id.replace(/^outfit_/, '')], id + ' names a ' + m.chibiOutfit + ' item');

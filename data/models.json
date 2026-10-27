@@ -1483,6 +1483,17 @@
       "file": "models/outfits/travel_tunic.glb",
       "chibiOutfit": "armor",
       "localInside": true,
+      "neckline": {
+        "_doc": "The collar cut clean per pixel (chibi-garments.js necklineCut), body bind space in chibi metres: a V in front of depth `z` from `tip` (height) at `x`, widening by `slope` per metre up; the neck's round above `cut` within `ring` of its axis; a `trim` band (m) in `color` on the edge.",
+        "tip": 0.7675,
+        "x": -0.003,
+        "slope": 0.4,
+        "z": 0.0069,
+        "cut": 0.84,
+        "ring": 0.06,
+        "trim": 0.01,
+        "color": "#367f64"
+      },
       "tris": 1295,
       "source": "The chibi in the Travel Tunic (the owner's reference sheet 03 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f0d-97cc-72dc-962c-d0f0313ded3c), Meshy 6 retexture (task 01a16f0e-59ef-702d-8ab9-715f349311ad); tunic, belt, skirt and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/travel.json); its blurred neck, V opening and cuffs repainted clean by scripts/clean-travel-tunic.py (2026-10-27)."
     },

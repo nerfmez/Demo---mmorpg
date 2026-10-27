@@ -136,7 +136,8 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    per vertex between the chest and the arm, its corner stretched into a spike when the arm came down. Its settings per set live in
    `assets/meshy/outfits/<set>.json` beside the Meshy source. The Travel Tunic's neck and cuffs are
    then repainted by `scripts/clean-travel-tunic.py` (the generated paint there was a blur of skin,
-   teal and a dark smear).
+   teal and a dark smear), and its collar, a crumpled tangle no repaint makes neat, is cut clean in
+   game by the outfit's `neckline` (a V and the neck's round, trimmed teal, `chibi-garments.js`).
 3. In game (`render/chibi-garments.js`) the model replaces the shells it covers. The body under it is
    not removed: the covered vertices are tucked inside the cloth, shaded as its inside and pushed back
    in depth (`characters.hero_chibi.underCloth`), so nothing pokes through, no gap ever shows the

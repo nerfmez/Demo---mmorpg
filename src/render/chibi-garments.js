@@ -88,7 +88,7 @@ export function prepareChibiOutfit(gltf, m) {
   geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   return { piece: m.chibiOutfit, geometry, bind: bindSpace(mesh), bones: mesh.skeleton.bones.map((b) => b.name), map: mesh.material.map,
-    hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, localInside: !!m.localInside, fitted: null };
+    hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, localInside: !!m.localInside, neckline: m.neckline || null, fitted: null };
 }
 
 /**
@@ -126,6 +126,46 @@ function fitOutfit(O, body) {
   return g;
 }
 
+/**
+ * A modelled outfit's neckline cut clean (data: the outfit's `neckline`, in the body's bind space,
+ * chibi metres): the generated collar is a crumpled tangle that no repaint makes neat, so the cloth
+ * is cut away per pixel by a plain shape instead, a V in front (from `tip` at height, centred on `x`,
+ * widening by `slope` per metre up, in front of depth `z`) and the round of the neck above `cut`
+ * within `ring` of the neck's axis (the cut rising steeply past it), edged with a `trim` band in
+ * `color` (no ink line: a discarded edge has no antialiasing, and a dark line on it shows the steps). `neckEdge` is a point's distance into the kept cloth (m;
+ * below 0 cut away), the same in GLSL and here (for the body under the opening, coveredBody).
+ */
+function neckEdge(n, x, y, z) {
+  const r = Math.hypot(x, z - n.z), top = n.cut + 2 * Math.max(0, r - n.ring) - y;
+  const v = z > n.z ? (Math.abs(x - n.x) - n.slope * (y - n.tip)) / Math.hypot(1, n.slope) : 1;
+  return Math.min(top, v);
+}
+const NECK_EDGE = (n) => `
+float neckEdge( vec3 p ) {
+  float r = length( vec2( p.x, p.z - ${n.z.toFixed(4)} ) );
+  float top = ${n.cut.toFixed(4)} + 2.0 * max( 0.0, r - ${n.ring.toFixed(4)} ) - p.y;
+  float v = p.z > ${n.z.toFixed(4)} ? ( abs( p.x - ${n.x.toFixed(4)} ) - ${n.slope.toFixed(4)} * ( p.y - ${n.tip.toFixed(4)} ) ) / ${Math.hypot(1, n.slope).toFixed(4)} : 1.0;
+  return min( top, v );
+}`;
+function necklineCut(material, n, trim) {
+  const prev = material.onBeforeCompile, key = material.customProgramCacheKey;
+  const color = trim ? new THREE.Color(n.color) : null;
+  material.onBeforeCompile = (shader, renderer) => {
+    prev?.call(material, shader, renderer);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vNeck;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvNeck = position;');
+    let frag = shader.fragmentShader.replace('#include <common>', `#include <common>\nvarying vec3 vNeck;${NECK_EDGE(n)}`);
+    frag = frag.replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nfloat neck = neckEdge( vNeck );\nif ( neck < 0.0 ) discard;');
+    if (trim) frag = frag.replace('#include <map_fragment>', `#include <map_fragment>
+if ( neck < ${n.trim.toFixed(4)} ) diffuseColor.rgb = vec3( ${color.r.toFixed(4)}, ${color.g.toFixed(4)}, ${color.b.toFixed(4)} );`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\nif ( neck < ${n.trim.toFixed(4)} ) totalEmissiveRadiance = emissive * diffuseColor.rgb;`);
+    shader.fragmentShader = frag;
+  };
+  material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-neck${trim ? 1 : 0}`;
+  return material;
+}
+
 const CUFF_SHADE = 0.06; // m inside a sleeve's opening where the arm under it takes its full tucked shade
 
 /**
@@ -151,11 +191,11 @@ function sleeveEnds(T, g) {
  * (cached on T per outfit). A shell covers the triangles wholly inside its region.
  */
 function coveredBody(T, src, models, worn, cuffs = null) {
-  let key = [...models.map((O) => O.piece + ':' + O.hide.length), ...worn.map(([k, S]) => k + ':' + S.len)].join('|');
+  let key = [...models.map((O) => O.piece + ':' + O.hide.length + (O.neckline ? ':neck' : '')), ...worn.map(([k, S]) => k + ':' + S.len)].join('|');
   T.covered ??= new Map();
   if (cuffs) key += '|cuffs:' + cuffs.map((x) => x.toFixed(3)).join(',');
   if (!T.covered.has(key)) {
-    const hide = new Set(models.flatMap((O) => O.hide)), ix = src.index.array;
+    const hide = new Set(models.flatMap((O) => O.hide)), ix = src.index.array, necks = models.map((O) => O.neckline).filter(Boolean);
     const pos = src.attributes.position, nrm = src.attributes.normal;
     // a vertex is tucked when every triangle round it (across UV seams: by position) is covered
     const at = (i) => `${pos.getX(i).toFixed(4)},${pos.getY(i).toFixed(4)},${pos.getZ(i).toFixed(4)}`;
@@ -177,6 +217,8 @@ function coveredBody(T, src, models, worn, cuffs = null) {
       // shaded as the inside of the cloth, its edge half way; a shell's cut line falls inside its edge
       // triangles, so the skin inside its region is pushed back in full (no skin there pokes through)
       tucked[i] = open.has(p) && !deep.has(p) ? 0.5 : 1;
+      // seen through a neckline cut clean (necklineCut): plain skin, under its trim too
+      if (necks.some((n) => neckEdge(n, pos.getX(i) / local, pos.getY(i) / local, pos.getZ(i) / local) < n.trim)) tucked[i] = 0;
       // the arm just inside a sleeve's opening is seen through it: skin in the sleeve's shadow, its
       // full shade only CUFF_SHADE in (the tucked shade's brown at the cuff reads as a stain)
       const ax = Math.abs(pos.getX(i)), end = cuffs && cuffs[pos.getX(i) < 0 ? 0 : 1];
@@ -224,10 +266,12 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
       return m;
     };
     const part = make(darkInside(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight), T.underCloth?.inside, O.localInside));
+    if (O.neckline) necklineCut(part.material, O.neckline, true);
     part.name = 'Outfit-' + O.piece;
     part.castShadow = true;
     part.receiveShadow = true; // like the body it covers
     const hull = make(chibiOutline(O.map, O.outline, 0.32));
+    if (O.neckline) necklineCut(hull.material, O.neckline, false);
     hull.name = part.name + '-outline';
     mesh.parent.add(part, hull);
   }

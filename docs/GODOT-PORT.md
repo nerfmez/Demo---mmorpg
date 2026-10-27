@@ -491,7 +491,11 @@ inside the body's edge triangles), and the shell keeps every triangle reaching i
 while its shader discards past the region's line (`uCutD.w`, margin `uCutD.y`), so its edge is
 straight, not the body's triangles. Garments and modelled helms draw their back faces in their texture's mean colour (its smallest
 mip; with the outfit's `localInside`, each point's own colour, where its texture is
-shared by several cloths, as the Travel set's) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth. The models load
+shared by several cloths, as the Travel set's) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth.
+An outfit's `neckline` (the Travel Tunic's) cuts its crumpled generated collar away per pixel by a
+plain shape in the body's bind space (`necklineCut`, `neckEdge`: a V in front and the round of the
+neck), edges it with a teal `trim` band, and leaves the body under the opening untucked (plain skin);
+in Godot pass the bind position to the fragment shader and discard the same way (cloth and outline). The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
 hair is and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn

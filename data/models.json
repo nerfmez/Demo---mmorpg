@@ -1278,6 +1278,7 @@
         "staff"
       ],
       "fist": {
+        "relaxed": 0.4,
         "knuckle": 0.55,
         "radius": 0.25,
         "wrap": 1.25,

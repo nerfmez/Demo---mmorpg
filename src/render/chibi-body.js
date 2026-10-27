@@ -513,7 +513,7 @@ export function prepareChibiBody(gltf, cfg) {
   const headTuck = { verts: Uint32Array.from(fitVerts), ears: Uint32Array.from(ears), face: Uint32Array.from(face), toMesh, bone: hb };
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, faceShadow, faceDecal: cfg.faceDecal || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, faceShadow, faceDecal: cfg.faceDecal || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], relaxedHand: cfg.fist?.relaxed ?? 0, paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -1033,8 +1033,10 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     if (o.isSkinnedMesh) meshes.push(o);
   });
   // a hand closes into its fist only while it holds something: the right with any weapon, the
-  // left with an off-hand item or a weapon it also grips (data: fist.leftFistWith)
-  const closed = [weapon ? 1 : 0, offhand || T.leftFistWith.includes(weapon) ? 1 : 0];
+  // left with an off-hand item or a weapon it also grips (data: fist.leftFistWith); an empty hand
+  // is curled part way (fist.relaxed), not held out with its fingers straight
+  const open = T.relaxedHand;
+  const closed = [weapon ? 1 : open, offhand || T.leftFistWith.includes(weapon) ? 1 : open];
   for (const mesh of meshes) {
     const src = mesh.material;
     mesh.material = paintedLight(toonCopy(src, flash, rim, false), T.paintedLight);

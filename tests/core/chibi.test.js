@@ -56,6 +56,11 @@ test('the chibi torso flatten bands are bounded', () => {
   }
 });
 
+test('an empty chibi hand is curled part way, short of the fist whose inside would show', () => {
+  const r = data.models.characters.hero_chibi.fist.relaxed;
+  assert.ok(r > 0 && r <= 0.45, 'fist.relaxed');
+});
+
 test('the chibi face shadow settings are bounded', () => {
   const f = data.models.characters.hero_chibi.faceShadow;
   assert.ok(f && f.from < f.to && f.from >= 0 && f.to <= 1, 'face mask runs forward across the head');

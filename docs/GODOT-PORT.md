@@ -454,7 +454,8 @@ along the haft, and the animator reaches the left arm so its fist hole (not its 
 haft after the right fist is seated (`rig.support`). The hand has no finger
 bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
 load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
-holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is
+holds something (the left also for the weapons in `fist.leftFistWith`); an empty hand is curled
+part way (`fist.relaxed` of the fist, not held out with straight fingers), and the outline is
 thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
 bind pose). The head is reshaped once at load toward the sheet's rounder head
 (`headShape`: wider, shorter below the eye line, fuller cheeks, the whole head scaled by `scale`

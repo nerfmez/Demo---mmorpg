@@ -1558,8 +1558,7 @@
       "upgradeMaterial": "mirror_scale",
       "upgradeStat": "INT",
       "job": "priest",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "spell_wave": {
       "name": "Spell Wave",

@@ -310,6 +310,12 @@ Owner: could be better. The bell is richer (gold bands at its lip, waist and sho
 inside) and the toll a real event: a dome of sound races out with the rings, rays of light shoot up from
 the crown, a smaller echo toll follows, and each struck target rings with a ring round it and a star.
 
+Chain of Light (โซ่แสง, a priest cooldown spell: a chain thrown straight ahead; the struck target is 85%
+slower for 2 s), `skillfx/lightchain-fx.js` in the holy white-gold: a real chain of light links pays out
+from the staff to a star-headed tip, catches the target with a flash, pulls taut and dissolves from the
+hand, and three loops of chain wind round the target, tighten and turn for as long as it is slowed, then
+fall away; a miss draws the chain back. The game's generic orb is no longer drawn for it.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

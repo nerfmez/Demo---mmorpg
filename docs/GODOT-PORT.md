@@ -533,7 +533,21 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
 - `river.depth` and `river.bankWidth` produce an ankle-deep bed with gentle banks. Keep the
   rendered water and movement masks separate when porting. Do not add a blocking river strip.
 - `render/ground.js`: small grouped grass strokes, warm earth, bevelled paving, mossy cracks,
-  cliff strata and shore foam. Water streaks use world coordinates, including round ponds.
+  cliff strata and shore foam.
+- Fresh water (`render/ground.js` `waterMaterial`, 27 October 2026), streams and ponds, in the
+  sea's cel style: soft depth bands on a per-vertex `tone` (a pond's depth, a stream's channel),
+  bed mottling in the shallows, sky patches on a turned warped domain, sparse twinkling glints,
+  and a broken foam lace of constant width at the waterline (`shore`: metres to the waterline per
+  vertex, from the bank's real zero crossing across a stream row, or the pond bank's 0.55 m/m
+  rise), which laps by a few centimetres. Streams carry `along`/`across` flow metres (`flow` 1)
+  and draw thin meandering current lines whose tapered dashes travel downstream; ponds (`flow` 0) draw slow drip rings. Ponds are polar meshes about
+  0.6 m apart out to their rim plus 1.6 m of bank. Pond outlines: a pond is `[x, z, r]` or
+  `[x, z, r, wobble]` (`core/ponds.js`): wobble bends the rim with four fixed harmonics seeded by
+  the centre (mean radius r), and terrain carving, `inPond`/collision, the apron fade, the mud
+  paint and the water mesh all read that rim. Pond water ends at the carved bank's waterline
+  (0.64 m past the rim) even over lower ground. A scene that exports `pond` (Mirror Pond) is drawn
+  to its 72 radii instead of its collision circles. In Godot use one shader with the same
+  attributes as custom vertex data and `TIME`; there is no per-frame mesh work.
 - `render/nature.js` / `leafpaint.js`: branched trunks, curved grass, petals, faceted rocks,
   shared alpha-cutout leaf and needle atlases; chunked instancing is preserved. In Godot use
   alpha scissor `StandardMaterial3D`/toon materials and MultiMesh chunks. These crown cards

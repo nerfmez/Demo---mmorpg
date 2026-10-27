@@ -7,6 +7,7 @@ import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders,
 import {outsideClearingWeight,sceneKeep} from './ground-regions.js';
 import {edgeCliffColliders} from './edge-cliffs.js';
 import { createRng } from './rng.js';
+import { pondEdgeDistance } from './ponds.js';
 import { clamp, dist, distToPolyline, distToPolylineBounds, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
 import { cityFloorAt, cityRoadDistance, cityFloorHeight, cityPlantingFloorAt } from './city.js';
@@ -87,7 +88,7 @@ export function createWorld(worldData) {
     return deck;
   };
   const inRiver = (x, z, pad = 0) => !!river && distToPolyline(x, z, river.points) < river.width / 2 + pad;
-  const inPond = (x, z, pad = 0) => (worldData.ponds || []).some(([px, pz, r]) => dist(x, z, px, pz) < r + pad);
+  const inPond = (x, z, pad = 0) => (worldData.ponds || []).some((p) => pondEdgeDistance(p, x, z) < pad);
   // Single-valued shores keep their original contract. Concave port capes may
   // opt into an authored contour shared with terrain, painting and water.
   const shore = worldData.sea?.shore || null;

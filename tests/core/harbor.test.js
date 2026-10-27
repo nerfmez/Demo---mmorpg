@@ -268,7 +268,8 @@ test('Azure Coast overlays the original beach town while the western world stays
   assert.deepEqual(data.world.town.centre,originalBeach.town.centre,'town is anchored to the old town, not a translated whole world');
   assert.deepEqual(data.world.playerSpawn,originalBeach.playerSpawn);
   assert.deepEqual(data.world.waypoints.find(w=>w.id==='landing'),originalBeach.waypoints.find(w=>w.id==='landing'));
-  assert.deepEqual(data.world.ponds,originalBeach.ponds);
+  // the pond keeps its place and size; its outline (a fourth value, core/ponds.js) is its look
+  assert.deepEqual(data.world.ponds.map(p=>p.slice(0,3)),originalBeach.ponds);
   // Place is preserved; monster level is a balance value (progression.balance) and ground cover
   // (decor) is the zone's look, so both may change.
   const place=z=>{const {level,decor,...rest}=z;return rest;};

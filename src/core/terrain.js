@@ -8,6 +8,7 @@
 // edge cliffs (acceptedScenes.edgeCliffs).
 
 import { edgeCliffAt } from './edge-cliffs.js';
+import { pondReach, pondCircleDistance } from './ponds.js';
 import {applyAcceptedHeights,smoothAcceptedAprons,acceptedApronOffsets,apronConnectors} from './accepted-scenes.js';
 import { clamp, distToSegment, coastSample, toBoxLocal, fromBoxLocal } from './math.js';
 
@@ -343,12 +344,12 @@ export function buildHeightfield(worldData, zoneAt) {
       } else hf[k] = carve(hf[k], d, half, water);
     }
   }
-  for (const [px, pz, pr] of worldData.ponds || []) {
-    const reach = pr + 6;
+  for (const pond of worldData.ponds || []) {
+    const [px, pz, pr] = pond, reach = pondReach(pond) + 6;
     for (let j = Math.max(0, Math.floor((pz - reach - oz) / res)); j <= Math.min(h - 1, Math.ceil((pz + reach - oz) / res)); j++)
       for (let i = Math.max(0, Math.floor((px - reach - ox) / res)); i <= Math.min(w - 1, Math.ceil((px + reach - ox) / res)); i++) {
         const k = j * w + i;
-        hf[k] = carve(hf[k], Math.hypot(X(i) - px, Z(j) - pz), pr, water);
+        hf[k] = carve(hf[k], pondCircleDistance(pond, X(i), Z(j)), pr, water);
       }
   }
 

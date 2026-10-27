@@ -3,6 +3,7 @@
 import {edgeCliffCover} from './edge-cliffs.js';
 import layout from '../../data/accepted-scenes.js';
 import {distToPolyline,polylineZAtX} from './math.js';
+import {pondEdgeDistance} from './ponds.js';
 const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
 // Each scene lies in one region's local coordinates (scene.region, Azure Coast when
 // unset); a region with acceptedScenes.enabled gets the scenes placed in it.
@@ -74,12 +75,12 @@ export function acceptedApronOffsets(data,grid,heights,waterLevel){
  const box=(a,r)=>a.map((_,i)=>{let s=0,n=0;for(let k=Math.max(0,i-r);k<=Math.min(a.length-1,i+r);k++){s+=a[k];n++;}return s/n;});
  // fades out toward water: over a metre of native height above the water line and
  // over pondMargin metres from a pond's edge, so no bank is left standing over it
- const dry=(k,x,z)=>smooth((heights[k]-waterLevel-cfg.dryMargin))*(data.ponds||[]).reduce((m,[px,pz,pr])=>m*smooth((Math.hypot(x-px,z-pz)-pr-1)/cfg.pondMargin),1);
+ const dry=(k,x,z)=>smooth((heights[k]-waterLevel-cfg.dryMargin))*(data.ponds||[]).reduce((m,p)=>m*smooth((pondEdgeDistance(p,x,z)-1)/cfg.pondMargin),1);
  for(const scene of acceptedScenes(data)){
   const sides=cfg.sides?.[scene.id]||'';if(!sides)continue;
   const b=scene.bounds,f=scene.feather,own={...cfg,...cfg.scene?.[scene.id]};
   // inland scenes: low dry ground is still ground, only ponds stop the apron
-  const fade=own.inland?(k,x,z)=>(data.ponds||[]).reduce((m,[px,pz,pr])=>m*smooth((Math.hypot(x-px,z-pz)-pr-1)/cfg.pondMargin),1):dry;
+  const fade=own.inland?(k,x,z)=>(data.ponds||[]).reduce((m,p)=>m*smooth((pondEdgeDistance(p,x,z)-1)/cfg.pondMargin),1):dry;
   for(const side of sides){
    // the side as a segment: along-axis span, the fixed coordinate and the outward direction
    const alongX=side==='N'||side==='S',lo=alongX?b[0]:b[2],hi=alongX?b[1]:b[3],fixed={W:b[0],E:b[1],N:b[2],S:b[3]}[side],out=side==='W'||side==='N'?-1:1;

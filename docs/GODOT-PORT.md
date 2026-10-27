@@ -527,7 +527,7 @@ look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`) an
 owner's sheet draws it (`hairColorMaterial`): no soft light, gloss or rim, only one hard cel shadow
 tone (0.7 of the colour) where the sun does not reach it. Of the painted texture only its strand lines
 darken the colour: each texel's brightness over a coarser mip's (its surroundings), so the generated
-paint's broad shading and blotchy light are dropped. The look's
+paint's broad shading and blotchy light are dropped. The hair casts no shadow (the sun's shadow map laid its locks over the face in dark blotches); the head under it casts the hero's shadow on the ground. The look's
 `face` (`FACES`) draws one of the owner's faces (`public/models/faces/<id>.png`) over the painted one
 (`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
 decal pass or a second texture in the head's shader. Character creation shows the hero alone in a

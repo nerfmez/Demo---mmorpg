@@ -902,7 +902,9 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
   const hair = new THREE.Mesh(geometry, paintedLight(toonCopy(src, flash, rim, false), T.paintedLight));
   if (model) darkInside(hair.material, T.underCloth?.inside); // a helm's inside reads as shade
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
-  hair.castShadow = true;
+  // no cast shadow: the sun's shadow map would lay the locks' shadow over the face in dark blotches
+  // (the owner's review); the head under it still casts the hero's shadow on the ground
+  hair.castShadow = false;
   const hull = new THREE.Mesh(geometry, hairHull(src, outline / s, darkness));
   if (color && !model && src.map) { hairColorMaterial(hair.material, color); hairColorMaterial(hull.material, color); }
   // the head under it in its shade: the look's colour (the same uniform value), else the painted hair's

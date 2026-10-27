@@ -1,5 +1,5 @@
 {
-  "_doc": "Skill Mods change how a skill behaves. One fit rule (core/skills.js modFits): the skill's visible tags, plus the grants of companion mods that fit the bare skill, must contain ALL of needs, ANY of on (when listed) and NONE of not. Two mods of the same family never share a skill. Each mod has levels 1-3; values are per level. slotsByRank: mod sockets a combat skill has at rank 1..5. effect.costMult multiplies the skill's MP cost (and a channel's drain) while the mod is active; every combat mod has one (owner, after PoE support gems), mods for movement skills do not.",
+  "_doc": "Skill Mods change how a skill behaves. One fit rule (core/skills.js modFits): the skill's visible tags, plus the grants of companion mods that fit the bare skill, must contain ALL of needs, ANY of on (when listed) and NONE of not. Two mods of the same family never share a skill. Each mod has levels 1-3; values are per level. slotsByRank: mod sockets a combat skill has at rank 1..5. effect.costMult multiplies the skill's MP cost (and a channel's drain) while the mod is active; every combat mod has one (owner, after PoE support gems), mods for movement skills do not. Signature (owner, 2026-10-27): every damage skill with a base cooldown of signatureCooldown s or more is tagged Signature, and a mod that multiplies a cast's hits (more projectiles, repeats, echoes, triggers, a returning shot) lists Signature under not, so the strongest hits are never multiplied.",
   "renamed": {
     "ash_detonation": "status_burst",
     "burning_ground": "fire_shift",
@@ -15,6 +15,9 @@
       ],
       "needs": [
         "Projectile"
+      ],
+      "not": [
+        "Signature"
       ],
       "effect": {
         "extraProjectiles": [
@@ -135,6 +138,9 @@
         "Zone",
         "Curse"
       ],
+      "not": [
+        "Signature"
+      ],
       "effect": {
         "echoDelay": 0.6,
         "echoMult": [
@@ -194,6 +200,9 @@
       ],
       "needs": [
         "Melee"
+      ],
+      "not": [
+        "Signature"
       ],
       "effect": {
         "repeats": [
@@ -458,6 +467,9 @@
         "Spell"
       ],
       "family": "trigger",
+      "not": [
+        "Signature"
+      ],
       "effect": {
         "trigger": "on_movement",
         "internalCooldown": [
@@ -510,6 +522,9 @@
         "Damage"
       ],
       "family": "trajectory",
+      "not": [
+        "Signature"
+      ],
       "effect": {
         "returnMult": [
           0.4,
@@ -707,6 +722,7 @@
         "INT": 6
       },
       "prototype": true,
+      "family": "status",
       "id": "status_burst"
     },
     "following_field": {
@@ -972,6 +988,9 @@
         "Spell"
       ],
       "family": "trigger",
+      "not": [
+        "Signature"
+      ],
       "effect": {
         "trigger": "on_guard",
         "internalCooldown": [
@@ -1118,6 +1137,163 @@
         "AGI": 5
       },
       "id": "momentum"
+    },
+    "heavy_blow": {
+      "name": "Heavy Blow",
+      "nameTh": "ฟันหนัก",
+      "desc": "สกิลประชิดแรงขึ้น 25/30/35% แต่เงื้อช้าลง 15%",
+      "tags": [
+        "Melee"
+      ],
+      "needs": [
+        "Melee",
+        "Damage"
+      ],
+      "effect": {
+        "damageMult": [
+          1.25,
+          1.3,
+          1.35
+        ],
+        "castTimeMult": 1.15,
+        "costMult": 1.3
+      },
+      "requires": {
+        "STR": 6
+      },
+      "id": "heavy_blow"
+    },
+    "vicious_shot": {
+      "name": "Vicious Shot",
+      "nameTh": "ยิงหนัก",
+      "desc": "ลูกที่ยิงแรงขึ้น 20/25/30% แต่บินช้าลง 20%",
+      "tags": [
+        "Projectile"
+      ],
+      "needs": [
+        "Projectile",
+        "Damage"
+      ],
+      "effect": {
+        "damageMult": [
+          1.2,
+          1.25,
+          1.3
+        ],
+        "projectileSpeedMult": 0.8,
+        "costMult": 1.3
+      },
+      "requires": {
+        "DEX": 6
+      },
+      "id": "vicious_shot"
+    },
+    "focused_spell": {
+      "name": "Controlled Power",
+      "nameTh": "เวทคุมพลัง",
+      "desc": "เวทดาเมจแรงขึ้น 25/30/35% แต่ติดคริไม่ได้",
+      "tags": [
+        "Spell"
+      ],
+      "needs": [
+        "Spell",
+        "Damage"
+      ],
+      "effect": {
+        "damageMult": [
+          1.25,
+          1.3,
+          1.35
+        ],
+        "noCrit": true,
+        "costMult": 1.3
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "focused_spell"
+    },
+    "elemental_focus": {
+      "name": "Elemental Focus",
+      "nameTh": "ธาตุเข้มข้น",
+      "desc": "สกิลไฟ น้ำแข็ง หรือสายฟ้าแรงขึ้น 25/30/35% แต่ไม่ทำให้ติดสถานะ (เผาไหม้ เย็น) ใช้ร่วมกับระเบิดสถานะไม่ได้",
+      "tags": [
+        "Damage"
+      ],
+      "needs": [
+        "Damage"
+      ],
+      "on": [
+        "Fire",
+        "Cold",
+        "Lightning"
+      ],
+      "not": [
+        "DoT"
+      ],
+      "family": "status",
+      "effect": {
+        "damageMult": [
+          1.25,
+          1.3,
+          1.35
+        ],
+        "noStatus": true,
+        "costMult": 1.25
+      },
+      "requires": {
+        "INT": 5
+      },
+      "id": "elemental_focus"
+    },
+    "quicken": {
+      "name": "Quicken",
+      "nameTh": "เร่งสกิล",
+      "desc": "สกิลนี้ได้ความเร็ว +15/20/25% เฉพาะตัว (คูลดาวน์และเวลาร่ายสั้นลง) รวมกับความเร็วของตัวละครแล้วไม่เกินเพดาน 200%",
+      "tags": [
+        "Haste"
+      ],
+      "not": [
+        "Movement"
+      ],
+      "effect": {
+        "hasteAdd": [
+          15,
+          20,
+          25
+        ],
+        "costMult": 1.3
+      },
+      "requires": {
+        "AGI": 6
+      },
+      "id": "quicken"
+    },
+    "prolong": {
+      "name": "Prolong",
+      "nameTh": "ยืดเวลา",
+      "desc": "บัฟ คำสาป เกราะ หรือกำแพงอยู่นานขึ้น 30/40/50% (พื้นที่คงอยู่ใช้ค้างนานแทน)",
+      "tags": [
+        "Duration"
+      ],
+      "needs": [
+        "Duration"
+      ],
+      "not": [
+        "Persistent"
+      ],
+      "effect": {
+        "effectDurationMult": [
+          1.3,
+          1.4,
+          1.5
+        ],
+        "costMult": 1.3
+      },
+      "requires": {
+        "VIT": 5
+      },
+      "id": "prolong"
     }
   },
   "slotsByRank": [
@@ -1127,5 +1303,6 @@
     3,
     4
   ],
-  "maxMovementMods": 1
+  "maxMovementMods": 1,
+  "signatureCooldown": 12
 }

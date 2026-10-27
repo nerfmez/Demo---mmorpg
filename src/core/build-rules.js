@@ -98,7 +98,7 @@ export function buildProfile(data, spec) {
   for (const s of all) if (aura(s)) d.maxMp *= 1 - (s.modEffects.auraReserve || 0);
   const attacks = skills.slice(0, loadout.length), helpers = skills.slice(loadout.length);
   const m = referenceMonster(data, spec.level), hitDps = m.damage / m.hitInterval, sec = R.fightSeconds;
-  const crit = 1 + d.critChance * (d.critMult - 1), armour = defenseFactor(m.defense * (1 - (d.penetrationPct || 0) / 100), data);
+  const crit = 1 + d.critChance * (d.critMult - 1), critOf = (s) => s.noCrit ? 1 : crit, armour = defenseFactor(m.defense * (1 - (d.penetrationPct || 0) / 100), data);
   const pct = (k) => (d[k] || 0) / 100;
   // rotation: cooldown skills whenever ready, each holding the hero for its cast and a short recovery;
   // the main attack fills the rest of the fighting time; MP cuts the main attack first
@@ -139,8 +139,8 @@ export function buildProfile(data, spec) {
       // a burst where a shot ends (a mod) and a free cast each time we dodge (a trigger mod)
       const burst = s.modEffects?.terminalBurst ? s.modEffects.terminalBurst * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.modEffects.burstRadius }, R.pack) : 1) / Math.max(1, hits) : 0;
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
-      return a + (r[i] + triggered) * castDamage(s) * hits * (1 + burst) * dots(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
-    }, 0) * crit * armour * amp * (1 + selfDamage * helperShare);
+      return a + (r[i] + triggered) * castDamage(s) * hits * (1 + burst) * dots(s) * critOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
+    }, 0) * armour * amp * (1 + selfDamage * helperShare);
   };
   // summons fight beside us: each attacks every attackCooldown while it lives (life of every cooldown)
   const summonDps = [...attacks, ...helpers].reduce((a, s) => a + (s.summon ? s.summon.count * s.summon.damage / s.summon.attackCooldown * Math.min(1, s.summon.life / s.cooldown) * (helpers.includes(s) ? helperShare : 1) : 0), 0) * armour * amp;
@@ -175,7 +175,7 @@ export function buildProfile(data, spec) {
   const incoming = hitDps * R.pack.size * free * defenseFactor(d.defense, data) * (1 + pct('damageTakenPct')) * guard
     * (1 - Math.min(1, pct('dodgeChancePct'))) * (1 - (d.blockChance || 0) * (1 - data.progression.combat.block.taken));
   // a skill's own leech (a mod) heals from that skill's share of the damage
-  const skillLeech = attacks.reduce((a, s, i) => a + fit(() => 1)[i] * castDamage(s) * crit * armour * (s.leech || 0) / 100, 0);
+  const skillLeech = attacks.reduce((a, s, i) => a + fit(() => 1)[i] * castDamage(s) * critOf(s) * armour * (s.leech || 0) / 100, 0);
   // our heals land on us too (a spring at our feet, a cleanse on ourselves)
   const selfHeal = [...attacks, ...helpers].reduce((a, s) => a + (s.heal ? s.heal * (s.kind === 'heal_zone' ? s.duration / s.tick : 1) / s.cooldown * (helpers.includes(s) ? helperShare : 1) : 0), 0);
   const net = incoming - (d.hpRegen || 0) - pct('leechPct') * single - skillLeech - shield - selfHeal;

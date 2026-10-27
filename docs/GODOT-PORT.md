@@ -330,11 +330,20 @@ labeled separately; only a fitting companion's `grants` add fit eligibility. Cal
 **One mod fit rule.** `modFits(skill, mod, companions)` reads only visible tags: the skill's
 `tags` plus the `grants` of each companion mod that fits the bare skill must contain ALL of
 `needs`, ANY of `on` (when listed) and NONE of `not`; two mods with the same `family`
-(`element`, `trigger`, `trajectory`, `displace`) never share a skill. Shape tags (`Arc`,
+(`element`, `trigger`, `trajectory`, `displace`, `status`) never share a skill. Shape tags (`Arc`,
 `Nova`, `Ground`, `Zone`, `Barrier`) name the delivery the player sees, so no hidden `kind`
 filter is needed. Failures return `{reason: 'needs'|'on'|'not'|'family', tags|family}`.
 Mod sockets come from `mods.json` `slotsByRank` indexed by the skill's rank (`modSlotsFor`);
 changing a slot's skill already clears its mods, so a lower-rank skill never inherits extras.
+**Signature and basic mods (owner, 2026-10-27).** A damage skill whose base cooldown is at least
+`mods.json signatureCooldown` (12 s) carries the `Signature` tag, and every mod that multiplies a
+cast's hits (`extraProjectiles`, `repeats`, `echoDelay`, `trigger`, `returnMult`) lists `Signature`
+under `not` (`tests/core/basic-mods.test.js`). Basic mods use these effect keys in `computeSkill`:
+`castTimeMult` (cast time, after speed), `projectileSpeedMult`, `noCrit` (`Game.hitOpts` forces
+`crit: false`), `noStatus` (no burn chance, no chill; applied after every mod, so socket order does
+not matter), `hasteAdd` (the skill's cooldown and cast time use `min(caps.hastePct, hastePct +
+hasteAdd)`, so the top speed is unchanged) and `effectDurationMult` (duration of `buff`,
+`curse_zone`, `self_barrier` and `wall` skills; fields use Lingering's `durationMult`).
 
 ### Mid/high monsters (attack kinds and presentation)
 

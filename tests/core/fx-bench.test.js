@@ -14,7 +14,7 @@ function run(skill, mods, act = (g) => g.castSlot(0, { x: 5, z: 0 }), seconds = 
 }
 
 test('bench offers only mods that fit and can be triggered there', () => {
-  assert.deepEqual(benchMods(data, 'flame_stream').sort(), ['life_leech', 'ramp_cast']);
+  assert.deepEqual(benchMods(data, 'flame_stream').sort(), ['elemental_focus', 'focused_spell', 'life_leech', 'quicken', 'ramp_cast']);
   const nova = benchMods(data, 'frost_nova');
   assert.ok(nova.includes('echo') && nova.includes('cast_on_dodge'));
   for (const s of ['chain_spark', 'frost_nova', 'flame_stream']) assert.ok(!benchMods(data, s).some((id) => id.endsWith('_shift')), `spells keep their element: ${s}`);

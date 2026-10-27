@@ -161,7 +161,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
 
   const companionMods = slot.mods.map(uid => ch.mods.find(m => m.uid === uid)).filter(i => i && modDef(data, i.id))
     .filter(i => meetsRequires(ch, modRequires(data, modDef(data, i.id), i.level || 1)).ok).map(i => modDef(data, i.id));
-  let radiusMult = 1;
+  let radiusMult = 1, hasteAdd = 0, castTimeMult = 1;
   const activeMods = [];
   for (const uid of slot.mods) {
     const inst = ch.mods.find((m) => m.uid === uid);
@@ -218,6 +218,12 @@ export function computeSkill(ch, data, derived, slotIndex) {
     }
     if (e.trigger) s.trigger = { on: e.trigger, icd: lv(e.internalCooldown, L), damageMult: lv(e.damageMult, L) };
     if (e.costMult) s.costMult *= e.costMult;
+    if (e.hasteAdd) hasteAdd += lv(e.hasteAdd, L);
+    if (e.castTimeMult) castTimeMult *= e.castTimeMult;
+    if (e.projectileSpeedMult) s.speed *= e.projectileSpeedMult;
+    if (e.noCrit) s.noCrit = true;
+    if (e.noStatus) s.noStatus = true;
+    if (e.effectDurationMult) s.effectDurationMult = lv(e.effectDurationMult, L);
     if (e.mpOnHit) s.mpOnHit = (s.mpOnHit || 0) + lv(e.mpOnHit, L);
   }
   if (s.damage) {
@@ -225,6 +231,17 @@ export function computeSkill(ch, data, derived, slotIndex) {
     if (finalLineInc !== baseLineInc) s.damage *= (1 + (inc - baseLineInc + finalLineInc) / 100) / (1 + inc / 100);
   }
   if (s.durationMult && (s.kind === 'dot_zone' || s.kind === 'heal_zone')) s.duration *= s.durationMult;
+  // Prolong: buffs, curses, barriers and walls (fields have Lingering)
+  if (s.effectDurationMult && ['buff', 'curse_zone', 'self_barrier', 'wall'].includes(s.kind)) s.duration *= s.effectDurationMult;
+  // Quicken: this skill's own speed joins the character's, under the same cap (the top speed stays)
+  if (hasteAdd) {
+    const h = Math.min(data.progression.character.caps.hastePct ?? Infinity, (derived.hastePct || 0) + hasteAdd);
+    s.cooldown = def.cooldown / (1 + h / 100);
+    s.castTime = def.castTime / (1 + h / 100);
+  }
+  s.castTime *= castTimeMult;
+  // Elemental Focus: the hit grows, the element's status (burn, chill) is gone
+  if (s.noStatus) { s.chill = null; s.burnChance = 0; }
   // Apply tag-specific passives after mods; socket order cannot change the result.
   s.radius *= radiusMult;
   const lasting = 1 + (derived.persistentDurationPct || 0) / 100;

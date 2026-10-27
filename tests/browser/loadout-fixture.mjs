@@ -10,7 +10,7 @@ export function loadoutCharacter() {
   for(const base of ['leather_cap','hide_vest','tusk_charm'])equip(ch,data,ch.gear.find(i=>i.base===base).uid);
   for(const id of ['whirl_blade','chain_spark','stone_burst','frost_nova','venom_mire','hex','war_cry','healing_spring'])ch.skills[id]=1;
   ch.skills.firebolt=2;
-  ch.mods=Object.keys(data.mods.mods).map(id=>({uid:ch.nextUid++,id,level:1,grade:data.recipes.recipes['mod_'+id].grade}));
+  ch.mods=Object.keys(data.mods.mods).map(id=>({uid:ch.nextUid++,id,level:1,grade:data.recipes.recipes['mod_'+id]?.grade||'C'}));
   for(let i=0;i<7;i++)ch.mods.push({uid:ch.nextUid++,id:'wide_arc',level:1,grade:'C'});
   ch.materials=Object.fromEntries(Object.keys(data.items.materials).map(id=>[id,30]));
   equipSkill(ch,data,3,'chain_spark');

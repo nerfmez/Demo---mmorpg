@@ -2403,6 +2403,66 @@
       },
       "grade": "B"
     },
+    "mod_heavy_blow": {
+      "type": "mod",
+      "result": "heavy_blow",
+      "cost": {
+        "boar_tusk": 3,
+        "crag_stone": 1,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_vicious_shot": {
+      "type": "mod",
+      "result": "vicious_shot",
+      "cost": {
+        "shore_feather": 2,
+        "boar_tusk": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_focused_spell": {
+      "type": "mod",
+      "result": "focused_spell",
+      "cost": {
+        "glow_dust": 3,
+        "wisp_core": 1,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_elemental_focus": {
+      "type": "mod",
+      "result": "elemental_focus",
+      "cost": {
+        "mirror_scale": 2,
+        "glow_dust": 2,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_quicken": {
+      "type": "mod",
+      "result": "quicken",
+      "cost": {
+        "fern_ear_tuft": 3,
+        "shore_feather": 1,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_prolong": {
+      "type": "mod",
+      "result": "prolong",
+      "cost": {
+        "spore_sac": 2,
+        "beetle_shell": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
     "learn_sky_shatter": {"type":"skill","result":"sky_shatter","cost":{"ram_horn":4,"crag_stone":3,"gold":60}},
     "learn_earth_rend": {"type":"skill","result":"earth_rend","cost":{"crag_stone":4,"golem_heart":1,"gold":60}},
     "learn_iron_body": {"type":"skill","result":"iron_body","cost":{"golem_heart":1,"ram_horn":3,"gold":55}},

@@ -12,7 +12,7 @@ export const TAG_GROUPS = {
   shape: {Arc:'ฟันโค้ง',Line:'แนวตรง',Cone:'กรวย',Nova:'รอบตัว',Rain:'ยิงระลอก',Ground:'เล็งพื้น',Zone:'ค้างบนพื้น',Construct:'สิ่งสร้าง',Target:'เป้าหมาย'},
   element: {Physical:'กายภาพ',Fire:'ไฟ',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',Earth:'ดิน',Arcane:'อาร์เคน'},
   effect: {Damage:'ทำดาเมจ',DoT:'ดาเมจต่อเนื่อง',Control:'ควบคุม',Debuff:'ดีบัฟ',Buff:'บัฟ',Heal:'ฟื้นฟู',Barrier:'โล่เกราะ',Guard:'ตั้งรับ',Counter:'สวนกลับ',Cleanse:'ล้างสถานะ',Leech:'ดูดเลือด'},
-  mechanic: {Duration:'มีระยะเวลา',Charge:'ชาร์จ',Persistent:'พื้นที่คงอยู่',Trigger:'ทริกเกอร์'},
+  mechanic: {Signature:'ไม้ตาย',Haste:'เร่งความเร็ว',Duration:'มีระยะเวลา',Charge:'ชาร์จ',Persistent:'พื้นที่คงอยู่',Trigger:'ทริกเกอร์'},
 };
 export const TAGS = Object.assign({}, ...Object.values(TAG_GROUPS));
 export const ELEMENTS = {physical:'กายภาพ',fire:'ไฟ',cold:'น้ำแข็ง',lightning:'สายฟ้า',poison:'พิษ',arcane:'อาร์เคน',none:'ไม่มีดาเมจธาตุ'};
@@ -24,7 +24,7 @@ export function requirementsHtml(def) {
   const req=Object.entries(def.requires||{});
   return `<p class="seeker-requires">ค่าสถานะที่ต้องมี: <b>${req.length?req.map(([s,v])=>`${esc(s)} ${v}`).join(' · '):'ไม่มีเงื่อนไข'}</b></p>`;
 }
-const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางยิง',displace:'ย้ายตำแหน่งศัตรู'};
+const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางยิง',displace:'ย้ายตำแหน่งศัตรู',status:'สถานะธาตุ'};
 const tagList = (tags, join) => tags.map(t=>TAGS[t]||t).join(join);
 export function modRules(mod) {
   const rules=[];

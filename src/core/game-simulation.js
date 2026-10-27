@@ -16,6 +16,7 @@ import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
 import { buyConsumable, restoreAmount, consumableCount, automaticPotion } from './consumables.js';
 
+const NO_CRIT = Object.freeze({ crit: false }); // Controlled Power (a mod): this skill never crits
 const PLAYER_RADIUS = 0.45;
 const POTION_GROUPS = ['hp', 'mp'];
 const PICKUP_RADIUS = 1.4;
@@ -1104,7 +1105,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */

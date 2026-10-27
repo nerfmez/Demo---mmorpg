@@ -3,6 +3,12 @@ import {MOD_GROUPS} from './gemart.js';
 const ROLE_CLASS={attack:'power',mechanics:'mechanic',support:'support'};
 export const modRole=id=>ROLE_CLASS[MOD_GROUPS[id]]||'mechanic';
 const glyphs={
+  heavy_blow:'M4 20l9-9M11 7l6 6M14 4l6 6-4 4-6-6zM3 21l2-2',
+  vicious_shot:'M2 12h15M13 7l5 5-5 5M2 9l3 3-3 3M20 6v12',
+  focused_spell:'M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5zM12 9v6M9 12h6',
+  elemental_focus:'M12 2c3 4 5 6 5 10a5 5 0 0 1-10 0c0-4 2-6 5-10zM12 18v4M5 6l3 3M19 6l-3 3',
+  quicken:'M9 3h12M9 21h12M10 3c0 5 10 5 10 9s-10 4-10 9M20 3c0 5-10 5-10 9s10 4 10 9M1 8h5M2 12h4M1 16h5',
+  prolong:'M4 12a8 8 0 1 0 8-8M12 4V1M12 4l3 2M12 8v4l3 2M2 4h5v5',
   returning_shot:'M3 7h13l-4-4M16 7l-4 4M21 12a8 8 0 0 1-8 8H4M4 20l4-4M4 20l4 3',
   terminal_burst:'M2 12h9M8 8l4 4-4 4M17 5l2 5 4 2-4 2-2 5-2-5-4-2 4-2Z',
   chain_return:'M3 7l6 3 6-5 6 5-5 8-8 3M8 21l3-5M8 21l6 1',
@@ -43,4 +49,4 @@ const glyphs={
   pack_leader:'M14 14l5 5M34 14l-5 5M16 31l8 6 8-6-3-10H19ZM21 27h6M9 23l4 4M39 23l-4 4',
   cast_on_dodge:'M12 15a16 16 0 1 1-2 17M12 15H5M12 15V8M26 14l-8 13h9l-4 8 11-14h-9Z'
 };
-export function modCoin(inst){return `<span class="coin ${modRole(inst.id)}" data-coin="${inst.uid}" data-mod-id="${inst.id}"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="${glyphs[inst.id]}" transform="${['returning_shot','terminal_burst','chain_return','advancing_edge','gathering_cut','laceration','status_burst','poison_shift','wide_field','ramp_cast','momentum','following_field','binding_field','healing_chain','healing_barrier','breaking_ward','spreading_hex','focused_pack','guardian_bond','following_aura','cast_on_guard'].includes(inst.id)?'translate(0 0) scale(2)':''}"/></svg><i></i></span>`;}
+export function modCoin(inst){return `<span class="coin ${modRole(inst.id)}" data-coin="${inst.uid}" data-mod-id="${inst.id}"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="${glyphs[inst.id]}" transform="${['heavy_blow','vicious_shot','focused_spell','elemental_focus','quicken','prolong','returning_shot','terminal_burst','chain_return','advancing_edge','gathering_cut','laceration','status_burst','poison_shift','wide_field','ramp_cast','momentum','following_field','binding_field','healing_chain','healing_barrier','breaking_ward','spreading_hex','focused_pack','guardian_bond','following_aura','cast_on_guard'].includes(inst.id)?'translate(0 0) scale(2)':''}"/></svg><i></i></span>`;}

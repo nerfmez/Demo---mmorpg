@@ -956,7 +956,8 @@
         "Damage",
         "Physical",
         "Control",
-        "Arc"
+        "Arc",
+        "Signature"
       ],
       "kind": "melee_arc",
       "power": "attack",
@@ -998,7 +999,8 @@
         "Line",
         "Area",
         "Damage",
-        "Physical"
+        "Physical",
+        "Signature"
       ],
       "kind": "melee_line",
       "power": "attack",
@@ -1142,7 +1144,8 @@
         "Strike",
         "Damage",
         "Physical",
-        "Arc"
+        "Arc",
+        "Signature"
       ],
       "kind": "melee_arc",
       "power": "attack",
@@ -1357,7 +1360,8 @@
         "Attack",
         "Projectile",
         "Damage",
-        "Physical"
+        "Physical",
+        "Signature"
       ],
       "kind": "projectile",
       "power": "attack",
@@ -1392,7 +1396,8 @@
         "Area",
         "Fire",
         "Damage",
-        "Ground"
+        "Ground",
+        "Signature"
       ],
       "kind": "ground_area",
       "power": "spell",
@@ -1430,7 +1435,8 @@
         "Persistent",
         "Zone",
         "Ground",
-        "Duration"
+        "Duration",
+        "Signature"
       ],
       "kind": "dot_zone",
       "power": "spell",
@@ -1464,7 +1470,8 @@
         "Area",
         "Lightning",
         "Damage",
-        "Ground"
+        "Ground",
+        "Signature"
       ],
       "kind": "ground_area",
       "power": "spell",
@@ -1499,7 +1506,8 @@
         "Damage",
         "Arcane",
         "Control",
-        "Nova"
+        "Nova",
+        "Signature"
       ],
       "kind": "nova",
       "power": "spell",
@@ -1533,7 +1541,8 @@
         "Projectile",
         "Damage",
         "Arcane",
-        "Control"
+        "Control",
+        "Signature"
       ],
       "kind": "projectile",
       "power": "spell",

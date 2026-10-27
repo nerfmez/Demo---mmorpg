@@ -39,7 +39,7 @@ import { VolleyFx } from './skillfx/volley-fx.js';
 import { KillFx } from './skillfx/kill-fx.js';
 import { BellFx } from './skillfx/bell-fx.js';
 import { LightChainFx } from './skillfx/lightchain-fx.js';
-import { WaveFx, wavePalette } from './skillfx/wave-fx.js';
+import { WaveFx, WAVE_PALETTE } from './skillfx/wave-fx.js';
 const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
@@ -197,8 +197,8 @@ export class SkillFx {
         if (e.kind === 'melee_line') this.split.windup(e.total, s.range, s.width, s.element);
         if (e.skill === 'sky_shatter') this.shatter.charge(g.player.x, g.player.z, e.total);
         if (e.skill === 'light_chain') this.lchain.gather(this.staffTip(), e.total);
-        if (e.skill === 'spell_wave') { // the downward chop sends the wave: the cut crescent stood on its edge, in the wave's colours (its element's)
-          this.slash.swing(e.total, { ...this.slashOpts(s, wavePalette(s.element)), range: 1.7, arc: 120, arcDeg: 120, tilt: 1.5, reach: 1.0, y: 0.15 });
+        if (e.skill === 'spell_wave') { // the downward chop sends the wave: the cut crescent stood on its edge, in the wave's colours
+          this.slash.swing(e.total, { ...this.slashOpts(s, WAVE_PALETTE), range: 1.7, arc: 120, arcDeg: 120, tilt: 1.5, reach: 1.0, y: 0.15 });
         }
         if (e.skill === 'holy_bell') this.bell.descend(g.player.x, g.player.z, e.total);
         else if (e.kind === 'nova') { this.frost.setElement(s.element); this.frost.beginCharge(g.player.x, g.player.z, e.total, s.radius); }

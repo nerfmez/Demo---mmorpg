@@ -294,6 +294,10 @@ arrow's tip and a reticle closes onto the target; the loose bursts two rings of 
 throws recoil streaks back and kicks the camera; a thick blazing streak follows the arrow and the line it
 cut hangs in the air a moment; the hit bursts long rays along the shot, two rings and sparks with a hard
 shake. The gallery host was blocked (403); no clip was inspected.
+Owner: more effects. Added a sigil of turning rings standing across the shot in front of the bow through
+the aim (the arrow bursts through it and it flies apart), a spinning ring round the charging tip, two
+crimson spirals wound round the arrow shedding sparks in flight, and on the hit a beam piercing out the
+far side of the target with a ring of air further on.
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

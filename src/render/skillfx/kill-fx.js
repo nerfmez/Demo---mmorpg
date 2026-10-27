@@ -2,14 +2,18 @@
 // owner's bar (.claude/skills/skill-vfx): a cooldown skill must be grander than a main skill, so it gets
 // every beat, in a crimson-and-gold light.
 //  - the aim (the cast): a thin sight line runs out from the bow along the shot to the target (or the
-//    full reach) and brightens; light is drawn in to the arrow's tip where a glow grows; a reticle (a
-//    ring and four ticks) closes onto the locked target;
-//  - the loose (the arrow appears): two rings of air burst across the shot at the bow, streaks are thrown
-//    back past the hero (the recoil), a glint flares and the camera kicks;
-//  - the flight: a thick blazing streak follows the arrow, and the line it cut stays hanging in the air
-//    behind it a moment, then thins away;
+//    full reach) and brightens; light is drawn in to the arrow's tip where a glow grows inside a spinning
+//    ring; a sigil of rings stands across the shot in front of the bow (a solid inner ring, a dashed one
+//    turning one way, an outer one with ticks turning the other) and grows; a reticle (a ring and four
+//    ticks) closes onto the locked target;
+//  - the loose (the arrow appears): the arrow bursts through the sigil, which flies apart; two rings of
+//    air burst across the shot at the bow, streaks are thrown back past the hero (the recoil), a glint
+//    flares and the camera kicks;
+//  - the flight: a thick blazing streak follows the arrow wrapped in two crimson spirals, shedding
+//    sparks, and the line it cut stays hanging in the air behind it a moment, then thins away;
 //  - the hit: a big burst on the target (a glint, long rays thrown on along the shot, two rings across
-//    the shot) and a hard shake.
+//    the shot, sparks) and a hard shake, and the force runs on through it: a beam of light pierces out
+//    the far side with a ring of air further on.
 // Positions come from the rules' castStart, projectiles and 'hit' events. One ribbon pair, two glint
 // sprites and pooled sparks: light on an iPad.
 import * as THREE from 'three';
@@ -18,7 +22,7 @@ import { CORE_FS, GLOW_FS, W, lineW, lineGlowW, tailW, tailGlowW, taperW, taperG
 
 const LOOK = { edge: [1.0, 0.9, 0.62], glow: [1.0, 0.2, 0.08] };
 const HIST = 14, RING = 25, RAYS = 10, SPARKS = 70, TICKS = 4, Y = 1.0;
-const HANG = 0.35, BLAST = 0.3, BURST = 0.4;
+const HANG = 0.35, BLAST = 0.3, BURST = 0.4, SIG = 1.1, SIG_BURST = 0.3, PIERCE = 0.32, ARC = 9;
 const out2 = (k) => 1 - (1 - k) * (1 - k);
 
 export class KillFx {
@@ -31,6 +35,8 @@ export class KillFx {
     this.boom = lightSprite(scene, flareTexture('fire'), true, 11);
     this.ring = Array.from({ length: RING }, () => new THREE.Vector3());
     this.hist = Array.from({ length: HIST }, () => new THREE.Vector3()); this.view = [];
+    this.spiral = Array.from({ length: HIST }, () => new THREE.Vector3()); this.arc = Array.from({ length: ARC }, () => new THREE.Vector3());
+    this.sig = 9; this.sigX = 0; this.sigZ = 0; this.sigK = 0; this.pierce = 9;
     this.two = [new THREE.Vector3(), new THREE.Vector3()];
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.rays = Array.from({ length: RAYS }, () => ({ ang: 0, len: 1, up: 0 }));
@@ -46,6 +52,7 @@ export class KillFx {
   aim(x, z, angle, total, reach, target) {
     this.x = x; this.z = z; this.dx = Math.sin(angle); this.dz = Math.cos(angle); this.aimT = 0; this.aimLife = Math.max(0.2, total); this.reach = reach;
     this.target = target ? 1 : null; if (target) { this.tx = target.x; this.tz = target.z; }
+    this.sigX = x + this.dx * SIG; this.sigZ = z + this.dz * SIG; this.sig = 9;
   }
   // the rules' projectiles: the killing arrow's loose and flight
   syncProjectiles(projectiles, kind) {
@@ -54,7 +61,7 @@ export class KillFx {
       if (pr.kind !== kind) continue;
       const sp = Math.hypot(pr.vx, pr.vz) || 1;
       if (pr.id !== this.id) { // loosed
-        this.id = pr.id; this.n = 0; this.sx = pr.x; this.sz = pr.z; this.dx = pr.vx / sp; this.dz = pr.vz / sp; this.blast = 0; this.aimT = 9;
+        this.id = pr.id; this.n = 0; this.sx = pr.x; this.sz = pr.z; this.dx = pr.vx / sp; this.dz = pr.vz / sp; this.blast = 0; this.aimT = 9; this.sig = 0; // the arrow bursts through the sigil
         this.onShake?.(0.12, 0.16);
       }
       seen = true; this.live = true;
@@ -74,7 +81,34 @@ export class KillFx {
       this.p.set(c.x, c.y, c.z); this.v.set(Math.sin(a) * s, 1 + r() * 3, Math.cos(a) * s);
       spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.3 + r() * 0.25, 0.05, LOOK);
     }
+    this.pierce = 0;
     this.onShake?.(0.2, 0.22);
+  }
+  // an arc of a ring standing across the line (dx, dz) at (x, y, z): radius rr, from angle a0 to a1
+  arcAcross(x, y, z, dx, dz, rr, a0, a1) {
+    const px = dz, pz = -dx;
+    for (let i = 0; i < ARC; i++) { const a = a0 + (a1 - a0) * (i / (ARC - 1)), c = Math.cos(a) * rr; this.arc[i].set(x + px * c, y + Math.sin(a) * rr, z + pz * c); }
+    return this.arc;
+  }
+  // the sigil standing across the shot at its place, grown to g (1 = full), its light al
+  sigil(g, al) {
+    const x = this.sigX, z = this.sigZ, dx = this.dx, dz = this.dz, t = this.time;
+    this.crossRing(x, Y, z, dx, dz, 0.32 * g);
+    W.v = 0.05; this.glow.strip(this.ring, lineGlowW, 0.6 * al, LOOK.glow); this.core.strip(this.ring, lineW, al, LOOK.edge);
+    for (let i = 0; i < 6; i++) { // dashes turning one way
+      const a = -t * 3 + (i / 6) * Math.PI * 2;
+      this.arcAcross(x, Y, z, dx, dz, 0.6 * g, a, a + 0.65);
+      W.v = 0.045; this.glow.strip(this.arc, lineGlowW, 0.5 * al, LOOK.glow); this.core.strip(this.arc, lineW, 0.9 * al, LOOK.edge);
+    }
+    this.crossRing(x, Y, z, dx, dz, 0.92 * g);
+    W.v = 0.06; this.glow.strip(this.ring, lineGlowW, 0.6 * al, LOOK.glow); this.core.strip(this.ring, lineW, al, LOOK.edge);
+    const px = dz, pz = -dx, two = this.two;
+    for (let i = 0; i < 8; i++) { // ticks round the outer ring turning the other way
+      const a = t * 2 + (i / 8) * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a);
+      two[0].set(x + px * c * 0.98 * g, Y + sn * 0.98 * g, z + pz * c * 0.98 * g);
+      two[1].set(x + px * c * 1.2 * g, Y + sn * 1.2 * g, z + pz * c * 1.2 * g);
+      W.v = 0.06; this.glow.strip(two, lineGlowW, 0.6 * al, LOOK.glow); this.core.strip(two, lineW, al, LOOK.edge);
+    }
   }
   // a ring standing across the line (dx, dz) at (x, y, z)
   crossRing(x, y, z, dx, dz, rr) {
@@ -104,6 +138,9 @@ export class KillFx {
         this.v.set(tx - this.p.x, Y - this.p.y, tz - this.p.z).multiplyScalar(1 / life);
         spark(this.sparks, this.free, SPARKS, this.p, this.v, life, 0.035, LOOK);
       }
+      this.crossRing(tx, Y, tz, this.dx, this.dz, 0.2 + 0.05 * Math.sin(this.time * 25) + 0.1 * k); // the ring round the tip
+      W.v = 0.04; this.glow.strip(this.ring, lineGlowW, 0.6 * k, LOOK.glow); this.core.strip(this.ring, lineW, 0.9 * k, LOOK.edge);
+      this.sigK = out2(Math.min(1, k * 2)); this.sigil(this.sigK, Math.min(1, k * 3));
       this.tip.visible = true; this.tip.position.set(tx, Y, tz); this.tip.scale.setScalar(0.4 + 1.1 * k + 0.1 * Math.sin(this.time * 30)); this.tip.material.opacity = 0.5 + 0.5 * k;
       // the reticle closing onto the target: a ring and four ticks turning in
       if (this.target) {
@@ -118,6 +155,8 @@ export class KillFx {
         }
       }
     } else this.tip.visible = false;
+    // the sigil flying apart as the arrow bursts through it
+    if (this.sig < SIG_BURST) { this.sig += dt; const k = this.sig / SIG_BURST; this.sigil(this.sigK * (1 + 1.4 * out2(k)), 1 - k * k); }
     // the loose: rings of air across the shot, recoil streaks, a glint
     if (this.blast < BLAST) {
       this.blast += dt;
@@ -148,6 +187,19 @@ export class KillFx {
         const view = this.view; view.length = 0;
         for (let i = this.n - 1; i >= 0; i--) view.push(this.hist[i]);
         W.v = 0.32; this.glow.strip(view, tailGlowW, 0.9, LOOK.glow); this.core.strip(view, tailW, 1, LOOK.edge);
+        // two crimson spirals wound round it, widest at the head
+        const px = this.dz, pz = -this.dx;
+        for (let k = 0; k < 2; k++) {
+          view.length = 0;
+          for (let i = this.n - 1; i >= 0; i--) {
+            const q = i / (HIST - 1), rr = 0.3 * (1 - 0.7 * q), ph = i * 0.9 - this.time * 26 + k * Math.PI, c = Math.cos(ph) * rr, h = this.hist[i];
+            view.push(this.spiral[i].set(h.x + px * c, h.y + Math.sin(ph) * rr, h.z + pz * c));
+          }
+          W.v = 0.07; this.glow.strip(view, tailGlowW, 0.7, LOOK.glow); this.core.strip(view, tailW, 0.9, LOOK.edge);
+        }
+        // sparks shed off its path
+        const r = this.rnd; this.p.copy(head); this.v.set((r() - 0.5) * 2 - this.dx * 2, 1 + r() * 1.5, (r() - 0.5) * 2 - this.dz * 2);
+        spark(this.sparks, this.free, SPARKS, this.p, this.v, 0.25 + r() * 0.15, 0.035, LOOK);
       }
     }
     // the hit
@@ -166,12 +218,22 @@ export class KillFx {
       }
       if (this.blast >= BLAST) { this.boom.visible = k < 0.6; this.boom.position.set(this.bx, this.by, this.bz); this.boom.scale.setScalar(4 * (0.5 + 0.5 * out2(Math.min(1, k * 5)))); this.boom.material.opacity = 1 - k / 0.6; }
     } else if (this.blast >= BLAST) this.boom.visible = false;
+    // the force running on through the target: a beam out the far side, a ring of air further on
+    if (this.pierce < PIERCE) {
+      this.pierce += dt;
+      const k = this.pierce / PIERCE, len = 0.5 + 4.5 * out2(Math.min(1, k * 3)), al = 1 - k * k;
+      two[0].set(this.bx + this.bdx * 0.3, this.by, this.bz + this.bdz * 0.3); two[1].set(this.bx + this.bdx * len, this.by, this.bz + this.bdz * len);
+      W.v = 0.16 * (1 - 0.5 * k); this.glow.strip(two, lineGlowW, 0.9 * al, LOOK.glow); this.core.strip(two, lineW, al, LOOK.edge);
+      const d = 1.5 + 2.5 * out2(k);
+      this.crossRing(this.bx + this.bdx * d, this.by, this.bz + this.bdz * d, this.bdx, this.bdz, 0.3 + 0.8 * out2(k));
+      W.v = 0.1 * (1 - k); this.glow.strip(this.ring, lineGlowW, 0.7 * al, LOOK.glow); this.core.strip(this.ring, lineW, al, LOOK.edge);
+    }
     drawSparks(this.sparks, this.free, dt, this.core, this.glow, this.three, 9);
     this.core.end(); this.glow.end();
   }
   clear() {
-    this.aimT = 9; this.blast = 9; this.burst = 9; this.hang = 9; this.live = false; this.id = null; this.tip.visible = false; this.boom.visible = false;
+    this.aimT = 9; this.blast = 9; this.burst = 9; this.hang = 9; this.sig = 9; this.pierce = 9; this.live = false; this.id = null; this.tip.visible = false; this.boom.visible = false;
     for (const q of this.sparks) this.free.push(q); this.sparks.length = 0;
   }
-  get busy() { return this.aimT < this.aimLife || this.live || this.hang < HANG || this.blast < BLAST || this.burst < BURST || this.sparks.length > 0; }
+  get busy() { return this.aimT < this.aimLife || this.live || this.hang < HANG || this.blast < BLAST || this.burst < BURST || this.sig < SIG_BURST || this.pierce < PIERCE || this.sparks.length > 0; }
 }

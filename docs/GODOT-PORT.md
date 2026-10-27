@@ -1093,13 +1093,23 @@ Meshy model (`data/models.json` → `monsters`, skinned to the same bones by `re
 the procedural parts remain the fallback until the model loads). The moth's model keeps the concept's
 raised wings, which the rig flaps about the body axis; its extra tail from Meshy was cut off.
 
-Accepted scenes (26 October 2026): the five approved Moonroot scenes (`scenes/root-warren`,
-`moonstone-camp`, `mirror-pond`, `fern-rise`, `stone-ring`) stand west to east along local z 0 at
-x -135, -75, -5, 65 and 135 (`region: moonroot-grove-v1`, s 0.42), as the region concept lays them
-out; `moonroot-grove.json.acceptedScenes` enables them with the same apron, grass-bank, foliage
-(tree scale 1: their roots are drawn for those trunks) and surround settings as the other maps, and
-final connectors join their roads to `grove_road`, `south_trail`, `ring_trail` and
-`headland_trail`. The scenes replace the native camp (`camp` key removed: Moonstone Camp draws its
+Accepted scenes (26-27 October 2026): the five approved Moonroot scenes (`scenes/root-warren`,
+`moonstone-camp`, `mirror-pond`, `fern-rise`, `stone-ring`) stand where the region concept
+(`assets/moonroot/moonroot_grove_concept.jpg`, 370 x 117 m like the map) puts them, staggered rather
+than in a row (`region: moonroot-grove-v1`, s 0.42): Moonstone Camp (-108, -8) up on the west, Root
+Warren (-150, 36) below it by the Frontier gate (its moles, Lv 9-10, border the Frontier forest),
+Mirror Pond (7, 8) in the middle, Fern Rise (66, -26) in the north woods and the Stone Ring (138, 2)
+on the east. Winding paths (final connectors, each also a road `moon-path/...` so it is painted,
+kept clear of trees and drawn on the map) join every scene exit, the Frontier gate road and the
+three Azure seam trails. Zones follow the same woods (`root_warren` west, `fern_rise` north-east,
+`mirror_pond` between) and their encounter habitats (`data/encounters.json`) moved with them. Map
+look: `look.foliage` gives the map its own leaf and shrub [shadow, mid, light] colours (Moonroot's
+teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`); a zone's `soil`
+biases the open soil patches (Moonroot's woods have none); `acceptedScenes.bankShade` {strength,
+tone} gives a scene's steep grass banks a darker two-step cel tone in the terrain shader (vertex
+`aBank * (1 - normal.y)`), so the camp's terrace reads from above. The scenes' layout is the
+region's; `moonroot-grove.json.acceptedScenes` enables them with the same apron, grass-bank, foliage
+(tree scale 1: their roots are drawn for those trunks) and surround settings as the other maps. The scenes replace the native camp (`camp` key removed: Moonstone Camp draws its
 own tents and fire), the elder tree and the ring's pillars (cleared like any native prop inside a
 scene). Per-scene exports: a scene whose factory has a waypoint names its id (`waypoint: 'camp'`;
 the camp's warp pillar is the beach's rebuilding waypoint at 1.8 scale, rebuilt once the waypoint is

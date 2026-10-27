@@ -36,7 +36,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  for(const spec of acceptedScenes(world.data)){
   yield;
   const assets=spec.id==='shell-beach'?yield* acceptedAssetSteps():{};
-  const result=factories[spec.id]({renderer,time:timeUniform,clipBounds:spec.box,assets,foliage:foliage&&sceneFoliage(foliage,spec)}),source=result.root;
+  const result=factories[spec.id]({renderer,time:timeUniform,clipBounds:spec.box,assets,foliage:foliage&&sceneFoliage(foliage,spec,world.data.look?.foliage||null)}),source=result.root;
   source.name='accepted-'+spec.id;source.position.set(spec.x,spec.y,spec.z);source.scale.setScalar(spec.s);root.add(source);root.updateMatrixWorld(true);
   const dynamic=new Set();
   const keep=o=>o?.traverse(n=>dynamic.add(n));
@@ -129,9 +129,10 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
 }
 // Tree sizes for one factory, in its own units (world / spec.s): ordinary trees by the
 // scene's scale, the listed big trees at their own size.
-function sceneFoliage(foliage,spec){
+// palette: the map's own leaf colours (data look.foliage), for its scenes' crowns as for its own trees
+function sceneFoliage(foliage,spec,palette=null){
  const big=(foliage.bigTrees||[]).filter(b=>b.scene===spec.id).map(b=>({x:(b.at[0]-spec.x)/spec.s,z:(b.at[1]-spec.z)/spec.s,s:b.size/spec.s,r:1/spec.s}));
- return {scale:foliage.treeScale?.[spec.id]??1,big};
+ return {scale:foliage.treeScale?.[spec.id]??1,big,palette};
 }
 // A tagged scene mesh takes the map's material: crowns the map's tint, trunks the
 // game's ink hull, grass the game's ground-coloured blades (baked with the map's grass).

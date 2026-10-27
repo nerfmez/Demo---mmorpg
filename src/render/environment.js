@@ -256,9 +256,10 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   // Only the town/meadow study changes canopy geometry; other biomes remain a comparison.
   const cloudMat=animeStudy?animeFoliageMaterial():mat('#ffffff',{vertexColors:true,double:true,wind:.025,windBase:1.2,see:true});
   cloudMat.map=studyLeafTexture();cloudMat.alphaTest=.4;cloudMat.forceSinglePass=true;
-  const cloudGroup=yield* buildInstances(yield* cloudCrownSteps(3),cloudMat,cloudTrees,{receiveShadow:true});
+  const look=world.data.look?.foliage||null; // a map's own leaf colours (Moonroot's teal)
+  const cloudGroup=yield* buildInstances(yield* cloudCrownSteps(3,false,look),cloudMat,cloudTrees,{receiveShadow:true});
   cloudGroup.name='art-study-crowns';root.add(cloudGroup);
-  root.add(yield* buildInstances(yield* cloudCrownSteps(7),cloudMat,cloudBirches,{receiveShadow:true}));
+  root.add(yield* buildInstances(yield* cloudCrownSteps(7,false,look),cloudMat,cloudBirches,{receiveShadow:true}));
   // Jagged patches supply the entire crown; no spherical filler underneath.
   if(animeStudy)root.add(yield* buildInstances(animeTrunk(),animeTrunkMaterial(),animeTrunks,{outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
   const canopyGeo = leafCrown(3);
@@ -427,7 +428,7 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   root.add(yield* buildInstances(bushGeo,bushMat,bushes.filter(it=>!inArtStudy(it.x,it.z)).map(it=>({...it,ry:0})),{shadow:true}));
   const studyBushMat=animeStudy?animeFoliageMaterial(true):mat('#ffffff',{vertexColors:true,double:true,wind:.025});
   studyBushMat.map=studyShrubTexture();studyBushMat.alphaTest=.4;studyBushMat.forceSinglePass=true;
-  root.add(yield* buildInstances(yield* lowShrubSteps(),studyBushMat,studyBushes,{receiveShadow:true}));
+  root.add(yield* buildInstances(yield* lowShrubSteps(11,world.data.look?.foliage||null),studyBushMat,studyBushes,{receiveShadow:true}));
   if(animeStudy){
 
     root.add(yield* buildInstances(shrubStems(),new THREE.MeshLambertMaterial({color:'#78654c'}),studyBushes,{shadow:false}));

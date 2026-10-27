@@ -14,7 +14,7 @@ imports="import * as THREE from 'three';\nimport {ConvexGeometry} from 'three/ad
 gameFoliageHelpers=(
  "const fitTree=(s,x,z)=>{if(!foliage)return s;const big=foliage.big.find(b=>Math.hypot(b.x-x,b.z-z)<b.r);return big?big.s:s*foliage.scale;};\n"
  "const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};\n"
- "function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub),shrub?'shrub':'crown');}\n"
+ "function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub,foliage?.palette),shrub?'shrub':'crown');}\n"
  "function animeTrunk(){return gamePart(gameTrunk(),'trunk');}\n"
  "function meadowGrass(){return gamePart(gameGrass(),'grass');}\n"
  "function branchletTexture(shrub=false){return gameBranchlet(shrub);}\n")

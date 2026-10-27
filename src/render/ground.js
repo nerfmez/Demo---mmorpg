@@ -153,7 +153,8 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const inside = x > b.minX && x < b.maxX && z > b.minZ && z < b.maxZ;
       const zn = inside ? world.zoneAt(x, z) : null;
       if (zn && zn.id === 'ruins' && stone[k] < 0.5 && valueNoise(x * 0.23, z * 0.23, 3) > 0.68) stone[k] = 0.62;
-      const dirtBias = zn ? { highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0 : 0.1;
+      // zone.soil: a zone's own bias for the open soil patches (Moonroot's woods: none, as the concept)
+      const dirtBias = zn ? zn.soil ?? ({ highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0) : 0.1;
       // Round the accepted scenes the soil patches give way to their grass.
       const soilFade = surround ? 1 - surround.soilFade * sceneSurround(wd, x, z, surround.soilRing) : 1;
       dirt[k] = Math.max(dirt[k], (1 - planned[k]) * soilFade * smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2));
@@ -421,25 +422,29 @@ function terrainMaterial(world,mat,brush) {
     shader.uniforms.uWater = { value: world.waterLevel };
     shader.uniforms.uGroundBrush=brush;
     shader.uniforms.uRegionShift=shift;
+    // acceptedScenes.bankShade: a scene's steep grass banks keep the darker cel tone they were
+    // reviewed with (Moonroot's camp terrace), so a bank still reads as a bank from above
+    const bs=world.data.acceptedScenes?.bankShade,tone=new THREE.Color(bs?.tone??'#ffffff');
+    shader.uniforms.uBankShade={value:new THREE.Vector4(tone.r,tone.g,tone.b,bs?.strength??0)};
     Object.assign(shader.uniforms, groundFieldUniforms(world));
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
-attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; attribute float aBank; varying vec2 vCoast; varying float vTown;
+attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; attribute float aBank; varying vec2 vCoast; varying float vTown; varying float vBankSlope;
 varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; uniform vec3 uRegionShift;`
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = mix(normal.y, 1.0, aBank); vTown = aTown;`
+vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = mix(normal.y, 1.0, aBank); vBankSlope = aBank * (1.0 - normal.y); vTown = aTown;`
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
-varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast; varying float vTown;
-uniform float uTime; uniform vec3 uArena; uniform float uWater;
+varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast; varying float vTown; varying float vBankSlope;
+uniform float uTime; uniform vec3 uArena; uniform float uWater; uniform vec4 uBankShade;
 ${GROUND_COLOR_GLSL}`
       )
       .replace(
@@ -449,6 +454,10 @@ ${GROUND_COLOR_GLSL}`
   vec2 w = vWorldPos.xz;
   float y = vWorldPos.y;
   vec3 col=groundColor(w,y,vTintL,vTintD,vSplat,vCoast,vUp,uWater,vTown);
+  // a scene's grass bank: the steep face takes a darker cel tone, in two soft steps
+  // (1 - normal.y: about .05 on a 18 degree slope, .13 at 30 degrees)
+  float bankFace=smoothstep(.035,.06,vBankSlope)*.55+smoothstep(.10,.14,vBankSlope)*.45;
+  col=mix(col,col*uBankShade.rgb,bankFace*uBankShade.a);
   // boss arena rune circle
   float ad = distance(w, uArena.xy);
   float ring = (1.0-smoothstep(0.0,0.35,abs(ad-(uArena.z-3.0))))+(1.0-smoothstep(0.0,0.25,abs(ad-(uArena.z-4.2))));

@@ -18,15 +18,17 @@ const specs=[
  // ranger forest below it); y puts each scene's sea (SEA_Y = -7.18 scene units) at the map's water level
  {id:'gull-headland',x:189.3,z:-92.7,s:.42,y:2.62,box:[-65,65,-65,30]},
  {id:'ranger-forest',x:189.3,z:-34.7,s:.42,y:2.62,box:[-65,65,-65,30]},
- // the five Moonroot Grove zones (owner, 26 October 2026), west to east as the region concept lays
- // them out, in Moonroot's local metres: Root Warren, Moonstone Camp (its warp pillar is the region's
- // camp waypoint), Mirror Pond (y puts its water, SEA_Y = -1.404 scene units, at the water level),
- // Fern Rise, the Old Root Stone Ring
- {id:'root-warren',region:'moonroot-grove-v1',x:-135,z:0,s:.42,y:.3,box:[-65,65,-65,30]},
- {id:'moonstone-camp',region:'moonroot-grove-v1',x:-75,z:0,s:.42,y:.3,box:[-65,65,-65,30],waypoint:'camp'},
- {id:'mirror-pond',region:'moonroot-grove-v1',x:-5,z:0,s:.42,y:.19,box:[-65,65,-65,30]},
- {id:'fern-rise',region:'moonroot-grove-v1',x:65,z:0,s:.42,y:.3,box:[-65,65,-65,30]},
- {id:'stone-ring',region:'moonroot-grove-v1',x:135,z:0,s:.42,y:.3,box:[-65,65,-65,30]}
+ // the five Moonroot Grove zones (owner, 26-27 October 2026), placed in Moonroot's local metres as
+ // the region concept (assets/moonroot/moonroot_grove_concept.jpg, 370 x 117 m) lays them out, not in
+ // a row: Moonstone Camp up on the west (its warp pillar is the region's camp waypoint), Root Warren
+ // below it by the Frontier gate (its moles, Lv 9-10, border the Frontier forest), Mirror Pond in the
+ // middle (y puts its water, SEA_Y = -1.404 scene units, at the water level), Fern Rise in the north
+ // woods, the Old Root Stone Ring on the east
+ {id:'root-warren',region:'moonroot-grove-v1',x:-150,z:36,s:.42,y:.3,box:[-65,65,-65,30]},
+ {id:'moonstone-camp',region:'moonroot-grove-v1',x:-108,z:-8,s:.42,y:.3,box:[-65,65,-65,30],waypoint:'camp'},
+ {id:'mirror-pond',region:'moonroot-grove-v1',x:7,z:8,s:.42,y:.19,box:[-65,65,-65,30]},
+ {id:'fern-rise',region:'moonroot-grove-v1',x:66,z:-26,s:.42,y:.3,box:[-65,65,-65,30]},
+ {id:'stone-ring',region:'moonroot-grove-v1',x:138,z:2,s:.42,y:.3,box:[-65,65,-65,30]}
 ];
 const round=n=>Math.round(n*1000)/1000,scenes=[];
 // Morphological closing (a max then a min filter over a square r metres each way, 1 m grid).

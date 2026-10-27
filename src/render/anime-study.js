@@ -56,18 +56,20 @@ export function branchletTexture(shrub = false) {
   map.userData.shared=true;maps.set(shrub,map);return map;
 }
 
-export function animeFoliage(seed=3,shrub=false) {
-  const steps=animeFoliageSteps(seed,shrub);
+// palette: a map's own foliage colours ({leaf, shrub}: [shadow, mid, light]; data look.foliage),
+// otherwise the game's (art.json anime.palette)
+export function animeFoliage(seed=3,shrub=false,palette=null) {
+  const steps=animeFoliageSteps(seed,shrub,palette);
   for(;;){const step=steps.next();if(step.done)return step.value;}
 }
 
-export function* animeFoliageSteps(seed=3,shrub=false) {
+export function* animeFoliageSteps(seed=3,shrub=false,palette=null) {
   const rng=createRng(seed),p=[],n=[],c=[],uv=[];
   const cfg=animeConfig,clusters=shrub?cfg.shrubSprays:cfg.treeSprays;
   const count=shrub?cfg.shrubCardsPerSpray:cfg.treeCardsPerSpray;
   const sizes=shrub?cfg.shrubCardSize:cfg.treeCardSize;
   const shade=new THREE.Color(),vertexShade=new THREE.Color();
-  const prefix=shrub?'shrub':'leaf',colors=['Shadow','Mid','Light'].map(s=>new THREE.Color(cfg.palette[prefix+s]));
+  const prefix=shrub?'shrub':'leaf',colors=(palette?.[prefix]||['Shadow','Mid','Light'].map(s=>cfg.palette[prefix+s])).map(c=>new THREE.Color(c));
   const append=(center,normal,size,roll,tile,col)=>{
     const across=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),normal);
     if(across.lengthSq()<.001)across.set(1,0,0);else across.normalize();

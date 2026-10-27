@@ -11,8 +11,8 @@ export function inArtStudy(x,z) {
   return x>=b.minX&&x<=b.maxX&&z>=b.minZ&&z<=b.maxZ;
 }
 
-export function* cloudCrownSteps(seed=3,shrub=false){
-  if(animeStudy)return yield* animeFoliageSteps(seed,shrub);
+export function* cloudCrownSteps(seed=3,shrub=false,palette=null){
+  if(animeStudy)return yield* animeFoliageSteps(seed,shrub,palette);
   return cloudCrown(seed,shrub);
 }
 
@@ -94,8 +94,8 @@ export function studyLeafTexture() {
 
 // A separate low shrub: broad, round leaves form shallow interlocking mounds.
 // Its origin is soil level. It is deliberately not a scaled tree canopy.
-export function* lowShrubSteps(seed=11){
-  if(animeStudy)return yield* animeFoliageSteps(seed,true);
+export function* lowShrubSteps(seed=11,palette=null){
+  if(animeStudy)return yield* animeFoliageSteps(seed,true,palette);
   return lowShrub(seed);
 }
 

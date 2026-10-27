@@ -240,3 +240,18 @@ test('Moonroot\'s five scenes: the camp\'s pillar is its waypoint, the pond bloc
  }
  assert.ok(wet>0||line.some(([x,z])=>moonroot.ponds.some(([px,pz,r])=>Math.hypot(x-px,z-pz)<r)),'the crossing runs over the pond');
 });
+test('Moonroot\'s scenes stand staggered in its woods as the region concept, every scene exit joined by a path',()=>{
+ const scenes=acceptedSceneLayout.scenes.filter(s=>s.region===moonroot.id),zs=new Set(scenes.map(s=>s.z));
+ assert.ok(zs.size>=4,'not one row');
+ const ends=moonroot.acceptedScenes.connectors.flatMap(c=>[c.points[0],c.points.at(-1)]);
+ for(const s of scenes)for(const r of moonroot.roads.filter(r=>r.acceptedScene===s.id)){
+  // a road end out near the scene's bounds is an exit; a path starts or ends on it
+  for(const p of [r.points[0],r.points.at(-1)]){
+   const b=s.bounds,edge=Math.min(p[0]-b[0],b[1]-p[0],p[1]-b[2],b[3]-p[1]);
+   if(edge>7)continue;
+   assert.ok(ends.some(e=>Math.hypot(e[0]-p[0],e[1]-p[1])<.5),`${r.id} exit at ${p} joins a path`);
+  }
+ }
+ // each path is also a road, so it is painted and kept clear of trees
+ for(const c of moonroot.acceptedScenes.connectors.filter(c=>!c.id.includes('stones')))assert.ok(moonroot.roads.some(r=>r.id==='moon-path/'+c.id.split('accepted/moon-')[1]),c.id);
+});

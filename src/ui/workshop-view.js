@@ -2,7 +2,7 @@
 import { art, arrowArt } from './art.js';
 import { icon } from './icons.js';
 import { esc, tagsHtml, rulesHtml } from './buildmeta.js';
-import { gradeBadge, optionList, wearRequirements, wearRequirementRange, craftGoal } from './progressionview.js';
+import { gradeBadge, optionList, wearRequirements, wearRequirementRange, craftGoal, gearUpgradeTrack } from './progressionview.js';
 import { gearStats, gearRequirements, gearEquipState, wornSlot } from '../core/character.js';
 import { recipeBlocker } from '../core/crafting.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
@@ -105,7 +105,7 @@ function forge(ui, { effectText }) {
   const before = busy && isReceipt ? gearStats(mode === 'grade' ? {...showing,options:[]} : showing,data) : p.before;
   const after = busy && isReceipt ? gearStats(mode === 'grade' ? {...next,options:[]} : next,data) : p.after;
   const warning = p.unequipped.length ? '<p class="ws-warning">⚠ อัปแล้วเงื่อนไขสวมใส่เปลี่ยน · อุปกรณ์ที่สวมไม่ผ่านจะถอดเก็บในกระเป๋า ไม่หาย</p>' : !p.wearableAfter ? '<p class="ws-warning">⚠ อัปเกรดได้ แต่ตัวละครยังสวมผลลัพธ์ไม่ได้</p>' : '';
-  const req = p.requirements ? mode === 'grade' ? wearRequirementRange(ch,p.requirements) + '<p class="ws-footnote">ถืออาวุธคู่ใช้เงื่อนไขรวมของสองมือ · ผลสุ่มอาจทำให้ต้องถอดเก็บ</p>' : wearRequirements(ch,p.requirements.afterRequires,'เงื่อนไขชิ้นนี้หลังตีบวก') : wearRequirements(ch,gearRequirements(item,data));
+  const req = p.requirements ? mode === 'grade' ? wearRequirementRange(ch,p.requirements) + '<p class="ws-footnote">ถืออาวุธคู่ใช้เงื่อนไขรวมของสองมือ · ผลสุ่มอาจทำให้ต้องถอดเก็บ</p>' : gearUpgradeTrack(data,item) + wearRequirements(ch,p.requirements.afterRequires,'เงื่อนไขชิ้นนี้หลังตีบวก') : (mode === 'upgrade' ? gearUpgradeTrack(data,item) : '') + wearRequirements(ch,gearRequirements(item,data));
   const mechanics = mode === 'grade' ? `เก็บออฟชั่นเดิมทุกค่า และสุ่มเพิ่ม ${p.extraOptions} ช่อง · ไม่เปลี่ยนระดับตีบวก` : 'เพิ่มค่าพื้นฐานของชิ้นเดิม · เกรดและออฟชั่นเดิมไม่เปลี่ยน';
   const status = !p.state.cost ? 'ถึงขั้นสูงสุดแล้ว' : p.ok ? 'พร้อมทำรายการ' : workshopReason(p.reason);
   const to = mode === 'grade' ? p.next?.grade : '+' + p.next?.upgrade;

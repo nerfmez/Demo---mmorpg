@@ -61,7 +61,8 @@ test('later shore rewards and crafting still teach usable combat and movement sk
 test('staff normal attack fires arcane projectile without mana',()=>{
  const g=new Game(data,{character:createCharacter(data,{kit:'staff'}),seed:4}),mp=g.player.mp;
  assert.ok(g.castSlot(0,{x:g.player.x,z:g.player.z+8}));for(let i=0;i<40&&!g.projectiles.length;i++)g.update(1/60);
- assert.equal(g.projectiles.length,1);assert.equal(g.projectiles[0].element,'arcane');assert.ok(g.player.mp>=mp);
+ assert.equal(g.projectiles.length,1);assert.equal(g.projectiles[0].element,'arcane');
+ for(let i=0;i<30;i++)g.update(1/60);assert.ok(g.player.mp>=mp,'the town refills a cheap starter cast within half a second');
 });
 
 test('finishing an interrupted opening keeps legitimate previously learned slots and ranks',()=>{

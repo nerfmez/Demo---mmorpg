@@ -81,19 +81,9 @@ export function benchMods(data, skill, selected = []) {
   });
 }
 
-// tempo trial (owner, 2026-10-27): cdMult stretches the skill's base cooldown with its damage and MP cost
-// scaled alike (the same damage and MP per second); haste (when set) replaces every cooldown and
-// cast-speed bonus with one speed value: cooldown and cast time / (1 + haste / 100).
-const tempoData = (data, skill, cdMult) => {
-  const def = data.skills.combat[skill];
-  if (!def || cdMult === 1) return data;
-  const d = { ...def, cooldown: def.cooldown * cdMult, cost: Math.round((def.cost || 0) * cdMult) };
-  if (def.damage) d.damage = { ...def.damage, base: def.damage.base * cdMult, scale: def.damage.scale * cdMult };
-  return { ...data, skills: { ...data.skills, combat: { ...data.skills.combat, [skill]: d } } };
-};
-
-export function createBench(data0, skill, mods = [], { seed = 71, fusion = null, fusionRules = null, movement = 'dash', cdMult = 1, haste = null } = {}) {
-  const data = tempoData(data0, skill, cdMult);
+// speed trial (owner, 2026-10-27): haste (when set) replaces the character's speed (hastePct):
+// cooldown and cast time / (1 + haste / 100).
+export function createBench(data, skill, mods = [], { seed = 71, fusion = null, fusionRules = null, movement = 'dash', haste = null } = {}) {
   const ch = createCharacter(data, { kit: 'bow' });
   ch.stats = { STR: 50, AGI: 50, VIT: 50, INT: 50, DEX: 50, LUK: 50 };
   ch.skills[skill] = 1;
@@ -125,7 +115,7 @@ export function createBench(data0, skill, mods = [], { seed = 71, fusion = null,
   g.nearby = () => ({ inTown: false });
   if (haste !== null) {
     const refresh = g.refreshSkills.bind(g);
-    g.refreshSkills = () => { g.derived.cooldownPct = 0; g.derived.castSpeedPct = haste; refresh(); };
+    g.refreshSkills = () => { g.derived.hastePct = haste; refresh(); };
     g.refreshSkills();
   }
   g.drainEvents();

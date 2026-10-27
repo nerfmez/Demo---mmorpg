@@ -18,7 +18,7 @@ const fixture=(id='charged_shot',mods=[])=>{
 const advance=(g,t)=>{while(t>0){const dt=Math.min(.02,t);g.time+=dt;tickFrontier(g,dt);g.updatePlayer(dt);g.updateAreas(dt);t-=dt;}};
 const aim={angle:Math.PI/2,x:2,z:0};
 test('charged shot pays only on release, scales to cap and fires once after contact',()=>{
- for(const time of [0,.6,1.2,3]){const {g,ch,s}=fixture();const mp=g.player.mp,ammo=arrowTotal(ch);assert(g.castSlot(0));advance(g,time);assert.equal(g.player.mp,mp);assert.equal(arrowTotal(ch),ammo);assert.equal(g.projectiles.length,0);assert(g.releaseCharge(0));assert.equal(arrowTotal(ch),ammo-arrowsPerCast(data,s));assert.equal(g.player.mp,mp-s.cost);const expected=s.damage*(1+1.5*Math.min(time,1.2)/1.2);assert(Math.abs(g.player.cast.skill.damage-expected)<1e-6);advance(g,.19);assert.equal(g.projectiles.length,0);advance(g,.03);assert.equal(g.projectiles.length,1);advance(g,.3);assert.equal(g.projectiles.length,1);assert.equal(g.releaseCharge(0),false);}
+ for(const time of [0,.6,1.2,3]){const {g,ch,s}=fixture();const mp=g.player.mp,ammo=arrowTotal(ch);assert(g.castSlot(0));advance(g,time);assert.equal(g.player.mp,mp);assert.equal(arrowTotal(ch),ammo);assert.equal(g.projectiles.length,0);assert(g.releaseCharge(0));assert.equal(arrowTotal(ch),ammo-arrowsPerCast(data,s));assert.equal(g.player.mp,mp-s.cost);const expected=s.damage*(1+1.5*Math.min(time,1.2)/1.2);assert(Math.abs(g.player.cast.skill.damage-expected)<1e-6);advance(g,g.player.cast.total-.01);assert.equal(g.projectiles.length,0);advance(g,.03);assert.equal(g.projectiles.length,1);advance(g,.3);assert.equal(g.projectiles.length,1);assert.equal(g.releaseCharge(0),false);}
 });
 test('cancel, movement, death, refresh and missing release resources never shoot a stale charge',()=>{
  for(const mode of ['cancel','movement','death','refresh','ammo','mp','weapon']){const {g,ch,s}=fixture();assert(g.castSlot(0));const ammo=arrowTotal(ch),mp=g.player.mp;advance(g,.5);
@@ -58,7 +58,7 @@ test('line strike respects width/range and rain pays all three authored waves',(
  const {g,ch,s}=fixture('arrow_rain');assert.equal(arrowsPerCast(data,s),3);const ammo=arrowTotal(ch);g.castSlot(0,{x:2,z:0});advance(g,.3);assert.equal(arrowTotal(ch),ammo-3);assert.equal(g.areas.length,3);
 });
 test('channel requires windup, drains mana and stops on release or depleted MP',()=>{
- const {g,m,s}=fixture('flame_stream');const hp=m.hp;assert(g.castSlot(0));advance(g,.18);assert.equal(m.hp,hp);advance(g,.05);assert(m.hp<hp);const after=m.hp;g.cancelChannel();advance(g,.4);assert.equal(m.hp,after);assert.equal(g.player.channeling,null);
+ const {g,m,s}=fixture('flame_stream');const hp=m.hp;assert(g.castSlot(0));advance(g,s.castTime-.02);assert.equal(m.hp,hp);advance(g,.05);assert(m.hp<hp);const after=m.hp;g.cancelChannel();advance(g,.4);assert.equal(m.hp,after);assert.equal(g.player.channeling,null);
  const b=fixture('flame_stream');b.g.castSlot(0);b.g.player.mp=0;advance(b.g,.25);assert.equal(b.g.player.channeling,null);
 });
 test('cleanse heals and removes one allowed status, chain never loops and barrier is capped',()=>{

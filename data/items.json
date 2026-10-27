@@ -262,7 +262,7 @@
       "nameTh": "มีดสั้น",
       "implicit": {
         "critChancePct": 6,
-        "cooldownPct": 3
+        "hastePct": 9
       },
       "hands": "light"
     },
@@ -300,7 +300,7 @@
       "nameTh": "ไม้กายสิทธิ์",
       "implicit": {
         "spellDamagePct": 6,
-        "cooldownPct": 5
+        "hastePct": 15
       },
       "hands": "light"
     },
@@ -723,7 +723,7 @@
       "stats": {
         "defense": 278,
         "maxMp": 866,
-        "cooldownPct": 16.5
+        "hastePct": 49.5
       },
       "requires": {},
       "starter": false,
@@ -839,7 +839,7 @@
       "look": "circlet",
       "stats": {
         "defense": 78,
-        "cooldownPct": 14.7,
+        "hastePct": 44.1,
         "maxMp": 393
       },
       "requires": {},
@@ -1052,7 +1052,7 @@
       "slot": "charm",
       "stats": {
         "moveSpeedPct": 4,
-        "cooldownPct": 3
+        "hastePct": 9
       },
       "requires": {},
       "starter": false,
@@ -1364,7 +1364,7 @@
       "look": "wrap",
       "stats": {
         "magic": 69,
-        "cooldownPct": 5.7
+        "hastePct": 17.1
       },
       "optionPool": [
         "magic_flat",
@@ -1814,7 +1814,7 @@
       "stats": {
         "defense": 95,
         "maxHp": 476,
-        "cooldownPct": 1.6
+        "hastePct": 4.8
       },
       "requires": {},
       "starter": false,
@@ -2212,7 +2212,7 @@
       "stats": {
         "defense": 52,
         "maxMp": 346,
-        "cooldownPct": 3.5
+        "hastePct": 10.5
       },
       "requires": {},
       "starter": false,
@@ -2258,7 +2258,7 @@
         "defense": 165,
         "maxHp": 412,
         "critChancePct": 11,
-        "cooldownPct": 2.7
+        "hastePct": 8.1
       },
       "requires": {},
       "starter": false,
@@ -2867,7 +2867,7 @@
       "stats": {
         "defense": 145,
         "maxMp": 1125,
-        "cooldownPct": 10.7
+        "hastePct": 32.1
       },
       "requires": {},
       "starter": false,
@@ -2917,7 +2917,7 @@
       "stats": {
         "magic": 43,
         "maxMp": 143,
-        "cooldownPct": 2.4
+        "hastePct": 7.2
       },
       "requires": {},
       "starter": false,
@@ -3017,7 +3017,7 @@
       "stats": {
         "defense": 82,
         "maxMp": 721,
-        "cooldownPct": 8.6
+        "hastePct": 25.8
       },
       "requires": {},
       "starter": false,
@@ -3196,11 +3196,11 @@
       "max": 5
     },
     "cdr_pct": {
-      "label": "{v}% faster cooldowns",
-      "labelTh": "คูลดาวน์เร็วขึ้น {v}%",
-      "stat": "cooldownPct",
-      "min": 2,
-      "max": 5
+      "label": "+{v}% speed",
+      "labelTh": "ความเร็ว +{v}%",
+      "stat": "hastePct",
+      "min": 6,
+      "max": 15
     },
     "leech_pct": {
       "label": "{v}% life leech",
@@ -3461,7 +3461,7 @@
       "maxHp": 0.008,
       "maxMp": 0.01,
       "critChancePct": 0.5,
-      "cooldownPct": 0.6,
+      "hastePct": 0.2,
       "moveSpeedPct": 0.7,
       "hpRegen": 0.15,
       "leechPct": 1.5,

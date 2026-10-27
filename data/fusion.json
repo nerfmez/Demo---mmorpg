@@ -12,7 +12,7 @@
       "Charge",
       "Channel"
     ],
-    "maxCooldown": 2.5
+    "maxCooldown": 4.0
   },
   "payload": {
     "requiresAll": [
@@ -26,7 +26,7 @@
       "Guard",
       "Buff"
     ],
-    "maxCooldown": 2.5,
+    "maxCooldown": 4.0,
     "kinds": [
       "projectile",
       "chain"
@@ -43,7 +43,7 @@
       "nameTh": "ฟันคลื่นเพลิง",
       "desc": "ตั้งท่ารวมไฟเข้าดาบ 1 วิ แล้วฟันปล่อยคลื่นไฟรูปจันทร์เสี้ยวพุ่งไปข้างหน้า ทะลุทุกตัว โดนตัวละครั้งเดียว ติดไฟได้",
       "chargeTime": 1.0,
-      "cooldown": 1.6,
+      "cooldown": 2.56,
       "slashDamageMult": 1.0,
       "wave": {
         "speed": 11,
@@ -60,7 +60,7 @@
       "name": "Thunder Arrow",
       "nameTh": "ศรอัสนี",
       "desc": "ยิงลูกธนูพรานได้เร็วเท่าเดิม ลูกธนูห่อสายฟ้า ปักเป้าแรกแล้วฟ้าแลบระเบิดจากตัวเป้า เด้งต่อไปหาศัตรูใกล้ ๆ อีก 3 ตัว (ไม่ต้องชาร์จ: การชาร์จเป็นของชาร์จยิงรุนแรง)",
-      "cooldown": 0.95,
+      "cooldown": 1.52,
       "chainDamageMult": 0.6
     },
     {
@@ -71,7 +71,7 @@
       "name": "Venom Arrow",
       "nameTh": "ธนูพิษ",
       "desc": "ยิงลูกธนูพรานได้เร็วเท่าเดิม ลูกธนูอาบพิษ โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง (ไม่ต้องชาร์จ)",
-      "cooldown": 0.6,
+      "cooldown": 0.96,
       "poisonMult": 0.5,
       "look": "venom_mire"
     }
@@ -91,15 +91,15 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 70,
-        "scale": 0.8
+        "base": 112,
+        "scale": 1.28
       },
       "range": 12,
       "speed": 11,
       "projectileRadius": 0.32,
-      "cooldown": 0.8,
+      "cooldown": 1.28,
       "castTime": 0.22,
-      "cost": 60,
+      "cost": 96,
       "element": "poison",
       "requires": {},
       "upgradeMaterial": "spore_sac",

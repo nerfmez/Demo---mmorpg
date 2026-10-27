@@ -13,6 +13,7 @@ export const CHARACTER_VERSION = 14;
 export const defenseFactor = (defense, data) => 1 - defense / (defense + data.progression.combat.defenseConstant);
 // v14: raw numbers (HP, attack, magic, defense, MP, regen) grew tenfold; rolled flat options of saved gear follow
 const RAW_SCALE_V14 = 10, RAW_OPTIONS_V14 = ['attack_flat', 'magic_flat', 'hp_flat', 'mp_flat', 'defense_flat', 'regen_flat'];
+const SPEED_SCALE = 3;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -199,6 +200,10 @@ export function migrateCharacter(ch, data) {
   if ((ch.version || 1) >= 3 && (ch.version || 1) < 14)
     for (const item of ch.gear) for (const o of item.options || [])
       if (RAW_OPTIONS_V14.includes(o.id) && o.value < data.items.gearOptions[o.id].min) o.value *= RAW_SCALE_V14;
+  // speed (owner, 2026-10-27): cooldown and cast-speed bonuses became one speed stat worth three times
+  // the old cooldown percent; an old cooldown roll (2-5) sits below today's minimum (6), so only it moves
+  for (const item of ch.gear || []) for (const o of item.options || [])
+    if (o.id === 'cdr_pct' && o.value < data.items.gearOptions.cdr_pct.min) o.value *= SPEED_SCALE;
   if ((ch.version || 1) < 3) {
     for (const item of ch.gear) {
       item.options = item.options || [];
@@ -749,7 +754,7 @@ export function derive(ch, data) {
     maxShieldPct: 0,
     healPct: 0,
     moveSpeedPct: 0,
-    cooldownPct: 0,
+    hastePct: 0,
     critChancePct: pc.baseCritChancePct,
     damageTakenPct: 0,
     hpRegen: pc.base.hpRegen,
@@ -770,7 +775,6 @@ export function derive(ch, data) {
     critMultPct: 0,
     damagePct: 0,
     attackDamagePct: 0,
-    castSpeedPct: 0,
     elementalDamagePct: 0,
     penetrationPct: 0,
     movementRechargePct: 0,

@@ -58,8 +58,8 @@
 | STR/DEX | ตีเร็ว คริ | โอกาสคริ `critChancePct`, แรงคริ `critMultPct`, ดาเมจโจมตี `attackDamagePct`, ดูดเลือด `leechPct` |
 | DEX | ยิง ความเร็ว | ดาเมจยิง `projectileDamagePct`, ความเร็วลูกที่ยิง `projectileSpeedPct`, เจาะเกราะ `penetrationPct`, ความเร็ววิ่ง `moveSpeedPct` |
 | DEX/INT | พิษ ธาตุบนลูกยิง | โอกาสพิษ `poisonChancePct`, ดาเมจต่อเนื่อง `dotDamagePct`, ดาเมจธาตุ `elementalDamagePct`, ชาร์จหลบ `extraMovementCharges` |
-| INT | เวท วงกว้าง อัญเชิญ | ดาเมจเวท `spellDamagePct`, ร่ายเร็ว `castSpeedPct`, รัศมี `areaRadiusPct`, ดาเมจอัญเชิญ `summonDamagePct`, MP `maxMpPct` |
-| INT/STR | ฮีล บาเรีย ควบคุม | ฮีล `healPct`, บาเรีย `barrierPct`, ระยะควบคุม `controlDurationPct`, ฟื้น HP `hpRegen`, ลดคูลดาวน์ `cooldownPct` |
+| INT | เวท วงกว้าง อัญเชิญ | ดาเมจเวท `spellDamagePct`, ความเร็ว `hastePct`, รัศมี `areaRadiusPct`, ดาเมจอัญเชิญ `summonDamagePct`, MP `maxMpPct` |
+| INT/STR | ฮีล บาเรีย ควบคุม | ฮีล `healPct`, บาเรีย `barrierPct`, ระยะควบคุม `controlDurationPct`, ฟื้น HP `hpRegen`, ความเร็ว `hastePct` |
 
 กลางวงมีโหนดพื้นฐานที่ทุกคนใช้ได้: ดาเมจรวม `damagePct`, HP, MP, ฟื้นพลัง และโหนดหาของ (ทอง วัตถุดิบ อุปกรณ์)
 

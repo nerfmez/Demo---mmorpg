@@ -32,11 +32,9 @@ prototype skill fusion. It is not the Skill Lab and not part of the game.
 that they change the events the effects draw. Review hooks: `__fxtest.freeze()` then
 `__fxtest.advance(seconds)` renders deterministic 60 Hz steps for screenshots.
 
-Tempo trial (owner, 2026-10-27): the panel's ทดลองจังหวะ picks a longer base cooldown for the
-skill (x1.3, x1.6, with its damage and MP cost per cast scaled alike, so damage per second stays)
-and one speed value (0, 25, 50: cooldown and cast time divided by 1 + speed/100, replacing the
-character's cooldown and cast-speed bonuses). Holding the cast button repeats a plain skill like the
-game's attack button. It is a feel test for the planned single speed stat; the game is unchanged.
+Speed trial (owner, 2026-10-27): the panel's ทดลองความเร็ว sets the one speed value (0, 50, 100,
+200 = the cap: cooldown and cast time divided by 1 + speed/100) in place of the character's own.
+Holding the cast button repeats a plain skill like the game's attack button.
 
 ## Skill fusion (prototype)
 

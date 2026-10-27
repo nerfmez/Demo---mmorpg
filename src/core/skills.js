@@ -78,9 +78,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
     range: def.range || 0,
     radius: def.radius || 0,
     arc: def.arc || 0,
-    // castSpeedPct is action speed: casting and the cooldown after it both run faster.
-    cooldown: (def.cooldown * (1 - derived.cooldownPct / 100)) / (1 + (derived.castSpeedPct || 0) / 100),
-    castTime: def.castTime / (1 + (derived.castSpeedPct || 0) / 100),
+    // speed (hastePct, one stat): casting and the cooldown after it both run 1 + speed/100 times faster,
+    // so each point adds the same number of casts per second (owner, 2026-10-27)
+    cooldown: def.cooldown / (1 + (derived.hastePct || 0) / 100),
+    castTime: def.castTime / (1 + (derived.hastePct || 0) / 100),
     // the mana cost grows with the rank faster than the damage, and each active mod multiplies it (below)
     costScale: (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostReductionPct || 0) / 100),
     costMult: 1,
@@ -261,7 +262,7 @@ export function movementSkill(ch, data, derived) {
     duration: def.duration,
     delay: def.delay || 0, // a blink's gather in place before it jumps
     charges: ch.movement && ch.movementSkills.includes(ch.movement) ? def.charges + derived.extraMovementCharges : 0,
-    recharge: def.recharge * (1 - (up?.rechargePerLevel || 0) * rank) * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
+    recharge: def.recharge * (1 - (up?.rechargePerLevel || 0) * rank) * (1 - (derived.movementRechargePct || 0) / 100) / (1 + (derived.hastePct || 0) / 100),
     rank: rank + 1,
     invulnerable: def.invulnerable,
   };

@@ -29,8 +29,9 @@ test('every combat skill costs MP; only an aura, which reserves MP instead, is f
     if (s.aura) assert.ok(s.aura.reserve > 0, `${id} reserves MP`);
     else assert.ok(s.cost > 0, `${id} costs MP`);
   }
-  // the quick main attacks are the cheap ones; physical ones are cheaper than the spell
-  for (const id of ['slash', 'weakpoint', 'hunter_shot', 'venom_mire', 'cross_cut']) assert.ok(C[id].cost <= 24 && C[id].cost < C.arcane_bolt.cost * 1.6, id);
+  // the quick main attacks are the cheap ones; physical ones are cheaper than the spell (costs per cast
+  // grew 1.6x with the base cooldowns on 2026-10-27, MP per second unchanged)
+  for (const id of ['slash', 'weakpoint', 'hunter_shot', 'venom_mire', 'cross_cut']) assert.ok(C[id].cost <= 39 && C[id].cost < C.arcane_bolt.cost * 1.6, id);
   assert.ok(C.slash.cost < C.arcane_bolt.cost);
 });
 

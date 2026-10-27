@@ -168,7 +168,7 @@ const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_P
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
   if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
-  game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, cdMult: state.cdMult || 1, haste: state.haste ?? null });
+  game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, haste: state.haste ?? null });
   game.aimAt(aimAngle);
   const off = data.skills.combat[state.skill]?.requiresOffhand || state.offhand || null; // Shield Bash holds a shield; setOffhand a second weapon
   const weapon = state.weapon || BENCH_WEAPON[state.skill]; // setWeapon: another weapon in the right hand
@@ -370,19 +370,18 @@ function renderPanel() {
   pick('หลบ', [['dash', 'พุ่ง'], ['roll', 'กลิ้ง'], ['blink', 'วาร์ป'], ['leap', 'กระโดด']], state.movement || 'dash', (id) => { state.movement = id; });
   panel.append(wb);
 
-  // tempo trial: a longer base cooldown (damage and MP per hit scaled alike) and one speed value
+  // speed trial: the one speed value, up to its cap
   const tb = h('section', 'mods');
-  tb.append(h('h2', '', 'ทดลองจังหวะ'));
+  tb.append(h('h2', '', 'ทดลองความเร็ว'));
   const tpick = (label, list, cur, set) => {
     const row = h('div', 'lv wpick');
     row.append(h('span', '', label));
     for (const [v, th] of list) { const b = h('button', v === cur ? 'on' : '', th); b.addEventListener('click', () => { set(v); rebuild(); }); row.append(b); }
     tb.append(row);
   };
-  tpick('คูลพื้นฐาน', [[1, 'ตอนนี้'], [1.3, 'x1.3'], [1.6, 'x1.6']], state.cdMult || 1, (v) => { state.cdMult = v; });
-  tpick('ความเร็ว', [[null, 'ตามตัวละคร'], [0, '0'], [25, '25'], [50, '50']], state.haste ?? null, (v) => { state.haste = v; });
+  tpick('ความเร็ว', [[null, 'ตามตัวละคร'], [0, '0'], [50, '50'], [100, '100'], [200, '200 (สูงสุด)']], state.haste ?? null, (v) => { state.haste = v; });
   const sk = game.skills[0];
-  tb.append(h('p', 'desc', `คูลจริง ${sk.cooldown.toFixed(2)} วิ · ร่าย ${sk.castTime.toFixed(2)} วิ · ${(1 / Math.max(sk.cooldown, sk.castTime)).toFixed(1)} ครั้ง/วิ · ดาเมจต่อครั้ง x${(state.cdMult || 1).toFixed(1)}`));
+  tb.append(h('p', 'desc', `คูลจริง ${sk.cooldown.toFixed(2)} วิ · ร่าย ${sk.castTime.toFixed(2)} วิ · ${(1 / Math.max(sk.cooldown, sk.castTime)).toFixed(1)} ครั้ง/วิ`));
   panel.append(tb);
 
   const modBox = h('section', 'mods');

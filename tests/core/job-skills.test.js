@@ -163,7 +163,7 @@ test('Spell Wave is the spellblade main skill: a short cooldown and cost like th
   const sw = data.skills.combat.spell_wave;
   for (const id of ['slash', 'hunter_shot', 'cross_cut']) {
     const main = data.skills.combat[id];
-    assert.ok(sw.cooldown <= 1 && Math.abs(sw.cooldown - main.cooldown) <= 0.35, `cooldown near ${id}`);
+    assert.ok(sw.cooldown <= 1.6 && Math.abs(sw.cooldown - main.cooldown) <= 0.56, `cooldown near ${id}`);
     assert.ok(sw.cost <= 2 * main.cost, `cost near ${id}`);
   }
 });

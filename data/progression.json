@@ -46,7 +46,7 @@
       },
       "AGI": {
         "moveSpeedPct": 0.35,
-        "cooldownPct": 0.2
+        "hastePct": 0.6
       },
       "DEX": {
         "critMultPct": 0.5,
@@ -66,7 +66,6 @@
     "_critOverflowDoc": "Crit chance past 100% (no cap, owner 2026-10-25) turns into crit damage: each point over adds critOverflowToMultPct to critMultPct, outside the critMultPct soft cap and cap (core/character.js derive).",
     "baseCritChancePct": 5,
     "caps": {
-      "cooldownPct": 25,
       "dodgeChancePct": 15,
       "moveSpeedPct": 30,
       "damageTakenPct": -25,
@@ -78,10 +77,10 @@
       "materialFindPct": 50,
       "gearFindPct": 40,
       "critMultPct": 100,
-      "castSpeedPct": 40,
       "penetrationPct": 50,
       "movementRechargePct": 40,
-      "manaCostReductionPct": 40
+      "manaCostReductionPct": 40,
+      "hastePct": 200
     },
     "softCaps": {
       "threshold": 50,
@@ -100,7 +99,8 @@
         "elementalDamagePct",
         "critMultPct",
         "damagePct",
-        "attackDamagePct"
+        "attackDamagePct",
+        "hastePct"
       ]
     },
     "_farmDoc": "goldFindPct/materialFindPct/gearFindPct (Ranger farming line, hunter arrows) raise gold, material chances and gear drop chances on kills, up to caps; they add nothing to the power score."

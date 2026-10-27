@@ -328,7 +328,9 @@ Owner: it repeated Flame Wave Slash (Slash fused with Firebolt: a wide horizonta
 Wave now cuts down (`splitChop`) and sends a tall upright crescent along a narrow line (`projectileRadius`
 0.5), the line it cut hanging in the air behind it and an upright cut mark on each one struck. Owner: it
 should not pierce on its own, since the pierce mod does that; it stops at the first monster unless the
-pierce mod carries it through more.
+pierce mod carries it through more. Owner: it should be a main skill. It is now the spellblade's main attack
+(0.8 s cooldown, 24 MP, 90 + 0.9x, cast 0.24 s), and lighter to match: one afterimage, a shorter hanging
+line, fewer sparks; several waves can be in the air at once (pooled by projectile id).
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

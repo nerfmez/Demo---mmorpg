@@ -156,3 +156,13 @@ test('Spell Wave stops at the first monster on its line; the pierce mod lets it 
   const modded = line((g) => computeSkill({ ...g.ch, mods: [{ id: 'pierce', uid: 900, level: 1, grade: 'C' }], slots: [{ skill: 'spell_wave', mods: [900] }], skills: { spell_wave: 1 } }, data, g.derived, 0));
   assert.deepEqual(modded.hits, [modded.m.id, modded.mid.id, modded.far.id], 'the pierce mod (+2) carries it through two more, once each; the one beside the line is missed');
 });
+
+test('Spell Wave is the spellblade main skill: a short cooldown and cost like the other main attacks', () => {
+  const sw = data.skills.combat.spell_wave;
+  for (const id of ['slash', 'hunter_shot', 'cross_cut']) {
+    const main = data.skills.combat[id];
+    assert.ok(sw.cooldown <= 1 && Math.abs(sw.cooldown - main.cooldown) <= 0.35, `cooldown near ${id}`);
+    assert.ok(sw.cost <= 2 * main.cost, `cost near ${id}`);
+  }
+  assert.ok(sw.cooldown <= 2.5, 'short enough to carry a fused spell (data/fusion.json carrier.maxCooldown)');
+});

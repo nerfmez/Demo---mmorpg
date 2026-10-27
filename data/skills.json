@@ -1563,7 +1563,7 @@
     "spell_wave": {
       "name": "Spell Wave",
       "nameTh": "คลื่นดาบเวท",
-      "desc": "ฟันผ่าลงส่งคลื่นดาบเวทตั้งตรงแนวแคบพุ่งไปข้างหน้า 10 ม. ใส่ม็อดทะลุเพื่อเฉือนผ่านหลายตัวในแนวได้ ต้องถือดาบ",
+      "desc": "ท่าหลักนักดาบเวท ฟันผ่าลงส่งคลื่นดาบเวทตั้งตรงแนวแคบพุ่งไปข้างหน้า 10 ม. ใส่ม็อดทะลุเพื่อเฉือนผ่านหลายตัวในแนวได้ ต้องถือดาบ",
       "tags": [
         "Attack",
         "Projectile",
@@ -1573,15 +1573,15 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 160,
-        "scale": 1.3
+        "base": 90,
+        "scale": 0.9
       },
       "range": 10,
       "speed": 16,
       "projectileRadius": 0.5,
-      "cooldown": 3,
-      "castTime": 0.3,
-      "cost": 100,
+      "cooldown": 0.8,
+      "castTime": 0.24,
+      "cost": 24,
       "element": "arcane",
       "requires": {
         "STR": 8,

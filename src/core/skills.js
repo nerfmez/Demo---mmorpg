@@ -92,7 +92,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     burnChance: def.burnChance || 0,
     projectiles: 1,
     spread: 0,
-    pierce: 0,
+    pierce: def.pierce || 0, // base pierce (Spell Wave cuts through its whole line); mods add to it
     chain: def.chain || 0,
     chainRange: def.chainRange || 0,
     chainFalloff: def.chainFalloff || 1,

@@ -324,6 +324,10 @@ Spell Wave (คลื่นดาบเวท, a spellblade sword skill: a cut t
 wave's colours), and a wide crescent of light bulging forward flies out with two fading afterimages,
 speed lines off its tips and rune sparks; each hit slashes a crossing cut mark across the target; at the
 end of its reach the wave thins and flies apart. The game's generic orb is no longer drawn for it.
+Owner: it repeated Flame Wave Slash (Slash fused with Firebolt: a wide horizontal crescent of fire). Spell
+Wave now cuts down (`splitChop`) and sends a tall upright crescent along a narrow line that cuts through
+every monster on it (data `pierce` 99, `projectileRadius` 0.5), the line it cut hanging in the air behind
+it and an upright cut mark on each one struck.
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

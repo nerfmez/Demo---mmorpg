@@ -138,3 +138,16 @@ test('Backstab aimed by a drag steps behind the target it picked, not the neares
   // the backstab's reach is the auto-lock range while it is equipped
   assert.ok(b.g.acquireRange >= data.skills.combat.backstab.shadowStep.range);
 });
+
+test('Spell Wave cuts through every monster on its narrow line, once each, and misses those beside it', () => {
+  const { g, m } = fixture('spell_wave');
+  const far = { ...m, id: 'far', x: 6, z: 0, statuses: {}, hp: 1e6 }, beside = { ...m, id: 'beside', x: 4, z: 1.6, statuses: {}, hp: 1e6 };
+  Object.assign(m, { x: 3, z: 0 });
+  g.monsters = [m, far, beside];
+  assert.ok(g.skills[0].pierce >= 10, 'its base pierce comes from data');
+  g.executeSkill(g.skills[0], aim);
+  const hits = [];
+  for (let i = 0; i < 120 && g.projectiles.length; i++) { g.updateProjectiles(1 / 60); for (const e of g.drainEvents()) if (e.type === 'hit') hits.push(e.id); }
+  assert.deepEqual([...new Set(hits)].sort(), [far.id, m.id].sort(), 'both on the line, not the one beside it');
+  assert.equal(hits.length, 2, 'each struck once');
+});

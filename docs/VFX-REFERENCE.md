@@ -315,6 +315,9 @@ slower for 2 s), `skillfx/lightchain-fx.js` in the holy white-gold: a real chain
 from the staff to a star-headed tip, catches the target with a flash, pulls taut and dissolves from the
 hand, and three loops of chain wind round the target, tighten and turn for as long as it is slowed, then
 fall away; a miss draws the chain back. The game's generic orb is no longer drawn for it.
+Owner: could be better. A sheen runs down the thrown chain, the head is a bigger star with a turning
+cross of rays, the catch bursts stars, and the bound target is held in a web: four chains shoot out from
+it to rings of light hanging in the air round it, and a seal turns over its head while it is slowed.
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

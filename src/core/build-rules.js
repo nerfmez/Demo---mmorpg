@@ -41,51 +41,111 @@ export function packTargets(s, pack) {
   }
 }
 
+/** Total damage of one cast before armour and crit (waves, ticks, repeats and a full charge counted). */
+export function castDamage(s) {
+  let dmg = s.damage || 0;
+  if (s.kind === 'dot_zone') dmg *= s.duration / (s.tick || 0.5);
+  if (s.def?.waves) dmg *= s.def.waves;
+  if (s.repeats) dmg *= 1 + s.repeats * (s.repeatMult || 0);
+  if (s.charge) dmg *= s.charge.maxDamageMult || 1;
+  return dmg * Math.max(1, s.projectiles || 1);
+}
+
+/** Hits of one cast on a pack: the shape's reach, a chain's falloff along its jumps. */
+function packHits(s, pack) {
+  if (s.kind !== 'chain') return packTargets(s, pack);
+  let sum = 0;
+  for (let k = 0; k < Math.min(pack.size, 1 + (s.chain || 0)); k++) sum += (s.chainFalloff || 1) ** k;
+  return sum;
+}
+
 /**
- * A build's profile. spec: { kit, level, jobNodes, gear (a gear set id), support (skill ids slotted
- * after the main skill) }. Returns { axes, cost } with the axes in AXES order of meaning.
+ * A build's profile. spec: { kit, level, jobNodes, gear (a gear set id), loadout (skill ids: the
+ * first is the main attack, the rest are cast whenever ready), support (skills that only help),
+ * build (a reference build for a kit not in progression.balance.builds) }. Node effects may carry
+ * scenario stats the character sheet ignores: singleDamagePct (bosses and single targets),
+ * packDamagePct, perTargetDamagePct (per enemy one cast hits, up to perTargetCap), selfTakenPct,
+ * teamBuffPct (buffs and heals we give), teamTakenPct (allies near us take less), teamDamagePct
+ * (allies deal more to our targets).
  */
 export function buildProfile(data, spec) {
   const R = data.progression.balance.rules, b = data.progression.balance;
+  const build = spec.build || b.builds[spec.kit];
+  const loadout = spec.loadout || [build.skill], support = spec.support || [];
   // the gear set rides in as one extra source of stats, so it meets the same soft caps and caps
-  const mainDef = data.skills.combat[b.builds[spec.kit].skill];
-  const gearNode = '~gear', withGear = { ...data, jobtree: { ...data.jobtree, nodes: { ...data.jobtree.nodes, [gearNode]: { effects: gearSetStats(data, spec.gear, mainDef) } } } };
-  const { ch, d } = referenceHero(withGear, spec.kit, spec.level, [...(spec.jobNodes || []), gearNode]);
-  (spec.support || []).forEach((id, i) => { ch.slots[i + 1] = { skill: id, mods: [] }; ch.skills[id] = skillRankAt(data, spec.level); });
-  const s = computeSkill(ch, data, d, 0), m = referenceMonster(data, spec.level), hitDps = m.damage / m.hitInterval;
-  const crit = 1 + d.critChance * (d.critMult - 1), mdef = m.defense * (1 - (d.penetrationPct || 0) / 100);
-  const perHit = (s.damage || 0) * crit * (1 + (s.repeats || 0) * (s.repeatMult || 0)) * defenseFactor(mdef, data);
-  const rate = b.uptime / Math.max(s.cooldown, s.castTime, 0.35), sec = R.fightSeconds;
-  // casts per second MP allows over the fight: pool + regeneration, each cast handing back its hits' MP
-  const mana = (hits) => { const net = s.cost - hits * (d.mpOnHit || 0); return net > 0 ? (d.maxMp + d.mpRegen * sec) / sec / net : Infinity; };
-  const single = perHit * Math.max(1, s.projectiles || 1) * Math.min(rate, mana(1));
-  const targets = packTargets(s, R.pack), pack = perHit * targets * Math.min(rate, mana(targets));
-  // sustain: seconds of full-rate casting before MP runs dry (regeneration and MP on hit counted)
-  const drain = s.cost * rate - d.mpRegen - (d.mpOnHit || 0) * rate;
-  const sustain = drain <= 0 ? R.survivalCap : Math.min(R.survivalCap, d.maxMp / drain);
-  // survival: the reference monster's hits through armour, block and dodge, against regen and leech
-  const incoming = hitDps * defenseFactor(d.defense, data) * (1 + (d.damageTakenPct || 0) / 100)
-    * (1 - Math.min(1, (d.dodgeChancePct || 0) / 100)) * (1 - (d.blockChance || 0) * (1 - data.progression.combat.block.taken));
-  const net = incoming - (d.hpRegen || 0) - (d.leechPct || 0) / 100 * single;
+  const gearNode = '~gear', mainDef = data.skills.combat[loadout[0]];
+  const D = { ...data, jobtree: { ...data.jobtree, nodes: { ...data.jobtree.nodes, [gearNode]: { effects: gearSetStats(data, spec.gear, mainDef) } } },
+    progression: { ...data.progression, balance: { ...b, builds: { ...b.builds, [spec.kit]: { ...build, skill: loadout[0] } } } } };
+  const { ch, d } = referenceHero(D, spec.kit, spec.level, [...(spec.jobNodes || []), gearNode]);
+  [...loadout.slice(1), ...support].forEach((id, i) => { ch.slots[i + 1] = { skill: id, mods: [] }; ch.skills[id] = skillRankAt(data, spec.level); });
+  const skills = ch.slots.map((sl, i) => sl.skill && computeSkill(ch, data, d, i)).filter(Boolean);
+  const attacks = skills.slice(0, loadout.length), helpers = skills.slice(loadout.length);
+  const m = referenceMonster(data, spec.level), hitDps = m.damage / m.hitInterval, sec = R.fightSeconds;
+  const crit = 1 + d.critChance * (d.critMult - 1), armour = defenseFactor(m.defense * (1 - (d.penetrationPct || 0) / 100), data);
+  const pct = (k) => (d[k] || 0) / 100;
+  // rotation: cooldown skills whenever ready, each holding the hero for its cast and a short recovery;
+  // the main attack fills the rest of the fighting time; MP cuts the main attack first
+  const lock = (s) => s.castTime + (s.charge ? s.charge.duration : 0) + R.recover;
+  const busy = attacks.slice(1).reduce((a, s) => a + lock(s) / s.cooldown, 0);
+  const main = attacks[0], interval = Math.max(main.cooldown, main.castTime, 0.35);
+  const rates = attacks.map((s, i) => i === 0 ? Math.max(0, b.uptime - busy) / interval : b.uptime / s.cooldown);
+  const hitsPerSecond = (hitsOf) => attacks.reduce((a, s, i) => a + rates[i] * hitsOf(s), 0);
+  const supply = (d.maxMp + d.mpRegen * sec) / sec;
+  // support skills cast on cooldown unless their MP alone outruns the supply, then as often as it allows
+  const helperCost = helpers.reduce((a, s) => a + s.cost / s.cooldown, 0), helperShare = helperCost > supply ? supply / helperCost : 1;
+  const spend = (hitsOf) => attacks.reduce((a, s, i) => a + rates[i] * s.cost, 0) + helperCost * helperShare - (d.mpOnHit || 0) * hitsPerSecond(hitsOf);
+  const fit = (hitsOf) => { // scale the main attack down until the MP lasts the fight
+    const over = spend(hitsOf) - supply;
+    if (over <= 0) return rates;
+    const r = [...rates], cut = Math.min(r[0], over / Math.max(1e-6, main.cost - (d.mpOnHit || 0) * hitsOf(main)));
+    r[0] -= cut;
+    const left = over - cut * (main.cost - (d.mpOnHit || 0) * hitsOf(main));
+    if (left > 1e-9) { const rest = attacks.slice(1).reduce((a, s, i) => a + r[i + 1] * s.cost, 0); for (let i = 1; i < r.length; i++) r[i] *= Math.max(0, 1 - left / Math.max(1e-6, rest)); }
+    return r;
+  };
+  // debuffs a build lays on its targets: exposure and curses raise the damage everyone deals
+  const amp = 1 + [...attacks, ...helpers].reduce((a, s) => a + (s.def.exposure ? s.def.exposure.fraction * Math.min(1, s.def.exposure.duration / s.cooldown) : 0)
+    + (s.kind === 'curse_zone' && s.takenMult ? (s.takenMult - 1) * Math.min(1, s.duration / s.cooldown) : 0), 0);
+  const dealt = (hitsOf, scen) => {
+    const r = fit(hitsOf);
+    return attacks.reduce((a, s, i) => {
+      const hits = hitsOf(s), perTarget = scen === 'pack' ? Math.min(pct('perTargetDamagePct') * hits, pct('perTargetCap') || Infinity) : 0;
+      return a + r[i] * castDamage(s) * hits * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
+    }, 0) * crit * armour * amp;
+  };
+  const single = dealt(() => 1, 'single'), pack = dealt((s) => packHits(s, R.pack), 'pack');
+  const sustain = (() => { const drain = spend(() => 1) - d.mpRegen; return drain <= 0 ? R.survivalCap : Math.min(R.survivalCap, d.maxMp / drain); })();
+  // survival: the pack's hits through armour, block, dodge and our own guarding buffs, against
+  // regeneration, leech and our own barriers
+  let guard = 1 - pct('selfTakenPct'), shield = 0;
+  const share = (s) => helpers.includes(s) ? helperShare : 1;
+  for (const s of [...attacks, ...helpers]) {
+    const up = s.duration ? Math.min(1, s.duration / s.cooldown) * share(s) : 0;
+    if (s.kind === 'buff' && s.takenMult) guard *= 1 - (1 - s.takenMult) * up;
+    if (s.barrier) shield += s.barrier / s.cooldown * share(s);
+  }
+  // standing in a pack (pack.size monsters), not one: one monster's hits hardly test a tank
+  const incoming = hitDps * R.pack.size * defenseFactor(d.defense, data) * (1 + pct('damageTakenPct')) * guard
+    * (1 - Math.min(1, pct('dodgeChancePct'))) * (1 - (d.blockChance || 0) * (1 - data.progression.combat.block.taken));
+  const net = incoming - (d.hpRegen || 0) - pct('leechPct') * single - shield;
   const survival = net <= 0 ? R.survivalCap : Math.min(R.survivalCap, (d.maxHp + (d.maxShield || 0)) / net);
   const mv = movementSkill(ch, data, d);
   const mobility = d.moveSpeed + (mv.charges ? mv.distance / Math.max(0.1, mv.recharge) : 0);
-  // team: what the support skills give allies (buff share x uptime; healing and barriers per second
-  // measured against the monster's damage per second)
-  let team = 0;
-  for (let i = 1; i < ch.slots.length; i++) {
-    const t = ch.slots[i].skill && computeSkill(ch, data, d, i);
-    if (!t) continue;
-    const up = t.duration ? Math.min(1, t.duration / t.cooldown) : 0;
-    team += up * ((t.damageBuff || 0) + (t.speedBuff || 0) + (t.takenMult ? Math.abs(1 - t.takenMult) : 0));
-    if (t.heal) team += t.heal * (t.kind === 'heal_zone' ? t.duration / t.tick : 1) / t.cooldown / hitDps;
-    if (t.barrier) team += t.barrier / t.cooldown / hitDps;
+  // team: what the build gives allies (buff share x uptime; healing and barriers per second measured
+  // against the pack's damage per second; an aura that cuts allies' damage taken)
+  let team = pct('teamTakenPct') + pct('teamDamagePct') + (amp - 1); // our debuffs raise everyone's damage
+  const packDps = hitDps * R.pack.size;
+  for (const t of [...attacks, ...helpers]) {
+    const up = t.duration ? Math.min(1, t.duration / t.cooldown) * share(t) : 0, power = 1 + pct('teamBuffPct');
+    if (t.kind === 'buff' && t.def.radius) team += up * power * ((t.damageBuff || 0) + (t.speedBuff || 0) + (t.takenMult ? 1 - t.takenMult : 0));
+    if (t.heal) team += share(t) * power * t.heal * (t.kind === 'heal_zone' ? t.duration / t.tick : 1) / t.cooldown / packDps;
+    if (t.barrier && t.def.radius) team += share(t) * power * t.barrier / t.cooldown / packDps;
   }
   const find = { goldFindPct: d.goldFindPct || 0, materialFindPct: d.materialFindPct || 0, gearFindPct: d.gearFindPct || 0 };
-  const income = farmingIncome(data, spec.kit, spec.level, find, null, m.hp / Math.max(1e-6, single)).net;
+  const income = farmingIncome(D, spec.kit, spec.level, find, null, m.hp / Math.max(1e-6, single)).net;
   return {
     axes: { single, pack, survival, sustain, mobility, team, income },
-    cost: { points: (spec.jobNodes || []).length, gear: spec.gear || null, mpPerSecond: s.cost * Math.min(rate, mana(1)) },
+    cost: { points: (spec.jobNodes || []).length, gear: spec.gear || null, mpPerSecond: spend(() => 1) },
   };
 }
 
@@ -120,6 +180,8 @@ export function weaknesses(profile, best, weakness) {
  * - traps: [winner, loser] otherwise (same role, no role, or a loser that leads nothing): the loser is
  *   simply a worse choice;
  * - noWeakness: builds within `weakness` of the field's best on every axis;
+ * - overBudget / underBudget: plans whose weighted profile is far above or below the median plan
+ *   (too much, or too little, for the same points);
  * - roleMisses: groups whose best variant does not clearly lead its own axis (a tie leads nothing);
  *   roleGaps: same-role groups
  *   (best variants) further apart on their axis than sameRoleGap.
@@ -146,5 +208,11 @@ export function auditBuilds(data, builds) {
     const vals = own.map((x) => x.profile.axes[role]), gap = Math.max(...vals) / Math.min(...vals) - 1;
     if (own.length > 1 && gap > R.sameRoleGap) roleGaps.push({ role, ids: own.map((x) => x.id), gap });
   }
-  return { best, overpowered, traps, noWeakness, roleMisses, roleGaps };
+  // too much for the price: a plan whose weighted profile (each axis as a share of the field's best)
+  // sits above the field's median plan by more than budgetBand
+  const score = (x) => AXES.reduce((a, k) => a + (R.budgetWeights[k] || 0) * (best[k] > 0 ? x.profile.axes[k] / best[k] : 0), 0);
+  const scores = tops.map((x) => ({ id: x.id, score: score(x) })), mid = [...scores].sort((p, q) => p.score - q.score)[Math.floor(scores.length / 2)]?.score || 0;
+  const overBudget = scores.filter((x) => x.score > mid * (1 + R.budgetBand)).map((x) => ({ ...x, ratio: x.score / mid }));
+  const underBudget = scores.filter((x) => x.score < mid * (1 - R.budgetBand)).map((x) => ({ ...x, ratio: x.score / mid }));
+  return { best, overpowered, traps, noWeakness, roleMisses, roleGaps, scores, overBudget, underBudget };
 }

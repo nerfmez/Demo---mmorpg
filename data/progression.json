@@ -371,19 +371,23 @@
     },
     "uptime": 0.55,
     "rules": {
-      "_doc": "Build balance rules (owner, 2026-10-27; core/build-rules.js, tests/core/build-rules.test.js). A build is a kit, Job Tree nodes, a gear set and support skills; its profile has one number per axis (higher is better): single (boss DPS over fightSeconds, MP counted), pack (DPS into a pack of pack.size monsters within pack.radius m, from the main skill's shape), survival (seconds standing in the reference monster's hits, healing counted), sustain (seconds of full-rate casting before MP runs dry, up to survivalCap), mobility (m/s of walking plus the movement skill), team (help per second the support skills give), income (gold-equivalent per hour). Standing out in a build's role is intended; overpowered means a build at equal cost dominates a build of another role (at least (1 - tolerance) of it on every axis and better by tolerance on one), or has no weakness (no axis below weakness x the field's best). Dominance within one role only marks the loser as a poor choice. Builds of one role compare on its axis within sameRoleGap. gearSets: the option ids a player stacks for that aim, spread over every slot (optionsPerItem each, mid rolls); a damage option a skill cannot use is skipped.",
+      "_doc": "Build balance rules (owner, 2026-10-27; core/build-rules.js, tests/core/build-rules.test.js). A build is a kit, Job Tree nodes, a gear set and support skills; its profile has one number per axis (higher is better): single (boss DPS over fightSeconds, MP counted), pack (DPS into a pack of pack.size monsters within pack.radius m, from the main skill's shape), survival (seconds standing in the reference monster's hits, healing counted), sustain (seconds of full-rate casting before MP runs dry, up to survivalCap), mobility (m/s of walking plus the movement skill), team (help per second the support skills give), income (gold-equivalent per hour). Standing out in a build's role is intended; overpowered means a build at equal cost dominates a build of another role (at least (1 - tolerance) of it on every axis and better by tolerance on one), or has no weakness (no axis below weakness x the field's best). Dominance within one role only marks the loser as a poor choice. Builds of one role compare on its axis within sameRoleGap. budgetWeights/budgetBand: a plan's weighted profile (each axis as a share of the field's best) may sit at most budgetBand above or below the median plan (too much or too little for the same points). recover: seconds a cooldown skill holds the hero after its cast (the rotation model fills the rest with the main attack). gearSets: the option ids a player stacks for that aim, spread over every slot (optionsPerItem each, mid rolls); a damage option a skill cannot use is skipped.",
       "fightSeconds": 90,
-      "pack": { "size": 5, "radius": 3 },
+      "pack": { "size": 5, "radius": 2.5 },
       "tolerance": 0.03,
       "weakness": 0.85,
       "sameRoleGap": 0.1,
       "survivalCap": 600,
+      "recover": 0.28,
+      "budgetBand": 0.25,
+      "budgetWeights": { "single": 1, "pack": 1, "survival": 1, "sustain": 0.25, "mobility": 0.25, "team": 1, "income": 0.25 },
       "optionsPerItem": 3,
       "gearSets": {
         "offense": ["attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "crit_pct"],
         "defense": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "shield_flat"],
         "speed": ["cdr_pct", "mp_on_hit", "mp_regen_pct", "mana_cost_pct"],
-        "mixed": ["attack_flat", "magic_flat", "crit_pct", "hp_flat", "defense_flat", "cdr_pct", "mp_regen_pct"]
+        "mixed": ["attack_flat", "magic_flat", "crit_pct", "hp_flat", "defense_flat", "cdr_pct", "mp_regen_pct"],
+        "support": ["heal_pct", "barrier_pct", "shield_pct", "mp_regen_pct", "mana_cost_pct", "hp_flat"]
       }
     },
     "farming": {

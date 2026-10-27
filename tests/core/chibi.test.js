@@ -171,5 +171,20 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
     const hide = JSON.parse(nodes[0].extras.hideBody);
     assert.ok(hide.length > 100 && hide.every((t) => Number.isInteger(t) && t >= 0 && t < body.tris), id + ' hideBody');
     assert.ok(tris + body.tris < 8000, id + ' with the body inside the character budget');
+    // every leg and boot vertex on one side follows that side's leg most (fit-chibi-outfit.py): a
+    // sole corner weighted to the other foot stretches into a spike when the feet turn apart
+    const prim = j.meshes[0].primitives[0], bin = b.subarray(20 + b.readUInt32LE(12) + 8);
+    const view = (k, T, n) => { const a = j.accessors[prim.attributes[k]], v = j.bufferViews[a.bufferView]; return new T(bin.buffer, bin.byteOffset + (v.byteOffset || 0) + (a.byteOffset || 0), a.count * n); };
+    const pos = view('POSITION', Float32Array, 3), w = view('WEIGHTS_0', Float32Array, 4);
+    const ja = j.accessors[prim.attributes.JOINTS_0], jt = ja.componentType === 5121 ? Uint8Array : Uint16Array, jn = view('JOINTS_0', jt, 4);
+    const names = j.skins[0].joints.map((i) => j.nodes[i].name);
+    let wrong = 0;
+    for (let v = 0; v < pos.length / 3; v++) {
+      let best = 0;
+      for (let k = 1; k < 4; k++) if (w[v * 4 + k] > w[v * 4 + best]) best = k;
+      const name = names[jn[v * 4 + best]], x = pos[v * 3];
+      if (pos[v * 3 + 1] < 0.3 && Math.abs(x) > 0.03 && (/^Left/.test(name) && x < 0 || /^Right/.test(name) && x > 0)) wrong++; // the legs and feet
+    }
+    assert.equal(wrong, 0, id + ' vertices following the other side');
   }
 });

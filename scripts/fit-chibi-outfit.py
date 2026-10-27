@@ -473,7 +473,11 @@ for i, p in enumerate(P):
         c = legc(p[2], 1 if p[0] >= 0 else -1)
         d = Vector((p[0] - c[0], p[1] - c[1], 0))
         if d.length < 1e-4: d = Vector((1 if p[0] >= 0 else -1, 0, 0))
+        side = 1 if p[0] >= 0 else -1
         loc, n, idx, dist = body_bvh.ray_cast(Vector(c), d.normalized(), 0.3)
+        # at the sole the centre line runs under the foot and the ray can pass it to the other foot
+        # (a heel corner then follows the other foot and stretches into a spike): own side only
+        if idx is not None and loc[0] * side < 0: idx = None
     if idx is None:
         loc, n, idx, dist = body_bvh.find_nearest(Vector(p))
     t = BT[idx]

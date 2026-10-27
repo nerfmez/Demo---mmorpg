@@ -35,12 +35,13 @@ import { ShadowFx } from './skillfx/shadow-fx.js';
 import { IronFx } from './skillfx/iron-fx.js';
 import { BuffFx, LOOKS as BUFF_LOOKS } from './skillfx/buff-fx.js';
 import { BlessFx } from './skillfx/bless-fx.js';
+import { VolleyFx } from './skillfx/volley-fx.js';
 const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -93,6 +94,9 @@ export class SkillFx {
     this.iron = new IronFx(scene, camera);
     this.buff = new BuffFx(scene, camera); this.buffBodies = [];
     this.bless = new BlessFx(scene, camera);
+    this.volley = new VolleyFx(scene, camera); this.volleyN = 0;
+    // each arrow of the volley after the first replays a quick loose of the bow
+    this.volley.onLoose = () => { if (this.volleyN++ > 0) this.play('rapid_volley', 0.2, 0, 0.04, 'projectile'); };
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
@@ -172,6 +176,7 @@ export class SkillFx {
         if (e.skill === 'iron_body') this.iron.gather(g.player.x, g.player.z, e.total);
         if (BUFF_LOOKS[e.skill]) this.buff.rouse(e.skill, g.player.x, g.player.z, e.total);
         if (e.skill === 'blessing') this.bless.gather(g.player.x, g.player.z, e.total);
+        if (e.skill === 'rapid_volley') this.volleyN = 0;
         if (e.skill === 'blade_storm') { this.stormI = 0; this.storm.start(g.player.x, g.player.z, s.radius, e.total + stormSpan(s) + 0.3); }
         if (e.kind === 'melee_arc') { this.primarySwing = true; if (!OWN_STRIKE.has(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
         if (e.kind === 'projectile' && !OWN_PROJECTILES.has(e.skill)) {
@@ -323,6 +328,7 @@ export class SkillFx {
         if (e.dot || !SKILL_FX.has(e.skill)) return false;
         const c = this.centerOf(e.id); if (!c) return true;
         if (e.skill === 'flame_stream') this.flame.lick(c);
+        if (e.skill === 'rapid_volley') this.volley.hit(c, c.x - e.fromX, c.z - e.fromZ);
         if (e.skill === 'frontline_split') this.split.cut(c);
         if (e.skill === 'interrupt_slam' || e.skill === 'sky_shatter') this.mace.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'riposte') this.riposte.hit(c, e.fromX, e.fromZ);
@@ -372,6 +378,8 @@ export class SkillFx {
     setPowerFacing(p.facing);
     const ch = p.charging;
     this.power.syncProjectiles(g.projectiles, 'charged_shot', dt);
+    this.volley.syncProjectiles(g.projectiles, 'rapid_volley');
+    this.volley.update(dt);
     this.power.update(dt, tip, ch ? Math.min(1, ch.t / ch.skill.charge.duration) : 0);
     for (const t of this.timers) if (this.time >= t.at && !t.done) { t.done = true; t.fn(); }
     let w = 0; for (const t of this.timers) if (this.timerDone(t)) this.timers[w++] = t; this.timers.length = w;
@@ -427,7 +435,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley]) fx.clear();
     this.timers.length = 0;
   }
 }

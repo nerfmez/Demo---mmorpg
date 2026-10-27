@@ -1347,8 +1347,7 @@
       "upgradeMaterial": "storm_quill",
       "upgradeStat": "DEX",
       "job": "power",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "killing_arrow": {
       "name": "Killing Arrow",

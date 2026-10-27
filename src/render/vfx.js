@@ -191,6 +191,9 @@ function discGeometry(segs = 40, rings = 6) {
 }
 
 let arrowGeo = null;
+// bow skills whose projectile is drawn as a real arrow (and nocked through the cast)
+const BOW_SHOTS = new Set(['hunter_shot', 'charged_shot', 'rapid_volley', 'killing_arrow']);
+
 /** One shared set of arrow meshes for every arrow in flight. */
 function arrowGeometry() {
   if (!arrowGeo) {
@@ -335,7 +338,7 @@ export class Vfx {
       const mesh=frostMesh(4.2,true);mesh.visible=false;this.scene.add(mesh);
       this.castFrost={mesh,t:0,dur:e.total};return;
     }
-    if ((e.skill === 'hunter_shot' || e.skill === 'charged_shot')) {
+    if (BOW_SHOTS.has(e.skill)) {
       const cfg = this.config.skills.hunter_shot, f = cfg.cast, mesh = arrowStreak(cfg);
       mesh.material.uniforms.uLength.value = f.length; mesh.material.uniforms.uWidth.value = f.width;
       mesh.material.uniforms.uOpacity.value = f.opacity; mesh.visible = false; this.scene.add(mesh);
@@ -1253,7 +1256,7 @@ export class Vfx {
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
-      const arrow = (pr.kind === 'hunter_shot' || pr.kind === 'charged_shot' || pr.arrow); // pr.arrow: a fused arrow (bench)
+      const arrow = BOW_SHOTS.has(pr.kind) || pr.arrow; // pr.arrow: a fused arrow (bench)
       const fire = pr.kind === 'firebolt' && element === 'fire';
       const look = this.genericLook(pr.kind).projectile;
       if (!v) {

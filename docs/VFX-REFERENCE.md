@@ -277,6 +277,11 @@ at the rim, drawn over the scene so it stays white-gold), crisp four-point stars
 drift down, a glint flares where the light lands, and the halo stays over each blessed body, breathing
 softly, for the whole buff.
 
+Rapid Volley (ยิงรัว, bows: five arrows 0.12 s apart), `skillfx/volley-fx.js` in a cool wind tint: each
+arrow is a real arrow (it was drawn as a generic orb before; `BOW_SHOTS` in vfx.js), a flick at the bow
+(speed lines and a ring of air) marks each loose and the hero replays a quick shot for each, a wind streak
+follows each arrow, and each hit bursts on the target, so the five shots read as a rhythm.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

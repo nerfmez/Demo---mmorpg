@@ -319,6 +319,12 @@ Owner: could be better. A sheen runs down the thrown chain, the head is a bigger
 cross of rays, the catch bursts stars, and the bound target is held in a web: four chains shoot out from
 it to rings of light hanging in the air round it, and a seal turns over its head while it is slowed.
 
+Spell Wave (คลื่นดาบเวท, a spellblade sword skill: a cut that sends a wide wave of arcane blade out 10 m),
+`skillfx/wave-fx.js` in arcane blue-violet: the hero cuts with the sword (the bench's slash crescent in the
+wave's colours), and a wide crescent of light bulging forward flies out with two fading afterimages,
+speed lines off its tips and rune sparks; each hit slashes a crossing cut mark across the target; at the
+end of its reach the wave thins and flies apart. The game's generic orb is no longer drawn for it.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

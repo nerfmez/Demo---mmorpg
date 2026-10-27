@@ -1594,8 +1594,7 @@
       "upgradeMaterial": "rune_core",
       "upgradeStat": "INT",
       "job": "spellblade",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     }
   },
   "movement": {

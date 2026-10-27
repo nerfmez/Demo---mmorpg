@@ -267,10 +267,15 @@ the other) plus a shield wall, eight shields snapping up one after another round
 fading; small streaks circle each buffed body while it lasts.
 
 Blessing of Light (พรแห่งแสง, a priest spell: +10% damage and 10% less damage taken for 12 s within
-9 m), the same `BuffFx` as holy light rather than a shout: motes of light drift down onto the hero through
+9 m), first in the same `BuffFx` as holy light rather than a shout: motes of light drift down onto the hero through
 the cast (Frost Nova's cast pose), a column of light falls on it as the soft ring goes out to the true
 radius, a halo lights over each body the buff reached, and motes drift down round each buffed body while
 it lasts. The column's additive glow tinted green on grass, so its core is wider and its glow softer.
+Owner: make it prettier. Rebuilt in its own `skillfx/bless-fx.js` with the reference skills' techniques:
+the column is a real see-through shaft of light (a cylinder whose streaks are noise carried down it, bright
+at the rim, drawn over the scene so it stays white-gold), crisp four-point stars pop and twinkle as they
+drift down, a glint flares where the light lands, and the halo stays over each blessed body, breathing
+softly, for the whole buff.
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

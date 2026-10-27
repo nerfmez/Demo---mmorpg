@@ -34,6 +34,7 @@ import { StormFx } from './skillfx/storm-fx.js';
 import { ShadowFx } from './skillfx/shadow-fx.js';
 import { IronFx } from './skillfx/iron-fx.js';
 import { BuffFx, LOOKS as BUFF_LOOKS } from './skillfx/buff-fx.js';
+import { BlessFx } from './skillfx/bless-fx.js';
 const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
@@ -91,6 +92,7 @@ export class SkillFx {
     this.shadow = new ShadowFx(scene, camera);
     this.iron = new IronFx(scene, camera);
     this.buff = new BuffFx(scene, camera); this.buffBodies = [];
+    this.bless = new BlessFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
@@ -169,6 +171,7 @@ export class SkillFx {
         if (e.skill === 'cross_cut') this.crossI = 0;
         if (e.skill === 'iron_body') this.iron.gather(g.player.x, g.player.z, e.total);
         if (BUFF_LOOKS[e.skill]) this.buff.rouse(e.skill, g.player.x, g.player.z, e.total);
+        if (e.skill === 'blessing') this.bless.gather(g.player.x, g.player.z, e.total);
         if (e.skill === 'blade_storm') { this.stormI = 0; this.storm.start(g.player.x, g.player.z, s.radius, e.total + stormSpan(s) + 0.3); }
         if (e.kind === 'melee_arc') { this.primarySwing = true; if (!OWN_STRIKE.has(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
         if (e.kind === 'projectile' && !OWN_PROJECTILES.has(e.skill)) {
@@ -230,6 +233,7 @@ export class SkillFx {
       // Iron Body: the steel shell, glint and ring, then the sheen while it lasts (skillfx/iron-fx.js)
       case 'buff': {
         if (e.kind === 'iron_body') { this.iron.harden(e.x, e.z, this.skillOf(e.kind)?.duration ?? 6); return true; }
+        if (e.kind === 'blessing') { this.bless.bestow(e.x, e.z, e.radius); return true; }
         if (!BUFF_LOOKS[e.kind]) return false;
         // party shouts (Rally): the ring to the true radius, and a mark over every body the buff reached
         const bodies = this.buffBodies; bodies.length = 0; bodies.push(g.player);
@@ -410,6 +414,12 @@ export class SkillFx {
       if (bodies.length) this.buff.linger(k, dt, bodies);
     }
     this.buff.update(dt);
+    // Blessing of Light: a halo over every body holding it (skillfx/bless-fx.js)
+    const blessed = this.bless.halos; blessed.length = 0;
+    if (p.buffs?.blessing && !p.dead) blessed.push(p);
+    for (const a of g.allies || []) if (!a.dead && a.buffs?.blessing) blessed.push(a);
+    this.bless.follow(p.x, p.z);
+    this.bless.update(dt);
     this.shadow.update(dt);
   }
   // the offscreen flame passes, right before the main render
@@ -417,7 +427,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless]) fx.clear();
     this.timers.length = 0;
   }
 }

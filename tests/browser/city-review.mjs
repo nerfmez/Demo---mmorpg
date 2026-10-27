@@ -61,7 +61,7 @@ try{
    await page.setViewportSize({width,height});await verifyPassiveGestures(page,{context:ctx,engineName:engine.name(),capture:async name=>page.screenshot({path:out+label+'-'+name+'.png'})});report.journalDevices.push(label);
   }
  }
- // Verify the real creator has clear footing beside the new fountain.
+ // The creator shows the hero alone in its studio scene, not on the plaza (the owner's 2026-10-27 call).
  const previewCtx=await browser.newContext({viewport:{width:1180,height:820},hasTouch:true,isMobile:true,deviceScaleFactor:1});
  const previewPage=await previewCtx.newPage();previewPage.setDefaultTimeout(90000);previewPage.on('pageerror',e=>report.errors.push(e.message));
  await previewPage.addInitScript(()=>{const raf=requestAnimationFrame.bind(window);window.requestAnimationFrame=cb=>raf(t=>{if(!window.__cityFreeze)cb(t);});});
@@ -77,8 +77,8 @@ try{
  report.previewReadyBackdrop=await previewPage.locator('.fullscreen-gate').evaluate(el=>getComputedStyle(el).backdropFilter);
  assert.equal(report.previewReadyBackdrop,'blur(12px)','ready title retains its authored fullscreen backdrop');await enterFullscreenGate(previewPage);
  await previewPage.locator('[data-act="new"]').tap();await previewPage.waitForSelector('.create-panel');
- report.creationPreview=await previewPage.evaluate(()=>{__cityFreeze=true;const f=__frontier,p=f.view.previewHero.root.position;f.view.render(0,1,{});return{position:[p.x,p.z],free:f.world.isFree(p.x,p.z,.45),spawn:f.world.data.playerSpawn};});
- assert.ok(report.creationPreview.free);assert.deepEqual(report.creationPreview.position,data.world.town.respawn);assert.deepEqual(report.creationPreview.spawn,data.world.playerSpawn);
+ report.creationPreview=await previewPage.evaluate(()=>{__cityFreeze=true;const f=__frontier,v=f.view,r=v.previewHero.root,p=r.position;v.render(0,1,{});let inWorld=false;r.traverseAncestors(a=>{if(a===v.scene)inWorld=true;});return{position:[p.x,p.z],inStudio:r.parent===v.studio,inWorld,spawn:f.world.data.playerSpawn};});
+ assert.ok(report.creationPreview.inStudio&&!report.creationPreview.inWorld,'the creation hero stands in the studio, not the world');assert.deepEqual(report.creationPreview.position,[0,0]);assert.deepEqual(report.creationPreview.spawn,data.world.playerSpawn);
  await previewPage.screenshot({path:out+'10-character-creation.png',timeout:90000});await previewCtx.close();
  assert.deepEqual(report.errors,[]);report.status='passed';writeFileSync(out+'report.json',JSON.stringify(report,null,2));console.log('PASS actual city review; routes: '+report.routeChecks);
 }finally{await browser?.close();if(server)try{process.kill(-server.pid);}catch{}}

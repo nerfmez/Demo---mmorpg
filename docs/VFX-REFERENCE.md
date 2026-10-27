@@ -372,3 +372,15 @@ read as cel frames), thin cream speed lines streaking back from its silhouette i
 soft dust streak on the ground and a slight stretch of the ball along its path. Original procedural
 shapes (`src/render/roll-fx.js`, numbers in `data/combat-fx.json` `roll`); nothing copied. Re-check
 against relevant gallery dash/rush/speed-line clips when the host is reachable.
+
+### Arcane Draw Cut — 2026-10-27
+
+The spellblade's dash cut (`draw_cut`, `skillfx/draw-fx.js`), first round. The owner picked the hero's
+motion from Quaternius `Sword_Dash` (pick A) over searching for a hand-on-hilt reference, so the
+"magic sheath" is drawn as light: a sheath ribbon closing along the blade through the 0.35 s wind-up with
+rune motes drifting into the hilt. The dash leaves three speed streaks (thick at the hero); on arrival
+the whole lane is cut at once: one white-hot line that holds a beat, then parts in two and fades, a trace
+on the ground so it reads from the high camera, the sheath breaking into shards at the hero, and a long
+diagonal cut mark on each monster in the lane. Principles kept from the gallery's sword trails and hit
+sparks (above): narrow taper, a fast leading edge, the cut shorter-lived than the trail, directional
+shards. Spell Wave's arcane blue-violet; an element shift recolours it. One ribbon pair, pooled sparks.

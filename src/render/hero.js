@@ -379,7 +379,8 @@ export class HumanoidAnimator {
 
     // ---- dashes, rolls, leaps override the whole body ----
     const dash = s.dash;
-    if (dash) {
+    // a skill's own dash (Arcane Draw Cut) keeps playing its action: the lunge is the dash
+    if (dash && dash.kind !== 'draw_cut') {
       // a reference clip over the move (data/action-clips.json move*), eased in from the pose it
       // interrupts and back out to it; the roll also turns the body over (hipsSpinX: the game's hips
       // take no pitch) and keeps its own dip

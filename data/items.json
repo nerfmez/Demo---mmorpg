@@ -3636,13 +3636,13 @@
     }
   },
   "consumables": {
-    "_doc": "Potions bought at the town shop (town.shop) and used from the quick item slots. A potion restores flat + pct of the maximum, at once. Each group (hp, mp) has its own cooldown so one potion of each kind can be drunk back to back but not spammed. Stacks hold at most stackMax. New characters start with the start set; v7 saves receive it once.",
+    "_doc": "Potions bought at the town shop (town.shop) and used from the quick item slots. A potion restores flat + pct of the maximum, at once. Each group (hp, mp) has its own cooldown so one potion of each kind can be drunk back to back but not spammed. MP potions are an emergency aid (owner, 2026-10-27, docs/SKILL-GROWTH-TH.md phase 1): a long cooldown and a modest restore, so a build that spends MP hard pays for it with mana gear or Job Tree nodes, not with cheap potions (core/content-budget.js prices both). Stacks hold at most stackMax. New characters start with the start set; v7 saves receive it once.",
     "quickSlots": 4,
     "stackMax": 99,
     "autoUse": {"hp": {"threshold": 35}, "mp": {"threshold": 30}},
     "groupCooldown": {
       "hp": 5,
-      "mp": 5
+      "mp": 30
     },
     "start": {
       "hp_potion_s": 5,
@@ -3694,8 +3694,8 @@
         "group": "mp",
         "size": "s",
         "restore": {
-          "mp": 200,
-          "mpPct": 15
+          "mp": 50,
+          "mpPct": 8
         },
         "price": 10
       },
@@ -3705,8 +3705,8 @@
         "group": "mp",
         "size": "m",
         "restore": {
-          "mp": 450,
-          "mpPct": 25
+          "mp": 100,
+          "mpPct": 15
         },
         "price": 30
       },
@@ -3716,8 +3716,8 @@
         "group": "mp",
         "size": "l",
         "restore": {
-          "mp": 900,
-          "mpPct": 40
+          "mp": 200,
+          "mpPct": 25
         },
         "price": 80
       }

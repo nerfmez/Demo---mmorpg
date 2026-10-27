@@ -48,11 +48,11 @@ const run = (data, ref, level, extra) => buildProfile(data, { kit: ref.kit, buil
 const spare = (p) => p.cost.mpSupply - p.cost.mpPerSecond;
 const prices = new WeakMap();
 
-/** Scores per MP per second on a reference: { potion, cap, gear }. potion: the cheapest MP potion's
- * gold per MP at this pool, drunk for the fighting share of an hour, as a share of the income axis;
- * cap: MP per second potions can give at most (the best potion each group cooldown); gear: the best
- * damage roll's score over the MP per second the best mana roll frees (more supply, a cheaper cast
- * or MP back on hit), mid-range rolls. */
+/** Scores per MP per second on a reference: { tiers, gear }. One MP potion fits each group cooldown,
+ * so potions give MP per second in tiers: the smallest potion's restore per cooldown, then what each
+ * bigger one adds, at its added gold per added MP (drunk for the fighting share of an hour, as a share
+ * of the income axis). gear: the best damage roll's score over the MP per second the best mana roll
+ * frees (more supply, a cheaper cast or MP back on hit), mid-range rolls. Each tier costs at most gear. */
 export function mpPrice(data, ref, level) {
   const memo = prices.get(data) || new Map(), key = `${ref.kit}.${ref.build.skill}.${level}`;
   prices.set(data, memo);
@@ -70,21 +70,25 @@ export function mpPrice(data, ref, level) {
   const mana = Math.max(...['mp_flat', 'mp_regen_pct', 'mana_cost_pct', 'mp_on_hit'].map((id) => spare(withRoll(id)) - spare(base)));
   const gear = mana > 0 ? damage / mana : Infinity;
   const b = data.progression.balance, pool = base.cost.maxMp, C = data.items.consumables;
-  const pots = Object.values(C.types).filter((t) => t.group === 'mp'), restore = (t) => (t.restore.mp || 0) + (t.restore.mpPct || 0) / 100 * pool;
-  const goldPerMp = Math.min(...pots.map((t) => t.price / restore(t)));
+  const restore = (t) => (t.restore.mp || 0) + (t.restore.mpPct || 0) / 100 * pool;
+  const pots = Object.values(C.types).filter((t) => t.group === 'mp').sort((x, y) => restore(x) - restore(y));
   const ttk = referenceMonster(data, level).hp / base.axes.single, fight = ttk / (ttk + b.secondsPerKill);
-  const potion = (R.budgetWeights.income || 0) * 3600 * fight * goldPerMp / base.axes.income;
-  const cap = pots.length ? Math.max(...pots.map(restore)) / (C.groupCooldown.mp || 1) : 0;
-  const out = { potion: Math.min(potion, gear), cap, gear };
+  const perGold = (R.budgetWeights.income || 0) * 3600 * fight / base.axes.income, cd = C.groupCooldown.mp || 1;
+  const tiers = pots.map((t, i) => {
+    const prev = pots[i - 1], mp = restore(t) - (prev ? restore(prev) : 0), gold = t.price - (prev ? prev.price : 0);
+    return { cap: mp / cd, price: Math.min(gear, perGold * gold / Math.max(1e-9, mp)) };
+  });
+  const out = { tiers, gear };
   memo.set(key, out);
   return out;
 }
 
 /** The score it costs to buy back a shortfall of `short` MP per second: nothing within the build's own
- * supply, potions up to their cap, gear past it. */
+ * supply, then the potion tiers in turn, gear past them. */
 export function mpCost(price, short) {
-  const s = Math.max(0, short);
-  return price.potion * Math.min(s, price.cap) + price.gear * Math.max(0, s - price.cap);
+  let s = Math.max(0, short), cost = 0;
+  for (const t of price.tiers) { const take = Math.min(s, t.cap); cost += take * t.price; s -= take; }
+  return cost + s * price.gear;
 }
 
 /** The score of profile p over base b on a reference, MP priced: the sustain axis is left out (the

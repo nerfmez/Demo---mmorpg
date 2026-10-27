@@ -376,12 +376,12 @@
       "mod": [0.05, 1.5],
       "known": {
         "skills": {
-          "thunderstorm": "MP potions make MP almost free (docs/SKILL-GROWTH-TH.md phase 1): with its MP priced at potion gold it is over its class band; awaiting the potion decision and the skill growth rebalance",
-          "stone_guardian": "MP potions make MP almost free (docs/SKILL-GROWTH-TH.md phase 1): with its MP priced at potion gold it is over its class band; awaiting the potion decision and the skill growth rebalance",
-          "spirit_wolf": "MP potions make MP almost free (docs/SKILL-GROWTH-TH.md phase 1): with its MP priced at potion gold it is over its class band; awaiting the potion decision and the skill growth rebalance",
+          "chain_spark": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "whirl_blade": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "thunderstorm": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
+          "stone_guardian": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
           "meteor": "over its class band: awaiting a decision on its numbers",
-          "healing_spring": "MP potions make MP almost free (docs/SKILL-GROWTH-TH.md phase 1): with its MP priced at potion gold it is over its class band; awaiting the potion decision and the skill growth rebalance",
-          "stone_burst": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "healing_spring": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
           "venom_mire": "weaker than its weapon's reference main attack",
           "charged_shot": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "interrupt_slam": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
@@ -394,7 +394,9 @@
           "spell_wave": "weaker than its weapon's reference main attack"
         },
         "mods": {
-          "mana_siphon": "MP back on hit is worth little while MP potions make MP almost free; awaiting the potion decision",
+          "fork_chain": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "conductive": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "release_burst": "its MP cost outweighs the measured gain on a Flame Stream that already drains its supply; awaiting the skill growth rebalance",
           "split": "over the mod band on venom_mire: awaiting a decision",
           "chain_return": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "advancing_edge": "adds less than it costs on every skill it fits, or its effect is not measured yet",

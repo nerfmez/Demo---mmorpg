@@ -93,7 +93,10 @@ export function buildProfile(data, spec) {
     for (const [stat, need] of Object.entries(modRequires(data, data.mods.mods[id], level))) if (ch.stats[stat] < need) { ch.stats.VIT -= need - ch.stats[stat]; ch.stats[stat] = need; }
   }
   if (!ch.movement) { ch.movement = 'dash'; ch.movementSkills = ['dash']; } // every hero has a dodge
-  const skills = ch.slots.map((sl, i) => sl.skill && computeSkill(ch, data, d, i)).filter(Boolean);
+  // a held channel is measured as one cast per tick: its damage per second over a tick, its drain
+  // per second over a tick (the rules: frontier-content.js tickFrontier)
+  const held = (s) => s.channel ? { ...s, cooldown: s.channel.tick, castTime: 0, damage: s.damage * s.channel.tick, cost: s.channel.manaPerSecond * s.channel.tick } : s;
+  const skills = ch.slots.map((sl, i) => sl.skill && held(computeSkill(ch, data, d, i))).filter(Boolean);
   const C = R.control, all = [...skills];
   // a buff turned aura (a mod) holds for good, at its share of the buff, and keeps MP reserved
   const aura = (s) => s.modEffects?.buffAura || 0;
@@ -108,7 +111,7 @@ export function buildProfile(data, spec) {
   // the main attack fills the rest of the fighting time; MP cuts the main attack first
   const lock = (s) => s.castTime + (s.charge ? s.charge.duration : 0) + R.recover;
   const busy = attacks.slice(1).reduce((a, s) => a + lock(s) / s.cooldown, 0);
-  const main = attacks[0], interval = Math.max(main.cooldown, main.castTime, 0.35);
+  const main = attacks[0], interval = main.channel ? main.cooldown : Math.max(main.cooldown, main.castTime, 0.35);
   const rates = attacks.map((s, i) => i === 0 ? Math.max(0, b.uptime - busy) / interval : b.uptime / s.cooldown);
   const hitsPerSecond = (hitsOf) => attacks.reduce((a, s, i) => a + rates[i] * hitsOf(s), 0);
   const supply = (d.maxMp + d.mpRegen * sec) / sec;

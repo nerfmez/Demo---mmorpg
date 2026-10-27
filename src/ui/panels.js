@@ -475,7 +475,7 @@ export class Panels {
       <section class="pg-col">
         <p class="pg-banner ${near ? 'ok' : ''}">${near ? 'คุยกับพ่อค้าอยู่ · ซื้อยาได้เลย' : 'ซื้อได้เมื่อยืนอยู่ที่ร้านค้าในเมือง (จุดสีชมพูบนแผนที่) · จัดช่องยาได้ทุกที่'}</p>
         <div class="pg-list">${rows}</div>
-        <p class="muted">ดื่มยาแล้ว ยาชนิดเดียวกันใช้ซ้ำได้อีกใน ${cons.groupCooldown.hp} วินาที</p>
+        <p class="muted">ดื่มยาแล้ว ยาเลือดใช้ซ้ำได้อีกใน ${cons.groupCooldown.hp} วินาที · ยามานาใช้ซ้ำได้อีกใน ${cons.groupCooldown.mp} วินาที</p>
       </section>
       <section class="pg-col shop-head">
         <h3>ช่องยากดใช้</h3><p class="muted">ตรงกับแถวยาเหนือปุ่มสกิล · เลือกช่อง แล้วแตะ "ใส่ช่อง" ที่ยาทางซ้าย</p>

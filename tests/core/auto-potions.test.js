@@ -28,7 +28,8 @@ test('HP and MP each spend one eligible potion per frame, respect group cooldown
  g.useAutomaticPotions();assert.equal(g.ch.consumables.hp_potion_s,4,'no second same-frame use');
  p.hp=1;p.mp=0;g.update(.01);assert.equal(g.ch.consumables.hp_potion_s,4);assert.equal(g.useQuickItem(0).reason,'cooldown');
  for(let i=0;i<101;i++)g.update(.05);
- assert.equal(g.ch.consumables.hp_potion_s,3);assert.equal(g.ch.consumables.mp_potion_s,1);
+ assert.equal(g.ch.consumables.hp_potion_s,3);assert.equal(g.ch.consumables.mp_potion_s,2,'MP potions wait their own, longer cooldown');
+ p.itemCooldowns.mp=0;p.mp=0;g.update(.01);assert.equal(g.ch.consumables.mp_potion_s,1);
  g.ch.autoPotions.hp.enabled=false;p.itemCooldowns.hp=0;p.hp=1;assert.ok(g.useQuickItem(0).ok,'manual remains usable');
  g.ch.autoPotions.hp.enabled=true;p.hp=1;g.update(.01);assert.equal(g.ch.consumables.hp_potion_s,2,'automatic cannot duplicate a manual use');
 });

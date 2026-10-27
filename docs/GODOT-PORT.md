@@ -274,8 +274,10 @@ each mod (its best gain on a skill it fits) with the same profile, against class
 `progression.balance.budgets`; items outside their band are listed in `budgets.known` with a reason
 until decided (`tests/core/content-budget.test.js`, report: `node scripts/content-budget.mjs`). MP is
 priced, not a wall: profiles run with `mpFree` and a build pays for its MP shortfall past its own
-supply with potions up to their cooldown cap (gold on the income axis), then with gear rolls
-(`mpPrice`, `mpCost`). The
+supply with MP potions in tiers (one potion per group cooldown, each bigger potion's added MP at its
+added gold, on the income axis), then with gear rolls (`mpPrice`, `mpCost`). MP potions are an
+emergency aid (30 s cooldown, small restores) and every main attack must last on regeneration alone
+at the reference pace. A held channel is measured as one cast per tick (its drain per second). The
 profile counts a rotation, our buffs, heals and leech, summons, burn/poison, stuns, knockback, slows,
 curses and taunts with the assumptions in `progression.balance.rules.control`.
 Gear bases sit on tiers (item level 1/6/11/16/21). The six targeted garment additions

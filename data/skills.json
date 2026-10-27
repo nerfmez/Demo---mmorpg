@@ -157,7 +157,7 @@
       "projectileRadius": 0.35,
       "cooldown": 1.12,
       "castTime": 0.22,
-      "cost": 90,
+      "cost": 56,
       "element": "fire",
       "burnChance": 0.25,
       "requires": {},

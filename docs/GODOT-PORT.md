@@ -1118,12 +1118,14 @@ its scenes' surround trees) toward that density over the same wandering depth, b
 after the seeded passes, so nothing else moves.
 Moonroot's woods (27 October 2026): zone `treeScale` [min, max] spreads tree sizes (same seeded
 draw) and `giants` (share, by a fixed hash) x `giantScale` makes old giants where there is room
-(clear of props and at least 2 + scale m from a road). `look.roots` puts a long root flare at every
-tree's foot (`render/moonroot-flora.js` `rootFlareGeometry`, three shapes by place, faceted bark in
-the trunk palette, instanced) and draws `decor.groundRoots` (meandering half-sunk surface roots from
-tree feet, `zone.groundRoots` per tree, stopping at roads, water, scenes and safe ground) as one
+(clear of props and at least 2 + scale m from a road). `look.roots` stands every tree on buttress roots grown from its
+trunk (`render/moonroot-flora.js` `rootFlareGeometry`, three shapes by place: Mirror Pond's approved
+`rootTree` path, leaving the bark at 0.22-0.4 m as thick as the trunk there, curving down within a
+short flare and running on half buried, some forked; instanced) and draws `decor.groundRoots`
+(surface roots from tree feet, `zone.groundRoots` per tree, stopping at roads, water, scenes and safe
+ground, half buried and arching up out of the ground once or twice: `arch` [centre, height]) as one
 merged mesh on the ground. `look.undergrowth` {seed} plants each zone's own plants
-(`zone.plants` {curl, glow} per 100 m2; own seed after every other pass): pale moon-curls and teal
+(`zone.plants` {curl, glow}: clumps of 3-6 per 100 m2; own seed after every other pass): pale moon-curls and teal
 glow bulbs (unlit), instanced. A town's `well` is optional, `noticeBoard: false` and
 `lanterns: false` leave out the generic notice board and street lanterns (Moonstone Camp lights and
 furnishes itself). In Godot: MultiMesh per flare shape and plant kind, one mesh for ground roots. The scenes' layout is the

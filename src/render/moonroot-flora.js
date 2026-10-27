@@ -39,32 +39,52 @@ const geometry = (p, n, c) => {
   return g;
 };
 
-/** A tree's root flare at scale 1 (the trunk's foot is radius ~0.48): 5-7 thick roots leaving the
- *  trunk above the ground, arching down and running out 1.4-2.6 m, their tips sunk into the soil. */
+// The trunk's radius at height h (the anime trunk's spine), so a root is as thick as the bark it leaves.
+function trunkRadius(h) {
+  const sp = animeConfig.trunk.spine;
+  for (let i = 1; i < sp.length; i++) if (h <= sp[i][1]) { const t = (h - sp[i - 1][1]) / (sp[i][1] - sp[i - 1][1]); return sp[i - 1][3] + (sp[i][3] - sp[i - 1][3]) * t; }
+  return sp.at(-1)[3];
+}
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+// One root at scale 1, as Mirror Pond's approved rootTree: it leaves the bark at height hs inside the
+// trunk, curves down onto the ground within a short flare and runs on half buried, tapering to a point.
+function rootPath(a, hs, len, wobble) {
+  const rt = trunkRadius(hs), r0 = trunkRadius(0), thick = rt * .66, path = [[Math.cos(a) * rt * .35, hs, Math.sin(a) * rt * .35, thick]];
+  for (let j = 1; j <= 9; j++) {
+    const t = j / 9, d = r0 * .85 + len * t, aa = a + Math.sin(t * 2.6 + wobble) * .3 * t;
+    const rise = hs * .85 * Math.pow(1 - smooth(0, .28, t), 1.6), sink = .05 * smooth(.55, 1, t);
+    path.push([Math.cos(aa) * d, rise + .02 - sink, Math.sin(aa) * d, thick * (1 - t * .88)]);
+  }
+  return path;
+}
+/** A tree's root flare at scale 1: 5-7 buttress roots that grow out of the trunk's foot and run
+ *  over the ground (1.0-1.7 m), some with a thinner fork, one piece with the trunk. */
 export function rootFlareGeometry(seed) {
-  const r = createRng(seed), p = [], n = [], c = [], count = 5 + Math.floor(r.next() * 3);
+  const r = createRng(seed), p = [], n = [], c = [], count = 5 + Math.floor(r.next() * 3), start = r.range(0, 6.28);
   for (let i = 0; i < count; i++) {
-    const a = (i / count) * Math.PI * 2 + r.range(-.35, .35), len = r.range(1.4, 2.6), bend = r.range(-.35, .35);
-    const path = [];
-    for (let k = 0; k <= 5; k++) {
-      const t = k / 5, aa = a + bend * t * t, d = .2 + len * t;
-      const y = .62 * Math.pow(1 - t, 1.8) + .02 - .1 * t * t;
-      path.push([Math.cos(aa) * d, y, Math.sin(aa) * d, .3 * Math.pow(1 - t, 1.25) + .025]);
-    }
+    const a = start + (i / count) * Math.PI * 2 + r.range(-.3, .3), path = rootPath(a, r.range(.22, .4), r.range(1.0, 1.7), r.range(0, 6));
     writeTube(path, p, n, c);
+    if (r.next() < .5) {
+      const i0 = 4 + Math.floor(r.next() * 3), o = path[i0], b = a + (r.next() < .5 ? -1 : 1) * r.range(.45, .9), bl = r.range(.35, .6), fork = [o];
+      for (let j = 1; j <= 4; j++) { const t = j / 4; fork.push([o[0] + Math.cos(b) * bl * t, o[1] - .04 * t, o[2] + Math.sin(b) * bl * t, o[3] * .7 * (1 - t * .85)]); }
+      writeTube(fork, p, n, c);
+    }
   }
   return geometry(p, n, c);
 }
 
-/** Surface roots: each a meandering tube lying on the ground (gy), thickest at the tree. */
+/** Surface roots: each runs half buried over the ground (gy) and arches up out of it once or twice
+ *  (root.arch [centre, height] per hump), thickest at the tree, its end sunk into the soil. */
 export function groundRootGeometry(roots, gy) {
   const p = [], n = [], c = [];
   for (const root of roots) {
-    const pts = root.points, path = [];
-    for (let i = 0; i < pts.length; i++) {
-      const t = i / (pts.length - 1), [x, z] = pts[i], rad = root.r * (1 - t * .75);
-      // half sunk: the ground shows round both sides, the top stands proud
-      path.push([x, gy(x, z) + rad * .35, z, rad]);
+    const pts = root.points, path = [], m = (pts.length - 1) * 2;
+    for (let i = 0; i <= m; i++) {
+      const u = i / 2, i0 = Math.floor(u), f = u - i0, a = pts[i0], b = pts[Math.min(pts.length - 1, i0 + 1)];
+      const x = a[0] + (b[0] - a[0]) * f, z = a[1] + (b[1] - a[1]) * f, t = i / m, rad = root.r * (1 - t * .7);
+      let lift = 0;
+      for (const [at, h] of root.arch || []) lift += h * Math.pow(Math.max(0, Math.cos(((t - at) / .16) * Math.PI / 2)), 1.5) * (Math.abs(t - at) < .16 ? 1 : 0);
+      path.push([x, gy(x, z) + rad * (.2 - .9 * smooth(.85, 1, t)) + lift, z, rad]);
     }
     writeTube(path, p, n, c);
   }

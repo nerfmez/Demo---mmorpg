@@ -584,36 +584,44 @@ export function createWorld(worldData) {
     const r = createRng(cfg.seed ?? 20261027), out = (decor.undergrowth = []), roots = (decor.groundRoots = []);
     const clear = (x, z, pad) => inBounds(x, z, 2) && !isWater(x, z, pad + 0.6) && roadDist(x, z) > pad + 0.4 && !isSafe(x, z) &&
       !acceptedScenes(worldData).some((s) => sceneWeight(s, x, z) > 0) && !connectorClear(worldData, x, z, pad + 0.4);
+    // plants grow in small clumps (3-6), not spread evenly: zone.plants is clumps per 100 m2
     for (const zn of worldData.zones) {
       for (const [kind, density] of Object.entries(zn.plants || {})) {
         for (const rect of zn.rects) {
           const n = Math.round(((rect[1] - rect[0]) * (rect[3] - rect[2]) / 100) * density);
           for (let i = 0; i < n; i++) {
-            const x = r.range(rect[0], rect[1]), z = r.range(rect[2], rect[3]), s = r.range(0.7, 1.25), rot = r.range(0, 6.28);
-            if (zoneAt(x, z).id !== zn.id || !clear(x, z, 0.5) || overlaps(x, z, 0.4)) continue;
-            out.push({ x, z, kind, s, rot });
+            const cx = r.range(rect[0], rect[1]), cz = r.range(rect[2], rect[3]), m = 3 + Math.floor(r.next() * 4);
+            for (let k = 0; k < m; k++) {
+              const a = r.range(0, 6.28), d = r.range(0, 1.4), x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, s = r.range(0.7, 1.25), rot = r.range(0, 6.28);
+              if (zoneAt(x, z).id !== zn.id || !clear(x, z, 0.5) || overlaps(x, z, 0.4)) continue;
+              out.push({ x, z, kind, s, rot });
+            }
           }
         }
       }
     }
-    // surface roots: from a tree's foot outward, meandering, along the ground; stop at a road or water
+    // surface roots: a root runs out from a tree's foot and arches up out of the ground once or
+    // twice along the way (arch: [centre 0..1, height m] per hump); it stops at a road or water
     for (const c of circles) {
       if (!['tree', 'birch', 'willow', 'scene-tree'].includes(c.type) || !inBounds(c.x, c.z)) continue;
       const per = zoneAt(c.x, c.z).groundRoots || 0;
       let count = Math.floor(per) + (r.next() < per % 1 ? 1 : 0);
       for (let k = 0; k < count; k++) {
-        let a = r.range(0, 6.28), x = c.x + Math.cos(a) * c.r * 0.9, z = c.z + Math.sin(a) * c.r * 0.9;
-        const len = r.range(2.5, 5) * Math.max(1, c.scale), steps = 7, pts = [[x, z]];
+        let a = r.range(0, 6.28), x = c.x + Math.cos(a) * c.r * 0.6, z = c.z + Math.sin(a) * c.r * 0.6;
+        const len = r.range(2.2, 3.8) * Math.max(1, Math.sqrt(c.scale)), steps = 10, pts = [[x, z]];
         for (let i = 1; i <= steps; i++) {
-          a += r.range(-0.45, 0.45);
+          a += r.range(-0.18, 0.18);
           x += (Math.cos(a) * len) / steps; z += (Math.sin(a) * len) / steps;
-          if (!clear(x, z, 0.2)) break;
+          if (!clear(x, z, 0.3)) break;
           pts.push([x, z]);
         }
-        if (pts.length >= 4) roots.push({ points: pts, r: r.range(0.13, 0.2) * Math.max(1, Math.sqrt(c.scale)) });
+        const arch = [[r.range(0.35, 0.55), r.range(0.26, 0.42)]];
+        if (r.next() < 0.4) arch.push([r.range(0.7, 0.82), r.range(0.14, 0.24)]);
+        if (pts.length >= 7) roots.push({ points: pts, r: r.range(0.12, 0.17) * Math.max(1, Math.sqrt(c.scale)), arch });
       }
     }
   }
+
 
   // Scene-surround planting (data: acceptedScenes.surround.plant): a ring of trees
   // and shrub clumps outside each accepted scene, so its woodland does not stop

@@ -129,3 +129,30 @@ test('player melee contact waits for castTime, lands once and respects range and
     if(mode!=='hit')assert.equal(m.hp,hp,mode+' misses');
   }
 });
+
+test('a press just before the cooldown ends is remembered and cast once it is ready; an earlier one is not', () => {
+  const { g, m } = setup(29);
+  const buffer = data.progression.combat.inputBuffer;
+  assert.ok(buffer > 0 && buffer <= 0.3, 'a short window');
+  const at = { x: m.x, z: m.z };
+  const casts = () => g.drainEvents().filter((e) => e.type === 'castStart').length;
+  const runUntil = (left) => { while (g.player.cast || g.player.cooldowns[0] > left) g.update(0.01); };
+  g.player.mp = g.player.maxMp;
+  assert.ok(g.castSlot(0, at));
+  casts();
+  // too early: nothing is remembered
+  runUntil(buffer + 0.1);
+  assert.equal(g.castSlot(0, at), false);
+  for (let k = 0; k < 60; k++) g.update(0.01);
+  assert.equal(casts(), 0, 'a press well before the cooldown ends is dropped');
+  // just early: cast the moment the cooldown is over, once
+  assert.ok(g.castSlot(0, at));
+  casts();
+  runUntil(buffer - 0.05);
+  assert.equal(g.castSlot(0, at), false, 'still cooling down');
+  let waited = 0;
+  while (!casts() && waited < 1) { g.update(0.01); waited += 0.01; }
+  assert.ok(waited <= buffer, `cast as soon as it was ready (${waited.toFixed(2)} s)`);
+  for (let k = 0; k < 100; k++) g.update(0.01);
+  assert.equal(casts(), 0, 'one press, one cast');
+});

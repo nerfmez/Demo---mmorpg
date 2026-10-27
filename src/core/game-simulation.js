@@ -443,7 +443,13 @@ export class Game {
       return false;
     }
     const counter = s.kind === 'counter_stance' && p.riposte?.skill.id === s.id && p.riposte.readyUntil > this.time;
-    if (p.cooldowns[i] > 0 && !counter) return false;
+    if (p.cooldowns[i] > 0 && !counter) {
+      // pressed just before the cooldown ends: remember it and cast it the moment it is ready
+      if (p.cooldowns[i] <= (this.data.progression.combat.inputBuffer || 0) && !s.charge && !s.channel && chargeRatio === null) {
+        p.queued = { slot: i, point, t: p.cooldowns[i] + 0.05, manualAngle: this.input.manualAim && !this.input.aimFromPointer ? this.input.aimAngle : null };
+      }
+      return false;
+    }
     if (p.mp < (counter ? 0 : s.cost)) {
       this.emit({ type: 'fail', reason: 'mp', slot: i });
       return false;

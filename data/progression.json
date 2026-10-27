@@ -270,6 +270,8 @@
     "reflectFlat": 40,
     "comboWindow": 1.1,
     "stagger": 0.14,
+    "_inputBufferDoc": "A skill pressed while its cooldown has at most inputBuffer seconds left is remembered and cast the moment the cooldown ends (one press, the latest wins; not for charged or channelled skills), so a press a little early never feels dropped. core/game-simulation.js castSlot.",
+    "inputBuffer": 0.25,
     "block": {
       "_doc": "A shield block lets through only `taken` of a hit from within arcDeg in front of the hero. Ground hazards and hits from behind are never blocked.",
       "arcDeg": 120,

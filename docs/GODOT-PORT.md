@@ -282,6 +282,9 @@ fixed-size captions. New derived stats: `damagePct` (Damage tag),
 `penetrationPct` (multiplies monster defence by `1 - pct/100` in `hitMonster`),
 `movementRechargePct`, `manaCostReductionPct` and `mpOnHit` (MP per enemy an attack hits). Caps and soft caps are in
 `progression.json`. `balance.js` `lineEffects`, `linePath` and `longFightDps` model them.
+Input buffer: a skill pressed while its cooldown has at most `progression.combat.inputBuffer`
+seconds left is stored in `player.queued` and cast the moment the cooldown ends (latest press
+wins; not charged or channelled skills), the same queue a press during a cast uses.
 The journal pages the stage overview (6 pages per spread, 4 on phones and short screens). A
 grid page taller than the view scrolls, and "fit" stops at the readable zoom. Both are
 presentation only.

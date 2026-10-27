@@ -643,6 +643,15 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   edge across a thin surface following the beach heightfield, then draws it back. Sea tiles
   match the terrain grid and are culled independently. Port the time uniform and shoreline
   distance attribute; there is no per-frame mesh rebuild.
+- Sea water (27 October 2026) is the arrival beach scene's water (`scenes/beach` `buildSea`), lifted
+  whole and worked in the scene's units (0.8 m): `dz` = shore distance / 0.8, `wet` = distance
+  inside the moving edge / 0.8, depth = clamp(dz * .36, 0, 2.7). Colours pale green #93dfbf,
+  turquoise #45d0c4, cyan #2cbfd0, blue #1b97c3 (settling deeper 30-90 m out); the light web
+  (rounded Voronoi cells, one cell size 1.45, since depth-scaled coordinates shear into streaks at
+  map coordinates; thinner past 25-70 m out); twinkling sparkles; fine messy foam (a ragged holed
+  rim at the moving edge, tangled threads seaward, and rings round every water contact: rocks,
+  piles, hulls, walls); cloud shade; the scene's sea grade (saturation 1.2, contrast 1.16 on sqrt
+  colour). The edge's run-up and the harbour's curved crests stay the map's own.
 - `river.depth` and `river.bankWidth` produce an ankle-deep bed with gentle banks. Keep the
   rendered water and movement masks separate when porting. Do not add a blocking river strip.
 - `render/ground.js`: small grouped grass strokes, warm earth, bevelled paving, mossy cracks,

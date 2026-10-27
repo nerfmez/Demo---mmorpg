@@ -41,13 +41,16 @@ export function packTargets(s, pack) {
   }
 }
 
-/** Total damage of one cast before armour and crit (waves, ticks, repeats and a full charge counted). */
+/** Total damage of one cast before armour and crit (waves, ticks, repeats, a full charge, an echo and
+ * a returning shot counted). */
 export function castDamage(s) {
   let dmg = s.damage || 0;
   if (s.kind === 'dot_zone') dmg *= s.duration / (s.tick || 0.5);
   if (s.def?.waves) dmg *= s.def.waves;
   if (s.repeats) dmg *= 1 + s.repeats * (s.repeatMult || 0);
   if (s.charge) dmg *= s.charge.maxDamageMult || 1;
+  if (s.echo) dmg *= 1 + s.echo.mult; // the echo strikes again
+  if (s.modEffects?.returnMult) dmg *= 1 + s.modEffects.returnMult; // a returning shot's way back
   return dmg * Math.max(1, s.projectiles || 1);
 }
 
@@ -61,7 +64,8 @@ function packHits(s, pack) {
 
 /**
  * A build's profile. spec: { kit, level, jobNodes, gear (a gear set id), loadout (skill ids: the
- * first is the main attack, the rest are cast whenever ready), support (skills that only help),
+ * first is the main attack, the rest are cast whenever ready), support (skills that only help), mods
+ * ({ slot: [mod ids] }, at their top level),
  * build (a reference build for a kit not in progression.balance.builds) }. Node effects may carry
  * scenario stats the character sheet ignores: singleDamagePct (bosses and single targets),
  * packDamagePct, perTargetDamagePct (per enemy one cast hits, up to perTargetCap), selfTakenPct,
@@ -78,6 +82,12 @@ export function buildProfile(data, spec) {
     progression: { ...data.progression, balance: { ...b, builds: { ...b.builds, [spec.kit]: { ...build, skill: loadout[0] } } } } };
   const { ch, d } = referenceHero(D, spec.kit, spec.level, [...(spec.jobNodes || []), gearNode]);
   [...loadout.slice(1), ...support].forEach((id, i) => { ch.slots[i + 1] = { skill: id, mods: [] }; ch.skills[id] = skillRankAt(data, spec.level); });
+  // mods socketed per slot ({ slot: [mod ids] }) at their top level
+  for (const [slot, ids] of Object.entries(spec.mods || {})) for (const id of ids) {
+    const uid = `bm${slot}.${id}`;
+    ch.mods.push({ uid, id, level: data.mods.mods[id].maxLevel || 3, grade: 'A' });
+    ch.slots[slot].mods.push(uid);
+  }
   const skills = ch.slots.map((sl, i) => sl.skill && computeSkill(ch, data, d, i)).filter(Boolean);
   const attacks = skills.slice(0, loadout.length), helpers = skills.slice(loadout.length);
   const m = referenceMonster(data, spec.level), hitDps = m.damage / m.hitInterval, sec = R.fightSeconds;
@@ -103,6 +113,11 @@ export function buildProfile(data, spec) {
     if (left > 1e-9) { const rest = attacks.slice(1).reduce((a, s, i) => a + r[i + 1] * s.cost, 0); for (let i = 1; i < r.length; i++) r[i] *= Math.max(0, 1 - left / Math.max(1e-6, rest)); }
     return r;
   };
+  // our own buffs: damage with their uptime (they last duration, come back every cooldown; a support
+  // skill short of MP comes back less often), speed as walking speed
+  const upOf = (s) => s.duration ? Math.min(1, s.duration / s.cooldown) : 0;
+  let selfDamage = 0, selfSpeed = 0;
+  for (const s of [...attacks, ...helpers]) if (s.kind === 'buff') { selfDamage += (s.damageBuff || 0) * upOf(s); selfSpeed += (s.speedBuff || 0) * upOf(s); }
   // debuffs a build lays on its targets: exposure and curses raise the damage everyone deals
   const amp = 1 + [...attacks, ...helpers].reduce((a, s) => a + (s.def.exposure ? s.def.exposure.fraction * Math.min(1, s.def.exposure.duration / s.cooldown) : 0)
     + (s.kind === 'curse_zone' && s.takenMult ? (s.takenMult - 1) * Math.min(1, s.duration / s.cooldown) : 0), 0);
@@ -111,10 +126,13 @@ export function buildProfile(data, spec) {
     return attacks.reduce((a, s, i) => {
       const hits = hitsOf(s), perTarget = scen === 'pack' ? Math.min(pct('perTargetDamagePct') * hits, pct('perTargetCap') || Infinity) : 0;
       return a + r[i] * castDamage(s) * hits * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
-    }, 0) * crit * armour * amp;
+    }, 0) * crit * armour * amp * (1 + selfDamage * helperShare);
   };
-  const single = dealt(() => 1, 'single'), pack = dealt((s) => packHits(s, R.pack), 'pack');
-  const sustain = (() => { const drain = spend(() => 1) - d.mpRegen; return drain <= 0 ? R.survivalCap : Math.min(R.survivalCap, d.maxMp / drain); })();
+  // summons fight beside us: each attacks every attackCooldown while it lives (life of every cooldown)
+  const summonDps = [...attacks, ...helpers].reduce((a, s) => a + (s.summon ? s.summon.count * s.summon.damage / s.summon.attackCooldown * Math.min(1, s.summon.life / s.cooldown) * (helpers.includes(s) ? helperShare : 1) : 0), 0) * armour * amp;
+  const single = dealt(() => 1, 'single') + summonDps, pack = dealt((s) => packHits(s, R.pack), 'pack') + summonDps;
+  // sustain: seconds of this rotation before MP runs dry, up to the fight's length (past it, MP never binds)
+  const sustain = (() => { const drain = spend(() => 1) - d.mpRegen; return drain <= 0 ? sec : Math.min(sec, d.maxMp / drain); })();
   // survival: the pack's hits through armour, block, dodge and our own guarding buffs, against
   // regeneration, leech and our own barriers
   let guard = 1 - pct('selfTakenPct'), shield = 0;
@@ -127,10 +145,14 @@ export function buildProfile(data, spec) {
   // standing in a pack (pack.size monsters), not one: one monster's hits hardly test a tank
   const incoming = hitDps * R.pack.size * defenseFactor(d.defense, data) * (1 + pct('damageTakenPct')) * guard
     * (1 - Math.min(1, pct('dodgeChancePct'))) * (1 - (d.blockChance || 0) * (1 - data.progression.combat.block.taken));
-  const net = incoming - (d.hpRegen || 0) - pct('leechPct') * single - shield;
+  // a skill's own leech (a mod) heals from that skill's share of the damage
+  const skillLeech = attacks.reduce((a, s, i) => a + fit(() => 1)[i] * castDamage(s) * crit * armour * (s.leech || 0) / 100, 0);
+  // our heals land on us too (a spring at our feet, a cleanse on ourselves)
+  const selfHeal = [...attacks, ...helpers].reduce((a, s) => a + (s.heal ? s.heal * (s.kind === 'heal_zone' ? s.duration / s.tick : 1) / s.cooldown * (helpers.includes(s) ? helperShare : 1) : 0), 0);
+  const net = incoming - (d.hpRegen || 0) - pct('leechPct') * single - skillLeech - shield - selfHeal;
   const survival = net <= 0 ? R.survivalCap : Math.min(R.survivalCap, (d.maxHp + (d.maxShield || 0)) / net);
   const mv = movementSkill(ch, data, d);
-  const mobility = d.moveSpeed + (mv.charges ? mv.distance / Math.max(0.1, mv.recharge) : 0);
+  const mobility = d.moveSpeed * (1 + selfSpeed * helperShare) + (mv.charges ? mv.distance / Math.max(0.1, mv.recharge) : 0);
   // team: what the build gives allies (buff share x uptime; healing and barriers per second measured
   // against the pack's damage per second; an aura that cuts allies' damage taken)
   let team = pct('teamTakenPct') + pct('teamDamagePct') + (amp - 1); // our debuffs raise everyone's damage

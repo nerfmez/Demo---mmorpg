@@ -1237,7 +1237,9 @@ export class View {
       await reading;
       const c = document.createElement('canvas');
       c.width = c.height = size;
-      const ctx = c.getContext('2d');
+      // a CPU-backed canvas: encoding the PNG then never waits for the GPU's queued work
+      // (shader compiles after the opening stood behind it for many seconds on software GL)
+      const ctx = c.getContext('2d', { willReadFrequently: true });
       const img = ctx.createImageData(size, size);
       for (let yy = 0; yy < size; yy++) img.data.set(px.subarray((size - 1 - yy) * size * 4, (size - yy) * size * 4), yy * size * 4);
       ctx.putImageData(img, 0, 0);

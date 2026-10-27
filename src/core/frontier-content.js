@@ -9,7 +9,7 @@ export function compileFrontier(s, def, activeMods) {
     s.modEffects[key] = Array.isArray(value) ? value[Math.min(level, value.length) - 1] : value;
   const e = s.modEffects;
   if (e.arcMult) s.arc *= e.arcMult;
-  // reach, a lane's width, a chain's jumps (Wide Spread, Far Reach, Long Rend, Steady Chain); a
+  // reach, a lane's width, a chain's jumps (Wide Spread, Far Reach, Long Rend, Conductive Arc); a
   // channel's spread is whatever its shape has: a cone's angle, a beam's width, or a circle's radius
   if (e.spreadMult) { if (s.arc) s.arc *= e.spreadMult; else if (s.width) s.width *= e.spreadMult; else if (s.radius) s.radius *= e.spreadMult; }
   if (e.rangeMult) s.range *= e.rangeMult;

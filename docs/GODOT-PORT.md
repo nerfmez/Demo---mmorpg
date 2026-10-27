@@ -344,14 +344,14 @@ under `not` (`tests/core/basic-mods.test.js`). Basic mods use these effect keys 
 not matter), `hasteAdd` (the skill's cooldown and cast time use `min(caps.hastePct, hastePct +
 hasteAdd)`, so the top speed is unchanged) and `effectDurationMult` (duration of `buff`,
 `curse_zone`, `self_barrier` and `wall` skills; fields use Lingering's `durationMult`).
-Specialist mods for channels, lanes and chains, fitted by type tag (`Channel`, `Line`, `Chain`), never
-by one skill: `spreadMult` (a cone's arc, else a beam's width, else a circle's radius), `rangeMult`,
+Specialist mods for channels, lanes and chains, fitted by type tag (`Channel`, `Line`; the chain
+mods belong to the lightning line and need `Lightning`), never by one skill: `spreadMult` (a cone's arc, else a beam's width, else a circle's radius), `rangeMult`,
 `widthMult`, `chainFalloffSet` and `chainRangeMult` reshape the skill in `compileFrontier`; Release Burst (`releaseMult`, `releaseMin`,
 `releaseCap`, `releaseRadius`) bursts ahead in `cancelChannel` when a stream held at least
 `releaseMin` s ends (core `burst` kind `release_burst`); Far End (`tipShare`, `tipMult`)
-and Staggering Line (`lineStun`, `lineStunBoss`) act per monster in the `melee_line` strike; Forking Chain
+and Staggering Line (`lineStun`, `lineStunBoss`) act per monster in the `melee_line` strike; Forking Arc
 (`forkMult`) also strikes the second-nearest unhit monster at each hop (a `chain` event with
-`from: true`) and Arresting Chain (`chainStun`, `chainStunBoss`) stuns the chain's last target.
+`from: true`) and Arresting Arc (`chainStun`, `chainStunBoss`) stuns the chain's last target.
 Wide Spread and Far Reach share the `spread` family.
 
 ### Mid/high monsters (attack kinds and presentation)

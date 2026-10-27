@@ -83,3 +83,15 @@ test('Prolong: buffs, curses, barriers and walls last longer; fields keep Linger
   }
   for (const id of ['blizzard', 'healing_spring', 'slash']) assert.ok(!modFits(S[id], M.prolong).ok, id);
 });
+
+test('the lightning line\'s chain mods: lightning chains only, and every level adds', () => {
+  const fireChain = { tags: ['Spell', 'Chain', 'Fire', 'Damage'] };
+  for (const id of ['conductive', 'fork_chain', 'stun_arc']) {
+    assert.ok(modFits(S.chain_spark, M[id]).ok, id);
+    assert.ok(!modFits(fireChain, M[id]).ok, `${id}: a fire chain is not the lightning line`);
+    const lv = Object.entries(M[id].effect).filter(([, v]) => Array.isArray(v));
+    assert.ok(lv.length && lv.every(([, v]) => v.length === data.progression.modUpgrade.maxLevel && v[2] !== v[0]), `${id} steps with its level`);
+  }
+  const stun = (L) => withMods('chain_spark', ['stun_arc'], L).modEffects.chainStun;
+  assert.ok(stun(3) > stun(2) && stun(2) > stun(1));
+});

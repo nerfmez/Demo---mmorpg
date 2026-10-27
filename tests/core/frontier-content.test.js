@@ -191,7 +191,7 @@ test('lane mods: Long Rend reaches farther, Far End hits hardest at the end, Sta
   const near=h.find(e=>e.id===m.id).amount,end=h.find(e=>e.id===far.id).amount;assert(Math.abs(end/near-data.mods.mods.tip_strike.effect.tipMult[0])<0.01,'hits are rounded');}
  for(const boss of [false,true]){const {g,m,s}=fixture('frontline_split',['quake_line']);m.boss=boss;g.executeSkill(s,aim);assert.equal(m.state,'stunned');assert.equal(m.stateDur,boss?data.mods.mods.quake_line.effect.lineStunBoss:data.mods.mods.quake_line.effect.lineStun[0]);}
 });
-test('chain mods: Steady Chain keeps its strength over shorter jumps, Forking Chain branches once per hop, Arresting Chain stuns the last',()=>{
+test('chain mods: Conductive Arc keeps its strength over shorter jumps, Forking Arc branches once per hop, Arresting Arc stuns the last',()=>{
  {const {g,m,s}=fixture('chain_spark',['conductive']);g.player.targetId=m.id;more(g,m,[[4,0],[6,0],[10,0]]);g.executeSkill(s,aim);const h=hits(g);
   assert.equal(h.length,3,'the 4 m gap is too far for a conductive jump');assert(h.every(e=>Math.abs(e.amount-h[0].amount)<1e-6));}
  {const {g,m,s}=fixture('chain_spark',['fork_chain']);g.player.targetId=m.id;more(g,m,[[3,0],[2,2]]);g.executeSkill(s,aim);const ev=g.drainEvents();

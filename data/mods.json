@@ -1450,21 +1450,30 @@
       "id": "quake_line"
     },
     "conductive": {
-      "name": "Steady Chain",
-      "nameTh": "เด้งคงแรง",
-      "desc": "ทุกการเด้งแรงเท่าครั้งแรก แต่ระยะเด้งสั้นลง 40% และดาเมจลด 10%",
+      "name": "Conductive Arc",
+      "nameTh": "นำไฟฟ้า",
+      "desc": "ม็อดสายสายฟ้า: ทุกการกระโดดแรงเท่าครั้งแรก แต่ระยะกระโดดเหลือ 60/65/70% และดาเมจ 90/95/100%",
       "tags": [
-        "Chain"
+        "Lightning"
       ],
       "needs": [
         "Chain",
+        "Lightning",
         "Damage"
       ],
       "effect": {
         "chainFalloffSet": 1,
-        "chainRangeMult": 0.6,
-        "damageMult": 0.9,
-        "costMult": 1.15
+        "chainRangeMult": [
+          0.6,
+          0.65,
+          0.7
+        ],
+        "damageMult": [
+          0.9,
+          0.95,
+          1
+        ],
+        "costMult": 1.2
       },
       "requires": {
         "INT": 6
@@ -1472,14 +1481,15 @@
       "id": "conductive"
     },
     "fork_chain": {
-      "name": "Forking Chain",
+      "name": "Forking Arc",
       "nameTh": "แตกแขนง",
-      "desc": "ทุกตัวที่โดน การเด้งแตกแขนงไปโดนศัตรูใกล้อีกหนึ่งตัว แรง 50/60/70% แขนงไม่เด้งต่อ",
+      "desc": "ม็อดสายสายฟ้า: ทุกตัวที่โดน สายฟ้าแตกแขนงไปฟาดศัตรูใกล้อีกหนึ่งตัว แรง 50/60/70% แขนงไม่กระโดดต่อ ใส่ไม้ตายไม่ได้",
       "tags": [
-        "Chain"
+        "Lightning"
       ],
       "needs": [
         "Chain",
+        "Lightning",
         "Damage"
       ],
       "not": [
@@ -1499,14 +1509,16 @@
       "id": "fork_chain"
     },
     "stun_arc": {
-      "name": "Arresting Chain",
-      "nameTh": "เด้งสุดท้ายชะงัก",
-      "desc": "ตัวสุดท้ายที่การเด้งไปถึงมึน 0.5/0.6/0.7 วิ (บอส 0.15 วิ) ดาเมจลดลง 10%",
+      "name": "Arresting Arc",
+      "nameTh": "ช็อตชะงัก",
+      "desc": "ม็อดสายสายฟ้า: ตัวสุดท้ายที่สายฟ้าไปถึงมึน 0.5/0.6/0.7 วิ (บอส 0.1/0.15/0.2 วิ) ท่าที่กำลังเงื้อถูกยกเลิก ดาเมจ 90/93/96%",
       "tags": [
+        "Lightning",
         "Control"
       ],
       "needs": [
         "Chain",
+        "Lightning",
         "Damage"
       ],
       "effect": {
@@ -1515,8 +1527,16 @@
           0.6,
           0.7
         ],
-        "chainStunBoss": 0.15,
-        "damageMult": 0.9,
+        "chainStunBoss": [
+          0.1,
+          0.15,
+          0.2
+        ],
+        "damageMult": [
+          0.9,
+          0.93,
+          0.96
+        ],
         "costMult": 1.25
       },
       "requires": {

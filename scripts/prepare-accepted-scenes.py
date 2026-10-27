@@ -60,6 +60,68 @@ def paintKey(src):
  assert src.count(old)==1
  return src.replace(old,"m.customProgramCacheKey = () => 'paint|%s|' +"%h)
 
+POLYAT_OLD="""function polyAt(T, x, z) {
+  if (x < T.minX - 3 || x > T.maxX + 3 || z < T.minZ - 3 || z > T.maxZ + 3) return null;
+  const p = T.pts; let best = Infinity, inside = false;
+  for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+    const a = p[j], b = p[i];
+    if ((b.z > z) !== (a.z > z) && x < (a.x - b.x) * (z - b.z) / (a.z - b.z) + b.x) inside = !inside;
+    const dx = b.x - a.x, dz = b.z - a.z, t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz)));
+    const ex = a.x + dx * t - x, ez = a.z + dz * t - z, e2 = ex * ex + ez * ez;
+    if (e2 < best) { best = e2; polyAt.wall = a.wall; }
+  }
+  return inside ? -Math.sqrt(best) : Math.sqrt(best);
+}"""
+POLYAT_NEW="""const POLY_GRIDS = new WeakMap();
+// distance from a point to a segment, for the grid's bounds only
+function segDist(px, pz, a, b) {
+  const dx = b.x - a.x, dz = b.z - a.z, l = dx * dx + dz * dz, t = l > 0 ? Math.max(0, Math.min(1, ((px - a.x) * dx + (pz - a.z) * dz) / l)) : 0;
+  return Math.hypot(a.x + dx * t - px, a.z + dz * t - pz);
+}
+function polyGrid(T) {
+  let G = POLY_GRIDS.get(T);
+  if (G && G.pts === T.pts && G.n === T.pts.length) return G;
+  const p = T.pts, n = p.length, x0 = T.minX - 3, z0 = T.minZ - 3, w = T.maxX - T.minX + 6, d = T.maxZ - T.minZ + 6;
+  const size = Math.max(w, d) / 24, nx = Math.max(1, Math.ceil(w / size)), nz = Math.max(1, Math.ceil(d / size));
+  const edges = [];
+  for (let i = 0, j = n - 1; i < n; j = i++) edges.push([p[j], p[i]]);
+  const cells = new Array(nx * nz), rows = new Array(nz);
+  for (let iz = 0; iz < nz; iz++) {
+    const z1 = z0 + iz * size, z2 = z1 + size;
+    rows[iz] = [];
+    for (let k = 0; k < n; k++) { const [a, b] = edges[k]; if (Math.min(a.z, b.z) <= z2 + 1e-6 && Math.max(a.z, b.z) >= z1 - 1e-6) rows[iz].push(k); }
+    for (let ix = 0; ix < nx; ix++) {
+      const cx = x0 + (ix + .5) * size, cz = z0 + (iz + .5) * size, half = Math.hypot(size, size) / 2;
+      // from any point of the cell (within `half` of its centre) the nearest edge is at most `near + half`
+      // away, and an edge is at least its centre distance less `half` away: an edge whose centre distance
+      // exceeds `near + 2 half` can never be the nearest there
+      const dist = edges.map(([a, b]) => segDist(cx, cz, a, b)), near = Math.min(...dist), keep = [];
+      for (let k = 0; k < n; k++) if (dist[k] <= near + 2 * half + 1e-6) keep.push(k);
+      cells[iz * nx + ix] = keep;
+    }
+  }
+  G = { pts: p, n, x0, z0, size, nx, nz, cells, rows };
+  POLY_GRIDS.set(T, G);
+  return G;
+}
+function polyAt(T, x, z) {
+  if (x < T.minX - 3 || x > T.maxX + 3 || z < T.minZ - 3 || z > T.maxZ + 3) return null;
+  const p = T.pts, n = p.length, G = polyGrid(T);
+  const ix = Math.min(G.nx - 1, Math.max(0, Math.floor((x - G.x0) / G.size))), iz = Math.min(G.nz - 1, Math.max(0, Math.floor((z - G.z0) / G.size)));
+  let best = Infinity, inside = false;
+  for (const i of G.rows[iz]) {
+    const a = p[i === 0 ? n - 1 : i - 1], b = p[i];
+    if ((b.z > z) !== (a.z > z) && x < (a.x - b.x) * (z - b.z) / (a.z - b.z) + b.x) inside = !inside;
+  }
+  for (const i of G.cells[iz * G.nx + ix]) {
+    const a = p[i === 0 ? n - 1 : i - 1], b = p[i];
+    const dx = b.x - a.x, dz = b.z - a.z, t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz)));
+    const ex = a.x + dx * t - x, ez = a.z + dz * t - z, e2 = ex * ex + ez * ez;
+    if (e2 < best) { best = e2; polyAt.wall = a.wall; }
+  }
+  return inside ? -Math.sqrt(best) : Math.sqrt(best);
+}"""
+
 for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden','ranger-forest','gull-headland','mirror-pond','moonstone-camp','stone-ring','fern-rise','root-warren']:
  if name=='beach':
   src=b[b.index('// ---------- world layout'):b.index('function resize()')]
@@ -78,6 +140,11 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
  # Stones keep their parts as groups so the game can seat each one whole (render/accepted-scenes.js).
  src=src.replace('mergeGeometries(stoneParts)','rigidParts(mergeGeometries(stoneParts,true))').replace('mergeGeometries(stoneLines)','rigidParts(mergeGeometries(stoneLines,true))')
  src=src.replace('HERO.x','heroStub.x').replace('HERO.z','heroStub.z').replace('HERO.face','heroStub.face')
+ # Loading cost: the scenes' ground fields ask an outline's signed distance some 10^5 times, each a loop over
+ # every edge. The same distance from a per-outline grid of candidate edges: a cell keeps, in outline order,
+ # the edges that can be nearest anywhere in it and, per row, those spanning it for the inside test. Each
+ # kept edge runs the original arithmetic, so the result (and polyAt.wall) is identical, bit for bit.
+ if POLYAT_OLD in src:src=src.replace(POLYAT_OLD,POLYAT_NEW)
  if name=='forest':
   # Owner, 26 October 2026 (drawing): higher ground rings the cherry's hollow, its rock faces turned to
   # the paths, in world metres (the scene stands at -112, -64, scale 0.62). The north rise joins the

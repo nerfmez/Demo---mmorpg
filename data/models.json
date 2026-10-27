@@ -481,16 +481,16 @@
       "source": "Meshy (assets/meshy/shields/crab_greatshield_meshy.glb, tasks.json) with its texture at 768 px (scripts/shrink-glb-texture.py 768 76), decimated under the 4,000-triangle weapon budget (scripts/decimate-glb.py 3900). Fit: the right grip bar at the grip, +Z across to the left bar, the face toward +Y (equipment.js greatshieldGrips)",
       "sourceTransform": {
         "grip": [
-          -0.28,
+          -0.206,
           0.0,
-          0.055
+          -0.305
         ],
         "rotation": [
           -1.5707963267948966,
           0,
           -1.5707963267948966
         ],
-        "scale": 0.5
+        "scale": 0.68
       }
     },
     "beetle_greatshield": {
@@ -501,16 +501,16 @@
       "source": "Meshy (assets/meshy/shields/beetle_greatshield_meshy.glb, tasks.json) with its texture at 768 px (scripts/shrink-glb-texture.py 768 76), decimated under the 4,000-triangle weapon budget (scripts/decimate-glb.py 3900). Fit: the right grip bar at the grip, +Z across to the left bar, the face toward +Y (equipment.js greatshieldGrips)",
       "sourceTransform": {
         "grip": [
-          -0.28,
+          -0.206,
           0.0,
-          0.04
+          -0.238
         ],
         "rotation": [
           -1.5707963267948966,
           0,
           -1.5707963267948966
         ],
-        "scale": 0.5
+        "scale": 0.68
       }
     },
     "crag_greatshield": {
@@ -521,16 +521,16 @@
       "source": "Meshy (assets/meshy/shields/crag_greatshield_meshy.glb, tasks.json) with its texture at 768 px (scripts/shrink-glb-texture.py 768 76), decimated under the 4,000-triangle weapon budget (scripts/decimate-glb.py 3900). Fit: the right grip bar at the grip, +Z across to the left bar, the face toward +Y (equipment.js greatshieldGrips)",
       "sourceTransform": {
         "grip": [
-          -0.28,
+          -0.206,
           0.0,
-          -0.41
+          -0.424
         ],
         "rotation": [
           -1.5707963267948966,
           0,
           -1.5707963267948966
         ],
-        "scale": 0.5
+        "scale": 0.68
       }
     },
     "horn_greatblade": {

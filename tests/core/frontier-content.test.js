@@ -5,7 +5,7 @@ const data=withField(legacyData);
 import {Game} from '../../src/core/game.js';
 import {createCharacter,migrateCharacter,derive,CHARACTER_VERSION,arrowsPerCast,arrowTotal} from '../../src/core/character.js';
 import {computeSkill,movementSkill,socketMod,socketMovementMod,unsocketMod,modSlotOf,modFits} from '../../src/core/skills.js';
-import {tickFrontier,manaLimit,executeFrontier,wallBlocked} from '../../src/core/frontier-content.js';
+import {tickFrontier,manaLimit,executeFrontier,wallBlocked,compileFrontier} from '../../src/core/frontier-content.js';
 import {modUpgradeState} from '../../src/core/crafting.js';
 const fixture=(id='charged_shot',mods=[])=>{
  const ch=createCharacter(data,{kit:'bow'});ch.movementSkills=Object.keys(data.skills.movement);ch.movement='roll';ch.stats={STR:50,DEX:50,INT:50,AGI:50,VIT:50};ch.skills[id]=1;ch.slots=[{skill:id,mods:[]},...ch.slots.slice(1).map(()=>({skill:null,mods:[]}))];
@@ -172,7 +172,10 @@ test('a released charged shot announces its charge on castStart',()=>{
 // Specialist mods for the stream, the lane and the chain (owner, 2026-10-27: at least three per skill type).
 const more=(g,m,list)=>list.map(([x,z],i)=>{const o=structuredClone(m);o.id=m.id+'_'+i;o.x=x;o.z=z;o.statuses={};g.monsters.push(o);return o;});
 const hits=(g)=>g.drainEvents().filter(e=>e.type==='hit');
-test('stream mods reshape the cone, and Release Burst pays for a held stream only',()=>{
+test('channel mods fit any channel by its type tag, reshape whatever shape it has, and Release Burst pays for a held channel only',()=>{
+ const beam={tags:['Spell','Channel','Lightning','Damage']};
+ for(const id of ['wide_stream','long_stream','release_burst'])assert(modFits(beam,data.mods.mods[id]).ok,'a beam channel takes '+id);
+ const lane={width:2,range:6};compileFrontier(lane,{},[{mod:data.mods.mods.wide_stream,level:1}]);assert.equal(lane.width,3);assert.equal(lane.range,6*.85);
  const base=fixture('flame_stream').s,wide=fixture('flame_stream',['wide_stream']).s,long=fixture('flame_stream',['long_stream']).s;
  assert(wide.arc>base.arc&&wide.range<base.range&&long.arc<base.arc&&long.range>base.range&&long.damage>base.damage);
  assert.equal(modFits(data.skills.combat.flame_stream,data.mods.mods.wide_stream,[data.mods.mods.long_stream]).reason,'family');
@@ -181,14 +184,14 @@ test('stream mods reshape the cone, and Release Burst pays for a held stream onl
   assert.equal(g.drainEvents().filter(e=>e.type==='burst'&&e.kind==='release_burst').length,bursts,'held '+held);
  }
 });
-test('lane mods: Long Rend reaches farther, Edge of the Line hits hardest at the end, Quake Line stuns',()=>{
+test('lane mods: Long Rend reaches farther, Far End hits hardest at the end, Staggering Line stuns',()=>{
  {const a=fixture('frontline_split'),b=fixture('frontline_split',['long_rend']);for(const f of [a,b]){f.m.x=6;f.g.executeSkill(f.s,aim);}
   assert.equal(a.m.hp,a.m.maxHp);assert(b.m.hp<b.m.maxHp);assert(b.s.width<a.s.width);}
  {const {g,m,s}=fixture('frontline_split',['tip_strike']);m.x=1.5;const far=more(g,m,[[4.5,0]])[0];g.executeSkill(s,aim);const h=hits(g);
   const near=h.find(e=>e.id===m.id).amount,end=h.find(e=>e.id===far.id).amount;assert(Math.abs(end/near-data.mods.mods.tip_strike.effect.tipMult[0])<0.01,'hits are rounded');}
  for(const boss of [false,true]){const {g,m,s}=fixture('frontline_split',['quake_line']);m.boss=boss;g.executeSkill(s,aim);assert.equal(m.state,'stunned');assert.equal(m.stateDur,boss?data.mods.mods.quake_line.effect.lineStunBoss:data.mods.mods.quake_line.effect.lineStun[0]);}
 });
-test('chain mods: Conductive Arc keeps its strength over shorter jumps, Forking Arc branches once per hop, Arresting Arc stuns the last',()=>{
+test('chain mods: Steady Chain keeps its strength over shorter jumps, Forking Chain branches once per hop, Arresting Chain stuns the last',()=>{
  {const {g,m,s}=fixture('chain_spark',['conductive']);g.player.targetId=m.id;more(g,m,[[4,0],[6,0],[10,0]]);g.executeSkill(s,aim);const h=hits(g);
   assert.equal(h.length,3,'the 4 m gap is too far for a conductive jump');assert(h.every(e=>Math.abs(e.amount-h[0].amount)<1e-6));}
  {const {g,m,s}=fixture('chain_spark',['fork_chain']);g.player.targetId=m.id;more(g,m,[[3,0],[2,2]]);g.executeSkill(s,aim);const ev=g.drainEvents();

@@ -1222,7 +1222,7 @@ export class Game {
           points.push([cur.x, cur.z]);
           hit.add(cur.id);
           const target = cur;
-          // the nearest unhit monster jumps next; Forking Arc also strikes the second nearest
+          // the nearest unhit monster jumps next; Forking Chain also strikes the second nearest
           let next = null, fork = null;
           let nd = s.chainRange || 6, fd = nd;
           for (const m of this.monsters) {
@@ -1234,7 +1234,7 @@ export class Game {
               next = m;
             } else if (d < fd) { fd = d; fork = m; }
           }
-          // Arresting Arc: the last monster the chain reaches is stunned
+          // Arresting Chain: the last monster the chain reaches is stunned
           const last = i === s.chain || !next;
           this.hitMonster(target, dmg, this.hitOpts(s, last && effects.chainStun ? { crit: crit(), stun: { duration: effects.chainStun, bossDuration: effects.chainStunBoss } } : { crit: crit() }));
           if (effects.forkMult && fork) {

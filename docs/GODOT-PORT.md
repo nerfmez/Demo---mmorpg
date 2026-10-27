@@ -330,7 +330,7 @@ labeled separately; only a fitting companion's `grants` add fit eligibility. Cal
 **One mod fit rule.** `modFits(skill, mod, companions)` reads only visible tags: the skill's
 `tags` plus the `grants` of each companion mod that fits the bare skill must contain ALL of
 `needs`, ANY of `on` (when listed) and NONE of `not`; two mods with the same `family`
-(`element`, `trigger`, `trajectory`, `displace`, `status`, `cone`, `lane`) never share a skill. Shape tags (`Arc`,
+(`element`, `trigger`, `trajectory`, `displace`, `status`, `spread`) never share a skill. Shape tags (`Arc`,
 `Nova`, `Ground`, `Zone`, `Barrier`) name the delivery the player sees, so no hidden `kind`
 filter is needed. Failures return `{reason: 'needs'|'on'|'not'|'family', tags|family}`.
 Mod sockets come from `mods.json` `slotsByRank` indexed by the skill's rank (`modSlotsFor`);
@@ -344,14 +344,15 @@ under `not` (`tests/core/basic-mods.test.js`). Basic mods use these effect keys 
 not matter), `hasteAdd` (the skill's cooldown and cast time use `min(caps.hastePct, hastePct +
 hasteAdd)`, so the top speed is unchanged) and `effectDurationMult` (duration of `buff`,
 `curse_zone`, `self_barrier` and `wall` skills; fields use Lingering's `durationMult`).
-Specialist mods for streams, lanes and chains: `rangeMult`, `widthMult`, `chainFalloffSet` and
-`chainRangeMult` reshape the skill in `compileFrontier`; Release Burst (`releaseMult`, `releaseMin`,
+Specialist mods for channels, lanes and chains, fitted by type tag (`Channel`, `Line`, `Chain`), never
+by one skill: `spreadMult` (a cone's arc, else a beam's width, else a circle's radius), `rangeMult`,
+`widthMult`, `chainFalloffSet` and `chainRangeMult` reshape the skill in `compileFrontier`; Release Burst (`releaseMult`, `releaseMin`,
 `releaseCap`, `releaseRadius`) bursts ahead in `cancelChannel` when a stream held at least
-`releaseMin` s ends (core `burst` kind `release_burst`); Edge of the Line (`tipShare`, `tipMult`)
-and Quake Line (`lineStun`, `lineStunBoss`) act per monster in the `melee_line` strike; Forking Arc
+`releaseMin` s ends (core `burst` kind `release_burst`); Far End (`tipShare`, `tipMult`)
+and Staggering Line (`lineStun`, `lineStunBoss`) act per monster in the `melee_line` strike; Forking Chain
 (`forkMult`) also strikes the second-nearest unhit monster at each hop (a `chain` event with
-`from: true`) and Arresting Arc (`chainStun`, `chainStunBoss`) stuns the chain's last target.
-`cone` and `lane` are mod families.
+`from: true`) and Arresting Chain (`chainStun`, `chainStunBoss`) stuns the chain's last target.
+Wide Spread and Far Reach share the `spread` family.
 
 ### Mid/high monsters (attack kinds and presentation)
 

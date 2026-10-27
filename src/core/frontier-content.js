@@ -9,7 +9,9 @@ export function compileFrontier(s, def, activeMods) {
     s.modEffects[key] = Array.isArray(value) ? value[Math.min(level, value.length) - 1] : value;
   const e = s.modEffects;
   if (e.arcMult) s.arc *= e.arcMult;
-  // reach of a cone or a lane, width of a lane, a chain's jumps (Wide/Lancing Stream, Long Rend, Conductive Arc)
+  // reach, a lane's width, a chain's jumps (Wide Spread, Far Reach, Long Rend, Steady Chain); a
+  // channel's spread is whatever its shape has: a cone's angle, a beam's width, or a circle's radius
+  if (e.spreadMult) { if (s.arc) s.arc *= e.spreadMult; else if (s.width) s.width *= e.spreadMult; else if (s.radius) s.radius *= e.spreadMult; }
   if (e.rangeMult) s.range *= e.rangeMult;
   if (e.widthMult && s.width) s.width *= e.widthMult;
   if (e.chainFalloffSet) s.chainFalloff = e.chainFalloffSet;
@@ -39,7 +41,7 @@ export function cancelChannel(g) {
   if (!c) return;
   g.player.cooldowns[c.slot]=Math.max(g.player.cooldowns[c.slot],c.skill.cooldown);
   g.player.channeling=null;
-  // Release Burst: letting go after a held stream bursts ahead, stronger the longer it was held
+  // Release Burst: letting go after a held channel bursts ahead in the skill's element, stronger the longer it was held
   const s=c.skill,e=s.modEffects||{},p=g.player,held=c.t-s.castTime;
   if(e.releaseMult&&held>=e.releaseMin&&!p.dead){const r=s.range*.6;secondaryBurst(g,p.x+Math.sin(p.facing)*r,p.z+Math.cos(p.facing)*r,e.releaseRadius,s.damage*e.releaseMult*Math.min(held,e.releaseCap)*g.playerDamageMult(),s.element,s.id,'release_burst');}
   g.emit({type:'channelEnd'});
@@ -105,7 +107,7 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     return true;
   }
   if(s.kind==='melee_line'){
-    // Edge of the Line: the far end of the lane hits harder; Quake Line: the lane stuns
+    // Far End: the far end of the lane hits harder; Staggering Line: the lane stuns
     const tip=e.tipMult?s.range*(1-e.tipShare):Infinity,stun=e.lineStun?{duration:e.lineStun,bossDuration:e.lineStunBoss}:undefined;
     for(const m of g.monsters){
       if(m.dead)continue;const dx=m.x-p.x,dz=m.z-p.z;

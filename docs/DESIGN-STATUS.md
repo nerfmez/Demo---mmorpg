@@ -5,7 +5,7 @@
 
 | # | หัวข้อ | สถานะ | อยู่ที่ไหน / หมายเหตุ |
 |---|---|---|---|
-| 2 | มุมกล้อง 3/4, รองรับ PC + มือถือ | ✅ | `render/view.js` (กล้องสูงแบบ ARPG), `ui/input.js` (เมาส์/คีย์บอร์ด + จอย/ปุ่มสัมผัส) |
+| 2 | มุมกล้อง 3/4, รองรับ PC + มือถือ | ✅ | `render/game-camera.js` (กล้อง 40° จากแนวราบ ตามที่เจ้าของเลือก), `render/view.js`, `ui/input.js` (เมาส์/คีย์บอร์ด + จอย/ปุ่มสัมผัส) |
 | 3 | Soft Targeting | ✅ | `core/targeting.js` + `game.js`: การโจมตีแบบกด/แตะอัตโนมัติเลือกศัตรูที่ใกล้ที่สุดซึ่งอยู่ในระยะจริงของสกิล โดยไม่สนทิศที่ตัวละครหันหรือกำลังเดิน; การเล็งด้วยเมาส์/ลากสกิลเป็น manual override และตัวละครไม่วิ่งตามเป้า |
 | 4 | Basic Attack เป็นสกิลที่ถอดได้ | ✅ | Slash อยู่ในช่องสกิลปกติ ปล่อยช่องว่างได้ |
 | 5 | Movement Skill แยกช่อง ใช้ชาร์จ | ✅ | Dash (2 ชาร์จ), Roll (อมตะ), Blink และ Leap Slam (เรียนที่โต๊ะคราฟต์) |
@@ -113,6 +113,8 @@ Owner clarification supersedes the earlier equipment level gates: upgrade freely
 materials, but wearing requires trained stats appropriate to the item's actual power.
 C/B/A/S now has 2/3/4/5 unique affixes. Each recipe opens a reusable workshop with one-click
 repeat, per-recipe goals/results and an easy return after comparing with equipped gear.
+Since 2026-10-27 crafting, enhancement and grade promotion share one dedicated workshop page
+with before/after stats and a hammer-strike animation (docs/WORKSHOP.md); the bag links to it.
 Character v4 adds missing old gear affixes once while keeping existing rolls, grade,
 enhancement and UIDs. Gear that no longer meets wear requirements stays in the bag.
 

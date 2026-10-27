@@ -120,7 +120,7 @@ try {
   await page.locator('.atelier-dialog [data-action="arrow-craft"]').tap();
   await page.waitForSelector('[data-act="craft-open"][data-id="arrows_feather"]');
   await page.evaluate(() => { const ch = window.__frontier.game.ch; ch.materials.shore_feather = 10; ch.gold += 100; });
-  await page.locator('.recipe-pick[data-act="craft-open"][data-id="arrows_feather"]').tap();
+  await page.locator('[data-act="craft-open"][data-id="arrows_feather"]').tap();
   const stock = await page.evaluate(() => Object.values(window.__frontier.game.ch.arrows.stock).reduce((a, n) => a + n, 0));
   await page.locator('[data-act="craft-arrows"][data-id="arrows_feather"]').tap();
   await page.waitForFunction((n) => Object.values(window.__frontier.game.ch.arrows.stock).reduce((a, k) => a + k, 0) > n, stock);

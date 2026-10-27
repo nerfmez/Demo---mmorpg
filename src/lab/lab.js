@@ -18,12 +18,13 @@ import SKILLS from '../../data/skills.json';
 import FX from '../../data/combat-fx.json';
 import MODELS from '../../data/models.json';
 import { FrontierFx } from '../render/frontier-fx.js';
+import { GAME_CAMERA_OFFSET } from '../render/game-camera.js';
 import {createRulesPreview,previewMods} from './rules-preview.js';
 import {data} from '../data.js';
 import { LabTuning } from './tuning.js';
 import { mountTuningPanel } from './editor.js';
 
-const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5); // the game's 3/4 camera (src/render/view.js)
+const CAM_OFFSET = GAME_CAMERA_OFFSET; // the game's camera (src/render/game-camera.js)
 const GROUNDS = {
   sand: { label: 'ทราย', floor: '#d9c08f', sky: '#c6e8f2' },
   grass: { label: 'หญ้า', floor: '#86b56c', sky: '#cfe8d4' },

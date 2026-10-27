@@ -71,8 +71,8 @@ Pools only; no allocation per particle or per frame; shared geometry/textures ma
 3. Check on the bench with the game camera (the default; `?cam=game|hero|close`), stepping time
    with `__fxtest.freeze()` / `castDown()` / `castUp()` / `advance(s)`; take a frame sheet across the
    whole effect. Zoom crops to judge detail. Also check the real game with the game stepped by hand
-   (pause, then `game.update` + `view.render` per frame) - the game camera is high (CAM_OFFSET
-   (0, 19, 13.5), fov 36).
+   (pause, then `game.update` + `view.render` per frame) - the game camera is 40° above the horizon
+   (`render/game-camera.js`, 23.3 m from the hero, fov 36).
 4. Self-review against the reference frames before sending: readable from the game camera, no
    straight cuts, nothing hiding the area or monsters, the rock/object leading its own fire, no
    stray objects (e.g. a tongue pointing at the camera reads as a ball).

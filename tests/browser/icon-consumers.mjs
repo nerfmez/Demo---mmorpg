@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { RASTER_ICONS } from '../../src/ui/raster-icons.js';
 import { ART } from '../../src/ui/art.js';
 import { withAffectedRuntime } from './affected-runtime.mjs';
+import { loadData } from '../../src/core/data-node.js';
 
 const expected = Object.keys(RASTER_ICONS).filter(key => /^(gear|material|arrow|skill)\//.test(key));
 const dimensions = Object.fromEntries(JSON.parse(readFileSync(new URL('../../docs/icon-assets-manifest.json', import.meta.url)))
@@ -105,7 +106,9 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, touch, ac
     }
     return keys;
   }, { raster: Object.keys(RASTER_ICONS), vector: Object.keys(ART.skill), touch });
-  assert.equal(hud.length, 31, 'all combat and movement skills use the new HUD art');
+  // every combat and movement skill in data (the count grows with new skills)
+  const skills = loadData().skills;
+  assert.equal(hud.length, Object.keys(skills.combat).length + Object.keys(skills.movement).length, 'all combat and movement skills use the new HUD art');
   hud.forEach(key => seen.add(key));
   await page.evaluate(() => {
     const f = __frontier;

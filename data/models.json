@@ -473,6 +473,66 @@
       },
       "edge": -1
     },
+    "crab_greatshield": {
+      "file": "models/weapons/crab_greatshield.glb",
+      "tris": 3900,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "source": "Meshy (assets/meshy/shields/crab_greatshield_meshy.glb, tasks.json) with its texture at 768 px (scripts/shrink-glb-texture.py 768 76), decimated under the 4,000-triangle weapon budget (scripts/decimate-glb.py 3900). Fit: the right grip bar at the grip, +Z across to the left bar, the face toward +Y (equipment.js greatshieldGrips)",
+      "sourceTransform": {
+        "grip": [
+          -0.206,
+          0.0,
+          -0.305
+        ],
+        "rotation": [
+          -1.5707963267948966,
+          0,
+          -1.5707963267948966
+        ],
+        "scale": 0.68
+      }
+    },
+    "beetle_greatshield": {
+      "file": "models/weapons/beetle_greatshield.glb",
+      "tris": 3899,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "source": "Meshy (assets/meshy/shields/beetle_greatshield_meshy.glb, tasks.json) with its texture at 768 px (scripts/shrink-glb-texture.py 768 76), decimated under the 4,000-triangle weapon budget (scripts/decimate-glb.py 3900). Fit: the right grip bar at the grip, +Z across to the left bar, the face toward +Y (equipment.js greatshieldGrips)",
+      "sourceTransform": {
+        "grip": [
+          -0.206,
+          0.0,
+          -0.238
+        ],
+        "rotation": [
+          -1.5707963267948966,
+          0,
+          -1.5707963267948966
+        ],
+        "scale": 0.68
+      }
+    },
+    "crag_greatshield": {
+      "file": "models/weapons/crag_greatshield.glb",
+      "tris": 3899,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "source": "Meshy (assets/meshy/shields/crag_greatshield_meshy.glb, tasks.json) with its texture at 768 px (scripts/shrink-glb-texture.py 768 76), decimated under the 4,000-triangle weapon budget (scripts/decimate-glb.py 3900). Fit: the right grip bar at the grip, +Z across to the left bar, the face toward +Y (equipment.js greatshieldGrips)",
+      "sourceTransform": {
+        "grip": [
+          -0.206,
+          0.0,
+          -0.424
+        ],
+        "rotation": [
+          -1.5707963267948966,
+          0,
+          -1.5707963267948966
+        ],
+        "scale": 0.68
+      }
+    },
     "horn_greatblade": {
       "file": "models/weapons/horn_greatblade.glb",
       "tris": 8042,
@@ -689,6 +749,25 @@
         "from": 0.15,
         "to": 0.45,
         "curve": 0.3
+      },
+      "faceDecal": {
+        "_doc": "The drawn faces (chibi-body.js faceDecalMaterial, public/models/faces/<id>.png, cut from the owner's face sheets): the picture spans `width` either side of the head's middle in the face coordinates (half widths; the head's skull width at the top), and from `v0` of the way down from `top` to `chin` (face heights 0..1) to the chin. On the front of the face the painted features give way to `skin` (the painted skin, sRGB) under it.",
+        "width": 0.84,
+        "top": 1,
+        "chin": 0.07,
+        "v0": 0.34,
+        "skin": [254, 237, 212]
+      },
+      "ears": {
+        "_doc": "The ears (chibi-body.js prepareChibiBody): head vertices at least `out` head widths out from the head's middle, between heights `y` (0 bottom .. 1 top of the head). A hair tucks them under it like the rest of the head unless it shows them (its fit.ears, fitHairToHead).",
+        "out": 0.42,
+        "y": [0.1, 0.4]
+      },
+      "face": {
+        "_doc": "The face (chibi-body.js fitHairToHead): head vertices in front of `front` of the head's depth (0 back .. 1 front), below `top` of its height and within `side` head widths of its middle (the temples beside it are tucked like the rest of the head). A hair never moves them; a lock that passes inside the face moves out over it.",
+        "front": 0.5,
+        "top": 0.62,
+        "side": 0.36
       },
       "headShape": {
         "_doc": "Head reshape toward the sheet's round chibi head (chibi-body.js reshapeHead): wide widens the head, chin shortens the face below the eye line (eye, from the head's bottom), cheek fills the cheeks, soft bends the head normals toward its centre for one round toon shade, scale sizes the whole head about its base on the neck. The base made from the owner's 2026-10-25 sheet already has its head: no reshape, only the soft normals.",
@@ -1259,6 +1338,7 @@
         "staff"
       ],
       "fist": {
+        "relaxed": 0.4,
         "knuckle": 0.55,
         "radius": 0.25,
         "wrap": 1.25,
@@ -1270,6 +1350,7 @@
           "axe",
           "mace",
           "greatblade",
+          "greatshield",
           "staff",
           "bow"
         ]
@@ -1279,7 +1360,7 @@
     "hero_chibi_hair": {
       "file": "models/hero_chibi_hair.glb",
       "chibiHair": true,
-      "tris": 653,
+      "tris": 654,
       "underHelm": {
         "_doc": "Under a helm (not a circlet) the hair above `above` of its height and behind `front` of its depth is not drawn (chibi-body.js cutAbove).",
         "above": 0.55,
@@ -1291,25 +1372,192 @@
         "height": 1.02,
         "lift": 0.24,
         "back": 0,
-        "side": 0
+        "side": 0,
+        "tuck": 0.02
       },
       "box": [
         [-0.1741, 0.9111, -0.1559],
         [0.1612, 1.2, 0.1559]
       ],
-      "highlight": {
-        "_doc": "Anime highlight band on the hair (chibi-body.js hairHighlightMaterial): a jagged lighter band at height `at` of the hair model, `width` thick, on the side facing the camera, `strength` 0..1.",
-        "at": 0.72,
-        "width": 0.06,
-        "strength": 0.6
+      "source": "The hair of the dressed chibi made for outfit_travel_tunic (meshy-t2 task 01a16f0d-97cc-72dc-962c-d0f0313ded3c, Meshy 6 retexture task 01a16f0e-59ef-702d-8ab9-715f349311ad; assets/meshy/outfits/travel_meshy.glb): its grey and dark-line triangles above the chin, the largest connected pieces only, cut by scripts/fit-chibi-hair.py. Fitted by its fixed box; drawn with its own painted texture. Its one-triangle hole at the crown is closed (2026-10-27)."
+    },
+    "hero_chibi_hair_ponytail": {
+      "file": "models/hair/ponytail.glb",
+      "chibiHairStyle": "ponytail",
+      "tris": 4000,
+      "fit": {
+        "width": 0.7,
+        "depth": 0.7,
+        "height": 1,
+        "lift": -0.16,
+        "back": -0.06,
+        "side": 0,
+        "tilt": 15,
+        "tuck": 0.02
       },
-      "source": "The hair of the dressed chibi made for outfit_travel_tunic (meshy-t2 task 01a16f0d-97cc-72dc-962c-d0f0313ded3c, Meshy 6 retexture task 01a16f0e-59ef-702d-8ab9-715f349311ad; assets/meshy/outfits/travel_meshy.glb): its grey and dark-line triangles above the chin, the largest connected pieces only, cut by scripts/fit-chibi-hair.py. Fitted by its fixed box; drawn with its own painted texture."
+      "box": [
+        [-0.5423, -0.4, -0.2933],
+        [0.3187, 0.7037, 0.6497]
+      ],
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the ponytail style from the owner's ten-style hair sheet (2026-10-26) (task 01a17884-3e53-7046-9022-5dbccd1f3407), Meshy 6 retexture from the same picture (task 01a17884-9915-75c4-9ebb-322dbd05e514); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
+    },
+    "hero_chibi_hair_swept": {
+      "file": "models/hair/swept.glb",
+      "chibiHairStyle": "swept",
+      "tris": 3997,
+      "fit": {
+        "width": 0.72,
+        "depth": 0.73,
+        "height": 1,
+        "lift": -0.16,
+        "back": 0,
+        "side": 0,
+        "tilt": 0,
+        "tuck": 0.02
+      },
+      "box": [
+        [-0.529, -0.4, -0.4993],
+        [0.5684, 0.7666, 0.6994]
+      ],
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the sweep style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-abc7-76af-abd7-3d91d1e2cffa), Meshy 6 retexture from the same picture (task 01a17920-d00c-7068-8d8c-4b02c34b65c1); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
+    },
+    "hero_chibi_hair_short": {
+      "file": "models/hair/short.glb",
+      "chibiHairStyle": "short",
+      "tris": 3997,
+      "fit": {
+        "width": 0.704,
+        "depth": 0.745,
+        "height": 1,
+        "lift": -0.16,
+        "back": 0,
+        "side": 0,
+        "tilt": 0,
+        "tuck": 0.02
+      },
+      "box": [
+        [-0.5133, -0.4, -0.4995],
+        [0.5145, 0.6689, 0.6015]
+      ],
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the sidepart style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-a342-7673-a366-ca7d81ac99b3), Meshy 6 retexture from the same picture (task 01a17920-c774-706e-bd19-a4d7c159f758); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
+    },
+    "hero_chibi_hair_buns": {
+      "file": "models/hair/buns.glb",
+      "chibiHairStyle": "buns",
+      "tris": 3999,
+      "fit": {
+        "width": 0.62,
+        "depth": 0.59,
+        "height": 1,
+        "lift": -0.16,
+        "back": 0,
+        "side": 0,
+        "tilt": 0,
+        "tuck": 0.03
+      },
+      "box": [
+        [-0.5925, -0.4, -0.6673],
+        [0.5918, 0.7792, 0.6836]
+      ],
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the buns style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-9157-77d1-b56f-57ab5f59e52f), Meshy 6 retexture from the same picture (task 01a17920-b0cb-70b8-b0a8-2da632d14b21); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
+    },
+    "hero_chibi_hair_long": {
+      "file": "models/hair/long.glb",
+      "chibiHairStyle": "long",
+      "tris": 3999,
+      "fit": {
+        "width": 0.55,
+        "depth": 0.56,
+        "height": 1,
+        "lift": -0.24,
+        "back": -0.09,
+        "side": 0,
+        "tilt": 0,
+        "tuck": 0.02
+      },
+      "box": [
+        [-0.4054, -0.4, -0.2267],
+        [0.4032, 0.9173, 0.598]
+      ],
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the long style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-959b-76f7-bc62-5e613d2b26ec), Meshy 6 retexture from the same picture (task 01a17920-b5c2-70f9-a0b9-6ceaea180afa); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
+    },
+    "hero_chibi_hair_curly": {
+      "file": "models/hair/curly.glb",
+      "chibiHairStyle": "curly",
+      "tris": 3997,
+      "fit": {
+        "width": 0.712,
+        "depth": 0.722,
+        "height": 1,
+        "lift": -0.17,
+        "back": 0,
+        "side": 0,
+        "tilt": 0,
+        "tuck": 0.03
+      },
+      "box": [
+        [-0.526, -0.4, -0.578],
+        [0.5121, 0.6568, 0.5722]
+      ],
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the messy style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-9a84-72a0-84df-3b54a1bf2907), Meshy 6 retexture from the same picture (task 01a17920-bd4d-7150-b732-b66ee6206da5); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
+    },
+    "hero_chibi_hair_shag": {
+      "file": "models/hair/shag.glb",
+      "chibiHairStyle": "shag",
+      "tris": 3999,
+      "fit": {
+        "width": 0.688,
+        "depth": 0.73,
+        "height": 1,
+        "lift": -0.16,
+        "back": 0,
+        "side": 0,
+        "tilt": 0,
+        "tuck": 0.02
+      },
+      "box": [
+        [-0.5537, -0.4, -0.5618],
+        [0.548, 0.7704, 0.6071]
+      ],
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the shag style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-9f26-7216-8bed-6529b5d20cc6), Meshy 6 retexture from the same picture (task 01a17920-c2e2-76ba-9e25-a71c462e34ff); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
+    },
+    "hero_chibi_hair_spiky": {
+      "file": "models/hair/spiky.glb",
+      "chibiHairStyle": "spiky",
+      "tris": 4000,
+      "fit": {
+        "width": 0.688,
+        "depth": 0.73,
+        "height": 1,
+        "lift": -0.16,
+        "back": 0,
+        "side": 0,
+        "tilt": 0,
+        "tuck": 0.02
+      },
+      "box": [
+        [-0.4735, -0.4, -0.3945],
+        [0.4623, 0.5795, 0.6362]
+      ],
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the spiky style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-a7bf-75cd-befb-719d0ac97ff3), Meshy 6 retexture from the same picture (task 01a17920-cbdc-743a-9560-015bb04f039a); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
     },
     "outfit_travel_tunic": {
       "file": "models/outfits/travel_tunic.glb",
       "chibiOutfit": "armor",
+      "localInside": true,
+      "neckline": {
+        "_doc": "The collar cut clean per pixel (chibi-garments.js necklineCut), body bind space in chibi metres: a V in front of depth `z` from `tip` (height) at `x`, widening by `slope` per metre up; the neck's round above `cut` within `ring` of its axis; a `trim` band (m) in `color` on the edge.",
+        "tip": 0.7675,
+        "x": -0.003,
+        "slope": 0.4,
+        "z": 0.0069,
+        "cut": 0.84,
+        "ring": 0.06,
+        "trim": 0.01,
+        "color": "#367f64"
+      },
       "tris": 1295,
-      "source": "The chibi in the Travel Tunic (the owner's reference sheet 03 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f0d-97cc-72dc-962c-d0f0313ded3c), Meshy 6 retexture (task 01a16f0e-59ef-702d-8ab9-715f349311ad); tunic, belt, skirt and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/travel.json)."
+      "source": "The chibi in the Travel Tunic (the owner's reference sheet 03 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f0d-97cc-72dc-962c-d0f0313ded3c), Meshy 6 retexture (task 01a16f0e-59ef-702d-8ab9-715f349311ad); tunic, belt, skirt and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/travel.json); its blurred neck, V opening and cuffs repainted clean by scripts/clean-travel-tunic.py (2026-10-27)."
     },
     "outfit_travel_boots": {
       "file": "models/outfits/travel_boots.glb",

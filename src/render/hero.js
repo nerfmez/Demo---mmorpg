@@ -18,15 +18,19 @@ import { buildOutfit } from './outfit.js';
 import { buildHeadwear, HAIR_WHOLE } from './headwear.js';
 import OUTFITS from '../../data/outfits.json';
 import { resolveOutfit } from '../core/outfit-look.js';
-import { modelInstance, characterBase, chibiOutfit } from './models.js';
+import { modelInstance, characterBase, chibiOutfit, chibiHair, chibiFace } from './models.js';
+import { HAIR_STYLES, FACES } from '../network/protocol.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
 import { attachChibiBody, attachChibiHair } from './chibi-body.js';
 import { attachChibiGarments } from './chibi-garments.js';
 import {attachHairSampleBody} from './hairsample.js';
 
+const PROCEDURAL_HAIR = { buns: 'ponytail', long: 'ponytail', curly: 'messy', shag: 'messy', spiky: 'messy' };
+
 export const DEFAULT_LOOK = {
   hairStyle: 'messy',
+  face: 'default',
   hair: '#262a44',
   skin: '#f6d2b5',
   eyes: '#2b2e44',
@@ -34,8 +38,12 @@ export const DEFAULT_LOOK = {
   tunic: '#f1e3cc',
 };
 
+// the hero's hair styles: the chibi hero draws each from its own hair model (data/models.json,
+// `chibiHairStyle`); the procedural hero (?hero=classic) has the first four, the rest drawn as
+// their nearest (PROCEDURAL_HAIR)
 export const LOOK_OPTIONS = {
-  hairStyle: ['messy', 'swept', 'ponytail', 'short'],
+  hairStyle: HAIR_STYLES,
+  face: FACES,
   hair: ['#262a44', '#3b2a20', '#6a4a2a', '#c9a060', '#e8dcc0', '#a83a2a', '#4a5a8a', '#1e1e24'],
   skin: ['#f6d2b5', '#eec39a', '#d9a67a', '#b07a52', '#8a5a3a'],
   eyes: ['#2b2e44', '#3a6ad0', '#3a8a5a', '#8a4a2a', '#a03a8a', '#c9a030'],
@@ -170,7 +178,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     if (!T) rb.add('head', new THREE.SphereGeometry(0.022, 6, 5).scale(0.6, 1, 0.6), L.skin, { pos: [s * 0.125, 0.12, 0], plain: true }); // ears
   }
   if (!paintedFace) rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
-  const hairStyle = o.longHair ? 'ponytail' : L.hairStyle;
+  const hairStyle = o.longHair ? 'ponytail' : PROCEDURAL_HAIR[L.hairStyle] || L.hairStyle;
   if (hairStyle === 'ponytail') rb.bone('tail', 'head', [0, 0.2, -0.12]);
   // scarf wrap: town NPCs that ask for one (the hero wears none; its outfit is data/outfits.json)
   if (o.scarf && !V) {
@@ -217,11 +225,11 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       fitParts(rig.bones.chest, { pos: [0, 0, 0], scale: V.gearScale });
       rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
-      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
+      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null, face: chibiFace(L.face) });
       // the outfit's top, trousers, skirt, boots and gloves; a modelled armour or boots replaces its shells
       attachChibiGarments(rig, V, wear, { armor: chibiOutfit('outfit_' + wear.armor), boots: chibiOutfit('outfit_' + wear.boots.id) });
-      const hair = characterBase('hero_chibi_hair');
-      if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && !HAIR_WHOLE.includes(wear.helm.kind), model: helmModel }); // a circlet or cowl leaves the hair whole
+      const hair = chibiHair(L.hairStyle);
+      if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && !HAIR_WHOLE.includes(wear.helm.kind), model: helmModel, color: L.hair }); // a circlet or cowl leaves the hair whole
     } else attachVrmBody(rig, V);
   }
   rig.look = L;
@@ -266,6 +274,7 @@ export class HumanoidAnimator {
     this.moveW = 0;
     this.gaitU = 0;
     this.buf = poseBuffers();
+    this.stance = null; // a stance name that replaces the carry's (the creation screen's, view.js showPreview)
     this.blinkT = 1.5 + Math.random() * 3;
     this.blink = 0;
   }
@@ -284,7 +293,7 @@ export class HumanoidAnimator {
     // a heavy weapon held in both hands (nothing in the left) swings like the greatblade
     const twoHanded = HOLDS.holds[weapon]?.two && !this.rig.offhandKind;
     const off = this.rig.offhandKind, dual = !!off && off !== 'shield' && off !== 'quiver'; // a second weapon: cuts alternate hands
-    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' ? 'greatblade' : weapon, step, dual);
+    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' && weapon !== 'greatshield' ? 'greatblade' : weapon, step, dual);
     this.combo = step + 1;
     dur = Math.max(0.25, dur);
     const hit = ACTIONS[name].hit;
@@ -331,7 +340,7 @@ export class HumanoidAnimator {
     const sway = Math.sin(it * 0.55);
     // standing pose: the neutral base plus the weapon's stance (data/weapon-holds.json stances)
     const idle = this.buf.idle;
-    const stance = HOLDS.stances[this.holdFor()?.stance ?? 'relaxed'];
+    const stance = HOLDS.stances[this.stance ?? this.holdFor()?.stance ?? 'relaxed'] ?? HOLDS.stances.relaxed;
     for (const n of IDLE_BONES) {
       const o = idle[n], a = IDLE_BASE[n], d = stance[n] ?? ZERO3;
       o[0] = a[0] + d[0]; o[1] = a[1] + d[1]; o[2] = a[2] + d[2];
@@ -502,7 +511,10 @@ export class HumanoidAnimator {
     const leftBusy = ikL && ikw?.[0] > 0.01 ? ikw[0] : 0;
     // carry weight: full when idle or moving, handing over to the action's own arm keys
     const busy = s.dead || (s.dash && s.dash.kind !== 'leap') || (this.action && (this.action.name === 'staffBolt' || this.action.name === 'bow'));
-    const holdW = busy || !hold ? 0 : swingV ? 1 : s.dash ? 0 : 1 - actionW;
+    // an action that pushes the carry out (pose.reach, body-space metres, already weighted: a greatshield's
+    // shove) leaves the hand and the weapon's facing to the carry and moves the hand by that much
+    const reach = pose.reach;
+    const holdW = busy || !hold ? 0 : swingV || reach ? 1 : s.dash ? 0 : 1 - actionW;
     if (b.weapon) b.weapon.position.copy(b.weapon.userData.rest.pos);
     // through a spell or shout the weapon keeps its carry angle (a staff stays upright, a heavy
     // weapon stays raised): only the hand moves. A two-handed weapon's left hand lets go meanwhile.
@@ -520,7 +532,7 @@ export class HumanoidAnimator {
       this.rig.gripTurn[0] = turn;
       this.rig.gripTurn[1] = hold?.run?.arms?.armL ? turn : 0;
     }
-    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW * armW, swingV, swingW, orientW * armW, swingLead);
+    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW * armW, swingV, swingW, orientW * armW, swingLead, reach);
     // a second weapon in the left hand (dual carry): its own palm and blade, handed back to the action
     if (hold?.left && b.offhand) this.solveOffhand(hold.left, (leftBusy ? 0 : holdW) * armW, hold.run?.socket, 1 - armW);
     // a left-handed strike: the left weapon follows the action's own channel or the mirrored swing arc
@@ -535,8 +547,9 @@ export class HumanoidAnimator {
       }
     }
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
+    // (a greatshield, hold.keepGrip, keeps both hands on its bars through every action)
     // a heavy weapon dragged one-handed on the run (hold.run.release) lets the left hand go
-    let gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
+    let gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - (hold.keepGrip ? 0 : gesture)) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
     if (own && hold?.grip !== undefined) gripW += ((pose.grip ? pose.grip[0] : 0) - gripW) * actionW;
     if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
       const root = this.rig.root;
@@ -582,7 +595,8 @@ export class HumanoidAnimator {
     if (support) support.on = gripW > 0.01 && !!b.weapon;
     if (support?.on) {
       this.rig.root.updateMatrixWorld(true);
-      support.axis.set(0, 0, 1).applyQuaternion(b.weapon.getWorldQuaternion(AIM_Q));
+      // the haft, or a greatshield's upright left bar (equipment.js greatshieldGrips)
+      (this.rig.weaponKind === 'greatshield' ? support.axis.set(1, 0, 0) : support.axis.set(0, 0, 1)).applyQuaternion(b.weapon.getWorldQuaternion(AIM_Q));
       // reachArm puts the driver palm (PALM below the wrist) on its target, so aim it where the palm
       // must be for the fist to land on the haft; the fist turns with the arm, so measure and reach
       // again until it settles
@@ -696,12 +710,13 @@ export class HumanoidAnimator {
    * the way the cut runs (1 to rising arc angles, -1 to falling) and the model's cutting side picks
    * which face of the blade goes first.
    */
-  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW, lead = 1) {
+  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW, lead = 1, reach = null) {
     const ik = this.rig.ikMap;
     const b = this.b, body = b.body;
     this.rig.root.updateMatrixWorld(true);
     if (hold) {
       W_HAND.fromArray(hold.hand);
+      if (reach) { W_HAND.x += reach[0]; W_HAND.y += reach[1]; W_HAND.z += reach[2]; }
       W_DIR.fromArray(hold.dir).normalize();
       // the blade's flat faces this way (default up); [1, 0, 0] stands the blade on its +X side,
       // flipped for a blade that cuts on its -X side, so the edge is the one toward the ground

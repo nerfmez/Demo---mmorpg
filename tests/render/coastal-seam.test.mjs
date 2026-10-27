@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import {registerHooks} from 'node:module';
 import {loadData} from '../../src/core/data-node.js';
 import {createWorld} from '../../src/core/world.js';
-import {terrainDomain} from '../../src/render/terrain-domain.js';
+import {terrainDomain,sceneBeach} from '../../src/render/terrain-domain.js';
 import {finishSteps} from '../../src/render/build-queue.js';
 import {disposeObject} from '../../src/render/dispose.js';
 
@@ -49,7 +49,8 @@ test('rendered sand/wet mask and swash meet at the actual shared coastal edge',(
 test('coastal blending recovers native samples outside the seam band and at inland seams',()=>{
  for(const [id,x,z]of [[A,-136,77],[F,-184,77],[A,-160,-92],[F,-160,-92],[A,-160,-140],[F,-160,-140],[A,-100,80],[F,-230,80]]){
   const [lx,lz]=local(id,x,z),w=worlds[id];
-  assert.deepEqual(domains[id].coastAt(lx,lz),{...w.coastAt(lx,lz),beach:w.data.sea.beach||14,blend:0});
+  // the native sample, with the map's sand width (an accepted scene's own width near it)
+  assert.deepEqual(domains[id].coastAt(lx,lz),{...w.coastAt(lx,lz),beach:sceneBeach(w.data)(lx,lz),blend:0});
  }
  // No new jump at the band limits, back beach or shared boundary.
  for(const id of [A,F])for(const x of [-184,-160,-136])for(const z of [45,60,70,80,90]){

@@ -76,6 +76,12 @@ export class BashFx {
     this.taunts = this.taunts.filter((s) => s.id !== id);
     this.taunts.push({ id, t: 0, duration });
   }
+  // a target struck by a greatshield's plain shove: the hard burst only (no knock streak, no taunt)
+  strike(center, fromX, fromZ) {
+    const dx = center.x - fromX, dz = center.z - fromZ, l = Math.hypot(dx, dz) || 1;
+    this.dir.set(dx / l, 0, dz / l);
+    this.burst(center, this.dir, 0.8, 0.22);
+  }
   // posOf(id) -> the dummy's live position (x, z) or null
   update(dt, posOf) {
     this.t += dt;

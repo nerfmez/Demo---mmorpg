@@ -26,7 +26,11 @@ test('region landmark imports release raw/batched buffers once, including cancel
   const resources=new Map();const loader={async loadAsync(path){const gltf=await model('public/'+path);gltf.scene.traverse(o=>{for(const r of [o.geometry,o.material])if(r&&!resources.has(r)){resources.set(r,0);r.addEventListener('dispose',()=>resources.set(r,resources.get(r)+1));}});return gltf;}};
   const atlas=new Texture();let atlasDisposals=0;atlas.addEventListener('dispose',()=>atlasDisposals++);
   const result=await loadLandmarkAssets(createWorld(wd),{loader,assetURL:path=>path,foliageTexture:atlas});
-  assert.equal(result.stats.kinds.length,wd.landmarks.filter(l=>!l.builtin).length);
+  // an accepted scene draws its own landmark (render/accepted-scenes.js); a map whose
+  // landmarks are all drawn that way imports nothing
+  const imported=wd.landmarks.filter(l=>!l.builtin&&!l.acceptedScene).length;
+  if(!imported){assert.equal(result,null,wd.id);atlas.dispose();assert.equal(resources.size,0);continue;}
+  assert.equal(result.stats.kinds.length,imported);
   assert.ok(result.stats.batch.after<result.stats.sourceDraws,'material batches reduce draws');
   result.dispose();result.dispose();
   assert.equal(atlasDisposals,0,'the accepted forest atlas is borrowed, never freed with a region');
@@ -34,7 +38,8 @@ test('region landmark imports release raw/batched buffers once, including cancel
   assert.ok([...resources.values()].every(n=>n===1),'each imported resource released exactly once');
  }
  const controller=new AbortController();controller.abort();
- await assert.rejects(loadLandmarkAssets(createWorld(data.world),{signal:controller.signal,assetURL:path=>path,loader:{loadAsync:path=>model('public/'+path)}}),{name:'AbortError'});
+ const importing=Object.values(data.maps).find(m=>m.landmarks.some(l=>!l.builtin&&!l.acceptedScene));
+ await assert.rejects(loadLandmarkAssets(createWorld(importing),{signal:controller.signal,assetURL:path=>path,loader:{loadAsync:path=>model('public/'+path)}}),{name:'AbortError'});
 });
 test('elder crown reuses the forest atlas and releases its private material',async()=>{
  const wd=data.maps['greenhollow-frontier-v1']||Object.values(data.maps).find(m=>m.landmarks.some(l=>l.kind==='elder_mosstree'));

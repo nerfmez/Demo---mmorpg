@@ -1,12 +1,18 @@
 // Shared, data-driven wire contract. Content IDs only; never asset URLs or save data.
-export const PROTOCOL = 3;
+export const PROTOCOL = 4; // 4: the chibi hair styles and faces (HAIR_STYLES, FACES)
 export const WORLD_ID = 'frontier-atlas-v1';
 export const GEAR_SLOTS = ['weapon', 'offhand', 'armor', 'helm', 'gloves', 'boots'];
 export const exact = (o, names) => !!o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === names.length && names.every(n => Object.hasOwn(o, n));
 export const roomOK = room => typeof room === 'string' && /^[a-z0-9-]{1,24}$/.test(room);
 export const identityOK = id => typeof id === 'string' && /^[a-f0-9-]{36}$/.test(id);
 export const angleOK = n => Number.isFinite(n) && Math.abs(n) <= Math.PI;
-const lookKeys = ['hairStyle', 'hair', 'skin', 'eyes', 'scarf', 'tunic'];
+const lookKeys = ['hairStyle', 'face', 'hair', 'skin', 'eyes', 'scarf', 'tunic'];
+// the hero's hair styles (the look's hairStyle; render/hero.js LOOK_OPTIONS): each but the default
+// `messy` has its own chibi hair model (data/models.json `chibiHairStyle`)
+export const HAIR_STYLES = ['messy', 'swept', 'ponytail', 'short', 'buns', 'long', 'curly', 'shag', 'spiky'];
+// the chibi hero's faces (the look's face): `default` is its own painted face, each other a drawn face
+// laid over it (public/models/faces/<id>.png, chibi-body.js faceDecalMaterial)
+export const FACES = ['default', 'cool', 'gentle', 'cheerful', 'serious', 'spark', 'dreamy', 'weary', 'teary', 'joyful', 'angry', 'smirk', 'wink', 'excited', 'grumpy', 'shocked', 'crying', 'pouting', 'drool'];
 export function createProtocol({ maps, items, skills }) {
   const regions = Object.entries(maps).map(([id, m]) => {
     const [x, z] = m.atlas?.offset || [0, 0], b = m.bounds;
@@ -23,7 +29,7 @@ export function createProtocol({ maps, items, skills }) {
     const d = items.gearBases[id];
     return d.slot === slot || (slot === 'offhand' && d.slot === 'weapon' && items.weaponTypes[d.weaponType]?.hands === 'light');
   });
-  const lookOK = look => exact(look, lookKeys) && ['messy', 'swept', 'ponytail', 'short'].includes(look.hairStyle) && lookKeys.slice(1).every(k => typeof look[k] === 'string' && /^#[0-9a-f]{6}$/i.test(look[k]));
+  const lookOK = look => exact(look, lookKeys) && HAIR_STYLES.includes(look.hairStyle) && FACES.includes(look.face) && lookKeys.slice(2).every(k => typeof look[k] === 'string' && /^#[0-9a-f]{6}$/i.test(look[k]));
   const poseOK = (p, map) => {
     const b = Object.hasOwn(maps, map) && maps[map].bounds;
     if (!exact(p, map === WORLD_ID ? ['x', 'z', 'facing', 'moving', 'region'] : ['x', 'z', 'facing', 'moving']) || !Number.isFinite(p.x) || !Number.isFinite(p.z) || !angleOK(p.facing) || typeof p.moving !== 'boolean') return false;

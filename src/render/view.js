@@ -4,7 +4,7 @@ import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from './s
 // Scene assembly: renderer, 3/4 top-down camera, light, and syncing game entities to models.
 // "Change the camera, not the style": high ARPG camera, same anime cel look.
 // The view is created for a world first (the title screen shows the real map), then a game is
-// attached. Camera modes: 'title' (slow flyover), 'create' (close-up of the hero preview),
+// attached. Camera modes: 'title' (slow flyover), 'create' (the hero preview alone in a studio, straight on),
 // 'game' (follow).
 import * as THREE from 'three';
 import { installGrassCulling } from './grass-culling.js';
@@ -14,7 +14,7 @@ import { monsterModel } from './models.js';
 import { syncMonsterViews, measureMotion, fadeRig, VIEW_RADIUS } from './monster-views.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
-import { toon, seeUniforms } from './toon.js';
+import { toon, seeUniforms, toonRamp } from './toon.js';
 import { timeUniform } from './patch.js';
 import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
 import { PostFX } from './post.js';
@@ -29,10 +29,14 @@ import { prepareResidentWorld, updateResidentVisibility, restoreResidentVisibili
 import { prepareSpatialRegion } from './spatial-region.js';
 import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
+import { GAME_CAMERA_OFFSET, cameraOffset } from './game-camera.js';
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
 import { fxGround, fxConfig, cachedGround } from './skillfx/fx-common.js';
 
-const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
+// The game camera (game-camera.js, 40 degrees above the horizon); `?pitch=` (15-80) previews
+// another angle for review.
+const pitchParam = typeof location !== 'undefined' ? parseFloat(new URLSearchParams(location.search).get('pitch')) : NaN;
+const CAM_OFFSET = pitchParam >= 15 && pitchParam <= 80 ? cameraOffset(pitchParam) : GAME_CAMERA_OFFSET;
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)
@@ -52,7 +56,7 @@ const ZONE_FOG = {
 const NO_MARKS = [];
 
 export class View {
-  constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
+  constructor(canvas, world, { quality = 'high', worlds = null, resident = worlds } = {}) {
     this.unified = !!worlds;
     this.coordinateOrigin = [...(world.data.atlas?.offset || [0, 0])];
     this.worldPrepared = false;
@@ -143,7 +147,9 @@ export class View {
 
     this.raycaster = new THREE.Raycaster();
     this.resize();
-    this.worldReady = this.unified ? prepareResidentWorld(this, worlds) : this.region.ready.then(() => { this.worldPrepared = true; });
+    // `resident`: the maps prepared behind the loading card (every map in the game;
+    // the development load prepares the start map only, see main.js).
+    this.worldReady = this.unified ? prepareResidentWorld(this, resident) : this.region.ready.then(() => { this.worldPrepared = true; });
     this.cityReady = this.worldReady;
   }
 
@@ -287,7 +293,7 @@ export class View {
     const cfg = region.world.data.wreck;
     if (!cfg || region.wreck) return;
     const at = (o, [x,z], rot) => { o.position.set(x, region.world.groundY(x,z), z); o.rotation.y=rot; region.root.add(o); return o; };
-    region.wreck=at(buildWreck(),cfg.at,cfg.rot);
+    region.wreck=at(cfg.acceptedScene?new THREE.Group():buildWreck(),cfg.at,cfg.rot);
     region.weaponProps={};
     for(const [kit,o] of Object.entries(weaponProps())) { region.weaponProps[kit]=at(o,cfg.weapons[kit],.2); o.visible=false; }
   }
@@ -343,7 +349,7 @@ export class View {
     }
     if (fresh.length) {
       this.scene.add(tmp);
-      this.renderer.compile(this.scene, this.camera);
+      this.compileForDraw(this.scene);
       tmp.removeFromParent();
       for (const rig of fresh) this.releaseRig(rig);
     }
@@ -408,7 +414,7 @@ export class View {
       this.hero.root.scale.copy(previousRoot.scale);
     } else this.heroAnim = new HumanoidAnimator(this.hero);
     this.scene.add(this.hero.root);
-    this.vfx.prepareMovement(this.hero.root, this.renderer, this.camera);
+    this.vfx.prepareMovement(this.hero.root, this.renderer, this.camera, undefined, this.drawTarget());
     if (this.hero.scarf) this.scene.add(this.hero.scarf.mesh);
     this.heroLookKey = JSON.stringify([look, gear]);
     if (this.vfx.wardMesh) this.hero.root.add(this.vfx.wardMesh);
@@ -464,8 +470,25 @@ export class View {
     this.post.setSize(size.x, size.y);
   }
 
+  /** The target the world is drawn into: the screen grade's, or the canvas (null). */
+  drawTarget() {
+    return this.post?.scene ?? null;
+  }
+
+  /** Compile the program variant the world is drawn with. Three keys programs for a
+   *  render target apart from canvas ones (no tone mapping, working colour space), so
+   *  canvas programs would go unused through the screen grade and the first frames
+   *  would compile the real ones, blocking. */
+  compileForDraw(scene, camera = this.camera, targetScene) {
+    const r = this.renderer, previous = r.getRenderTarget(), face = r.getActiveCubeFace(), mip = r.getActiveMipmapLevel();
+    r.setRenderTarget(this.drawTarget());
+    try { return r.compile(scene, camera, targetScene); } finally { r.setRenderTarget(previous, face, mip); }
+  }
+
   /** Draw the scene to the canvas, through the screen grade when it is on. */
   draw() {
+    if (this.mode === 'create' && this.previewHero && this.studio) return this.renderer.render(this.studio, this.camera);
+    if (this.camera.view?.enabled) this.camera.clearViewOffset(); // left the creation screen
     this.skillFx.prerender();
     if (!this.post) return this.renderer.render(this.scene, this.camera);
     this.post.setHaze(this.fogColor);
@@ -981,12 +1004,14 @@ export class View {
         if (!stone.visible) continue;
         const id = stone.userData.waypointId ?? key;
         const on = g.isWaypointUnlocked?.(id, stone.userData.worldId);
+        if(stone.userData.updateAccepted){stone.userData.updateAccepted(dt,time,on,g.player.x,g.player.z);continue;}
         const c = stone.userData.crystal;
         c.material.emissive.set(on ? '#3fb8e8' : '#223344');
         c.material.emissiveIntensity = on ? 0.9 + Math.sin(time * 3) * 0.25 : 1;
         c.position.y = 2.95 + (on ? Math.sin(time * 2) * 0.12 : 0);
         c.rotation.y = on ? time : 0;
       }
+      for(const region of this.regions.values())for(const a of region.acceptedAnimations||[])a.update(dt,time,false);
       // target ring (while a drag on Backstab picks its target, the one it points at)
       const lock = ui.aim?.lock, t = lock !== undefined ? (lock === null ? null : g.monsterById(lock)) : g.target;
       this.targetRing.visible = !!t && !t.dead;
@@ -1010,17 +1035,12 @@ export class View {
         conform(this.aimArrow);
       }
     } else if (this.mode === 'create' && this.previewHero) {
-      // hero preview on the plaza, slow orbit
+      // the hero alone in the studio (drawn instead of the world), seen straight from the front
       const h = this.previewHero;
       h.anim.update(dt, { speed: 0, facing: h.root.rotation.y, moving: false, dash: null, dead: false, time });
       updateScarf(h, dt, 0);
-      // swing gently in front of the hero; aim a little left of it so the hero stands clear of the panel
-      const a = h.root.rotation.y + Math.sin(time * 0.3) * 0.6;
-      const c = h.root.position;
-      const wide = this.camera.aspect > 1.1 ? 0.75 : 0;
-      this.camera.position.set(c.x + Math.sin(a) * 4.6, c.y + 2.1, c.z + Math.cos(a) * 4.6);
-      this.camera.lookAt(c.x - Math.cos(a) * wide, c.y + (this.camera.aspect > 1.1 ? 1.0 : 0.6), c.z + Math.sin(a) * wide);
-      focus = c;
+      this.frameCreate(dt);
+      focus = h.root.position;
     } else {
       // title flyover above the settlement and meadow
       const a = time * 0.035;
@@ -1061,20 +1081,75 @@ export class View {
     this.draw();
   }
 
-  /** Character-creation preview: a hero standing on the plaza. */
+  /**
+   * Character-creation preview: the hero alone in a plain studio (its own scene, lit like the world),
+   * facing the camera. `createFocus` ('body' or 'face', set by the menu) frames the whole hero or
+   * zooms to the face while hair and face are chosen; `createInset` ({left, bottom}: the share of the
+   * screen the menu panel covers) shifts the picture so the hero stands in the free part.
+   */
   showPreview(look, gear) {
     this.hidePreview(); // frees the old preview's per-rig materials, skeleton and scarf
     const h = buildHumanoid(look, gear);
     h.anim = new HumanoidAnimator(h);
-    const city=this.world.data.city?.enabled;
-    const [cx,cz]=city?this.world.data.town.respawn:this.world.data.town.centre;
-    const x=cx+(city?0:2),z=cz+(city?0:2);
-    h.root.position.set(x,this.world.groundY(x,z),z);
-    h.root.rotation.y = 0.3;
-    this.scene.add(h.root);
-    if (h.scarf) this.scene.add(h.scarf.mesh);
+    h.anim.stance = 'creation'; // standing for the picture, not the unarmed fighter's stance (data/weapon-holds.json)
+    const studio = this.createStudio();
+    h.root.position.set(0, 0, 0);
+    h.root.rotation.y = 0; // facing +Z, toward the camera
+    studio.add(h.root);
+    if (h.scarf) studio.add(h.scarf.mesh);
+    // the hero's height, for the framing (its bind pose; the hair rides above the head)
+    h.root.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(h.root);
+    h.previewHeight = box.isEmpty() ? 1.2 : Math.max(0.6, box.max.y);
     this.previewHero = h;
     return h;
+  }
+
+  /** The creation studio: a soft backdrop, a round floor with a contact shadow and the world's lights. */
+  createStudio() {
+    if (this.studio) return this.studio;
+    const s = new THREE.Scene();
+    const c = document.createElement('canvas');
+    c.width = 4; c.height = 256;
+    const x = c.getContext('2d'), grad = x.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, '#cfe3ee'); grad.addColorStop(0.6, '#e9eadb'); grad.addColorStop(1, '#d8cdb4');
+    x.fillStyle = grad; x.fillRect(0, 0, 4, 256);
+    s.background = new THREE.CanvasTexture(c);
+    s.background.colorSpace = THREE.SRGBColorSpace;
+    const hemi = this.hemisphere.clone(), key = this.sun.clone();
+    key.position.set(1.6, 4, 3.2);
+    key.target.position.set(0, 0.6, 0);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    Object.assign(key.shadow.camera, { left: -1.5, right: 1.5, top: 2, bottom: -1, near: 0.5, far: 10 });
+    key.shadow.camera.updateProjectionMatrix();
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(1.3, 48), new THREE.MeshToonMaterial({ color: '#ece4cf', gradientMap: toonRamp() }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    s.add(hemi, key, key.target, floor);
+    this.studio = s;
+    this.createFocus = 'body';
+    this.createInset = { left: 0, bottom: 0 };
+    this.createZoom = 0;
+    return s;
+  }
+
+  /** The creation camera: straight at the hero, easing between the whole body and the face. */
+  frameCreate(dt) {
+    const h = this.previewHero, cam = this.camera, H = h.previewHeight;
+    this.createZoom += ((this.createFocus === 'face' ? 1 : 0) - this.createZoom) * (1 - Math.exp(-dt * 6));
+    const k = this.createZoom;
+    // the visible height: the whole hero with a margin, or the head and shoulders
+    const span = THREE.MathUtils.lerp(H * 1.25, H * 0.66, k), y = THREE.MathUtils.lerp(H * 0.5, H * 0.72, k);
+    // the hero fits the screen's free part (beside or above the panel), in height and in width
+    const { left = 0, bottom = 0 } = this.createInset || {};
+    const size = this.renderer.getSize(this._createSize ||= new THREE.Vector2());
+    const view = Math.max(span / (1 - bottom), (span * 0.9) / ((size.x / size.y) * (1 - left)));
+    const dist = view / 2 / Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+    cam.position.set(0, y + 0.04 * span, dist);
+    cam.lookAt(0, y, 0);
+    // the panel's part of the screen: shift the picture (not the camera) so the hero is centred in the rest
+    cam.setViewOffset(size.x, size.y, -size.x * left / 2, size.y * bottom / 2, size.x, size.y);
   }
 
   hidePreview() {
@@ -1117,7 +1192,7 @@ export class View {
     }
     v.fx.burst(x, y + 1, z, 3, {});
     v.dust.burst(x, y + 1, z, 3, {});
-    this.renderer.compile(this.scene, this.camera);
+    this.compileForDraw(this.scene);
     this.draw(); // also compiles the screen grade
     tmp.removeFromParent();
     for (const rig of rigs) this.releaseRig(rig); // compiled models start the pool

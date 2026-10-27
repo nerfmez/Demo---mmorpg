@@ -23,13 +23,19 @@ A playable web demo (one fixed-coordinate open world: Azure Coast, Greenhollow F
 - Character Level gives Stat Points. Job Level gives Job Points for the Job Tree. The Job is chosen later, not at creation. Respec costs in-game gold only.
 - Monsters drop their own parts, and every material must have a use (tested in `tests/core/data.test.js`).
 - Crafted gear has a random Grade and options. Upgrade (+N) is a separate system.
-- The game starts on a title screen (`ui/menu.js`): new character, 3 save slots, continue. Tests skip it with `?fresh=1` (a never-saved character). Saves are character JSON (`version: 14`); change the shape only with a migration in `migrateCharacter()` and a test.
+- The game starts on a title screen (`ui/menu.js`): new character, 3 save slots, continue. Tests skip it with `?fresh=1` (a never-saved character). Saves are character JSON (`version: 15`); change the shape only with a migration in `migrateCharacter()` and a test.
 - The map has real height: keep roads and ramps walkable and bridges joined to both banks (tested in `tests/core/world.test.js`).
 - Art: "change the camera, not the style". Keep the anime cel look (3-step toon ramp, soft same-hue outlines), normal proportions for NPCs (about 6.5 heads); the player hero is the owner's chibi (`characters.hero_chibi`, `?hero=classic` keeps the earlier body), vivid but not pastel, and monsters that are not plush toys. The reference images in `docs/reference/` are style targets, not in-game sprites. For skill and combat effects, `docs/VFX-REFERENCE.md` is both the VFX research library and style target. Before implementing or substantially restyling a combat VFX, search the linked Cartoon FX Remaster gallery for effects matching the skill's element and function, study multiple relevant clips when available (anticipation, main motion, impact, trail and lingering/status layers), then build an original version for Frontier. Never copy paid assets or reproduce one reference one-to-one.
+
+## Two load modes (owner, 26 October 2026)
+
+- **The game (default, what players and the owner get):** every map's static scene is prepared behind the initial loading screen, so walking never builds a scene and play never stutters from loading. Never make the game stream maps during play.
+- **Development load (`?load=dev`):** only the start map's scene is prepared, so tests and reviews open fast. The code is the same game; only the number of prepared maps differs, so everything developed this way ships as is. Past a seam the neighbouring map is not drawn. CI browser runs use it (`FRONTIER_LOAD=dev` makes the preview server mark pages) except the `world` suite (`FULL_LOAD` in `scripts/ci-browser-plan.mjs`), which keeps the full load and walks/travels between the maps.
 
 ## Performance rules
 
 - Anything removed from the scene must free its GPU buffers: use `disposeObject()` (`src/render/dispose.js`). Mark shared geometry/materials with `userData.shared`. Monster models are pooled (`View.takeRig/releaseRig`).
+- Shader programs cost a compile/link each behind the loading card: keep numbers (widths, colours, strengths) in uniforms, not in the shader source or `customProgramCacheKey` (tested in `tests/render/shader-variants.test.mjs`).
 - No allocations per particle or per frame in hot paths (reuse scratch vectors/colours); read layout (`getBoundingClientRect`) once per frame.
 - Run `node tests/browser/leak.mjs` only when changing resource ownership, pooling/disposal or a concrete growth symptom. Start with the relevant resource probe; extend the long session only if its samples remain unresolved. Record geometry stabilisation when this check applies.
 

@@ -1,5 +1,6 @@
 // Source-approved RGBA art on small realtime surfaces. No movie/scene playback.
 import * as THREE from 'three';
+import { GAME_CAMERA_OFFSET } from './game-camera.js';
 import pressureURL from '../../assets/vfx/approved-textures/warcry-pressure.png';
 import movementURL from '../../assets/vfx/approved-textures/movement-atlas.png';
 const loader=new THREE.TextureLoader(),pressure=loader.load(pressureURL),movement=loader.load(movementURL);
@@ -37,4 +38,4 @@ export function plusGeometry(size=.11,width=.023){
 export function keys(t,points){if(t<=points[0][0])return points[0][1];for(let i=1;i<points.length;i++)if(t<=points[i][0]){const a=points[i-1],b=points[i];return a[1]+(b[1]-a[1])*(t-a[0])/(b[0]-a[0]);}return points.at(-1)[1];}
 
 // Fixed game-camera billboarding. Caller supplies flight direction for a wake.
-export function faceGameCamera(mesh){mesh.rotation.x=-Math.atan2(19,13.5);}
+export function faceGameCamera(mesh){mesh.rotation.x=-Math.atan2(GAME_CAMERA_OFFSET.y,GAME_CAMERA_OFFSET.z);}

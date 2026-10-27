@@ -54,6 +54,8 @@ export function* createHarborSteps(world,{adopt}={}) {
   // The city uses a single native timber assembly per collision footprint. Imported
   // slabs and the old crossjoins are omitted, so boards/piles cannot double up.
   for (const d of world.docks) {
+    // stepping stones are drawn by their scene (Mirror Pond); their dock only carries the walk
+    if (d.kind === 'stepstone') continue;
     const pier = new THREE.Group();
     pier.userData.waterContact=true;
     pier.position.set(d.x,d.rampFromTerrain ? (d.height+d.startY)/2 : d.height+(d.kind==='breakwater'?.025:0),d.z); pier.rotation.y=d.angle;

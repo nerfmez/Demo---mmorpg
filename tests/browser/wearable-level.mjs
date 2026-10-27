@@ -30,14 +30,17 @@ try{
   assert.equal(await page.locator('vite-error-overlay').count(),0);
   const tap=async s=>{const l=page.locator(s).first();await(touch?l.tap():l.click());};
   const shot=async n=>{await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:out+name+'-'+n+'.png'});};
+  // enhancement and grade promotion live on the workshop page (ui/workshop-view.js), reached from the bag
+  const idle=()=>page.waitForFunction(()=>!__frontier.panels.workshop.busy);
+  const forge=async mode=>{await tap(`.atelier-dialog [data-act="forge-open"][data-mode="${mode}"]`);await page.locator('[data-forge-detail]').waitFor();};
   const upgradeRequirements=async()=>{
-   const dialog=page.locator('.atelier-dialog'),cost=dialog.locator('.upgrade-cost');
-   assert.equal(await dialog.locator('.wear-warning').count(),0);
-   assert.equal(await cost.locator('[data-required-level]').getAttribute('data-required-level'),'6');
-   assert.equal(await cost.locator('[data-required-level]').innerText(),'ต้อง Lv.6 · ปัจจุบัน Lv.6');
-   assert.deepEqual(await cost.locator('.upgrade-track li b').allTextContents(),Array.from({length:data.items.upgrade.max},(_,i)=>`+${i+1}`));
-   assert.deepEqual(await cost.locator('.upgrade-track li small').allTextContents(),Array(data.items.upgrade.max).fill('Lv.6'));
-   assert.ok(await dialog.locator('[data-act="gear-up"]').isEnabled());
+   const detail=page.locator('[data-forge-detail]'),need=detail.locator('.ws-requirements [data-required-level]').first();
+   assert.equal(await page.locator('.ws-warning').count(),0);
+   assert.equal(await need.getAttribute('data-required-level'),'6');
+   assert.equal(await need.innerText(),'ต้อง Lv.6 · ปัจจุบัน Lv.6');
+   assert.deepEqual(await detail.locator('.upgrade-track li b').allTextContents(),Array.from({length:data.items.upgrade.max},(_,i)=>`+${i+1}`));
+   assert.deepEqual(await detail.locator('.upgrade-track li small').allTextContents(),Array(data.items.upgrade.max).fill('Lv.6'));
+   assert.ok(await page.locator('.ws-order [data-act="gear-up"]').isEnabled());
   };
   const snapshot=()=>page.evaluate(()=>{
    const {game:g}=__frontier,ch=g.ch;
@@ -55,7 +58,7 @@ try{
   assert.match(await page.locator('.selection-shelf [data-required-level]').innerText(),/ต้อง Lv.6 · ปัจจุบัน Lv.1/);assert.ok(await page.locator('.selection-shelf [data-action="equip"]').isDisabled());await shot('underlevel-bag');
   await tap('.selection-shelf [data-action="details"]');assert.match(await page.locator('.atelier-dialog [data-required-level]').first().innerText(),/ต้อง Lv.6 · ปัจจุบัน Lv.1/);
   await page.evaluate(()=>{const f=__frontier;f.panels.close();f.game.ch.level=6;f.game.refresh();f.panels.open('bag');});assert.ok(await page.locator('.selection-shelf [data-action="equip"]').isEnabled());await tap('.selection-shelf [data-action="equip"]');
-  assert.equal(await page.evaluate(()=>__frontier.game.ch.equipped.armor),await page.evaluate(()=>__frontier.game.ch.gear.find(i=>i.base==='sporeweave_vest').uid));await shot('exact-level-equipped');await tap('.selection-shelf [data-action="details"]');await upgradeRequirements();await shot('fixed-level-upgrades');
+  assert.equal(await page.evaluate(()=>__frontier.game.ch.equipped.armor),await page.evaluate(()=>__frontier.game.ch.gear.find(i=>i.base==='sporeweave_vest').uid));await shot('exact-level-equipped');await tap('.selection-shelf [data-action="details"]');await forge('upgrade');await upgradeRequirements();await shot('fixed-level-upgrades');
   const gradeCases=[];
   for(const {grade,seed,item:expected} of expectedRolls){
    await page.evaluate(seed=>{
@@ -63,33 +66,34 @@ try{
     for(const id in g.data.items.materials)g.ch.materials[id]=500;
     g.refresh();f.panels.sel.craft='armor';f.panels.sel.craftRecipe='sporeweave_vest';f.panels.open('craft');g.rng.state=seed;
    },seed);
-   const before=await snapshot();await tap('[data-act="craft"]');const crafted=await snapshot(),uid=before.nextUid;
+   const before=await snapshot();await tap('[data-act="craft"]');await idle();const crafted=await snapshot(),uid=before.nextUid;
    paidOnce(before,crafted,data.recipes.recipes.sporeweave_vest.cost);
    assert.equal(crafted.nextUid,uid+1);assert.equal(crafted.gear.length,before.gear.length+1);
    assert.deepEqual(crafted.gear.find(i=>i.uid===uid),{uid,...expected});
    await tap('[data-act="inspect-crafted"]');assert.ok(await page.locator('.selection-shelf [data-action="equip"]').isEnabled());
    await tap('.selection-shelf [data-action="equip"]');assert.equal((await snapshot()).equipped,uid);
-   await tap('.selection-shelf [data-action="details"]');await upgradeRequirements();
-   const promotion=page.locator('.atelier-dialog .grade-promotion');
+   await tap('.selection-shelf [data-action="details"]');await forge('grade');
+   const promotion=page.locator('[data-forge-detail]');
    if(grade==='S'){
-    assert.equal(await page.locator('.atelier-dialog [data-act="gear-grade"]').count(),0);
-    assert.match(await promotion.innerText(),new RegExp(`เกรดสูงสุด · ${data.items.grades.optionCount.S} ออฟชั่น`));
+    assert.ok(await page.locator('.ws-order [data-act="gear-grade"]').isDisabled());
+    assert.match(await page.locator('[data-forge-status]').innerText(),/ถึงขั้นสูงสุดแล้ว/);
    }else{
     assert.match(await promotion.innerText(),/เลเวลที่ต้องการคงเดิม/);
-    assert.equal(await promotion.locator('[data-required-level]').getAttribute('data-required-level'),'6');
+    assert.equal(await promotion.locator('.ws-requirements [data-required-level]').first().getAttribute('data-required-level'),'6');
    }
    await shot(`grade-${grade}-fixed-level`);
+   await tap('[data-act="workshop-page"][data-id="upgrade"]');await page.locator('[data-forge-detail]').waitFor();
    for(let rank=0;rank<data.items.upgrade.max;rank++){
     await upgradeRequirements();const beforeUpgrade=await snapshot();
     assert.equal(beforeUpgrade.gear.find(i=>i.uid===uid).upgrade,rank);
-    await tap('.atelier-dialog [data-act="gear-up"]');const afterUpgrade=await snapshot();
+    await tap('.ws-order [data-act="gear-up"]');const afterUpgrade=await snapshot();await idle();
     paidOnce(beforeUpgrade,afterUpgrade,data.items.upgrade.cost[rank]);
     assert.deepEqual(afterUpgrade.gear,beforeUpgrade.gear.map(i=>i.uid===uid?{...i,upgrade:rank+1}:i));
     assert.equal(afterUpgrade.nextUid,beforeUpgrade.nextUid);assert.equal(afterUpgrade.equipped,uid);
-    assert.equal(await page.locator('.atelier-dialog .wear-warning').count(),0);
+    assert.equal(await page.locator('.ws-warning').count(),0);
    }
-   assert.equal(await page.locator('.atelier-dialog [data-act="gear-up"]').count(),0);
-   assert.equal(await page.locator('.atelier-dialog .upgrade-cost').count(),0);
+   assert.ok(await page.locator('.ws-order [data-act="gear-up"]').isDisabled());
+   assert.match(await page.locator('[data-forge-status]').innerText(),/ถึงขั้นสูงสุดแล้ว/);
    await shot(`grade-${grade}-max-upgrade`);gradeCases.push({grade,seed,uid,upgradedTo:data.items.upgrade.max,requiredLevel:6});
   }
   await page.evaluate(()=>{const f=__frontier;f.panels.close();f.game.ch.level=1;f.game.refresh();f.panels.lastResult=null;f.panels.open('bag');});assert.match(await page.locator('.atelier-notice').innerText(),/สถานะไม่ได้ใช้/);await shot('inactive-items-notice');

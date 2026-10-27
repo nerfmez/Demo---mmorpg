@@ -3,7 +3,7 @@ import { equipmentItemLevel } from './item-metadata.js';
 
 const names = new Intl.Collator('th', { numeric: true, sensitivity: 'base' });
 const slots = ['weapon', 'offhand', 'armor', 'helm', 'gloves', 'boots', 'charm'];
-const weapons = ['sword', 'dagger', 'axe', 'mace', 'greatblade', 'bow', 'staff', 'wand'];
+const weapons = ['sword', 'dagger', 'axe', 'mace', 'greatblade', 'greatshield', 'bow', 'staff', 'wand'];
 const roles = ['attack', 'guard', 'heal', 'control', 'support', 'summon', 'movement'];
 const roleNames = { attack: 'โจมตี', guard: 'ป้องกัน', heal: 'ฟื้นฟู', control: 'ควบคุม', support: 'สนับสนุน', summon: 'อัญเชิญ', movement: 'เคลื่อนที่' };
 export const CRAFT_STAGES = [

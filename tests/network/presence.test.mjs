@@ -11,7 +11,7 @@ import { OpenWorldGame } from '../../src/core/open-world-game.js';
 import { CHARACTER_VERSION } from '../../src/core/character.js';
 const data = loadData();
 const origin = 'http://localhost:4173';
-const look = { hairStyle: 'messy', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' };
+const look = { hairStyle: 'messy', face: 'default', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' };
 const gear = { weapon: 'rusty_sword', offhand: null, armor: 'travel_tunic', helm: null, gloves: null, boots: 'travel_boots' };
 const pose = { x: -132, z: 80, facing: 0, moving: false };
 const join = (map = 'azure-harbor-v1', room = 'lobby') => ({ type: 'join', map, room, pose, look, gear });

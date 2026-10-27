@@ -13,10 +13,15 @@ const add=(rb,g,c,pos=[0,0,0],extra={})=>rb.add(BONE,g,c,{pos,...extra});
 /** A weapon in the right hand (bone 'weapon'), or a second light weapon in the left ('offhand'). */
 export function buildWeapon(rb,kind,id,bone='weapon',hand='handR') {
  if(!kind)return;
- id ||= {sword:'rusty_sword',dagger:'fang_dagger',greatblade:'horn_greatblade',axe:'crag_axe',mace:'beetle_maul',bow:'old_bow',staff:'apprentice_staff',wand:'spore_wand'}[kind];
+ id ||= {sword:'rusty_sword',dagger:'fang_dagger',greatblade:'horn_greatblade',greatshield:'crab_greatshield',axe:'crag_axe',mace:'beetle_maul',bow:'old_bow',staff:'apprentice_staff',wand:'spore_wand'}[kind];
  BONE=bone;
  rb.bone(bone,hand,[0,-.04,0]);
+ if(kind==='greatshield')greatshieldGrips(rb);
  if(hasModel('weapons',id))return id; // an imported model is attached after rb.build()
+ if(kind==='greatshield'){ // until its model loads: a plain slab across both grips
+  add(rb,new THREE.BoxGeometry(.9,.07,.6),'#8a6748',[0,.12,GREATSHIELD_GRIP/2]);
+  return;
+ }
  if(kind==='mace'){
   add(rb,rod(.024,.62),'#7a5a3e',[0,0,.22]);
   add(rb,new THREE.DodecahedronGeometry(.105),'#5f7f5b',[0,0,.58]);
@@ -83,6 +88,19 @@ export function buildWeapon(rb,kind,id,bone='weapon',hand='handR') {
    add(rb,new THREE.TorusGeometry(.083,.023,5,6).rotateX(Math.PI/2),'#b99461',[0,0,tip]);
    add(rb,new THREE.OctahedronGeometry(.063),'#e5b874',[0,0,tip],{plain:true});
   }
+ }
+}
+
+/**
+ * A greatshield is held in both hands by two upright bars on its back (the owner's back views). The
+ * weapon frame puts the right bar at the grip, the left one GREATSHIELD_GRIP further along +Z, and the
+ * shield's face toward +Y; the bars stand along +X. Meshy's backs are plain, so the bars are built here.
+ */
+export const GREATSHIELD_GRIP=.28;
+function greatshieldGrips(rb){
+ for(const z of [0,GREATSHIELD_GRIP]){
+  add(rb,new THREE.CylinderGeometry(.024,.024,.34,8).rotateZ(Math.PI/2),'#8a5a36',[0,0,z]);
+  for(const x of [-.15,.15])add(rb,new THREE.BoxGeometry(.035,.09,.05),'#9a9a92',[x,.045,z],{plain:true});
  }
 }
 

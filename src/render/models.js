@@ -16,6 +16,7 @@ const loading = new Map(); // deduplicate concurrent/repeated registry loads
 const weapons = new Map();
 const failedWeapons = new Set();
 const outfits = new Map(); // chibi outfit models (characters with `chibiOutfit`), loaded when first worn
+const hairStyles = new Map(); // look.hairStyle -> its chibi hair model id (characters with `chibiHairStyle`), loaded when first chosen
 const failedOutfits = new Set();
 const weaponListeners = new Set();
 const loader = new GLTFLoader();
@@ -29,6 +30,7 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
     for (const [id, m] of Object.entries(entries)) {
       if (group === 'weapons') { weapons.set(id, m); continue; }
       if (m.chibiOutfit) { if (useChibi) outfits.set(id, m); continue; } // on demand, like weapons
+      if (m.chibiHairStyle) { if (useChibi) { outfits.set(id, m); hairStyles.set(m.chibiHairStyle, id); } continue; }
       if (m.vrm && !useVrm) continue; // the VRM hero is opt-in (?hero=vrm), so it is not downloaded otherwise
       if ((m.chibi || m.chibiHair) && !useChibi) continue; // the chibi hero and its hair (all but ?hero=classic / vrm)
       if (m.hairsample && useChibi) continue; // the HairSample hero only with ?hero=classic
@@ -81,10 +83,10 @@ function requestOutfit(id) {
   if (!metadata || loaded.has(key) || failedOutfits.has(id)) return;
   if (loading.has(key)) return loading.get(key);
   const job = loader.loadAsync(metadata.file).then((gltf) => {
-    loaded.set(key, prepareChibiOutfit(gltf, metadata));
+    loaded.set(key, (metadata.chibiHairStyle ? prepareChibiHair : prepareChibiOutfit)(gltf, metadata));
     for (const listener of weaponListeners) listener(id);
   }).catch((err) => {
-    failedOutfits.add(id); // the code-built garments stay
+    failedOutfits.add(id); // the code-built garments (or the default hair) stay
     console.warn('model not loaded:', metadata.file, err);
   }).finally(() => loading.delete(key));
   loading.set(key, job);
@@ -101,12 +103,44 @@ export function chibiOutfit(id) {
 }
 
 /**
- * Only the current hands and worn outfit models affect this readiness key, so stale requests cannot
- * refresh new gear.
+ * The chibi hair for a look's hair style (the default hair until that style's model has loaded,
+ * requesting it, so the hero is redone when it arrives; the default for a style without a model).
+ */
+export function chibiHair(style) {
+  const id = hairStyles.get(style);
+  return (id && chibiOutfit(id)) || characterBase('hero_chibi_hair');
+}
+
+/**
+ * A chibi face (the look's face, protocol.js FACES): its drawn-face texture, loaded when first chosen
+ * (listeners hear "face_<id>"); null for the painted face or until it has loaded.
+ */
+const faces = new Map();
+const textureLoader = new THREE.TextureLoader();
+export function chibiFace(id) {
+  if (!id || id === 'default' || !useChibi) return null;
+  if (!faces.has(id)) {
+    faces.set(id, null);
+    textureLoader.load(`models/faces/${id}.png`, (t) => {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.userData.shared = true; // kept for every rig that wears this face
+      faces.set(id, t);
+      for (const listener of weaponListeners) listener('face_' + id);
+    }, undefined, (err) => console.warn('face not loaded:', id, err));
+  }
+  return faces.get(id);
+}
+
+/**
+ * Only the current hands and worn outfit models (and which hair styles and faces have loaded) affect
+ * this readiness key, so stale requests cannot refresh new gear, and a rig (a remote player, a
+ * portrait) built while its hair or face was loading is rebuilt once it arrives.
  */
 export function weaponModelKey(bases = {}) {
   const has = (k) => +loaded.has(k);
-  return `${has(`weapons/${bases.weapon}`)}:${has(`weapons/${bases.offhand}`)}:${outfitIds(bases).map((id) => has(`characters/${id}`)).join('')}`;
+  let faceCount = 0;
+  for (const t of faces.values()) if (t) faceCount++;
+  return `${has(`weapons/${bases.weapon}`)}:${has(`weapons/${bases.offhand}`)}:${outfitIds(bases).map((id) => has(`characters/${id}`)).join('')}:${[...hairStyles.values()].map((id) => has(`characters/${id}`)).join('')}:${faceCount}`;
 }
 
 /** Portraits may wait for current demanded assets; absent/failed assets use fallback. */

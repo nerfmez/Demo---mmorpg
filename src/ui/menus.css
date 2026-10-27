@@ -33,6 +33,11 @@
   .hub-group[data-group=hero] { grid-area: hero; } .hub-group[data-group=build] { grid-area: build; }
   .hub-group[data-group=items] { grid-area: items; } .hub-group[data-group=world] { grid-area: world; }
   .hub-group[data-group=system] { grid-area: system; }
+  /* The workshop adds a fourth item tile; keep all five groups in the tablet hub.
+     Preserve the existing 58px touch targets and full-width labels. */
+  .is-hub .hub-group[data-group=items] { padding-bottom: 12px; }
+  .is-hub .hub-group[data-group=items] > header { padding-bottom: 8px; margin-bottom: 6px; }
+  .is-hub .hub-group[data-group=items] .hub-tiles { gap: 4px; }
 }
 .hub-group { border: 1px solid var(--m-line); border-radius: 14px; background: var(--m-card); padding: 12px 14px 14px; }
 .hub-group > header { display: flex; align-items: center; gap: 12px; padding: 0 4px 10px; margin-bottom: 10px; border-bottom: 1px solid var(--m-line); }

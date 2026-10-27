@@ -1,0 +1,16 @@
+// Data-only registry; generated from the approved scene builders.
+import index from './accepted-scenes.json' with {type:'json'};
+import s0 from './accepted-scenes/beach.json' with {type:'json'};
+import s1 from './accepted-scenes/forest.json' with {type:'json'};
+import s2 from './accepted-scenes/rose-garden.json' with {type:'json'};
+import s3 from './accepted-scenes/shell-beach.json' with {type:'json'};
+import s4 from './accepted-scenes/azure-meadow.json' with {type:'json'};
+import s5 from './accepted-scenes/hill-windmill.json' with {type:'json'};
+import s6 from './accepted-scenes/gull-headland.json' with {type:'json'};
+import s7 from './accepted-scenes/ranger-forest.json' with {type:'json'};
+import s8 from './accepted-scenes/root-warren.json' with {type:'json'};
+import s9 from './accepted-scenes/moonstone-camp.json' with {type:'json'};
+import s10 from './accepted-scenes/mirror-pond.json' with {type:'json'};
+import s11 from './accepted-scenes/fern-rise.json' with {type:'json'};
+import s12 from './accepted-scenes/stone-ring.json' with {type:'json'};
+export default {...index,scenes:[s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12]};

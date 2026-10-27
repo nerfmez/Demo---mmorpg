@@ -17,20 +17,26 @@ export function cityFloorHeight(city,hf,x,z,floor){
 }
 
 // Exact source street polygons; a paved plaza is walkable but is not a narrow road.
-export function cityRoadDistance(city,x,z){
+// Roads whose bounds lie farther than reach (metres) are not measured: a caller that
+// only asks "within reach?" passes its threshold and gets the same answer sooner.
+export function cityRoadDistance(city,x,z,reach=8){
   if(city.propertyBoundary&&!cityFloorAt(city,x,z))return Infinity;
   let best=Infinity;
   for(const road of city.roads){
     if(road.name.startsWith('Market '))continue;
     const b=road.bounds;
-    if(x<b[0]-8||x>b[1]+8||z<b[2]-8||z>b[3]+8)continue;
-    let edge=Infinity,inside=false;
+    if(x<b[0]-reach||x>b[1]+reach||z<b[2]-reach||z>b[3]+reach)continue;
+    // hypot only where the squared distance can still beat the edge found so far
+    // (a margin far above rounding keeps the result bit-identical)
+    let edge=Infinity,edge2=Infinity,inside=false;
     for(const loop of road.loops){
     if(pointInPolygon(loop,x,z))inside=!inside;
     for(let i=0;i<loop.length;i++){
       const a=loop[i],b=loop[(i+1)%loop.length],dx=b[0]-a[0],dz=b[1]-a[1];
       const t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz||1)));
-      edge=Math.min(edge,Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t));
+      const ex=x-a[0]-dx*t,ez=z-a[1]-dz*t,d2=ex*ex+ez*ez;
+      if(d2>edge2)continue;
+      const d=Math.hypot(ex,ez);if(d<edge){edge=d;edge2=d*d*(1+1e-9)+1e-12;}
     }
     }
     best=Math.min(best,inside?-edge:edge);

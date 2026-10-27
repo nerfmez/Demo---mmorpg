@@ -18,12 +18,13 @@ import SKILLS from '../../data/skills.json';
 import FX from '../../data/combat-fx.json';
 import MODELS from '../../data/models.json';
 import { FrontierFx } from '../render/frontier-fx.js';
+import { GAME_CAMERA_OFFSET } from '../render/game-camera.js';
 import {createRulesPreview,previewMods} from './rules-preview.js';
 import {data} from '../data.js';
 import { LabTuning } from './tuning.js';
 import { mountTuningPanel } from './editor.js';
 
-const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5); // the game's 3/4 camera (src/render/view.js)
+const CAM_OFFSET = GAME_CAMERA_OFFSET; // the game's camera (src/render/game-camera.js)
 const GROUNDS = {
   sand: { label: 'ทราย', floor: '#d9c08f', sky: '#c6e8f2' },
   grass: { label: 'หญ้า', floor: '#86b56c', sky: '#cfe8d4' },
@@ -583,7 +584,7 @@ function render() {
     });
     if(!isPrototype())row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => { state.element = v; state.editorOpen = false; state.reviewPhase = 'full'; clearReplay(); });
     if (!isPrototype()&&skillDef().kind === 'projectile') row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
-    if(!isPrototype())row('อาวุธ', [['sword', 'ดาบ'], ['dagger', 'มีด'], ['axe', 'ขวาน'], ['greatblade', 'ดาบใหญ่'], ['mace','ค้อน'], ['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['bow', 'ธนู'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
+    if(!isPrototype())row('อาวุธ', [['sword', 'ดาบ'], ['dagger', 'มีด'], ['axe', 'ขวาน'], ['greatblade', 'ดาบใหญ่'], ['greatshield', 'โล่ใหญ่'], ['mace','ค้อน'], ['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['bow', 'ธนู'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
       clearReplay();
       state.weapon = v;
       buildHero();

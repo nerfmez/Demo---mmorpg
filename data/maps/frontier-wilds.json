@@ -474,7 +474,320 @@
           156.8
         ]
       ]
-    }
+    },
+    {
+      "id": "shell-beach/stairs",
+      "width": 3.09,
+      "points": [
+        [
+          138.515,
+          169.883
+        ],
+        [
+          138.2,
+          169.547
+        ],
+        [
+          137.89,
+          169.197
+        ],
+        [
+          137.58,
+          168.845
+        ],
+        [
+          137.267,
+          168.5
+        ],
+        [
+          136.949,
+          168.175
+        ],
+        [
+          136.622,
+          167.879
+        ],
+        [
+          136.283,
+          167.625
+        ],
+        [
+          135.916,
+          167.439
+        ],
+        [
+          135.526,
+          167.301
+        ],
+        [
+          135.129,
+          167.185
+        ],
+        [
+          134.744,
+          167.063
+        ],
+        [
+          134.389,
+          166.91
+        ],
+        [
+          134.082,
+          166.699
+        ],
+        [
+          133.832,
+          166.404
+        ],
+        [
+          133.602,
+          166.016
+        ],
+        [
+          133.397,
+          165.569
+        ],
+        [
+          133.228,
+          165.099
+        ],
+        [
+          133.108,
+          164.641
+        ],
+        [
+          133.046,
+          164.232
+        ],
+        [
+          133.056,
+          163.909
+        ],
+        [
+          133.145,
+          163.719
+        ],
+        [
+          133.315,
+          163.614
+        ],
+        [
+          133.539,
+          163.557
+        ],
+        [
+          133.794,
+          163.515
+        ],
+        [
+          134.052,
+          163.457
+        ],
+        [
+          134.289,
+          163.348
+        ],
+        [
+          134.484,
+          163.15
+        ],
+        [
+          134.645,
+          162.797
+        ],
+        [
+          134.764,
+          162.344
+        ],
+        [
+          134.865,
+          161.835
+        ],
+        [
+          134.97,
+          161.311
+        ],
+        [
+          135.102,
+          160.813
+        ],
+        [
+          135.284,
+          160.383
+        ],
+        [
+          135.539,
+          160.056
+        ],
+        [
+          135.866,
+          159.816
+        ],
+        [
+          136.245,
+          159.636
+        ],
+        [
+          136.656,
+          159.492
+        ],
+        [
+          137.079,
+          159.361
+        ],
+        [
+          137.495,
+          159.219
+        ],
+        [
+          137.884,
+          159.043
+        ],
+        [
+          138.233,
+          158.824
+        ],
+        [
+          138.565,
+          158.585
+        ],
+        [
+          138.887,
+          158.331
+        ],
+        [
+          139.203,
+          158.069
+        ],
+        [
+          139.517,
+          157.802
+        ],
+        [
+          139.831,
+          157.537
+        ],
+        [
+          140.15,
+          157.278
+        ]
+      ],
+      "acceptedScene": "shell-beach"
+    },
+    {
+      "id": "shell-beach/trail-0",
+      "width": 3.315,
+      "points": [
+        [
+          135.622,
+          173.867
+        ],
+        [
+          136.258,
+          173.542
+        ],
+        [
+          136.891,
+          173.212
+        ],
+        [
+          137.523,
+          172.879
+        ],
+        [
+          138.158,
+          172.551
+        ],
+        [
+          138.796,
+          172.23
+        ],
+        [
+          139.442,
+          171.923
+        ],
+        [
+          140.096,
+          171.631
+        ],
+        [
+          140.757,
+          171.356
+        ],
+        [
+          141.423,
+          171.094
+        ],
+        [
+          142.094,
+          170.842
+        ],
+        [
+          142.767,
+          170.597
+        ],
+        [
+          143.441,
+          170.357
+        ],
+        [
+          144.117,
+          170.119
+        ],
+        [
+          144.793,
+          169.881
+        ],
+        [
+          145.468,
+          169.641
+        ],
+        [
+          146.142,
+          169.4
+        ],
+        [
+          146.817,
+          169.163
+        ],
+        [
+          147.493,
+          168.928
+        ],
+        [
+          148.169,
+          168.695
+        ],
+        [
+          148.845,
+          168.463
+        ],
+        [
+          149.521,
+          168.23
+        ],
+        [
+          150.197,
+          167.996
+        ]
+      ],
+      "acceptedScene": "shell-beach"
+    },
+    {
+      "id": "shell-beach/trail-2",
+      "width": 1.939,
+      "points": [[134.416, 161.662], [135.108, 161.567], [135.802, 161.484], [136.467, 161.279], [137, 160.833], [137.385, 160.252], [137.631, 159.6], [137.694, 158.906], [137.645, 158.209], [137.567, 157.515], [137.517, 156.818], [137.458, 156.122], [137.381, 155.427], [137.336, 154.73], [137.391, 154.035], [137.603, 153.371], [137.928, 152.753], [138.376, 152.22], [138.968, 151.857], [139.646, 151.695], [140.339, 151.606], [141.029, 151.494]],
+      "acceptedScene": "shell-beach"
+    },
+    {
+      "id": "accepted/shell-upper-apron",
+      "width": 1.939,
+      "points": [[134.416, 161.662], [135.108, 161.567], [135.802, 161.484], [136.467, 161.279], [137, 160.833], [137.385, 160.252], [137.631, 159.6], [137.694, 158.906], [137.645, 158.209], [137.567, 157.515], [137.517, 156.818], [137.458, 156.122], [137.381, 155.427], [137.336, 154.73], [137.391, 154.035], [137.603, 153.371], [137.928, 152.753], [138.376, 152.22], [138.968, 151.857], [139.646, 151.695], [140.339, 151.606], [141.029, 151.494]],
+      "acceptedScene": "connector",
+      "heights": [3.189, 3.496, 3.803, 4.109, 4.414, 4.72, 5.026, 5.333, 5.64, 5.947, 6.254, 6.561, 6.868, 7.175, 7.481, 7.788, 8.095, 8.401, 8.706, 9.012, 9.319, 9.626],
+      "repair": true
+    },
+    {"id": "conch/entrance-trail", "width": 2.4, "points": [[141, 151.5], [140.2, 148.5], [138.5, 145.5], [136.2, 142.8], [134, 139.5], [132.8, 136], [132.5, 132.5], [131.7, 129], [131, 125.5], [131.2, 122], [131.8, 118.5], [133, 115]], "note": "The Conch Coast's way in (owner, 26 October 2026): a winding footpath from the rock ring's one ramp over the back to the scene's upper trail and the stairs down to the cove; like every path outside the town it blends into the grass (render/ground-color.js)."}
   ],
   "river": {
     "_doc": "Shallow walkable stream. Cross anywhere with a gentle bank; bridges remain optional.",
@@ -556,36 +869,12 @@
     "bankWidth": 10
   },
   "ponds": [
-    [
-      -76.8,
-      48,
-      8.1
-    ],
-    [
-      -88,
-      73.6,
-      6.8
-    ],
-    [
-      -48,
-      92.8,
-      9.5
-    ],
-    [
-      -102.4,
-      32,
-      5.4
-    ],
-    [
-      56,
-      128,
-      6.8
-    ],
-    [
-      137.6,
-      48,
-      4.7
-    ]
+    [-76.8, 48, 8.1, 0.24],
+    [-88, 73.6, 6.8, 0.2],
+    [-48, 92.8, 9.5, 0.26],
+    [-102.4, 32, 5.4, 0.18],
+    [56, 128, 6.8, 0.22],
+    [137.6, 48, 4.7, 0.2]
   ],
   "zones": [
     {
@@ -1530,8 +1819,224 @@
         174.4
       ],
       [
+        98,
+        174.55
+      ],
+      [
+        100,
+        174.275
+      ],
+      [
+        102,
+        173.362
+      ],
+      [
+        104,
+        172.131
+      ],
+      [
+        106,
+        170.899
+      ],
+      [
+        108,
+        169.986
+      ],
+      [
+        110,
+        169.711
+      ],
+      [
+        112,
+        169.97
+      ],
+      [
+        114,
+        170.643
+      ],
+      [
+        116,
+        171.427
+      ],
+      [
+        118,
+        171.914
+      ],
+      [
+        120,
+        172.7
+      ],
+      [
+        122,
+        173.37
+      ],
+      [
+        124,
+        173.901
+      ],
+      [
+        126,
+        175.053
+      ],
+      [
+        128,
+        175.981
+      ],
+      [
+        130,
+        176.997
+      ],
+      [
+        132,
+        178.178
+      ],
+      [
+        134,
+        178.79
+      ],
+      [
+        136,
+        179.508
+      ],
+      [
+        138,
+        180.166
+      ],
+      [
+        140,
+        180.635
+      ],
+      [
+        142,
+        181.471
+      ],
+      [
+        144,
+        182.068
+      ],
+      [
+        146,
+        182.695
+      ],
+      [
+        148,
+        183.535
+      ],
+      [
+        150,
+        184.05
+      ],
+      [
+        152,
+        184.231
+      ],
+      [
+        154,
+        184.381
+      ],
+      [
+        156,
+        184.296
+      ],
+      [
+        158,
+        184.536
+      ],
+      [
         160,
-        179.2
+        184.733
+      ],
+      [
+        162,
+        184.976
+      ],
+      [
+        164,
+        185.473
+      ],
+      [
+        166,
+        185.648
+      ],
+      [
+        168,
+        185.86
+      ],
+      [
+        170,
+        186.033
+      ],
+      [
+        172,
+        185.934
+      ],
+      [
+        174,
+        186.152
+      ],
+      [
+        176,
+        186.204
+      ],
+      [
+        178,
+        186.168
+      ],
+      [
+        180,
+        186.419
+      ],
+      [
+        182,
+        186.362
+      ],
+      [
+        184,
+        186.443
+      ],
+      [
+        186,
+        186.566
+      ],
+      [
+        188,
+        186.389
+      ],
+      [
+        190,
+        186.51
+      ],
+      [
+        192,
+        186.52
+      ],
+      [
+        194,
+        186.386
+      ],
+      [
+        196,
+        185.402
+      ],
+      [
+        198,
+        183.241
+      ],
+      [
+        200,
+        180.493
+      ],
+      [
+        202,
+        177.745
+      ],
+      [
+        204,
+        175.584
+      ],
+      [
+        206,
+        174.6
       ],
       [
         224,
@@ -1547,7 +2052,9 @@
       "period": 7.5,
       "runup": 2.6,
       "retreat": 1.6,
-      "foamWidth": 0.075
+      "foamWidth": 0.075,
+      "filmTop": 1.5,
+      "filmTopDoc": "The beach swash film (render/ground.js) drapes over ground up to this many metres above the water; higher ground beside the shoreline (a headland, a terrace) keeps it underneath."
     }
   },
   "landmarks": [
@@ -1751,6 +2258,26 @@
         ]
       ],
       "clear": 5
+    },
+    {
+      "id": "giant_conch",
+      "kind": "giant_conch",
+      "zone": "coast",
+      "at": [162.4, 170.1],
+      "rot": 2.15,
+      "name": "The Singing Conch",
+      "nameTh": "หอยสังข์ยักษ์ขับขาน",
+      "colliders": [
+        [
+          0,
+          0,
+          1.9
+        ]
+      ],
+      "clear": 4.5,
+      "builtin": false,
+      "acceptedScene": "shell-beach",
+      "serves": {"map": "azure-harbor-v1", "zone": "coast", "note": "The Conch Coast moved west over the seam with its scene (owner, 25 October 2026); the shore runs on into Azure Coast's coast, which it still names."}
     }
   ],
   "atlas": {
@@ -2147,185 +2674,268 @@
           [
             -144,
             0.83,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -140,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -136,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -132,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -128,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -124,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -120,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -116,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -112,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -108,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -104,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -100,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -96,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -92,
             -0.05,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -88,
             0.03,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -84,
             0.11,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -80,
             0.12,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -76,
             0.23,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -72,
             0.47,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -68,
             0.54,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -64,
             0.48,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -60,
             0.37,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -56,
             0.49,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -52,
             0.56,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -48,
             0.6,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -44,
             0.59,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -40,
             0.49,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -36,
             0.42,
-            "#88a754",
-            "#6a8a46"
+            "#95af5d",
+            "#598552"
           ],
           [
             -32,
             0.43,
-            "#86a755",
-            "#668744"
+            "#93af5e",
+            "#558250"
           ],
           [
             -28,
             0.41,
-            "#86a755",
-            "#668744"
+            "#93af5e",
+            "#558250"
           ]
         ]
       }
     ]
+  },
+  "acceptedScenes": {
+    "enabled": true,
+    "apron": {"_doc": "Outer apron (core/accepted-scenes.js acceptedApronOffsets): native ground in a ring outside these scene sides is raised or lowered to meet the scene's edge, so a high rim meets the world on a slope no steeper than 1/k instead of dropping inside the 5 m feather. Ring width = clamp(k*rise, min, max) m; the edge rise is smoothed smoothAlong m along the side. Sides left out face the map edge, the sea, the city or a neighbouring scene too close for a slope. Here no side: the Conch Coast is closed by its rock ring (edgeCliffs conch-ring) and the west headland.", "k": 3, "min": 6, "max": 22, "smoothAlong": 3, "inset": 0.5, "dryMargin": 0.4, "pondMargin": 12, "sides": {}},
+    "source": "00bed638a57b6217f675e1a279fcc8fcf769dda7",
+    "_doc": "Accepted scenes placed in this region (data/accepted-scenes, scene.region): the Conch Coast west of the arrival beach (owner, 25 October 2026). Same settings as data/world.json acceptedScenes; coordinates are this map's local metres.",
+    "grassBanks": [
+      "shell-beach"
+    ],
+    "grassBanksDoc": "Scenes whose rock faces are their own meshes: the ground's slope paint keeps grass on their steep banks instead of painting grey strata (render/ground.js aBank).",
+    "beach": {"width": 11, "fade": 18, "_doc": "Sand band width (render/terrain-domain.js sceneBeach) inside the scenes placed here: the Conch Coast keeps the 11 m beach it was approved with on Azure Coast, easing back to this map's 20 m over fade metres outside its bounds."},
+    "edgeCliffs": [
+      {"id": "west-headland", "top": 6.5, "lean": 1.3, "ramp": 11, "points": [[181, 183, "open"], [185, 177, "open"], [185, 153.5, "open"], [180.5, 157, "open"], [179.5, 160.5], [172.5, 160.5, "open"], [170, 157, "open"], [170, 140], [174, 136], [188, 135.5], [196, 131], [206, 133], [216, 137], [224, 143], [231, 146.5], [233, 153], [233, 168], [231.5, 175], [227, 177.5], [218, 177], [208, 177.5], [200, 182.5], [194, 188.5], [188, 190.5], [182, 190.5], [179.5, 188]], "note": "The arrival beach ends on the left in a high rock headland (owner, 25-26 October 2026), joined to the Conch Coast and closed in rock: from the conch wall and east headland (open edges, as high) it covers the slot behind the cove, its face in line with the conch wall's (one face over the beach, its top raised to the wall's near it), and runs over the Greenhollow Frontier seam to a cliff face over the beach and a sea cliff that meets the conch headland's tip. Rock on every side: with the Conch Coast's rock ring (conch-ring) the whole rise has one way up, the ring's north ramp. The same outline in world metres is kept by both maps (data/world.json and data/maps/frontier-wilds.json); each draws its own half.", "raise": [[172, 157, 9, 7.8]]},
+      {"id": "conch-ring", "top": 6.5, "lean": 1.3, "ramp": 10, "points": [[98, 176.5], [99.5, 171], [96.5, 165], [95.5, 159], [98.5, 153], [97.5, 147], [95, 141], [96, 135], [99, 130], [101.5, 126.5], [107, 124.2], [125, 121, "ramp", 10], [138, 121], [172, 123], [173.5, 136.2, "open"], [138, 143.5, "open"], [116, 143.5, "open"], [116, 159, "open"], [122, 171, "open"], [127, 176]], "note": "The Conch Coast is a hidden cove with one way in (owner, 26 October 2026): a rock ring round its west and north backs, as high as its west headland, joined to the west headland's plateau at the east. Its one opening, and the only way up onto the whole rise, is a ramp on the north side above the stair gully: up onto the back, down the stairs to the conch beach. Open edges lie on the scene's own tops (as high or higher). Its west face follows a wavy natural line with a rounded north-west corner (owner, 26 October 2026: the straight face read as unnatural)."}
+    ],
+    "edgeCliffsDoc": "core/edge-cliffs.js: a plateau `top` m high inside a closed outline; points mark cliff edges (default, a face `lean` m deep, rock columns in render/edge-cliffs.js), ramp edges (a slope `ramp` m wide, or the point's 4th value) or open edges (full height up to the edge, where it meets ground as high). `raise` [x, z, radius, top] lifts the top near a higher wall. Local metres of this map; an outline crossing a seam is kept by both maps and each draws the faces inside its bounds. Applied after the scenes and seams as a floor under the ground; scene props and colliders inside are left out.",
+    "foliage": {
+      "_doc": "In the game the scenes' trees, shrubs and grass are the map's own (render/accepted-scenes.js): the game's geometry, palette and materials, crowns in the map's proportions and tint. Ordinary trees: each scene's authored sizes (world scale of the trunk's width) times treeScale[scene], which brings its typical tree near the map's (median 0.9; the forest's a little larger) and keeps its own variation. bigTrees stay big: the tree nearest 'at' (world x, z, within 1 m) takes 'size' (world scale; the map's largest ordinary tree is about 1.14). Colliders keep the scene data.",
+      "crownTint": "#edf1e2",
+      "chunk": 16,
+      "chunkDoc": "Each scene's instanced plants (crowns, trunks, shrubs, flowers, fronds) are split into chunk-metre square pieces, as the map's own plants are, so the camera and the sun's shadow box draw only the pieces they reach. Grass keeps its own per-clump culling.",
+      "treeScale": {
+        "shell-beach": 0.96
+      },
+      "bigTrees": []
+    },
+    "surround": {
+      "_doc": "The ring outside each accepted scene where the town's earth clearing and soil patches give way to grass (render/ground.js, ui/mapimage.js); the grass keeps the map's own zone colours, in the scenes too. Distances in metres from the scene bounds; keep corridors leave routes and waypoint clearings earth.",
+      "clearRing": 12,
+      "soilRing": 22,
+      "soilFade": 0.9,
+      "wobble": 3,
+      "keepWidth": 2.5,
+      "connectorExtension": 14,
+      "waypointKeep": [
+        6,
+        10
+      ],
+      "plant": {
+        "_doc": "Scene-surround planting (core/world.js plantSceneSurrounds): trees (collision circles of type scene-tree) and shrubs (decor.sceneShrubs) in a ring outside each accepted scene, kept off roads, waypoints, beaches and water, with one seed per scene placed after every native pass. Shrubs grow in clumps (clump: shrubs per clump, within clumpRadius m), treeBase of them at a ring tree's foot. Distances in metres outside the bounds.",
+        "seed": 20261025,
+        "trees": {
+          "perScene": 18,
+          "inner": 1.5,
+          "outer": 16,
+          "spacing": 4.5,
+          "scale": [
+            0.85,
+            1.3
+          ],
+          "slope": 0.6,
+          "roadPad": 1.5
+        },
+        "shrubs": {
+          "perScene": 90,
+          "inner": 0.5,
+          "outer": 12,
+          "spacing": 0.9,
+          "clump": [
+            2,
+            4
+          ],
+          "clumpRadius": 1.8,
+          "treeBase": 0.5,
+          "size": [
+            0.75,
+            1.3
+          ],
+          "slope": 1.4
+        }
+      }
+    },
+    "connectors": [
+      {
+        "id": "accepted/shell-upper-apron",
+        "width": 1.939,
+        "points": [[134.416, 161.662], [135.108, 161.567], [135.802, 161.484], [136.467, 161.279], [137, 160.833], [137.385, 160.252], [137.631, 159.6], [137.694, 158.906], [137.645, 158.209], [137.567, 157.515], [137.517, 156.818], [137.458, 156.122], [137.381, 155.427], [137.336, 154.73], [137.391, 154.035], [137.603, 153.371], [137.928, 152.753], [138.376, 152.22], [138.968, 151.857], [139.646, 151.695], [140.339, 151.606], [141.029, 151.494]],
+        "acceptedScene": "shell-beach",
+        "heights": [3.189, 3.496, 3.803, 4.109, 4.414, 4.72, 5.026, 5.333, 5.64, 5.947, 6.254, 6.561, 6.868, 7.175, 7.481, 7.788, 8.095, 8.401, 8.706, 9.012, 9.319, 9.626],
+        "repair": true
+      }
+    ],
+    "clearanceRoads": []
   }
 }

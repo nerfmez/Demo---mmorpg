@@ -4,7 +4,7 @@
 export const MENU_GROUPS = [
   { id: 'hero', title: 'นักผจญภัย', sub: 'ค่าสถานะและเส้นทางพาสซีฟ', icon: 'person', pages: ['char', 'job'] },
   { id: 'build', title: 'สกิลและม็อด', sub: 'จัดชุดการต่อสู้และอัปเกรด', icon: 'book', pages: ['skills', 'mods', 'movement', 'growth'] },
-  { id: 'items', title: 'ของและร้านค้า', sub: 'อุปกรณ์ คราฟต์ ซื้อขาย', icon: 'bag', pages: ['bag', 'craft', 'shop'] },
+  { id: 'items', title: 'ของและร้านค้า', sub: 'อุปกรณ์ คราฟต์ ซื้อขาย', icon: 'bag', pages: ['bag', 'craft', 'forge', 'shop'] },
   { id: 'world', title: 'การเดินทาง', sub: 'ภารกิจและแผนที่โลก', icon: 'scroll', pages: ['journal', 'map'] },
   { id: 'system', title: 'ระบบ', sub: 'ตั้งค่า บันทึก วิธีเล่น', icon: 'gear', pages: ['settings'] },
 ];
@@ -17,7 +17,8 @@ export const MENU_PAGES = {
   movement: { label: 'เคลื่อนที่', desc: 'สกิลพุ่งและหลบ', icon: 'dash' },
   growth: { label: 'อัปเลเวล', desc: 'อัปเกรดสกิลและม็อด', icon: 'spark' },
   bag: { label: 'กระเป๋า', desc: 'อุปกรณ์และวัตถุดิบ', icon: 'bag', key: 'I' },
-  craft: { label: 'โต๊ะคราฟต์', desc: 'สร้างอาวุธ ชุด สกิล', icon: 'hammer' },
+  craft: { label: 'คราฟต์', desc: 'โรงช่าง · สร้างไอเทมใหม่', icon: 'hammer' },
+  forge: { label: 'ตีบวก / เลื่อนเกรด', desc: 'พัฒนาอุปกรณ์ · เทียบก่อน–หลัง', icon: 'spark' },
   shop: { label: 'ร้านค้า · ยา', desc: 'ซื้อขวดยา ตั้งช่องใช้', icon: 'heal' },
   journal: { label: 'ภารกิจ', desc: 'เรื่องหลักและงานรอง', icon: 'scroll', key: 'L' },
   map: { label: 'แผนที่', desc: 'แผนที่โลก วาร์ป', icon: 'map', key: 'M' },

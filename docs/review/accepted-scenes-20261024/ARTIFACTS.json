@@ -1,0 +1,64 @@
+{
+  "method": "software raster of integrated Three geometry; no WebGL/device or animation playback",
+  "views": {
+    "beach-final.png": {
+      "sha256": "204b1deb3446bf1ea5cd7656271ed3d350866d274bb8670e8be27b8d40c82b33",
+      "viewport": [
+        1254,
+        706
+      ],
+      "pitch": 40,
+      "time": 0
+    },
+    "forest-final.png": {
+      "sha256": "3f4ad1bfc17659c464b49618ebd73311fe2b42e912e60856afa128895c1f5224",
+      "viewport": [
+        1254,
+        706
+      ],
+      "pitch": 40,
+      "time": 0
+    },
+    "shell-beach-final.png": {
+      "sha256": "eb4e6ac0bfe1f741191ee7ec54b9236b6b1be828eb71da36c96481bc2c46b11f",
+      "viewport": [
+        1254,
+        706
+      ],
+      "pitch": 40,
+      "time": 0
+    },
+    "hill-windmill-final.png": {
+      "sha256": "a0c23d69605ab1050322b236d0ee091cb2bd2d11ed0667937ad3c7b82c097983",
+      "viewport": [
+        1254,
+        706
+      ],
+      "pitch": 40,
+      "time": 0
+    },
+    "azure-meadow-final.png": {
+      "sha256": "46392c3df69fae3b70831f581894952b261936974b999c5d37298bf91305a735",
+      "viewport": [
+        1254,
+        706
+      ],
+      "pitch": 40,
+      "time": 0
+    },
+    "rose-garden-final.png": {
+      "sha256": "0ee73f054d8bbaaa24ba7358000ea8480afa40d03f263d0deecd0e38fa6f46b7",
+      "viewport": [
+        1254,
+        706
+      ],
+      "pitch": 40,
+      "time": 0
+    }
+  },
+  "status": "Historical first-integration software captures; precede final coast/arrival changes",
+  "finalLayout": {
+    "layout-final.png": "d82a03a135c6e437ba76e43f6abe7538a1ffb05cbac7b1591f9180a0353f6918",
+    "layout-final.svg": "e3710f4bbd72929391698a93cee4d4d5b910c9639d96a19dac70ac8863dbdede"
+  }
+}

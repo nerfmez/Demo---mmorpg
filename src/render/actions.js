@@ -223,7 +223,8 @@ const BY_KIND = {
 // The sword and the dagger cut with clips retargeted from reference animations (data/action-clips.json,
 // owner picks): one cut for every step, the slash effect following its sweep. The greatblade keeps its
 // hand-made alternating cuts (the owner preferred them to the KayKit two-handed slice).
-const COMBOS = { greatblade: ['heavyA', 'heavyB'], sword: ['swordCut'], dagger: ['daggerCut'] };
+// A greatshield shoves with the shield in both hands (greatshieldShove, the owner's pick).
+const COMBOS = { greatblade: ['heavyA', 'heavyB'], sword: ['swordCut'], dagger: ['daggerCut'], greatshield: ['greatshieldShove'] };
 /**
  * Register an action from clip data ({hit, sweep?, keys: [[t, pose]]}, absolute channels over REST).
  * A clip moves the weapon itself (own, unless it says own: false): its weapon channel is not held at
@@ -256,6 +257,7 @@ function mirrorPose(p) {
     const v = p[n];
     if (n === 'weapon') o.offhand = [v[0], -v[1], -v[2] + Math.PI];
     else if (n === 'ikL' || n === 'ikR') o[n === 'ikL' ? 'ikR' : 'ikL'] = [-v[0], v[1], v[2]]; // positions: x flips
+    else if (n === 'reach') o.reach = [-v[0], v[1], v[2]];
     else if (n === 'ikw') o.ikw = [v[1], v[0], v[2]]; // [left, right]
     else if (n === 'spin' || n === 'swing') o[n] = [-v[0], v[1], v[2]];
     else if (n === 'sw') o.sw = [v[0], -v[1], 1];
@@ -295,6 +297,7 @@ export function pickAction(skill, kind, weapon, step = 0, dual = false) {
     // two weapons: the first cut, struck by the right and the left hand in turn; else one plain strike, alternating
     a = dual ? (step % 2 ? leftHanded(c[0]) : c[0]) : c[step % c.length];
   }
+  if (a === 'shieldShove' && weapon === 'greatshield') a = 'greatshieldShove'; // Shield Bash with the shield in both hands
   if (a === 'shoot') a = weapon === 'bow' ? 'bowShot' : 'throw';
   if (a === 'boltCast' && weapon === 'bow') a = 'bolt';
   if (a === 'breakbeatSlam' && weapon !== 'greatblade') a = 'breakbeatSlam1H'; // a mace with a shield (play() names a two-handed mace greatblade)

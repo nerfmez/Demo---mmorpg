@@ -46,6 +46,15 @@
       "zone": 0.13,
       "dust": 8
     },
+    "greatshield": {
+      "tip": 0.3,
+      "base": 0.05,
+      "life": 0.08,
+      "minSpeed": 12,
+      "fullSpeed": 40,
+      "zone": 0.13,
+      "dust": 8
+    },
     "staff": {
       "tip": 1.0,
       "base": 0.8,

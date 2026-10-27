@@ -23,7 +23,7 @@ export function animateLandmarkSpinner(pivot){
  for(const o of nodes)if(o.isMesh)o.onBeforeRender=turn;
 }
 export async function loadLandmarkAssets(world, options={}) {
- const list=(world.landmarks||[]).filter(l=>!l.builtin&&AUTHORED_LANDMARKS.has(l.kind));
+ const list=(world.landmarks||[]).filter(l=>!l.builtin&&!l.acceptedScene&&AUTHORED_LANDMARKS.has(l.kind));
  if(!list.length)return null;
  const loader=options.loader||new GLTFLoader(),job=importJob({...options,loader});
  const root=new THREE.Group();root.name='blender-landmarks';

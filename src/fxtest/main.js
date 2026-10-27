@@ -20,6 +20,8 @@ import { ThunderArrowFx } from './thunder-arrow-fx.js';
 import { mulberry32 } from '../render/skillfx/fx-common.js';
 import { OCCLUDER_LAYER } from '../render/skillfx/flame-fx.js';
 import { SkillFx, OWN_PROJECTILES, ELEMENT_COLOR } from '../render/skill-fx.js';
+import { GAME_CAMERA_OFFSET } from '../render/game-camera.js';
+
 
 const data = benchData(gameData, FUSION); // with the bench-only prototype spells (Venom Bolt)
 
@@ -46,12 +48,12 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#9fc6d8');
 scene.fog = new THREE.Fog('#9fc6d8', 26, 48);
 const camera = new THREE.PerspectiveCamera(36, 1, 0.3, 120);
-// 'game' = the game's own camera (view.js CAM_OFFSET at zoom 1, looking 0.8 m above the hero; fov 36, 52
+// 'game' = the game's own camera (game-camera.js at zoom 1, looking 0.8 m above the hero; fov 36, 52
 // in portrait); 'close' = the lower angle the effects were first reviewed at
-const CAM_DIRS = { game: new THREE.Vector3(0, 19, 13.5).normalize(), close: new THREE.Vector3(0, 7.4, 8.6).normalize(), hero: new THREE.Vector3(-0.15, 0.55, 0.82).normalize() };
+const CAM_DIRS = { game: GAME_CAMERA_OFFSET.clone().normalize(), close: new THREE.Vector3(0, 7.4, 8.6).normalize(), hero: new THREE.Vector3(-0.15, 0.55, 0.82).normalize() };
 // 'hero' = from the hero's right side (it faces +X), a little behind so the dummies stand beyond it, framed
 // on the hero and following it
-const HERO_LOOK = new THREE.Vector3(0.9, 0.55, 0), HERO_HALF = 1.4, GAME_OFFSET = new THREE.Vector3(0, 19, 13.5);
+const HERO_LOOK = new THREE.Vector3(0.9, 0.55, 0), HERO_HALF = 1.4, GAME_OFFSET = GAME_CAMERA_OFFSET.clone();
 scene.add(new THREE.HemisphereLight('#dce9ff', '#4a6040', 1.1));
 const sun = new THREE.DirectionalLight('#fff0dc', 1.8);
 sun.position.set(-4, 10, 6);
@@ -364,7 +366,7 @@ function renderPanel() {
     }
     wb.append(row);
   };
-  const W = [[null, 'ของสกิล'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์'], ['axe', 'ขวาน'], ['mace', 'กระบอง'], ['greatblade', 'ดาบใหญ่'], ['staff', 'คทา'], ['bow', 'ธนู']];
+  const W = [[null, 'ของสกิล'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์'], ['axe', 'ขวาน'], ['mace', 'กระบอง'], ['greatblade', 'ดาบใหญ่'], ['greatshield', 'โล่ใหญ่'], ['staff', 'คทา'], ['bow', 'ธนู']];
   pick('มือขวา', W, state.weapon || null, (id) => { state.weapon = id; });
   pick('มือซ้าย', [[null, 'ว่าง'], ['shield', 'โล่'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์']], state.offhand || null, (id) => { state.offhand = id; });
   pick('หลบ', [['dash', 'พุ่ง'], ['roll', 'กลิ้ง'], ['blink', 'วาร์ป'], ['leap', 'กระโดด']], state.movement || 'dash', (id) => { state.movement = id; });

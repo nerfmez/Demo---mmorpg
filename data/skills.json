@@ -1381,8 +1381,7 @@
       "upgradeMaterial": "hawk_feather",
       "upgradeStat": "DEX",
       "job": "power",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "meteor": {
       "name": "Meteor",

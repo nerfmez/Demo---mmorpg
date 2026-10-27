@@ -287,6 +287,14 @@ arrow carries a cone of split air on its head (a see-through shell with spiral w
 of wind round its path, a ring of air stands across the shot at each loose, and each hit bursts a gust.
 The gallery host was blocked (403); no clip was inspected.
 
+Killing Arrow (ศรสังหาร, bows: a 0.55 s aim, one heavy arrow out to 16 m, 10 s cooldown),
+`skillfx/kill-fx.js`, crimson and gold, every beat of a cooldown skill: the hero sinks into a braced crouch
+holding the deepest draw (`killShot`), a sight line runs out to the target while light gathers at the
+arrow's tip and a reticle closes onto the target; the loose bursts two rings of air across the shot,
+throws recoil streaks back and kicks the camera; a thick blazing streak follows the arrow and the line it
+cut hangs in the air a moment; the hit bursts long rays along the shot, two rings and sparks with a hard
+shake. The gallery host was blocked (403); no clip was inspected.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

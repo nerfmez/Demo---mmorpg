@@ -69,7 +69,8 @@
     }
   },
   "presets": {
-    "_doc": "Carries kept for other bodies. two_hand_feminine: a two-hand grip held across the body (KayKit 2H_Melee_Idle, stance two_hand_ready), chosen by the owner for a female hero; the male chibi keeps its own two-hand carries.",
+    "_doc": "Carries kept for other bodies. two_hand_feminine: a two-hand grip held across the body (KayKit 2H_Melee_Idle, stance two_hand_ready), chosen by the owner for a female hero; the male chibi keeps its own two-hand carries. sword_guard_carry: the one-handed sword carry before the owner picked the Sword_Dash stance (2026-10-27).",
+    "sword_guard_carry": {"hand": [-0.296, 0.972, 0.821], "dir": [0.765, 0.632, 0.126], "up": [-0.181, 0.398, -0.899], "stance": "sword_guard"},
     "two_hand_feminine": {
       "hand": [    -0.524,
         1.09,
@@ -192,6 +193,81 @@
       "elbowL": [-0.353, 0, 0],
       "elbowR": [-0.626, 0, 0],
       "drop": -0.077,
+      "shift": 0
+    },
+    "sword_draw_ready": {
+      "_from": "Quaternius Universal Animation Library (CC0) Sword_Dash at 0 s (the owner's pick, 2026-10-27), retargeted onto the driver rig, legs x0.8 (scripts/pose-retarget)",
+      "hips": [
+        0,
+        -0.233,
+        0
+      ],
+      "torso": [
+        -0.044,
+        -0.062,
+        0
+      ],
+      "chest": [
+        0.271,
+        -0.032,
+        -0.012
+      ],
+      "head": [
+        -0.03,
+        0.286,
+        0
+      ],
+      "legL": [
+        -0.31,
+        0.157,
+        0.18
+      ],
+      "legR": [
+        -0.067,
+        -0.592,
+        -0.251
+      ],
+      "kneeL": [
+        0.201,
+        0,
+        0
+      ],
+      "kneeR": [
+        0.099,
+        0,
+        0
+      ],
+      "footL": [
+        0.055,
+        -0.146,
+        -0.042
+      ],
+      "footR": [
+        -0.126,
+        0.26,
+        0.094
+      ],
+      "armL": [
+        0.144,
+        0.043,
+        0.141
+      ],
+      "armR": [
+        0.269,
+        0.148,
+        -0.169
+      ],
+      "elbowL": [
+        -0.314,
+        0,
+        0
+      ],
+      "elbowR": [
+        -0.509,
+        0,
+        0
+      ],
+      "drop": -0.022,
       "shift": 0
     },
     "staff_ready": {

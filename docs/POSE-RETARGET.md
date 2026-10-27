@@ -151,8 +151,10 @@ The reference skeleton's own bends at rest (its T/A-pose knees, sloped feet, spi
 subtracted. The weapon direction comes from the prop (`--prop`), else from the fist: a grip runs
 along the knuckle line, pinky to index.
 
-In use: `sword_guard` (Quaternius UAL2 `Sword_Block` at 0.2 s, legs 0.6; the owner's pick A of five)
-is the chibi's one-hand sword carry, blade raised across the body. Measured Riposte's guard key
+In use: `sword_draw_ready` (Quaternius UAL2 `Sword_Dash` at 0 s, legs 0.8; the owner's pick from the
+Arcane Draw Cut preview, 2026-10-27) is the chibi's one-hand sword carry: the sword held low and forward
+at the right hip, the up re-solved with `match-roll.mjs`. The earlier carry, `sword_guard` (UAL2
+`Sword_Block` at 0.2 s, legs 0.6, blade raised across the body), is kept in `presets.sword_guard_carry`. Measured Riposte's guard key
 (`guardUp` in `actions.js`) is pick B, the high guard of `Sword_Regular_A_Rec` at 0.05 s (`--face`,
 legs 0.6), its head turned back to face the foe. `sword_ready` (KayKit `Idle`, legs 0.5, arms 0.3) is
 the `dual` carry (`--prop 1H_Sword --propL 1H_Sword_Offhand --offhand sword`, used by the

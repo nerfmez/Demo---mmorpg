@@ -16,7 +16,7 @@ import { meadowPlantSteps } from './meadow.js';
 import { walkSurfaceMaterial } from './walk-surface.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { rootFlareGeometry, groundRootGeometry, curlGeometry, glowGeometry } from './moonroot-flora.js';
+import { rootFlareGeometry, groundRootGeometry, curlGeometry, glowGeometry, setBark, mossyStone } from './moonroot-flora.js';
 import { createHarborSteps } from './harbor.js';
 import { marketBuilding, marketStall, marketQuay } from './market.js';
 import { districtBuilding } from './districts.js';
@@ -262,11 +262,13 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   cloudGroup.name='art-study-crowns';root.add(cloudGroup);
   root.add(yield* buildInstances(yield* cloudCrownSteps(7,false,look),cloudMat,cloudBirches,{receiveShadow:true}));
   // Jagged patches supply the entire crown; no spherical filler underneath.
-  if(animeStudy)root.add(yield* buildInstances(animeTrunk(),animeTrunkMaterial(),animeTrunks,{outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
+  const barkLook=world.data.look?.trunk||null; // a map's own bark (Moonroot's pale grey-taupe with moss)
+  if(animeStudy)root.add(yield* buildInstances(animeTrunk(barkLook),animeTrunkMaterial(),animeTrunks,{outline:barkLook?.line||animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
   // look.roots (Moonroot): every tree stands on a long root flare (three shapes, picked by place),
   // and the surface roots core/world.js laid over the ground (decor.groundRoots) follow it
   if(world.data.look?.roots){
-    const flares=[[],[],[]],barkMat=animeTrunkMaterial(),line={outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth};
+    setBark(barkLook);
+    const flares=[[],[],[]],barkMat=animeTrunkMaterial(),line={outline:barkLook?.line||animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth};
     for(const c of world.circles){
       if(!['tree','birch','willow','scene-tree'].includes(c.type))continue;
       const s=c.scale*.85*(c.type==='birch'?.7:1),k=Math.abs(Math.floor(c.x*7.3+c.z*3.1))%3;
@@ -275,6 +277,7 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
     for(let k=0;k<3;k++)if(flares[k].length)root.add(yield* buildInstances(rootFlareGeometry(20261027+k),barkMat,flares[k],line));
     const ground=groundRootGeometry(world.decor.groundRoots||[],gy);
     if(ground){const mesh=new THREE.Mesh(ground,barkMat);mesh.receiveShadow=true;mesh.name='moonroot-ground-roots';root.add(mesh);}
+    setBark(null);
     yield;
   }
   const canopyGeo = leafCrown(3);
@@ -323,9 +326,12 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   for (const bx of world.boxes) if (bx.type === 'log') logs.push({ x: bx.x, z: bx.z, y: gy(bx.x, bx.z) + 0.35, sx: 1, sy: 1, sz: bx.hz * 2, ry: bx.angle });
   if(artReviewLayout)for(const [x,z,s] of animeConfig.sample.rocks)rocks.push({x,z,y:gy(x,z)+s*.36,s,sy:s*.75,ry:s*2,color:animeConfig.palette.rock});
   for (const l of world.decor.logsDecor) logs.push({ x: l.x, z: l.z, y: gy(l.x, l.z) + 0.3, sx: 0.8, sy: 0.8, sz: 1.6, ry: l.angle });
-  const shoreRocks=yield* buildInstances(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks.filter(it=>!inArtStudy(it.x,it.z)), { outline: '#676568', outlineWidth: 0.019 });
+  // look.rocks (Moonroot): pale weathered stones with moss on their tops, in the map's stone colours
+  const stoneLook=world.data.look?.rocks;
+  if(stoneLook)for(const it of rocks)it.color=stoneLook.colors[Math.abs(Math.floor(it.x*3.7+it.z*1.3))%stoneLook.colors.length];
+  const shoreRocks=yield* buildInstances(stoneLook?mossyStone(stoneLook.moss):facetedStone(), stoneLook?new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}):paintSurface(mat('#ffffff'),'rock'), rocks.filter(it=>stoneLook||!inArtStudy(it.x,it.z)), { outline: stoneLook?.line||'#676568', outlineWidth: 0.019 });
   shoreRocks.userData.waterContact=true;root.add(shoreRocks);
-  root.add(yield* buildInstances(facetedStone(),paintSurface(mat('#ffffff'),'studyRock'),rocks.filter(it=>inArtStudy(it.x,it.z)),{outline:'#676568',outlineWidth:.015}));
+  if(!stoneLook)root.add(yield* buildInstances(facetedStone(),paintSurface(mat('#ffffff'),'studyRock'),rocks.filter(it=>inArtStudy(it.x,it.z)),{outline:'#676568',outlineWidth:.015}));
   const crystalGeo = new THREE.OctahedronGeometry(0.45, 0);
   crystalGeo.scale(0.55, 1.9, 0.55);
   crystalGeo.translate(0, 0.75, 0);

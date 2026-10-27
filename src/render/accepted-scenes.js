@@ -32,11 +32,11 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  // The scenes' trees, shrubs and grass are the map's own (factories tag them, data:
  // acceptedScenes.foliage): one set of the game's materials for all six scenes.
  const foliage=world.data.acceptedScenes?.foliage||null,gameMaterials={};
- const gameMaterial=kind=>gameMaterials[kind]??=kind==='crown'?animeFoliageMaterial(false):kind==='shrub'?animeFoliageMaterial(true):kind==='trunk'?animeTrunkMaterial():kind==='hull'?hullMaterial(animeConfig.palette.trunkLine,animeConfig.trunk.outlineWidth,{see:true}):grassMaterial(world);
+ const gameMaterial=kind=>gameMaterials[kind]??=kind==='crown'?animeFoliageMaterial(false):kind==='shrub'?animeFoliageMaterial(true):kind==='trunk'?animeTrunkMaterial():kind==='hull'?hullMaterial(world.data.look?.trunk?.line||animeConfig.palette.trunkLine,animeConfig.trunk.outlineWidth,{see:true}):grassMaterial(world);
  for(const spec of acceptedScenes(world.data)){
   yield;
   const assets=spec.id==='shell-beach'?yield* acceptedAssetSteps():{};
-  const result=factories[spec.id]({renderer,time:timeUniform,clipBounds:spec.box,assets,foliage:foliage&&sceneFoliage(foliage,spec,world.data.look?.foliage||null)}),source=result.root;
+  const result=factories[spec.id]({renderer,time:timeUniform,clipBounds:spec.box,assets,foliage:foliage&&sceneFoliage(foliage,spec,world.data.look?.foliage||null,world.data.look?.trunk||null)}),source=result.root;
   source.name='accepted-'+spec.id;source.position.set(spec.x,spec.y,spec.z);source.scale.setScalar(spec.s);root.add(source);root.updateMatrixWorld(true);
   const dynamic=new Set();
   const keep=o=>o?.traverse(n=>dynamic.add(n));
@@ -130,9 +130,9 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
 // Tree sizes for one factory, in its own units (world / spec.s): ordinary trees by the
 // scene's scale, the listed big trees at their own size.
 // palette: the map's own leaf colours (data look.foliage), for its scenes' crowns as for its own trees
-function sceneFoliage(foliage,spec,palette=null){
+function sceneFoliage(foliage,spec,palette=null,bark=null){
  const big=(foliage.bigTrees||[]).filter(b=>b.scene===spec.id).map(b=>({x:(b.at[0]-spec.x)/spec.s,z:(b.at[1]-spec.z)/spec.s,s:b.size/spec.s,r:1/spec.s}));
- return {scale:foliage.treeScale?.[spec.id]??1,big,palette};
+ return {scale:foliage.treeScale?.[spec.id]??1,big,palette,bark};
 }
 // A tagged scene mesh takes the map's material: crowns the map's tint, trunks the
 // game's ink hull, grass the game's ground-coloured blades (baked with the map's grass).

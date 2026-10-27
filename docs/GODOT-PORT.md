@@ -1207,7 +1207,12 @@ merged mesh on the ground. `look.undergrowth` {seed} plants each zone's own plan
 (`zone.plants` {curl, glow}: clumps of 3-6 per 100 m2; own seed after every other pass): pale moon-curls and teal
 glow bulbs (unlit), instanced. A town's `well` is optional, `noticeBoard: false` and
 `lanterns: false` leave out the generic notice board and street lanterns (Moonstone Camp lights and
-furnishes itself). In Godot: MultiMesh per flare shape and plant kind, one mesh for ground roots. The scenes' layout is the
+furnishes itself). `look.trunk` {light, mid, shadow, line, moss} recolours every trunk and root in the map
+(`animeTrunk(bark)`, the flares and ground roots, moss on up-facing faces; the scenes' trees through
+`foliage.bark` and their own roots through `FOL.trunk`): Moonroot's pale grey-taupe bark.
+`look.rocks` {colors, moss, line} draws the map's scattered rocks as weathered boulders (a lumpy
+subdivided sphere, flat bed, squared top, flat-shaded) with a wavy moss cap on top
+(`mossyStone`). In Godot: MultiMesh per flare shape and plant kind, one mesh for ground roots. The scenes' layout is the
 region's; `moonroot-grove.json.acceptedScenes` enables them with the same apron, grass-bank, foliage
 (tree scale 1: their roots are drawn for those trunks) and surround settings as the other maps. The scenes replace the native camp (`camp` key removed: Moonstone Camp draws its
 own tents and fire), the elder tree and the ring's pillars (cleared like any native prop inside a

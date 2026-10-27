@@ -9,7 +9,7 @@ const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=
 const fitTree=(s,x,z)=>{if(!foliage)return s;const big=foliage.big.find(b=>Math.hypot(b.x-x,b.z-z)<b.r);return big?big.s:s*foliage.scale;};
 const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};
 function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub,foliage?.palette),shrub?'shrub':'crown');}
-function animeTrunk(){return gamePart(gameTrunk(),'trunk');}
+function animeTrunk(){return gamePart(gameTrunk(foliage?.bark),'trunk');}
 function meadowGrass(){return gamePart(gameGrass(),'grass');}
 function branchletTexture(shrub=false){return gameBranchlet(shrub);}
 // ---------- helpers ----------
@@ -1357,7 +1357,7 @@ function clearGardenPaths(){
   if((polyAt(PLAZA,item.x,item.z)??1)<.20||(st.s<st.half+r+.25&&Math.abs(item.y-st.y)<M(.7)))list.splice(i,1);
  }
 }
-FOL.leaf=['#2b7152','#57973d','#b5c94d'];FOL.shrub=['#2e6a4a','#5c943e','#a9bd49'];STONE.splice(0,STONE.length,...ruinPalette);
+FOL.leaf=['#2b7152','#57973d','#b5c94d'];FOL.shrub=['#2e6a4a','#5c943e','#a9bd49'];STONE.splice(0,STONE.length,...ruinPalette);if(foliage?.bark)Object.assign(FOL.trunk,foliage.bark);
 function build(){
  const[x,z]=P(.50,.84);heroStub.x=x;heroStub.z=z;heroStub.face=-2.7;
  {const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);}buildLedges();embeddedRoadStones();gazeboModel();gardenRocks();grove();

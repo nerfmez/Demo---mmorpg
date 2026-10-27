@@ -15,7 +15,7 @@ gameFoliageHelpers=(
  "const fitTree=(s,x,z)=>{if(!foliage)return s;const big=foliage.big.find(b=>Math.hypot(b.x-x,b.z-z)<b.r);return big?big.s:s*foliage.scale;};\n"
  "const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};\n"
  "function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub,foliage?.palette),shrub?'shrub':'crown');}\n"
- "function animeTrunk(){return gamePart(gameTrunk(),'trunk');}\n"
+ "function animeTrunk(){return gamePart(gameTrunk(foliage?.bark),'trunk');}\n"
  "function meadowGrass(){return gamePart(gameGrass(),'grass');}\n"
  "function branchletTexture(shrub=false){return gameBranchlet(shrub);}\n")
 def gameFoliageParts(name,src):
@@ -31,6 +31,8 @@ def gameFoliageParts(name,src):
  if name=='forest':  # the island cherry keeps its authored blossom crown (its size is a big tree's, in data)
   old='sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(2.5 * it.s, 1.7 * it.s, 2.25 * it.s))'
   assert src.count(old)==1,(name,old);src=src.replace(old,'sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s))')
+ # a map's own bark (data look.trunk, Moonroot) colours the scene's own roots too, as its trees
+ src,n=re.subn(r'(\nFOL\.leaf=[^\n]*)',lambda m:m.group(1)+'if(foliage?.bark)Object.assign(FOL.trunk,foliage.bark);',src,count=1)
  return src
 
 for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden','ranger-forest','gull-headland','mirror-pond','moonstone-camp','stone-ring','fern-rise','root-warren']:

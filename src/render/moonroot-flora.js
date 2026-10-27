@@ -3,11 +3,17 @@
 // game trunk's faceted bark style (render/anime-study.js animeTrunk); no per-frame work.
 import * as THREE from 'three';
 import { createRng } from '../core/rng.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { animeConfig } from './anime-study.js';
 
 const SUN = new THREE.Vector3(-.6, .55, .55).normalize();
 const SIDES = 6;
-let palette = null;
+// the bark colours in use: a map's look.trunk ({light, mid, shadow, moss?}) or the game's trunk palette
+let palette = null, moss = null;
+export function setBark(look) {
+  palette = look ? [look.light, look.mid, look.shadow].map((c) => new THREE.Color(c)) : null;
+  moss = look?.moss ? new THREE.Color(look.moss) : null;
+}
 const bark = () => palette ??= ['trunkLight', 'trunkMid', 'trunkShadow'].map((k) => new THREE.Color(animeConfig.palette[k]));
 
 // One faceted tube along points [x, y, z, radius], toned light, mid or shadow by the sun.
@@ -27,6 +33,8 @@ function writeTube(path, p, n, c) {
     const normal = q[0].no.clone().add(q[1].no).normalize(), lit = normal.dot(SUN);
     if (lit > .33) tone.copy(mid).lerp(light, THREE.MathUtils.smoothstep(lit, .33, .9));
     else tone.copy(shadow).lerp(mid, THREE.MathUtils.smoothstep(lit, -.65, .33));
+    // moss on the tops of the roots, in broken streaks along them
+    if (moss) tone.lerp(moss, .6 * THREE.MathUtils.smoothstep(normal.y, .3, .75) * (j % 4 < 3 ? 1 : .3));
     for (const id of [0, 1, 2, 0, 2, 3]) { p.push(...q[id].v.toArray()); n.push(...normal.toArray()); c.push(tone.r, tone.g, tone.b); }
   }
 }
@@ -121,4 +129,30 @@ export function glowGeometry() {
     const bulb = new THREE.IcosahedronGeometry(r.range(.05, .085), 0); bulb.translate(x, h + .03, z); push(B, bulb, i % 3 ? teal : pale);
   }
   return [geometry(S.p, S.n, S.c), geometry(B.p, B.n, B.c)];
+}
+
+/** A weathered boulder: a rounded, lumpy mass (a subdivided sphere pushed in and out by fixed
+ *  noise, a flat bed, a little squashed) with moss settled over its top in a wavy-edged cap.
+ *  Vertex colour is white on the stone (the instance colour gives its grey) and moss above. */
+export function mossyStone(mossColor) {
+  const g = new THREE.IcosahedronGeometry(1, 3), p = g.attributes.position;
+  const bump = (x, y, z) => .16 * Math.sin(x * 2.3 + y * 1.7) * Math.cos(z * 2.1 - y) + .07 * Math.sin(x * 5.1 - z * 4.3 + y * 3.7) + .1 * Math.sin(z * 1.3 + x * .7);
+  for (let i = 0; i < p.count; i++) {
+    let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const k = 1 + bump(x, y, z);
+    x *= k * 1.1; z *= k * .95; y = Math.max(-.3, y * k * .95);
+    // a squared-off top, as weathered stone
+    if (y > .55) y = .55 + (y - .55) * .45;
+    p.setXYZ(i, x, y, z);
+  }
+  const merged = mergeVertices(g); g.dispose(); merged.computeVertexNormals();
+  const pos = merged.attributes.position, nor = merged.attributes.normal, col = [], moss = new THREE.Color(mossColor), tone = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i), edge = .7 + .14 * Math.sin(x * 4.1 + z * 2.7) + .06 * Math.sin(z * 9 - x * 5);
+    const m = THREE.MathUtils.smoothstep(nor.getY(i), edge - .05, edge + .05);
+    tone.setRGB(1, 1, 1).lerp(moss, m * .9);
+    col.push(tone.r, tone.g, tone.b);
+  }
+  merged.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  return merged;
 }

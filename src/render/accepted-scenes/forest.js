@@ -9,7 +9,7 @@ const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=
 const fitTree=(s,x,z)=>{if(!foliage)return s;const big=foliage.big.find(b=>Math.hypot(b.x-x,b.z-z)<b.r);return big?big.s:s*foliage.scale;};
 const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};
 function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub,foliage?.palette),shrub?'shrub':'crown');}
-function animeTrunk(){return gamePart(gameTrunk(),'trunk');}
+function animeTrunk(){return gamePart(gameTrunk(foliage?.bark),'trunk');}
 function meadowGrass(){return gamePart(gameGrass(),'grass');}
 function branchletTexture(shrub=false){return gameBranchlet(shrub);}
 // ---------- helpers ----------

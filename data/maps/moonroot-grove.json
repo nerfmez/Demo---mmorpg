@@ -9880,7 +9880,7 @@
     ]
   },
   "look": {
-    "_doc": "Moonroot's own colours (owner, 27 October 2026: the region concept's deep teal). foliage: leaf and shrub [shadow, mid, light] for every tree and shrub crown in this map, its own and its accepted scenes' (render/anime-study.js animeFoliage palette); the same colours the approved Moonroot scenes were reviewed with. ground: [light, dark] the meadow's paint pair, standing in for the game's anime ground pair (render/ground.js), so the grass takes the concept's pale olive and shaded teal. roots: every tree stands on buttress roots grown from its trunk, and surface roots run half buried from tree feet, arching up out of the ground once or twice (decor.groundRoots, zone.groundRoots per tree). undergrowth: each zone's own plants in small clumps (zone.plants {curl, glow}: clumps per 100 m2: pale moon-curls and teal glow bulbs, as the concept). Zones: treeScale [min, max] spreads tree sizes; giants (share) x giantScale makes old giants where there is room.",
+    "_doc": "Moonroot's own colours (owner, 27 October 2026: the region concept's deep teal). foliage: leaf and shrub [shadow, mid, light] for every tree and shrub crown in this map, its own and its accepted scenes' (render/anime-study.js animeFoliage palette); the same colours the approved Moonroot scenes were reviewed with. ground: [light, dark] the meadow's paint pair, standing in for the game's anime ground pair (render/ground.js), so the grass takes the concept's pale olive and shaded teal. roots: every tree stands on buttress roots grown from its trunk, and surface roots run half buried from tree feet, arching up out of the ground once or twice (decor.groundRoots, zone.groundRoots per tree). undergrowth: each zone's own plants in small clumps (zone.plants {curl, glow}: clumps per 100 m2: pale moon-curls and teal glow bulbs, as the concept). Zones: treeScale [min, max] spreads tree sizes; giants (share) x giantScale makes old giants where there is room. trunk: bark {light, mid, shadow, line, moss} for every trunk and root in this map, its scenes' included (the concept's pale grey-taupe bark with moss). rocks: stone colours, moss and outline for the map's scattered rocks (weathered, mossy tops).",
     "ground": [
       "#9db86c",
       "#3b7660"
@@ -9900,6 +9900,23 @@
     "roots": true,
     "undergrowth": {
       "seed": 20261027
+    },
+    "trunk": {
+      "light": "#d9ccad",
+      "mid": "#ad9f83",
+      "shadow": "#736b5a",
+      "line": "#545044",
+      "moss": "#8faa5c"
+    },
+    "rocks": {
+      "colors": [
+        "#cfd2c9",
+        "#c4c8bf",
+        "#d8dad1",
+        "#bcc1b8"
+      ],
+      "moss": "#8fb060",
+      "line": "#6c7068"
     }
   },
   "acceptedScenes": {

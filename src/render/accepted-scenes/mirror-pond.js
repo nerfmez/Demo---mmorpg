@@ -9,7 +9,7 @@ const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=
 const fitTree=(s,x,z)=>{if(!foliage)return s;const big=foliage.big.find(b=>Math.hypot(b.x-x,b.z-z)<b.r);return big?big.s:s*foliage.scale;};
 const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};
 function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub,foliage?.palette),shrub?'shrub':'crown');}
-function animeTrunk(){return gamePart(gameTrunk(),'trunk');}
+function animeTrunk(){return gamePart(gameTrunk(foliage?.bark),'trunk');}
 function meadowGrass(){return gamePart(gameGrass(),'grass');}
 function branchletTexture(shrub=false){return gameBranchlet(shrub);}
 // ---------- helpers ----------
@@ -1579,7 +1579,7 @@ function plantGrove(){
  }
 }
 // Moonroot's palette: deep teal-green crowns with pale yellow-green light, sage shrubs
-FOL.leaf=['#143f40','#2a705f','#7db888'];FOL.shrub=['#16473f','#33805f','#8cc58a'];STONE.splice(0,STONE.length,...MOON_STONE);
+FOL.leaf=['#143f40','#2a705f','#7db888'];FOL.shrub=['#16473f','#33805f','#8cc58a'];STONE.splice(0,STONE.length,...MOON_STONE);if(foliage?.bark)Object.assign(FOL.trunk,foliage.bark);
 function clearPaths(){
  for(const list of[shrubItems,grassItems,flowerItems])for(let i=list.length-1;i>=0;i--){
   const item=list[i],st=stairsAt(item.x,item.z),radius=Math.max(item.sx||item.s||.1,item.sz||item.s||.1)*.60;

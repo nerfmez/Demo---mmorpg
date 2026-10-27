@@ -21,3 +21,16 @@ test('a map\'s look.foliage colours its crowns; without one the game palette sta
  const shrub=mean(animeFoliage(11,true,look)),plainShrub=mean(animeFoliage(11,true));
  assert.ok(shrub[2]/shrub[1]>plainShrub[2]/plainShrub[1],'shrubs too');
 });
+
+test('a map\'s look.trunk recolours its bark; mossy stones carry moss only on their tops',async()=>{
+ const {animeTrunk}=await import('../../src/render/anime-study.js');
+ const {mossyStone}=await import('../../src/render/moonroot-flora.js');
+ const bark=data.maps['moonroot-grove-v1'].look.trunk;
+ const mean=g=>{const c=g.attributes.color,s=[0,0,0];for(let i=0;i<c.count;i++){s[0]+=c.getX(i);s[1]+=c.getY(i);s[2]+=c.getZ(i);}return s.map(v=>v/c.count);};
+ const own=mean(animeTrunk(bark)),plain=mean(animeTrunk());
+ assert.ok(own[2]/own[0]>plain[2]/plain[0],'greyer, less red bark');
+ const s=mossyStone('#8fb060'),c=s.attributes.color,n=s.attributes.normal;
+ let topMoss=0,sideMoss=0;
+ for(let i=0;i<c.count;i++){const mossy=c.getX(i)<.9;if(n.getY(i)>.9&&mossy)topMoss++;if(n.getY(i)<.2&&mossy)sideMoss++;}
+ assert.ok(topMoss>0,'moss on top');assert.equal(sideMoss,0,'no moss on the sides');
+});

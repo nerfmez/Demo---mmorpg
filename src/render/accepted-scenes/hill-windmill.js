@@ -9,7 +9,7 @@ const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941,rigidParts=
 const fitTree=(s,x,z)=>{if(!foliage)return s;const big=foliage.big.find(b=>Math.hypot(b.x-x,b.z-z)<b.r);return big?big.s:s*foliage.scale;};
 const gamePart=(g,kind)=>{g.userData.gameFoliage=kind;return g;};
 function animeFoliage(seed=3,shrub=false){return gamePart(gameFoliage(seed,shrub,foliage?.palette),shrub?'shrub':'crown');}
-function animeTrunk(){return gamePart(gameTrunk(),'trunk');}
+function animeTrunk(){return gamePart(gameTrunk(foliage?.bark),'trunk');}
 function meadowGrass(){return gamePart(gameGrass(),'grass');}
 function branchletTexture(shrub=false){return gameBranchlet(shrub);}
 // ---------- helpers ----------
@@ -1393,7 +1393,7 @@ function plantHill(){
   if(rand()<.16)flowerItems.push({x,y:y+.02,z,s:R(.65,.95),ry:R(0,6.28),c:rand()<.65?'#f7da54':'#fff6dc'});
  }
 }
-FOL.leaf=['#2a6e50','#5a963e','#b9ce4e'];FOL.shrub=['#2b6b4b','#5e9639','#acbf45'];STONE.splice(0,STONE.length,...ruinPalette);
+FOL.leaf=['#2a6e50','#5a963e','#b9ce4e'];FOL.shrub=['#2b6b4b','#5e9639','#acbf45'];STONE.splice(0,STONE.length,...ruinPalette);if(foliage?.bark)Object.assign(FOL.trunk,foliage.bark);
 function clearMillFront(){
  for(const list of[shrubItems,grassItems,flowerItems])for(let i=list.length-1;i>=0;i--){
   const item=list[i],p=new V3(item.x,item.y+(item.sy||.1)*.55,item.z).project(camera),u=(p.x+1)/2,v=(1-p.y)/2;

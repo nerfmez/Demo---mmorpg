@@ -416,6 +416,12 @@
           "guardian_bond": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "cast_on_guard": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "poison_shift": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "long_rend": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
+          "tip_strike": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
+          "quake_line": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
+          "conductive": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
+          "fork_chain": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
+          "stun_arc": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
           "ramp_cast": "adds less than it costs on every skill it fits, or its effect is not measured yet"
         }
       }

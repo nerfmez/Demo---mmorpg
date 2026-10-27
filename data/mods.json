@@ -1294,6 +1294,238 @@
         "VIT": 5
       },
       "id": "prolong"
+    },
+    "wide_stream": {
+      "name": "Wide Stream",
+      "nameTh": "ธารกว้าง",
+      "desc": "กรวยกว้างขึ้น 50/60/70% แต่สั้นลง 15% ใช้ร่วมกับธารพุ่งไกลไม่ได้",
+      "tags": [
+        "Cone"
+      ],
+      "needs": [
+        "Channel",
+        "Cone"
+      ],
+      "family": "cone",
+      "effect": {
+        "arcMult": [
+          1.5,
+          1.6,
+          1.7
+        ],
+        "rangeMult": 0.85,
+        "costMult": 1.2
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "wide_stream"
+    },
+    "long_stream": {
+      "name": "Lancing Stream",
+      "nameTh": "ธารพุ่งไกล",
+      "desc": "ไกลขึ้น 40/50/60% แรงขึ้น 10% แต่กรวยแคบลงเกือบครึ่ง ใช้ร่วมกับธารกว้างไม่ได้",
+      "tags": [
+        "Cone"
+      ],
+      "needs": [
+        "Channel",
+        "Cone"
+      ],
+      "family": "cone",
+      "effect": {
+        "arcMult": 0.55,
+        "rangeMult": [
+          1.4,
+          1.5,
+          1.6
+        ],
+        "damageMult": 1.1,
+        "costMult": 1.2
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "long_stream"
+    },
+    "release_burst": {
+      "name": "Release Burst",
+      "nameTh": "ปลดเพลิง",
+      "desc": "หยุดร่ายหลังค้างอย่างน้อย 0.5 วิ จะระเบิดวง 2.2 ม. ตรงหน้า แรงตามเวลาที่ค้าง (สูงสุด 2 วิ) 60/70/80% ของดาเมจต่อวินาที",
+      "tags": [
+        "Channel"
+      ],
+      "needs": [
+        "Channel",
+        "Damage"
+      ],
+      "effect": {
+        "releaseMult": [
+          0.6,
+          0.7,
+          0.8
+        ],
+        "releaseMin": 0.5,
+        "releaseCap": 2,
+        "releaseRadius": 2.2,
+        "costMult": 1.25
+      },
+      "requires": {
+        "INT": 7
+      },
+      "id": "release_burst"
+    },
+    "long_rend": {
+      "name": "Long Rend",
+      "nameTh": "แนวยาว",
+      "desc": "แนวฟันยาวขึ้น 30/40/50% แต่แคบลง 15%",
+      "tags": [
+        "Line"
+      ],
+      "needs": [
+        "Line"
+      ],
+      "family": "lane",
+      "effect": {
+        "rangeMult": [
+          1.3,
+          1.4,
+          1.5
+        ],
+        "widthMult": 0.85,
+        "costMult": 1.2
+      },
+      "requires": {
+        "STR": 6
+      },
+      "id": "long_rend"
+    },
+    "tip_strike": {
+      "name": "Edge of the Line",
+      "nameTh": "ปลายคม",
+      "desc": "ศัตรูในช่วงปลาย 35% ของแนวโดนแรงขึ้น 40/50/60% แต่ทั้งแนวลดลง 10% ต้องยืนให้ได้ระยะ",
+      "tags": [
+        "Line"
+      ],
+      "needs": [
+        "Line",
+        "Damage"
+      ],
+      "effect": {
+        "tipShare": 0.35,
+        "tipMult": [
+          1.4,
+          1.5,
+          1.6
+        ],
+        "damageMult": 0.9,
+        "costMult": 1.2
+      },
+      "requires": {
+        "STR": 6
+      },
+      "id": "tip_strike"
+    },
+    "quake_line": {
+      "name": "Quake Line",
+      "nameTh": "แผ่นดินสะเทือน",
+      "desc": "ศัตรูที่โดนแนวมึน 0.4/0.5/0.6 วิ (บอส 0.1 วิ) ท่าที่กำลังเงื้อถูกยกเลิก ดาเมจลดลง 10%",
+      "tags": [
+        "Control"
+      ],
+      "needs": [
+        "Line",
+        "Damage"
+      ],
+      "effect": {
+        "lineStun": [
+          0.4,
+          0.5,
+          0.6
+        ],
+        "lineStunBoss": 0.1,
+        "damageMult": 0.9,
+        "costMult": 1.25
+      },
+      "requires": {
+        "STR": 7
+      },
+      "id": "quake_line"
+    },
+    "conductive": {
+      "name": "Conductive Arc",
+      "nameTh": "นำไฟฟ้า",
+      "desc": "ทุกการกระโดดแรงเท่าครั้งแรก แต่ระยะกระโดดสั้นลง 40% และดาเมจลด 10%",
+      "tags": [
+        "Chain"
+      ],
+      "needs": [
+        "Chain",
+        "Damage"
+      ],
+      "effect": {
+        "chainFalloffSet": 1,
+        "chainRangeMult": 0.6,
+        "damageMult": 0.9,
+        "costMult": 1.15
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "conductive"
+    },
+    "fork_chain": {
+      "name": "Forking Arc",
+      "nameTh": "แตกแขนง",
+      "desc": "ทุกตัวที่โดน สายฟ้าแตกแขนงไปฟาดศัตรูใกล้อีกหนึ่งตัว แรง 50/60/70% แขนงไม่กระโดดต่อ",
+      "tags": [
+        "Chain"
+      ],
+      "needs": [
+        "Chain",
+        "Damage"
+      ],
+      "not": [
+        "Signature"
+      ],
+      "effect": {
+        "forkMult": [
+          0.5,
+          0.6,
+          0.7
+        ],
+        "costMult": 1.2
+      },
+      "requires": {
+        "INT": 7
+      },
+      "id": "fork_chain"
+    },
+    "stun_arc": {
+      "name": "Arresting Arc",
+      "nameTh": "ช็อตชะงัก",
+      "desc": "ตัวสุดท้ายที่สายฟ้าโดนมึน 0.5/0.6/0.7 วิ (บอส 0.15 วิ) ดาเมจลดลง 10%",
+      "tags": [
+        "Control"
+      ],
+      "needs": [
+        "Chain",
+        "Damage"
+      ],
+      "effect": {
+        "chainStun": [
+          0.5,
+          0.6,
+          0.7
+        ],
+        "chainStunBoss": 0.15,
+        "damageMult": 0.9,
+        "costMult": 1.25
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "stun_arc"
     }
   },
   "slotsByRank": [

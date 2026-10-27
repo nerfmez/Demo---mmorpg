@@ -2463,6 +2463,96 @@
       },
       "grade": "C"
     },
+    "mod_wide_stream": {
+      "type": "mod",
+      "result": "wide_stream",
+      "cost": {
+        "spore_sac": 2,
+        "glow_dust": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_long_stream": {
+      "type": "mod",
+      "result": "long_stream",
+      "cost": {
+        "shore_feather": 2,
+        "glow_dust": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_release_burst": {
+      "type": "mod",
+      "result": "release_burst",
+      "cost": {
+        "wisp_core": 1,
+        "venom_gland": 2,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_long_rend": {
+      "type": "mod",
+      "result": "long_rend",
+      "cost": {
+        "crag_stone": 2,
+        "boar_hide": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_tip_strike": {
+      "type": "mod",
+      "result": "tip_strike",
+      "cost": {
+        "ram_horn": 2,
+        "boar_tusk": 2,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_quake_line": {
+      "type": "mod",
+      "result": "quake_line",
+      "cost": {
+        "crag_stone": 2,
+        "ram_horn": 1,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_conductive": {
+      "type": "mod",
+      "result": "conductive",
+      "cost": {
+        "wisp_core": 1,
+        "crab_shell": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_fork_chain": {
+      "type": "mod",
+      "result": "fork_chain",
+      "cost": {
+        "wisp_core": 2,
+        "mirror_scale": 1,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_stun_arc": {
+      "type": "mod",
+      "result": "stun_arc",
+      "cost": {
+        "mirror_scale": 2,
+        "beetle_shell": 2,
+        "gold": 30
+      },
+      "grade": "B"
+    },
     "learn_sky_shatter": {"type":"skill","result":"sky_shatter","cost":{"ram_horn":4,"crag_stone":3,"gold":60}},
     "learn_earth_rend": {"type":"skill","result":"earth_rend","cost":{"crag_stone":4,"golem_heart":1,"gold":60}},
     "learn_iron_body": {"type":"skill","result":"iron_body","cost":{"golem_heart":1,"ram_horn":3,"gold":55}},

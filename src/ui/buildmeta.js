@@ -24,7 +24,7 @@ export function requirementsHtml(def) {
   const req=Object.entries(def.requires||{});
   return `<p class="seeker-requires">ค่าสถานะที่ต้องมี: <b>${req.length?req.map(([s,v])=>`${esc(s)} ${v}`).join(' · '):'ไม่มีเงื่อนไข'}</b></p>`;
 }
-const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางยิง',displace:'ย้ายตำแหน่งศัตรู',status:'สถานะธาตุ'};
+const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางยิง',displace:'ย้ายตำแหน่งศัตรู',status:'สถานะธาตุ',cone:'ทรงกรวย',lane:'ทรงแนว'};
 const tagList = (tags, join) => tags.map(t=>TAGS[t]||t).join(join);
 export function modRules(mod) {
   const rules=[];

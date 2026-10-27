@@ -312,6 +312,8 @@ export class SkillFx {
         if (e.kind === 'meteor') { this.meteor.impact(e); host.shake(0.4, 0.3); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.strike(e, g.monsters.filter((m) => !m.dead && Math.hypot(m.x - e.x, m.z - e.z) <= (e.radius || 3) + (m.r || 0)).map((m) => [m.x, m.z])); host.shake(0.14, 0.12); return true; }
         if (e.kind === 'leap') { this.move.land(e.x, e.z, e.radius); host.shake(0.2, 0.18); return true; }
+        // Release Burst (a stream mod): the held fire bursts ahead - Firebolt's impact, sized to the circle
+        if (e.kind === 'release_burst') { if (e.element === 'fire') this.fire.impact(e.x, 0.8, e.z, false, e.radius / 1.4); else this.mod.burst(e); host.shake(0.16, 0.16); return true; }
         if (e.kind === 'mod_burst') { this.mod.burst(e); host.banner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); return true; }
         return false;
       case 'slash': {

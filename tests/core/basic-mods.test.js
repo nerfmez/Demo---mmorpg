@@ -8,7 +8,7 @@ import { computeSkill, modFits } from '../../src/core/skills.js';
 import { Game } from '../../src/core/game-simulation.js';
 
 const S = data.skills.combat, M = data.mods.mods;
-const MULTIPLY = ['extraProjectiles', 'repeats', 'echoDelay', 'trigger', 'returnMult'];
+const MULTIPLY = ['extraProjectiles', 'repeats', 'echoDelay', 'trigger', 'returnMult', 'forkMult'];
 
 /** The skill `id` in slot 0 with the given mods at `level`, every stat high enough. */
 function withMods(id, mods, level = 1, ch = createCharacter(data)) {

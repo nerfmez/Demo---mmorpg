@@ -33,7 +33,7 @@ export function packTargets(s, pack) {
   switch (s.kind) {
     case 'melee_arc': return byArea(Math.PI * s.range * s.range * (s.arc || 90) / 360);
     case 'melee_nova': case 'nova': case 'ground_area': case 'dot_zone': return byArea(Math.PI * (s.radius || 1) ** 2);
-    case 'melee_line': return byArea(s.range * (s.def?.width || 1));
+    case 'melee_line': return byArea(s.range * (s.width || s.def?.width || 1));
     case 'channel_cone': return byArea(Math.PI * s.range * s.range * (s.arc || 60) / 360);
     case 'chain': return Math.min(pack.size, 1 + (s.chain || 0));
     case 'projectile': return Math.min(pack.size, (1 + (s.pierce || 0)) * Math.max(1, s.projectiles || 1) + (s.chain || 0)); // a bounce jumps on
@@ -58,7 +58,8 @@ export function castDamage(s) {
 function packHits(s, pack) {
   if (s.kind !== 'chain') return packTargets(s, pack);
   let sum = 0;
-  for (let k = 0; k < Math.min(pack.size, 1 + (s.chain || 0)); k++) sum += (s.chainFalloff || 1) ** k;
+  const hops = Math.min(pack.size, 1 + (s.chain || 0)), forks = Math.min(hops, pack.size - hops);
+  for (let k = 0; k < hops; k++) sum += (s.chainFalloff || 1) ** k * (1 + (k < forks ? s.modEffects?.forkMult || 0 : 0));
   return sum;
 }
 
@@ -139,7 +140,9 @@ export function buildProfile(data, spec) {
       // a burst where a shot ends (a mod) and a free cast each time we dodge (a trigger mod)
       const burst = s.modEffects?.terminalBurst ? s.modEffects.terminalBurst * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.modEffects.burstRadius }, R.pack) : 1) / Math.max(1, hits) : 0;
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
-      return a + (r[i] + triggered) * castDamage(s) * hits * (1 + burst) * dots(s) * critOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
+      // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there
+      const e = s.modEffects || {}, tip = e.tipMult ? (scen === 'pack' ? 1 + e.tipShare * (e.tipMult - 1) : e.tipMult) : 1;
+      return a + (r[i] + triggered) * castDamage(s) * tip * hits * (1 + burst) * dots(s) * critOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
     }, 0) * armour * amp * (1 + selfDamage * helperShare);
   };
   // summons fight beside us: each attacks every attackCooldown while it lives (life of every cooldown)
@@ -163,8 +166,9 @@ export function buildProfile(data, spec) {
   let free = 1;
   attacks.concat(helpers).forEach((s, i) => {
     const rate = i < attacks.length ? rf[i] : share(s) / s.cooldown, reach = Math.min(1, packHits(s, R.pack) / R.pack.size);
-    const stun = s.stun || s.def.stun, chill = s.chill || (s.slow ? { slow: s.slow, duration: s.duration } : null);
+    const e = s.modEffects || {}, stun = s.stun || s.def.stun || (e.lineStun ? { duration: e.lineStun } : null), chill = s.chill || (s.slow ? { slow: s.slow, duration: s.duration } : null);
     if (stun) free *= 1 - Math.min(C.cap, rate * stun.duration * reach);
+    if (e.chainStun) free *= 1 - Math.min(C.cap, rate * e.chainStun / R.pack.size); // one monster, the chain's last
     if (s.knock) free *= 1 - Math.min(C.cap, rate * s.knock / C.monsterSpeed * reach);
     if (chill) free *= 1 - Math.min(C.cap, chill.slow * C.slowShare * Math.min(1, rate * chill.duration) * reach);
     if (s.kind === 'curse_zone' && s.dealtMult) free *= 1 - (1 - s.dealtMult) * Math.min(1, s.duration / s.cooldown) * share(s);

@@ -349,7 +349,10 @@ mods belong to the lightning line and need `Lightning`), never by one skill: `sp
 `widthMult`, `chainFalloffSet` and `chainRangeMult` reshape the skill in `compileFrontier`; Release Burst (`releaseMult`, `releaseMin`,
 `releaseCap`, `releaseRadius`) bursts ahead in `cancelChannel` when a stream held at least
 `releaseMin` s ends (core `burst` kind `release_burst`); Far End (`tipShare`, `tipMult`)
-and Staggering Line (`lineStun`, `lineStunBoss`) act per monster in the `melee_line` strike; Forking Arc
+acts per monster in the `melee_line` strike and Piercing Line (`penetrate`) ignores that share of
+the defense in `Game.hitMonster`; control mods are their own group: Stagger (`quake_line`: `hitStun`,
+`hitStunBoss`, the longer stun wins) and Lasting Control (`controlMult`: stuns, chills, curse and wall
+durations; on `Control` or `Curse`) are fitted by control, not by shape; Forking Arc
 (`forkMult`) also strikes the second-nearest unhit monster at each hop (a `chain` event with
 `from: true`) and Arresting Arc (`chainStun`, `chainStunBoss`) stuns the chain's last target.
 Wide Spread and Far Reach share the `spread` family.

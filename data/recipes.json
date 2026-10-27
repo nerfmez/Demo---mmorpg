@@ -2553,6 +2553,26 @@
       },
       "grade": "B"
     },
+    "mod_control_duration": {
+      "type": "mod",
+      "result": "control_duration",
+      "cost": {
+        "beetle_shell": 3,
+        "rootdigger_claw": 1,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_pierce_line": {
+      "type": "mod",
+      "result": "pierce_line",
+      "cost": {
+        "ram_horn": 2,
+        "crag_stone": 2,
+        "gold": 30
+      },
+      "grade": "B"
+    },
     "learn_sky_shatter": {"type":"skill","result":"sky_shatter","cost":{"ram_horn":4,"crag_stone":3,"gold":60}},
     "learn_earth_rend": {"type":"skill","result":"earth_rend","cost":{"crag_stone":4,"golem_heart":1,"gold":60}},
     "learn_iron_body": {"type":"skill","result":"iron_body","cost":{"golem_heart":1,"ram_horn":3,"gold":55}},

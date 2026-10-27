@@ -100,6 +100,8 @@ export function buildProfile(data, spec) {
   const attacks = skills.slice(0, loadout.length), helpers = skills.slice(loadout.length);
   const m = referenceMonster(data, spec.level), hitDps = m.damage / m.hitInterval, sec = R.fightSeconds;
   const crit = 1 + d.critChance * (d.critMult - 1), critOf = (s) => s.noCrit ? 1 : crit, armour = defenseFactor(m.defense * (1 - (d.penetrationPct || 0) / 100), data);
+  // a mod's own penetration (Piercing Line) on top of the character's
+  const armourOf = (s) => s.modEffects?.penetrate ? defenseFactor(m.defense * (1 - (d.penetrationPct || 0) / 100) * (1 - s.modEffects.penetrate / 100), data) / armour : 1;
   const pct = (k) => (d[k] || 0) / 100;
   // rotation: cooldown skills whenever ready, each holding the hero for its cast and a short recovery;
   // the main attack fills the rest of the fighting time; MP cuts the main attack first
@@ -142,7 +144,7 @@ export function buildProfile(data, spec) {
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
       // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there
       const e = s.modEffects || {}, tip = e.tipMult ? (scen === 'pack' ? 1 + e.tipShare * (e.tipMult - 1) : e.tipMult) : 1;
-      return a + (r[i] + triggered) * castDamage(s) * tip * hits * (1 + burst) * dots(s) * critOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
+      return a + (r[i] + triggered) * castDamage(s) * tip * hits * (1 + burst) * dots(s) * critOf(s) * armourOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
     }, 0) * armour * amp * (1 + selfDamage * helperShare);
   };
   // summons fight beside us: each attacks every attackCooldown while it lives (life of every cooldown)
@@ -166,7 +168,7 @@ export function buildProfile(data, spec) {
   let free = 1;
   attacks.concat(helpers).forEach((s, i) => {
     const rate = i < attacks.length ? rf[i] : share(s) / s.cooldown, reach = Math.min(1, packHits(s, R.pack) / R.pack.size);
-    const e = s.modEffects || {}, stun = s.stun || s.def.stun || (e.lineStun ? { duration: e.lineStun } : null), chill = s.chill || (s.slow ? { slow: s.slow, duration: s.duration } : null);
+    const e = s.modEffects || {}, stun = s.stun || s.def.stun, chill = s.chill || (s.slow ? { slow: s.slow, duration: s.duration } : null);
     if (stun) free *= 1 - Math.min(C.cap, rate * stun.duration * reach);
     if (e.chainStun) free *= 1 - Math.min(C.cap, rate * e.chainStun / R.pack.size); // one monster, the chain's last
     if (s.knock) free *= 1 - Math.min(C.cap, rate * s.knock / C.monsterSpeed * reach);

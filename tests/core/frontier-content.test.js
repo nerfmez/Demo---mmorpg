@@ -184,12 +184,13 @@ test('channel mods fit any channel by its type tag, reshape whatever shape it ha
   assert.equal(g.drainEvents().filter(e=>e.type==='burst'&&e.kind==='release_burst').length,bursts,'held '+held);
  }
 });
-test('lane mods: Long Rend reaches farther, Far End hits hardest at the end, Staggering Line stuns',()=>{
+test('lane mods: Long Rend reaches farther, Far End hits hardest at the end, Piercing Line ignores armour',()=>{
  {const a=fixture('frontline_split'),b=fixture('frontline_split',['long_rend']);for(const f of [a,b]){f.m.x=6;f.g.executeSkill(f.s,aim);}
   assert.equal(a.m.hp,a.m.maxHp);assert(b.m.hp<b.m.maxHp);assert(b.s.width<a.s.width);}
  {const {g,m,s}=fixture('frontline_split',['tip_strike']);m.x=1.5;const far=more(g,m,[[4.5,0]])[0];g.executeSkill(s,aim);const h=hits(g);
   const near=h.find(e=>e.id===m.id).amount,end=h.find(e=>e.id===far.id).amount;assert(Math.abs(end/near-data.mods.mods.tip_strike.effect.tipMult[0])<0.01,'hits are rounded');}
- for(const boss of [false,true]){const {g,m,s}=fixture('frontline_split',['quake_line']);m.boss=boss;g.executeSkill(s,aim);assert.equal(m.state,'stunned');assert.equal(m.stateDur,boss?data.mods.mods.quake_line.effect.lineStunBoss:data.mods.mods.quake_line.effect.lineStun[0]);}
+ {const a=fixture('frontline_split'),b=fixture('frontline_split',['pierce_line']);for(const f of [a,b]){f.m.defense=400;f.g.executeSkill(f.s,aim);}assert(b.m.maxHp-b.m.hp>a.m.maxHp-a.m.hp,'Piercing Line ignores part of the armour');}
+ assert(!modFits(data.skills.combat.frontline_split,data.mods.mods.quake_line).ok,'a lane is not a control skill: the stun is a control mod');
 });
 test('chain mods: Conductive Arc keeps its strength over shorter jumps, Forking Arc branches once per hop, Arresting Arc stuns the last',()=>{
  {const {g,m,s}=fixture('chain_spark',['conductive']);g.player.targetId=m.id;more(g,m,[[4,0],[6,0],[10,0]]);g.executeSkill(s,aim);const h=hits(g);
@@ -198,4 +199,13 @@ test('chain mods: Conductive Arc keeps its strength over shorter jumps, Forking 
   assert.equal(ev.filter(e=>e.type==='hit').length,3);assert.equal(ev.filter(e=>e.type==='chain'&&e.from).length,1);}
  {const {g,m,s}=fixture('chain_spark',['stun_arc']);g.player.targetId=m.id;const [b]=more(g,m,[[4,0]]);g.executeSkill(s,aim);assert.notEqual(m.state,'stunned');assert.equal(b.state,'stunned');}
  {const {g,m,s}=fixture('chain_spark',['stun_arc']);g.player.targetId=m.id;g.executeSkill(s,aim);assert.equal(m.state,'stunned','a lone target is the last one');}
+});
+test('control mods: Stagger stuns on every hit of a control skill, Lasting Control stretches its control',()=>{
+ const st=data.mods.mods.quake_line.effect;
+ for(const boss of [false,true]){const {g,m,s}=fixture('frost_nova',['quake_line']);m.boss=boss;m.x=1;g.executeSkill(s,{angle:Math.PI/2,x:g.player.x,z:g.player.z});assert.equal(m.state,'stunned');assert.equal(m.stateDur,boss?st.hitStunBoss[0]:st.hitStun[0]);}
+ assert(!modFits(data.skills.combat.slash,data.mods.mods.quake_line).ok&&!modFits(data.skills.combat.slash,data.mods.mods.control_duration).ok,'no control, no control mod');
+ const k=data.mods.mods.control_duration.effect.controlMult[0];
+ assert(Math.abs(fixture('frost_nova',['control_duration']).s.chill.duration/fixture('frost_nova').s.chill.duration-k)<1e-9);
+ assert(Math.abs(fixture('interrupt_slam',['control_duration']).s.stun.duration/fixture('interrupt_slam').s.stun.duration-k)<1e-9);
+ assert(Math.abs(fixture('hex',['control_duration']).s.duration/fixture('hex').s.duration-k)<1e-9);
 });

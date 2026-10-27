@@ -3,12 +3,14 @@ import {MOD_GROUPS} from './gemart.js';
 const ROLE_CLASS={attack:'power',mechanics:'mechanic',support:'support'};
 export const modRole=id=>ROLE_CLASS[MOD_GROUPS[id]]||'mechanic';
 const glyphs={
+  control_duration:'M8 9a4 4 0 1 1 8 0v3H8zM6 12h12v9H6zM12 15v3M2 4l3 2M22 4l-3 2',
+  pierce_line:'M2 12h17M15 8l5 4-5 4M8 5v14M12 7v10',
   wide_stream:'M3 12L21 3M3 12L21 21M3 12h18M14 6.5v11',
   long_stream:'M2 12L22 9M2 12l20 3M2 12h20M8 5l3 3M8 19l3-3',
   release_burst:'M3 12h6M12 12l5-7M12 12l7-2M12 12l7 3M12 12l4 7M12 12l-1 8M12 12l-1-8',
   long_rend:'M2 19L22 5M6 20l2-3M12 16l2-3M18 12l2-3M2 9h5M2 13h3',
   tip_strike:'M2 20L17 7M14 4l6 6-3 1-4-4zM19 2l3 3M15 18h7',
-  quake_line:'M2 20L22 4M4 14l2 2 2-3 2 2M13 7l2 2 2-3 2 2M3 4l3 3M18 19l3-3',
+  quake_line:'M12 13a4 4 0 1 0 0.1 0M5 5l2 2M12 2v3M19 5l-2 2M3 11h3M18 11h3M8 22h8',
   conductive:'M3 18l5-5 4 3 5-6 4 2M3 6h5M16 6h5M10 6h4',
   fork_chain:'M3 20l6-8 4 2 4-8M13 14l7 3M17 6l4-3M17 6l1 5',
   stun_arc:'M4 20l6-9 4 2 6-9M17 17a3 3 0 1 0 0.1 0M14 20l-1 2M20 20l1 2M17 13v-1',
@@ -58,4 +60,4 @@ const glyphs={
   pack_leader:'M14 14l5 5M34 14l-5 5M16 31l8 6 8-6-3-10H19ZM21 27h6M9 23l4 4M39 23l-4 4',
   cast_on_dodge:'M12 15a16 16 0 1 1-2 17M12 15H5M12 15V8M26 14l-8 13h9l-4 8 11-14h-9Z'
 };
-export function modCoin(inst){return `<span class="coin ${modRole(inst.id)}" data-coin="${inst.uid}" data-mod-id="${inst.id}"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="${glyphs[inst.id]}" transform="${['wide_stream','long_stream','release_burst','long_rend','tip_strike','quake_line','conductive','fork_chain','stun_arc','heavy_blow','vicious_shot','focused_spell','elemental_focus','quicken','prolong','returning_shot','terminal_burst','chain_return','advancing_edge','gathering_cut','laceration','status_burst','poison_shift','wide_field','ramp_cast','momentum','following_field','binding_field','healing_chain','healing_barrier','breaking_ward','spreading_hex','focused_pack','guardian_bond','following_aura','cast_on_guard'].includes(inst.id)?'translate(0 0) scale(2)':''}"/></svg><i></i></span>`;}
+export function modCoin(inst){return `<span class="coin ${modRole(inst.id)}" data-coin="${inst.uid}" data-mod-id="${inst.id}"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="${glyphs[inst.id]}" transform="${['control_duration','pierce_line','wide_stream','long_stream','release_burst','long_rend','tip_strike','quake_line','conductive','fork_chain','stun_arc','heavy_blow','vicious_shot','focused_spell','elemental_focus','quicken','prolong','returning_shot','terminal_burst','chain_return','advancing_edge','gathering_cut','laceration','status_burst','poison_shift','wide_field','ramp_cast','momentum','following_field','binding_field','healing_chain','healing_barrier','breaking_ward','spreading_hex','focused_pack','guardian_bond','following_aura','cast_on_guard'].includes(inst.id)?'translate(0 0) scale(2)':''}"/></svg><i></i></span>`;}

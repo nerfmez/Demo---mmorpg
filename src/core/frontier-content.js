@@ -13,6 +13,14 @@ export function compileFrontier(s, def, activeMods) {
   // channel's spread is whatever its shape has: a cone's angle, a beam's width, or a circle's radius
   if (e.spreadMult) { if (s.arc) s.arc *= e.spreadMult; else if (s.width) s.width *= e.spreadMult; else if (s.radius) s.radius *= e.spreadMult; }
   if (e.rangeMult) s.range *= e.rangeMult;
+  // Stagger (a control mod): every hit stuns; a skill's own stun keeps the longer of the two
+  if (e.hitStun) s.stun = { duration: Math.max(s.stun?.duration || 0, e.hitStun), bossDuration: Math.max(s.stun?.bossDuration || 0, e.hitStunBoss) };
+  // Lasting Control: stuns, chills, curses and walls of this skill last longer
+  if (e.controlMult) {
+    if (s.stun) s.stun = { ...s.stun, duration: s.stun.duration * e.controlMult, bossDuration: (s.stun.bossDuration || 0) * e.controlMult };
+    if (s.chill) s.chill.duration *= e.controlMult;
+    if (s.kind === 'curse_zone' || s.kind === 'wall') s.duration *= e.controlMult;
+  }
   if (e.widthMult && s.width) s.width *= e.widthMult;
   if (e.chainFalloffSet) s.chainFalloff = e.chainFalloffSet;
   if (e.chainRangeMult) s.chainRange *= e.chainRangeMult;
@@ -107,13 +115,13 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     return true;
   }
   if(s.kind==='melee_line'){
-    // Far End: the far end of the lane hits harder; Staggering Line: the lane stuns
-    const tip=e.tipMult?s.range*(1-e.tipShare):Infinity,stun=e.lineStun?{duration:e.lineStun,bossDuration:e.lineStunBoss}:undefined;
+    // Far End: the far end of the lane hits harder
+    const tip=e.tipMult?s.range*(1-e.tipShare):Infinity;
     for(const m of g.monsters){
       if(m.dead)continue;const dx=m.x-p.x,dz=m.z-p.z;
       const forward=dx*Math.sin(aim.angle)+dz*Math.cos(aim.angle),side=dx*Math.cos(aim.angle)-dz*Math.sin(aim.angle);
       if(forward < -m.r || forward>s.range+m.r || Math.abs(side)>s.width/2+m.r)continue;
-      g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,stun?{crit:g.rollCrit(),stun}:{crit:g.rollCrit()}));
+      g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,{crit:g.rollCrit()}));
     }
     g.emit({type:'lineStrike',skill:s.id,x:p.x,z:p.z,angle:aim.angle,range:s.range,width:s.width,element:s.element});return true;
   }

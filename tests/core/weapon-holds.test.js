@@ -31,14 +31,61 @@ test('heavy weapons are held in two hands unless the left hand is busy', () => {
   assert.ok(HOLDS.swing.radius > 0.2 && HOLDS.swing.radius < 0.8);
 });
 
-test('idle stances exist, use real pose channels and stay small', () => {
+test('idle stances exist, use real pose channels and stay within a standing range', () => {
   const bones = new Set(['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips']);
   assert.ok(HOLDS.stances.relaxed, 'the default stance');
-  for (const [id, h] of Object.entries(HOLDS.holds))
-    for (const k of ['one', 'two']) if (h[k]?.stance) assert.ok(HOLDS.stances[h[k].stance], `${id}.${k} stance ${h[k].stance}`);
-  for (const [name, st] of Object.entries(HOLDS.stances))
+  // the shared carries and the chibi's own (data/models.json) name stances that exist
+  const chibi = data.models.characters.hero_chibi.holds;
+  for (const [id, h] of [...Object.entries(HOLDS.holds), ...Object.entries(chibi).filter(([id]) => id !== '_doc')])
+    for (const k of ['one', 'two', 'dual']) if (h[k]?.stance) assert.ok(HOLDS.stances[h[k].stance], `${id}.${k} stance ${h[k].stance}`);
+  // a stance retargeted from a reference clip (_from names it) bends the knees further and drops lower
+  for (const [name, st] of Object.entries(HOLDS.stances)) {
+    const ref = typeof st._from === 'string';
     for (const [k, v] of Object.entries(st)) {
-      if (k === 'drop' || k === 'shift') { assert.ok(Math.abs(v) < 0.1, `${name}.${k}`); continue; }
-      assert.ok(bones.has(k) && vec(v) && v.every((x) => Math.abs(x) < 0.8), `${name}.${k}`);
+      if (k === '_from') continue;
+      if (k === 'drop' || k === 'shift') { assert.ok(Math.abs(v) < (ref ? 0.2 : 0.1), `${name}.${k}`); continue; }
+      const lim = ref ? (/^(elbow|knee)/.test(k) ? 2.6 : 1.6) : 0.8; // a hinge can fold further (an archer's drawing elbow)
+      assert.ok(bones.has(k) && vec(v) && v.every((x) => Math.abs(x) < lim), `${name}.${k}`);
     }
+  }
+});
+
+test('the chibi keeps a one-hand carry beside a dual one, and a dual carry places the left weapon', () => {
+  const chibi = data.models.characters.hero_chibi.holds;
+  for (const [id, h] of Object.entries(chibi)) {
+    if (id === '_doc') continue;
+    assert.ok(data.items.weaponTypes[id], `chibi hold for unknown weapon ${id}`);
+    assert.ok(h.one || h.two, `${id} still needs its one- or two-hand carry`);
+    if (!h.dual) continue;
+    assert.equal(data.items.weaponTypes[id].hands, 'light', `${id}: only light weapons dual-wield`);
+    assert.ok(vec(h.dual.hand) && vec(h.dual.dir) && vec(h.dual.left?.hand) && vec(h.dual.left?.dir), `${id}.dual needs both hands`);
+    assert.ok(h.dual.left.hand[0] > 0 && h.dual.hand[0] < 0, `${id}.dual: the left weapon on the left (+x), the right on the right`);
+  }
+  for (const [name, p] of Object.entries(HOLDS.presets).filter(([k]) => k !== '_doc'))
+    assert.ok(vec(p.hand) && vec(p.dir) && HOLDS.stances[p.stance], `preset ${name}`);
+});
+
+test('run carries move the hand or arms and lean the body with real channels', () => {
+  const chibi = data.models.characters.hero_chibi.holds;
+  const bones = new Set(['legL', 'legR', 'kneeL', 'kneeR', 'torso', 'chest', 'head']);
+  for (const [id, h] of Object.entries(chibi)) {
+    if (id === '_doc') continue;
+    for (const [k, c] of Object.entries(h)) {
+      const r = c?.run;
+      if (!r) continue;
+      for (const f of ['hand', 'dir', 'up']) if (r[f]) assert.ok(vec(r[f]), `${id}.${k}.run.${f}`);
+      if (r.left) assert.ok(c.left && vec(r.left.hand) && vec(r.left.dir), `${id}.${k}.run.left needs a dual carry`);
+      // a run carry's own arms: whole arm channels, the left arm only with a second weapon to hold
+      const arms = new Set(['armR', 'elbowR', ...(c.left ? ['armL', 'elbowL'] : [])]);
+      for (const [n, v] of Object.entries(r.arms || {})) assert.ok(arms.has(n) && vec(v) && v.every((x) => Math.abs(x) < 1.6), `${id}.${k}.run.arms.${n}`);
+      if (c.left && r.arms) assert.ok(r.arms.armL, `${id}.${k}.run.arms: a dual carry holds both arms`);
+      if (r.socket !== undefined) assert.ok(r.arms && Number.isFinite(r.socket) && Math.abs(r.socket) <= Math.PI, `${id}.${k}.run.socket turns the weapon in a fist the run arms hold`);
+      if (r.reverse) assert.ok(r.socket > Math.PI / 2, `${id}.${k}.run.reverse: the blade leaves the little-finger side`);
+      if (r.release) assert.ok(c.grip !== undefined, `${id}.${k}.run.release only lets go of a two-hand grip`);
+      for (const [n, v] of Object.entries(r.lean || {})) {
+        if (n === 'drop') { assert.ok(v <= 0 && v > -0.2, `${id}.${k}.run.lean.drop`); continue; }
+        assert.ok(bones.has(n) && vec(v) && v.every((x) => Math.abs(x) < 1.2), `${id}.${k}.run.lean.${n}`);
+      }
+    }
+  }
 });

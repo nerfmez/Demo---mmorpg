@@ -2,15 +2,21 @@
 import { modFits, modSlotOf, modRequires, modSlotsFor } from '../core/skills.js';
 import { meetsRequires } from '../core/character.js';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const TAGS = {
-  Attack:'โจมตี',Spell:'เวท',Melee:'ประชิด',Projectile:'กระสุน',Area:'วงกว้าง',Damage:'ทำดาเมจ',
-  DoT:'ดาเมจต่อเนื่อง',Persistent:'พื้นที่คงอยู่',Chain:'เด้งต่อ',Control:'ควบคุม',Debuff:'ดีบัฟ',
-  Curse:'คำสาป',Guard:'เกราะ/การ์ด',Buff:'บัฟ',Warcry:'คำราม',Heal:'ฟื้นฟู',Summon:'อัญเชิญ',
-  Physical:'กายภาพ',Arc:'ฟันโค้ง',Nova:'รอบตัว',Ground:'เล็งพื้น',Zone:'ค้างบนพื้น',Barrier:'โล่เกราะ',Counter:'สวนกลับ',Line:'แนวตรง',Rain:'ยิงระลอก',Channel:'ร่ายต่อเนื่อง',Cone:'กรวย',Construct:'สิ่งสร้าง',Target:'เป้าหมาย',Cleanse:'ล้างสถานะ',Aura:'ออร่า',Charge:'ชาร์จ',Minion:'ลูกสมุน',Movement:'เคลื่อนที่',Trigger:'ทริกเกอร์',Leech:'ดูดเลือด',
-  Fire:'ไฟ',Earth:'ดิน',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',
+// Every tag in six groups (docs/SKILL-TAXONOMY-RESEARCH-TH.md): power (exactly one of Attack/Spell,
+// none only for a Warcry), delivery, shape (mods may still require a shape: wide_arc on Arc),
+// element (a damaging skill names its element; Earth is a kind of Physical), effect, mechanic.
+// tests/core/skill-tags.test.js holds skills, movement skills and mods to this vocabulary.
+export const TAG_GROUPS = {
+  power: {Attack:'โจมตี',Spell:'เวท'},
+  delivery: {Melee:'ประชิด',Strike:'ฟันเป้า',Slam:'ทุบพื้น',Projectile:'ยิง',Chain:'เด้งต่อ',Area:'วงกว้าง',Channel:'ร่ายต่อเนื่อง',Summon:'อัญเชิญ',Minion:'ลูกสมุน',Aura:'ออร่า',Warcry:'คำราม',Curse:'คำสาป',Movement:'เคลื่อนที่'},
+  shape: {Arc:'ฟันโค้ง',Line:'แนวตรง',Cone:'กรวย',Nova:'รอบตัว',Rain:'ยิงระลอก',Ground:'เล็งพื้น',Zone:'ค้างบนพื้น',Construct:'สิ่งสร้าง',Target:'เป้าหมาย'},
+  element: {Physical:'กายภาพ',Fire:'ไฟ',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',Earth:'ดิน',Arcane:'อาร์เคน'},
+  effect: {Damage:'ทำดาเมจ',DoT:'ดาเมจต่อเนื่อง',Control:'ควบคุม',Debuff:'ดีบัฟ',Buff:'บัฟ',Heal:'ฟื้นฟู',Barrier:'โล่เกราะ',Guard:'ตั้งรับ',Counter:'สวนกลับ',Cleanse:'ล้างสถานะ',Leech:'ดูดเลือด'},
+  mechanic: {Duration:'มีระยะเวลา',Charge:'ชาร์จ',Persistent:'พื้นที่คงอยู่',Trigger:'ทริกเกอร์'},
 };
+export const TAGS = Object.assign({}, ...Object.values(TAG_GROUPS));
 export const ELEMENTS = {physical:'กายภาพ',fire:'ไฟ',cold:'น้ำแข็ง',lightning:'สายฟ้า',poison:'พิษ',arcane:'อาร์เคน',none:'ไม่มีดาเมจธาตุ'};
-export const FILTERS = [['all','ทั้งหมด'],['Melee','ประชิด'],['Projectile','กระสุน'],['Area','วงกว้าง'],['DoT','ต่อเนื่อง'],['Persistent','คงอยู่'],['Control','ควบคุม'],['Guard','ป้องกัน'],['Heal','ฟื้นฟู'],['Summon','อัญเชิญ']];
+export const FILTERS = [['all','ทั้งหมด'],['Melee','ประชิด'],['Projectile','ยิง'],['Area','วงกว้าง'],['DoT','ต่อเนื่อง'],['Persistent','คงอยู่'],['Control','ควบคุม'],['Guard','ป้องกัน'],['Heal','ฟื้นฟู'],['Summon','อัญเชิญ']];
 export function tagsHtml(tags) {
   return `<div class="seeker-tags">${[...tags].map(t=>`<span class="seeker-tag" data-skill-tag="${esc(t)}">${esc(TAGS[t] || t)}</span>`).join('')}</div>`;
 }
@@ -18,7 +24,7 @@ export function requirementsHtml(def) {
   const req=Object.entries(def.requires||{});
   return `<p class="seeker-requires">ค่าสถานะที่ต้องมี: <b>${req.length?req.map(([s,v])=>`${esc(s)} ${v}`).join(' · '):'ไม่มีเงื่อนไข'}</b></p>`;
 }
-const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางกระสุน',displace:'ย้ายตำแหน่งศัตรู'};
+const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางยิง',displace:'ย้ายตำแหน่งศัตรู'};
 const tagList = (tags, join) => tags.map(t=>TAGS[t]||t).join(join);
 export function modRules(mod) {
   const rules=[];

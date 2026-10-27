@@ -656,30 +656,33 @@
       "source": "HairSample_Male-beta from approved live Character Studio V6; original SHA256 4af2194f90ba846f3b13c00b50b14262419062d2171d17de922bcce2f89979c7. Complete base skin/scalp; separate gear-controlled garments. VRoid source metadata CC0. See docs/HAIRSAMPLE-INTEGRATION.md."
     },
     "hero_chibi": {
+      "paintedLight": 0.2,
+      "tint": [1, 0.9, 0.8],
+      "underCloth": {
+        "_doc": "Under a modelled outfit the body triangles it covers are tucked `inset` metres inside the cloth (chibi-garments.js coveredBody), not removed, so no gap shows through; garments and helms draw their insides at `inside` of their light, and the tucked body at `under` of its own, pushed `depth` metres back along the view ray so the cloth always wins the depth test.",
+        "inset": 0.015,
+        "inside": 0.4,
+        "under": 0.3,
+        "depth": 0.05
+      },
       "file": "models/hero_chibi.glb",
       "chibi": true,
-      "tris": 4442,
+      "tris": 5199,
+      "fit": {
+        "_doc": "The body's own landmarks (m) the modelled outfits are fitted to (scripts/fit-chibi-outfit.py): the crotch, the T-pose arm axis, the neck cut, the fingertips out from the middle, and the torso's width against the first chibi body's.",
+        "crotch": 0.49,
+        "armAxis": 0.764,
+        "neck": 0.852,
+        "tip": 0.523,
+        "torso": 0.85,
+        "armScale": 0.95
+      },
       "armDrop": 1.3,
       "gearScale": 0.65,
-      "flatten": [
-        {
-          "_doc": "Bands of the bind torso flattened at load (chibi-body.js flattenBody): between heights y0 and y1 the surface beyond depth z (front if above 0, back if below) moves back toward z by up to k. The Meshy body had a bust and round hips; the sheet's chibi is a boy.",
-          "y0": 0.64,
-          "y1": 0.8,
-          "z": 0.072,
-          "k": 1
-        },
-        {
-          "y0": 0.4,
-          "y1": 0.62,
-          "z": -0.045,
-          "k": 0.8
-        }
-      ],
       "helmFit": {
         "_doc": "Helms and hoods on the chibi go over its hair: the head fit scaled by `scale` about the head's centre and lifted `lift` head heights (chibi-body.js).",
-        "scale": 1.3,
-        "lift": 0.1
+        "scale": 1.5,
+        "lift": 0.16
       },
       "faceShadow": {
         "_doc": "Drawn face shadow (chibi-body.js faceShadowMaterial): on the front of the head (mask from `from` to `to` of the way forward) the toon ramp follows where the light stands around the head instead of the mesh normal; `curve` bows the shadow edge round the nose.",
@@ -688,36 +691,305 @@
         "curve": 0.3
       },
       "headShape": {
-        "_doc": "Head reshape toward the sheet's round chibi head (chibi-body.js reshapeHead): wide widens the head, chin shortens the face below the eye line (eye, from the head's bottom), cheek fills the cheeks, soft bends the head normals toward its centre for one round toon shade.",
-        "wide": 0.08,
-        "chin": 0.15,
-        "cheek": 0.06,
+        "_doc": "Head reshape toward the sheet's round chibi head (chibi-body.js reshapeHead): wide widens the head, chin shortens the face below the eye line (eye, from the head's bottom), cheek fills the cheeks, soft bends the head normals toward its centre for one round toon shade, scale sizes the whole head about its base on the neck. The base made from the owner's 2026-10-25 sheet already has its head: no reshape, only the soft normals.",
+        "wide": 0,
+        "chin": 0,
+        "cheek": 0,
         "eye": 0.36,
-        "soft": 0.6
+        "soft": 0.6,
+        "scale": 1
       },
       "bodyMap": {
         "hips": 1.0,
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword points forward and down, ahead of the feet; the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); the dagger alone takes the low trailing guard of the Quaternius Sword_Idle clip (stance dagger_ready); dagger and wand use the dual carry with a second weapon. Heavy weapons are held in both hands at the belly, head forward, clear of the big head. The staff (staff_ready), the wand alone and dual (wand_ready) and the bow (bow_ready) come from the owner's picks (the mace held in one hand, beside a shield, takes the wand's carry) of KayKit Mage and Quaternius bow clips. On the run (run carries, owner's request): the sword trails low behind (the arm from Quaternius Sprint_Shield_Loop), heavy weapons are dragged in the right hand alone, the dagger runs like the sword with the body leaning forward; the run carries' blade rolls are matched to the actions while running (match-roll.mjs run). up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
         "sword": {
           "one": {
             "hand": [
-              -0.22,
-              0.93,
-              0.1
+              -0.296,
+              0.972,
+              0.821
             ],
             "dir": [
-              -0.12,
-              -0.55,
-              0.83
+              0.765,
+              0.632,
+              0.126
             ],
             "up": [
-              1,
-              0,
-              0
-            ]
+              -0.181,
+              0.398,
+              -0.899
+            ],
+            "stance": "sword_guard",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.2,
+                  0,
+                  -0.65
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.79,
+              "reverse": true,
+              "roll": 1.571
+            }
+          },
+          "dual": {
+            "hand": [
+              -0.545,
+              0.762,
+              0.062
+            ],
+            "dir": [
+              -0.16,
+              -0.01,
+              0.987
+            ],
+            "up": [
+              0.404,
+              0.913,
+              0.074
+            ],
+            "left": {
+              "hand": [
+                0.502,
+                0.769,
+                -0.079
+              ],
+              "dir": [
+                0.263,
+                -0.011,
+                0.965
+              ],
+              "up": [
+                -0.372,
+                0.921,
+                0.11
+              ]
+            },
+            "stance": "sword_ready",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.2,
+                  0,
+                  -0.65
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ],
+                "armL": [
+                  0.2,
+                  0,
+                  0.65
+                ],
+                "elbowL": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.79,
+              "reverse": true,
+              "roll": 1.571
+            }
+          }
+        },
+        "dagger": {
+          "one": {
+            "hand": [
+              -0.501,
+              0.642,
+              -0.542
+            ],
+            "dir": [
+              -0.855,
+              0.152,
+              0.496
+            ],
+            "up": [
+              0.394,
+              0.808,
+              0.435
+            ],
+            "stance": "dagger_ready",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.75,
+                  0,
+                  -0.55
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.35,
+              "roll": 1.571,
+              "reverse": true,
+              "lean": {
+                "torso": [
+                  0.35,
+                  0,
+                  0
+                ],
+                "chest": [
+                  0.2,
+                  0,
+                  0
+                ],
+                "head": [
+                  -0.4,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "dual": {
+            "hand": [
+              -0.501,
+              0.642,
+              -0.542
+            ],
+            "dir": [
+              -0.855,
+              0.152,
+              0.496
+            ],
+            "up": [
+              0.398,
+              0.805,
+              0.438
+            ],
+            "left": {
+              "hand": [
+                0.418,
+                0.686,
+                0.663
+              ],
+              "dir": [
+                0.855,
+                0.152,
+                0.496
+              ],
+              "up": [
+                -0.518,
+                0.213,
+                0.83
+              ]
+            },
+            "stance": "dagger_ready",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.75,
+                  0,
+                  -0.55
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ],
+                "armL": [
+                  0.75,
+                  0,
+                  0.55
+                ],
+                "elbowL": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.35,
+              "roll": 1.571,
+              "reverse": true,
+              "lean": {
+                "torso": [
+                  0.35,
+                  0,
+                  0
+                ],
+                "chest": [
+                  0.2,
+                  0,
+                  0
+                ],
+                "head": [
+                  -0.4,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        },
+        "wand": {
+          "one": {
+            "hand": [
+              -0.584,
+              0.778,
+              0.069
+            ],
+            "dir": [
+              -0.158,
+              -0.007,
+              0.987
+            ],
+            "up": [
+              0.472,
+              0.877,
+              0.082
+            ],
+            "stance": "wand_ready"
+          },
+          "dual": {
+            "hand": [
+              -0.584,
+              0.778,
+              0.069
+            ],
+            "dir": [
+              -0.158,
+              -0.007,
+              0.987
+            ],
+            "up": [
+              0.471,
+              0.879,
+              0.081
+            ],
+            "left": {
+              "hand": [
+                0.584,
+                0.778,
+                0.069
+              ],
+              "dir": [
+                0.158,
+                -0.007,
+                0.987
+              ],
+              "up": [
+                -0.471,
+                0.878,
+                0.081
+              ]
+            },
+            "stance": "wand_ready"
           }
         },
         "axe": {
@@ -736,7 +1008,31 @@
               1,
               0,
               0
-            ]
+            ],
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.34,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "reverse": true,
+              "roll": 1.571
+            }
           },
           "two": {
             "hand": [
@@ -755,26 +1051,76 @@
               1,
               0,
               0
-            ]
+            ],
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.34,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
+            }
           }
         },
         "mace": {
           "one": {
             "hand": [
-              -0.24,
-              0.95,
-              0.15
+              -0.584,
+              0.778,
+              0.069
             ],
             "dir": [
-              -0.1,
-              0.4,
-              0.9
+              -0.158,
+              -0.007,
+              0.987
             ],
             "up": [
-              1,
-              0,
-              0
-            ]
+              0.467,
+              0.88,
+              0.082
+            ],
+            "stance": "wand_ready",
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.33,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "reverse": true,
+              "roll": 1.571
+            }
           },
           "two": {
             "hand": [
@@ -793,7 +1139,32 @@
               1,
               0,
               0
-            ]
+            ],
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.33,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
+            }
           }
         },
         "greatblade": {
@@ -814,22 +1185,73 @@
               1,
               0,
               0
-            ]
+            ],
+            "run": {
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.52,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
+            }
           }
         },
         "staff": {
           "one": {
             "hand": [
-              -0.27,
-              0.8,
-              0.2
+              -0.486,
+              0.871,
+              0.485
             ],
             "dir": [
-              -0.04,
-              1,
-              0.2
+              -0.097,
+              0.807,
+              0.582
             ],
-            "castHold": true
+            "castHold": true,
+            "up": [
+              0.475,
+              0.551,
+              -0.686
+            ],
+            "stance": "staff_ready"
+          }
+        },
+        "bow": {
+          "one": {
+            "hand": [
+              -0.282,
+              0.935,
+              0.681
+            ],
+            "dir": [
+              0.091,
+              -0.819,
+              0.567
+            ],
+            "up": [
+              0.527,
+              0.523,
+              0.67
+            ],
+            "stance": "bow_ready"
           }
         }
       },
@@ -857,20 +1279,23 @@
     "hero_chibi_hair": {
       "file": "models/hero_chibi_hair.glb",
       "chibiHair": true,
-      "tris": 3300,
-      "color": "#b9b8bf",
+      "tris": 653,
+      "underHelm": {
+        "_doc": "Under a helm (not a circlet) the hair above `above` of its height and behind `front` of its depth is not drawn (chibi-body.js cutAbove).",
+        "above": 0.55,
+        "front": 0.72
+      },
       "fit": {
-        "width": 1.2,
-        "depth": 1.15,
-        "height": 0.95,
-        "lift": 0.12,
-        "back": 0.02,
+        "width": 1.44,
+        "depth": 1.38,
+        "height": 1.02,
+        "lift": 0.24,
+        "back": 0,
         "side": 0
       },
-      "source": "Meshy web image-to-3d of the chibi character from the owner's sheet, untextured and detailed, made by the owner on the Meshy site (assets/meshy/hero_chibi/hair_meshy_web.glb, 8,429 tris, whole body); hair cut out by position with scripts/prep-chibi-hair.py --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03. Fitted by its fixed box, so re-cutting the model does not move the hair. Drawn in one colour.",
       "box": [
-        [-0.2991, -0.0579, -0.2703],
-        [0.2991, 0.4763, 0.2742]
+        [-0.1741, 0.9111, -0.1559],
+        [0.1612, 1.2, 0.1559]
       ],
       "highlight": {
         "_doc": "Anime highlight band on the hair (chibi-body.js hairHighlightMaterial): a jagged lighter band at height `at` of the hair model, `width` thick, on the side facing the camera, `strength` 0..1.",
@@ -878,29 +1303,278 @@
         "width": 0.06,
         "strength": 0.6
       },
-      "keep": [
-        "front",
-        0.42
-      ]
+      "source": "The hair of the dressed chibi made for outfit_travel_tunic (meshy-t2 task 01a16f0d-97cc-72dc-962c-d0f0313ded3c, Meshy 6 retexture task 01a16f0e-59ef-702d-8ab9-715f349311ad; assets/meshy/outfits/travel_meshy.glb): its grey and dark-line triangles above the chin, the largest connected pieces only, cut by scripts/fit-chibi-hair.py. Fitted by its fixed box; drawn with its own painted texture."
     },
-    "hero_chibi_hair_back": {
-      "file": "models/hero_chibi_hair_back.glb",
-      "chibiHair": true,
-      "tris": 3014,
-      "color": "#b9b8bf",
-      "keep": [
-        "back",
-        0.6
-      ],
-      "fit": {
-        "width": 1.2,
-        "depth": 1.25,
-        "height": 0.95,
-        "lift": 0.09,
-        "back": 0.06,
-        "side": 0
-      },
-      "source": "The back of the hair: the earlier meshy-t2 model of the sheet's chibi head (task 01a1681c-6a87-7494-abca-d5d86c39028f), head removed by scripts/prep-chibi-hair.py; only its back part is drawn (keep), joined to hero_chibi_hair's fringe."
+    "outfit_travel_tunic": {
+      "file": "models/outfits/travel_tunic.glb",
+      "chibiOutfit": "armor",
+      "tris": 1295,
+      "source": "The chibi in the Travel Tunic (the owner's reference sheet 03 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f0d-97cc-72dc-962c-d0f0313ded3c), Meshy 6 retexture (task 01a16f0e-59ef-702d-8ab9-715f349311ad); tunic, belt, skirt and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/travel.json)."
+    },
+    "outfit_travel_boots": {
+      "file": "models/outfits/travel_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 812,
+      "source": "The boots of the same model as outfit_travel_tunic, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_ranger_coat": {
+      "file": "models/outfits/ranger_coat.glb",
+      "chibiOutfit": "armor",
+      "tris": 2405,
+      "source": "The chibi in the ranger_coat set (the owner's reference sheet 01 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-0d22-7308-94f7-d6b344cc84e1), Meshy 6 retexture (task 01a16f6d-835c-76fd-bed2-acab3d0763c5); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/ranger.json)."
+    },
+    "outfit_hide_vest": {
+      "file": "models/outfits/hide_vest.glb",
+      "chibiOutfit": "armor",
+      "tris": 2002,
+      "source": "The chibi in the hide_vest set (the owner's reference sheet 04 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-112b-71f4-b745-65eba656da4c), Meshy 6 retexture (task 01a16f6d-e3b5-71cf-9cdc-74dc1a1ae59d); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/hide.json)."
+    },
+    "outfit_trail_boots": {
+      "file": "models/outfits/trail_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 1144,
+      "source": "The boots of the same model as outfit_hide_vest, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_storm_mantle": {
+      "file": "models/outfits/storm_mantle.glb",
+      "chibiOutfit": "armor",
+      "tris": 2281,
+      "source": "The chibi in the storm_mantle set (the owner's reference sheet 05 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-14ee-75c2-bb0c-98df95347362), Meshy 6 retexture (task 01a16f6d-e992-7553-8e4d-20914d03ce41); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/storm.json)."
+    },
+    "outfit_wisp_slippers": {
+      "file": "models/outfits/wisp_slippers.glb",
+      "chibiOutfit": "boots",
+      "tris": 545,
+      "source": "The boots of the same model as outfit_storm_mantle, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_shell_guard": {
+      "file": "models/outfits/shell_guard.glb",
+      "chibiOutfit": "armor",
+      "tris": 1786,
+      "source": "The chibi in the shell_guard set (the owner's reference sheet 07 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-18c6-7520-9ac0-04afd470c2e0), Meshy 6 retexture (task 01a16f6d-ef38-76e5-8732-7ca23f451f39); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/shell.json)."
+    },
+    "outfit_tide_boots": {
+      "file": "models/outfits/tide_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 614,
+      "source": "The boots of the same model as outfit_shell_guard, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_wardenstalker_coat": {
+      "file": "models/outfits/wardenstalker_coat.glb",
+      "chibiOutfit": "armor",
+      "tris": 2002,
+      "source": "The chibi in the wardenstalker_coat set (the owner's reference sheet 08 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-1d1d-7353-83b5-c18abb750df5), Meshy 6 retexture (task 01a16f6d-f4f3-73a5-a285-555646842a15); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden.json)."
+    },
+    "outfit_gale_boots": {
+      "file": "models/outfits/gale_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 821,
+      "source": "The boots of the same model as outfit_wardenstalker_coat, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_crag_plate": {
+      "file": "models/outfits/crag_plate.glb",
+      "chibiOutfit": "armor",
+      "tris": 2060,
+      "source": "The chibi in the crag_plate set (the owner's reference sheet 12 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-2156-746f-bd4a-10b83926939b), Meshy 6 retexture (task 01a16f6d-fa88-7258-ad44-de9de2e6adf9); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/crag.json)."
+    },
+    "outfit_crag_greaves": {
+      "file": "models/outfits/crag_greaves.glb",
+      "chibiOutfit": "boots",
+      "tris": 743,
+      "source": "The boots of the same model as outfit_crag_plate, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_wolfpelt_coat": {
+      "file": "models/outfits/wolfpelt_coat.glb",
+      "chibiOutfit": "armor",
+      "tris": 2254,
+      "source": "The chibi in the wolfpelt_coat set (the owner's reference sheet 14 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-24b3-77a0-bb19-94cb3b5ec658), Meshy 6 retexture (task 01a16f6d-ff8a-7663-a641-2f02902bf714); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wolf.json)."
+    },
+    "outfit_wolf_boots": {
+      "file": "models/outfits/wolf_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 900,
+      "source": "The boots of the same model as outfit_wolfpelt_coat, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_crabshell_vest": {
+      "file": "models/outfits/crabshell_vest.glb",
+      "chibiOutfit": "armor",
+      "tris": 2067,
+      "source": "The crabshell set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-1e78-701f-9918-b405cbba451b), Meshy 6 retexture (task 01a17807-c669-7437-b34b-a00beeabf939); assets/meshy/outfits/crabshell_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/crabshell.json)."
+    },
+    "outfit_crabshell_helm": {
+      "file": "models/outfits/crabshell_helm.glb",
+      "chibiOutfit": "helm",
+      "tris": 898,
+      "source": "The crabshell set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-1e78-701f-9918-b405cbba451b), Meshy 6 retexture (task 01a17807-c669-7437-b34b-a00beeabf939); assets/meshy/outfits/crabshell_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/crabshell.json crabshell_helm."
+    },
+    "outfit_moonleaf_robe": {
+      "file": "models/outfits/moonleaf_robe.glb",
+      "chibiOutfit": "armor",
+      "tris": 2040,
+      "source": "The moonleaf set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-228c-7160-ab2c-d1855129fee8), Meshy 6 retexture (task 01a17807-cb2d-73c9-bd62-b2b218c6c609); assets/meshy/outfits/moonleaf_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/moonleaf.json)."
+    },
+    "outfit_burrowguard_armor": {
+      "file": "models/outfits/burrowguard_armor.glb",
+      "chibiOutfit": "armor",
+      "tris": 1470,
+      "source": "The burrowguard set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7), Meshy 6 retexture (task 01a17807-cfb8-748b-83eb-5d1f87e06040); assets/meshy/outfits/burrowguard_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/burrowguard.json)."
+    },
+    "outfit_burrowguard_boots": {
+      "file": "models/outfits/burrowguard_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 861,
+      "source": "The burrowguard set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7), Meshy 6 retexture (task 01a17807-cfb8-748b-83eb-5d1f87e06040); assets/meshy/outfits/burrowguard_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/burrowguard.json)."
+    },
+    "outfit_burrowguard_helm": {
+      "file": "models/outfits/burrowguard_helm.glb",
+      "chibiOutfit": "helm",
+      "tris": 534,
+      "source": "The burrowguard set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7), Meshy 6 retexture (task 01a17807-cfb8-748b-83eb-5d1f87e06040); assets/meshy/outfits/burrowguard_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/burrowguard.json burrowguard_helm."
+    },
+    "outfit_wisp_robe": {
+      "file": "models/outfits/wisp_robe.glb",
+      "chibiOutfit": "armor",
+      "tris": 1926,
+      "source": "The wisp set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-29ef-77c6-8c8d-8e46b8f5e9c6), Meshy 6 retexture (task 01a17807-d4bd-76f4-8e3b-3f5fedb17824); assets/meshy/outfits/wisp_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wisp.json)."
+    },
+    "outfit_wisp_boots": {
+      "file": "models/outfits/wisp_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 618,
+      "source": "The wisp set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-29ef-77c6-8c8d-8e46b8f5e9c6), Meshy 6 retexture (task 01a17807-d4bd-76f4-8e3b-3f5fedb17824); assets/meshy/outfits/wisp_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wisp.json)."
+    },
+    "outfit_wisp_hood": {
+      "file": "models/outfits/wisp_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 539,
+      "source": "The wisp set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-29ef-77c6-8c8d-8e46b8f5e9c6), Meshy 6 retexture (task 01a17807-d4bd-76f4-8e3b-3f5fedb17824); assets/meshy/outfits/wisp_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/wisp.json wisp_hood."
+    },
+    "outfit_mirrorwing_robe": {
+      "file": "models/outfits/mirrorwing_robe.glb",
+      "chibiOutfit": "armor",
+      "tris": 1883,
+      "source": "The mirrorwing set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1), Meshy 6 retexture (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); assets/meshy/outfits/mirrorwing_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/mirrorwing.json)."
+    },
+    "outfit_mirrorwing_boots": {
+      "file": "models/outfits/mirrorwing_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 562,
+      "source": "The mirrorwing set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1), Meshy 6 retexture (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); assets/meshy/outfits/mirrorwing_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/mirrorwing.json)."
+    },
+    "outfit_mirrorwing_hood": {
+      "file": "models/outfits/mirrorwing_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 1170,
+      "source": "The mirrorwing set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1), Meshy 6 retexture (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); assets/meshy/outfits/mirrorwing_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/mirrorwing.json mirrorwing_hood."
+    },
+    "outfit_fernstep_coat": {
+      "file": "models/outfits/fernstep_coat.glb",
+      "chibiOutfit": "armor",
+      "tris": 2134,
+      "source": "The fernstep set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5), Meshy 6 retexture (task 01a17807-e0b0-7681-85a7-5108deaaba6e); assets/meshy/outfits/fernstep_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/fernstep.json)."
+    },
+    "outfit_fernstep_boots": {
+      "file": "models/outfits/fernstep_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 604,
+      "source": "The fernstep set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5), Meshy 6 retexture (task 01a17807-e0b0-7681-85a7-5108deaaba6e); assets/meshy/outfits/fernstep_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/fernstep.json)."
+    },
+    "outfit_fernstep_cap": {
+      "file": "models/outfits/fernstep_cap.glb",
+      "chibiOutfit": "helm",
+      "tris": 447,
+      "source": "The fernstep set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5), Meshy 6 retexture (task 01a17807-e0b0-7681-85a7-5108deaaba6e); assets/meshy/outfits/fernstep_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/fernstep.json fernstep_cap."
+    },
+    "outfit_travel_cap": {
+      "file": "models/outfits/travel_cap.glb",
+      "chibiOutfit": "helm",
+      "tris": 513,
+      "source": "The travel set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-37d7-7123-9458-1a4b7b937d62), Meshy 6 retexture (task 01a17807-e577-7518-a8f9-627beac78cf5); assets/meshy/outfits/travel2_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/travel2.json travel_cap."
+    },
+    "outfit_beetle_boots": {
+      "file": "models/outfits/beetle_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 770,
+      "source": "The beetle set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-3bd4-713c-893e-5c94cd4e4740), Meshy 6 retexture (task 01a17808-3b2a-758f-b556-598e7376f5a0); assets/meshy/outfits/beetle_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/beetle.json)."
+    },
+    "outfit_sporeweave_boots": {
+      "file": "models/outfits/sporeweave_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 1008,
+      "source": "The spore set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-3f5f-74c7-8dfd-a735e9f145ef), Meshy 6 retexture (task 01a17808-4208-768e-969c-4989426edce3); assets/meshy/outfits/spore2_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/spore2.json)."
+    },
+    "outfit_wardenstalker_boots": {
+      "file": "models/outfits/wardenstalker_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 833,
+      "source": "The wardenstalker set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-42df-71a1-8d73-5291139672e1), Meshy 6 retexture (task 01a17808-4693-70a6-9fad-f949cb0722ff); assets/meshy/outfits/warden3_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden3.json)."
+    },
+    "outfit_wolfpelt_hood": {
+      "file": "models/outfits/wolfpelt_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 741,
+      "source": "The wolfpelt set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-c142-7333-9aa0-bd7d31764605), Meshy 6 retexture (task 01a17809-42a1-7188-96fc-87ae68533af9); assets/meshy/outfits/wolf2_meshy.glb. Headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/wolf2.json wolfpelt_hood."
+    },
+    "outfit_boarhide_boots": {
+      "file": "models/outfits/trail_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 1144,
+      "source": "The hide set's modelled boots, shared with outfit_trail_boots (the boarhide turnaround draws the same fur-topped boots)."
+    },
+    "outfit_sporeweave_vest": {
+      "file": "models/outfits/sporeweave_vest.glb",
+      "chibiOutfit": "armor",
+      "tris": 1539,
+      "source": "The chibi in the sporeweave_vest set (the owner's reference sheet 16 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-2873-7686-b2d4-e6540f6a59b2), Meshy 6 retexture (task 01a16f6d-8d67-7600-a805-fdaca7e554fc); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/spore.json)."
+    },
+    "outfit_moonleaf_slippers": {
+      "file": "models/outfits/moonleaf_slippers.glb",
+      "chibiOutfit": "boots",
+      "tris": 675,
+      "source": "The boots of the same model as outfit_sporeweave_vest, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_leather_cap": {
+      "file": "models/outfits/leather_cap.glb",
+      "chibiOutfit": "helm",
+      "tris": 734,
+      "source": "The headwear of the hide set's model (assets/meshy/outfits/hide_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/hide.json leather_cap."
+    },
+    "outfit_beetle_helm": {
+      "file": "models/outfits/beetle_helm.glb",
+      "chibiOutfit": "helm",
+      "tris": 966,
+      "source": "The headwear of the shell set's model (assets/meshy/outfits/shell_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/shell.json beetle_helm."
+    },
+    "outfit_spore_hood": {
+      "file": "models/outfits/spore_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 660,
+      "source": "The headwear of the spore set's model (assets/meshy/outfits/spore_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/spore.json spore_hood."
+    },
+    "outfit_feather_circlet": {
+      "file": "models/outfits/feather_circlet.glb",
+      "chibiOutfit": "helm",
+      "tris": 2000,
+      "withHair": true,
+      "source": "Generated by Meshy from the owner's three-view sheet (assets/meshy/outfits/feather_circlet_reference.png → feather_circlet_meshy.glb) and bent round the hero's own hair: scripts/fit-feather-circlet.py. Drawn over that hair (withHair)."
+    },
+    "outfit_horned_helm": {
+      "file": "models/outfits/horned_helm.glb",
+      "chibiOutfit": "helm",
+      "tris": 723,
+      "source": "The headwear of the crag set's model (assets/meshy/outfits/crag_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/crag.json horned_helm."
+    },
+    "outfit_ranger_hood": {
+      "file": "models/outfits/ranger_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 572,
+      "source": "The headwear of the ranger set's model (assets/meshy/outfits/ranger_meshy.glb) without the hair (the hero's own is drawn under it) or the face, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/ranger.json ranger_hood."
+    },
+    "outfit_wardenstalker_hood": {
+      "file": "models/outfits/wardenstalker_hood.glb",
+      "chibiOutfit": "helm",
+      "tris": 2118,
+      "source": "The hood of the warden set regenerated on the owner's new chibi base (assets/meshy/outfits/warden2_reference.png: Meshy image-to-image of the base dressed as reference 08; warden2_meshy.glb: Meshy 6 image-to-3d), headwear only, moved onto the Travel model's head by its eyes: scripts/fit-chibi-helm.py assets/meshy/outfits/warden2.json wardenstalker_hood."
     }
   },
   "monsters": {
@@ -3076,84 +3750,94 @@
     },
     "horned_warden": {
       "file": "models/monsters/horned_warden.glb",
-      "tris": 5215,
-      "scale": 2.2,
-      "yaw": 0,
-      "sharpness": 6,
-      "minWeight": 0.15,
-      "outline": "#241812",
-      "outlineWidth": 0.02,
-      "keep": [
-        "rune"
+      "tris": 3502,
+      "scale": 2.4,
+      "offset": [
+        -0.34,
+        0,
+        0.15
       ],
-      "source": "Meshy 6 image-to-3d (task 01a0e877-a4b3-74ff-94f8-46ce01f997b9) from concept 01a0e875-3599-7153-93c9-3052342d9f13; see assets/meshy/monsters",
+      "yaw": 0,
+      "rigid": true,
+      "sharpness": 6,
+      "minWeight": 0.18,
+      "outline": "#221a14",
+      "outlineWidth": 0.02,
+      "source": "The owner's stone golem sheet, second version (assets/meshy/monsters/crag_titan): meshy-t2 image-to-3d with a Meshy 6 retexture, its loose rubble cleared by scripts/clear-golem-rubble.py (task ids in tasks.json there); the rolled boulder form is `ball`",
+      "ball": {
+        "glow": 0.3,
+        "file": "models/monsters/horned_warden_ball.glb",
+        "tris": 1799,
+        "scale": 1.7,
+        "source": "same sheet, the curled-up boulder (meshy-t2 + Meshy 6 retexture); rubble dropped and its stone recoloured to the golem's by scripts/close-boulder-base.py"
+      },
       "bones": {
         "legL": [
-          0.45,
-          -0.1,
+          0.75,
+          0.1,
           0
         ],
         "kneeL": [
-          0,
-          -0.65,
+          0.13,
+          -0.75,
           0
-        ],
-        "armL": [
-          1.15,
-          1.55,
-          0.05
-        ],
-        "elbowL": [
-          0.15,
-          -0.8,
-          0
-        ],
-        "head": [
-          0,
-          1.75,
-          0.45
-        ],
-        "rune": [
-          0,
-          1.4,
-          0.62
-        ],
-        "tail": [
-          0,
-          0.05,
-          -0.5
         ],
         "legR": [
-          -0.45,
-          -0.1,
+          -0.72,
+          0.1,
           0
         ],
         "kneeR": [
-          0,
-          -0.65,
+          -0.18,
+          -0.75,
           0
+        ],
+        "armL": [
+          0.98,
+          1.45,
+          -0.3
+        ],
+        "elbowL": [
+          0.44,
+          -0.95,
+          -0.15
         ],
         "armR": [
-          -1.15,
-          1.55,
-          0.05
+          -1.08,
+          1.5,
+          0
         ],
         "elbowR": [
-          -0.15,
-          -0.8,
+          -0.34,
+          -0.95,
+          0.27
+        ],
+        "head": [
+          0.02,
+          1.9,
           0
+        ],
+        "rune": [
+          0,
+          1.15,
+          0.4
+        ],
+        "tail": [
+          0,
+          0,
+          -0.4
         ]
       },
       "segments": {
         "hips": [
           [
-            -0.4,
-            1.4,
+            -0.3,
+            1.75,
             0
           ],
           [
-            0.4,
-            1.4,
+            0.3,
+            1.75,
             0
           ]
         ],
@@ -3161,160 +3845,148 @@
           [
             [
               0,
-              1.7,
+              1.6,
               0
             ],
             [
               0,
-              2.9,
-              0.05
+              3.2,
+              0
             ]
           ],
           [
             [
-              0,
-              2.9,
-              -0.1
+              -0.8,
+              2.6,
+              0
             ],
             [
-              0,
-              3.8,
-              -0.4
+              0.8,
+              2.6,
+              0
             ]
           ]
         ],
         "head": [
           [
-            [
-              0,
-              3.3,
-              0.6
-            ],
-            [
-              0,
-              3.3,
-              1.1
-            ]
+            0,
+            3.35,
+            0
           ],
           [
-            [
-              -0.9,
-              3.95,
-              0.5
-            ],
-            [
-              0.9,
-              3.95,
-              0.5
-            ]
+            0,
+            3.94,
+            0
           ]
         ],
         "armL": [
           [
-            1.15,
-            3,
-            0.05
+            0.98,
+            2.9,
+            -0.3
           ],
           [
-            1.3,
-            2.2,
-            0.05
+            1.42,
+            1.95,
+            -0.45
           ]
         ],
         "elbowL": [
           [
-            1.3,
-            2.2,
-            0.05
+            1.42,
+            1.95,
+            -0.45
           ],
           [
-            1.35,
-            1.2,
-            0.1
+            1.49,
+            0.4,
+            -0.1
+          ]
+        ],
+        "armR": [
+          [
+            -1.08,
+            2.95,
+            0
+          ],
+          [
+            -1.42,
+            2.0,
+            0.27
+          ]
+        ],
+        "elbowR": [
+          [
+            [
+              -1.42,
+              2.0,
+              0.27
+            ],
+            [
+              -1.5,
+              1.0,
+              0.3
+            ]
+          ],
+          [
+            [
+              -1.87,
+              3.0,
+              0.4
+            ],
+            [
+              -1.87,
+              0.2,
+              0.4
+            ]
           ]
         ],
         "legL": [
           [
-            0.45,
-            1.3,
+            0.6,
+            1.6,
             0
           ],
           [
-            0.45,
-            0.7,
+            0.88,
+            0.8,
             0
           ]
         ],
         "kneeL": [
           [
-            0.45,
-            0.7,
+            0.88,
+            0.8,
             0
           ],
           [
-            0.45,
+            0.95,
             0,
-            0.05
-          ]
-        ],
-        "tail": [
-          [
-            0,
-            1.5,
-            -0.55
-          ],
-          [
-            0,
-            0.4,
-            -1.1
-          ]
-        ],
-        "armR": [
-          [
-            -1.15,
-            3,
-            0.05
-          ],
-          [
-            -1.3,
-            2.2,
-            0.05
-          ]
-        ],
-        "elbowR": [
-          [
-            -1.3,
-            2.2,
-            0.05
-          ],
-          [
-            -1.35,
-            1.2,
-            0.1
+            0
           ]
         ],
         "legR": [
           [
-            -0.45,
-            1.3,
+            -0.6,
+            1.6,
             0
           ],
           [
-            -0.45,
-            0.7,
+            -0.9,
+            0.8,
             0
           ]
         ],
         "kneeR": [
           [
-            -0.45,
-            0.7,
+            -0.9,
+            0.8,
             0
           ],
           [
-            -0.45,
+            -0.95,
             0,
-            0.05
+            0
           ]
         ]
       }

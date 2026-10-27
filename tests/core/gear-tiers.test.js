@@ -25,7 +25,7 @@ test('armour pieces above the first tier follow the set reference for their slot
   const SHARE = { armor: 0.45, helm: 0.2, gloves: 0.1, boots: 0.15, offhand: 0.3 };
   for (const [id, b] of Object.entries(G)) {
     if (b.itemLevel === 1 || !SHARE[b.slot]) continue;
-    const set = g.defense[0] + g.defense[1] * (b.itemLevel - 1) + (g.maxHp[0] + g.maxHp[1] * (b.itemLevel - 1)) * W.maxHp;
+    const set = (g.defense[0] + g.defense[1] * (b.itemLevel - 1)) * W.defense + (g.maxHp[0] + g.maxHp[1] * (b.itemLevel - 1)) * W.maxHp;
     const ratio = gearPower(b.stats, data) / (set * SHARE[b.slot]);
     assert.ok(ratio > 0.8 && ratio < 1.6, `${id} ${ratio.toFixed(2)}`);
   }

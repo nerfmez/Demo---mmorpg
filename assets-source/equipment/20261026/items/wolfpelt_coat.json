@@ -1,0 +1,11 @@
+{
+  "id": "wolfpelt_coat",
+  "name_th": "เสื้อคลุมหนังหมาป่า",
+  "slot": "armor",
+  "game_status": "defined",
+  "set_id": "wolfpelt",
+  "set_name_th": "ชุดหนังหมาป่า",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/wolfpelt-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/wolfpelt_coat.png",
+  "record": "assets-source/equipment/20261026/items/wolfpelt_coat.json"
+}

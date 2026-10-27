@@ -1,0 +1,91 @@
+{
+  "status": "source artwork proposal; no runtime item definitions",
+  "source_image": "exec-6ad93b7a-7194-4a30-a4e2-80e2466826e6.png",
+  "items": [
+    {
+      "id": "storm_mantle",
+      "source_component_ids": [
+        1
+      ],
+      "source_alpha_bbox": [
+        79,
+        83,
+        513,
+        500
+      ],
+      "sha256": "1fafc9d9d3aae8e038e4b88852c7a7519dfe2aee319776f88779519ad76103e5",
+      "proposed_new_item": false
+    },
+    {
+      "id": "feather_circlet",
+      "source_component_ids": [
+        2
+      ],
+      "source_alpha_bbox": [
+        529,
+        85,
+        997,
+        438
+      ],
+      "sha256": "41ffa9f378ec1d1524f232a42758fdbcb88030c2e03abfa37971bd8b7cf22743",
+      "proposed_new_item": false
+    },
+    {
+      "id": "storm_gloves",
+      "source_component_ids": [
+        3,
+        4
+      ],
+      "source_alpha_bbox": [
+        1041,
+        110,
+        1487,
+        476
+      ],
+      "sha256": "5f55fd6f7d8aa80d63f248ca28b905e3d06e9cbf6ed97791fea145a5d18894da",
+      "proposed_new_item": true
+    },
+    {
+      "id": "gale_boots",
+      "source_component_ids": [
+        14
+      ],
+      "source_alpha_bbox": [
+        53,
+        575,
+        494,
+        963
+      ],
+      "sha256": "643e6b2e93a9d6699e84677b6eff8f2484795e2b33df77b480f52e0c54e0550b",
+      "proposed_new_item": false
+    },
+    {
+      "id": "storm_bow",
+      "source_component_ids": [
+        9
+      ],
+      "source_alpha_bbox": [
+        584,
+        468,
+        1000,
+        948
+      ],
+      "sha256": "0e79afe1e8d6afec2963838df015fd95dfd1ed84e07d769c4ba1287e050a0663",
+      "proposed_new_item": false
+    },
+    {
+      "id": "stormglass_blade",
+      "source_component_ids": [
+        12
+      ],
+      "source_alpha_bbox": [
+        1041,
+        519,
+        1472,
+        945
+      ],
+      "sha256": "3903018e98a1301a83b7858df9309a3ce3ad5652acdc7351d65c41d80793d201",
+      "proposed_new_item": false
+    }
+  ]
+}

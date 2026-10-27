@@ -5,20 +5,20 @@
 // follow-through, hit reactions, and secondary motion (scarf, ponytail).
 import * as THREE from 'three';
 import { buildWeapon, buildOffhand, buildGloves } from './equipment.js';
-import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
+import { RigBuilder, damp, clamp01, samplePose, smoother, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
 import STAFF_CAST from '../../data/staff-cast.json';
 import HOLDS from '../../data/weapon-holds.json';
 import MODELS from '../../data/models.json';
-import { ACTIONS, pickAction, LEAP } from './actions.js';
+import { ACTIONS, pickAction } from './actions.js';
 import { reachArm, PALM } from './ik.js';
 import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
-import { buildHeadwear } from './headwear.js';
+import { buildHeadwear, HAIR_WHOLE } from './headwear.js';
 import OUTFITS from '../../data/outfits.json';
 import { resolveOutfit } from '../core/outfit-look.js';
-import { modelInstance, characterBase } from './models.js';
+import { modelInstance, characterBase, chibiOutfit } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
 import { attachChibiBody, attachChibiHair } from './chibi-body.js';
@@ -178,7 +178,9 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rb.add('chest', sph(0.06, 8, 6), L.scarf, { pos: [0.06, 0.31, -0.08] });
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
-  buildHeadwear(rb, wear.helm);
+  // the chibi wears a modelled helm when its item has one (and it has loaded), else the built one
+  const helmModel = V?.chibi && wear.helm ? chibiOutfit('outfit_' + wear.helm.id) : null;
+  if (!helmModel) buildHeadwear(rb, wear.helm);
   const outfit = T || X ? buildOutfit(rb, T || X, wear) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc || gear.unarmed ? null : 'sword'), gear.bases?.weapon); // unarmed: before the opening's weapon is chosen
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
@@ -193,7 +195,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   if (offhandModel) rig.bones.offhand.add(modelInstance('weapons', offhandModel, rig.material.userData.flash));
   // A left-hand weapon is not animated: it keeps the right hand's resting angle (actions.js REST.weapon).
   if (rig.bones.offhand && gear.offhand && !['shield', 'quiver'].includes(gear.offhand)) rig.bones.offhand.rotation.x = 1.2;
-  if (!V && !X) attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
+  if (!V && !X) attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && !HAIR_WHOLE.includes(gear.helm) });
   let neckParts = rig.bones.chest;
   if (T) {
     fitParts(rig.bones.head, T.headFit);
@@ -216,11 +218,10 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
       attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
-      attachChibiGarments(rig, V, wear); // the outfit's top, trousers, skirt, boots and gloves
-      for (const id of ['hero_chibi_hair', 'hero_chibi_hair_back']) {
-        const hair = characterBase(id); // the fringe and the back come from two models
-        if (hair) attachChibiHair(rig, V, hair);
-      }
+      // the outfit's top, trousers, skirt, boots and gloves; a modelled armour or boots replaces its shells
+      attachChibiGarments(rig, V, wear, { armor: chibiOutfit('outfit_' + wear.armor), boots: chibiOutfit('outfit_' + wear.boots.id) });
+      const hair = characterBase('hero_chibi_hair');
+      if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && !HAIR_WHOLE.includes(wear.helm.kind), model: helmModel }); // a circlet or cowl leaves the hair whole
     } else attachVrmBody(rig, V);
   }
   rig.look = L;
@@ -235,6 +236,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   rig.weaponKind = gear.weapon || 'sword';
   rig.weaponEdge = MODELS.weapons[weaponModel]?.edge ?? 1; // the imported blade's cutting side (+X or -X)
+  rig.offhandEdge = MODELS.weapons[offhandModel]?.edge ?? 1;
   rig.offhandKind = gear.offhand || null;
   return rig;
 }
@@ -281,11 +283,14 @@ export class HumanoidAnimator {
     const weapon = weaponKind || this.rig.weaponKind;
     // a heavy weapon held in both hands (nothing in the left) swings like the greatblade
     const twoHanded = HOLDS.holds[weapon]?.two && !this.rig.offhandKind;
-    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' ? 'greatblade' : weapon, step);
+    const off = this.rig.offhandKind, dual = !!off && off !== 'shield' && off !== 'quiver'; // a second weapon: cuts alternate hands
+    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' ? 'greatblade' : weapon, step, dual);
     this.combo = step + 1;
     dur = Math.max(0.25, dur);
     const hit = ACTIONS[name].hit;
-    this.action = { name, t: 0, dur, hitAt: hitTime && hit > 0 ? clamp01(hitTime / dur) : hit };
+    // the loose goes on from the held draw (its first key is the draw's last): no fade back to the carry
+    const cont = name === 'bowLooseShot' && this.action?.name === 'bowDrawHold';
+    this.action = { name, t: 0, dur, hitAt: hitTime && hit > 0 ? clamp01(hitTime / dur) : hit, cont };
   }
 
   hit() {
@@ -348,59 +353,54 @@ export class HumanoidAnimator {
     pose.armR[0] *= 1 - 0.3 * m;
     pose.elbowR[0] = Math.min(pose.elbowR[0], -0.22 - 0.25 * m);
     pose.head[1] += this.lookYaw;
+    // the carry's run lean (hold.run.lean, e.g. the dagger's crouched run), faded in as the hero moves
+    const run = this.holdFor()?.run, lean = run?.lean;
+    if (lean) for (const n in lean) if (n !== 'drop' && pose[n]) for (let j = 0; j < 3; j++) pose[n][j] += lean[n][j] * m;
     pose.weapon = this.buf.weapon;
-    pose.weapon[0] = 1.2 - 0.3 * m;
+    // a run carry may hold its own arms (hold.run.arms: the carrying arm's channels, e.g. hanging low
+    // behind to drag the weapon) with the wrist straight, and turn the weapon in the fist (hold.run.socket:
+    // past pi/2 the blade leaves the fist's little-finger side; roll turns it about its length): the arm
+    // and the grip aim it, not the wrist
+    pose.weapon[0] = run?.socket !== undefined ? 1.2 + (run.socket - 1.2) * m : 1.2 - 0.3 * m;
+    pose.weapon[2] = (run?.roll ?? 0) * m; // the blade turned about its own length (hold.run.roll)
+    if (run?.arms) {
+      for (const n in run.arms) for (let j = 0; j < 3; j++) pose[n][j] += (run.arms[n][j] - pose[n][j]) * m;
+      for (const n of run.arms.armL ? HANDS_LR : HANDS_R) for (let j = 0; j < 3; j++) pose[n][j] *= 1 - m;
+    }
     let bodyY = gait.by * m + (1 - m) * ((stance.drop ?? 0) - 0.004 * (1 - breath));
+    if (lean?.drop) bodyY += lean.drop * m;
     let bodyX = gait.bx * m + (1 - m) * (stance.shift ?? 0);
     let bodyRotZ = clampAbs(-this.turn * 0.045 * m, 0.18);
     let hipsSpinX = 0;
     let spin = 0;
     let ikL = null, ikR = null; // raw hand targets of the current action
-    let swingW = 0, swingV = null, actionW = 0; // melee swing arc of the current action (actions.js swing/sw)
+    let swingW = 0, swingV = null, swingLead = 1, actionW = 0; // melee swing arc of the current action (actions.js swing/sw)
+    let offSwingW = 0, offSwingV = null, offLead = 1, offAp = null; // a left-handed action's arc or weapon channel (actions.js leftHanded)
 
     // ---- dashes, rolls, leaps override the whole body ----
     const dash = s.dash;
     if (dash) {
-      const t = clamp01(dash.t / dash.dur);
-      if (dash.kind === 'roll') {
-        hipsSpinX = t * Math.PI * 2;
-        Object.assign(pose, { legL: [-1.5, 0, 0], legR: [-1.3, 0, 0], kneeL: [2.1, 0, 0], kneeR: [2.2, 0, 0], armL: [-0.9, 0, 0.3], armR: [-0.9, 0, -0.3], elbowL: [-1.4, 0, 0], elbowR: [-1.4, 0, 0], torso: [0.9, 0, 0], head: [0.4, 0, 0] });
-        bodyY = -0.42 * Math.sin(Math.min(1, t * 1.15) * Math.PI);
-      } else if (dash.kind === 'leap') {
-        const crouch = t < 0.18 ? t / 0.18 : t > 0.82 ? (1 - t) / 0.18 : 0;
-        const air = t >= 0.18 && t <= 0.82 ? Math.sin(((t - 0.18) / 0.64) * Math.PI) : 0;
-        Object.assign(pose, {
-          legL: [-0.6 * air - 0.5 * crouch, 0, 0],
-          legR: [0.2 * air - 0.4 * crouch, 0, 0],
-          kneeL: [1.2 * air + 1.1 * crouch, 0, 0],
-          kneeR: [0.6 * air + 1.1 * crouch, 0, 0],
-          armL: [-2.2 * air - 0.3, 0, 0.3],
-          armR: [-2.4 * air - 0.3, 0, -0.3],
-          elbowL: [-0.4, 0, 0],
-          elbowR: [-0.4, 0, 0],
-          torso: [0.35 * crouch - 0.15 * air, 0, 0],
-        });
-        bodyY = -0.3 * crouch;
-        // leap slam: sword raised overhead in the air, chopped down on landing
-        const land = t > 0.82 ? crouch : 0;
-        for (const n of ['armR', 'elbowR', 'armL', 'elbowL', 'weapon', 'chest', 'head']) {
-          if (LEAP.air[n]) pose[n] = lerp3(pose[n] || [0, 0, 0], LEAP.air[n], Math.min(1, air * 1.6));
-          if (LEAP.land[n]) pose[n] = lerp3(pose[n] || [0, 0, 0], LEAP.land[n], land);
-        }
-        pose.torso[0] += 0.4 * land;
-      } else if (dash.kind === 'blink') {
-        // a quick crouch and tuck as the body vanishes
-        const k = Math.sin(t * Math.PI);
-        pose.torso[0] += 0.35 * k;
-        pose.kneeL[0] += 0.6 * k;
-        pose.kneeR[0] += 0.6 * k;
-        pose.elbowL[0] -= 1.0 * k;
-        pose.elbowR[0] -= 1.0 * k;
-        bodyY -= 0.1 * k;
-      } else {
-        Object.assign(pose, { legL: [-0.7, 0, 0], legR: [0.75, 0, 0], kneeL: [0.8, 0, 0], kneeR: [0.4, 0, 0], armL: [0.9, 0, 0.35], armR: [0.9, 0, -0.35], elbowL: [-0.3, 0, 0], elbowR: [-0.3, 0, 0], torso: [0.6, 0, 0], head: [-0.35, 0, 0] });
-        bodyY = -0.08;
+      // a reference clip over the move (data/action-clips.json move*), eased in from the pose it
+      // interrupts and back out to it; the roll also turns the body over (hipsSpinX: the game's hips
+      // take no pitch) and keeps its own dip
+      const t = clamp01(dash.t / dash.dur), mv = ACTIONS[MOVE_CLIPS[dash.kind] ?? MOVE_CLIPS.dash];
+      const roll = dash.kind === 'roll';
+      const k = smoother(Math.min(1, t / (roll ? 0.08 : 0.12), (1 - t) / (roll ? 0.12 : 0.18)));
+      const mp = samplePose(mv.keys, t);
+      for (const n in mp) {
+        if (n === 'spin' || n === 'drop' || n === 'offhand' || (roll && !ROLL_LIMBS.has(n))) continue;
+        const cur = pose[n] || [0, 0, 0], v = mp[n];
+        pose[n] = [cur[0] + (v[0] - cur[0]) * k, cur[1] + (v[1] - cur[1]) * k, cur[2] + (v[2] - cur[2]) * k];
       }
+      if (roll) {
+        pose.torso = [0.9, 0, 0]; pose.head = [0.4, 0, 0]; // curled over the turn (the reference's trunk carries its own pitch)
+        // knees pulled to the chest through the turn: the reference's legs swing up (the owner: legs pointing at
+        // the sky looked unnatural), so the curl folds them into a ball
+        const tuck = smoother(Math.min(1, t / 0.2, (1 - t) / 0.3));
+        for (const n in ROLL_TUCK) { const v = ROLL_TUCK[n], c = pose[n]; pose[n] = [c[0] + (v[0] - c[0]) * tuck, c[1] * (1 - tuck), c[2] * (1 - tuck)]; }
+        hipsSpinX = t * Math.PI * 2;
+        bodyY = -0.42 * Math.sin(Math.min(1, t * 1.15) * Math.PI);
+      } else bodyY += ((mp.drop ? mp.drop[0] : 0) - bodyY) * k;
     }
 
     // ---- keyframed action over the upper body (legs partially) ----
@@ -411,21 +411,34 @@ export class HumanoidAnimator {
       // stretch the keys so the hit key lands at hitAt
       const u = clamp01(a.t / a.dur), h = act.hit, ha = a.hitAt;
       const t = h <= 0 || ha <= 0 || ha >= 1 ? u : u < ha ? (u / ha) * h : h + ((u - ha) / (1 - ha)) * (1 - h);
-      const ap = samplePose(act.keys, t);
-      const fadeIn = clamp01(a.t / 0.06);
-      const fadeOut = clamp01((a.dur - a.t) / 0.1);
-      const wA = Math.min(fadeIn, fadeOut);
+      // ends 'carry': the first and last keys stand for the carry the hero holds, so the action eases in
+      // from it over the first segment and back over the last (no snap, no sudden stop on the way)
+      const ks = act.keys, n = ks.length;
+      const easeIn = act.ends && t < ks[1][0] ? smoother(t / ks[1][0]) : 1;
+      const easeOut = act.ends && t > ks[n - 2][0] ? smoother((1 - t) / (1 - ks[n - 2][0])) : 1;
+      const ap = easeIn < 1 ? ks[1][1] : easeOut < 1 ? ks[n - 2][1] : samplePose(ks, t);
+      const fadeIn = a.cont || act.ends ? 1 : clamp01(a.t / 0.06);
+      const fadeOut = act.ends ? 1 : clamp01((a.dur - a.t) / 0.1);
+      const wA = Math.min(fadeIn, fadeOut, easeIn, easeOut);
       spin = ap.spin ? ap.spin[0] : 0;
       ikL = ap.ikL;
       ikR = ap.ikR;
       actionW = wA;
-      if (ap.sw && ap.swing) { swingW = ap.sw[0] * wA; swingV = ap.swing; }
+      if (ap.sw && ap.swing) {
+        if (ap.sw[2] > 0.5) { offSwingW = ap.sw[0] * wA; offSwingV = ap.swing; offLead = ap.sw[1] < 0 ? -1 : 1; }
+        else { swingW = ap.sw[0] * wA; swingV = ap.swing; swingLead = ap.sw[1] < 0 ? -1 : 1; }
+      }
+      if (ap.offhand && act.own) offAp = ap.offhand;
+      // a clip cuts with the blade's +X side leading (scripts/pose-retarget/edge-roll.mjs): a model whose
+      // cutting edge is its -X side (models.json edge -1) turns the blade half a turn about its length
+      const flip = act.own && ap.weapon && this.rig.weaponEdge === -1 ? (this.buf.flipW ??= [0, 0, 0]) : null;
+      if (flip) { flip[0] = ap.weapon[0]; flip[1] = ap.weapon[1]; flip[2] = ap.weapon[2] + Math.PI; }
       for (const n in ap) {
-        if (n === 'spin') continue;
+        if (n === 'spin' || n === 'offhand') continue;
         const lower = n.startsWith('leg') || n.startsWith('knee');
         const k = lower ? wA * (1 - w * 0.7) : wA;
-        const cur = pose[n] || [0, 0, 0];
-        pose[n] = [cur[0] + (ap[n][0] - cur[0]) * k, cur[1] + (ap[n][1] - cur[1]) * k, cur[2] + (ap[n][2] - cur[2]) * k];
+        const cur = pose[n] || [0, 0, 0], v = flip && n === 'weapon' ? flip : ap[n];
+        pose[n] = [cur[0] + (v[0] - cur[0]) * k, cur[1] + (v[1] - cur[1]) * k, cur[2] + (v[2] - cur[2]) * k];
       }
       // keep the planted feet flat while the action bends the legs
       for (const sd of ['L', 'R']) {
@@ -433,6 +446,7 @@ export class HumanoidAnimator {
         if (leg && knee && (ap['leg' + sd] || ap['knee' + sd])) pose['foot' + sd][0] += (-(leg[0] + knee[0]) - pose['foot' + sd][0]) * wA;
       }
       if (pose.drop) bodyY += pose.drop[0];
+      if (pose.air) bodyY += pose.air[0]; // a jumping action leaves the ground (metres)
       if (a.t >= a.dur) this.action = null;
     }
     // hit flinch (additive, decays)
@@ -450,6 +464,7 @@ export class HumanoidAnimator {
     b.body.rotation.y = spin;
     b.body.position.y = bodyY;
     b.body.position.x = bodyX;
+    if (s.dash?.kind === 'roll') this.rollOnGround();
     b.body.rotation.z = damp(b.body.rotation.z, bodyRotZ, 8, dt);
     // death: fall backwards with a small bounce
     if (s.dead) {
@@ -480,7 +495,7 @@ export class HumanoidAnimator {
     if (this.rig.setFace) this.rig.setFace(this.expression(dt, s));
     // ---- the weapon hand: a per-weapon carry (data/weapon-holds.json) when not acting, the swing
     // arc of a melee action, and the left hand on the haft of a two-handed weapon ----
-    const hold = this.holdFor();
+    const hold = this.runCarry(this.holdFor(), this.moveW); // the carry, eased into its run carry while moving
     const ik = this.rig.ikMap; // hand targets in character space were authored for the 1.75 m body
     const ikw = pose.ikw;
     const leftBusy = ikL && ikw?.[0] > 0.01 ? ikw[0] : 0;
@@ -490,11 +505,38 @@ export class HumanoidAnimator {
     if (b.weapon) b.weapon.position.copy(b.weapon.userData.rest.pos);
     // through a spell or shout the weapon keeps its carry angle (a staff stays upright, a heavy
     // weapon stays raised): only the hand moves. A two-handed weapon's left hand lets go meanwhile.
-    const gesture = this.action && !swingV ? actionW : 0;
+    const own = this.action && ACTIONS[this.action.name]?.own; // a clip that moves the weapon itself (actions.js registerClip)
+    const gesture = this.action && !swingV && !own ? actionW : 0;
     const orientW = (hold?.castHold || hold?.grip !== undefined) && !busy && gesture > 0 ? 1 : holdW;
-    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW, swingV, swingW, orientW);
+    // a run carry with its own arms (hold.run.arms) hands the arm and the weapon over to those channels
+    const armW = hold?.run?.arms ? 1 - this.moveW : 1;
+    // a blade held back out of the little-finger side (hold.run.reverse): the fist keeps its thumb
+    // toward the pommel (chibi-body.js), handed back to the action's own grip
+    // an action's grip along the weapon (pose.gripSlide, already weighted by the action): chibi-body.js
+    if (this.rig.gripSlide) this.rig.gripSlide[0] = pose.gripSlide ? pose.gripSlide[0] : 0;
+    if (this.rig.gripTurn) {
+      const turn = hold?.run?.reverse ? this.moveW * (1 - actionW) : 0;
+      this.rig.gripTurn[0] = turn;
+      this.rig.gripTurn[1] = hold?.run?.arms?.armL ? turn : 0;
+    }
+    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW * armW, swingV, swingW, orientW * armW, swingLead);
+    // a second weapon in the left hand (dual carry): its own palm and blade, handed back to the action
+    if (hold?.left && b.offhand) this.solveOffhand(hold.left, (leftBusy ? 0 : holdW) * armW, hold.run?.socket, 1 - armW);
+    // a left-handed strike: the left weapon follows the action's own channel or the mirrored swing arc
+    if (b.offhand && (offSwingW > 0.01 || (offAp && actionW > 0.01))) {
+      const o = b.offhand;
+      o.userData.carryQ ??= o.quaternion.clone();
+      if (!hold?.left) o.quaternion.copy(o.userData.carryQ);
+      if (offSwingV) this.solveOffSwing(offSwingV, offSwingW, offLead);
+      else {
+        const flip = this.rig.offhandEdge === -1 ? Math.PI : 0; // a blade that cuts with its -X side
+        o.quaternion.slerp(SOCKET_Q.setFromEuler(SOCKET_E.set(offAp[0], offAp[1], offAp[2] + flip)), actionW);
+      }
+    }
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
-    const gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) : pose.grip ? pose.grip[0] : 0;
+    // a heavy weapon dragged one-handed on the run (hold.run.release) lets the left hand go
+    let gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
+    if (own && hold?.grip !== undefined) gripW += ((pose.grip ? pose.grip[0] : 0) - gripW) * actionW;
     if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
       const root = this.rig.root;
       root.updateMatrixWorld(true);
@@ -560,19 +602,100 @@ export class HumanoidAnimator {
     }
   }
 
-  /** This weapon's carry: two-handed when the type allows it and the left hand is free. */
+  /** This weapon's carry: two-handed when the type allows it and the left hand is free; dual with a second weapon there. */
   holdFor() {
     const h = this.rig.holds?.[this.rig.weaponKind] ?? HOLDS.holds[this.rig.weaponKind];
     if (!h) return null;
+    const off = this.rig.offhandKind;
+    if (h.dual && off && off !== 'shield' && off !== 'quiver') return h.dual;
     return (h.two && !this.rig.offhandKind) || !h.one ? h.two : h.one;
+  }
+
+  /**
+   * A carry blended toward its run carry (data: hold.run: hand, dir, up, left, release, lean, arms, socket, roll, reverse) by the
+   * move weight m: the sword trailing low behind, a heavy weapon dragged, written into a reused buffer.
+   */
+  runCarry(h, m) {
+    const r = h?.run;
+    if (!r || m < 0.01) return h;
+    const c = (this.buf.carry ??= { hand: [0, 0, 0], dir: [0, 0, 0], up: [0, 0, 0], left: undefined, leftBuf: { hand: [0, 0, 0], dir: [0, 0, 0], up: [0, 0, 0] } });
+    c.castHold = h.castHold; c.grip = h.grip; c.stance = h.stance; c.run = r;
+    mix3(c.hand, h.hand, r.hand, m); mix3(c.dir, h.dir, r.dir, m); mix3(c.up, h.up ?? UP3, r.up ?? h.up ?? UP3, m);
+    c.left = undefined;
+    if (h.left) {
+      const L = r.left ?? h.left, o = (c.left = c.leftBuf);
+      mix3(o.hand, h.left.hand, L.hand, m); mix3(o.dir, h.left.dir, L.dir, m); mix3(o.up, h.left.up ?? UP3, L.up ?? h.left.up ?? UP3, m);
+    }
+    return c;
+  }
+
+  /**
+   * The left hand's weapon in a dual carry (hold.left: palm, blade and flat in body space, like the
+   * right's), weight w over the off-hand socket's own resting turn.
+   */
+  solveOffhand(left, w, socket, runW = 0) {
+    const b = this.b, o = b.offhand;
+    o.userData.carryQ ??= o.quaternion.clone(); // the socket's resting turn (hero.js build)
+    o.quaternion.copy(o.userData.carryQ);
+    // a run carry's turn in the fist (hold.run.socket), like the right weapon's channel
+    if (socket !== undefined && runW > 0.01) o.quaternion.slerp(SOCKET_Q.setFromEuler(SOCKET_E.set(socket, 0, 0)), runW);
+    if (w <= 0.01) return;
+    this.rig.root.updateMatrixWorld(true);
+    reachArm(b, 'L', b.body.localToWorld(ikMap(IK_T.fromArray(left.hand), this.rig.ikMap)), w);
+    W_DIR.fromArray(left.dir).normalize();
+    if (left.up) W_UP.fromArray(left.up); else W_UP.set(0, 1, 0);
+    if (Math.abs(W_UP.dot(W_DIR)) > 0.97) W_UP.set(0, 0, 1);
+    W_X.crossVectors(W_UP, W_DIR).normalize();
+    W_UP.crossVectors(W_DIR, W_X);
+    W_M.makeBasis(W_X, W_UP, W_DIR);
+    W_Q.setFromRotationMatrix(W_M);
+    b.body.getWorldQuaternion(AIM_R).multiply(W_Q);
+    b.handL.updateMatrixWorld(true);
+    b.handL.getWorldQuaternion(AIM_Q).invert().multiply(AIM_R);
+    o.quaternion.slerp(AIM_Q, w);
+  }
+
+  /**
+   * Through a roll the curled body rests on the ground: its lowest point (the big head, knees, feet, hands)
+   * is set on the floor each frame, so the head never sinks through it and the body never floats.
+   */
+  rollOnGround() {
+    const b = this.b, root = this.rig.root;
+    root.updateMatrixWorld(true);
+    // the chibi head: a ball about 0.26 m across its radius, centred a quarter metre above the neck
+    let low = b.head.localToWorld(ROLL_P.set(0, 0.25, 0)).y - 0.26;
+    for (const n of ROLL_CONTACT) low = Math.min(low, b[n].getWorldPosition(ROLL_P).y - 0.05);
+    b.body.position.y += root.position.y - low;
+  }
+
+  /** The left palm and weapon on a mirrored swing arc (solveWeapon's arc for the left hand, weight w). */
+  solveOffSwing(swingV, w, lead) {
+    const b = this.b, body = b.body, o = b.offhand;
+    const [a, e, y] = swingV, r = HOLDS.swing.radius, ce = Math.cos(e);
+    W_A.set(Math.sin(a) * r, y, Math.cos(a) * r);
+    W_B.set(Math.sin(a) * ce, Math.sin(e), Math.cos(a) * ce);
+    W_T.set(Math.cos(a), 0, -Math.sin(a)).multiplyScalar(lead * (this.rig.offhandEdge ?? 1));
+    W_N.crossVectors(W_B, W_T).normalize();
+    this.rig.root.updateMatrixWorld(true);
+    reachArm(b, 'L', body.localToWorld(ikMap(IK_T.copy(W_A), this.rig.ikMap)), w);
+    W_X.crossVectors(W_N, W_B).normalize();
+    W_UP.crossVectors(W_B, W_X);
+    W_M.makeBasis(W_X, W_UP, W_B);
+    W_Q.setFromRotationMatrix(W_M);
+    body.getWorldQuaternion(AIM_R).multiply(W_Q);
+    b.handL.updateMatrixWorld(true);
+    b.handL.getWorldQuaternion(AIM_Q).invert().multiply(AIM_R);
+    o.quaternion.slerp(AIM_Q, w);
   }
 
   /**
    * Put the right palm and the weapon's long axis where the carry (weight holdW) or the swing
    * arc (weight swingW) wants them, in body space so they follow the body's bob and spin. The
-   * blade points out along the arc with its edge leading, so it traces the slash crescent.
+   * blade points out along the arc with its edge leading, so it traces the slash crescent: `lead` is
+   * the way the cut runs (1 to rising arc angles, -1 to falling) and the model's cutting side picks
+   * which face of the blade goes first.
    */
-  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW) {
+  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW, lead = 1) {
     const ik = this.rig.ikMap;
     const b = this.b, body = b.body;
     this.rig.root.updateMatrixWorld(true);
@@ -588,7 +711,8 @@ export class HumanoidAnimator {
       const [a, e, y] = swingV, r = HOLDS.swing.radius, ce = Math.cos(e);
       W_A.set(Math.sin(a) * r, y, Math.cos(a) * r);
       W_B.set(Math.sin(a) * ce, Math.sin(e), Math.cos(a) * ce); // radial blade
-      W_T.set(Math.cos(a), 0, -Math.sin(a)); // the way the hand travels as the angle grows
+      // the way the hand travels as the angle grows, turned to the way the cut runs and onto the edge's side
+      W_T.set(Math.cos(a), 0, -Math.sin(a)).multiplyScalar(lead * (this.rig.weaponEdge ?? 1));
       W_N.crossVectors(W_B, W_T).normalize(); // swing plane normal: the blade's flat
       const k = hold ? swingW : 1;
       if (hold) {
@@ -623,12 +747,19 @@ export class HumanoidAnimator {
     }
     if (s.dead) return 'blink';
     if (this.hurt > 0.35 || this.action?.name === 'hurt') return 'hurt';
-    if (this.action && FIERCE.has(this.action.name)) return 'attack';
+    if (this.action && FIERCE.has(ACTIONS[this.action.name]?.mirrorOf ?? this.action.name)) return 'attack';
     return this.blink > 0 ? 'blink' : 'open';
   }
 }
 
-const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'bowSky', 'bowDraw', 'bowLoose', 'thrust', 'shieldBash', 'guardBlock']);
+// the movement skills' clips (data/action-clips.json), by dash kind
+const MOVE_CLIPS = { dash: 'moveDash', roll: 'moveRoll', blink: 'moveBlink', leap: 'moveLeap' };
+// the roll takes only the limbs' tuck from its clip: the reference's trunk pitches over with the dive, and the
+// game turns the whole body itself (hipsSpinX)
+const ROLL_CONTACT = ['footL', 'footR', 'kneeL', 'kneeR', 'handL', 'handR', 'hips'], ROLL_P = new THREE.Vector3();
+const ROLL_TUCK = { legL: [-1.6, 0, 0], legR: [-1.45, 0, 0], kneeL: [2.2, 0, 0], kneeR: [2.25, 0, 0] };
+const ROLL_LIMBS = new Set(['armL', 'armR', 'elbowL', 'elbowR', 'legL', 'legR', 'kneeL', 'kneeR', 'weapon']);
+const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'sunderChop', 'sunderChop1H', 'staffCast', 'staffCastHeld', 'flankStab', 'shieldShove', 'breakbeatSlam', 'whirlSpin', 'warCryRoar', 'riposteGuard', 'breakbeatSlam1H']);
 const IK_T = new THREE.Vector3();
 const SUPPORT_PASSES = 3;
 const SUPPORT_PALM = new THREE.Vector3(), IK_P = new THREE.Vector3();
@@ -645,10 +776,18 @@ const W_A = new THREE.Vector3(), W_B = new THREE.Vector3(), W_T = new THREE.Vect
 const W_M = new THREE.Matrix4(), W_Q = new THREE.Quaternion();
 const AIM_Q = new THREE.Quaternion();
 const AIM_R = new THREE.Quaternion();
-const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 const IDLE_BONES = ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips'];
 const ZERO3 = [0, 0, 0];
+const UP3 = [0, 1, 0];
+const HANDS_R = ['handR'], HANDS_LR = ['handR', 'handL'];
+const SOCKET_Q = new THREE.Quaternion(), SOCKET_E = new THREE.Euler();
+/** o = a + (b - a) k for 3-vectors (b missing: a). */
+function mix3(o, a, b, k) {
+  const t = b ?? a;
+  for (let j = 0; j < 3; j++) o[j] = a[j] + (t[j] - a[j]) * k;
+  return o;
+}
 // the neutral standing pose; stances add to it
 const IDLE_BASE = Object.fromEntries(IDLE_BONES.map((n) => [n, [0, 0, 0]]));
 IDLE_BASE.kneeL[0] = IDLE_BASE.kneeR[0] = 0.04;

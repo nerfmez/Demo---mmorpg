@@ -75,6 +75,8 @@ test('no two items of a slot look alike', () => {
 test('layers merge in order; "$tunic" follows the chosen colour; shoes follow the boots', () => {
   const plain = resolveOutfit({}, OUT, { tunic: '#123456' });
   assert.equal(plain.boots.id, 'travel_boots', 'no boots: the travel boots');
+  assert.equal(plain.armor, 'travel_tunic', 'no armour: the travel tunic (its modelled outfit is found by this id)');
+  assert.equal(look({ armor: 'crag_plate' }).armor, 'crag_plate');
   assert.equal(plain.gloves, null);
   assert.equal(plain.helm, null);
   const o = look({ armor: 'crag_plate', boots: 'gale_boots' });

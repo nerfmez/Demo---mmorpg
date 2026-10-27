@@ -24,9 +24,9 @@ function alphaPixels(png){
  }
  return {extrema:[min,max],clear,partial,bounds:[minX,minY,maxX+1,maxY+1]};
 }
-test('raster contract covers the 155 supplied equipment/material/ammunition/consumable/combat/movement IDs exactly once, excluding mods',()=>{
+test('raster contract covers the 184 supplied equipment/material/ammunition/consumable/combat/movement IDs exactly once, excluding mods',()=>{
  const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.items.arrows.types).map(id=>'arrow/'+id),...Object.keys(data.items.consumables.types).map(id=>'consumable/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
- assert.equal(new Set(EXPECTED_RASTER_KEYS).size,155);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
+ assert.equal(new Set(EXPECTED_RASTER_KEYS).size,184);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
  for(const key of EXPECTED_RASTER_KEYS){
   assert.ok(all.includes(key),key+' is live content');
   const [kind,id]=key.split('/');
@@ -43,8 +43,9 @@ test('only registered supplied PNGs replace existing illustrations; unknown/mod 
  assert.equal(rasterIconUrl('gear','rusty_sword',{}),null);assert.equal(rasterIconMarkup('gear','rusty_sword','',{}),null);assert.equal(rasterIconUrl('gear','missing',{}),null);assert.throws(()=>art('gear','missing'),/Missing authored artwork/);
  assert.throws(()=>rasterIconUrl('skill','slash',{'skill/slash':'https://invalid/icon.png'}),/Invalid raster icon path/);
 });
-test('all 31 skills choose round touch artwork while keeping the square img fallback and deployment base',()=>{
- const ids=[...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)];
+test('all 31 pictured skills choose round touch artwork while keeping the square img fallback and deployment base',()=>{
+ // skills still waiting for a picture (iconPending) show a labelled stand-in instead: tests/core/pending-art.test.js
+ const ids=Object.entries({...data.skills.combat,...data.skills.movement}).filter(([,s])=>!s.iconPending).map(([id])=>id);
  assert.equal(ids.length,31);
  assert.deepEqual(Object.keys(SKILL_ROUND_ICONS).sort(),ids.map(id=>'skill/'+id).sort());
  for(const id of ids){
@@ -77,7 +78,7 @@ test('every registered image is a real PNG with its recorded native dimensions, 
 });
 
 test('registered supplied PNGs match the retained delivery hashes and coverage',()=>{
- assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,155);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
+ assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,184);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
  for(const a of manifest.verified_assets){assert.equal(RASTER_ICONS[a.key],a.path);const bytes=readFileSync(new URL('../../public/'+a.path,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),a.sha256,a.key);}
 });
 

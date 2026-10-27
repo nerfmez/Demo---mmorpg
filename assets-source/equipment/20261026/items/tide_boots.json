@@ -1,0 +1,11 @@
+{
+  "id": "tide_boots",
+  "name_th": "รองเท้าเดินคลื่น",
+  "slot": "boots",
+  "game_status": "defined",
+  "set_id": "crabshell",
+  "set_name_th": "ชุดกระดองปู",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/crabshell-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/tide_boots.png",
+  "record": "assets-source/equipment/20261026/items/tide_boots.json"
+}

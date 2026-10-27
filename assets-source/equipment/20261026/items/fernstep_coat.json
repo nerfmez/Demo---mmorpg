@@ -1,0 +1,11 @@
+{
+  "id": "fernstep_coat",
+  "name_th": "เสื้อคลุมก้าวเฟิร์น",
+  "slot": "armor",
+  "game_status": "proposed",
+  "set_id": "fernstep",
+  "set_name_th": "ชุดก้าวเฟิร์น",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/fernstep-turnaround.jpeg",
+  "icon": "assets-source/equipment/20261025/icons/fernstep_coat.png",
+  "record": "assets-source/equipment/20261026/items/fernstep_coat.json"
+}

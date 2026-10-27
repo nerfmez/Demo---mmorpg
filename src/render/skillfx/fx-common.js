@@ -12,6 +12,20 @@ export const fxGround = { y: (x, z) => 0, flat: true };
 export const fxConfig = { lights: true, occluders: true };
 export function addLight(scene, light) { if (fxConfig.lights) scene.add(light); return light; }
 // Puts an object at a ground-relative point (x, height above ground, z).
+/** A point `height` m up the sky that stays in view under a high camera: where a ray through a spot
+ *  near the top of the screen, `right` (NDC) to the right of the ground point (x, z), meets that height
+ *  (straight above the target is off the top of the screen in the game). Written to out (ground lift
+ *  removed, so placeV puts it back). */
+const _sky = new THREE.Vector3();
+export function skyAbove(camera, x, z, height, right, out) {
+  const ndc = _sky.set(x, fxGround.y(x, z), z).project(camera);
+  const sx = Math.max(-0.75, Math.min(0.75, ndc.x + right)), H = Math.min(height, camera.position.y - 4);
+  _sky.set(sx, 0.78, 0.5).unproject(camera).sub(camera.position).normalize();
+  const k = (H - camera.position.y) / _sky.y;
+  if (k > 0 && isFinite(k)) out.copy(camera.position).addScaledVector(_sky, k); else out.set(x + 2, H, z + 3);
+  out.y -= fxGround.y(out.x, out.z);
+  return out;
+}
 export function place(obj, x, y, z) { obj.position.set(x, y + fxGround.y(x, z), z); return obj; }
 export function placeV(obj, v) { return place(obj, v.x, v.y, v.z); }
 // Bends a flat plane mesh lying on the ground (its own geometry, segmented, local Z pointing up or

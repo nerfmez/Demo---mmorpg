@@ -1,0 +1,11 @@
+{
+  "id": "crabshell_helm",
+  "name_th": "หมวกกระดองปู",
+  "slot": "helm",
+  "game_status": "defined",
+  "set_id": "crabshell",
+  "set_name_th": "ชุดกระดองปู",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/crabshell-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/crabshell_helm.png",
+  "record": "assets-source/equipment/20261026/items/crabshell_helm.json"
+}

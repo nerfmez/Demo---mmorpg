@@ -1,0 +1,11 @@
+{
+  "id": "travel_boots",
+  "name_th": "รองเท้าเดินทาง",
+  "slot": "boots",
+  "game_status": "defined",
+  "set_id": "travel",
+  "set_name_th": "ชุดเดินทาง",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/travel-turnaround.png",
+  "icon": "assets-source/equipment/20261025/icons/travel_boots.png",
+  "record": "assets-source/equipment/20261026/items/travel_boots.json"
+}

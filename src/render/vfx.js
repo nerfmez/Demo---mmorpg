@@ -383,28 +383,17 @@ export class Vfx {
     if (!c) return;
     c.t += dt;
     if (cancelled || !rig || c.t >= c.dur) {
-      if (c.mesh.userData.v5 && c.mesh.visible && rig && !player?.dead && !player?.dash && c.t >= c.dur) {
-        this.fireRelease.copy(c.mesh.position);this.fireReleasePending = true;
+      // the bolt leaves from where the charge is on the release frame (the arm has just reached it),
+      // not where the ball was drawn a frame earlier; within half a frame of the cast time counts
+      if (c.mesh.userData.v5 && c.mesh.visible && rig && !player?.dead && !player?.dash && c.t >= c.dur - dt * 0.5) {
+        this.castSocket(rig, c.weapon, this.fireRelease, true); this.fireReleasePending = true;
       }
       this.endCast(); return;
     }
-    const w = rig.bones?.weapon;
-    if (c.mesh.userData.v5 && w && c.weapon === 'staff') {
-      // Keep charge physically attached to the actual staff head. The staff-only
-      // cast pose raises this same socket ahead of the actor before release.
-      w.updateWorldMatrix(true, false);
-      w.localToWorld(_p0.set(0,0,STAFF_CAST.tip));
-      c.mesh.material.uniforms.uVelocity.value.set(Math.sin(c.angle),0,Math.cos(c.angle));
-    } else if (w && c.weapon !== 'none') {
-      w.updateWorldMatrix(true, false);
-      w.getWorldPosition(_p0); w.getWorldDirection(_dir);
-      _p0.addScaledVector(_dir, this.config.weapons[c.weapon]?.tip ?? 0.25);
-    } else {
-      rig.root.getWorldPosition(_p0);
-      _p0.y += 1.2;
-      _p0.x += Math.sin(rig.root.rotation.y) * 0.45;
-      _p0.z += Math.cos(rig.root.rotation.y) * 0.45;
-    }
+    // Keep the charge physically attached to the staff head (the staff-only cast pose raises this
+    // same socket ahead of the actor before release), else the weapon's tip.
+    this.castSocket(rig, c.weapon, _p0, c.mesh.userData.v5);
+    if (c.mesh.userData.v5 && c.weapon === 'staff') c.mesh.material.uniforms.uVelocity.value.set(Math.sin(c.angle),0,Math.cos(c.angle));
     c.mesh.position.copy(_p0); c.mesh.visible = true;
     const u = c.mesh.material.uniforms, k = c.t / c.dur;
     u.uTime.value = c.mesh.userData.v5 ? k * .625 : c.t;
@@ -417,6 +406,28 @@ export class Vfx {
       u.uChargeBuild.value = k;
       u.uProgress.value = k;
     } else u.uScale.value = 0.25 + 0.75 * k * k;
+  }
+
+  /**
+   * Where a cast's charge sits (world): the staff head (staffHead), else the weapon's tip, else in front
+   * of the chest. The bench's Firebolt gather (skill-fx.js) converges on the same point.
+   */
+  castSocket(rig, weapon, out, staffHead = true) {
+    const w = rig.bones?.weapon;
+    if (staffHead && w && weapon === 'staff') {
+      w.updateWorldMatrix(true, false);
+      return w.localToWorld(out.set(0, 0, STAFF_CAST.tip));
+    }
+    if (w && weapon && weapon !== 'none') {
+      w.updateWorldMatrix(true, false);
+      w.getWorldPosition(out); w.getWorldDirection(_dir);
+      return out.addScaledVector(_dir, this.config.weapons[weapon]?.tip ?? 0.25);
+    }
+    rig.root.getWorldPosition(out);
+    out.y += 1.2;
+    out.x += Math.sin(rig.root.rotation.y) * 0.45;
+    out.z += Math.cos(rig.root.rotation.y) * 0.45;
+    return out;
   }
 
   fireImpact(e) {
@@ -730,6 +741,12 @@ export class Vfx {
     if (e.kind === 'rock') return this.rockLand(e);
     if (e.kind === 'erupt') return this.erupt(e);
     const c = el(e.element);
+    // a new skill without its own effect yet (fxPending): an element ring the size of the hit
+    if (e.generic) {
+      this.ring(e.x, e.z, e.radius, c.glow, 0.5);
+      this.fx.burst(e.x, this.gy(e.x, e.z) + 0.3, e.z, Math.round(10 + e.radius * 8), { color: c.dots, size: 0.4, speed: e.radius * 2.5, life: 0.55, up: 0.6 });
+      return;
+    }
     this.fx.burst(e.x, this.gy(e.x, e.z) + 0.3, e.z, 18, { color: c.dots, size: 0.35, speed: e.radius * 2.5, life: 0.5, up: 0.4 });
   }
 
@@ -1153,10 +1170,17 @@ export class Vfx {
     this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
   }
 
+  // the body's fading afterimage where a blink left (skillfx/move-fx.js draws the rest)
+  blinkEcho(fromX, fromZ, rig) {
+    if(!rig)return;
+    const {ghost,release}=this.movementEchoAt(rig,0x9152ca);ghost.position.set(fromX,this.gy(fromX,fromZ),fromZ);
+    this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
+  }
+
   syncMovement(player,y,dt,rig) {
     const d=player.dash;
     if(!d){this.movementSource=null;return;}
-    if(d.kind==='blink'||d.kind==='leap')return;
+    if(d.kind==='blink'||d.kind==='leap')return; // drawn by skillfx/move-fx.js
     if(this.movementSource!==d){
       this.movementSource=d;this.movementEcho=0;this.movementDust=0;
       if(d.kind==='dash'){
@@ -1169,6 +1193,9 @@ export class Vfx {
     if(d.kind==='dash'){
       while(this.movementEcho<2&&d.t>=(this.movementEcho===0?3/60:7/60)){const {ghost,release}=this.movementEchoAt(rig,0x83bdde);this.spawn(ghost,.2,t=>echoOpacity(ghost,.15*(1-t)),release);this.movementEcho++;}
     }else if(d.kind==='roll'){
+      // dust kicked up all along the roll, low on the ground
+      this.movementTrail=(this.movementTrail||0)+dt;
+      while(this.movementTrail>=1/30){this.movementTrail-=1/30;const j=Math.random()*6.283,r=Math.random()*.3;this.dust.add(player.x+Math.sin(j)*r,y+.08+Math.random()*.12,player.z+Math.cos(j)*r,Math.sin(j)*.9,.25+Math.random()*.4,Math.cos(j)*.9,{color:0xd8c7a0,size:.45+Math.random()*.3,sizeEnd:1.3+Math.random()*.5,life:.45+Math.random()*.25,drag:2.5});}
       while(this.movementDust<3&&d.t>=d.dur*(this.movementDust===0?.18:this.movementDust===1?.5:.78)){
         const {mesh:m,pool}=this.movementSurface([.5,.5,.5,.5],.45);faceGameCamera(m);m.position.set(player.x,y+.16,player.z);this.movementDust++;
         this.spawn(m,.25,t=>{m.scale.set(1.2*(.2+.95*t),1.2*(.15+.31*t),1);m.position.y=y+.12+.15*t;m.material.uniforms.uAlpha.value=.36*Math.sin(Math.PI*t);m.material.uniforms.uDissolve.value=t*.9;m.material.uniforms.uTime.value=t*.25;},object=>pool.release(object));
@@ -1217,7 +1244,7 @@ export class Vfx {
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
-      const arrow = (pr.kind === 'hunter_shot' || pr.kind === 'charged_shot');
+      const arrow = (pr.kind === 'hunter_shot' || pr.kind === 'charged_shot' || pr.arrow); // pr.arrow: a fused arrow (bench)
       const fire = pr.kind === 'firebolt' && element === 'fire';
       const look = this.genericLook(pr.kind).projectile;
       if (!v) {
@@ -1233,7 +1260,12 @@ export class Vfx {
           if (m.userData.v5 && this.fireReleasePending) {
             const travelled=pr.travelled||0, speed=pr.speed||1;
             const sx=pr.x-pr.vx/speed*travelled,sz=pr.z-pr.vz/speed*travelled;
-            v.userData.socketOffset=new THREE.Vector3().copy(this.fireRelease).sub(_p0.set(sx,this.gy(sx,sz)+(pr.y??1),sz));
+            const o=v.userData.socketOffset=new THREE.Vector3().copy(this.fireRelease).sub(_p0.set(sx,this.gy(sx,sz)+(pr.y??1),sz));
+            // the part along the flight hands over on its own: the ball leaves the charge at half speed and
+            // speeds up to the bolt's own (never sliding back to the rules' muzzle behind it)
+            const ahead=(o.x*pr.vx+o.z*pr.vz)/speed;
+            o.x-=pr.vx/speed*ahead; o.z-=pr.vz/speed*ahead;
+            v.userData.socketAhead=ahead;
           }
         } else if (arrow) {
           const ag = arrowGeometry();
@@ -1264,8 +1296,10 @@ export class Vfx {
           v.userData.fireTravelled = pr.travelled ?? (v.userData.fireTravelled + pr.speed * dt);
           u.uTravelled.value = v.userData.fireTravelled;
           if (v.userData.socketOffset) {
-            const k=Math.min(1,u.uTravelled.value/cfg.launchDistance);
+            const k=Math.min(1,u.uTravelled.value/cfg.launchDistance), a=v.userData.socketAhead;
             v.position.addScaledVector(v.userData.socketOffset,1-k*k*(3-2*k));
+            const ka=Math.min(1,u.uTravelled.value/Math.max(cfg.launchDistance,4*Math.max(0,a))), left=a*(1-ka)*(1-ka), sp=Math.hypot(pr.vx,pr.vz)||1;
+            v.position.x+=pr.vx/sp*left; v.position.z+=pr.vz/sp*left;
           }
           const core = v.children[0].userData.launchCore;
           core.material.uniforms.uAlpha.value = Math.max(0, 1 - u.uTravelled.value / cfg.launchDistance);
@@ -1466,6 +1500,33 @@ export class Vfx {
           }
         },
       };
+    }
+    // New skills without their own effect yet (fxPending): an element-tinted warning disc before a delayed
+    // hit, and a tinted field with drifting motes for a lingering zone. Skill Lab effects replace these.
+    if (a.owner === 'player' && a.skill?.def?.fxPending) {
+      const c = el(a.element);
+      if (a.dot) {
+        const m = this.decal(this.discGeo, discMaterial('mire'), a.x, a.z, a.radius, 0, 0.07);
+        m.material.uniforms.uColor.value.set(c.glow);
+        m.material.uniforms.uColor2.value.set(c.dots);
+        return { obj: m, update: (ar, t, dt) => {
+          m.material.uniforms.uT.value = t;
+          m.material.uniforms.uA.value = fadeInOut(ar) * 0.75;
+          if (Math.random() < dt * 14) {
+            const ang = Math.random() * Math.PI * 2, r = Math.random() * ar.radius, x = ar.x + Math.sin(ang) * r, z = ar.z + Math.cos(ang) * r;
+            this.fx.add(x, this.gy(x, z) + 0.2 + Math.random() * 1.2, z, 0, -0.4, 0, { color: c.dots, size: 0.22, sizeEnd: 0.05, life: 0.8, drag: 1 });
+          }
+        } };
+      }
+      if (a.delay > 0) {
+        const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);
+        m.material.uniforms.uColor.value.set(c.dots);
+        m.material.uniforms.uColor2.value.set(c.glow);
+        return { obj: m, update: (ar) => {
+          m.material.uniforms.uFill.value = Math.min(1, ar.t / Math.max(0.01, ar.delay));
+          m.material.uniforms.uA.value = ar.t < ar.delay ? 0.7 : 0;
+        } };
+      }
     }
     return null;
   }

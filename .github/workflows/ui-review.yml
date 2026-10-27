@@ -10,8 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   review:
-    # Playwright 1.56 installs browsers on 24.04, not on the newer ubuntu-latest image
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04 # Playwright 1.56 has no browser build for ubuntu-latest (26.04)
     # WebKit twice reached the final passing save assertions at the 22m limit.
     # Keep the full suite; allow finite headroom for software rendering and artifacts.
     timeout-minutes: 30

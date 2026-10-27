@@ -110,7 +110,7 @@ export class SlashFx {
       for (const m of [core, glow]) { m.frustumCulled = false; m.visible = false; }
       const g = new THREE.Group(), tilt = new THREE.Group();
       tilt.add(glow, core); g.add(tilt); scene.add(g);
-      return { g, tilt, core, glow, uniforms, live: false, t: 0, reach: 1, arc: 1, dir: 1, lastHead: 0 };
+      return { g, tilt, core, glow, uniforms, live: false, t: 0, reach: 1, arc: 1, dir: 1, lastHead: 0, hold: HOLD, drift: new THREE.Vector3() };
     });
     this.sparks = new Ribbon(scene, camera, 1200, `varying vec2 vUv; varying float vA; varying vec3 vT;
       void main(){ float d=abs(vUv.y); if(d>0.9) discard; gl_FragColor=vec4(d<0.45 ? vec3(1.0) : vT, vA); }`, THREE.NormalBlending);
@@ -121,9 +121,9 @@ export class SlashFx {
     this._p = new THREE.Vector3(); this._q = new THREE.Vector3(); this._a = new THREE.Vector3();
     this._seg = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
   }
-  geometry(arcDeg, range) {
-    const key = `${arcDeg}|${range.toFixed(2)}`;
-    if (!this.geos.has(key)) this.geos.set(key, arcGeometry((arcDeg * Math.PI) / 180, range * 0.25, range));
+  geometry(arcDeg, range, inner = 0.25) {
+    const key = `${arcDeg}|${range.toFixed(2)}|${inner}`;
+    if (!this.geos.has(key)) this.geos.set(key, arcGeometry((arcDeg * Math.PI) / 180, range * inner, range));
     return this.geos.get(key);
   }
   // a strike whose contact lands `contactIn` seconds from now. where(): caster {x, z, angle} at reveal
@@ -136,19 +136,24 @@ export class SlashFx {
     this.index = k; this.lastAt = this.t;
     const pat = PATTERN[k], at = p.where(), dir = p.dir || 1;
     const c = this.cuts.find((q) => !q.live) || this.cuts.reduce((a, b) => (a.t > b.t ? a : b));
-    c.reach = p.range * pat.reach; c.arc = (p.arc * Math.PI) / 180; c.dir = dir; c.lastHead = 0;
-    c.core.geometry = c.glow.geometry = this.geometry(p.arc, c.reach);
-    place(c.g, at.x, 1.0 + pat.y, at.z);
-    c.g.rotation.set(0, at.angle, 0);
+    const arcDeg = p.arcDeg ?? p.arc; // a skill may draw a narrower crescent than its hit arc
+    c.reach = p.range * (p.reach ?? pat.reach); c.arc = (arcDeg * Math.PI) / 180; c.dir = dir; c.lastHead = 0; c.hold = p.hold ?? HOLD;
+    c.core.geometry = c.glow.geometry = this.geometry(arcDeg, c.reach, p.inner);
     c.tilt.rotation.set(0, 0, 0);
-    c.tilt.rotateZ(pat.tilt * dir); // the cut's plane rolls around the facing direction
+    place(c.g, at.x, 1.0 + (p.y ?? pat.y), at.z);
+    c.g.rotation.set(0, at.angle, 0);
+    c.tilt.rotateZ(p.tilt ?? pat.tilt * dir); // the cut's plane rolls around the facing direction (a skill may fix it: Cross Cut)
     c.tilt.rotateX(-0.06);
+    // a cut that flies on as a wave (Cross Cut), its sharp outer edge leading
+    c.drift.set(Math.sin(at.angle), 0, Math.cos(at.angle)).multiplyScalar(p.drift || 0);
     const u = c.uniforms;
     u.uDir.value = dir; u.uHead.value = 0; u.uFade.value = 0; u.uSeed.value = (this.seed = (this.seed * 7.31) % 97);
     const pal = p.palette || PALETTE; // a skill may bring its own colours (Sunder Cut: amber steel)
     u.uHot.value.set(...pal.hot); u.uBody.value.set(...pal.body); u.uGlow.value.set(...pal.glow);
     u.uRimK.value = p.fusedElement ? 1 : 0;
     if (p.fusedElement) u.uRim.value.set(...(FUSE[p.fusedElement] || FUSE.fire));
+    // a cut drawn over the bodies it crosses (Cross Cut: its X would be cut in half by the monster in front)
+    c.core.material.depthTest = c.glow.material.depthTest = !p.overlay;
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
   }
   // world point on the reach edge at fraction s of the cut
@@ -165,9 +170,10 @@ export class SlashFx {
     for (const c of this.cuts) {
       if (!c.live) continue;
       c.t += dt;
+      if (c.drift.x || c.drift.z) c.g.position.addScaledVector(c.drift, dt);
       const r = Math.min(1, c.t / SWEEP), head = 1 - (1 - r) * (1 - r);
       c.uniforms.uHead.value = head;
-      c.uniforms.uFade.value = Math.max(0, (c.t - SWEEP - HOLD) / FADE);
+      c.uniforms.uFade.value = Math.max(0, (c.t - SWEEP - c.hold) / FADE);
       // sparks thrown off the leading edge while it travels
       if (head > c.lastHead + 0.02) {
         const n = Math.ceil((head - c.lastHead) * 10);
@@ -182,7 +188,7 @@ export class SlashFx {
         if (r < 1) { this.edgePoint(c, head, this.light.position); light = Math.max(light, 1.5); }
         c.lastHead = head;
       }
-      if (c.t > SWEEP + HOLD + FADE) { c.live = false; c.core.visible = c.glow.visible = false; }
+      if (c.t > SWEEP + c.hold + FADE) { c.live = false; c.core.visible = c.glow.visible = false; }
     }
     this.light.intensity = Math.max(light, this.light.intensity - dt * 40);
     for (const s of this.sparkList) { s.age += dt; s.v.multiplyScalar(1 - 6 * dt); s.v.y -= 4 * dt; s.p.addScaledVector(s.v, dt); }

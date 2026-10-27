@@ -6221,6 +6221,660 @@
           ]
         }
       }
+    },
+    {
+      "key": "gear/travel_cap",
+      "path": "assets/icons/gear/travel_cap.png",
+      "sha256": "698b5250952126ec028d185ac0918f32a6944950876f39bc1b2828520b3b707d",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 196732,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/travel_cap.png",
+        "provenance": "assets-source/equipment/20261025/provenance/travel-set.json",
+        "source_sheet": "exec-7da877e8-16fc-459a-8bfb-182eff082894.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/travel_gloves",
+      "path": "assets/icons/gear/travel_gloves.png",
+      "sha256": "3c9115148add8cbe4dfd5b2c7c8f2f8233d4bdf3391b94fc1ecf09d3a2f9b726",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 199410,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/travel_gloves.png",
+        "provenance": "assets-source/equipment/20261025/provenance/travel-set.json",
+        "source_sheet": "exec-7da877e8-16fc-459a-8bfb-182eff082894.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/boarhide_boots",
+      "path": "assets/icons/gear/boarhide_boots.png",
+      "sha256": "f6280da68a23a099b286b4fa4ed30a7abb472ca4dcd8c76b2937804ce7431ab8",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 258623,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/boarhide_boots.png",
+        "provenance": "assets-source/equipment/20261025/provenance/early-sets-batch.json",
+        "source_sheet": null,
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/crabshell_vest",
+      "path": "assets/icons/gear/crabshell_vest.png",
+      "sha256": "6d75ae3bf409a4c7c2bf1136a7703317547c84646179b23f818f2e0a7faa2823",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 295305,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/crabshell_vest.png",
+        "provenance": "assets-source/equipment/20261025/provenance/early-sets-batch.json",
+        "source_sheet": null,
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/beetle_gloves",
+      "path": "assets/icons/gear/beetle_gloves.png",
+      "sha256": "63700542c073bc530994314ea20eceed9c97eb19978d1e9b8f6f8ae6a512d6b8",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 260640,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/beetle_gloves.png",
+        "provenance": "assets-source/equipment/20261025/provenance/beetle-set.json",
+        "source_sheet": "exec-d098cbef-6ea8-47b4-9e8d-152245e92c28.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "source_bounds": [
+          1031,
+          78,
+          1509,
+          524
+        ]
+      }
+    },
+    {
+      "key": "gear/beetle_boots",
+      "path": "assets/icons/gear/beetle_boots.png",
+      "sha256": "a7b7af90734f7289f3285fee9c47567027701083ff3aea15781077d5fe2499de",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 282671,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/beetle_boots.png",
+        "provenance": "assets-source/equipment/20261025/provenance/beetle-set.json",
+        "source_sheet": "exec-d098cbef-6ea8-47b4-9e8d-152245e92c28.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "source_bounds": [
+          42,
+          548,
+          500,
+          991
+        ]
+      }
+    },
+    {
+      "key": "gear/sporeweave_boots",
+      "path": "assets/icons/gear/sporeweave_boots.png",
+      "sha256": "0afb8c3cb606f72559e389814c542e51d07eefc6b35d35762a19eac741db4502",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 244332,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/sporeweave_boots.png",
+        "provenance": "assets-source/equipment/20261025/provenance/spore-set.json",
+        "source_sheet": "exec-b6288689-25bc-4310-aa7d-2e7cd7ecc0ca.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/wolfpelt_hood",
+      "path": "assets/icons/gear/wolfpelt_hood.png",
+      "sha256": "85bf43f2904ce75403dcc68b5403a88d7112cd4c5bd23f85636c488c3186da49",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 265153,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/wolfpelt_hood.png",
+        "provenance": "assets-source/equipment/20261025/provenance/wolf-set.json",
+        "source_sheet": "exec-fcee01fd-dac1-4d96-9ece-7923ad836964.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "source_bounds": [
+          607,
+          72,
+          994,
+          559
+        ]
+      }
+    },
+    {
+      "key": "gear/burrowguard_armor",
+      "path": "assets/icons/gear/burrowguard_armor.png",
+      "sha256": "ab1bbcf2e30813e41ef83e683fdfd6e6e101000914eb22f700d80ebd9589e493",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 304080,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/burrowguard_armor.png",
+        "provenance": "assets-source/equipment/20261025/provenance/rootdigger-approved-cutouts.json",
+        "source_sheet": "approved-rootdigger.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "component_ids": [
+          2
+        ]
+      }
+    },
+    {
+      "key": "gear/burrowguard_helm",
+      "path": "assets/icons/gear/burrowguard_helm.png",
+      "sha256": "156607897b3c470abeb6529d77848027dbaa927cba703fb4dd26c9e1e62aafa0",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 317304,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/burrowguard_helm.png",
+        "provenance": "assets-source/equipment/20261025/provenance/moonroot-pilot.json",
+        "source_sheet": "exec-37229759-2b67-4a1f-afc5-7acf8e2acf88.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/burrowguard_gloves",
+      "path": "assets/icons/gear/burrowguard_gloves.png",
+      "sha256": "418efb4c6880cb85a8ebff140ba62392c5e0841134fcbc8b8f8874b480903f06",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 236290,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/burrowguard_gloves.png",
+        "provenance": "assets-source/equipment/20261025/provenance/rootdigger-approved-cutouts.json",
+        "source_sheet": "approved-rootdigger.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "component_ids": [
+          3,
+          5
+        ]
+      }
+    },
+    {
+      "key": "gear/burrowguard_boots",
+      "path": "assets/icons/gear/burrowguard_boots.png",
+      "sha256": "4a0d3c81eaf4242e23bbcd15c5166eee5776a3521b7fbe30b85ba48e8a520d69",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 312422,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/burrowguard_boots.png",
+        "provenance": "assets-source/equipment/20261025/provenance/moonroot-pilot.json",
+        "source_sheet": "exec-37229759-2b67-4a1f-afc5-7acf8e2acf88.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/mirrorwing_robe",
+      "path": "assets/icons/gear/mirrorwing_robe.png",
+      "sha256": "c7243b5b81ada29ad91f1cf0a8a06a6bea09420fac3ff0074a759f0691be4b8f",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 307551,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/mirrorwing_robe.png",
+        "provenance": "assets-source/equipment/20261025/provenance/mirrorwing-approved-cutouts.json",
+        "source_sheet": "approved-mirrorwing.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "component_ids": [
+          1
+        ]
+      }
+    },
+    {
+      "key": "gear/mirrorwing_hood",
+      "path": "assets/icons/gear/mirrorwing_hood.png",
+      "sha256": "51aaf37b6c22950af1d3c3c946c3ce7cffd679c32ef024fec93a3bc8219fe011",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 226285,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/mirrorwing_hood.png",
+        "provenance": "assets-source/equipment/20261025/provenance/mirrorwing-approved-cutouts.json",
+        "source_sheet": "approved-mirrorwing.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "component_ids": [
+          2
+        ]
+      }
+    },
+    {
+      "key": "gear/mirrorwing_gloves",
+      "path": "assets/icons/gear/mirrorwing_gloves.png",
+      "sha256": "0f57cff041373b7a6555ee6724e0ae7d89e9118d0882c1238344c05dec34b2f4",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 240697,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/mirrorwing_gloves.png",
+        "provenance": "assets-source/equipment/20261025/provenance/mirrorwing-approved-cutouts.json",
+        "source_sheet": "approved-mirrorwing.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "component_ids": [
+          4,
+          13
+        ]
+      }
+    },
+    {
+      "key": "gear/mirrorwing_boots",
+      "path": "assets/icons/gear/mirrorwing_boots.png",
+      "sha256": "2f163e7009134da689270ed5f24d437b12c4ec68d6bb514ed373cb027e121059",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 276893,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/mirrorwing_boots.png",
+        "provenance": "assets-source/equipment/20261025/provenance/moonroot-pilot.json",
+        "source_sheet": "exec-37229759-2b67-4a1f-afc5-7acf8e2acf88.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/fernstep_coat",
+      "path": "assets/icons/gear/fernstep_coat.png",
+      "sha256": "04dae37160b6a0d5553ea57a71f3eab2d800c5de81e080e807a2d912c1d43a34",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 300987,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/fernstep_coat.png",
+        "provenance": "assets-source/equipment/20261025/provenance/fern-hare-approved-cutouts.json",
+        "source_sheet": "approved-fern-hare.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "component_ids": [
+          1
+        ]
+      }
+    },
+    {
+      "key": "gear/fernstep_cap",
+      "path": "assets/icons/gear/fernstep_cap.png",
+      "sha256": "ca7eec16d5d60e5f8064e510a7db88012902cc29b7b67325809c61686a18a210",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 181884,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/fernstep_cap.png",
+        "provenance": "assets-source/equipment/20261025/provenance/fern-hare-approved-cutouts.json",
+        "source_sheet": "approved-fern-hare.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "component_ids": [
+          2
+        ]
+      }
+    },
+    {
+      "key": "gear/fernstep_gloves",
+      "path": "assets/icons/gear/fernstep_gloves.png",
+      "sha256": "05069a806ecc5a49a82f43cb5293a7ea6159fb8acadb41513ae103132c2ad4e9",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 280297,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/fernstep_gloves.png",
+        "provenance": "assets-source/equipment/20261025/provenance/moonroot-pilot.json",
+        "source_sheet": "exec-37229759-2b67-4a1f-afc5-7acf8e2acf88.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/fernstep_boots",
+      "path": "assets/icons/gear/fernstep_boots.png",
+      "sha256": "2fb0bec6e5c3135fb1442d4d5d6a19eb81a1de580dc818ffe06d31f8931154e9",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 206858,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/fernstep_boots.png",
+        "provenance": "assets-source/equipment/20261025/provenance/fern-hare-approved-cutouts.json",
+        "source_sheet": "approved-fern-hare.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)",
+        "component_ids": [
+          3,
+          7
+        ]
+      }
+    },
+    {
+      "key": "gear/moonleaf_robe",
+      "path": "assets/icons/gear/moonleaf_robe.png",
+      "sha256": "bee9593786fa7fbff00f7ab1f1007fb0b3e29f849d51a4bcd742ddc95818994b",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 263898,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/moonleaf_robe.png",
+        "provenance": "assets-source/equipment/20261025/provenance/moonleaf-set.json",
+        "source_sheet": "exec-b530e83f-57b6-45d1-9562-571903f49d11.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/moonleaf_cowl",
+      "path": "assets/icons/gear/moonleaf_cowl.png",
+      "sha256": "f68438a3c46c86a10ad1432690e30e00050e1a57c64ab3e162b59f7ea5de0090",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 230567,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/moonleaf_cowl.png",
+        "provenance": "assets-source/equipment/20261025/provenance/moonleaf-set.json",
+        "source_sheet": "exec-b530e83f-57b6-45d1-9562-571903f49d11.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/moonleaf_gloves",
+      "path": "assets/icons/gear/moonleaf_gloves.png",
+      "sha256": "83651e5011e274baba31af9709b4779721a213b9e0d79f78bd471c77036bb2da",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 229727,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/moonleaf_gloves.png",
+        "provenance": "assets-source/equipment/20261025/provenance/moonleaf-set.json",
+        "source_sheet": "exec-b530e83f-57b6-45d1-9562-571903f49d11.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/moonleaf_pendant",
+      "path": "assets/icons/gear/moonleaf_pendant.png",
+      "sha256": "7ff24970c5dda491198a9692c6ee77139e81fdd909c28194a1e670ffbd4da6e5",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 85570,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/moonleaf_pendant.png",
+        "provenance": "assets-source/equipment/20261025/provenance/moonleaf-set.json",
+        "source_sheet": "exec-b530e83f-57b6-45d1-9562-571903f49d11.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/storm_gloves",
+      "path": "assets/icons/gear/storm_gloves.png",
+      "sha256": "5f55fd6f7d8aa80d63f248ca28b905e3d06e9cbf6ed97791fea145a5d18894da",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 231069,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/storm_gloves.png",
+        "provenance": "assets-source/equipment/20261025/provenance/storm-set.json",
+        "source_sheet": "exec-6ad93b7a-7194-4a30-a4e2-80e2466826e6.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/wisp_robe",
+      "path": "assets/icons/gear/wisp_robe.png",
+      "sha256": "62609d4c3b12e2e8579ba1d08d2974416db1b68b0e98e76d5560c128c04ca21b",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 249133,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/wisp_robe.png",
+        "provenance": "assets-source/equipment/20261025/provenance/wisp16-set.json",
+        "source_sheet": "exec-b506b082-a7c9-44c0-be17-5175cc4ccbfa.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/wisp_hood",
+      "path": "assets/icons/gear/wisp_hood.png",
+      "sha256": "88df29fbe0143a6fd0ebbed22828fa462c03d44f8cc7882df9bdc5a5a481274f",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 232119,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/wisp_hood.png",
+        "provenance": "assets-source/equipment/20261025/provenance/wisp16-set.json",
+        "source_sheet": "exec-b506b082-a7c9-44c0-be17-5175cc4ccbfa.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/wisp_boots",
+      "path": "assets/icons/gear/wisp_boots.png",
+      "sha256": "3345fae7623cb4a943420960879d0729276bbc1544189d60ebe41bec4f52fb89",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 257839,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/wisp_boots.png",
+        "provenance": "assets-source/equipment/20261025/provenance/wisp16-set.json",
+        "source_sheet": "exec-b506b082-a7c9-44c0-be17-5175cc4ccbfa.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
+    },
+    {
+      "key": "gear/wardenstalker_boots",
+      "path": "assets/icons/gear/wardenstalker_boots.png",
+      "sha256": "db399a4c8734b01aaa6f9124d13cd2120c50f512005977b0d01ad5341eed2e46",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 308392,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "source_art": "assets-source/equipment/20261025/icons/wardenstalker_boots.png",
+        "provenance": "assets-source/equipment/20261025/provenance/wardenstalker-set.json",
+        "source_sheet": "exec-89e7d420-451b-40fb-88ca-6fdf6107b066.png",
+        "export": "Byte-preserving copy of the reviewed 512px transparent icon (PR #152)"
+      }
     }
   ],
   "pending_count": 0,

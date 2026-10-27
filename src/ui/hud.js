@@ -54,6 +54,7 @@ export class Hud {
         <div class="portrait"></div><div class="lvl-badge">1</div>
         <div class="bars">
           <div class="pname"></div>
+          <div class="bar shield" hidden><i class="fill"></i><span></span></div>
           <div class="bar hp"><i class="lag"></i><i class="fill"></i><i class="barrier"></i><span></span></div>
           <div class="bar mp"><i class="fill"></i><span></span></div>
           <div class="statusline"></div>
@@ -83,6 +84,10 @@ export class Hud {
     document.body.appendChild(this.xp);
     document.body.classList.add('ingame');
     const q = (s) => this.el.frame.querySelector(s);
+    this.shieldBar = q('.bar.shield');
+    this.shieldFill = q('.shield .fill');
+    this.shieldText = q('.shield span');
+    this.shieldShown = false;
     this.hpFill = q('.hp .fill');
     this.hpLag = q('.hp .lag');
     this.hpBarrier = q('.hp .barrier');
@@ -350,6 +355,10 @@ export class Hud {
         if (e.amount > 0) this.float(e.x, 2.1, e.z, `-${e.amount}`, 'hurt');
         if (e.amount > 0 && !e.dot) this.hurtFlash(Math.min(1, 0.35 + e.amount / Math.max(1, g.player.maxHp) * 3));
         if (e.absorbed > 0) this.float(e.x + 0.4, 2.4, e.z, `(${Math.round(e.absorbed)})`, 'dodge');
+        if (e.shielded > 0) this.float(e.x - 0.4, 2.4, e.z, `(${Math.round(e.shielded)})`, 'shield');
+        break;
+      case 'shieldBreak':
+        this.float(e.x, 3.05, e.z, 'เกราะเวทแตก!', 'shield');
         break;
       case 'dodge':
         this.float(e.x, 2.2, e.z, 'หลบ!', 'dodge');
@@ -461,6 +470,12 @@ export class Hud {
     this.hpLag.style.width = pct(p.hp, p.maxHp);
     this.hpBarrier.style.width = pct(Math.min(p.barrier, p.maxHp), p.maxHp);
     setText(this.hpText, `HP  ${Math.ceil(p.hp)} / ${p.maxHp}${p.barrier > 0.5 ? ` +${Math.round(p.barrier)}` : ''}`);
+    const hasShield = p.maxShield > 0;
+    if (hasShield !== this.shieldShown) this.shieldBar.hidden = !(this.shieldShown = hasShield);
+    if (hasShield) {
+      this.shieldFill.style.width = pct(p.shield, p.maxShield);
+      setText(this.shieldText, `เกราะเวท  ${Math.ceil(p.shield)} / ${p.maxShield}`);
+    }
     this.mpFill.style.width = pct(p.mp, p.maxMp);
     const low = !p.dead && p.hp < p.maxHp * 0.3;
     if (low !== this.lowHp) this.el.hurt.classList.toggle('low', (this.lowHp = low));
@@ -486,7 +501,7 @@ export class Hud {
     const st = [`<b>Job ${ch.jobLevel}</b>`, `<b class="gold">${fieldIcon('coin')}${ch.gold.toLocaleString('en-US')} G</b>`];
     if (p.statuses.poison) st.push('<b class="st poison">ติดพิษ</b>');
     if (p.statuses.chill) st.push('<b class="st cold">หนาวช้า</b>');
-    if (p.buffs.war_cry) st.push('<b class="st buff">คำรามศึก</b>');
+    for (const id in p.buffs) st.push(`<b class="st buff">${esc(g.data.skills.combat[id]?.nameTh || 'บัฟ')}</b>`);
     if (g.allies.length) st.push(`<b class="st ally">หมาป่า ×${g.allies.length}</b>`);
     const html = st.join('');
     if (html !== this.lastStatus) {

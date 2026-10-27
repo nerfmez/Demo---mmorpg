@@ -1,0 +1,11 @@
+{
+  "id": "mirrorwing_gloves",
+  "name_th": "ถุงมือปีกกระจก",
+  "slot": "gloves",
+  "game_status": "proposed",
+  "set_id": "mirrorwing",
+  "set_name_th": "ชุดปีกกระจก",
+  "turnaround": "assets-source/equipment/20261026/turnarounds/mirrorwing-turnaround.jpeg",
+  "icon": "assets-source/equipment/20261025/icons/mirrorwing_gloves.png",
+  "record": "assets-source/equipment/20261026/items/mirrorwing_gloves.json"
+}

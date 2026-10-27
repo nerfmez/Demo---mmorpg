@@ -36,18 +36,27 @@ export function recipeBlocker(ch, data, recipeId) {
   return null;
 }
 
+/** The integer range an option rolls in on an item of `grade` and `itemLevel`: its min..max grown by the item
+ * level (items.grades.optionLevelGrowth), then the grade's band of that (items.grades.optionRoll). */
+export function optionRange(data, id, grade, itemLevel = 1) {
+  const g = data.items.grades, def = data.items.gearOptions[id], band = g.optionRoll?.[grade] || [0, 1];
+  const growth = g.optionLevelGrowth?.[def.growth || (def.stat.endsWith('Pct') ? 'percent' : 'flat')] || 0, m = 1 + growth * (Math.max(1, itemLevel) - 1);
+  const lo = def.min * m, hi = def.max * m;
+  const min = Math.max(Math.round(lo), Math.round(lo + band[0] * (hi - lo)));
+  return { min, max: Math.max(min, Math.round(lo + band[1] * (hi - lo))) };
+}
+const rollOption = (data, id, grade, itemLevel, rng) => { const r = optionRange(data, id, grade, itemLevel); return { id, value: rng.int(r.min, r.max) }; };
+
 export function rollGear(data, recipe, rng) {
   const g = data.items.grades;
   const grade = rng.weighted(g.weights);
   const pool = [...recipe.optionPool];
-  const options = [];
+  const options = [], itemLevel = equipmentItemLevel(data, {base:recipe.result, itemLevel:recipe.itemLevel});
   for (let i = 0; i < g.optionCount[grade] && pool.length; i++) {
     const idx = Math.floor(rng.next() * pool.length);
-    const id = pool.splice(idx, 1)[0];
-    const def = data.items.gearOptions[id];
-    options.push({ id, value: rng.int(def.min, def.max) });
+    options.push(rollOption(data, pool.splice(idx, 1)[0], grade, itemLevel, rng));
   }
-  return { base: recipe.result, itemLevel: equipmentItemLevel(data, {base:recipe.result, itemLevel:recipe.itemLevel}), grade, upgrade: 0, options };
+  return { base: recipe.result, itemLevel, grade, upgrade: 0, options };
 }
 
 /** Craft a recipe. Returns {ok, kind, item?} */
@@ -147,6 +156,26 @@ export function upgradeSkill(ch, data, skillId) {
   return { ok: true, level: level + 1 };
 }
 
+// Movement skills rank up the same way, gated by their upgradeStat (AGI): data.progression.movementUpgrade.
+export function movementUpgradeState(ch, data, id) {
+  if (!ch.movementSkills?.includes(id)) return { ok: false, reason: 'not_learned' };
+  const mu = data.progression.movementUpgrade, level = ch.movementRanks?.[id] || 1, step = mu.steps[level - 1];
+  if (level >= mu.maxLevel || !step) return { ok: false, reason: 'max' };
+  const cost = materialCost(step);
+  const req = meetsRequires(ch, { [data.skills.movement[id].upgradeStat]: step.requiresStat });
+  if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
+}
+
+export function upgradeMovement(ch, data, id) {
+  const state = movementUpgradeState(ch, data, id);
+  if (!state.ok) return state;
+  pay(ch, state.cost);
+  const level = (ch.movementRanks?.[id] || 1) + 1;
+  ch.movementRanks = { ...(ch.movementRanks || {}), [id]: level };
+  return { ok: true, level };
+}
+
 export function modUpgradeCost(data, inst) {
   const mu = data.progression.modUpgrade;
   return inst.level >= Math.min(mu.maxLevel, data.mods.mods[inst.id]?.maxLevel || mu.maxLevel) ? null : mu.cost[inst.level - 1];
@@ -187,7 +216,7 @@ export function gearGradePreview(data, item) {
   const count = data.items.grades.optionCount[grade] - item.options.length;
   const pool = data.items.gearBases[item.base].optionPool.filter(id => !item.options.some(o => o.id===id));
   const candidate = upper => {
-    const options = pool.map(id => ({ id, value:data.items.gearOptions[id][upper?'max':'min'] }));
+    const options = pool.map(id => ({ id, value:optionRange(data, id, grade, equipmentItemLevel(data, item))[upper?'max':'min'] }));
     options.sort((a,b) => (upper?-1:1) * (gearPower({ [data.items.gearOptions[a.id].stat]:a.value },data)-gearPower({ [data.items.gearOptions[b.id].stat]:b.value },data)));
     return gearRequirements({ ...item, grade, options:[...item.options,...options.slice(0,Math.max(0,count))] },data);
   };
@@ -202,8 +231,7 @@ export function promoteGear(ch, data, uid, rng) {
   if (pool.length < count - item.options.length) return { ok: false, reason: 'pool' };
   pay(ch, state.cost);
   while (item.options.length < count) {
-    const id = pool.splice(rng.int(0, pool.length - 1), 1)[0], def = data.items.gearOptions[id];
-    item.options.push({ id, value: rng.int(def.min, def.max) });
+    item.options.push(rollOption(data, pool.splice(rng.int(0, pool.length - 1), 1)[0], state.grade, equipmentItemLevel(data, item), rng));
   }
   item.grade = state.grade;
   return { ok: true, item, unequipped:enforceEquipment(ch,data), inactive:inactiveEquipment(ch,data) };
@@ -224,7 +252,9 @@ export function craftBatch(ch, data, recipeId, rng, { attempts = 1, grade = null
     items.push(result.item);
     for (const [key, count] of Object.entries(recipe.cost)) spent[key] = (spent[key] || 0) + count;
     const gradeMatch = !grade || grades.indexOf(result.item.grade) >= grades.indexOf(grade);
-    const optionMatch = !option || result.item.options.some(o => o.id === option && o.value >= data.items.gearOptions[option].min + quality * (data.items.gearOptions[option].max - data.items.gearOptions[option].min));
+    // quality is measured on this item's own range (its item level, lowest grade's floor to the best grade's top)
+    const span = option && [optionRange(data, option, grades[0], result.item.itemLevel).min, optionRange(data, option, grades[grades.length - 1], result.item.itemLevel).max];
+    const optionMatch = !option || result.item.options.some(o => o.id === option && o.value >= span[0] + quality * (span[1] - span[0]));
     if ((grade || option) && gradeMatch && optionMatch) { reason = 'target'; break; }
   }
   return { ok: items.length > 0, items, spent, reason, attempts: items.length, matched: reason === 'target' };
@@ -371,8 +401,7 @@ export function rollGearDrop(data, monsterId, level, boss, rng, gearFindPct = 0)
   const base = list[Math.floor(rng.next() * list.length)], def = data.items.gearBases[base];
   const pool = [...def.optionPool], options = [];
   for (let i = 0; i < data.items.grades.optionCount[grade] && pool.length; i++) {
-    const id = pool.splice(Math.floor(rng.next() * pool.length), 1)[0], o = data.items.gearOptions[id];
-    options.push({ id, value: rng.int(o.min, o.max) });
+    options.push(rollOption(data, pool.splice(Math.floor(rng.next() * pool.length), 1)[0], grade, def.itemLevel, rng));
   }
   return { base, itemLevel: def.itemLevel, grade, upgrade: 0, options };
 }

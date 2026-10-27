@@ -4,13 +4,13 @@ import * as THREE from 'three';
 import { Ribbon, mulberry32, flashMaterial, tintFlash, lookOf, place, placeV, addLight } from './fx-common.js';
 
 const HOP = 0.085, BOLT_HOLD = 0.2, BOLT_FADE = 0.1, LIFE = 1.0, FLASHES = 16, LIGHTS = 3;
-const coreFrag = `varying vec2 vUv; varying float vA; varying vec3 vT;
+export const CRACKLE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   float h(float x){ return fract(sin(x*127.1)*43758.5453); }
   void main(){ float d=abs(vUv.y); float n = h(floor(vUv.x*60.0)) * 0.25;
     if(d > 0.92 - n) discard;
     vec3 c = d < 0.42 - n*0.5 ? vec3(1.0) : vT;
     gl_FragColor=vec4(c, vA); }`;
-const glowFrag = `varying vec2 vUv; varying float vA; varying vec3 vT;
+export const BOLT_GLOW_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); float a=pow(1.0-d,3.0)*0.5; gl_FragColor=vec4(vT*a*vA, 1.0); }`;
 const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
 // spark streaks reuse these (Ribbon.strip copies the points at once)
@@ -19,7 +19,7 @@ let sparkW = 0, sparkU = 0;
 const sparkGlowW = () => sparkW * 2.2, sparkCoreW = (x) => sparkW * x * (1 - sparkU * 0.6);
 
 // Seeded random streams with no closure per use: zig() reseeds one, its caller keeps drawing from it.
-class Rng {
+export class Rng {
   seed(a) { this.a = a | 0; return this; }
   next() { let a = (this.a = (this.a + 0x6d2b79f5) | 0), t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
 }
@@ -28,7 +28,10 @@ const R1 = new Rng(), R2 = new Rng(), R3 = new Rng();
 const PTS = [];
 let ptI = 0;
 const takePt = () => PTS[ptI++] || (PTS[ptI - 1] = new THREE.Vector3());
-const zDir = new THREE.Vector3(), zPerp = new THREE.Vector3(), ts = [];
+/** Rewinds the shared bolt point pool (Thunderstorm draws with zig too; strips copy points at once). */
+export const rewindPts = () => { ptI = 0; };
+export const zDir = new THREE.Vector3(), zPerp = new THREE.Vector3();
+const ts = [];
 // scratch point/width lists, filled in place
 const L = { pts: [], ws: [], main: [], mw: [], p2: [], w2: [], fp: [], fw: [], cp: [], cw: [], tp: [], tw: [] };
 // stroke widths read these (no closure per stroke)
@@ -42,7 +45,7 @@ const castAlive = (c) => c.t < LIFE;
 
 // angular lightning: few straight segments, hard kinks, uneven spacing. r is reseeded with seed;
 // zDir/zPerp hold the bolt's direction and its sideways axis afterwards.
-function zig(a, b, r, seed, amp, segs, out, wout) {
+export function zig(a, b, r, seed, amp, segs, out, wout) {
   r.seed(seed);
   out.length = 0; wout.length = 0;
   const len = a.distanceTo(b);
@@ -68,8 +71,8 @@ function zig(a, b, r, seed, amp, segs, out, wout) {
 export class ChainFx {
   constructor(scene, camera) {
     this.scene = scene; this.camera = camera;
-    this.glow = new Ribbon(scene, camera, 12000, glowFrag, THREE.AdditiveBlending);
-    this.core = new Ribbon(scene, camera, 12000, coreFrag, THREE.NormalBlending);
+    this.glow = new Ribbon(scene, camera, 12000, BOLT_GLOW_FS, THREE.AdditiveBlending);
+    this.core = new Ribbon(scene, camera, 12000, CRACKLE_FS, THREE.NormalBlending);
     const quad = new THREE.PlaneGeometry(1, 1);
     this.quad = quad;
     this.flashes = Array.from({ length: FLASHES }, (_, k) => { const m = new THREE.Mesh(quad, flashMaterial(5.1 + k * 3.7)); m.renderOrder = 6; m.visible = false; m.frustumCulled = false; scene.add(m); return m; });

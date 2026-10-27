@@ -1,0 +1,51 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for the wolfpelt set: the front view of its equipment turnaround (assets-source/equipment/20261026, wolfpelt-turnaround), meshy-t2 image-to-3d in T-pose (task 01a17807-c142-7333-9aa0-bd7d31764605) and a Meshy 6 retexture from the same image (task 01a17809-42a1-7188-96fc-87ae68533af9); sized from its arm axis, cut at the neck, sleeve ends (cuff) and boot tops read off the model. Its eyes are grey, too pale to find by colour: their middles (`eyes`) were read off the model.",
+ "id": "wolf2",
+ "src": "assets/meshy/outfits/wolf2_meshy.glb",
+ "neck": 0.94,
+ "cuff": 0.35,
+ "bootTop": 0.255,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "out": {
+  "armor": null,
+  "boots": null
+ },
+ "eyes": [
+  [
+   0.064,
+   -0.235,
+   1.07
+  ],
+  [
+   -0.088,
+   -0.235,
+   1.07
+  ]
+ ]
+}

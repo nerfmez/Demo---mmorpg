@@ -68,14 +68,16 @@ if (params.get('fireball') === 'legacy') view.vfx.fireballReviewVersion = 'legac
 view.coreWorld = coreWorld;
 // ?streamBudget=<ms> lets software-GPU tests stream the neighbour in fewer (slow) frames.
 if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamBudget'));
-// Character/monster models load at boot. Current weapons load on demand; procedural shapes stand in,
+// Character/monster models load at boot. Current weapons and chibi outfits load on demand; procedural shapes stand in,
 // current hero, creation preview and portraits refresh when their requested templates arrive.
 view.startupDependencies={};
 trackStartupReadiness({models:loadModels(data.models, { onWeaponReady: (id) => {
   const bases = F.game?.gearLook().bases;
-  if (id === bases?.weapon || id === bases?.offhand) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
+  // a weapon, or the chibi outfit model (outfit_<item>) of the worn armour, boots or helm
+  const worn = bases && [bases.weapon, bases.offhand, `outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`, `outfit_${bases.helm}`];
+  if (worn?.includes(id)) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
   // Refresh only the currently selected creation kit, not an obsolete async selection.
-  if (view.previewHero && data.progression.start.kits[F.menu?.kit]?.weapon === id) F.menu.refreshPreview();
+  if (view.previewHero && (data.progression.start.kits[F.menu?.kit]?.weapon === id || id.startsWith('outfit_'))) F.menu.refreshPreview();
 } }), world:view.worldReady, contact:contactReady, frost:frostReady, approvedClips:approvedClipsReady},view.startupDependencies).then(() => {
   view.heroLookKey = null;
   view.refreshModelRigs(); // pooled monsters were built before their models arrived
@@ -119,7 +121,7 @@ function startGame(character, slot) {
     character.skills=Object.fromEntries(Object.keys(data.skills.combat).map(id=>[id,1]));
     character.movementSkills=Object.keys(data.skills.movement);
     character.movement ||= character.movementSkills[0];
-    character.stats={STR:35,AGI:35,VIT:35,INT:35,DEX:35};
+    character.stats={STR:35,AGI:35,VIT:35,INT:35,DEX:35,LUK:35};
     character.mods=Object.keys(data.mods.mods).map(id=>({id,uid:character.nextUid++,level:1,grade:'C'}));
   }
   const sandbox=fresh&&params.has('skillSandbox');

@@ -49,7 +49,7 @@ test('v3 gear migration adds two affixes once without changing existing rolls or
  const ch=createCharacter(data);ch.version=3;ch.jobNodes=['origin','v1'];ch.jobPoints=7;
  const item=ch.gear[0];item.grade='B';item.upgrade=3;item.options=[{id:'attack_flat',value:2}];
  ch.stats.STR=100;const before={nodes:structuredClone(ch.jobNodes),points:ch.jobPoints,gold:ch.gold,materials:structuredClone(ch.materials),uid:item.uid};
- migrateCharacter(ch,data);assert.equal(item.options.length,3);assert.deepEqual(item.options[0],{id:'attack_flat',value:2});
+ migrateCharacter(ch,data);assert.equal(item.options.length,3);assert.deepEqual(item.options[0],{id:'attack_flat',value:20},'v14 moves the roll to the tenfold scale, same quality');
  assert.equal(item.upgrade,3);assert.equal(item.grade,'B');assert.equal(item.uid,before.uid);assert.equal(ch.version,CHARACTER_VERSION);
  assert.deepEqual(ch.jobNodes,before.nodes);assert.equal(ch.jobPoints,before.points);assert.equal(ch.gold,before.gold);assert.deepEqual(ch.materials,before.materials);
  const once=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),once);

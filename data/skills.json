@@ -11,20 +11,22 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Damage",
+        "Physical",
         "Arc"
       ],
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 8,
+        "base": 80,
         "scale": 1.0
       },
       "range": 2.4,
       "arc": 120,
       "cooldown": 0.5,
       "castTime": 0.18,
-      "cost": 0,
+      "cost": 14,
       "element": "physical",
       "requires": {},
       "upgradeMaterial": "boar_tusk",
@@ -38,21 +40,23 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Area",
         "Damage",
+        "Physical",
         "Nova"
       ],
       "kind": "melee_nova",
       "power": "attack",
       "damage": {
-        "base": 7,
+        "base": 70,
         "scale": 0.85
       },
       "range": 2.8,
       "radius": 2.8,
       "cooldown": 1.2,
       "castTime": 0.24,
-      "cost": 6,
+      "cost": 60,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -75,12 +79,13 @@
       "tags": [
         "Attack",
         "Projectile",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 9,
+        "base": 90,
         "scale": 0.95
       },
       "range": 15,
@@ -88,7 +93,7 @@
       "projectileRadius": 0.3,
       "cooldown": 0.55,
       "castTime": 0.2,
-      "cost": 0,
+      "cost": 14,
       "element": "physical",
       "requires": {},
       "upgradeMaterial": "boar_tusk",
@@ -103,15 +108,15 @@
       "nameTh": "ลูกเวทพื้นฐาน",
       "desc": "ร่ายลูกพลังเวทเล็ก ๆ จากปลายคทาหรือไม้กายสิทธิ์ ไม่เปลืองมานา เป็นการโจมตีพื้นฐานของสายเวท",
       "tags": [
-        "Attack",
         "Spell",
         "Projectile",
-        "Damage"
+        "Damage",
+        "Arcane"
       ],
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 8,
+        "base": 80,
         "scale": 0.9
       },
       "range": 13,
@@ -119,7 +124,7 @@
       "projectileRadius": 0.3,
       "cooldown": 0.5,
       "castTime": 0.2,
-      "cost": 0,
+      "cost": 16,
       "element": "arcane",
       "requires": {},
       "upgradeMaterial": "glow_dust",
@@ -143,7 +148,7 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 10,
+        "base": 100,
         "scale": 1.1
       },
       "range": 13,
@@ -151,7 +156,7 @@
       "projectileRadius": 0.35,
       "cooldown": 0.7,
       "castTime": 0.22,
-      "cost": 6,
+      "cost": 56,
       "element": "fire",
       "burnChance": 0.25,
       "requires": {},
@@ -172,7 +177,7 @@
       "kind": "chain",
       "power": "spell",
       "damage": {
-        "base": 11,
+        "base": 110,
         "scale": 1.0
       },
       "range": 11,
@@ -181,7 +186,7 @@
       "chainFalloff": 0.85,
       "cooldown": 1.3,
       "castTime": 0.24,
-      "cost": 10,
+      "cost": 100,
       "element": "lightning",
       "requires": {
         "INT": 6
@@ -199,12 +204,13 @@
         "Area",
         "Earth",
         "Damage",
+        "Physical",
         "Ground"
       ],
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 18,
+        "base": 180,
         "scale": 1.5
       },
       "range": 10,
@@ -212,7 +218,7 @@
       "delay": 0.55,
       "cooldown": 2.4,
       "castTime": 0.3,
-      "cost": 14,
+      "cost": 140,
       "element": "physical",
       "requires": {
         "INT": 6
@@ -236,13 +242,13 @@
       "kind": "nova",
       "power": "spell",
       "damage": {
-        "base": 12,
+        "base": 120,
         "scale": 1.0
       },
       "radius": 4.2,
       "cooldown": 6,
       "castTime": 0.25,
-      "cost": 16,
+      "cost": 160,
       "element": "cold",
       "chill": {
         "slow": 0.55,
@@ -269,7 +275,7 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 4,
+        "base": 40,
         "scale": 0.4
       },
       "range": 14,
@@ -277,7 +283,7 @@
       "projectileRadius": 0.2,
       "cooldown": 0.6,
       "castTime": 0.2,
-      "cost": 0,
+      "cost": 12,
       "element": "poison",
       "requires": {
         "DEX": 6
@@ -302,7 +308,8 @@
         "Spell",
         "Area",
         "Curse",
-        "Debuff"
+        "Debuff",
+        "Duration"
       ],
       "kind": "curse_zone",
       "power": "spell",
@@ -313,7 +320,7 @@
       "dealtMult": 0.8,
       "cooldown": 9,
       "castTime": 0.3,
-      "cost": 12,
+      "cost": 120,
       "element": "arcane",
       "requires": {
         "INT": 7
@@ -331,19 +338,20 @@
         "Guard",
         "Buff",
         "Area",
-        "Barrier"
+        "Barrier",
+        "Duration"
       ],
       "kind": "self_barrier",
       "power": "vit",
       "barrier": {
-        "base": 30,
-        "scale": 1.8
+        "base": 300,
+        "scale": 18
       },
       "duration": 6,
       "radius": 4,
       "cooldown": 9,
       "castTime": 0.25,
-      "cost": 12,
+      "cost": 120,
       "element": "none",
       "requires": {},
       "upgradeMaterial": "beetle_shell",
@@ -357,7 +365,8 @@
       "tags": [
         "Buff",
         "Area",
-        "Warcry"
+        "Warcry",
+        "Duration"
       ],
       "kind": "buff",
       "power": "attack",
@@ -367,7 +376,7 @@
       "speedBuff": 0.1,
       "cooldown": 14,
       "castTime": 0.3,
-      "cost": 12,
+      "cost": 120,
       "element": "none",
       "requires": {
         "STR": 5
@@ -385,12 +394,13 @@
         "Area",
         "Heal",
         "Persistent",
-        "Zone"
+        "Zone",
+        "Duration"
       ],
       "kind": "heal_zone",
       "power": "spell",
       "heal": {
-        "base": 6,
+        "base": 60,
         "scale": 0.45
       },
       "tick": 0.5,
@@ -399,7 +409,7 @@
       "radius": 2.8,
       "cooldown": 10,
       "castTime": 0.3,
-      "cost": 18,
+      "cost": 180,
       "element": "none",
       "requires": {
         "INT": 5
@@ -424,12 +434,12 @@
         "count": 1,
         "life": 25,
         "hp": {
-          "base": 60,
-          "vit": 3,
-          "level": 3
+          "base": 600,
+          "vit": 30,
+          "level": 30
         },
         "damage": {
-          "base": 6,
+          "base": 60,
           "scale": 0.55
         },
         "speed": 7,
@@ -438,7 +448,7 @@
       },
       "cooldown": 12,
       "castTime": 0.4,
-      "cost": 20,
+      "cost": 200,
       "element": "physical",
       "requires": {
         "INT": 5
@@ -455,12 +465,13 @@
         "Attack",
         "Projectile",
         "Damage",
+        "Physical",
         "Charge"
       ],
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 14,
+        "base": 140,
         "scale": 1.1
       },
       "range": 17,
@@ -468,7 +479,7 @@
       "projectileRadius": 0.3,
       "cooldown": 2.4,
       "castTime": 0.2,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "DEX": 5
@@ -493,16 +504,18 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Guard",
         "Counter",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "counter_stance",
       "power": "attack",
       "range": 3,
       "cooldown": 6,
       "castTime": 0.15,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -514,7 +527,7 @@
         "sword"
       ],
       "damage": {
-        "base": 12,
+        "base": 120,
         "scale": 1.15
       },
       "arc": 100,
@@ -532,7 +545,9 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Damage",
+        "Physical",
         "Arc"
       ],
       "kind": "melee_arc",
@@ -540,7 +555,7 @@
       "range": 2.5,
       "cooldown": 0.5,
       "castTime": 0.18,
-      "cost": 0,
+      "cost": 12,
       "element": "physical",
       "requires": {
         "DEX": 5
@@ -552,7 +567,7 @@
         "dagger"
       ],
       "damage": {
-        "base": 6,
+        "base": 60,
         "scale": 0.6
       },
       "arc": 45,
@@ -566,8 +581,10 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Area",
         "Damage",
+        "Physical",
         "Debuff",
         "Arc"
       ],
@@ -576,7 +593,7 @@
       "range": 2.8,
       "cooldown": 5,
       "castTime": 0.5,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -588,7 +605,7 @@
         "axe"
       ],
       "damage": {
-        "base": 14,
+        "base": 140,
         "scale": 1.2
       },
       "arc": 80,
@@ -604,7 +621,9 @@
       "tags": [
         "Attack",
         "Melee",
+        "Slam",
         "Damage",
+        "Physical",
         "Control",
         "Arc"
       ],
@@ -613,7 +632,7 @@
       "range": 2.7,
       "cooldown": 7,
       "castTime": 0.4,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -625,7 +644,7 @@
         "mace"
       ],
       "damage": {
-        "base": 12,
+        "base": 120,
         "scale": 1.1
       },
       "arc": 65,
@@ -641,15 +660,17 @@
       "tags": [
         "Attack",
         "Melee",
+        "Slam",
         "Line",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "melee_line",
       "power": "attack",
       "range": 5,
       "cooldown": 4,
       "castTime": 0.65,
-      "cost": 12,
+      "cost": 120,
       "element": "physical",
       "requires": {
         "STR": 5
@@ -661,7 +682,7 @@
         "greatblade"
       ],
       "damage": {
-        "base": 20,
+        "base": 200,
         "scale": 1.7
       },
       "width": 1.4,
@@ -674,8 +695,10 @@
       "tags": [
         "Attack",
         "Melee",
+        "Strike",
         "Guard",
         "Damage",
+        "Physical",
         "Control",
         "Arc"
       ],
@@ -684,7 +707,7 @@
       "range": 2.2,
       "cooldown": 5,
       "castTime": 0.2,
-      "cost": 8,
+      "cost": 80,
       "element": "physical",
       "requires": {
         "VIT": 5
@@ -693,8 +716,8 @@
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "damage": {
-        "base": 8,
-        "scale": 0.8
+        "base": 80,
+        "scale": 8
       },
       "arc": 90,
       "requiresOffhand": "shield",
@@ -711,6 +734,7 @@
         "Attack",
         "Area",
         "Damage",
+        "Physical",
         "Rain",
         "Ground"
       ],
@@ -719,7 +743,7 @@
       "range": 14,
       "cooldown": 6,
       "castTime": 0.3,
-      "cost": 12,
+      "cost": 120,
       "element": "physical",
       "requires": {
         "DEX": 5
@@ -731,7 +755,7 @@
         "bow"
       ],
       "damage": {
-        "base": 6,
+        "base": 60,
         "scale": 0.45
       },
       "radius": 3,
@@ -755,7 +779,7 @@
       "range": 5,
       "cooldown": 1,
       "castTime": 0.2,
-      "cost": 2,
+      "cost": 20,
       "element": "fire",
       "requires": {
         "INT": 5
@@ -767,13 +791,13 @@
         "staff"
       ],
       "damage": {
-        "base": 7,
+        "base": 70,
         "scale": 0.65
       },
       "arc": 55,
       "channel": {
         "tick": 0.25,
-        "manaPerSecond": 8,
+        "manaPerSecond": 80,
         "moveMult": 0.4
       }
     },
@@ -785,14 +809,15 @@
         "Spell",
         "Area",
         "Control",
-        "Construct"
+        "Construct",
+        "Duration"
       ],
       "kind": "wall",
       "power": "spell",
       "range": 9,
       "cooldown": 10,
       "castTime": 0.3,
-      "cost": 16,
+      "cost": 160,
       "element": "cold",
       "requires": {
         "INT": 5
@@ -806,7 +831,7 @@
         "length": 4,
         "thickness": 0.45,
         "hp": {
-          "base": 35,
+          "base": 350,
           "scale": 1.1
         },
         "minGap": 1.4,
@@ -828,7 +853,7 @@
       "range": 8,
       "cooldown": 7,
       "castTime": 0.3,
-      "cost": 12,
+      "cost": 120,
       "element": "none",
       "requires": {
         "INT": 5
@@ -837,7 +862,7 @@
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "heal": {
-        "base": 12,
+        "base": 120,
         "scale": 0.65
       },
       "cleanse": [
@@ -871,7 +896,7 @@
       "radius": 5,
       "aura": {
         "reserve": 0.2,
-        "mpRegen": 1.5,
+        "mpRegen": 15,
         "tick": 0.5
       }
     },
@@ -890,7 +915,7 @@
       "range": 0,
       "cooldown": 14,
       "castTime": 0.4,
-      "cost": 20,
+      "cost": 200,
       "element": "physical",
       "requires": {
         "INT": 5
@@ -903,12 +928,12 @@
         "count": 1,
         "life": 25,
         "hp": {
-          "base": 100,
-          "vit": 5,
-          "level": 4
+          "base": 1000,
+          "vit": 50,
+          "level": 40
         },
         "damage": {
-          "base": 3,
+          "base": 30,
           "scale": 0.25
         },
         "speed": 3,
@@ -918,6 +943,630 @@
         "tauntInterval": 3,
         "tauntDuration": 2
       }
+    },
+    "sky_shatter": {
+      "name": "Earth Heave",
+      "nameTh": "งัดพสุธา",
+      "desc": "ย่อตัวจิกอาวุธลงดิน 0.7 วิ แล้วงัดแผ่นดินด้านหน้าขึ้นเป็นวงกว้าง ศัตรูที่โดนมึน 1 วิ (บอส 0.3 วิ) ต้องถืออาวุธหนัก (ดาบใหญ่ ขวาน กระบอง)",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Slam",
+        "Area",
+        "Damage",
+        "Physical",
+        "Control",
+        "Arc"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "damage": {
+        "base": 420,
+        "scale": 3.2
+      },
+      "range": 3.2,
+      "arc": 140,
+      "cooldown": 9,
+      "castTime": 0.7,
+      "cost": 160,
+      "element": "physical",
+      "stun": {
+        "duration": 1,
+        "bossDuration": 0.3
+      },
+      "requires": {
+        "STR": 12
+      },
+      "requiresWeapon": [
+        "greatblade",
+        "axe",
+        "mace"
+      ],
+      "upgradeMaterial": "ram_horn",
+      "upgradeStat": "STR",
+      "job": "heavy",
+      "iconPending": true
+    },
+    "earth_rend": {
+      "name": "Earth Rend",
+      "nameTh": "แผ่นดินแยก",
+      "desc": "เงื้อ 0.8 วิ แล้วฟาดพื้นให้แยกเป็นแนวยาว 8 ม. กว้าง 1.8 ม. หันทิศระหว่างเงื้อได้ ต้องถืออาวุธหนัก",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Slam",
+        "Line",
+        "Area",
+        "Damage",
+        "Physical"
+      ],
+      "kind": "melee_line",
+      "power": "attack",
+      "damage": {
+        "base": 340,
+        "scale": 2.8
+      },
+      "range": 8,
+      "width": 1.8,
+      "aimDuringCast": true,
+      "cooldown": 8,
+      "castTime": 0.8,
+      "cost": 160,
+      "element": "physical",
+      "requires": {
+        "STR": 12
+      },
+      "requiresWeapon": [
+        "greatblade",
+        "axe",
+        "mace"
+      ],
+      "upgradeMaterial": "crag_stone",
+      "upgradeStat": "STR",
+      "job": "heavy",
+      "iconPending": true
+    },
+    "iron_body": {
+      "name": "Iron Body",
+      "nameTh": "กายเหล็ก",
+      "desc": "ตะโกนเกร็งกาย 6 วินาที ไม่โดนผลักและรับดาเมจลดลง 15% (เฉพาะตัวเอง)",
+      "tags": [
+        "Buff",
+        "Warcry",
+        "Guard",
+        "Duration"
+      ],
+      "kind": "buff",
+      "power": "attack",
+      "radius": 0,
+      "duration": 6,
+      "takenMult": 0.85,
+      "steady": true,
+      "cooldown": 18,
+      "castTime": 0.2,
+      "cost": 100,
+      "element": "none",
+      "requires": {
+        "STR": 10,
+        "VIT": 6
+      },
+      "upgradeMaterial": "golem_heart",
+      "upgradeStat": "VIT",
+      "job": "heavy",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "cross_cut": {
+      "name": "Cross Cut",
+      "nameTh": "ฟันไขว้",
+      "desc": "ท่าหลักมีดสั้น ฟันไขว้ด้านหน้า 2 ครั้งติดกัน โดนทุกตัวในวงหน้า ตีโดน 2 ครั้งต่อการกด (ได้ผลตอนตีโดนสองเท่า เช่น ดูดมานา)",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Damage",
+        "Physical",
+        "Arc"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "damage": {
+        "base": 60,
+        "scale": 0.7
+      },
+      "range": 2.2,
+      "arc": 100,
+      "repeats": 1,
+      "repeatMult": 1,
+      "repeatDelay": 0.14,
+      "cooldown": 0.75,
+      "castTime": 0.22,
+      "cost": 24,
+      "element": "physical",
+      "requires": {
+        "DEX": 8
+      },
+      "requiresWeapon": [
+        "dagger"
+      ],
+      "upgradeMaterial": "mantis_scythe",
+      "upgradeStat": "DEX",
+      "job": "blade",
+      "iconPending": true
+    },
+    "blade_storm": {
+      "name": "Blade Storm",
+      "nameTh": "พายุมีด",
+      "desc": "หมุนตัวฟันรอบทิศ 4 รอบติดกัน ใช้กับมีดสั้น",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Area",
+        "Damage",
+        "Physical",
+        "Nova"
+      ],
+      "kind": "melee_nova",
+      "power": "attack",
+      "damage": {
+        "base": 80,
+        "scale": 0.75
+      },
+      "range": 3,
+      "radius": 3,
+      "repeats": 3,
+      "repeatMult": 1,
+      "repeatDelay": 0.2,
+      "cooldown": 7,
+      "castTime": 0.3,
+      "cost": 140,
+      "element": "physical",
+      "requires": {
+        "DEX": 12
+      },
+      "requiresWeapon": [
+        "dagger"
+      ],
+      "upgradeMaterial": "dusk_pelt",
+      "upgradeStat": "DEX",
+      "job": "blade",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "rally": {
+      "name": "Rally",
+      "nameTh": "ปลุกใจ",
+      "desc": "ปลุกใจตัวเองและพวกรอบตัว 8 ม. ดาเมจ +12% (เพิ่มตามระดับสกิล) นาน 15 วินาที",
+      "tags": [
+        "Buff",
+        "Area",
+        "Warcry",
+        "Duration"
+      ],
+      "kind": "buff",
+      "power": "attack",
+      "radius": 8,
+      "duration": 15,
+      "damageBuff": 0.12,
+      "cooldown": 15,
+      "castTime": 0.3,
+      "cost": 100,
+      "element": "none",
+      "requires": {
+        "STR": 8
+      },
+      "upgradeMaterial": "wolf_pelt",
+      "upgradeStat": "STR",
+      "job": "duelist",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "frenzy_roar": {
+      "name": "Frenzy Roar",
+      "nameTh": "คำรามคลั่ง",
+      "desc": "ตัวเองเดินเร็วขึ้น 20% สัตว์อัญเชิญและพวกรอบตัว 8 ม. ตีและเดินเร็วขึ้น 20% นาน 8 วินาที",
+      "tags": [
+        "Buff",
+        "Area",
+        "Warcry",
+        "Duration"
+      ],
+      "kind": "buff",
+      "power": "attack",
+      "radius": 8,
+      "duration": 8,
+      "speedBuff": 0.2,
+      "cooldown": 16,
+      "castTime": 0.3,
+      "cost": 100,
+      "element": "none",
+      "requires": {
+        "STR": 6,
+        "AGI": 6
+      },
+      "upgradeMaterial": "greyfang_mane",
+      "upgradeStat": "AGI",
+      "job": "duelist",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "stand_firm": {
+      "name": "Stand Firm",
+      "nameTh": "ยืนหยัด",
+      "desc": "ตัวเองและพวกรอบตัว 8 ม. รับดาเมจลดลง 15% (ลดเพิ่มตามระดับสกิล) นาน 8 วินาที",
+      "tags": [
+        "Buff",
+        "Area",
+        "Warcry",
+        "Guard",
+        "Duration"
+      ],
+      "kind": "buff",
+      "power": "attack",
+      "radius": 8,
+      "duration": 8,
+      "takenMult": 0.85,
+      "cooldown": 20,
+      "castTime": 0.3,
+      "cost": 120,
+      "element": "none",
+      "requires": {
+        "VIT": 8
+      },
+      "upgradeMaterial": "ram_horn",
+      "upgradeStat": "VIT",
+      "job": "duelist",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "team_stand": {
+      "name": "Hold the Line",
+      "nameTh": "ยืนหยัดทีม",
+      "desc": "ตั้งแนวป้องกัน ตัวเองและพวกรอบตัว 9 ม. รับดาเมจลดลง 20% และไม่โดนผลัก นาน 8 วินาที",
+      "tags": [
+        "Buff",
+        "Area",
+        "Warcry",
+        "Guard",
+        "Duration"
+      ],
+      "kind": "buff",
+      "power": "attack",
+      "radius": 9,
+      "duration": 8,
+      "takenMult": 0.8,
+      "steady": true,
+      "cooldown": 22,
+      "castTime": 0.3,
+      "cost": 140,
+      "element": "none",
+      "requires": {
+        "VIT": 12
+      },
+      "upgradeMaterial": "warden_horn",
+      "upgradeStat": "VIT",
+      "job": "guardian",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "blessing": {
+      "name": "Blessing of Light",
+      "nameTh": "พรแห่งแสง",
+      "desc": "อวยพรตัวเองและพวกรอบตัว 9 ม. ดาเมจ +10% และรับดาเมจลดลง 10% นาน 12 วินาที",
+      "tags": [
+        "Spell",
+        "Buff",
+        "Area",
+        "Duration"
+      ],
+      "kind": "buff",
+      "power": "spell",
+      "radius": 9,
+      "duration": 12,
+      "damageBuff": 0.1,
+      "takenMult": 0.9,
+      "cooldown": 24,
+      "castTime": 0.4,
+      "cost": 180,
+      "element": "none",
+      "requires": {
+        "INT": 10
+      },
+      "upgradeMaterial": "sea_pearl",
+      "upgradeStat": "INT",
+      "job": "priest",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "rapid_volley": {
+      "name": "Rapid Volley",
+      "nameTh": "ยิงรัว",
+      "desc": "ยิงลูกธนูรัว 5 ลูกติดกันตามทิศที่หัน ใช้ลูกธนูครั้งเดียว ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Projectile",
+        "Damage",
+        "Physical"
+      ],
+      "kind": "projectile",
+      "power": "attack",
+      "damage": {
+        "base": 80,
+        "scale": 0.7
+      },
+      "range": 15,
+      "speed": 26,
+      "projectileRadius": 0.3,
+      "repeats": 4,
+      "repeatMult": 1,
+      "repeatDelay": 0.12,
+      "cooldown": 5,
+      "castTime": 0.2,
+      "cost": 100,
+      "element": "physical",
+      "requires": {
+        "DEX": 10
+      },
+      "requiresWeapon": [
+        "bow"
+      ],
+      "upgradeMaterial": "storm_quill",
+      "upgradeStat": "DEX",
+      "job": "power",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "killing_arrow": {
+      "name": "Killing Arrow",
+      "nameTh": "ศรสังหาร",
+      "desc": "เล็ง 0.55 วิ แล้วยิงลูกธนูหนักลูกเดียว ดาเมจสูงมาก ระยะไกล 20 ม. ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Projectile",
+        "Damage",
+        "Physical"
+      ],
+      "kind": "projectile",
+      "power": "attack",
+      "damage": {
+        "base": 520,
+        "scale": 4.2
+      },
+      "range": 20,
+      "speed": 34,
+      "projectileRadius": 0.3,
+      "cooldown": 10,
+      "castTime": 0.55,
+      "cost": 160,
+      "element": "physical",
+      "requires": {
+        "DEX": 14
+      },
+      "requiresWeapon": [
+        "bow"
+      ],
+      "upgradeMaterial": "hawk_feather",
+      "upgradeStat": "DEX",
+      "job": "power",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "meteor": {
+      "name": "Meteor",
+      "nameTh": "อุกกาบาต",
+      "desc": "เล็งจุดบนพื้น อุกกาบาตตกลงมาหลัง 1.1 วิ ระเบิดวงกว้าง 3.5 ม. มีโอกาสทำให้ติดไฟ 50%",
+      "tags": [
+        "Spell",
+        "Area",
+        "Fire",
+        "Damage",
+        "Ground"
+      ],
+      "kind": "ground_area",
+      "power": "spell",
+      "damage": {
+        "base": 520,
+        "scale": 4.2
+      },
+      "range": 12,
+      "radius": 3.5,
+      "delay": 1.1,
+      "burnChance": 0.5,
+      "cooldown": 10,
+      "castTime": 0.5,
+      "cost": 260,
+      "element": "fire",
+      "requires": {
+        "INT": 14
+      },
+      "upgradeMaterial": "rune_core",
+      "upgradeStat": "INT",
+      "job": "elemage",
+      "iconPending": true
+    },
+    "blizzard": {
+      "name": "Blizzard",
+      "nameTh": "พายุหิมะ",
+      "desc": "เรียกพายุหิมะค้างบนพื้น 5 วินาที วง 3.8 ม. ทำดาเมจน้ำแข็งต่อเนื่องและทำให้ศัตรูช้าลง 45%",
+      "tags": [
+        "Spell",
+        "Area",
+        "Cold",
+        "Damage",
+        "DoT",
+        "Control",
+        "Persistent",
+        "Zone",
+        "Ground",
+        "Duration"
+      ],
+      "kind": "dot_zone",
+      "power": "spell",
+      "damage": {
+        "base": 90,
+        "scale": 0.8
+      },
+      "range": 11,
+      "radius": 3.8,
+      "duration": 5,
+      "tick": 0.5,
+      "slow": 0.45,
+      "cooldown": 12,
+      "castTime": 0.4,
+      "cost": 240,
+      "element": "cold",
+      "requires": {
+        "INT": 14
+      },
+      "upgradeMaterial": "sea_pearl",
+      "upgradeStat": "INT",
+      "job": "elemage",
+      "iconPending": true
+    },
+    "thunderstorm": {
+      "name": "Thunderstorm",
+      "nameTh": "พายุฟ้าคะนอง",
+      "desc": "เล็งจุดบนพื้น สายฟ้าผ่าลงวง 3.2 ม. 4 ระลอก เว้น 0.5 วิ เป้าหมายเดินออกได้",
+      "tags": [
+        "Spell",
+        "Area",
+        "Lightning",
+        "Damage",
+        "Ground"
+      ],
+      "kind": "ground_area",
+      "power": "spell",
+      "damage": {
+        "base": 130,
+        "scale": 1
+      },
+      "range": 12,
+      "radius": 3.2,
+      "delay": 0.4,
+      "waves": 4,
+      "waveInterval": 0.5,
+      "cooldown": 11,
+      "castTime": 0.4,
+      "cost": 240,
+      "element": "lightning",
+      "requires": {
+        "INT": 14
+      },
+      "upgradeMaterial": "storm_quill",
+      "upgradeStat": "INT",
+      "job": "elemage",
+      "iconPending": true
+    },
+    "holy_bell": {
+      "name": "Holy Bell",
+      "nameTh": "ระฆังศักดิ์สิทธิ์",
+      "desc": "ตีระฆังแสงรอบตัว 4.5 ม. ศัตรูที่โดนมึน 0.8 วิ (บอส 0.25 วิ)",
+      "tags": [
+        "Spell",
+        "Area",
+        "Damage",
+        "Arcane",
+        "Control",
+        "Nova"
+      ],
+      "kind": "nova",
+      "power": "spell",
+      "damage": {
+        "base": 90,
+        "scale": 0.7
+      },
+      "radius": 4.5,
+      "stun": {
+        "duration": 0.8,
+        "bossDuration": 0.25
+      },
+      "cooldown": 14,
+      "castTime": 0.35,
+      "cost": 180,
+      "element": "arcane",
+      "requires": {
+        "INT": 10
+      },
+      "upgradeMaterial": "warden_horn",
+      "upgradeStat": "INT",
+      "job": "priest",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "light_chain": {
+      "name": "Chain of Light",
+      "nameTh": "โซ่แสง",
+      "desc": "ยิงโซ่แสงตรงไปข้างหน้า ศัตรูที่โดนแทบขยับไม่ได้ (ช้าลง 85%) นาน 2 วินาที",
+      "tags": [
+        "Spell",
+        "Projectile",
+        "Damage",
+        "Arcane",
+        "Control"
+      ],
+      "kind": "projectile",
+      "power": "spell",
+      "damage": {
+        "base": 80,
+        "scale": 0.7
+      },
+      "range": 12,
+      "speed": 18,
+      "projectileRadius": 0.4,
+      "chill": {
+        "slow": 0.85,
+        "duration": 2
+      },
+      "cooldown": 8,
+      "castTime": 0.3,
+      "cost": 120,
+      "element": "arcane",
+      "requires": {
+        "INT": 8
+      },
+      "upgradeMaterial": "mirror_scale",
+      "upgradeStat": "INT",
+      "job": "priest",
+      "iconPending": true,
+      "fxPending": true
+    },
+    "spell_wave": {
+      "name": "Spell Wave",
+      "nameTh": "คลื่นดาบเวท",
+      "desc": "ฟันส่งคลื่นดาบเวทกว้างพุ่งไปข้างหน้า 10 ม. ใช้เป็นฐานสกิลผสานได้ ต้องถือดาบ",
+      "tags": [
+        "Attack",
+        "Projectile",
+        "Damage",
+        "Arcane"
+      ],
+      "kind": "projectile",
+      "power": "attack",
+      "damage": {
+        "base": 160,
+        "scale": 1.3
+      },
+      "range": 10,
+      "speed": 16,
+      "projectileRadius": 0.9,
+      "cooldown": 3,
+      "castTime": 0.3,
+      "cost": 100,
+      "element": "arcane",
+      "requires": {
+        "STR": 8,
+        "INT": 8
+      },
+      "requiresWeapon": [
+        "sword",
+        "greatblade"
+      ],
+      "upgradeMaterial": "rune_core",
+      "upgradeStat": "INT",
+      "job": "spellblade",
+      "iconPending": true,
+      "fxPending": true
     }
   },
   "movement": {
@@ -934,7 +1583,8 @@
       "charges": 2,
       "recharge": 3.2,
       "invulnerable": false,
-      "icon": "dash"
+      "icon": "dash",
+      "upgradeStat": "AGI"
     },
     "roll": {
       "name": "Roll",
@@ -949,7 +1599,8 @@
       "charges": 1,
       "recharge": 1.3,
       "invulnerable": true,
-      "icon": "roll"
+      "icon": "roll",
+      "upgradeStat": "AGI"
     },
     "blink": {
       "name": "Blink",
@@ -961,14 +1612,15 @@
       ],
       "kind": "blink",
       "distance": 8,
-      "duration": 0.08,
+      "duration": 0.08, "delay": 0.14,
       "charges": 1,
       "recharge": 4.5,
       "invulnerable": true,
       "requires": {
         "INT": 7
       },
-      "icon": "blink"
+      "icon": "blink",
+      "upgradeStat": "AGI"
     },
     "leap": {
       "name": "Leap Slam",
@@ -988,14 +1640,15 @@
       "landing": {
         "radius": 2.2,
         "damage": {
-          "base": 6,
+          "base": 60,
           "scale": 0.6
         }
       },
       "requires": {
         "STR": 6
       },
-      "icon": "leap"
+      "icon": "leap",
+      "upgradeStat": "AGI"
     }
   }
 }

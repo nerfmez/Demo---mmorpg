@@ -724,6 +724,15 @@ function waterMaterial() {
     fragmentShader: /* glsl */ `
       uniform float uTime; varying float vDepth; varying float vAlong; varying float vAcross; varying float vTone; varying float vFlow; varying float vShore; varying vec2 vW;
       ${NOISE_GLSL}
+      // the arrival beach's light web (scenes/beach): cell points wobble in place; x is the
+      // distance to the nearest point, y to the cell border
+      vec2 webHash(vec2 p){vec3 p3=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));p3+=dot(p3,p3.yzx+33.33);return fract((p3.xx+p3.yz)*p3.zy);}
+      vec2 webVoro(vec2 x,float t){vec2 n=floor(x),f=fract(x);float f1=8.,f2=8.;
+        for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){vec2 g=vec2(i,j);vec2 o=.5+.42*sin(t+6.2831*webHash(n+g));vec2 r=g+o-f;float d=dot(r,r);if(d<f1){f2=f1;f1=d;}else if(d<f2)f2=d;}
+        return vec2(sqrt(f1),sqrt(f2)-sqrt(f1));}
+      // rounded cells: nearest/second-nearest ratio; its contours are circles, so the cells read as
+      // soft blobs and the gaps widen into small pools where three cells meet
+      float webGap(vec2 x,float t){vec2 v=webVoro(x,t);return v.x/(v.x+v.y+1e-4);}
       void main(){
         // the waterline breathes a little, so the edge laps instead of standing still;
         // shore: metres to the waterline (per vertex, from the bank's real crossing)
@@ -743,8 +752,31 @@ function waterMaterial() {
         vec2 skyP = mat2(.80,-.60,.60,.80) * vW * .09 + vec2(uTime * .012, uTime * .005);
         skyP.x -= vFlow * uTime * .05;
         vec2 skyW = vec2(vnoise(vW * .21 + uTime * .02), vnoise(vW.yx * .25 - uTime * .017)) - .5;
-        float sky = smoothstep(.57, .61, vnoise(skyP + skyW * 1.2));
+        float sky = smoothstep(.57, .61, vnoise(skyP + skyW * 1.2)), webAlpha = 0.0;
         col += vec3(.06, .10, .10) * sky * smoothstep(0.15, 0.5, tone) * (1.0 - .75 * vFlow);
+        // the light web, as on the arrival beach's sea: small rounded wobbly cells parted by soft
+        // pale-green gaps, brighter in the shallows; whole stretches fade, so it never reads as one even
+        // net. The cell points wobble in place.
+        {
+          float near = 1.0 - smoothstep(.12, .55, tone);
+          // in the beach scene's metres (its scale 0.8)
+          vec2 q = vW / .8;
+          // one cell size: scaling world coordinates by a factor that varies with depth would shear
+          // the cells into dotted streaks wherever the depth changes
+          vec2 pS = q * 1.45;
+          pS += .36 * vec2(vnoise(pS * 1.1 + vec2(uTime * .18, 0.)), vnoise(pS * 1.1 + vec2(5., -uTime * .15))) - .18;
+          float gS = webGap(pS, uTime * .35);
+          float keep = smoothstep(.42, .74, vnoise(pS * .45 + vec2(uTime * .05, -uTime * .04) + 17.));
+          keep *= smoothstep(.25, .62, vnoise(q * .26 + vec2(-uTime * .03, uTime * .02) + 3.));
+          float web = smoothstep(mix(.78, .74, near), mix(.9, .86, near), gS) * keep;
+          float glow = smoothstep(mix(.55, .5, near), mix(.9, .86, near), gS) * mix(.35, 1., keep);
+          // the cells themselves are slightly darker, greener blobs, most visible in the shallows
+          float blob = (1. - glow) * mix(.15, .5, near) * smoothstep(.0, .6, vShore);
+          col = mix(col, col * vec3(.102, .301, .227) * 1.15, blob * .5);
+          col = mix(col, vec3(.807, 1., .644), web * mix(.26, .36, near));
+          col += vec3(.658, 1., .552) * glow * keep * .08;
+          webAlpha = web * .12 + blob * near * .12;
+        }
         if (vFlow > 0.5) {
           // current lines: thin lanes along the stream, each broken into dashes of its own
           // that travel downstream (no noise iso-bands, which close into rings)
@@ -753,7 +785,9 @@ function waterMaterial() {
           float n = vnoise(vec2(fp.x * .2 - uTime * (1.0 + hash12(vec2(lane, 4.0)) * .5), lane * 7.3));
           // a dash swells from a point and tapers out again, like a fold of the current
           float dash = smoothstep(.54, .72, n);
-          float line = 1.0 - smoothstep(.0, .055 * dash + .001, inLane);
+          // never thinner than a pixel (a hairline would break into dots); the dash fades instead
+          float aa = fwidth(laneP), w = max(mix(.02, .06, dash), aa);
+          float line = 1.0 - smoothstep(w * .3, w + aa, inLane);
           float banks = smoothstep(.3, 1.2, vShore);
           col = mix(col, vec3(.72, .91, .87), line * dash * banks * (.22 + .18 * hash12(vec2(lane, 9.0))));
         } else {
@@ -780,7 +814,7 @@ function waterMaterial() {
         col = mix(col, vec3(.62, .84, .78), ribbon * .35);
         col = mix(col, vec3(.96, .98, .95), lace * .85);
         // clear over the bank, so the bed shows; fuller over deep water
-        float a = mix(0.30, 0.86, smoothstep(0.05, 0.6, tone)) * smoothstep(0.0, 0.03, shore);
+        float a = min(1.0, mix(0.30, 0.86, smoothstep(0.05, 0.6, tone)) + webAlpha) * smoothstep(0.0, 0.03, shore);
         a = max(a, lace * .9);
         gl_FragColor = vec4(col, a);
         #include <colorspace_fragment>

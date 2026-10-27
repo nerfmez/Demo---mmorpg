@@ -56,13 +56,10 @@ test('the chibi torso flatten bands are bounded', () => {
   }
 });
 
-test('the chibi face shadow and hair highlight settings are bounded', () => {
+test('the chibi face shadow settings are bounded', () => {
   const f = data.models.characters.hero_chibi.faceShadow;
   assert.ok(f && f.from < f.to && f.from >= 0 && f.to <= 1, 'face mask runs forward across the head');
   assert.ok(f.curve >= 0 && f.curve < 1, 'curve bows the shadow edge a little');
-  assert.ok(data.models.characters.hero_chibi_hair.grey > 0.5 && data.models.characters.hero_chibi_hair.grey < 0.95, 'default hair grey');
-  const h = data.models.characters.hero_chibi_hair.highlight;
-  assert.ok(h && h.at > 0 && h.at < 1 && h.width > 0 && h.width < 0.3 && h.strength > 0 && h.strength <= 1, 'hair highlight band');
 });
 
 test('the chibi helm fit sits over the hair', () => {
@@ -110,8 +107,6 @@ test('every hair style but the default has one chibi hair model, fitted over the
     assert.ok(m.fit.width > 0.4 && m.fit.width <= 1.2 && m.fit.depth > 0.4 && m.fit.depth <= 1.2 && Math.abs(m.fit.tilt) <= 30, id + ' a sane fit');
     // tucked over the head (fitHairToHead), by a small margin
     assert.ok(m.fit.tuck > 0 && m.fit.tuck <= 0.05, id + ' fit.tuck');
-    // its painted grey's middle brightness, which the look's hair colour stands for (hairColorMaterial)
-    assert.ok(m.grey > 0.5 && m.grey < 0.95, id + ' grey');
     // its box is the skull of the head it was cut from: inside the hair model, not round it
     const a = j.accessors[j.meshes[0].primitives[0].attributes.POSITION];
     for (const c of [0, 2]) assert.ok(m.box[0][c] >= a.min[c] - 1e-4 && m.box[1][c] <= a.max[c] + 1e-4 && m.box[0][c] < m.box[1][c], id + ' skull box inside the model');
@@ -139,8 +134,8 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
   assert.ok(entries.length >= 2, 'at least the travel tunic and boots');
   for (const [id, m] of entries) {
     assert.ok(['armor', 'boots', 'helm'].includes(m.chibiOutfit), id + ' piece');
-    // a lining colour for its insides (darkInside), where it has one, is a plain sRGB hex
-    if (m.lining != null) assert.match(m.lining, /^#[0-9a-f]{6}$/i, id + ' lining');
+    // its insides take the cloth's colour round each point (darkInside) only when it says so
+    if (m.localInside != null) assert.equal(typeof m.localInside, 'boolean', id + ' localInside');
     // the game finds the model by the worn item's id (hero.js: outfit_<item>)
     const table = { armor: 'armor', boots: 'boots', helm: 'helms' }[m.chibiOutfit];
     assert.ok(outfits[table][id.replace(/^outfit_/, '')], id + ' names a ' + m.chibiOutfit + ' item');

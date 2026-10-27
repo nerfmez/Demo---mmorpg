@@ -29,9 +29,9 @@ How the hero's hair styles (`data/models.json` `characters.hero_chibi_hair_<styl
    that no hair vertex is inside the head (a ray from the head's middle through it meets an odd
    number of head surfaces beyond it) at every style before shipping.
 
-The hair is painted light grey; `hairColorMaterial` tints it to the look's `hair` colour, the
-style's middle brightness (its `grey`: the median brightness of the texels its triangles use) giving
-that colour. Measure `grey` for a new style; a wrong one turns the painted light into pale smears.
+The hair is painted light grey; `hairColorMaterial` draws it flat in the look's `hair` colour (no
+soft light or gloss: lit, the generated paint reads as plastic), darkened only along its painted
+strand lines and by one hard cel shadow tone.
 `fitHairToHead` also marks the head under the hair (`underHair`), drawn in the hair's shade, so a
 gap left between locks shows dark hair, not the scalp.
 

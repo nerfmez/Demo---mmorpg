@@ -3,7 +3,7 @@
 # blur: the neck of the generated chibi and a dark smear inside the V, and the arm's skin on the cuffs.
 # Every texel the neck and sleeve triangles use is placed in 3D (barycentric over its UV triangle)
 # and repainted by where it lies: the standing collar round the neck even teal, the V opening even
-# skin (the body's painted skin under the hero tint), the lapels' dark strokes teal, the cuff an even
+# skin (the body's painted skin under the hero tint), the lapels' ragged teal smoothed in 3D, the cuff an even
 # teal band and the sleeve inside it cream. Run after re-fitting the outfit:
 #   python3 scripts/clean-travel-tunic.py public/models/outfits/travel_tunic.glb public/models/outfits/travel_tunic.glb
 # Needs numpy and Pillow. Heights are in the fitted tunic's bind space (chibi metres, T-pose).
@@ -77,11 +77,35 @@ teal=np.median(col[teal_px],0); tl=np.median(lum(col[teal_px]))
 shade=lambda v: np.clip(lum(v)/tl,0.85,1.1)[:,None]
 ring=(y>0.835)&(np.hypot(x,z-zc)<0.08)
 dy=y-0.7675; V=(z>zc)&(dy>0)&(np.abs(x+0.003)<np.minimum(0.4*dy,0.021))&~ring&~is_brown(col)
-lapel=(z>zc-0.01)&(y>0.755)&(y<=0.84)&(np.abs(x)<0.1)&~V&~ring&~is_brown(col)&(is_teal(col)|(lum(col)<0.5))  # its teal and the dark smears in it
+# the lapels: teal where most of the paint within LAPEL_BLUR in 3D is teal (or the dark smears
+# inside it), else the shirt's cream: the painted shapes kept, their ragged edges made clean
+LAPEL_BLUR, VOX = 0.006, 0.002
+region=(y>0.74)&(np.abs(x)<0.16)&~V&~ring&~is_brown(col)&~((y<0.785)&(np.abs(x)<0.035))  # not the toggle
+src_teal=(is_teal(col)|(lum(col)<0.5))&~is_brown(col)
+lo=pos.min(0); vi=np.floor((pos-lo)/VOX).astype(int); dims=vi.max(0)+2
+num=np.zeros(dims); den=np.zeros(dims)
+np.add.at(num,tuple(vi.T),src_teal.astype(float)); np.add.at(den,tuple(vi.T),1.0)
+def box(a, r):
+    for ax in range(3):
+        a=np.cumsum(np.pad(a,[(r+1,r) if k==ax else (0,0) for k in range(3)]),axis=ax)
+        sl=lambda lo,hi: tuple(slice(lo,hi) if k==ax else slice(None) for k in range(3))
+        a=a[sl(2*r+1,None)]-a[sl(0,-(2*r+1))]
+    return a
+rv=int(round(LAPEL_BLUR/VOX)); grid=box(num,rv)/np.maximum(box(den,rv),1e-9)
+# read trilinearly at each texel and blended over a narrow band: a smooth edge, no voxel steps
+f=(pos-lo)/VOX-0.5; i0=np.clip(np.floor(f).astype(int),0,dims-2); t=np.clip(f-i0,0,1); frac=0
+for dx in (0,1):
+    for dy_ in (0,1):
+        for dz in (0,1):
+            w_=(t[:,0] if dx else 1-t[:,0])*(t[:,1] if dy_ else 1-t[:,1])*(t[:,2] if dz else 1-t[:,2])
+            frac=frac+w_*grid[i0[:,0]+dx,i0[:,1]+dy_,i0[:,2]+dz]
+a=np.clip((frac-0.4)/0.2,0,1)[:,None]; a=a*a*(3-2*a)
+cream0=np.median(col[region&is_cream(col)],0)
+paint=region&((a[:,0]>0)|src_teal|~is_cream(col))
 out[ys[ring],xs[ring]]=teal*shade(col[ring])
-out[ys[lapel],xs[lapel]]=teal*shade(col[lapel])
+out[ys[paint],xs[paint]]=(cream0*(1-a)+teal*shade(col)*a)[paint]
 out[ys[V],xs[V]]=skin
-print('teal',np.round(teal*255),'ring',ring.sum(),'V',V.sum(),'lapel',lapel.sum())
+print('teal',np.round(teal*255),'ring',ring.sum(),'V',V.sum(),'lapels',paint.sum())
 # sleeve ends: the arm's skin painted on the cuff
 ys,xs,pos=texels((c[:,1]>0.68)&(np.abs(c[:,0])>0.14))
 # the cuff an even teal band from where the generated paint turns teal (|x| 0.174 m in the T-pose),

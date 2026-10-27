@@ -295,62 +295,37 @@ void main() {`)
 }
 
 /**
- * The hair's highlight band (`highlight`), the anime "angel ring": a jagged lighter band at height
- * `at` (0 bottom .. 1 top of the hair model) and `width` thick, on the side of the hair facing the
- * camera, brightening it by `strength`.
- */
-function hairHighlightMaterial(m, box, { at, width, strength }) {
-  const base = m.onBeforeCompile;
-  const u = { uHlBox: { value: new THREE.Vector4(box.min.y, box.max.y, (box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2) }, uHl: { value: new THREE.Vector3(at, width, strength) } };
-  m.onBeforeCompile = (shader, renderer) => {
-    base(shader, renderer);
-    Object.assign(shader.uniforms, u);
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vHairPos;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHairPos = position;');
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec4 uHlBox; uniform vec3 uHl; varying vec3 vHairPos;')
-      .replace('#include <opaque_fragment>', `{
-  float t = ( vHairPos.y - uHlBox.x ) / ( uHlBox.y - uHlBox.x );
-  float a = atan( vHairPos.x - uHlBox.z, vHairPos.z - uHlBox.w );
-  float jag = 0.03 * sin( a * 13.0 ) + 0.015 * sin( a * 29.0 + 1.3 );
-  float band = 1.0 - smoothstep( uHl.y * 0.45, uHl.y, abs( t - uHl.x - jag ) );
-  float facing = smoothstep( 0.25, 0.6, dot( normalize( normal ), normalize( vViewPosition ) ) );
-  // lifted in the hair's own hue (a grey lift reads as a pale rubber stripe on a dark hair)
-  vec3 hue = outgoingLight / max( max( outgoingLight.r, outgoingLight.g ), max( outgoingLight.b, 1e-3 ) );
-  outgoingLight = mix( outgoingLight, outgoingLight * 1.25 + 0.14 * mix( vec3( 1.0 ), hue, 0.6 ), band * facing * uHl.z );
-}
-#include <opaque_fragment>`);
-  };
-  const key = m.customProgramCacheKey;
-  m.customProgramCacheKey = () => key() + '-chibi-hair-hl';
-}
-
-/**
- * The hair in the look's colour (`color`, any hex): the painted texture is a light grey hair whose
- * middle brightness (`grey`, data: the hair's `grey`) stands for that colour. Shade and strand lines
- * below it darken the colour; the painted light above it lifts it only a little toward white (the
- * generated paint's light is blotchy, and lifting it far smears pale patches over a dark hair).
- * Applied to the texel of both the lit colour and the painted-light glow (and the outline hull's).
+ * The hair in the look's colour (`color`, any hex), flat as the owner's sheet draws it: no light,
+ * shade or rim falls on it (lit, the generated paint's soft shading and gloss read as plastic). Of
+ * the painted grey texture only its strand lines are kept: each texel's brightness against its
+ * blurred surroundings (a coarser mip), which drops the paint's broad shading and blotchy light and
+ * darkens the colour along the lines. Applied to the outline hull's texel too.
  */
 const HAIR_TINT = `
-vec3 hairTint( vec3 t ) {
-  float k = dot( t, vec3( 0.299, 0.587, 0.114 ) ) / uHairGrey;
-  return k <= 1.0 ? uHairColor * max( k, 0.4 ) : mix( uHairColor, vec3( 1.0 ), 0.4 * min( k - 1.0, 0.25 ) );
+vec3 hairTint( vec3 t, vec3 around ) {
+  vec3 w = vec3( 0.299, 0.587, 0.114 );
+  return uHairColor * clamp( pow( dot( t, w ) / max( dot( around, w ), 0.05 ), 1.8 ), 0.45, 1.0 );
 }`;
-function hairColorMaterial(m, color, grey = 0.8) {
-  const base = m.onBeforeCompile, u = { value: new THREE.Color(color) }, g = { value: grey };
+const HAIR_SHADOW = 0.7; // the hair's one cel shadow tone, of its colour, where the sun does not reach it
+function hairColorMaterial(m, color) {
+  const base = m.onBeforeCompile, u = { value: new THREE.Color(color) }, shadow = { value: HAIR_SHADOW };
+  m.userData.hairShadow = shadow;
   m.userData.hairColor = u; // the creation menu's colour wheel sets it live while dragging
   m.onBeforeCompile = (shader, renderer) => {
     base?.call(m, shader, renderer);
     shader.uniforms.uHairColor = u;
-    shader.uniforms.uHairGrey = g;
+    shader.uniforms.uRim = { value: 0 };
+    shader.uniforms.uHairShadow = shadow;
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform vec3 uHairColor;\nuniform float uHairGrey;${HAIR_TINT}`)
-      .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb = hairTint( diffuseColor.rgb );')
-      .replace('#include <emissivemap_fragment>', `#ifdef USE_EMISSIVEMAP
-  totalEmissiveRadiance *= hairTint( texture2D( emissiveMap, vEmissiveMapUv ).rgb );
-#endif`);
+      .replace('#include <common>', `#include <common>\nuniform vec3 uHairColor;\nuniform float uHairShadow;${HAIR_TINT}`)
+      .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb = diffuse * hairTint( texture2D( map, vMapUv ).rgb, texture2D( map, vMapUv, 3.0 ).rgb );')
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+{
+  float lit = dot( reflectedLight.directDiffuse, vec3( 0.299, 0.587, 0.114 ) ) / max( dot( diffuseColor.rgb, vec3( 0.299, 0.587, 0.114 ) ), 1e-3 );
+  reflectedLight.directDiffuse = vec3( 0.0 );
+  reflectedLight.indirectDiffuse = diffuseColor.rgb * ( lit > 0.25 ? 1.0 : uHairShadow );
+  totalEmissiveRadiance = vec3( 0.0 );
+}`);
   };
   const key = m.customProgramCacheKey;
   m.customProgramCacheKey = () => (key ? key.call(m) : '') + '-chibi-hair-color';
@@ -587,7 +562,7 @@ export function prepareChibiHair(gltf, cfg) {
   // is not drawn, so it cannot poke through the helm; the fringe in a hood's opening stays
   const u = cfg.underHelm;
   const underHelm = u ? cutAbove(geometry, box.min.y + u.above * (box.max.y - box.min.y), box.min.z + u.front * (box.max.z - box.min.z)) : null;
-  return { geometry, underHelm, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null, grey: cfg.grey ?? 0.8 };
+  return { geometry, underHelm, material, box, fit: cfg.fit || {} };
 }
 
 /** The triangles of a geometry less those whose centre lies above height y and behind depth z (a shared copy). */
@@ -927,10 +902,9 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
   const hair = new THREE.Mesh(geometry, paintedLight(toonCopy(src, flash, rim, false), T.paintedLight));
   if (model) darkInside(hair.material, T.underCloth?.inside); // a helm's inside reads as shade
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
-  if (H.highlight && !model) hairHighlightMaterial(hair.material, H.box, H.highlight);
   hair.castShadow = true;
   const hull = new THREE.Mesh(geometry, hairHull(src, outline / s, darkness));
-  if (color && !model && src.map) { hairColorMaterial(hair.material, color, H.grey); hairColorMaterial(hull.material, color, H.grey); }
+  if (color && !model && src.map) { hairColorMaterial(hair.material, color); hairColorMaterial(hull.material, color); }
   // the head under it in its shade: the look's colour (the same uniform value), else the painted hair's
   rig.skin.body.traverse((o) => {
     const under = o.isSkinnedMesh && !o.userData.garment && o.material.userData.underHair;
@@ -958,30 +932,28 @@ export function paintedLight(material, k) {
 /**
  * Draw a garment's inside (its back faces) in its texture's mean colour (the smallest mip) at `k` of
  * its light: a hollow pad or an open collar then reads as shaded cloth of the garment's own colour,
- * not as the pale fur or lining the generated texture paints there. `lining` (sRGB hex, data: the
- * outfit's `lining`) replaces that mean where the texture is shared by several colours of cloth, whose
- * mean is a muddy brown-grey (the Travel set's sleeves).
+ * not as the pale fur or lining the generated texture paints there. `local` (data: the outfit's
+ * `localInside`) keeps each point's own colour instead, for a texture shared by several colours of
+ * cloth, whose whole mean is a muddy brown-grey (the Travel set: its sleeves cream inside, its cuffs
+ * and collar teal).
  */
-export function darkInside(material, k, lining = null) {
+export function darkInside(material, k, local = false) {
   if (!k) return material;
   const prev = material.onBeforeCompile, key = material.customProgramCacheKey;
-  const u = lining ? { value: new THREE.Color(lining) } : null;
   material.onBeforeCompile = (shader, renderer) => {
     prev?.call(material, shader, renderer);
-    if (u) shader.uniforms.uLining = u;
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>${u ? '\nuniform vec3 uLining;' : ''}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 #ifdef USE_MAP
 if (!gl_FrontFacing) {
-  vec3 mean = ${u ? 'uLining' : 'texture2D(map, vMapUv, 16.0).rgb'};
+  vec3 mean = ${local ? 'sampledDiffuseColor.rgb' : 'texture2D(map, vMapUv, 16.0).rgb'};
   diffuseColor.rgb = diffuse * mean;
   totalEmissiveRadiance = emissive * mean;
 }
 #endif`)
       .replace('#include <opaque_fragment>', `outgoingLight *= gl_FrontFacing ? 1.0 : ${k.toFixed(3)};\n#include <opaque_fragment>`);
   };
-  material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-inside${k}${u ? '-lining' : ''}`;
+  material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-inside${k}${local ? '-local' : ''}`;
   return material;
 }
 

@@ -463,8 +463,7 @@ head centre (`soft`) so the toon ramp shades the face as one round form; the pai
 enlarged in the texture by `scripts/chibi-eyes.py`. On the face the toon ramp follows where the light stands around the
 head instead of the mesh normal (`faceShadow`: a per-vertex face mask and coordinates, the head
 bone's axes passed in each frame), so one shadow edge sweeps across the face as the light turns,
-as in anime games' face shadow maps; the hair has a jagged highlight band on its camera side
-(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. The Meshy textures of the body, hair and outfits carry their own painted shading, so each also glows at `paintedLight` × its texture (emission = albedo texture) and the toon light only shapes it instead of darkening it twice. The chibi wears the same outfit base as the HairSample hero
+as in anime games' face shadow maps; the hair is flat (see the hair styles below). In Godot do both in the toon shader with the same inputs. The Meshy textures of the body, hair and outfits carry their own painted shading, so each also glows at `paintedLight` × its texture (emission = albedo texture) and the toon light only shapes it instead of darkening it twice. The chibi wears the same outfit base as the HairSample hero
 (`render/chibi-garments.js`): top, trousers, skirt, boots (with the feet) and glove shells cut from
 its own body (`regionShell`, morph targets kept so gloves close with the fists), painted by
 `garments.js` reading its bind position and landmarks times `SCALE` (1.7, the HairSample body's
@@ -491,8 +490,8 @@ region are covered and every body vertex inside it is pushed back in full (the s
 inside the body's edge triangles), and the shell keeps every triangle reaching into the region (`regionShell` `any`)
 while its shader discards past the region's line (`uCutD.w`, margin `uCutD.y`), so its edge is
 straight, not the body's triangles. Garments and modelled helms draw their back faces in their texture's mean colour (its smallest
-mip; an outfit's `lining` colour instead where its texture is shared by several cloths, as the
-Travel set's) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth. The models load
+mip; with the outfit's `localInside`, each point's own colour, where its texture is
+shared by several cloths, as the Travel set's) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth. The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
 hair is and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn
@@ -520,10 +519,11 @@ head and forehead round a small gap in it, is drawn in the hair's shade (the bod
 vertex attribute, `hairShadeMaterial`: 0.3 of the hair colour), so a gap between locks reads as hair
 in shadow, never as scalp. In Godot, run the same fit once when the look is chosen and keep the moved
 hair and body meshes (and that attribute, e.g. in a vertex colour channel). The hair is tinted to the
-look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`): `hairColorMaterial`
-takes the painted grey texture's brightness over the style's middle brightness (`grey`); below it
-the colour darkens, above it lifts only slightly toward white (no pale smears on a dark hair). The
-default hair's highlight band is lifted in the hair's own hue. The look's
+look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`) and drawn flat, as the
+owner's sheet draws it (`hairColorMaterial`): no soft light, gloss or rim, only one hard cel shadow
+tone (0.7 of the colour) where the sun does not reach it. Of the painted texture only its strand lines
+darken the colour: each texel's brightness over a coarser mip's (its surroundings), so the generated
+paint's broad shading and blotchy light are dropped. The look's
 `face` (`FACES`) draws one of the owner's faces (`public/models/faces/<id>.png`) over the painted one
 (`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
 decal pass or a second texture in the head's shader. Character creation shows the hero alone in a

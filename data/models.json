@@ -1304,7 +1304,6 @@
         "above": 0.55,
         "front": 0.72
       },
-      "grey": 0.87,
       "fit": {
         "width": 1.44,
         "depth": 1.38,
@@ -1318,19 +1317,12 @@
         [-0.1741, 0.9111, -0.1559],
         [0.1612, 1.2, 0.1559]
       ],
-      "highlight": {
-        "_doc": "Anime highlight band on the hair (chibi-body.js hairHighlightMaterial): a jagged lighter band at height `at` of the hair model, `width` thick, on the side facing the camera, `strength` 0..1.",
-        "at": 0.72,
-        "width": 0.06,
-        "strength": 0.6
-      },
       "source": "The hair of the dressed chibi made for outfit_travel_tunic (meshy-t2 task 01a16f0d-97cc-72dc-962c-d0f0313ded3c, Meshy 6 retexture task 01a16f0e-59ef-702d-8ab9-715f349311ad; assets/meshy/outfits/travel_meshy.glb): its grey and dark-line triangles above the chin, the largest connected pieces only, cut by scripts/fit-chibi-hair.py. Fitted by its fixed box; drawn with its own painted texture. Its one-triangle hole at the crown is closed (2026-10-27)."
     },
     "hero_chibi_hair_ponytail": {
       "file": "models/hair/ponytail.glb",
       "chibiHairStyle": "ponytail",
       "tris": 4000,
-      "grey": 0.8,
       "fit": {
         "width": 0.7,
         "depth": 0.7,
@@ -1351,7 +1343,6 @@
       "file": "models/hair/swept.glb",
       "chibiHairStyle": "swept",
       "tris": 3997,
-      "grey": 0.8,
       "fit": {
         "width": 0.72,
         "depth": 0.73,
@@ -1372,7 +1363,6 @@
       "file": "models/hair/short.glb",
       "chibiHairStyle": "short",
       "tris": 3997,
-      "grey": 0.79,
       "fit": {
         "width": 0.704,
         "depth": 0.745,
@@ -1393,7 +1383,6 @@
       "file": "models/hair/buns.glb",
       "chibiHairStyle": "buns",
       "tris": 3999,
-      "grey": 0.75,
       "fit": {
         "width": 0.62,
         "depth": 0.59,
@@ -1414,7 +1403,6 @@
       "file": "models/hair/long.glb",
       "chibiHairStyle": "long",
       "tris": 3999,
-      "grey": 0.78,
       "fit": {
         "width": 0.55,
         "depth": 0.56,
@@ -1435,7 +1423,6 @@
       "file": "models/hair/curly.glb",
       "chibiHairStyle": "curly",
       "tris": 3997,
-      "grey": 0.81,
       "fit": {
         "width": 0.712,
         "depth": 0.722,
@@ -1456,7 +1443,6 @@
       "file": "models/hair/shag.glb",
       "chibiHairStyle": "shag",
       "tris": 3999,
-      "grey": 0.76,
       "fit": {
         "width": 0.688,
         "depth": 0.73,
@@ -1477,7 +1463,6 @@
       "file": "models/hair/spiky.glb",
       "chibiHairStyle": "spiky",
       "tris": 4000,
-      "grey": 0.79,
       "fit": {
         "width": 0.688,
         "depth": 0.73,
@@ -1497,7 +1482,7 @@
     "outfit_travel_tunic": {
       "file": "models/outfits/travel_tunic.glb",
       "chibiOutfit": "armor",
-      "lining": "#f6ead2",
+      "localInside": true,
       "tris": 1295,
       "source": "The chibi in the Travel Tunic (the owner's reference sheet 03 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f0d-97cc-72dc-962c-d0f0313ded3c), Meshy 6 retexture (task 01a16f0e-59ef-702d-8ab9-715f349311ad); tunic, belt, skirt and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/travel.json); its blurred neck, V opening and cuffs repainted clean by scripts/clean-travel-tunic.py (2026-10-27)."
     },

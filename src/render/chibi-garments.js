@@ -88,7 +88,7 @@ export function prepareChibiOutfit(gltf, m) {
   geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   return { piece: m.chibiOutfit, geometry, bind: bindSpace(mesh), bones: mesh.skeleton.bones.map((b) => b.name), map: mesh.material.map,
-    hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, lining: m.lining || null, fitted: null };
+    hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, localInside: !!m.localInside, fitted: null };
 }
 
 /**
@@ -223,7 +223,7 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
       m.userData.garment = O.piece;
       return m;
     };
-    const part = make(darkInside(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight), T.underCloth?.inside, O.lining));
+    const part = make(darkInside(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight), T.underCloth?.inside, O.localInside));
     part.name = 'Outfit-' + O.piece;
     part.castShadow = true;
     part.receiveShadow = true; // like the body it covers

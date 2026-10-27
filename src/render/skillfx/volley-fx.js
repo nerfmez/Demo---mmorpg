@@ -26,7 +26,8 @@ const CONE_VS = `varying vec2 vUv; varying float vFres;
 const CONE_FS = `varying vec2 vUv; varying float vFres; uniform float uT; uniform float uA;
   ${NOISE}
   void main(){
-    float v = vUv.y, sw = fbm(vec2(vUv.x * 5.0 + v * 2.5 - uT * 5.0, v * 3.0 - uT * 9.0));
+    float v = vUv.y, ang = vUv.x * 6.2832 + v * 2.5 - uT * 5.0; // round a circle: no seam where the lathe closes
+    float sw = fbm(vec2(cos(ang), sin(ang)) * 1.2 + (v * 3.0 - uT * 9.0) * vec2(0.8, 0.6));
     float bands = smoothstep(0.42, 0.72, sw);
     float a = (pow(vFres, 1.4) * 0.75 + bands * 0.55) * smoothstep(0.0, 0.1, v) * (1.0 - smoothstep(0.45, 1.0, v));
     vec3 c = mix(vec3(0.55, 0.9, 1.0), vec3(1.0), clamp(bands + vFres * 0.5, 0.0, 1.0));

@@ -1244,7 +1244,7 @@ export class Game {
             if (m.dead || dist(p.x, p.z, m.x, m.z) - m.r > s.radius) continue;
             this.hitMonster(m, s.damage * mult * k, this.hitOpts(s, { crit: crit(), fromX: p.x, fromZ: p.z }));
           }
-          this.emit({ type: 'nova', x: p.x, z: p.z, radius: s.radius, element: s.element });
+          this.emit({ type: 'nova', skill: s.id, x: p.x, z: p.z, radius: s.radius, element: s.element });
         };
         blast(1);
         if (s.echo) this.later(s.echo.delay, () => !p.dead && blast(s.echo.mult));

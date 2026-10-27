@@ -28,7 +28,8 @@ const COLUMN_FS = `varying vec2 vUv; varying float vFres; uniform float uT; unif
   ${NOISE}
   void main(){
     float y = vUv.y, front = y - (1.0 - uDrop); if (front < 0.0) discard;
-    float n = fbm(vec2(vUv.x * 9.0, y * 2.2 + uT * 3.2));
+    float ang = vUv.x * 6.2832; // noise taken round a circle: no seam where the cylinder closes
+    float n = fbm(vec2(cos(ang), sin(ang)) * 1.8 + (y * 2.2 + uT * 3.2) * vec2(0.8, 0.6));
     float streak = smoothstep(0.42, 0.78, n);
     float fadeY = smoothstep(0.0, 0.12, y) * (1.0 - smoothstep(0.55, 1.0, y) * 0.85);
     float rim = pow(vFres, 1.6), lead = smoothstep(0.05, 0.0, front) * (1.0 - step(0.999, uDrop)) * 0.6;

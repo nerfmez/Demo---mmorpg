@@ -299,6 +299,14 @@ the aim (the arrow bursts through it and it flies apart), a spinning ring round 
 crimson spirals wound round the arrow shedding sparks in flight, and on the hit a beam piercing out the
 far side of the target with a ring of air further on.
 
+Holy Bell (ระฆังศักดิ์สิทธิ์, a priest cooldown spell: a toll of light 4.5 m round the caster that stuns),
+`skillfx/bell-fx.js` in Blessing's holy white-gold: a see-through bell of light comes down over the priest
+through the cast; on the toll it flashes and swells with a wobble, three rings of sound race out to the
+true radius, stars burst outward and the camera shakes, and the stunned monsters get the stun stars;
+then the bell lifts and fades. The first frames showed a vertical seam down the bell (its noise did not
+wrap round the lathe); the shell noise is now taken round a circle, also on Blessing's column and Rapid
+Volley's cone.
+
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
 blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon

@@ -274,6 +274,7 @@ export class HumanoidAnimator {
     this.moveW = 0;
     this.gaitU = 0;
     this.buf = poseBuffers();
+    this.stance = null; // a stance name that replaces the carry's (the creation screen's, view.js showPreview)
     this.blinkT = 1.5 + Math.random() * 3;
     this.blink = 0;
   }
@@ -339,7 +340,7 @@ export class HumanoidAnimator {
     const sway = Math.sin(it * 0.55);
     // standing pose: the neutral base plus the weapon's stance (data/weapon-holds.json stances)
     const idle = this.buf.idle;
-    const stance = HOLDS.stances[this.holdFor()?.stance ?? 'relaxed'];
+    const stance = HOLDS.stances[this.stance ?? this.holdFor()?.stance ?? 'relaxed'] ?? HOLDS.stances.relaxed;
     for (const n of IDLE_BONES) {
       const o = idle[n], a = IDLE_BASE[n], d = stance[n] ?? ZERO3;
       o[0] = a[0] + d[0]; o[1] = a[1] + d[1]; o[2] = a[2] + d[2];

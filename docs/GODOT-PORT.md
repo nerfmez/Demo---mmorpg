@@ -532,7 +532,7 @@ paint's broad shading and blotchy light are dropped. The hair casts no shadow (t
 (`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
 decal pass or a second texture in the head's shader. Character creation shows the hero alone in a
 plain studio scene (`view.js` `createStudio`), straight from the front, zooming to the face while hair,
-face or eye colour is chosen (`createFocus`) and shifted clear of the menu panel (`createInset`). It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
+face or eye colour is chosen (`createFocus`) and shifted clear of the menu panel (`createInset`). There it stands in its own stance (`HumanoidAnimator.stance` = `creation` in `data/weapon-holds.json`, the owner's pick of a reference idle), not the unarmed fighter's. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

@@ -34,6 +34,7 @@ test('heavy weapons are held in two hands unless the left hand is busy', () => {
 test('idle stances exist, use real pose channels and stay within a standing range', () => {
   const bones = new Set(['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips']);
   assert.ok(HOLDS.stances.relaxed, 'the default stance');
+  assert.ok(HOLDS.stances.creation?._from, 'the creation screen stance, from a reference clip (view.js showPreview)');
   // the shared carries and the chibi's own (data/models.json) name stances that exist
   const chibi = data.models.characters.hero_chibi.holds;
   for (const [id, h] of [...Object.entries(HOLDS.holds), ...Object.entries(chibi).filter(([id]) => id !== '_doc')])

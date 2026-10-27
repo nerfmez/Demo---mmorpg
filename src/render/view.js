@@ -1068,6 +1068,7 @@ export class View {
     this.hidePreview(); // frees the old preview's per-rig materials, skeleton and scarf
     const h = buildHumanoid(look, gear);
     h.anim = new HumanoidAnimator(h);
+    h.anim.stance = 'creation'; // standing for the picture, not the unarmed fighter's stance (data/weapon-holds.json)
     const studio = this.createStudio();
     h.root.position.set(0, 0, 0);
     h.root.rotation.y = 0; // facing +Z, toward the camera

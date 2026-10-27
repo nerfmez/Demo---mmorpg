@@ -376,31 +376,25 @@
       "mod": [0.05, 1.5],
       "known": {
         "skills": {
-          "whirl_blade": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
-          "arcane_bolt": "over its class band: awaiting a decision on its numbers",
-          "chain_spark": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "thunderstorm": "MP potions make MP almost free (docs/SKILL-GROWTH-TH.md phase 1): with its MP priced at potion gold it is over its class band; awaiting the potion decision and the skill growth rebalance",
+          "stone_guardian": "MP potions make MP almost free (docs/SKILL-GROWTH-TH.md phase 1): with its MP priced at potion gold it is over its class band; awaiting the potion decision and the skill growth rebalance",
+          "spirit_wolf": "MP potions make MP almost free (docs/SKILL-GROWTH-TH.md phase 1): with its MP priced at potion gold it is over its class band; awaiting the potion decision and the skill growth rebalance",
+          "meteor": "over its class band: awaiting a decision on its numbers",
+          "healing_spring": "MP potions make MP almost free (docs/SKILL-GROWTH-TH.md phase 1): with its MP priced at potion gold it is over its class band; awaiting the potion decision and the skill growth rebalance",
           "stone_burst": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
-          "frost_nova": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "venom_mire": "weaker than its weapon's reference main attack",
-          "ward": "party value only partly measured",
           "charged_shot": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "interrupt_slam": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "frontline_split": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "shield_bash": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
-          "arrow_rain": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "flame_stream": "weaker than its weapon's reference main attack",
-          "crystal_wall": "party value only partly measured",
-          "cleanse": "party value only partly measured",
-          "earth_rend": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "cross_cut": "over its class band: awaiting a decision on its numbers",
           "blade_storm": "over its class band: awaiting a decision on its numbers",
-          "meteor": "over its class band: awaiting a decision on its numbers",
           "blizzard": "over its class band: awaiting a decision on its numbers",
-          "holy_bell": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
-          "light_chain": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "spell_wave": "weaker than its weapon's reference main attack"
         },
         "mods": {
+          "mana_siphon": "MP back on hit is worth little while MP potions make MP almost free; awaiting the potion decision",
           "split": "over the mod band on venom_mire: awaiting a decision",
           "chain_return": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "advancing_edge": "adds less than it costs on every skill it fits, or its effect is not measured yet",
@@ -416,13 +410,7 @@
           "guardian_bond": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "cast_on_guard": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "poison_shift": "adds less than it costs on every skill it fits, or its effect is not measured yet",
-          "long_rend": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
-          "tip_strike": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
-          "pierce_line": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
-          "conductive": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
-          "fork_chain": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
-          "stun_arc": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured",
-          "ramp_cast": "adds less than it costs on every skill it fits, or its effect is not measured yet"
+          "stun_arc": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured"
         }
       }
     },

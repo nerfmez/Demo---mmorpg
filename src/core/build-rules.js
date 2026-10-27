@@ -11,7 +11,7 @@ import { referenceHero, referenceMonster, skillRankAt, farmingIncome } from './b
 export const AXES = ['single', 'pack', 'survival', 'sustain', 'mobility', 'team', 'income'];
 
 // a damage option counts only when the skill can use it (a sword gains nothing from spell damage)
-const USES = {
+export const USES = {
   attack: (s) => s.power !== 'spell', magic: (s) => s.power === 'spell',
   meleeDamagePct: (s) => s.tags.has('Melee'), projectileDamagePct: (s) => s.tags.has('Projectile'),
   spellDamagePct: (s) => s.tags.has('Spell'), areaDamagePct: (s) => s.tags.has('Area'), summonDamagePct: (s) => s.tags.has('Summon'),
@@ -67,7 +67,8 @@ function packHits(s, pack) {
  * A build's profile. spec: { kit, level, jobNodes, gear (a gear set id), loadout (skill ids: the
  * first is the main attack, the rest are cast whenever ready), support (skills that only help), mods
  * ({ slot: [mod ids] }, at their top level),
- * build (a reference build for a kit not in progression.balance.builds) }. Node effects may carry
+ * build (a reference build for a kit not in progression.balance.builds), mpFree (MP never cuts a cast:
+ * the content budget prices MP instead, core/content-budget.js) }. Node effects may carry
  * scenario stats the character sheet ignores: singleDamagePct (bosses and single targets),
  * packDamagePct, perTargetDamagePct (per enemy one cast hits, up to perTargetCap), selfTakenPct,
  * teamBuffPct (buffs and heals we give), teamTakenPct (allies near us take less), teamDamagePct
@@ -112,12 +113,12 @@ export function buildProfile(data, spec) {
   const hitsPerSecond = (hitsOf) => attacks.reduce((a, s, i) => a + rates[i] * hitsOf(s), 0);
   const supply = (d.maxMp + d.mpRegen * sec) / sec;
   // support skills cast on cooldown unless their MP alone outruns the supply, then as often as it allows
-  const helperCost = helpers.reduce((a, s) => a + s.cost / s.cooldown, 0), helperShare = helperCost > supply ? supply / helperCost : 1;
+  const helperCost = helpers.reduce((a, s) => a + s.cost / s.cooldown, 0), helperShare = helperCost > supply && !spec.mpFree ? supply / helperCost : 1;
   // each attack hands back its own MP on hit (gear, the Job Tree and a mod are already in it)
   const spend = (hitsOf) => attacks.reduce((a, s, i) => a + rates[i] * (s.cost - (s.mpOnHit || 0) * hitsOf(s)), 0) + helperCost * helperShare;
   const fit = (hitsOf) => { // scale the main attack down until the MP lasts the fight
     const over = spend(hitsOf) - supply;
-    if (over <= 0) return rates;
+    if (over <= 0 || spec.mpFree) return rates;
     const r = [...rates], cut = Math.min(r[0], over / Math.max(1e-6, main.cost - (main.mpOnHit || 0) * hitsOf(main)));
     r[0] -= cut;
     const left = over - cut * (main.cost - (main.mpOnHit || 0) * hitsOf(main));
@@ -202,7 +203,7 @@ export function buildProfile(data, spec) {
   const income = farmingIncome(D, spec.kit, spec.level, find, null, m.hp / Math.max(1e-6, single)).net;
   return {
     axes: { single, pack, survival, sustain, mobility, team, income },
-    cost: { points: (spec.jobNodes || []).length, gear: spec.gear || null, mpPerSecond: spend(() => 1) },
+    cost: { points: (spec.jobNodes || []).length, gear: spec.gear || null, mpPerSecond: spend(() => 1), mpSupply: supply, maxMp: d.maxMp },
   };
 }
 

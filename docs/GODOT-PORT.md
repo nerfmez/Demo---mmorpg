@@ -272,7 +272,10 @@ that do not lead their axis and same-role gaps (`tests/core/build-rules.test.js`
 `core/content-budget.js` measures each skill (what it adds to a reference hero of its weapon) and
 each mod (its best gain on a skill it fits) with the same profile, against class bands in
 `progression.balance.budgets`; items outside their band are listed in `budgets.known` with a reason
-until decided (`tests/core/content-budget.test.js`, report: `node scripts/content-budget.mjs`). The
+until decided (`tests/core/content-budget.test.js`, report: `node scripts/content-budget.mjs`). MP is
+priced, not a wall: profiles run with `mpFree` and a build pays for its MP shortfall past its own
+supply with potions up to their cooldown cap (gold on the income axis), then with gear rolls
+(`mpPrice`, `mpCost`). The
 profile counts a rotation, our buffs, heals and leech, summons, burn/poison, stuns, knockback, slows,
 curses and taunts with the assumptions in `progression.balance.rules.control`.
 Gear bases sit on tiers (item level 1/6/11/16/21). The six targeted garment additions

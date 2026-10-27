@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
 import { modFits } from '../../src/core/skills.js';
-import { budgetAudit, skillValue, scoreGain } from '../../src/core/content-budget.js';
+import { budgetAudit, skillValue, scoreGain, mpCost, mpPrice } from '../../src/core/content-budget.js';
 
 const B = data.progression.balance.budgets, level = data.progression.balance.monsterCap;
 const audit = budgetAudit(data, level, (def, mod) => modFits(def, mod).ok);
@@ -30,4 +30,15 @@ test('a reference main attack scores zero and a stronger copy of a skill scores 
   const base = { single: 100, pack: 100, survival: 10, sustain: 90, mobility: 6, team: 0, income: 1000 };
   assert.ok(Math.abs(scoreGain(data, { ...base, single: 200 }, base) - Math.log(2)) < 1e-9, 'a doubled axis counts its log, weighted');
   assert.ok(scoreGain(data, { ...base, survival: 1e6 }, base) <= 1, 'one axis running to a cap is held within 1');
+});
+
+test('MP is priced, not a wall: free within supply, potions up to their cap, gear past it', () => {
+  const price = { potion: 0.001, cap: 10, gear: 0.04 };
+  assert.equal(mpCost(price, -5), 0, 'MP to spare costs nothing');
+  assert.ok(Math.abs(mpCost(price, 5) - 0.005) < 1e-12, 'a shortfall within the cap is bought with potions');
+  assert.ok(Math.abs(mpCost(price, 15) - (0.01 + 5 * 0.04)) < 1e-12, 'past the cap it is bought with gear');
+  for (const kit of ['sword', 'staff']) {
+    const p = mpPrice(data, { kit, build: data.progression.balance.builds[kit] }, level);
+    assert.ok(p.potion > 0 && p.potion <= p.gear && p.cap > 0, `${kit} prices MP`);
+  }
 });

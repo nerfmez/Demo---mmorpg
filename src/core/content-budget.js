@@ -78,3 +78,22 @@ export function classBands(items) {
   }
   return { medians, items: items.map((x) => ({ ...x, ratio: medians[x.cls] ? x.score / medians[x.cls] : null })) };
 }
+
+/**
+ * Every skill and mod against its band (progression.balance.budgets): a skill's score by class (a
+ * main attack against its weapon's reference main), a mod's best score over the skills it fits.
+ * Returns { skills, mods } rows with out = 'over' | 'under' | null; unmeasured items are not judged.
+ */
+export function budgetAudit(data, level, fits) {
+  const B = data.progression.balance.budgets;
+  const band = (cls) => B.skill[cls] || B.skill.support;
+  const skills = Object.keys(data.skills.combat).map((id) => skillValue(data, id, level)).map((x) => {
+    const [lo, hi] = band(x.cls), unmeasured = x.score === 0 && x.id !== x.refMain && x.cls !== 'main';
+    return { ...x, band: [lo, hi], out: unmeasured || x.id === x.refMain ? null : x.score > hi ? 'over' : x.score < lo ? 'under' : null };
+  });
+  const mods = Object.keys(data.mods.mods).filter((id) => !data.mods.mods[id].retired).map((id) => modValue(data, id, level, fits)).map((m) => {
+    const [lo, hi] = B.mod, unmeasured = !m.rows.length || m.rows.every((r) => r.score === 0);
+    return { id: m.id, best: m.best, bestSkill: m.rows[0]?.skill, band: [lo, hi], out: unmeasured ? null : m.best > hi ? 'over' : m.best < lo ? 'under' : null };
+  });
+  return { skills, mods };
+}

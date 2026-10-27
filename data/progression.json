@@ -370,6 +370,57 @@
       "_doc": "ttk: seconds to kill a same-level normal monster (the first levels are quick on purpose); ttd: seconds a hero survives standing in its hits without dodging; hoursToCap: playtime to the monster cap fighting same-level monsters (quests add more)."
     },
     "uptime": 0.55,
+    "budgets": {
+      "_doc": "Content budgets (owner, 2026-10-27; core/content-budget.js, tests/core/content-budget.test.js): a skill's score is what it adds to a reference hero of its weapon (budget score of rules.budgetWeights: log ratio per axis, team absolute); a main attack is scored against its weapon's reference main. A score outside its class band fails the test unless the item is in known, which lists today's items awaiting a decision with the reason; fixing one means removing it from known. support: buffs, heals, barriers, curses, summons, walls and counters (their party value is only partly measured, so the band is wide). mod: the best score a mod reaches on a skill it fits.",
+      "skill": { "main": [-0.35, 0.35], "burst": [-0.1, 0.6], "support": [-0.6, 0.6] },
+      "mod": [0.05, 1.5],
+      "known": {
+        "skills": {
+          "whirl_blade": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "arcane_bolt": "over its class band: awaiting a decision on its numbers",
+          "chain_spark": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "stone_burst": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "frost_nova": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "venom_mire": "weaker than its weapon's reference main attack",
+          "ward": "party value only partly measured",
+          "charged_shot": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "interrupt_slam": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "frontline_split": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "shield_bash": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "arrow_rain": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "flame_stream": "weaker than its weapon's reference main attack",
+          "crystal_wall": "party value only partly measured",
+          "cleanse": "party value only partly measured",
+          "earth_rend": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "cross_cut": "over its class band: awaiting a decision on its numbers",
+          "blade_storm": "over its class band: awaiting a decision on its numbers",
+          "meteor": "over its class band: awaiting a decision on its numbers",
+          "blizzard": "over its class band: awaiting a decision on its numbers",
+          "holy_bell": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "light_chain": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "spell_wave": "weaker than its weapon's reference main attack"
+        },
+        "mods": {
+          "split": "over the mod band on venom_mire: awaiting a decision",
+          "cast_on_dodge": "over the mod band on blizzard: awaiting a decision",
+          "chain_return": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "advancing_edge": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "gathering_cut": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "laceration": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "status_burst": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "following_field": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "healing_chain": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "healing_barrier": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "breaking_ward": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "spreading_hex": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "focused_pack": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "guardian_bond": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "cast_on_guard": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "poison_shift": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "ramp_cast": "adds less than it costs on every skill it fits, or its effect is not measured yet"
+        }
+      }
+    },
     "rules": {
       "_doc": "Build balance rules (owner, 2026-10-27; core/build-rules.js, tests/core/build-rules.test.js). A build is a kit, Job Tree nodes, a gear set and support skills; its profile has one number per axis (higher is better): single (boss DPS over fightSeconds, MP counted), pack (DPS into a pack of pack.size monsters within pack.radius m, from the main skill's shape), survival (seconds standing in the reference monster's hits, healing counted), sustain (seconds of the rotation before MP runs dry, up to fightSeconds), mobility (m/s of walking plus the movement skill), team (help per second the support skills give), income (gold-equivalent per hour). Standing out in a build's role is intended; overpowered means a build at equal cost dominates a build of another role (at least (1 - tolerance) of it on every axis and better by tolerance on one), or has no weakness (no axis below weakness x the field's best). Dominance within one role only marks the loser as a poor choice. Builds of one role compare on its axis within sameRoleGap. budgetWeights/budgetBand: a plan's weighted profile (each axis as a share of the field's best) may sit at most budgetBand above or below the median plan (too much or too little for the same points). recover: seconds a cooldown skill holds the hero after its cast (the rotation model fills the rest with the main attack). gearSets: the option ids a player stacks for that aim, spread over every slot (optionsPerItem each, mid rolls); a damage option a skill cannot use is skipped.",
       "fightSeconds": 90,
@@ -379,6 +430,10 @@
       "sameRoleGap": 0.1,
       "survivalCap": 600,
       "recover": 0.28,
+      "control": {
+        "_doc": "Assumptions the profile uses for things it cannot see directly (check them in play): slowShare, how much of a slow keeps a monster from hitting (a chill only slows walking); tauntShare, how much of the pack a taunting summon draws; dodgeUse, how often a dodge is used against its recharge (on-dodge triggers); monsterSpeed, average walking m/s (knockback); burn/poison, the share of a hit a burn (15% x 3 s) or poison (12% x 4 s) adds; cap, the most control can take away; teamShare, how much of our control counts as help for the team.",
+        "slowShare": 0.4, "tauntShare": 0.5, "dodgeUse": 0.5, "monsterSpeed": 3.2, "burn": 0.45, "poison": 0.48, "cap": 0.8, "teamShare": 0.5
+      },
       "budgetBand": 0.25,
       "budgetWeights": { "single": 1, "pack": 1, "survival": 1, "sustain": 0.25, "mobility": 0.25, "team": 1, "income": 0.25 },
       "optionsPerItem": 3,

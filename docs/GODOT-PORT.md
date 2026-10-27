@@ -264,6 +264,12 @@ per axis (single, pack, survival, sustain, mobility, team, income); `auditBuilds
 pairs (a build dominating another role's specialist), poor choices, builds with no weakness, roles
 that do not lead their axis and same-role gaps (`tests/core/build-rules.test.js`). Pure; port it with
 `balance.js` so new Job Tree content is checked the same way.
+`core/content-budget.js` measures each skill (what it adds to a reference hero of its weapon) and
+each mod (its best gain on a skill it fits) with the same profile, against class bands in
+`progression.balance.budgets`; items outside their band are listed in `budgets.known` with a reason
+until decided (`tests/core/content-budget.test.js`, report: `node scripts/content-budget.mjs`). The
+profile counts a rotation, our buffs, heals and leech, summons, burn/poison, stuns, knockback, slows,
+curses and taunts with the assumptions in `progression.balance.rules.control`.
 Gear bases sit on tiers (item level 1/6/11/16/21). The six targeted garment additions
 (Sporeweave vest/gloves at 6, Moonleaf Slippers at 11, Wardenstalker coat/hood/gloves
 at 21) use the same stat-based wear, recipe, grade, enhancement and drop rules;

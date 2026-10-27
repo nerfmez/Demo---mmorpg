@@ -384,3 +384,12 @@ on the ground so it reads from the high camera, the sheath breaking into shards 
 diagonal cut mark on each monster in the lane. Principles kept from the gallery's sword trails and hit
 sparks (above): narrow taper, a fast leading edge, the cut shorter-lived than the trail, directional
 shards. Spell Wave's arcane blue-violet; an element shift recolours it. One ribbon pair, pooled sparks.
+
+Round 2 (owner: "stiff and plain"). The motion keeps the clip but follows the anime beat: the crouch
+loads early and is held coiled, the draw snaps to the hit in 0.035 s, the lunge overshoots, settles with
+the blade swept back and holds through a new rules beat, `cutDelay` 0.18 s (the hero arrives, a breath,
+then the lane falls apart). The effect gained a layer per beat: focus lines rushing in on the ground and
+a glint on the blade before the draw; the draw's flat crescent and a ring with kicked sparks where the
+hero leaves; three violet posed afterimages along the dash; a small flash on arrival while the streaks
+hang; then the cut: the white-hot lane line, two slanted cut lines across it one after the other, a
+ground trace, sheath shards, and an X of cuts with a flash on each monster, with a stronger shake.

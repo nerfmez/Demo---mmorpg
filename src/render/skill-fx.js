@@ -55,7 +55,7 @@ const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
 // a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
 const stormSpan = (s) => (s.repeats || 0) * ((s.repeatDelay || 0) + 0.1);
-const POST = { draw_cut: 0.8, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
+const POST = { draw_cut: 0.95, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**
@@ -108,7 +108,7 @@ export class SkillFx {
     this.lchain.locate = (id) => { for (const m of this.game.monsters) if (m.id === id) return m; return null; };
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell]) fx.onShake = shake;
-    this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
+    this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
     this.center = new THREE.Vector3(); this.head = new THREE.Vector3(); this.from = new THREE.Vector3(); this.to = new THREE.Vector3(); this.mouth = new THREE.Vector3();
@@ -252,9 +252,18 @@ export class SkillFx {
         return true;
       }
       // Arcane Draw Cut: the dash's streaks, then the lane cut on arrival (skillfx/draw-fx.js)
-      case 'dashStrike': if (e.skill !== 'draw_cut') return false; this.draw.dash(e); return true;
+      case 'dashStrike': {
+        if (e.skill !== 'draw_cut') return false;
+        const s = this.skillOf(e.skill), p = g.player;
+        this.draw.dash(e); this.drawEchoes = 0;
+        // the draw itself: a flat crescent sweeping from the hip, the blade's way forward then back
+        if (s) this.slash.swing(0, { ...this.slashOpts(s, wavePalette(s.element)), range: 1.5, arc: 150, arcDeg: 150, tilt: 0.12, reach: 1, dir: 1, y: 0, hold: 0, where: () => ({ x: p.x, z: p.z, angle: p.facing }) });
+        host.shake(0.05, 0.08);
+        return true;
+      }
+      case 'dashArrive': if (e.skill !== 'draw_cut') return false; this.draw.arrive(e.x, e.z, e.angle); return true;
       case 'lineStrike':
-        if (e.skill === 'draw_cut') { this.draw.strike(e); host.shake(0.12, 0.16); return true; }
+        if (e.skill === 'draw_cut') { this.draw.strike(e); host.shake(0.22, 0.2); return true; }
         if (e.skill === 'earth_rend') { this.split.clear(); this.rend.strike(e); return true; }
         this.split.strike(e); return true;
       // Iron Body: the steel shell, glint and ring, then the sheen while it lasts (skillfx/iron-fx.js)
@@ -426,6 +435,8 @@ export class SkillFx {
     this.bladePoints();
     this.split.update(dt, p, p.facing, this.bladeBase, this.bladeTip);
     this.draw.update(dt, p, this.bladeBase, this.bladeTip);
+    // Arcane Draw Cut: afterimages of the body along the dash (the game's posed echoes, in its violet)
+    if (p.dash?.kind === 'draw_cut' && this.drawEchoes < 3 && p.dash.t >= p.dash.dur * (0.15 + 0.3 * this.drawEchoes)) { host.vfx?.drawCutEcho?.(host.rig?.()); this.drawEchoes++; }
     // Sunder Cut's open armour on what it struck
     this.exposed.length = 0;
     for (const m of g.monsters) {

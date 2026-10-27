@@ -1178,6 +1178,13 @@ export class Vfx {
     this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
   }
 
+  // Arcane Draw Cut's afterimages: the posed body left behind along the dash, in its violet
+  drawCutEcho(rig) {
+    if(!rig)return;
+    const {ghost,release}=this.movementEchoAt(rig,0x9a8cff);
+    this.spawn(ghost,.34,t=>echoOpacity(ghost,.38*(1-t)),release);
+  }
+
   // Backstab's dark afterimages: where the body left, then along the shadow step's curve (skillfx/shadow-fx.js)
   // spots: [[x, z, facing, delay], ...] (at most the echo pool's 3)
   shadowEchoes(spots, rig) {

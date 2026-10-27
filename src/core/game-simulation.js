@@ -1484,7 +1484,13 @@ export class Game {
           this.emit({ type: 'burst', kind: 'leap', element: 'physical', x: p.x, z: p.z, radius: L.radius });
         }
         // Arcane Draw Cut: the lane the hero just crossed is cut on arrival; a skill's dash is no dodge
-        if (d.kind === 'draw_cut') strikeLane(this, d.skill, d.fromX, d.fromZ, d.angle, dist(d.fromX, d.fromZ, p.x, p.z), d.mult);
+        if (d.kind === 'draw_cut') {
+          // the anime beat: the hero arrives, a breath, then the lane falls apart (cutDelay)
+          const len = dist(d.fromX, d.fromZ, p.x, p.z);
+          this.emit({ type: 'dashArrive', skill: d.skill.id, x: p.x, z: p.z, angle: d.angle, delay: d.skill.cutDelay || 0 });
+          if (d.skill.cutDelay) this.later(d.skill.cutDelay, () => strikeLane(this, d.skill, d.fromX, d.fromZ, d.angle, len, d.mult));
+          else strikeLane(this, d.skill, d.fromX, d.fromZ, d.angle, len, d.mult);
+        }
         else this.fireTriggers('on_movement');
       }
       return;

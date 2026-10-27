@@ -205,13 +205,18 @@ test('Arcane Draw Cut dashes along the aim and cuts the lane it crossed, once ea
     if (wallAt !== null) g.world.move = (x, z, rr, dx, dz) => (x + dx > wallAt ? { x: wallAt, z, blocked: true } : { x: x + dx, z: z + dz, blocked: false });
     g.input.manualAim = true; g.input.aimAngle = Math.PI / 2; g.player.targetId = 'a'; g.player.facing = Math.PI / 2; // aimed through the first one
     assert.ok(g.castSlot(0));
-    const hits = [];
-    for (let t = 0; t < 1; t += 1 / 60) { g.updatePlayer(1 / 60); for (const e of g.drainEvents()) if (e.type === 'hit') hits.push(e.id); }
+    const hits = []; let arrived = null, firstHit = null;
+    for (let t = 0; t < 1; t += 1 / 60) {
+      g.updatePlayer(1 / 60); g.time += 1 / 60;
+      const due = []; g.pending = g.pending.filter((q) => ((q.t -= 1 / 60) > 0 ? true : (due.push(q.fn), false))); due.forEach((fn) => fn());
+      for (const e of g.drainEvents()) { if (e.type === 'dashArrive') arrived = t; if (e.type === 'hit') { hits.push(e.id); firstHit ??= t; } }
+    }
+    if (hits.length) assert.ok(firstHit - arrived >= def.cutDelay - 1 / 60, 'the cut falls a beat after the hero arrives');
     return { g, hits };
   };
   const { g, hits } = setup();
   assert.ok(Math.abs(Math.hypot(g.player.x, g.player.z) - def.range) < 0.05, 'the hero lands at the end of the dash: ' + g.player.x + ',' + g.player.z);
-  assert.deepEqual(hits.sort(), ['a', 'b', 'c'], 'the three in the lane, once each; not beside, past or behind it');
+  assert.deepEqual(hits.sort(), ['a', 'b', 'c'], 'the three in the lane, once each, after the cut delay; not beside, past or behind it');
   const walled = setup(4);
   assert.ok(Math.abs(walled.g.player.x - 4) < 1e-9, 'a wall stops the dash');
   assert.deepEqual(walled.hits.sort(), ['a', 'b'], 'the lane is only as long as the dash went');

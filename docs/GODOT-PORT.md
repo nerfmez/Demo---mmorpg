@@ -338,8 +338,8 @@ changing a slot's skill already clears its mods, so a lower-rank skill never inh
 **Dash cut (`dash_line`, Arcane Draw Cut `draw_cut`, owner 2026-10-27).** After its cast time the hero
 dashes `range` m along the aim in `dashTime` s (`player.dash` kind `draw_cut`, `inv: false`; walls and
 cliffs stop it through `moveEntity`; the last frame of any dash moves only what is left, so a dash goes
-its distance exactly). On arrival `strikeLane` (frontier-content.js, shared with `melee_line`) cuts the
-lane from the start to where the hero stopped, `width` wide, every monster once, and emits
+its distance exactly). On arrival the rules emit `dashArrive`; after `cutDelay` s (Game.later) `strikeLane` (frontier-content.js,
+shared with `melee_line`) cuts the lane from the start to where the hero stopped, `width` wide, every monster once, and emits
 `lineStrike` with the travelled length; a skill's dash fires no `on_movement` triggers. The build
 profile counts its distance as mobility.
 

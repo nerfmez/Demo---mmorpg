@@ -50,7 +50,7 @@ const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
 // a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
 const stormSpan = (s) => (s.repeats || 0) * ((s.repeatDelay || 0) + 0.1);
-const POST = { sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45 };
+const POST = { sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**
@@ -94,9 +94,7 @@ export class SkillFx {
     this.iron = new IronFx(scene, camera);
     this.buff = new BuffFx(scene, camera); this.buffBodies = [];
     this.bless = new BlessFx(scene, camera);
-    this.volley = new VolleyFx(scene, camera); this.volleyN = 0;
-    // each arrow of the volley after the first replays a quick loose of the bow
-    this.volley.onLoose = () => { if (this.volleyN++ > 0) this.play('rapid_volley', 0.2, 0, 0.04, 'projectile'); };
+    this.volley = new VolleyFx(scene, camera);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
@@ -176,7 +174,6 @@ export class SkillFx {
         if (e.skill === 'iron_body') this.iron.gather(g.player.x, g.player.z, e.total);
         if (BUFF_LOOKS[e.skill]) this.buff.rouse(e.skill, g.player.x, g.player.z, e.total);
         if (e.skill === 'blessing') this.bless.gather(g.player.x, g.player.z, e.total);
-        if (e.skill === 'rapid_volley') this.volleyN = 0;
         if (e.skill === 'blade_storm') { this.stormI = 0; this.storm.start(g.player.x, g.player.z, s.radius, e.total + stormSpan(s) + 0.3); }
         if (e.kind === 'melee_arc') { this.primarySwing = true; if (!OWN_STRIKE.has(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
         if (e.kind === 'projectile' && !OWN_PROJECTILES.has(e.skill)) {

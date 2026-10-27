@@ -203,7 +203,7 @@ export const ACTIONS = {
 
 // skill id -> action (or a family resolved by weapon / combo step)
 const BY_SKILL = {
-  slash: 'combo', whirl_blade: 'whirlSpin', hunter_shot: 'shoot', rapid_volley: 'shoot', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
+  slash: 'combo', whirl_blade: 'whirlSpin', hunter_shot: 'shoot', rapid_volley: 'volleyKneel', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
   stone_burst: 'boltCast', frost_nova: 'nova', venom_mire: 'shoot', venom_bolt: 'boltCast', hex: 'boltCast', ward: 'nova',
   arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', armor_cleave: 'sunderChop', interrupt_slam: 'breakbeatSlam', sky_shatter: 'skyPry', earth_rend: 'rendLeap', cross_cut: 'crossCut', blade_storm: 'bladeStorm', weakpoint: 'flankStab', backstab: 'flankStab', shield_bash: 'shieldShove', riposte: 'riposteGuard',
   war_cry: 'warCryRoar', healing_spring: 'nova', blessing: 'nova', spirit_wolf: 'zap',

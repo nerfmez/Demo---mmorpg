@@ -281,6 +281,11 @@ Rapid Volley (ยิงรัว, bows: five arrows 0.12 s apart), `skillfx/voll
 arrow is a real arrow (it was drawn as a generic orb before; `BOW_SHOTS` in vfx.js), a flick at the bow
 (speed lines and a ring of air) marks each loose and the hero replays a quick shot for each, a wind streak
 follows each arrow, and each hit bursts on the target, so the five shots read as a rhythm.
+Owner: a cooldown skill must be grander than a main skill; kneel to shoot, and each arrow should fly like
+a ball of wind splitting the air. The hero now drops to one knee for the five looses (`volleyKneel`); each
+arrow carries a cone of split air on its head (a see-through shell with spiral wind bands) and two spirals
+of wind round its path, a ring of air stands across the shot at each loose, and each hit bursts a gust.
+The gallery host was blocked (403); no clip was inspected.
 
 Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
 `skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was

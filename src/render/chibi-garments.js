@@ -88,7 +88,7 @@ export function prepareChibiOutfit(gltf, m) {
   geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   return { piece: m.chibiOutfit, geometry, bind: bindSpace(mesh), bones: mesh.skeleton.bones.map((b) => b.name), map: mesh.material.map,
-    hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, fitted: null };
+    hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, lining: m.lining || null, fitted: null };
 }
 
 /**
@@ -126,6 +126,23 @@ function fitOutfit(O, body) {
   return g;
 }
 
+const CUFF_SHADE = 0.06; // m inside a sleeve's opening where the arm under it takes its full tucked shade
+
+/**
+ * The ends of an outfit's sleeves along the T-pose arms ([right, left] |x| in the body's bind space),
+ * or null where it has none past the shoulder (cached on the fitted geometry).
+ */
+function sleeveEnds(T, g) {
+  if (!g.userData.sleeves) {
+    const F = frames(T), pos = g.attributes.position;
+    let r = 0, l = 0;
+    for (let i = 0; i < pos.count; i++) { const x = pos.getX(i); if (x < 0) r = Math.max(r, -x); else l = Math.max(l, x); }
+    const reach = F.shoulder + 0.02;
+    g.userData.sleeves = [r > reach ? r : 0, l > reach ? l : 0];
+  }
+  return g.userData.sleeves;
+}
+
 /**
  * The body under the worn outfit models and the glove and boot shells: the triangles they cover are
  * kept but tucked inside the cloth (every vertex all of whose triangles are covered moves
@@ -133,9 +150,10 @@ function fitOutfit(O, body) {
  * the skin cannot poke through and a gap shows shade, never the background through a hole in the body
  * (cached on T per outfit). A shell covers the triangles wholly inside its region.
  */
-function coveredBody(T, src, models, worn) {
-  const key = [...models.map((O) => O.piece + ':' + O.hide.length), ...worn.map(([k, S]) => k + ':' + S.len)].join('|');
+function coveredBody(T, src, models, worn, cuffs = null) {
+  let key = [...models.map((O) => O.piece + ':' + O.hide.length), ...worn.map(([k, S]) => k + ':' + S.len)].join('|');
   T.covered ??= new Map();
+  if (cuffs) key += '|cuffs:' + cuffs.map((x) => x.toFixed(3)).join(',');
   if (!T.covered.has(key)) {
     const hide = new Set(models.flatMap((O) => O.hide)), ix = src.index.array;
     const pos = src.attributes.position, nrm = src.attributes.normal;
@@ -152,13 +170,17 @@ function coveredBody(T, src, models, worn) {
     }
     if (!src.boundingBox) src.computeBoundingBox();
     const local = (src.boundingBox.max.y - src.boundingBox.min.y) / 1.2; // the 1.2 m body in its own units
-    const inset = (T.underCloth?.inset ?? 0.015) * local, moved = pos.array.slice(), tucked = new Float32Array(pos.count);
+    const inset = (T.underCloth?.inset ?? 0.015) * local, moved = pos.array.slice(), tucked = new Float32Array(pos.count), F0 = frames(T);
     for (let i = 0; i < pos.count; i++) {
       const p = at(i);
       if (!touched.has(p) && !deep.has(p)) continue;
       // shaded as the inside of the cloth, its edge half way; a shell's cut line falls inside its edge
       // triangles, so the skin inside its region is pushed back in full (no skin there pokes through)
       tucked[i] = open.has(p) && !deep.has(p) ? 0.5 : 1;
+      // the arm just inside a sleeve's opening is seen through it: skin in the sleeve's shadow, its
+      // full shade only CUFF_SHADE in (the tucked shade's brown at the cuff reads as a stain)
+      const ax = Math.abs(pos.getX(i)), end = cuffs && cuffs[pos.getX(i) < 0 ? 0 : 1];
+      if (end && ax > F0.shoulder * local && ax <= end && !deep.has(p)) tucked[i] = Math.min(tucked[i], THREE.MathUtils.clamp((end - ax) / (CUFF_SHADE * local), 0.25, 1));
       if (open.has(p)) continue;
       moved[3 * i] -= nrm.getX(i) * inset; moved[3 * i + 1] -= nrm.getY(i) * inset; moved[3 * i + 2] -= nrm.getZ(i) * inset;
     }
@@ -188,7 +210,7 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
   const skip = new Set([...(models.armor ? ['top', 'pants', 'skirt'] : []), ...(models.boots ? ['boots'] : [])]);
   const shellsWorn = shells(T, outfit, skip);
   if (worn.length || shellsWorn.length) {
-    const src = mesh.geometry, body = coveredBody(T, src, worn, shellsWorn);
+    const src = mesh.geometry, body = coveredBody(T, src, worn, shellsWorn, models.armor ? sleeveEnds(T, fitOutfit(models.armor, mesh)) : null);
     rig.skin.body.traverse((o) => { if (o.isSkinnedMesh && o.geometry === src) o.geometry = body; });
   }
   for (const O of worn) {
@@ -201,7 +223,7 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
       m.userData.garment = O.piece;
       return m;
     };
-    const part = make(darkInside(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight), T.underCloth?.inside));
+    const part = make(darkInside(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight), T.underCloth?.inside, O.lining));
     part.name = 'Outfit-' + O.piece;
     part.castShadow = true;
     part.receiveShadow = true; // like the body it covers

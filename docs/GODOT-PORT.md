@@ -482,14 +482,17 @@ worn those body vertices are tucked `underCloth.inset` inside the cloth along th
 a vertex is tucked only when every triangle round it is covered) and drawn at `underCloth.under` of its
 light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view
 ray in the vertex shader (body and outline hull), so the cloth always wins the depth test, the skin
-cannot poke through and a gap shows shade, never the background. In Godot do the same in the body's
+cannot poke through and a gap shows shade, never the background. The arm inside a sleeve takes that
+shade gradually over its last 6 cm to the sleeve's end (`sleeveEnds`, `CUFF_SHADE`), so the arm seen
+through the opening is skin in shadow, not a brown stain. In Godot do the same in the body's
 spatial shader (VERTEX in view space, scaled along itself). The glove shells (and boot shells
 where no model replaces them) tuck the body the same way: the body triangles wholly inside a shell's
 region are covered and every body vertex inside it is pushed back in full (the shell's edge falls
 inside the body's edge triangles), and the shell keeps every triangle reaching into the region (`regionShell` `any`)
 while its shader discards past the region's line (`uCutD.w`, margin `uCutD.y`), so its edge is
 straight, not the body's triangles. Garments and modelled helms draw their back faces in their texture's mean colour (its smallest
-mip) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth. The models load
+mip; an outfit's `lining` colour instead where its texture is shared by several cloths, as the
+Travel set's) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth. The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
 hair is and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn
@@ -512,10 +515,15 @@ chosen (`render/models.js` `chibiHair`). Each is fitted to the chibi head once p
 (`chibi-body.js` `fitHairToHead`, with `fit.tuck`, and `fit.tilt` leaning it back): seen from the
 head's middle, a lock inside the face (`hero_chibi.face`) moves out over it, and the rest of the head
 (the ears under a hair that covers them, `hero_chibi.ears`, and the skin just under the head joint)
-moves in under the hair, so the head never shows through any hair. In Godot, run the same fit once
-when the look is chosen and keep the moved hair and body meshes. The hair is tinted to the look's
-`hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`): `hairColorMaterial` scales
-the colour by the painted grey texture's brightness and lifts its highlights to white. The look's
+moves in under the hair, so the head never shows through any hair. The head under the hair, and the
+head and forehead round a small gap in it, is drawn in the hair's shade (the body's `underHair`
+vertex attribute, `hairShadeMaterial`: 0.3 of the hair colour), so a gap between locks reads as hair
+in shadow, never as scalp. In Godot, run the same fit once when the look is chosen and keep the moved
+hair and body meshes (and that attribute, e.g. in a vertex colour channel). The hair is tinted to the
+look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`): `hairColorMaterial`
+takes the painted grey texture's brightness over the style's middle brightness (`grey`); below it
+the colour darkens, above it lifts only slightly toward white (no pale smears on a dark hair). The
+default hair's highlight band is lifted in the hair's own hue. The look's
 `face` (`FACES`) draws one of the owner's faces (`public/models/faces/<id>.png`) over the painted one
 (`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
 decal pass or a second texture in the head's shader. Character creation shows the hero alone in a

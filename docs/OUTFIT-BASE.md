@@ -134,7 +134,9 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    their own part, since their texture there was never meant to be seen. A loose shoulder plate can be
    made to move as one piece on its mean weights (`rigidPads`, the crabshell pauldrons): blended
    per vertex between the chest and the arm, its corner stretched into a spike when the arm came down. Its settings per set live in
-   `assets/meshy/outfits/<set>.json` beside the Meshy source.
+   `assets/meshy/outfits/<set>.json` beside the Meshy source. The Travel Tunic's neck and cuffs are
+   then repainted by `scripts/clean-travel-tunic.py` (the generated paint there was a blur of skin,
+   teal and a dark smear).
 3. In game (`render/chibi-garments.js`) the model replaces the shells it covers. The body under it is
    not removed: the covered vertices are tucked inside the cloth, shaded as its inside and pushed back
    in depth (`characters.hero_chibi.underCloth`), so nothing pokes through, no gap ever shows the

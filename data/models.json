@@ -1304,6 +1304,7 @@
         "above": 0.55,
         "front": 0.72
       },
+      "grey": 0.87,
       "fit": {
         "width": 1.44,
         "depth": 1.38,
@@ -1329,6 +1330,7 @@
       "file": "models/hair/ponytail.glb",
       "chibiHairStyle": "ponytail",
       "tris": 4000,
+      "grey": 0.8,
       "fit": {
         "width": 0.7,
         "depth": 0.7,
@@ -1349,6 +1351,7 @@
       "file": "models/hair/swept.glb",
       "chibiHairStyle": "swept",
       "tris": 3997,
+      "grey": 0.8,
       "fit": {
         "width": 0.72,
         "depth": 0.73,
@@ -1369,6 +1372,7 @@
       "file": "models/hair/short.glb",
       "chibiHairStyle": "short",
       "tris": 3997,
+      "grey": 0.79,
       "fit": {
         "width": 0.704,
         "depth": 0.745,
@@ -1389,6 +1393,7 @@
       "file": "models/hair/buns.glb",
       "chibiHairStyle": "buns",
       "tris": 3999,
+      "grey": 0.75,
       "fit": {
         "width": 0.62,
         "depth": 0.59,
@@ -1409,6 +1414,7 @@
       "file": "models/hair/long.glb",
       "chibiHairStyle": "long",
       "tris": 3999,
+      "grey": 0.78,
       "fit": {
         "width": 0.55,
         "depth": 0.56,
@@ -1429,6 +1435,7 @@
       "file": "models/hair/curly.glb",
       "chibiHairStyle": "curly",
       "tris": 3997,
+      "grey": 0.81,
       "fit": {
         "width": 0.712,
         "depth": 0.722,
@@ -1449,6 +1456,7 @@
       "file": "models/hair/shag.glb",
       "chibiHairStyle": "shag",
       "tris": 3999,
+      "grey": 0.76,
       "fit": {
         "width": 0.688,
         "depth": 0.73,
@@ -1469,6 +1477,7 @@
       "file": "models/hair/spiky.glb",
       "chibiHairStyle": "spiky",
       "tris": 4000,
+      "grey": 0.79,
       "fit": {
         "width": 0.688,
         "depth": 0.73,
@@ -1488,8 +1497,9 @@
     "outfit_travel_tunic": {
       "file": "models/outfits/travel_tunic.glb",
       "chibiOutfit": "armor",
+      "lining": "#f6ead2",
       "tris": 1295,
-      "source": "The chibi in the Travel Tunic (the owner's reference sheet 03 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f0d-97cc-72dc-962c-d0f0313ded3c), Meshy 6 retexture (task 01a16f0e-59ef-702d-8ab9-715f349311ad); tunic, belt, skirt and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/travel.json)."
+      "source": "The chibi in the Travel Tunic (the owner's reference sheet 03 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f0d-97cc-72dc-962c-d0f0313ded3c), Meshy 6 retexture (task 01a16f0e-59ef-702d-8ab9-715f349311ad); tunic, belt, skirt and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/travel.json); its blurred neck, V opening and cuffs repainted clean by scripts/clean-travel-tunic.py (2026-10-27)."
     },
     "outfit_travel_boots": {
       "file": "models/outfits/travel_boots.glb",

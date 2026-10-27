@@ -259,33 +259,77 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 }
 
 /**
- * The hair's highlight band (`highlight`), the anime "angel ring": a jagged lighter band at height
- * `at` (0 bottom .. 1 top of the hair model) and `width` thick, on the side of the hair facing the
- * camera, brightening it by `strength`.
+ * A drawn face (the look's face, protocol.js FACES) laid over the painted one, by the face coordinates
+ * of the face shadow (addFaceCoords): its picture spans `width` either side of the head's middle (in
+ * those coordinates' half widths) and from `v0` of the way down from the head's `top` to its `chin`
+ * (heights in them) to the chin. On the front of the face the painted features (texels far from the
+ * `skin` colour) give way to that skin first, then the drawn face goes on top. The same goes for the
+ * painted-light glow. `texture` may still be loading (null): the painted face shows until it arrives.
  */
-function hairHighlightMaterial(m, box, { at, width, strength }) {
+function faceDecalMaterial(m, texture, { width, top, chin, v0, skin }) {
   const base = m.onBeforeCompile;
-  const u = { uHlBox: { value: new THREE.Vector4(box.min.y, box.max.y, (box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2) }, uHl: { value: new THREE.Vector3(at, width, strength) } };
+  const u = { uFaceTex: { value: texture }, uFaceFrame: { value: new THREE.Vector4(width, top, chin, v0) }, uFaceSkin: { value: new THREE.Color().setRGB(skin[0] / 255, skin[1] / 255, skin[2] / 255, THREE.SRGBColorSpace) } };
   m.onBeforeCompile = (shader, renderer) => {
     base(shader, renderer);
     Object.assign(shader.uniforms, u);
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vHairPos;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHairPos = position;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec4 uHlBox; uniform vec3 uHl; varying vec3 vHairPos;')
-      .replace('#include <opaque_fragment>', `{
-  float t = ( vHairPos.y - uHlBox.x ) / ( uHlBox.y - uHlBox.x );
-  float a = atan( vHairPos.x - uHlBox.z, vHairPos.z - uHlBox.w );
-  float jag = 0.03 * sin( a * 13.0 ) + 0.015 * sin( a * 29.0 + 1.3 );
-  float band = 1.0 - smoothstep( uHl.y * 0.45, uHl.y, abs( t - uHl.x - jag ) );
-  float facing = smoothstep( 0.25, 0.6, dot( normalize( normal ), normalize( vViewPosition ) ) );
-  outgoingLight = mix( outgoingLight, outgoingLight * 1.25 + 0.12, band * facing * uHl.z );
+      .replace('#include <common>', `#include <common>
+uniform sampler2D uFaceTex; uniform vec4 uFaceFrame; uniform vec3 uFaceSkin;`)
+      .replace('void main() {', `vec3 faceDecal( vec3 base ) {
+  if ( vFace.z < 0.05 ) return base;
+  float u = vFace.x / ( 2.0 * uFaceFrame.x ) + 0.5, t = ( uFaceFrame.y - vFace.y ) / ( uFaceFrame.y - uFaceFrame.z );
+  float v = ( t - uFaceFrame.w ) / ( 1.0 - uFaceFrame.w );
+  float k = smoothstep( 0.2, 0.6, vFace.z ) * smoothstep( 0.0, 0.04, u ) * smoothstep( 1.0, 0.96, u ) * smoothstep( -0.06, 0.0, v ) * step( v, 1.05 );
+  vec3 c = mix( base, uFaceSkin, k * smoothstep( 0.05, 0.2, distance( base, uFaceSkin ) ) );
+  vec4 d = texture2D( uFaceTex, vec2( u, 1.0 - clamp( v, 0.0, 1.0 ) ) );
+  return mix( c, d.rgb, d.a * k * step( 0.0, v ) * step( v, 1.0 ) );
 }
-#include <opaque_fragment>`);
+void main() {`)
+      .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb = faceDecal( diffuseColor.rgb );')
+      .replace('#include <emissivemap_fragment>', `#ifdef USE_EMISSIVEMAP
+  totalEmissiveRadiance *= faceDecal( texture2D( emissiveMap, vEmissiveMapUv ).rgb );
+#endif`);
   };
   const key = m.customProgramCacheKey;
-  m.customProgramCacheKey = () => key() + '-chibi-hair-hl';
+  m.customProgramCacheKey = () => key() + '-chibi-face-decal';
+}
+
+/**
+ * The hair in the look's colour (`color`, any hex), flat as the owner's sheet draws it: no light,
+ * shade or rim falls on it (lit, the generated paint's soft shading and gloss read as plastic). Of
+ * the painted grey texture only its strand lines are kept: each texel's brightness against its
+ * blurred surroundings (a coarser mip), which drops the paint's broad shading and blotchy light and
+ * darkens the colour along the lines. Applied to the outline hull's texel too.
+ */
+const HAIR_TINT = `
+vec3 hairTint( vec3 t, vec3 around ) {
+  vec3 w = vec3( 0.299, 0.587, 0.114 );
+  return uHairColor * clamp( pow( dot( t, w ) / max( dot( around, w ), 0.05 ), 1.8 ), 0.45, 1.0 );
+}`;
+const HAIR_SHADOW = 0.7; // the hair's one cel shadow tone, of its colour, where the sun does not reach it
+function hairColorMaterial(m, color) {
+  const base = m.onBeforeCompile, u = { value: new THREE.Color(color) }, shadow = { value: HAIR_SHADOW };
+  m.userData.hairShadow = shadow;
+  m.userData.hairColor = u; // the creation menu's colour wheel sets it live while dragging
+  m.onBeforeCompile = (shader, renderer) => {
+    base?.call(m, shader, renderer);
+    shader.uniforms.uHairColor = u;
+    shader.uniforms.uRim = { value: 0 };
+    shader.uniforms.uHairShadow = shadow;
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>\nuniform vec3 uHairColor;\nuniform float uHairShadow;${HAIR_TINT}`)
+      .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb = diffuse * hairTint( texture2D( map, vMapUv ).rgb, texture2D( map, vMapUv, 3.0 ).rgb );')
+      .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+{
+  float lit = dot( reflectedLight.directDiffuse, vec3( 0.299, 0.587, 0.114 ) ) / max( dot( diffuseColor.rgb, vec3( 0.299, 0.587, 0.114 ) ), 1e-3 );
+  reflectedLight.directDiffuse = vec3( 0.0 );
+  reflectedLight.indirectDiffuse = diffuseColor.rgb * ( lit > 0.25 ? 1.0 : uHairShadow );
+  totalEmissiveRadiance = vec3( 0.0 );
+}`);
+  };
+  const key = m.customProgramCacheKey;
+  m.customProgramCacheKey = () => (key ? key.call(m) : '') + '-chibi-hair-color';
+  return m;
 }
 
 /**
@@ -361,6 +405,8 @@ export function prepareChibiBody(gltf, cfg) {
   smoothNormals(mesh.geometry);
   // 1 where a worn outfit tucks the body under its cloth (chibi-garments.js coveredBody), else 0
   mesh.geometry.setAttribute('tucked', new THREE.BufferAttribute(new Float32Array(mesh.geometry.attributes.position.count), 1));
+  // 1 where the head lies under the fitted hair (fitHairToHead), drawn in the hair's shade, else 0
+  mesh.geometry.setAttribute('underHair', new THREE.BufferAttribute(new Float32Array(mesh.geometry.attributes.position.count), 1));
   if (fists.RightHand && fists.LeftHand) addFistMorphs(mesh.geometry, [fists.RightHand, fists.LeftHand]);
   if (head0) softHeadNormals(mesh.geometry, head0, cfg.headShape.soft);
   if (head0 && cfg.faceShadow) addFaceCoords(mesh, head0.w, cfg.faceShadow);
@@ -375,9 +421,11 @@ export function prepareChibiBody(gltf, cfg) {
   const v = new THREE.Vector3();
   const geo = mesh.geometry, pos = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
   const palm = { RightHand: [new THREE.Vector3(), 0], LeftHand: [new THREE.Vector3(), 0] };
+  const headVerts = [], wp = new Float32Array(pos.count * 3);
   for (let i = 0; i < pos.count; i++) {
     mesh.getVertexPosition(i, v).applyMatrix4(mesh.matrixWorld);
-    if (v.y > headY) head.expandByPoint(v);
+    v.toArray(wp, i * 3);
+    if (v.y > headY) { head.expandByPoint(v); headVerts.push(i); }
     let lead = 0;
     for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, lead)) lead = k;
     const p = palm[mesh.skeleton.bones[si.getComponent(i, lead)].name];
@@ -426,10 +474,46 @@ export function prepareChibiBody(gltf, cfg) {
   const hf = cfg.helmFit || { scale: 1.3, lift: 0.1 }, hh = head.isEmpty() ? 0.3 : head.max.y - head.min.y;
   const helmFit = { pos: headFit.pos.map((v, i) => (i === 1 ? v + 0.12 * hs * (1 - hf.scale) + hf.lift * hh : v)), scale: hs * hf.scale };
   // the head's bind bounds in the head bone's space, for fitting a separate hair model
-  const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(bones.Head.matrixWorld.clone().invert());
+  const toHead = bones.Head.matrixWorld.clone().invert();
+  const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(toHead);
+  // and the head's vertices with the map from that space to the mesh's, so a hair can be fitted over it (fitHairToHead)
+  // the bind skin maps mesh space to the world by one affine map (see flattenBody): fitted by least
+  // squares over every head vertex (four alone are too close to one plane to fix it within a millimetre)
+  const N = [0, 1, 2, 3].map(() => new Float64Array(7)); // [N | R0 R1 R2], solved in doubles
+  for (const i of headVerts) {
+    const m = [pos.array[i * 3], pos.array[i * 3 + 1], pos.array[i * 3 + 2], 1];
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) N[r][c] += m[r] * m[c];
+      for (let e = 0; e < 3; e++) N[r][4 + e] += m[r] * wp[i * 3 + e];
+    }
+  }
+  for (let c = 0; c < 4; c++) { // Gauss-Jordan with partial pivoting
+    let p = c;
+    for (let r = c + 1; r < 4; r++) if (Math.abs(N[r][c]) > Math.abs(N[p][c])) p = r;
+    [N[c], N[p]] = [N[p], N[c]];
+    for (let r = 0; r < 4; r++) if (r !== c) { const f = N[r][c] / N[c][c]; for (let k = c; k < 7; k++) N[r][k] -= f * N[c][k]; }
+  }
+  const row = (e) => [0, 1, 2, 3].map((c) => N[c][4 + e] / N[c][c]);
+  const affine = new THREE.Matrix4().set(...row(0), ...row(1), ...row(2), 0, 0, 0, 1);
+  const toMesh = affine.invert().multiply(bones.Head.matrixWorld);
+  // the ears (`ears`: their reach out from the head's middle and their height band, in head widths and
+  // heights) and the face (`face`: in front of `front` of the head's depth, below `top` of its height and
+  // within `side` head widths of its middle)
+  const ears = [], face = [], e = cfg.ears, f = cfg.face, hs3 = head.getSize(new THREE.Vector3()), hc3 = head.getCenter(new THREE.Vector3());
+  // and the jaw's underside and nape just under the head joint (skin mostly on the head bone), which a turned
+  // head lifts beside the locks hanging past it
+  const hb = mesh.skeleton.bones.indexOf(bones.Head), onHead = (i) => { let w = 0; for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === hb) w += sw.getComponent(i, k); return w; };
+  const fitVerts = headVerts.concat([...Array(pos.count).keys()].filter((i) => wp[i * 3 + 1] <= headY && wp[i * 3 + 1] > headY - 0.2 * hs3.y && onHead(i) >= 0.5));
+  for (const i of fitVerts) {
+    v.fromArray(wp, i * 3);
+    const y = (v.y - head.min.y) / hs3.y, z = (v.z - head.min.z) / hs3.z;
+    if (e && Math.abs(v.x - hc3.x) / hs3.x >= e.out && y >= e.y[0] && y <= e.y[1]) ears.push(i);
+    else if (f && z >= f.front && y <= f.top && Math.abs(v.x - hc3.x) / hs3.x <= f.side) face.push(i);
+  }
+  const headTuck = { verts: Uint32Array.from(fitVerts), ears: Uint32Array.from(ears), face: Uint32Array.from(face), toMesh, bone: hb };
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, faceShadow, faceDecal: cfg.faceDecal || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], relaxedHand: cfg.fist?.relaxed ?? 0, paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -464,6 +548,11 @@ export function prepareChibiHair(gltf, cfg) {
   // `keep: [side, at]`: only the front or back part of this hair, split across its depth at `at`
   // (0 back, 1 front), so two hair models can be joined (one's fringe with the other's back)
   if (cfg.keep) geometry = keepPart(geometry, box, cfg.keep);
+  // `fit.tilt`: degrees the hair leans back (its top toward the back), about the middle of its box
+  if (cfg.fit?.tilt) {
+    const c = box.getCenter(new THREE.Vector3());
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(c.x, c.y, c.z).multiply(new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(-cfg.fit.tilt))).multiply(new THREE.Matrix4().makeTranslation(-c.x, -c.y, -c.z)));
+  }
   smoothNormals(geometry);
   geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
@@ -473,7 +562,7 @@ export function prepareChibiHair(gltf, cfg) {
   // is not drawn, so it cannot poke through the helm; the fringe in a hood's opening stays
   const u = cfg.underHelm;
   const underHelm = u ? cutAbove(geometry, box.min.y + u.above * (box.max.y - box.min.y), box.min.z + u.front * (box.max.z - box.min.z)) : null;
-  return { geometry, underHelm, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
+  return { geometry, underHelm, material, box, fit: cfg.fit || {} };
 }
 
 /** The triangles of a geometry less those whose centre lies above height y and behind depth z (a shared copy). */
@@ -558,6 +647,230 @@ function hairInsideHelm(T, H, model) {
 }
 
 /**
+ * A hair fitted to the chibi head, so the head never shows through it, whatever the hair's shape
+ * (`fit.tuck`: the margin, in head widths). Seen from the head's middle:
+ * - the face (data: hero_chibi.face) is never moved: a lock that passes inside it moves out over it;
+ * - the rest of the head (and the ears, unless the hair shows them: `fit.ears`) moves in under the
+ *   hair wherever the hair covers it: to the nearest hair along its own ray, and lower still where
+ *   hair passes inside one of its triangles (a lock narrower than the head's triangles misses every
+ *   corner's ray), so the whole triangle goes under that hair. Skin only partly on the head bone (the
+ *   nape, led partly by the neck) moves against the hair as the head turns: it goes in up to three
+ *   times as far. The face side of a lock the head moves under stays covered by that lock.
+ * Returns the hair's geometry and the body's; cached per body and hair geometry.
+ */
+const FITTED = new WeakMap(), EDGE = 1e-3;
+const GAP = 2; // fitHairToHead: the widest hole in a hair (direction bins) the head under it is shaded across
+const FOREHEAD = 0.72; // fitHairToHead: the head height (face coordinates) above the drawn face's features
+function fitHairToHead(T, src, H, geometry) {
+  const k = T.headTuck;
+  if (!k || !src.index) return { hair: geometry, body: src };
+  let byHair = FITTED.get(src);
+  if (!byHair) FITTED.set(src, (byHair = new WeakMap()));
+  if (byHair.has(geometry)) return byHair.get(geometry);
+  const hb = T.headBox, hw = hb.max.x - hb.min.x, c = hb.getCenter(new THREE.Vector3());
+  const margin = (H.fit.tuck ?? 0.02) * hw, reach = 0.25 * hw;
+  const rmax = Math.max(hw, hb.max.y - hb.min.y, hb.max.z - hb.min.z) * 0.75 + reach;
+  const { position, scale } = hairFrame(T, H, false), a = new THREE.Vector3(), b = new THREE.Vector3();
+  const toMesh = k.toMesh, toHead = toMesh.clone().invert(), sp = src.attributes.position, moved = sp.array.slice();
+  // the head's vertices from its middle, and its triangles as flat corner lists
+  const P = new Map(), face = new Set(k.face), ears = new Set(k.ears), keep = new Set([...k.face, ...(H.fit.ears ? k.ears : [])]);
+  for (const i of k.verts) {
+    const q = a.fromBufferAttribute(sp, i).applyMatrix4(toHead).sub(c);
+    P.set(i, q.toArray());
+  }
+  const ix = src.index.array, faceTris = [], restTris = [];
+  for (let t = 0; t < ix.length; t += 3) {
+    const tri = [ix[t], ix[t + 1], ix[t + 2]];
+    if (tri.every((i) => P.has(i))) (tri.some((i) => face.has(i)) ? faceTris : restTris).push(...tri);
+  }
+  const flat = (tris) => Float32Array.from(tris.flatMap((i) => P.get(i)));
+  // the distance along a ray from the head's middle to each triangle it meets (Moller-Trumbore), as
+  // calls of hit(triangle number, distance)
+  const cast = (TR, dx, dy, dz, hit, edge = EDGE) => {
+    for (let t = 0; t < TR.length; t += 9) {
+      const ax = TR[t], ay = TR[t + 1], az = TR[t + 2];
+      const e1x = TR[t + 3] - ax, e1y = TR[t + 4] - ay, e1z = TR[t + 5] - az, e2x = TR[t + 6] - ax, e2y = TR[t + 7] - ay, e2z = TR[t + 8] - az;
+      const px = dy * e2z - dz * e2y, py = dz * e2x - dx * e2z, pz = dx * e2y - dy * e2x, det = e1x * px + e1y * py + e1z * pz;
+      if (Math.abs(det) < 1e-12) continue;
+      const inv = 1 / det, u = -(ax * px + ay * py + az * pz) * inv;
+      if (u < -edge || u > 1 + edge) continue;
+      const qx = az * e1y - ay * e1z, qy = ax * e1z - az * e1x, qz = ay * e1x - ax * e1y, w = (dx * qx + dy * qy + dz * qz) * inv;
+      if (w < -edge || u + w > 1 + edge) continue; // a ray along a shared edge meets both triangles
+      const dist = (e2x * qx + e2y * qy + e2z * qz) * inv;
+      if (dist > 0) hit(t / 9, dist, u >= 0 && w >= 0 && u + w <= 1);
+    }
+  };
+  // 1. the hair out over the face: the push each hair point inside the face needs, gathered by
+  // direction, spread (largest wins) and smoothed so a lock bends out as a whole, then applied to
+  // every hair point along each direction (the layers keep their order, no single point spikes out)
+  const hairGeo = geometry.clone(), hp = hairGeo.attributes.position, FT = flat(faceTris);
+  const NA = 96, NP = 48, bin = (x, y, z) => [((Math.atan2(x, z) / Math.PI + 1) / 2) * NA, (Math.acos(THREE.MathUtils.clamp(y, -1, 1)) / Math.PI) * NP];
+  let D = new Float32Array(NA * NP);
+  for (let h = 0; h < hp.count; h++) {
+    const q = a.fromBufferAttribute(hp, h).multiply(scale).add(position).sub(c), r = q.length();
+    if (r < 1e-6 || r > rmax) continue;
+    let out = 0;
+    cast(FT, q.x / r, q.y / r, q.z / r, (_, dist) => { if (dist + reach > r) out = Math.max(out, dist + margin - r); });
+    if (out <= 0) continue;
+    const [u, w] = bin(q.x / r, q.y / r, q.z / r), cell = Math.min(NP - 1, Math.floor(w)) * NA + (Math.floor(u) % NA);
+    D[cell] = Math.max(D[cell], out);
+  }
+  const pass = (n, max) => {
+    const F = new Float32Array(D.length);
+    for (let p = 0; p < NP; p++) for (let u = 0; u < NA; u++) {
+      let best = 0, sum = 0, cnt = 0;
+      for (let dp = -n; dp <= n; dp++) for (let du = -n; du <= n; du++) {
+        if (p + dp < 0 || p + dp >= NP) continue;
+        const x = D[(p + dp) * NA + ((u + du + NA) % NA)];
+        best = Math.max(best, x); sum += x; cnt++;
+      }
+      F[p * NA + u] = max ? best : sum / cnt;
+    }
+    D = F;
+  };
+  pass(3, true); pass(1, false); pass(1, false);
+  const at = (u, p) => D[THREE.MathUtils.clamp(p, 0, NP - 1) * NA + ((u % NA) + NA) % NA];
+  for (let h = 0; h < hp.count; h++) {
+    const q = a.fromBufferAttribute(hp, h).multiply(scale).add(position).sub(c), r = q.length();
+    if (r < 1e-6) continue;
+    const [u, w] = bin(q.x / r, q.y / r, q.z / r), u0 = Math.floor(u - 0.5), p0 = Math.floor(w - 0.5), fu = u - 0.5 - u0, fp = w - 0.5 - p0;
+    const push = (at(u0, p0) * (1 - fu) + at(u0 + 1, p0) * fu) * (1 - fp) + (at(u0, p0 + 1) * (1 - fu) + at(u0 + 1, p0 + 1) * fu) * fp;
+    if (push > 0) { q.multiplyScalar((r + push) / r).add(c).sub(position).divide(scale); hp.setXYZ(h, q.x, q.y, q.z); }
+  }
+  hp.needsUpdate = true;
+  smoothNormals(hairGeo);
+  hairGeo.userData.shared = true; // cached with the body
+  // 2. the rest of the head in under that hair
+  const hix = hairGeo.index ? hairGeo.index.array : null, HTR = [];
+  for (let t = 0; t < (hix ? hix.length : hp.count); t += 3) {
+    const tri = [0, 1, 2].map((n) => a.fromBufferAttribute(hp, hix ? hix[t + n] : t + n).multiply(scale).add(position).sub(c).toArray());
+    if (tri.some((q) => Math.hypot(...q) < rmax)) HTR.push(...tri.flat());
+  }
+  const HT = Float32Array.from(HTR), target = new Map();
+  const si = src.attributes.skinIndex, sw = src.attributes.skinWeight;
+  const room = (i) => { let w = 0; for (let n = 0; n < 4; n++) if (si.getComponent(i, n) === k.bone) w += sw.getComponent(i, n); return margin * (1 + 2 * (1 - Math.min(1, w))); };
+  const lower = (i, to) => { if (!keep.has(i)) target.set(i, Math.min(target.get(i) ?? Infinity, to)); };
+  for (const [i, q] of P) {
+    if (keep.has(i)) continue;
+    const r = Math.hypot(...q);
+    if (r < 1e-6) continue;
+    let near = Infinity;
+    cast(HT, q[0] / r, q[1] / r, q[2] / r, (_, dist) => { near = Math.min(near, dist); });
+    if (near <= r + reach && near - room(i) < r) lower(i, near - room(i));
+    // the ears fold away inside the head under a hair that covers them (its fit.ears unset), whether
+    // or not a lock lies over them: an ear poking out beside the hair reads as a stray second ear
+    if (ears.has(i)) lower(i, 0.8 * r);
+  }
+  const under = new Set();
+  const apply = () => {
+    let n = 0;
+    for (const [i, to] of target) {
+      const q = P.get(i), r = Math.hypot(...q);
+      if (to >= r - 1e-6) continue;
+      under.add(i);
+      P.set(i, b.fromArray(q).multiplyScalar(Math.max(to, 0.2 * r) / r).toArray());
+      b.add(c).applyMatrix4(toMesh).toArray(moved, i * 3);
+      n++;
+    }
+    target.clear();
+    return n;
+  };
+  apply();
+  // each hair point a head triangle still lies over takes that triangle in under it (a lock narrower
+  // than the head's triangles misses every corner's ray), and the triangles beside it where they lie
+  // well over it; again on the moved head, as moving one triangle tilts its neighbours
+  for (let round = 0; round < 4; round++) {
+    const RT = flat(restTris);
+    for (let h = 0; h < hp.count; h++) {
+      const q = a.fromBufferAttribute(hp, h).multiply(scale).add(position).sub(c), r = q.length();
+      if (r < 1e-6 || r > rmax) continue;
+      cast(RT, q.x / r, q.y / r, q.z / r, (t, dist, exact) => {
+        if (dist + reach < r || r - 3 * margin >= dist) return; // this hair is well outside the head here
+        if (!exact && dist < (round ? r : r + margin)) return;
+        if (dist < r && round) return; // already under it
+        for (let n = 0; n < 3; n++) { const i = restTris[3 * t + n]; lower(i, r - room(i)); }
+      }, round ? 0.05 : 0.25);
+    }
+    if (!apply()) break;
+  }
+  // last, the check the game's hair test makes: a hair point behind the head triangle nearest it,
+  // with an odd number of head surfaces beyond it (inside the head; where the head folds, as round
+  // the ears, no ray from the middle meets that triangle) takes that triangle in under it
+  for (let round = 0; round < 4; round++) {
+    const RT = flat(restTris), AT = flat([...restTris, ...faceTris]), e1 = new THREE.Vector3(), e2 = new THREE.Vector3(), nrm = new THREE.Vector3(), o = new THREE.Vector3();
+    for (let h = 0; h < hp.count; h++) {
+      const q = a.fromBufferAttribute(hp, h).multiply(scale).add(position).sub(c), r = q.length();
+      if (r < 1e-6 || r > rmax) continue;
+      let best = Infinity, bt = -1;
+      for (let t = 0; t < RT.length; t += 9) {
+        const d = (q.x - (RT[t] + RT[t + 3] + RT[t + 6]) / 3) ** 2 + (q.y - (RT[t + 1] + RT[t + 4] + RT[t + 7]) / 3) ** 2 + (q.z - (RT[t + 2] + RT[t + 5] + RT[t + 8]) / 3) ** 2;
+        if (d < best) { best = d; bt = t; }
+      }
+      if (bt < 0 || best > reach * reach) continue;
+      e1.set(RT[bt + 3] - RT[bt], RT[bt + 4] - RT[bt + 1], RT[bt + 5] - RT[bt + 2]);
+      e2.set(RT[bt + 6] - RT[bt], RT[bt + 7] - RT[bt + 1], RT[bt + 8] - RT[bt + 2]);
+      const depth = -nrm.crossVectors(e1, e2).normalize().dot(o.set(q.x - RT[bt], q.y - RT[bt + 1], q.z - RT[bt + 2]));
+      if (depth <= 0) continue;
+      let beyond = 0;
+      cast(AT, q.x / r, q.y / r, q.z / r, (_, dist) => { if (dist > r) beyond++; }, 0);
+      if (beyond % 2 === 0) continue;
+      for (let n = 0; n < 3; n++) { const i = restTris[bt / 3 + n], rv = Math.hypot(...P.get(i)); lower(i, rv - 2 * (depth + room(i))); }
+    }
+    if (!apply()) break;
+  }
+  const body = new THREE.BufferGeometry();
+  for (const [n, attr] of Object.entries(src.attributes)) body.setAttribute(n, attr);
+  body.setAttribute('position', new THREE.BufferAttribute(moved, 3));
+  // the head taken in under the hair is drawn in the hair's shade (`underHair`, hairShadeMaterial): a
+  // gap between the locks shows that shade, never the pale skin of the scalp. So is the head round a
+  // small hole in the hair (a ray from the middle there meets no lock, but the hair covers every
+  // direction close round it): the directions the hair covers, closed over gaps up to GAP bins wide
+  if (src.attributes.underHair) {
+    const shade = new Float32Array(src.attributes.underHair.count);
+    for (const i of under) shade[i] = 1;
+    let C = new Uint8Array(NA * NP);
+    for (let h = 0; h < hp.count; h++) {
+      const q = a.fromBufferAttribute(hp, h).multiply(scale).add(position).sub(c), r = q.length();
+      if (r < 1e-6 || r > rmax) continue;
+      const [u, w] = bin(q.x / r, q.y / r, q.z / r);
+      C[Math.min(NP - 1, Math.floor(w)) * NA + (Math.floor(u) % NA)] = 1;
+    }
+    const morph = (dilate) => {
+      const F = new Uint8Array(C.length);
+      for (let p = 0; p < NP; p++) for (let u = 0; u < NA; u++) {
+        let v = dilate ? 0 : 1;
+        for (let dp = -GAP; dp <= GAP; dp++) for (let du = -GAP; du <= GAP; du++) {
+          const x = C[THREE.MathUtils.clamp(p + dp, 0, NP - 1) * NA + ((u + du + NA) % NA)];
+          v = dilate ? v | x : v & x;
+        }
+        F[p * NA + u] = v;
+      }
+      C = F;
+    };
+    morph(true); morph(false);
+    // the forehead too (kept in place, above the drawn face's features): seen through a gap in a
+    // fringe it is in the hair's shade
+    const fc = src.attributes.face;
+    for (const [i, q] of P) {
+      if (shade[i] || ears.has(i) || (keep.has(i) && !(face.has(i) && fc && fc.getY(i) > FOREHEAD))) continue;
+      const r = Math.hypot(...q);
+      if (r < 1e-6) continue;
+      const [u, w] = bin(q[0] / r, q[1] / r, q[2] / r);
+      if (C[Math.min(NP - 1, Math.floor(w)) * NA + (Math.floor(u) % NA)]) shade[i] = 1;
+    }
+    body.setAttribute('underHair', new THREE.BufferAttribute(shade, 1));
+  }
+  body.morphAttributes = src.morphAttributes;
+  body.morphTargetsRelative = src.morphTargetsRelative;
+  body.setIndex(src.index);
+  body.boundingSphere = src.boundingSphere;
+  body.userData.shared = true; // cached with the body
+  const fitted = { hair: hairGeo, body };
+  byHair.set(geometry, fitted);
+  return fitted;
+}
+
+/**
  * Put the hair on the chibi head bone: scaled so its width and depth are `fit.width` and
  * `fit.depth` × the head's (height: their mean × `fit.height`), centred on the head across and
  * front-to-back (moved back by `fit.back` × head depth, and toward +X by `fit.side` × head width)
@@ -566,22 +879,40 @@ function hairInsideHelm(T, H, model) {
  * modelled helm (`model`, headwear only) is drawn over the whole hair, kept inside it
  * (hairInsideHelm), or over the hair as it is when it is a band worn on top of it (`withHair`).
  */
-export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null, geometry: own = null } = {}) {
+export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null, geometry: own = null, color = null } = {}) {
   const headBone = rig.skin?.body.getObjectByName('Head');
   if (!headBone || !T.headBox) return;
-  if (model) attachChibiHair(rig, T, H, { outline, darkness, rim, geometry: model.withHair ? null : hairInsideHelm(T, H, model) });
+  if (model) attachChibiHair(rig, T, H, { outline, darkness, rim, color, geometry: model.withHair ? null : hairInsideHelm(T, H, model) });
   const { position, scale } = hairFrame(T, H, model && !model.withHair);
   const g = new THREE.Group();
   g.position.copy(position); g.scale.copy(scale);
   const s = (scale.x + scale.y + scale.z) / 3;
   const flash = rig.material.userData.flash;
-  const geometry = model ? model.geometry : own || (helm && H.underHelm ? H.underHelm : H.geometry), src = model ? model.material : H.material;
+  let geometry = model ? model.geometry : own || (helm && H.underHelm ? H.underHelm : H.geometry);
+  const src = model ? model.material : H.material;
+  if (!model && H.fit.tuck != null) { // the hair fitted to the head: the body (and its outline hull) tucked under it
+    let body = null;
+    rig.skin.body.traverse((o) => { if (o.isSkinnedMesh && !body && !o.userData.garment) body = o; });
+    const from = body?.geometry, fitted = from && fitHairToHead(T, from, H, geometry);
+    if (fitted) {
+      geometry = fitted.hair;
+      if (fitted.body !== from) rig.skin.body.traverse((o) => { if (o.isSkinnedMesh && o.geometry === from) o.geometry = fitted.body; });
+    }
+  }
   const hair = new THREE.Mesh(geometry, paintedLight(toonCopy(src, flash, rim, false), T.paintedLight));
   if (model) darkInside(hair.material, T.underCloth?.inside); // a helm's inside reads as shade
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
-  if (H.highlight && !model) hairHighlightMaterial(hair.material, H.box, H.highlight);
-  hair.castShadow = true;
+  // no cast shadow: the sun's shadow map would lay the locks' shadow over the face in dark blotches
+  // (the owner's review); the head under it still casts the hero's shadow on the ground
+  hair.castShadow = false;
   const hull = new THREE.Mesh(geometry, hairHull(src, outline / s, darkness));
+  if (color && !model && src.map) { hairColorMaterial(hair.material, color); hairColorMaterial(hull.material, color); }
+  // the head under it in its shade: the look's colour (the same uniform value), else the painted hair's
+  rig.skin.body.traverse((o) => {
+    const under = o.isSkinnedMesh && !o.userData.garment && o.material.userData.underHair;
+    if (under) under.value = hair.material.userData.hairColor?.value ?? new THREE.Color(0.08, 0.08, 0.12);
+  });
+  hair.name = 'Hair'; hull.name = 'Hair-outline';
   g.add(hair, hull);
   headBone.add(g);
   (rig.skin.hair ||= []).push(g);
@@ -603,9 +934,12 @@ export function paintedLight(material, k) {
 /**
  * Draw a garment's inside (its back faces) in its texture's mean colour (the smallest mip) at `k` of
  * its light: a hollow pad or an open collar then reads as shaded cloth of the garment's own colour,
- * not as the pale fur or lining the generated texture paints there.
+ * not as the pale fur or lining the generated texture paints there. `local` (data: the outfit's
+ * `localInside`) keeps each point's own colour instead, for a texture shared by several colours of
+ * cloth, whose whole mean is a muddy brown-grey (the Travel set: its sleeves cream inside, its cuffs
+ * and collar teal).
  */
-export function darkInside(material, k) {
+export function darkInside(material, k, local = false) {
   if (!k) return material;
   const prev = material.onBeforeCompile, key = material.customProgramCacheKey;
   material.onBeforeCompile = (shader, renderer) => {
@@ -614,14 +948,14 @@ export function darkInside(material, k) {
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 #ifdef USE_MAP
 if (!gl_FrontFacing) {
-  vec3 mean = texture2D(map, vMapUv, 16.0).rgb;
+  vec3 mean = ${local ? 'sampledDiffuseColor.rgb' : 'texture2D(map, vMapUv, 16.0).rgb'};
   diffuseColor.rgb = diffuse * mean;
   totalEmissiveRadiance = emissive * mean;
 }
 #endif`)
       .replace('#include <opaque_fragment>', `outgoingLight *= gl_FrontFacing ? 1.0 : ${k.toFixed(3)};\n#include <opaque_fragment>`);
   };
-  material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-inside${k}`;
+  material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-inside${k}${local ? '-local' : ''}`;
   return material;
 }
 
@@ -648,6 +982,29 @@ if (tucked > 0.0) { mvPosition.xyz *= 1.0 + tucked * ${depth.toFixed(4)} / max(l
   return material;
 }
 
+/**
+ * The head under the hair (its `underHair` attribute, fitHairToHead) drawn in the hair's shade, a
+ * fixed `HAIR_SHADE` of the hair colour (material.userData.underHair, set by attachChibiHair to the
+ * hair's own colour uniform, so the creation colour wheel moves both).
+ */
+const HAIR_SHADE = 0.3;
+function hairShadeMaterial(material) {
+  const prev = material.onBeforeCompile, key = material.customProgramCacheKey, u = { value: new THREE.Color(0.06, 0.06, 0.09) };
+  material.userData.underHair = u;
+  material.onBeforeCompile = (shader, renderer) => {
+    prev?.call(material, shader, renderer);
+    shader.uniforms.uUnderHair = u;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float underHair;\nvarying float vUnderHair;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvUnderHair = underHair;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 uUnderHair;\nvarying float vUnderHair;')
+      .replace('#include <opaque_fragment>', `outgoingLight = mix(outgoingLight, uUnderHair * ${HAIR_SHADE.toFixed(2)}, clamp(vUnderHair, 0.0, 1.0));\n#include <opaque_fragment>`);
+  };
+  material.customProgramCacheKey = () => (key ? key.call(material) : '') + '-under-hair';
+  return material;
+}
+
 function hairHull(src, width, darkness) {
   const color = src.map ? new THREE.Color(darkness, darkness, darkness * 1.12) : src.color.clone().multiplyScalar(darkness);
   const m = new THREE.MeshBasicMaterial({ map: src.map, color, side: THREE.BackSide });
@@ -668,7 +1025,7 @@ export function chibiOutline(map, width, darkness) {
  * Add the chibi body to a built driver rig and give the rig syncSkin(). `weapon`/`offhand` are the
  * held kinds (a bow's grip runs along its limbs, +Y; other weapons along +Z, the blade or shaft).
  */
-export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim = 0.3, weapon = null, offhand = null } = {}) {
+export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim = 0.3, weapon = null, offhand = null, face = null } = {}) {
   const body = SkeletonUtils.clone(T.scene);
   const flash = rig.material.userData.flash;
   const meshes = [];
@@ -676,18 +1033,22 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     if (o.isSkinnedMesh) meshes.push(o);
   });
   // a hand closes into its fist only while it holds something: the right with any weapon, the
-  // left with an off-hand item or a weapon it also grips (data: fist.leftFistWith)
-  const closed = [weapon ? 1 : 0, offhand || T.leftFistWith.includes(weapon) ? 1 : 0];
+  // left with an off-hand item or a weapon it also grips (data: fist.leftFistWith); an empty hand
+  // is curled part way (fist.relaxed), not held out with its fingers straight
+  const open = T.relaxedHand;
+  const closed = [weapon ? 1 : open, offhand || T.leftFistWith.includes(weapon) ? 1 : open];
   for (const mesh of meshes) {
     const src = mesh.material;
     mesh.material = paintedLight(toonCopy(src, flash, rim, false), T.paintedLight);
     // `tint`: the base's pale painted skin warmed toward the sheet's peach under the cool scene light
     if (T.tint) { mesh.material.color.setRGB(...T.tint); mesh.material.emissive.multiply(mesh.material.color); }
     tuckedShade(mesh.material, T.underCloth?.under ?? 0.3, T.underCloth?.depth ?? 0.05);
+    hairShadeMaterial(mesh.material);
     mesh.material.side = THREE.FrontSide; // Meshy marks it double-sided; the body is closed
     if (T.faceShadow) {
       const follow = faceShadowMaterial(mesh.material, body.getObjectByName('Head'), T.faceShadow.bind, T.faceShadow);
       mesh.onBeforeRender = (renderer, scene, camera) => follow(camera);
+      if (face && T.faceDecal) faceDecalMaterial(mesh.material, face, T.faceDecal);
     }
     mesh.castShadow = true;
     mesh.receiveShadow = true;

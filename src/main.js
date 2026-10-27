@@ -68,9 +68,11 @@ trackStartupReadiness({models:loadModels(data.models, { onWeaponReady: (id) => {
   const bases = F.game?.gearLook().bases;
   // a weapon, or the chibi outfit model (outfit_<item>) of the worn armour, boots or helm
   const worn = bases && [bases.weapon, bases.offhand, `outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`, `outfit_${bases.helm}`];
-  if (worn?.includes(id)) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
+  // or the chibi hair model of the chosen hair style (hero_chibi_hair_<style>)
+  const hair = id === `hero_chibi_hair_${F.game?.ch.appearance?.hairStyle}` || id === `face_${F.game?.ch.appearance?.face}`;
+  if (worn?.includes(id) || hair) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
   // Refresh only the currently selected creation kit, not an obsolete async selection.
-  if (view.previewHero && (data.progression.start.kits[F.menu?.kit]?.weapon === id || id.startsWith('outfit_'))) F.menu.refreshPreview();
+  if (view.previewHero && (data.progression.start.kits[F.menu?.kit]?.weapon === id || id.startsWith('outfit_') || id === `hero_chibi_hair_${F.menu?.look?.hairStyle}` || id === `face_${F.menu?.look?.face}`)) F.menu.refreshPreview();
 } }), world:view.worldReady, contact:contactReady, frost:frostReady, approvedClips:approvedClipsReady},view.startupDependencies).then(() => {
   view.heroLookKey = null;
   view.refreshModelRigs(); // pooled monsters were built before their models arrived

@@ -58,7 +58,7 @@ try {
   if (!process.env.ONLINE_SEAMS_ONLY) {
   peer = new WebSocket(`ws://127.0.0.1:${port}/presence`, { origin }); const messages = []; peer.on('message', b => messages.push(JSON.parse(b))); await once(peer, 'open');
   const take = async type => { for (let i = 0; i < 300; i++) { const n = messages.findIndex(m => m.type === type); if (n >= 0) return messages.splice(n, 1)[0]; await new Promise(r => setTimeout(r, 10)); } throw Error('missing ' + type); };
-  const look = { hairStyle: 'swept', hair: '#3b2a20', skin: '#f6d2b5', eyes: '#3a6ad0', scarf: '#cf3a30', tunic: '#f1e3cc' };
+  const look = { hairStyle: 'swept', face: 'cool', hair: '#3b2a20', skin: '#f6d2b5', eyes: '#3a6ad0', scarf: '#cf3a30', tunic: '#f1e3cc' };
   let gear = { weapon: 'rusty_sword', offhand: null, armor: 'ranger_coat', helm: 'ranger_hood', gloves: 'brigand_gloves', boots: 'trail_boots' };
   const [ox, oz] = data.maps['moonroot-grove-v1'].atlas.offset;
   const pose = { x: x + ox + 1, z: z + oz, region: 'moonroot-grove-v1', facing: .3, moving: false };

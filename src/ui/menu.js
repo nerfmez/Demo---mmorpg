@@ -3,12 +3,13 @@ import { seekerBrand } from './fieldhud.js';
 import { icon } from './icons.js';
 import { art } from './art.js';
 import { LOOK_OPTIONS, DEFAULT_LOOK } from '../render/hero.js';
+import { colorWheelHtml, mountColorWheel } from './color-wheel.js';
 import { IS_PREVIEW, listSlots, deleteSlot, exportCode, importCode, firstEmptySlot, lastSlot, loadSlot, writeSlot } from '../save.js';
 import { createCharacter } from '../core/character.js';
 import { characterMap } from '../core/maps.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const HAIR_NAMES = { messy: 'ยุ่งพลิ้ว', swept: 'ปัดข้าง', ponytail: 'หางม้า', short: 'สั้นเรียบ' };
+const HAIR_NAMES = { messy: 'ยุ่งพลิ้ว', swept: 'ปัดข้าง', ponytail: 'หางม้า', short: 'สั้นแสกข้าง', buns: 'มวยสองข้าง', long: 'ยาวตรง', curly: 'ฟูหยิก', shag: 'แชก', spiky: 'ชี้ฟู' };
 
 function fmtTime(sec) {
   const h = Math.floor(sec / 3600);
@@ -29,6 +30,7 @@ export class Menu {
     root.appendChild(this.el);
     this.el.addEventListener('click', (e) => this.onClick(e));
     this.el.addEventListener('input', (e) => this.onInput(e));
+    window.addEventListener('resize', () => { if (this.view.mode === 'create') this.placePreview(); });
   }
 
   hide() {
@@ -102,9 +104,10 @@ export class Menu {
       <button class="mbtn" data-act="title">← กลับ</button></div>`);
   }
 
-  showCreate(slot) {
+  /** The creation screen; `look` keeps the choices made so far when it is drawn again (rerenderCreate). */
+  showCreate(slot, look = { ...DEFAULT_LOOK }) {
     this.slot = slot;
-    this.look = { ...DEFAULT_LOOK };
+    this.look = look;
     this.name = '';
     this.view.mode = 'create';
     this.refreshPreview();
@@ -114,7 +117,8 @@ export class Menu {
       <h2>สร้างตัวละคร <small>ช่อง ${slot}</small></h2>
       <label class="field">ชื่อ<input id="heroName" maxlength="14" placeholder="นักเดินทาง" value="${esc(this.name)}" autocomplete="off"></label>
       <div class="field">ทรงผม<div class="switch">${LOOK_OPTIONS.hairStyle.map((h) => `<button class="btn ${this.look.hairStyle === h ? 'on' : ''}" data-act="look" data-key="hairStyle" data-val="${h}">${HAIR_NAMES[h]}</button>`).join('')}</div></div>
-      <div class="field">สีผม${sw('hair')}</div>
+      <div class="field">หน้าตา<div class="faces">${LOOK_OPTIONS.face.map((f) => `<button class="face-pick ${this.look.face === f ? 'on' : ''}" data-act="look" data-key="face" data-val="${f}" aria-label="${f}">${f === 'default' ? 'เดิม' : `<img src="models/faces/${f}.png" alt="" loading="lazy">`}</button>`).join('')}</div></div>
+      <div class="field">สีผม${colorWheelHtml('hairWheel', this.look.hair)}</div>
       <div class="field">สีผิว${sw('skin')}</div>
       <div class="field">สีตา${sw('eyes')}</div>
       <div class="field">เสื้อ${sw('tunic')}</div>
@@ -123,26 +127,44 @@ export class Menu {
         <button class="btn" data-act="slots-back">← กลับ</button>
         <button class="btn primary big" data-act="start">เริ่มผจญภัย ▶</button>
       </div></div>`, 'create');
+    // the hair colour: any colour from the wheel; the hero's hair recolours live while dragging
+    this.placePreview();
+    mountColorWheel(this.el.querySelector('#hairWheel'), this.look.hair, {
+      onPreview: (hex) => { this.view.createFocus = 'face'; this.view.previewHero?.root.traverse((o) => o.material?.userData?.hairColor?.value.set(hex)); },
+      onPick: (hex) => { this.look.hair = hex; this.refreshPreview(); },
+    });
   }
 
   refreshPreview() {
     // no weapon yet: the character picks one at the wreck
     this.view.showPreview(this.look, { weapon: null, unarmed: true, offhand: null, armor: 'tunic', helm: null, gloves: null, bases: {} });
+    this.placePreview();
+  }
+
+  /**
+   * Keep the hero clear of the panel: the share of the screen it covers on the left (side panel) or
+   * at the bottom (narrow screens); and zoom to the face while hair or face is being chosen.
+   */
+  placePreview(focus) {
+    const v = this.view, panel = this.el.querySelector('.create-panel');
+    if (!panel || !v.previewHero) return;
+    if (focus) v.createFocus = focus;
+    const r = panel.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+    const side = r.width < W * 0.7;
+    v.createInset = side ? { left: Math.min(0.6, r.right / W), bottom: 0 } : { left: 0, bottom: Math.min(0.65, (H - r.top) / H) };
   }
 
   rerenderCreate() {
     const name = this.el.querySelector('#heroName')?.value || '';
     const scroll = this.el.querySelector('.create-panel')?.scrollTop || 0;
     const slot = this.slot;
-    const look = this.look;
-    this.showCreate(slot);
-    this.look = look;
+    // the look goes in before the controls are drawn: the colour wheel starts from its hair colour
+    this.showCreate(slot, this.look);
     this.name = name;
     // re-apply state to the freshly drawn controls
     this.el.querySelector('#heroName').value = name;
     this.el.querySelectorAll('[data-act="look"]').forEach((b) => b.classList.toggle('on', this.look[b.dataset.key] === b.dataset.val));
     this.el.querySelector('.create-panel').scrollTop = scroll;
-    this.refreshPreview();
   }
 
   onInput(e) {
@@ -166,7 +188,7 @@ export class Menu {
       }
       case 'new': {
         const n = firstEmptySlot();
-        if (n) this.showCreate(n);
+        if (n) { this.view.createFocus = 'body'; this.showCreate(n); }
         else this.showSlots('new');
         return;
       }
@@ -181,6 +203,7 @@ export class Menu {
         return this.showTitle();
       case 'create':
         if (loadSlot(slot) && !confirm(`เขียนทับเซฟช่อง ${slot}?`)) return;
+        this.view.createFocus = 'body';
         return this.showCreate(slot);
       case 'load':
         return this.startFromSlot(slot);
@@ -213,6 +236,7 @@ export class Menu {
       }
       case 'look':
         this.look[t.dataset.key] = t.dataset.val;
+        this.view.createFocus = ['hairStyle', 'face', 'hair', 'eyes'].includes(t.dataset.key) ? 'face' : 'body';
         return this.rerenderCreate();
       case 'random':
         for (const k of Object.keys(LOOK_OPTIONS)) this.look[k] = LOOK_OPTIONS[k][Math.floor(Math.random() * LOOK_OPTIONS[k].length)];

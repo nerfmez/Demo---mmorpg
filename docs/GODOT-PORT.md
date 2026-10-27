@@ -38,7 +38,7 @@ and legacy `Game` reference; `OpenWorldGame` is the live browser simulation.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 14`, with `name`, `appearance`, `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 15`, with `name`, `appearance` (its `hairStyle` and `face` from `network/protocol.js` `HAIR_STYLES` and `FACES`, its `hair` any hex colour; v15 gives an older look the painted `face: "default"`), `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## Approved V3 city overlay
 
@@ -454,7 +454,8 @@ along the haft, and the animator reaches the left arm so its fist hole (not its 
 haft after the right fist is seated (`rig.support`). The hand has no finger
 bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
 load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
-holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is
+holds something (the left also for the weapons in `fist.leftFistWith`); an empty hand is curled
+part way (`fist.relaxed` of the fist, not held out with straight fingers), and the outline is
 thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
 bind pose). The head is reshaped once at load toward the sheet's rounder head
 (`headShape`: wider, shorter below the eye line, fuller cheeks, the whole head scaled by `scale`
@@ -463,8 +464,7 @@ head centre (`soft`) so the toon ramp shades the face as one round form; the pai
 enlarged in the texture by `scripts/chibi-eyes.py`. On the face the toon ramp follows where the light stands around the
 head instead of the mesh normal (`faceShadow`: a per-vertex face mask and coordinates, the head
 bone's axes passed in each frame), so one shadow edge sweeps across the face as the light turns,
-as in anime games' face shadow maps; the hair has a jagged highlight band on its camera side
-(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. The Meshy textures of the body, hair and outfits carry their own painted shading, so each also glows at `paintedLight` × its texture (emission = albedo texture) and the toon light only shapes it instead of darkening it twice. The chibi wears the same outfit base as the HairSample hero
+as in anime games' face shadow maps; the hair is flat (see the hair styles below). In Godot do both in the toon shader with the same inputs. The Meshy textures of the body, hair and outfits carry their own painted shading, so each also glows at `paintedLight` × its texture (emission = albedo texture) and the toon light only shapes it instead of darkening it twice. The chibi wears the same outfit base as the HairSample hero
 (`render/chibi-garments.js`): top, trousers, skirt, boots (with the feet) and glove shells cut from
 its own body (`regionShell`, morph targets kept so gloves close with the fists), painted by
 `garments.js` reading its bind position and landmarks times `SCALE` (1.7, the HairSample body's
@@ -482,14 +482,21 @@ worn those body vertices are tucked `underCloth.inset` inside the cloth along th
 a vertex is tucked only when every triangle round it is covered) and drawn at `underCloth.under` of its
 light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view
 ray in the vertex shader (body and outline hull), so the cloth always wins the depth test, the skin
-cannot poke through and a gap shows shade, never the background. In Godot do the same in the body's
+cannot poke through and a gap shows shade, never the background. The arm inside a sleeve takes that
+shade gradually over its last 6 cm to the sleeve's end (`sleeveEnds`, `CUFF_SHADE`), so the arm seen
+through the opening is skin in shadow, not a brown stain. In Godot do the same in the body's
 spatial shader (VERTEX in view space, scaled along itself). The glove shells (and boot shells
 where no model replaces them) tuck the body the same way: the body triangles wholly inside a shell's
 region are covered and every body vertex inside it is pushed back in full (the shell's edge falls
 inside the body's edge triangles), and the shell keeps every triangle reaching into the region (`regionShell` `any`)
 while its shader discards past the region's line (`uCutD.w`, margin `uCutD.y`), so its edge is
 straight, not the body's triangles. Garments and modelled helms draw their back faces in their texture's mean colour (its smallest
-mip) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth. The models load
+mip; with the outfit's `localInside`, each point's own colour, where its texture is
+shared by several cloths, as the Travel set's) at `underCloth.inside` of their light, so a hollow pad or open collar reads as shaded cloth.
+An outfit's `neckline` (the Travel Tunic's) cuts its crumpled generated collar away per pixel by a
+plain shape in the body's bind space (`necklineCut`, `neckEdge`: a V in front and the round of the
+neck), edges it with a teal `trim` band, and leaves the body under the opening untucked (plain skin);
+in Godot pass the bind position to the fragment shader and discard the same way (cloth and outline). The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
 hair is and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn
@@ -505,7 +512,28 @@ Its hair (`characters.hero_chibi_hair`, cut from the Travel Tunic's dressed chib
 axis to the head's bind bounds (`fit`, from the hair's fixed `box`); under a helm other than a
 circlet or a cowl (`headwear.js` `HAIR_WHOLE`: the moonleaf cowl is a collar round the neck) the
 hair above and behind `underHelm` is not drawn, so it cannot poke through. In Godot
-attach it to the head bone with the same scale and offset and the same under-helm cut. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
+attach it to the head bone with the same scale and offset and the same under-helm cut.
+The look's other hair styles (`network/protocol.js` `HAIR_STYLES`) each have their own model
+(`characters.hero_chibi_hair_<style>`, `chibiHairStyle`, `public/models/hair/`), loaded when first
+chosen (`render/models.js` `chibiHair`). Each is fitted to the chibi head once per body and hair
+(`chibi-body.js` `fitHairToHead`, with `fit.tuck`, and `fit.tilt` leaning it back): seen from the
+head's middle, a lock inside the face (`hero_chibi.face`) moves out over it, and the rest of the head
+(the ears under a hair that covers them, `hero_chibi.ears`, and the skin just under the head joint)
+moves in under the hair, so the head never shows through any hair. The head under the hair, and the
+head and forehead round a small gap in it, is drawn in the hair's shade (the body's `underHair`
+vertex attribute, `hairShadeMaterial`: 0.3 of the hair colour), so a gap between locks reads as hair
+in shadow, never as scalp. In Godot, run the same fit once when the look is chosen and keep the moved
+hair and body meshes (and that attribute, e.g. in a vertex colour channel). The hair is tinted to the
+look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`) and drawn flat, as the
+owner's sheet draws it (`hairColorMaterial`): no soft light, gloss or rim, only one hard cel shadow
+tone (0.7 of the colour) where the sun does not reach it. Of the painted texture only its strand lines
+darken the colour: each texel's brightness over a coarser mip's (its surroundings), so the generated
+paint's broad shading and blotchy light are dropped. The hair casts no shadow (the sun's shadow map laid its locks over the face in dark blotches); the head under it casts the hero's shadow on the ground. The look's
+`face` (`FACES`) draws one of the owner's faces (`public/models/faces/<id>.png`) over the painted one
+(`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
+decal pass or a second texture in the head's shader. Character creation shows the hero alone in a
+plain studio scene (`view.js` `createStudio`), straight from the front, zooming to the face while hair,
+face or eye colour is chosen (`createFocus`) and shifted clear of the menu panel (`createInset`). There it stands in its own stance (`HumanoidAnimator.stance` = `creation` in `data/weapon-holds.json`, the owner's pick of a reference idle), not the unarmed fighter's. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

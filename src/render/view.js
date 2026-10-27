@@ -4,7 +4,7 @@ import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from './s
 // Scene assembly: renderer, 3/4 top-down camera, light, and syncing game entities to models.
 // "Change the camera, not the style": high ARPG camera, same anime cel look.
 // The view is created for a world first (the title screen shows the real map), then a game is
-// attached. Camera modes: 'title' (slow flyover), 'create' (close-up of the hero preview),
+// attached. Camera modes: 'title' (slow flyover), 'create' (the hero preview alone in a studio, straight on),
 // 'game' (follow).
 import * as THREE from 'three';
 import { installGrassCulling } from './grass-culling.js';
@@ -14,7 +14,7 @@ import { monsterModel } from './models.js';
 import { syncMonsterViews, measureMotion, fadeRig, VIEW_RADIUS } from './monster-views.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
-import { toon, seeUniforms } from './toon.js';
+import { toon, seeUniforms, toonRamp } from './toon.js';
 import { timeUniform } from './patch.js';
 import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
 import { PostFX } from './post.js';
@@ -466,6 +466,8 @@ export class View {
 
   /** Draw the scene to the canvas, through the screen grade when it is on. */
   draw() {
+    if (this.mode === 'create' && this.previewHero && this.studio) return this.renderer.render(this.studio, this.camera);
+    if (this.camera.view?.enabled) this.camera.clearViewOffset(); // left the creation screen
     this.skillFx.prerender();
     if (!this.post) return this.renderer.render(this.scene, this.camera);
     this.post.setHaze(this.fogColor);
@@ -1010,17 +1012,12 @@ export class View {
         conform(this.aimArrow);
       }
     } else if (this.mode === 'create' && this.previewHero) {
-      // hero preview on the plaza, slow orbit
+      // the hero alone in the studio (drawn instead of the world), seen straight from the front
       const h = this.previewHero;
       h.anim.update(dt, { speed: 0, facing: h.root.rotation.y, moving: false, dash: null, dead: false, time });
       updateScarf(h, dt, 0);
-      // swing gently in front of the hero; aim a little left of it so the hero stands clear of the panel
-      const a = h.root.rotation.y + Math.sin(time * 0.3) * 0.6;
-      const c = h.root.position;
-      const wide = this.camera.aspect > 1.1 ? 0.75 : 0;
-      this.camera.position.set(c.x + Math.sin(a) * 4.6, c.y + 2.1, c.z + Math.cos(a) * 4.6);
-      this.camera.lookAt(c.x - Math.cos(a) * wide, c.y + (this.camera.aspect > 1.1 ? 1.0 : 0.6), c.z + Math.sin(a) * wide);
-      focus = c;
+      this.frameCreate(dt);
+      focus = h.root.position;
     } else {
       // title flyover above the settlement and meadow
       const a = time * 0.035;
@@ -1061,20 +1058,75 @@ export class View {
     this.draw();
   }
 
-  /** Character-creation preview: a hero standing on the plaza. */
+  /**
+   * Character-creation preview: the hero alone in a plain studio (its own scene, lit like the world),
+   * facing the camera. `createFocus` ('body' or 'face', set by the menu) frames the whole hero or
+   * zooms to the face while hair and face are chosen; `createInset` ({left, bottom}: the share of the
+   * screen the menu panel covers) shifts the picture so the hero stands in the free part.
+   */
   showPreview(look, gear) {
     this.hidePreview(); // frees the old preview's per-rig materials, skeleton and scarf
     const h = buildHumanoid(look, gear);
     h.anim = new HumanoidAnimator(h);
-    const city=this.world.data.city?.enabled;
-    const [cx,cz]=city?this.world.data.town.respawn:this.world.data.town.centre;
-    const x=cx+(city?0:2),z=cz+(city?0:2);
-    h.root.position.set(x,this.world.groundY(x,z),z);
-    h.root.rotation.y = 0.3;
-    this.scene.add(h.root);
-    if (h.scarf) this.scene.add(h.scarf.mesh);
+    h.anim.stance = 'creation'; // standing for the picture, not the unarmed fighter's stance (data/weapon-holds.json)
+    const studio = this.createStudio();
+    h.root.position.set(0, 0, 0);
+    h.root.rotation.y = 0; // facing +Z, toward the camera
+    studio.add(h.root);
+    if (h.scarf) studio.add(h.scarf.mesh);
+    // the hero's height, for the framing (its bind pose; the hair rides above the head)
+    h.root.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(h.root);
+    h.previewHeight = box.isEmpty() ? 1.2 : Math.max(0.6, box.max.y);
     this.previewHero = h;
     return h;
+  }
+
+  /** The creation studio: a soft backdrop, a round floor with a contact shadow and the world's lights. */
+  createStudio() {
+    if (this.studio) return this.studio;
+    const s = new THREE.Scene();
+    const c = document.createElement('canvas');
+    c.width = 4; c.height = 256;
+    const x = c.getContext('2d'), grad = x.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, '#cfe3ee'); grad.addColorStop(0.6, '#e9eadb'); grad.addColorStop(1, '#d8cdb4');
+    x.fillStyle = grad; x.fillRect(0, 0, 4, 256);
+    s.background = new THREE.CanvasTexture(c);
+    s.background.colorSpace = THREE.SRGBColorSpace;
+    const hemi = this.hemisphere.clone(), key = this.sun.clone();
+    key.position.set(1.6, 4, 3.2);
+    key.target.position.set(0, 0.6, 0);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    Object.assign(key.shadow.camera, { left: -1.5, right: 1.5, top: 2, bottom: -1, near: 0.5, far: 10 });
+    key.shadow.camera.updateProjectionMatrix();
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(1.3, 48), new THREE.MeshToonMaterial({ color: '#ece4cf', gradientMap: toonRamp() }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    s.add(hemi, key, key.target, floor);
+    this.studio = s;
+    this.createFocus = 'body';
+    this.createInset = { left: 0, bottom: 0 };
+    this.createZoom = 0;
+    return s;
+  }
+
+  /** The creation camera: straight at the hero, easing between the whole body and the face. */
+  frameCreate(dt) {
+    const h = this.previewHero, cam = this.camera, H = h.previewHeight;
+    this.createZoom += ((this.createFocus === 'face' ? 1 : 0) - this.createZoom) * (1 - Math.exp(-dt * 6));
+    const k = this.createZoom;
+    // the visible height: the whole hero with a margin, or the head and shoulders
+    const span = THREE.MathUtils.lerp(H * 1.25, H * 0.66, k), y = THREE.MathUtils.lerp(H * 0.5, H * 0.72, k);
+    // the hero fits the screen's free part (beside or above the panel), in height and in width
+    const { left = 0, bottom = 0 } = this.createInset || {};
+    const size = this.renderer.getSize(this._createSize ||= new THREE.Vector2());
+    const view = Math.max(span / (1 - bottom), (span * 0.9) / ((size.x / size.y) * (1 - left)));
+    const dist = view / 2 / Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+    cam.position.set(0, y + 0.04 * span, dist);
+    cam.lookAt(0, y, 0);
+    // the panel's part of the screen: shift the picture (not the camera) so the hero is centred in the rest
+    cam.setViewOffset(size.x, size.y, -size.x * left / 2, size.y * bottom / 2, size.x, size.y);
   }
 
   hidePreview() {

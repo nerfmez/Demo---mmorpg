@@ -254,10 +254,7 @@ export class SkillFx {
       // Arcane Draw Cut: the dash's streaks, then the lane cut on arrival (skillfx/draw-fx.js)
       case 'dashStrike': {
         if (e.skill !== 'draw_cut') return false;
-        const s = this.skillOf(e.skill), p = g.player;
         this.draw.dash(e); this.drawEchoes = 0;
-        // the draw itself: a flat crescent sweeping from the hip, the blade's way forward then back
-        if (s) this.slash.swing(0, { ...this.slashOpts(s, wavePalette(s.element)), range: 1.5, arc: 150, arcDeg: 150, tilt: 0.12, reach: 1, dir: 1, y: 0, hold: 0, where: () => ({ x: p.x, z: p.z, angle: p.facing }) });
         host.shake(0.05, 0.08);
         return true;
       }

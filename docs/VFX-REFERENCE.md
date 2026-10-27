@@ -393,3 +393,11 @@ a glint on the blade before the draw; the draw's flat crescent and a ring with k
 hero leaves; three violet posed afterimages along the dash; a small flash on arrival while the streaks
 hang; then the cut: the white-hot lane line, two slanted cut lines across it one after the other, a
 ground trace, sheath shards, and an X of cuts with a flash on each monster, with a stronger shake.
+
+Round 3 (owner: no draw crescent like that; the white line along the path is stiff; the hits are weak).
+The draw's crescent is gone. No ruler line: the dash leaves a short wavering comet tail on the body that
+collapses into it on arrival, and a slipstream of thin speed dashes at many heights, each drifting back
+and fading on its own. The cut runs down the lane from where the dash began (0.016 s per metre): quick
+curved cuts in the air, and on each monster a big curved slash drawn by a fast leading edge with a
+thinner slide beside it, a ragged arcane flash (Firebolt's `flashMaterial`, violet) and shards sprayed
+along the cut. The arrival glow and the lane's straight line and ground trace were removed.

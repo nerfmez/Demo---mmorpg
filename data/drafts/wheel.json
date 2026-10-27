@@ -1,6 +1,11 @@
 {
   "_doc": "DRAFT for design by simulation (owner, 2026-10-27), not loaded by the game: the wheel Job Tree of docs/SKILL-TREE-WHEEL-DRAFT-TH.md as numbers, simulated by scripts/wheel-sim.mjs with core/build-rules.js. Inner ring: Job Lv 1-39 (39 points) over a centre and six sectors, each a ladder bought from the centre outward. Jobs: Job Lv 40-70 (31 points) = entry (free) + trunk (4) + one branch (18: three tiers of 3 pass nodes at 1 point and a key at 2, then a capstone at 3) + spare points. A node's effects use the character sheet's stats or the scenario stats of build-rules (singleDamagePct, packDamagePct, perTargetDamagePct + perTargetCap, selfTakenPct, teamBuffPct, teamTakenPct, teamDamagePct). uptime: the share of a fight a conditional effect holds (an assumption to check in play); the simulator multiplies the effects by it. forks: a key a player picks one of, same price.",
   "level": 30,
+  "planned": {
+    "_doc": "Temporary caps for design (owner, 2026-10-27): the game will grow past today's caps (character 30, monsters 25). Simulate at the job checkpoints; a job level maps to the character level a player usually has then (characterPerJob). Change these when the real caps are set and run the simulator again.",
+    "characterLevel": 60, "jobLevel": 70, "monsterLevel": 60,
+    "checkpoints": [40, 55, 70], "characterPerJob": 0.857
+  },
   "points": { "inner": 39, "job": 31 },
   "inner": {
     "center": [

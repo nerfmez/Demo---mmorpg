@@ -775,8 +775,9 @@ function fitHairToHead(T, src, H, geometry) {
     let near = Infinity;
     cast(HT, q[0] / r, q[1] / r, q[2] / r, (_, dist) => { near = Math.min(near, dist); });
     if (near <= r + reach && near - room(i) < r) lower(i, near - room(i));
-    // an ear the hair covers folds in flat under it: its flap is a fold the rays above cannot see
-    if (ears.has(i) && near <= r + reach) lower(i, Math.min(near - room(i), 0.8 * r));
+    // the ears fold away inside the head under a hair that covers them (its fit.ears unset), whether
+    // or not a lock lies over them: an ear poking out beside the hair reads as a stray second ear
+    if (ears.has(i)) lower(i, 0.8 * r);
   }
   const apply = () => {
     let n = 0;

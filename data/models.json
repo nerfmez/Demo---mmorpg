@@ -1298,7 +1298,7 @@
     "hero_chibi_hair": {
       "file": "models/hero_chibi_hair.glb",
       "chibiHair": true,
-      "tris": 653,
+      "tris": 654,
       "underHelm": {
         "_doc": "Under a helm (not a circlet) the hair above `above` of its height and behind `front` of its depth is not drawn (chibi-body.js cutAbove).",
         "above": 0.55,
@@ -1323,7 +1323,7 @@
         "width": 0.06,
         "strength": 0.6
       },
-      "source": "The hair of the dressed chibi made for outfit_travel_tunic (meshy-t2 task 01a16f0d-97cc-72dc-962c-d0f0313ded3c, Meshy 6 retexture task 01a16f0e-59ef-702d-8ab9-715f349311ad; assets/meshy/outfits/travel_meshy.glb): its grey and dark-line triangles above the chin, the largest connected pieces only, cut by scripts/fit-chibi-hair.py. Fitted by its fixed box; drawn with its own painted texture."
+      "source": "The hair of the dressed chibi made for outfit_travel_tunic (meshy-t2 task 01a16f0d-97cc-72dc-962c-d0f0313ded3c, Meshy 6 retexture task 01a16f0e-59ef-702d-8ab9-715f349311ad; assets/meshy/outfits/travel_meshy.glb): its grey and dark-line triangles above the chin, the largest connected pieces only, cut by scripts/fit-chibi-hair.py. Fitted by its fixed box; drawn with its own painted texture. Its one-triangle hole at the crown is closed (2026-10-27)."
     },
     "hero_chibi_hair_ponytail": {
       "file": "models/hair/ponytail.glb",

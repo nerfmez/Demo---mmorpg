@@ -566,7 +566,8 @@ export function createWorld(worldData) {
   // the approved solids. Stable waypoint IDs and town services stay game-owned.
   if(acceptedScenes(worldData).length){
     for(const list of[circles,boxes])for(let i=list.length-1;i>=0;i--){
-      const c=list[i];if(c.type==='waypoint')continue;
+      // waypoints and the town's services stay game-owned: the camp's workbench is drawn and solid
+      const c=list[i];if(c.type==='waypoint'||c.type==='workbench'||c.type==='well')continue;
       if(suppressNativeSceneProp(worldData,c.x,c.z)||connectorClear(worldData,c.x,c.z,(c.r??Math.hypot(c.hx,c.hz))+.6))list.splice(i,1);
     }
     for(const key of Object.keys(decor))decor[key]=decor[key].filter(c=>!suppressNativeSceneProp(worldData,c.x,c.z)&&!connectorClear(worldData,c.x,c.z,1));

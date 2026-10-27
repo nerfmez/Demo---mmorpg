@@ -270,6 +270,7 @@ test('map borders wander: zone paint and seam bands follow noise, the woods thin
 test('Moonroot\'s woods: small to giant trees, zone plants and surface roots clear of every path; the camp has no town well',()=>{
  const w=worlds[moonroot.id];
  assert.ok(!w.circles.some(c=>c.type==='well'),'Moonstone Camp has no generic well');
+ assert.ok(w.boxes.some(b=>b.type==='workbench'&&Math.hypot(b.x-moonroot.town.workbench[0],b.z-moonroot.town.workbench[1]+1.6)<.01),'the camp\'s workbench stays solid inside the scene');
  assert.equal(moonroot.town.noticeBoard,false);
  const sizes=w.circles.filter(c=>c.type==='tree'||c.type==='birch').map(c=>c.scale);
  assert.ok(Math.min(...sizes)<.7&&Math.max(...sizes)>2,'small and giant trees');

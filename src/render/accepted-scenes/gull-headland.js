@@ -837,7 +837,7 @@ ${extraFrag}`)
   outgoingLight=gradeLand(c);
   #include <opaque_fragment>`);
   };
-  m.customProgramCacheKey = () => 'paint|' + Object.keys(uniforms).join() + albedo.length + '|' + extraFrag.length + '|' + extraVert.length + '|' + (map ? 1 : 0) + '|' + (sway ? 1 : 0);
+  m.customProgramCacheKey = () => 'paint|03b632a8|' + Object.keys(uniforms).join() + albedo.length + '|' + extraFrag.length + '|' + extraVert.length + '|' + (map ? 1 : 0) + '|' + (sway ? 1 : 0);
   return m;
 }
 const outlineMat = c => new THREE.MeshBasicMaterial({ color: c, side: THREE.BackSide });

@@ -26,3 +26,12 @@ test('garment hulls of different widths and darkness share one program',()=>{
  assert.equal(sa.vertexShader,sb.vertexShader);assert.equal(sa.fragmentShader,sb.fragmentShader);
  assert.equal(sb.uniforms.hullWidth.value,.014);assert.equal(sb.uniforms.hullDarkness.value,.4);
 });
+
+test('accepted scenes share a paint program only when their paint shader source is the same',async()=>{
+ const {readFileSync,readdirSync}=await import('node:fs');
+ const dir=new URL('../../src/render/accepted-scenes/',import.meta.url),keys={};
+ for(const f of readdirSync(dir).filter(f=>f.endsWith('.js')))keys[f]=readFileSync(new URL(f,dir),'utf8').match(/'paint\|([0-9a-f]{8})\|'/)[1];
+ // the beach paints its underwater tint, the forest does not: one key each
+ assert.notEqual(keys['beach.js'],keys['forest.js']);
+ assert.ok(new Set(Object.values(keys)).size<Object.keys(keys).length,'identical shaders still share');
+});

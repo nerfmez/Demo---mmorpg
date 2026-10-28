@@ -17,7 +17,11 @@ export function preserveLab(repository,destination,skipId){
  if(!/^[\w.-]+\/[\w.-]+$/.test(repository||''))throw Error('GITHUB_REPOSITORY is required');
  const api=path=>JSON.parse(execFileSync('gh',['api',path],{encoding:'utf8'}));
  const runs=api(`repos/${repository}/actions/workflows/deploy.yml/runs?status=completed&per_page=20`).workflow_runs;
- const id=publishedRun(runs,id=>api(`repos/${repository}/actions/runs/${id}/jobs?per_page=100`).jobs,skipId);
+ // A large run's 100-job page times out at GitHub (HTTP 502/504), so jobs are read in pages of 30.
+ const jobsOf=id=>{const jobs=[];for(let page=1;;page++){const r=api(`repos/${repository}/actions/runs/${id}/jobs?per_page=30&page=${page}`);
+  if(!Array.isArray(r.jobs)||!Number.isSafeInteger(r.total_count)||r.jobs.length!==Math.min(30,r.total_count-jobs.length))throw Error('Truncated run jobs');
+  jobs.push(...r.jobs);if(jobs.length===r.total_count)return jobs;}};
+ const id=publishedRun(runs,jobsOf,skipId);
  const work=mkdtempSync(join(tmpdir(),'seeker-published-lab-'));
  try{
   execFileSync('gh',['run','download',String(id),'--repo',repository,'--name','github-pages','--dir',join(work,'download')],{stdio:'inherit'});

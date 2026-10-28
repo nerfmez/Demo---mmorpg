@@ -17,6 +17,7 @@ import { disposeObject } from '../render/dispose.js';
 import { PostFX } from '../render/post.js';
 import { GAME_CAMERA_OFFSET } from '../render/game-camera.js';
 import { glowTexture } from '../render/grotto/textures.js';
+import { loadGrottoKit } from '../render/grotto/kit.js';
 
 const params = new URLSearchParams(location.search);
 const SPEED = 6; // m/s, the game's moveSpeed (data/progression.json)
@@ -47,13 +48,21 @@ scene.add(sun, sun.target);
 
 // ---------- the two maps: the beach with the shell (preview only) and the grotto inside ----------
 const maps = { inside: createDungeon(GROTTO.inside, GROTTO), outside: createDungeon(GROTTO.outside, GROTTO) };
-const views = {
-  inside: buildGrottoScene(maps.inside, { motes: 420 }),
-  outside: buildGrottoScene(maps.outside, { sea: true, motes: 60, moteColours: ['#ffffff', '#fff1c0'] }),
-};
-for (const v of Object.values(views)) { v.root.visible = false; scene.add(v.root); }
+// both scenes are built behind the loading card, once the Blender kit (models/grotto) has loaded
+let views = null;
 const found = new Set(params.get('found') === '1' ? ['shell-mouth'] : []);
-if (found.size) views.outside.shell?.open(true);
+function buildViews(kit) {
+  views = {
+    inside: buildGrottoScene(maps.inside, { motes: 420, kit }),
+    outside: buildGrottoScene(maps.outside, { sea: true, motes: 60, moteColours: ['#ffffff', '#fff1c0'] }),
+  };
+  for (const v of Object.values(views)) { v.root.visible = false; scene.add(v.root); }
+  if (found.size) views.outside.shell?.open(true);
+}
+
+// a small warm light that walks with the hero: the cave is dark away from its lamps
+const heroLight = new THREE.PointLight('#ffffff', 0, 8, 1.6);
+scene.add(heroLight);
 
 // ---------- hero ----------
 let hero = null, heroAnim = null;
@@ -112,6 +121,10 @@ function enter(where, spawn, facing) {
   hemi.intensity = look.hemi[2];
   sun.color.set(look.sun[0]);
   sun.intensity = look.sun[1];
+  const [hc, hi, hr] = look.heroLight || ['#ffffff', 0, 1];
+  heroLight.color.set(hc);
+  heroLight.intensity = hi;
+  heroLight.distance = hr;
   state.sunDir = new THREE.Vector3(...look.sun[2]).normalize();
   let [x, z] = spawn || map.def.spawn;
   // never stand on nothing: a spot that cannot be stood on moves to the nearest one that can
@@ -274,6 +287,7 @@ function step(dt, t) {
   }
   state.speed = dt > 0 ? Math.hypot(state.pos.x - before.x, state.pos.z - before.z) / dt : 0;
   hero.root.position.set(state.pos.x, state.pos.y, state.pos.z);
+  heroLight.position.set(state.pos.x, state.pos.y + 2.4, state.pos.z + 0.6);
   let d = state.facing - hero.root.rotation.y;
   d = Math.atan2(Math.sin(d), Math.cos(d));
   hero.root.rotation.y += d * Math.min(1, dt * 14);
@@ -315,7 +329,6 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
-enter(state.where);
 let last = performance.now(), time = 0, frames = 0;
 function frame(now) {
   const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); // the first rAF time can precede performance.now()
@@ -328,11 +341,19 @@ function frame(now) {
   if (++frames === 2) $('loading').classList.add('gone');
   requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+loadGrottoKit()
+  .catch((e) => { console.warn('grotto kit', e); return null; })
+  .then((kit) => {
+    buildViews(kit);
+    enter(state.where);
+    last = performance.now();
+    requestAnimationFrame(frame);
+  });
 
 // for the focused capture (tests/browser/grotto.mjs)
 window.__grotto = {
-  state, maps, views, found, ready: () => modelsReady,
+  state, maps, found, ready: () => modelsReady,
+  get views() { return views; },
   go(where, x, z, facing = 0) { enter(where, [x, z], facing); },
   open(instant = false) { discover(GROTTO.outside.links[0], instant); },
   overview(on = true) { state.overview = on; overviewBtn.classList.toggle('on', on); snapCamera = true; },

@@ -69,7 +69,7 @@ export function rimPoints(map, step = 1.25) {
         if (map.surfaceAt(x + nx * 0.7, z + nz * 0.7)) continue;
         const y = f.waterY ?? f.y; // rocks stand out of the water, not the pool floor
         // paths and stairs are walked between walls on both sides: keep those low so the camera sees in
-        pts.push({ x, z, nx, nz, y, narrow: f.shape === 'path' || f.shape === 'stairs', stairs: f.shape === 'stairs' });
+        pts.push({ x, z, nx, nz, y, narrow: f.shape === 'path' || f.shape === 'stairs', stairs: f.shape === 'stairs', floor: f.id, style: f.style });
       }
     }
   }
@@ -98,7 +98,7 @@ function rimWalls(map, look, keepClear, tall) {
   const clear = (x, z) => keepClear.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < r * r);
   let seq = 0;
   for (const f of map.floors) {
-    if (f.shape === 'stairs') continue;
+    if (f.shape === 'stairs' || f.style === 'cave') continue; // cave floors get the modelled ring (dressing.js)
     const y = f.waterY ?? f.y;
     for (const ring of floorRings(f, 1)) {
       // walk the ring so that (-dz, dx) points away from the floor, sampled about every metre
@@ -169,7 +169,7 @@ export function buildRim(map, look, { seed = 1, keepClear = [], tall = 1, points
   const base = new THREE.Color(look.rock), top = new THREE.Color(look.rockTop);
   const clear = (x, z, pad) => keepClear.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < (r + pad) ** 2);
   for (const [n, p] of points.entries()) {
-    if (n % 4) continue; // loose boulders here and there; the wall carries the rim
+    if (n % 4 || p.style === 'cave') continue; // loose boulders here and there; the wall carries the rim
     // 0 = faces the camera (south, +z), 1 = faces away (north): the cave's back wall
     const back = Math.min(p.narrow ? 0.45 : 1, THREE.MathUtils.clamp((-p.nz + 0.35) / 1.1, 0, 1));
     const rows = 1;

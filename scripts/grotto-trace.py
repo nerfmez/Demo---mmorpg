@@ -132,6 +132,8 @@ for i, z in enumerate(zones):
             f['waterY'] = z['waterY']
         if z.get('tone'):
             f['tone'] = z['tone']
+        if z.get('style'):
+            f['style'] = z['style']
         floors.append(f)
     if wet:
         for n, (pts, holes) in enumerate(polygons(zm & stone_c, 700, 900)):

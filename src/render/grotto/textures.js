@@ -70,6 +70,25 @@ export function flagstoneTexture() {
   });
 }
 
+/** Packed cave earth under the paving (spans 4 m): dark, blotchy, with grit and small stones. */
+export function dirtTexture() {
+  return canvasTexture('dirt', 256, (g, n) => {
+    const rng = createRng(13);
+    g.fillStyle = '#5e4c3c';
+    g.fillRect(0, 0, n, n);
+    for (let i = 0; i < 90; i++) {
+      g.fillStyle = rng.chance(0.5) ? 'rgba(30,22,16,0.25)' : 'rgba(110,92,72,0.18)';
+      g.beginPath();
+      g.ellipse(rng.range(0, n), rng.range(0, n), rng.range(8, 34), rng.range(6, 22), rng.range(0, 3), 0, Math.PI * 2);
+      g.fill();
+    }
+    for (let i = 0; i < 1600; i++) {
+      g.fillStyle = rng.chance(0.5) ? 'rgba(140,124,104,0.5)' : 'rgba(20,14,10,0.5)';
+      g.fillRect(rng.range(0, n), rng.range(0, n), rng.range(1, 2.5), rng.range(1, 2.5));
+    }
+  });
+}
+
 /** Big masonry blocks for the sides of the platforms (spans 4 m wide, 4 m tall). */
 export function masonryTexture() {
   return canvasTexture('masonry', 256, (g, n) => {

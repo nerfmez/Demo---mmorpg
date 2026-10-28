@@ -4,7 +4,7 @@
 // standing over darkness like the concept. One merged mesh per material.
 import * as THREE from 'three';
 import { toonRamp } from '../toon.js';
-import { flagstoneTexture, masonryTexture, nacreTexture, sandTexture } from './textures.js';
+import { flagstoneTexture, masonryTexture, nacreTexture, sandTexture, dirtTexture } from './textures.js';
 
 const BASE = -14; // how far the cliffs fall
 const FADE = 7; // metres for a cliff to darken into the void
@@ -210,6 +210,7 @@ const KIND = {
   nacre: { map: nacreTexture, color: '#d9cbd6', emissive: '#4a3050', emissiveIntensity: 0.25 },
   sand: { map: sandTexture, color: '#efe0c4' },
   curb: { map: masonryTexture, color: '#e6d7b8' },
+  dirt: { map: dirtTexture, color: '#ffffff' },
   seabed: { map: sandTexture, color: '#6cb9bf' },
 };
 
@@ -219,7 +220,7 @@ export function buildFloors(map, look) {
   const white = new THREE.Color(1, 1, 1);
   const topFor = (key) => { if (!tops.has(key)) tops.set(key, new Mesh()); return tops.get(key); };
   for (const f of map.floors) {
-    const key = f.tone === 'warm' && f.kind === 'stone' ? 'warm' : f.tone === 'seabed' ? 'seabed' : f.kind;
+    const key = f.style === 'cave' ? 'dirt' : f.tone === 'warm' && f.kind === 'stone' ? 'warm' : f.tone === 'seabed' ? 'seabed' : f.kind;
     const top = topFor(key);
     if (f.shape === 'circle' || f.shape === 'ellipse') {
       const poly = ellipseOutline(f);
@@ -250,7 +251,7 @@ export function buildFloors(map, look) {
   // edging stones around drops (not on sand: the beach just meets the sea)
   const curbTop = topFor('curb'), curbSide = topFor('curb');
   for (const f of map.floors) {
-    if (f.kind === 'sand' || f.shape === 'stairs') continue;
+    if (f.kind === 'sand' || f.shape === 'stairs' || f.style === 'cave') continue; // a cave's rim is its stone ring
     for (const r of floorRings(f)) addCurbs(curbTop, curbSide, map, f, r.pts, look, r.hole);
   }
   const root = new THREE.Group();

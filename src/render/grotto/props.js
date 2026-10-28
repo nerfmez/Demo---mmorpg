@@ -11,6 +11,7 @@ import { toonRamp, outlineMaterial } from '../toon.js';
 import { runeTexture, glowTexture, nacreTexture } from './textures.js';
 import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
 import { glowField } from './glow.js';
+import { kitInstances } from './kit.js';
 
 const STONE = '#cdb995', STONE_DARK = '#a3937a', MOSS = '#55704c', WOOD = '#7a4a2c', GOLD = '#e7b64c';
 
@@ -103,7 +104,7 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
  * Build every prop of one map, plus rim decor at `decor` edge points ({x, z, nx, nz, y} from
  * rim.js, kept off `keepClear` [x, z, r] spots). Returns {root, update(dt, t), shell}.
  */
-export function buildProps(map, { decor = [], keepClear = [] } = {}) {
+export function buildProps(map, { decor = [], keepClear = [], kit = null } = {}) {
   const root = new THREE.Group();
   root.name = 'grotto-props';
   const batch = new Batch();
@@ -123,6 +124,11 @@ export function buildProps(map, { decor = [], keepClear = [] } = {}) {
   const decorGeos = [coralGeometry(53, 1.3, 2), coralGeometry(67, 1.3, 2), coralGeometry(79, 1.3, 2)]; // lighter: the rim has hundreds
   const treeGeo = coralGeometry(91, 4.2, 4);
   const sprites = [], animated = [], spin = [], glows = [];
+  // modelled kit pieces (Blender) placed by name, instanced at the end
+  const kitPut = new Map();
+  const putKit = (name, x, y, z, ry, s = 1) => { if (!kitPut.has(name)) kitPut.set(name, []); kitPut.get(name).push({ x, y, z, ry, s }); };
+  const coralPut = new Map(); // `${colour}|${shape}` -> placements
+  const putCoral = (color, shape, x, y, z, ry, s) => { const k = `${color}|${shape}`; if (!coralPut.has(k)) coralPut.set(k, []); coralPut.get(k).push({ x, y, z, ry, s }); };
   const halo = (x, y, z, size, color, alpha = 0.4) => glows.push({ x, y, z, size, color, alpha });
   let shell = null;
 
@@ -180,12 +186,13 @@ export function buildProps(map, { decor = [], keepClear = [] } = {}) {
       }
       case 'shellGate': {
         // a stone doorway in the cave wall, lit from the shell's nacre passage behind it
-        const half = 2.4, h = 4.4;
-        for (const side of [-1, 1]) {
+        const half = kit ? 1.3 : 2.4, h = 4.4;
+        if (kit) putKit('gate', x, y, z, rot);
+        else for (const side of [-1, 1]) {
           batch.add(stoneDark, geo.box, place(base, side * half, h / 2, 0, { sx: 1.1, sy: h, sz: 1.2 }), '#4e4232');
           batch.add(stone, geo.box, place(base, side * half, h + 0.2, 0, { sx: 1.4, sy: 0.4, sz: 1.4 }), '#5a4a38');
         }
-        batch.add(stone, geo.box, place(base, 0, h + 0.55, 0, { sx: half * 2 + 1.6, sy: 0.7, sz: 1.3 }), '#5a4a38');
+        if (!kit) batch.add(stone, geo.box, place(base, 0, h + 0.55, 0, { sx: half * 2 + 1.6, sy: 0.7, sz: 1.3 }), '#5a4a38');
         // the passage: nacre floor and walls receding into warm light
         const tunnel = new THREE.Mesh(new THREE.CylinderGeometry(half - 0.4, half + 0.2, 5, 18, 1, true, -Math.PI / 2, Math.PI), new THREE.MeshToonMaterial({ color: '#ffe8f0', map: nacreTexture(), emissive: '#ffbf8a', emissiveIntensity: 0.55, side: THREE.BackSide, gradientMap: toonRamp() }));
         const tg = new THREE.Group();
@@ -195,19 +202,27 @@ export function buildProps(map, { decor = [], keepClear = [] } = {}) {
         tg.position.set(x, y + 0.05, z);
         tg.rotation.y = rot;
         root.add(tg);
-        const light = new THREE.Mesh(new THREE.PlaneGeometry(half * 2 - 0.2, h - 0.2), new THREE.MeshBasicMaterial({ map: glowTexture(), color: '#ffd59a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+        const light = new THREE.Mesh(new THREE.PlaneGeometry(half * 2 - 0.2, kit ? 3.6 : h - 0.2), new THREE.MeshBasicMaterial({ map: glowTexture(), color: '#ffd59a', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
         const [ox, oz] = turn(0, -1.2, rot);
-        light.position.set(x + ox, y + (h - 0.2) / 2, z + oz);
+        light.position.set(x + ox, y + (kit ? 1.8 : (h - 0.2) / 2), z + oz);
         light.rotation.y = rot;
         root.add(light);
         animated.push((t) => { light.material.opacity = 0.75 + Math.sin(t * 1.6) * 0.15; });
-        const sm = buildSmallShell(1.1, ['#ffe6ec', '#e2a0b0']);
-        sm.position.set(x, y + h + 0.9, z);
-        sm.rotation.y = rot;
-        root.add(sm);
+        if (!kit) {
+          const sm = buildSmallShell(1.1, ['#ffe6ec', '#e2a0b0']);
+          sm.position.set(x, y + h + 0.9, z);
+          sm.rotation.y = rot;
+          root.add(sm);
+        }
         break;
       }
       case 'coral': {
+        if (kit && map.surfaceAt(x, z)?.floor.style === 'cave') {
+          const c = p.color || '#b06cff', sz = s * rng.range(1.9, 2.4);
+          putCoral(c, rng.chance(0.5) ? 'coral_bush' : 'coral_fan', x, y - 0.05, z, rng.range(0, 6.28), sz);
+          halo(x, y + 0.9 * s, z, 2.4 * s, c, 0.3);
+          break;
+        }
         const k = rng.int(0, coralGeos.length - 1), sz = s * rng.range(1.7, 2.3);
         batch.add(coralMat(p.color || '#b06cff'), coralGeos[k], place({ ...base, s: 1 }, 0, -0.05, 0, { sx: sz, sy: sz * rng.range(0.9, 1.25), sz, ry: rng.range(0, 6.28) }));
         if (rng.chance(0.6)) batch.add(coralMat(p.color || '#b06cff'), coralGeos[(k + 1) % 3], place({ ...base, s: 1 }, rng.range(-0.6, 0.6), -0.05, rng.range(-0.6, 0.6), { sx: sz * 0.6, sy: sz * 0.6, sz: sz * 0.6, ry: rng.range(0, 6.28) }));
@@ -258,6 +273,11 @@ export function buildProps(map, { decor = [], keepClear = [] } = {}) {
         break;
       }
       case 'chest': {
+        if (kit) {
+          for (const part of ['chest_body', 'chest_lid', 'chest_metal']) putKit(part, x, y, z, rot);
+          halo(x, y + 0.9, z, 1.6, '#ffd27a', 0.25);
+          break;
+        }
         batch.add(wood, geo.box, place(base, 0, 0.32, 0, { sx: 1.2, sy: 0.64, sz: 0.8 }), '#3a2414');
         batch.add(wood, geo.cyl, place(base, 0, 0.64, -0.12, { sx: 0.8, sy: 1.2, sz: 0.8, rz: Math.PI / 2, rx: -0.5 }), '#3a2414');
         for (const side of [-0.42, 0.42]) batch.add(gold, geo.box, place(base, side, 0.34, 0, { sx: 0.12, sy: 0.7, sz: 0.84 }));
@@ -333,7 +353,12 @@ export function buildProps(map, { decor = [], keepClear = [] } = {}) {
         if (rng.chance(0.5)) batch.add(wood, geo.cyl, place(base, 0.75, 0.42, 0.3, { sx: 0.8, sy: 0.95, sz: 0.8, rx: Math.PI / 2, ry: rng.range(0, 3) }), '#3a2414');
         break;
       }
+      case 'post':
+        if (kit) putKit('post', x, y, z, rot + rng.range(-0.2, 0.2), s);
+        else batch.add(stone, geo.box, place(base, 0, 0.65, 0, { sx: 0.5, sy: 1.3, sz: 0.5 }), '#5a4a38');
+        break;
       case 'crate': {
+        if (kit) { putKit('crate', x, y, z, rot); if (rng.chance(0.5)) putKit('crate', x + 0.08, y + 0.7, z - 0.05, rot + 0.5, 0.8); break; }
         batch.add(wood, geo.box, place(base, 0, 0.4, 0, { sx: 0.85, sy: 0.8, sz: 0.85 }), '#3a2414');
         batch.add(stoneDark, geo.box, place(base, 0, 0.4, 0, { sx: 0.9, sy: 0.12, sz: 0.9 }));
         if (rng.chance(0.6)) batch.add(wood, geo.box, place(base, 0.1, 1.05, 0.05, { sx: 0.6, sy: 0.5, sz: 0.6, ry: 0.4 }), '#3a2414');
@@ -370,6 +395,15 @@ export function buildProps(map, { decor = [], keepClear = [] } = {}) {
     const roll = rng.next();
     if (roll > 0.2 || e.stairs || clear(e.x, e.z)) continue; // nothing grows on the treads
     const x = e.x - e.nx * 0.15, z = e.z - e.nz * 0.15, d = { x, y: e.y, z, rot: 0, s: 1 };
+    if (kit && e.style === 'cave') {
+      // in a cave the modelled corals grow among the ring's stones, fewer and fuller
+      if (roll < 0.09) {
+        const c = rng.pick(palette), sz = rng.range(1.2, 1.8);
+        putCoral(c, rng.chance(0.5) ? 'coral_bush' : 'coral_fan', e.x + e.nx * 0.3, e.y - 0.1, e.z + e.nz * 0.3, Math.atan2(-e.nx, -e.nz) + rng.range(-0.4, 0.4), sz);
+        if (roll < 0.05) halo(e.x, e.y + sz * 0.7, e.z, sz * 2, c, 0.25);
+      }
+      continue;
+    }
     if (roll < 0.15) {
       const c = rng.pick(palette), sz = rng.range(1.0, 2.0);
       batch.add(coralMat(c), decorGeos[rng.int(0, 2)], place(d, 0, -0.05, 0, { sx: sz, sy: sz * rng.range(0.9, 1.3), sz, ry: rng.range(0, 6.28) }));
@@ -384,6 +418,13 @@ export function buildProps(map, { decor = [], keepClear = [] } = {}) {
     }
   }
   batch.build(root);
+  for (const [name, list] of kitPut) root.add(kitInstances(kit, name, list));
+  for (const [key, list] of coralPut) {
+    const [color, shape] = key.split('|');
+    const inst = kitInstances(kit, shape, list, kit.coralMaterial(color));
+    inst.castShadow = false;
+    root.add(inst);
+  }
   for (const sp of sprites) { sp.renderOrder = 5; root.add(sp); }
   if (glows.length) root.add(glowField(glows));
   return {

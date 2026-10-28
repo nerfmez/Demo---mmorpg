@@ -8,6 +8,7 @@ import { buildFloors } from './floors.js';
 import { buildWater } from './water.js';
 import { buildRim, rimPoints } from './rim.js';
 import { buildProps } from './props.js';
+import { buildCaveDressing } from './dressing.js';
 import { glowTexture } from './textures.js';
 
 const MOTE_VERT = `
@@ -66,7 +67,8 @@ function buildMotes(map, count, colours, seed) {
 
 /**
  * @param {object} map createDungeon(...) result
- * @param {object} o {sea: true for the beach (the deep floor is open sea), motes: count, tall: rim wall height factor}
+ * @param {object} o {sea: true for the beach (the deep floor is open sea), motes: count, tall: rim wall height factor,
+ *   kit: the Blender kit (kit.js), which dresses `cave` zones and replaces the simple props}
  */
 export function buildGrottoScene(map, o = {}) {
   const look = map.def.look;
@@ -82,7 +84,8 @@ export function buildGrottoScene(map, o = {}) {
   ];
   const edge = o.sea ? [] : rimPoints(map, 1.25);
   if (!o.sea) root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1, points: edge }).root);
-  const props = buildProps(map, { decor: edge, keepClear });
+  if (o.kit) root.add(buildCaveDressing(map, o.kit, edge, { clear: keepClear, seed: (map.def.seed || 1) + 11 }).root);
+  const props = buildProps(map, { decor: edge, keepClear, kit: o.kit });
   root.add(props.root);
   // lights, each with a soft pool of its colour on the floor below
   const pools = [];

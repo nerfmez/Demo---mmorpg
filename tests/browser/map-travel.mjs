@@ -20,6 +20,8 @@ let loads=0;page.on('load',()=>loads++);
 page.setDefaultTimeout(90000);page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 await context.addInitScript(character=>{if(!localStorage.getItem('frontier.slot.1')){localStorage.setItem('frontier.slot.1',JSON.stringify({version:2,savedAt:Date.now(),character}));localStorage.setItem('frontier.lastSlot','1');}},character);
 const ready=()=>page.waitForFunction(()=>window.__frontier?.game?.time>.3&&__frontier.view.worldPrepared&&document.getElementById('loading').classList.contains('done'),null,{timeout:420000});
+// The title sits under the loading card until every map is prepared (~85 s on software WebKit).
+const tapContinue=()=>page.locator('[data-act="continue"]').click({timeout:420000});
 const travelFrom=async(name,to,key)=>{
   // Stand on the border road just inside the seam, then walk on across it.
   await page.evaluate(to=>{const F=__frontier,g=F.game,s=g.regionWorld.seams.find(s=>s.to===to);
@@ -38,7 +40,7 @@ const travelFrom=async(name,to,key)=>{
 };
 try{
   await page.goto(url);await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);
-  await page.locator('[data-act="continue"]').click();await ready();
+  await tapContinue();await ready();
   assert.equal(await page.evaluate(()=>__frontier.world.data.id),AZURE);
   await travelFrom('azure',FRONTIER,'ArrowLeft');
   const there=await page.evaluate(({A,F})=>{const g=__frontier.game,[x,z]=g.localPoint(F,g.player.x,g.player.z);return {
@@ -55,7 +57,7 @@ try{
   // The slot card counts exploration over the whole world and names the save's map.
   const card=await page.evaluate(()=>{__frontier.menu.showSlots('load');const t=document.querySelector('.slot-card').textContent;__frontier.menu.showTitle();return t;});
   assert.match(card,new RegExp(`/${Object.values(data.maps).reduce((n,m)=>n+m.zones.length,0)} พื้นที่`));assert.ok(card.includes(data.maps[FRONTIER].nameTh));
-  await Promise.all([page.waitForEvent('load'),page.locator('[data-act="continue"]').click()]);
+  await Promise.all([page.waitForEvent('load',{timeout:420000}),tapContinue()]);
   await page.waitForFunction(()=>window.__frontier?.fullscreen);await enterFullscreenGate(page);await ready();
   assert.equal(await page.evaluate(()=>__frontier.world.data.id),FRONTIER,'Continue returns to the saved map');
   const reloaded=await page.evaluate(()=>{const g=__frontier.game;return {pos:g.localPoint(g.data.world.id,g.player.x,g.player.z),world:g.worldPoint(g.player.x,g.player.z)};});

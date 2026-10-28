@@ -1,6 +1,8 @@
 // Grotto props from the map's `props` list. Static pieces are merged by material (one draw per
 // material plus its outline hull); the glowing ones (pearls, the rune circle, candle flames)
-// get light sprites; the creatures and the giant shell come from creatures.js and animate.
+// get halos (one instanced glow field; the few that animate are sprites); the creatures and the
+// giant shell come from creatures.js and animate. Corals and crystals also grow along the cave
+// rim (`decor`), as thick as the concept has them.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { createRng } from '../../core/rng.js';
@@ -8,8 +10,9 @@ import { turn } from '../../core/dungeon.js';
 import { toonRamp, outlineMaterial } from '../toon.js';
 import { runeTexture, glowTexture, nacreTexture } from './textures.js';
 import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
+import { glowField } from './glow.js';
 
-const STONE = '#cdb995', STONE_DARK = '#a3937a', MOSS = '#6f8f4e', WOOD = '#7a4a2c', GOLD = '#e7b64c';
+const STONE = '#cdb995', STONE_DARK = '#a3937a', MOSS = '#55704c', WOOD = '#7a4a2c', GOLD = '#e7b64c';
 
 /** Collects world-space geometry per material key and merges it at the end. */
 class Batch {
@@ -27,7 +30,7 @@ class Batch {
       const geo = mergeGeometries(list);
       list.forEach((g) => g.dispose());
       const mesh = new THREE.Mesh(geo, this.mats.get(key));
-      mesh.castShadow = true;
+      mesh.castShadow = !key.startsWith('coral'); // glowing corals light themselves; their shadows would double the coral cost
       mesh.receiveShadow = true;
       mesh.name = `props-${key}`;
       root.add(mesh);
@@ -70,13 +73,13 @@ function coralGeometry(seed, size = 1, depth = 3) {
   const up = new THREE.Vector3(0, 1, 0);
   const grow = (from, dir, len, rad, d) => {
     const to = from.clone().addScaledVector(dir, len);
-    const g = new THREE.CylinderGeometry(rad * 0.62, rad, len, 6, 1);
+    const g = new THREE.CylinderGeometry(rad * 0.62, rad, len, 5, 1, true); // open: the joints hide the ends
     g.translate(0, len / 2, 0);
     g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(up, dir));
     g.translate(from.x, from.y, from.z);
     parts.push(g);
     if (d === 0) {
-      const tip = new THREE.SphereGeometry(rad * 1.1, 6, 4);
+      const tip = new THREE.OctahedronGeometry(rad * 1.15, 0);
       tip.translate(to.x, to.y, to.z);
       parts.push(tip);
       return;
@@ -97,10 +100,10 @@ function coralGeometry(seed, size = 1, depth = 3) {
 const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowTexture(), color, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending });
 
 /**
- * Build every prop of one map. `surfaceY(x, z)` gives the ground height for a prop.
- * Returns {root, update(dt, t), shell (the giant shell, if any), dispose()}.
+ * Build every prop of one map, plus rim decor at `decor` edge points ({x, z, nx, nz, y} from
+ * rim.js, kept off `keepClear` [x, z, r] spots). Returns {root, update(dt, t), shell}.
  */
-export function buildProps(map) {
+export function buildProps(map, { decor = [], keepClear = [] } = {}) {
   const root = new THREE.Group();
   root.name = 'grotto-props';
   const batch = new Batch();
@@ -117,8 +120,10 @@ export function buildProps(map) {
   const coralMats = new Map();
   const coralMat = (c) => { if (!coralMats.has(c)) coralMats.set(c, batch.material(`coral-${c}`, lit(c, { emissive: c, emissiveIntensity: 0.55 }))); return coralMats.get(c); };
   const coralGeos = [coralGeometry(11), coralGeometry(23), coralGeometry(37)];
+  const decorGeos = [coralGeometry(53, 1.3, 2), coralGeometry(67, 1.3, 2), coralGeometry(79, 1.3, 2)]; // lighter: the rim has hundreds
   const treeGeo = coralGeometry(91, 4.2, 4);
-  const sprites = [], animated = [], spin = [];
+  const sprites = [], animated = [], spin = [], glows = [];
+  const halo = (x, y, z, size, color, alpha = 0.4) => glows.push({ x, y, z, size, color, alpha });
   let shell = null;
 
   const groundY = (x, z) => map.surfaceAt(x, z)?.y ?? 0;
@@ -137,7 +142,6 @@ export function buildProps(map) {
         if (p.type === 'pillar') {
           batch.add(stone, geo.box, place(base, 0, 0.5 + (h - 1.1) / 2, 0, { sx: 0.95, sy: h - 1.1, sz: 0.95 }), '#5a4a38');
           batch.add(stoneDark, geo.box, place(base, 0, h - 0.35, 0, { sx: 1.4, sy: 0.5, sz: 1.4 }), '#4e4232');
-          if (rng.chance(0.5)) batch.add(moss, geo.box, place(base, 0, h - 0.06, 0, { sx: 1.2, sy: 0.12, sz: 1.1, ry: 0.3 }));
         } else {
           const shaft = brokenShaft(rng);
           batch.add(stone, shaft, place(base, 0, 0.5 + (h - 0.5) / 2, 0, { sx: 0.95, sy: h - 0.5, sz: 0.95 }), '#5a4a38');
@@ -207,10 +211,7 @@ export function buildProps(map) {
         const k = rng.int(0, coralGeos.length - 1), sz = s * rng.range(1.7, 2.3);
         batch.add(coralMat(p.color || '#b06cff'), coralGeos[k], place({ ...base, s: 1 }, 0, -0.05, 0, { sx: sz, sy: sz * rng.range(0.9, 1.25), sz, ry: rng.range(0, 6.28) }));
         if (rng.chance(0.6)) batch.add(coralMat(p.color || '#b06cff'), coralGeos[(k + 1) % 3], place({ ...base, s: 1 }, rng.range(-0.6, 0.6), -0.05, rng.range(-0.6, 0.6), { sx: sz * 0.6, sy: sz * 0.6, sz: sz * 0.6, ry: rng.range(0, 6.28) }));
-        const sp = new THREE.Sprite(glowMat(p.color || '#b06cff', 0.35));
-        sp.scale.setScalar(2.4 * s);
-        sp.position.set(x, y + 1.0 * s, z);
-        sprites.push(sp);
+        halo(x, y + 1.0 * s, z, 2.6 * s, p.color || '#b06cff', 0.35);
         break;
       }
       case 'coralTree': {
@@ -230,10 +231,7 @@ export function buildProps(map) {
           const a = (i / n) * Math.PI * 2 + rng.range(-0.3, 0.3), lean = i === 0 ? 0 : rng.range(0.25, 0.55), hh = (i === 0 ? 1.9 : rng.range(0.9, 1.5)) * s;
           batch.add(crystal, geo.octa, place({ ...base, s: 1 }, Math.cos(a) * 0.3 * (i > 0) * s, hh * 0.45, Math.sin(a) * 0.3 * (i > 0) * s, { sx: 0.45 * s, sy: hh, sz: 0.45 * s, rx: Math.sin(a) * lean, rz: -Math.cos(a) * lean }), '#1d6b8a');
         }
-        const sp = new THREE.Sprite(glowMat('#7fe8ff', 0.5));
-        sp.scale.setScalar(3.2 * s);
-        sp.position.set(x, y + 1.0 * s, z);
-        sprites.push(sp);
+        halo(x, y + 1.0 * s, z, 3.2 * s, '#7fe8ff', 0.5);
         break;
       }
       case 'pearl':
@@ -251,11 +249,12 @@ export function buildProps(map) {
         pearl.position.set(x, y + lift, z);
         pearl.castShadow = true;
         root.add(pearl);
-        const sp = new THREE.Sprite(glowMat('#ffe3f4', big ? 0.45 : 0.4));
-        sp.scale.setScalar(r * (big ? 4.2 : 5));
+        if (!big) { halo(x, y + lift, z, r * 5, '#ffe3f4', 0.4); break; }
+        const sp = new THREE.Sprite(glowMat('#ffe3f4', 0.3));
+        sp.scale.setScalar(r * 3.6);
         sp.position.copy(pearl.position);
         sprites.push(sp);
-        if (big) animated.push((t) => { sp.material.opacity = 0.38 + Math.sin(t * 1.4 + x) * 0.1; pearl.position.y = y + lift + Math.sin(t * 1.1 + z) * 0.12; sp.position.y = pearl.position.y; });
+        animated.push((t) => { sp.material.opacity = 0.26 + Math.sin(t * 1.4 + x) * 0.07; pearl.position.y = y + lift + Math.sin(t * 1.1 + z) * 0.12; sp.position.y = pearl.position.y; });
         break;
       }
       case 'chest': {
@@ -264,10 +263,7 @@ export function buildProps(map) {
         for (const side of [-0.42, 0.42]) batch.add(gold, geo.box, place(base, side, 0.34, 0, { sx: 0.12, sy: 0.7, sz: 0.84 }));
         // spilled coins
         for (let i = 0; i < 7; i++) batch.add(gold, geo.cyl6, place(base, rng.range(-0.9, 0.9), 0.04, rng.range(0.5, 1.2), { sx: 0.22, sy: 0.05, sz: 0.22, rx: rng.range(-0.3, 0.3) }));
-        const sp = new THREE.Sprite(glowMat('#ffd27a', 0.45));
-        sp.scale.setScalar(2.2);
-        sp.position.set(x, y + 0.9, z);
-        sprites.push(sp);
+        halo(x, y + 0.9, z, 2.2, '#ffd27a', 0.45);
         break;
       }
       case 'candles': {
@@ -331,12 +327,65 @@ export function buildProps(map) {
         animated.push((t, dt) => shell.update(dt, t));
         break;
       }
+      case 'barrel': {
+        batch.add(wood, geo.cyl, place(base, 0, 0.5, 0, { sx: 0.85, sy: 1.0, sz: 0.85 }), '#3a2414');
+        for (const yy of [0.18, 0.82]) batch.add(stoneDark, geo.cyl, place(base, 0, yy, 0, { sx: 0.9, sy: 0.08, sz: 0.9 }));
+        if (rng.chance(0.5)) batch.add(wood, geo.cyl, place(base, 0.75, 0.42, 0.3, { sx: 0.8, sy: 0.95, sz: 0.8, rx: Math.PI / 2, ry: rng.range(0, 3) }), '#3a2414');
+        break;
+      }
+      case 'crate': {
+        batch.add(wood, geo.box, place(base, 0, 0.4, 0, { sx: 0.85, sy: 0.8, sz: 0.85 }), '#3a2414');
+        batch.add(stoneDark, geo.box, place(base, 0, 0.4, 0, { sx: 0.9, sy: 0.12, sz: 0.9 }));
+        if (rng.chance(0.6)) batch.add(wood, geo.box, place(base, 0.1, 1.05, 0.05, { sx: 0.6, sy: 0.5, sz: 0.6, ry: 0.4 }), '#3a2414');
+        break;
+      }
+      case 'ruinWall': {
+        // a run of broken wall: stacked blocks, the courses stepping down toward the broken end
+        const len = p.len ?? 4, courses = 3;
+        for (let c = 0; c < courses; c++) {
+          const n = Math.max(1, Math.round((len / 1.1) * (1 - c * 0.28)));
+          for (let i = 0; i < n; i++) {
+            const lx = -len / 2 + (i + 0.5) * (len / Math.round(len / 1.1)) + (c % 2) * 0.3;
+            batch.add(c === 0 ? stoneDark : stone, geo.box, place(base, lx, 0.32 + c * 0.6, rng.range(-0.05, 0.05), { sx: 1.0, sy: 0.56, sz: 0.75, ry: rng.range(-0.05, 0.05) }), '#4e4232');
+          }
+        }
+        batch.add(stone, geo.box, place(base, len / 2 + 0.7, 0.25, 0.7, { sx: 0.9, sy: 0.5, sz: 0.7, ry: 0.6, rz: 0.15 }), '#5a4a38');
+        if (rng.chance(0.6)) batch.add(moss, geo.box, place(base, -len * 0.2, 1.84, 0, { sx: len * 0.4, sy: 0.1, sz: 0.7 }));
+        break;
+      }
+      case 'fallenPillar': {
+        batch.add(stone, geo.box, place(base, 0, 0.48, 0, { sx: 0.95, sy: 0.95, sz: 3.6, rx: 0.05 }), '#5a4a38');
+        batch.add(stoneDark, geo.box, place(base, 0, 0.7, -2.1, { sx: 1.4, sy: 1.4, sz: 0.5 }), '#4e4232');
+        batch.add(stone, geo.box, place(base, 0.4, 0.3, 2.4, { sx: 0.8, sy: 0.6, sz: 0.9, ry: 0.5 }), '#5a4a38');
+        break;
+      }
       default:
         throw new Error(`grotto prop ${p.type} has no model`);
     }
   }
+  // corals and crystals growing out of the rim, thickest on the walls facing the camera
+  const palette = map.def.look.decor || ['#b06cff', '#ff6fd2', '#4fd9ff', '#5f8cff'];
+  const clear = (x, z) => keepClear.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < r * r);
+  for (const e of decor) {
+    const roll = rng.next();
+    if (roll > 0.2 || e.stairs || clear(e.x, e.z)) continue; // nothing grows on the treads
+    const x = e.x - e.nx * 0.15, z = e.z - e.nz * 0.15, d = { x, y: e.y, z, rot: 0, s: 1 };
+    if (roll < 0.15) {
+      const c = rng.pick(palette), sz = rng.range(1.0, 2.0);
+      batch.add(coralMat(c), decorGeos[rng.int(0, 2)], place(d, 0, -0.05, 0, { sx: sz, sy: sz * rng.range(0.9, 1.3), sz, ry: rng.range(0, 6.28) }));
+      if (roll < 0.07) halo(x, e.y + sz * 0.5, z, sz * 1.5, c, 0.3);
+    } else {
+      const sz = rng.range(0.5, 0.9);
+      for (let i = 0; i < 3; i++) {
+        const a = rng.range(0, 6.28), lean = i ? rng.range(0.3, 0.6) : 0.1, hh = (i ? rng.range(0.7, 1.1) : 1.5) * sz;
+        batch.add(crystal, geo.octa, place(d, Math.cos(a) * 0.25 * sz, hh * 0.45, Math.sin(a) * 0.25 * sz, { sx: 0.45 * sz, sy: hh, sz: 0.45 * sz, rx: Math.sin(a) * lean, rz: -Math.cos(a) * lean }), '#1d6b8a');
+      }
+      halo(x, e.y + 0.8 * sz, z, 2.4 * sz, '#7fe8ff', 0.35);
+    }
+  }
   batch.build(root);
   for (const sp of sprites) { sp.renderOrder = 5; root.add(sp); }
+  if (glows.length) root.add(glowField(glows));
   return {
     root,
     shell,

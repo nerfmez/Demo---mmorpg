@@ -70,16 +70,27 @@ export function pathOutline(f, capSteps = 8) {
   return [...right, ...cap(end, right[right.length - 1], -1), ...left.reverse(), ...cap(start, left[left.length - 1], -1)];
 }
 
+/** Every outline of a floor: [{pts, hole}] (a traced floor has holes: rock islands). */
+export function floorRings(f, step = 0.8) {
+  if (f.shape === 'circle' || f.shape === 'ellipse') return [{ pts: ellipseOutline(f, step), hole: false }];
+  if (f.shape === 'path') return [{ pts: pathOutline(f, 10), hole: false }];
+  if (f.shape === 'poly') return [{ pts: f.pts, hole: false }, ...(f.holes || []).map((h) => ({ pts: h, hole: true }))];
+  return [];
+}
+
 /** Signed area: positive when the outline runs counter-clockwise on screen (north up), the way wall() faces outward. */
-function area(poly) {
+export function area(poly) {
   let s = 0;
   for (let i = 0; i < poly.length; i++) { const [ax, az] = poly[i], [bx, bz] = poly[(i + 1) % poly.length]; s += ax * bz - bx * az; }
   return -s / 2;
 }
 
-/** Cliff walls around an outline, facing out, darkening into the void (or facing in, down to `inner`: a basin's inside). */
-function addWalls(mesh, poly, yTop, look, inner = null) {
-  if ((area(poly) < 0) !== (inner !== null)) poly = [...poly].reverse();
+/**
+ * Cliff walls around an outline, facing away from the floor and darkening into the void (a
+ * `hole` faces into the hole; `inner` faces into a basin, down to that height).
+ */
+function addWalls(mesh, poly, yTop, look, inner = null, hole = false) {
+  if ((area(poly) > 0) !== (inner === null && !hole)) poly = [...poly].reverse();
   let u = 0;
   const lip = new THREE.Color(1, 1, 1), dark = new THREE.Color(look.void), deep = new THREE.Color(0.45, 0.6, 0.65);
   const mid = yTop - FADE;
@@ -162,13 +173,43 @@ function addStairs(mesh, cliffs, f, look, white) {
   }
 }
 
+/**
+ * Edging stones: a raised band just inside every edge where the floor drops away (to the void,
+ * to deep water or to a lower level), the way the concept rims its paths, pools and rooms. Edges
+ * that join walkable ground at the same level (a path entering a room, a stair foot) stay open.
+ */
+function addCurbs(top, side, map, f, poly, look, hole = false) {
+  if ((area(poly) > 0) === hole) poly = [...poly].reverse(); // the outward side faces away from the floor
+  const width = f.kind === 'deep' ? 0.55 : 0.42;
+  const yFloor = f.kind === 'deep' ? f.waterY + 0.25 : f.y;
+  const yTop = f.kind === 'shallow' ? f.waterY + 0.1 : yFloor + (f.kind === 'deep' ? 0.08 : 0.12);
+  const lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.7, 0.7, 0.7);
+  const step = map.rules.maxStep;
+  for (let i = 0; i < poly.length; i++) {
+    const [ax, az] = poly[i], [bx, bz] = poly[(i + 1) % poly.length];
+    const l = Math.hypot(bx - ax, bz - az);
+    if (l < 1e-4) continue;
+    const nx = -(bz - az) / l, nz = (bx - ax) / l; // outward
+    const probe = map.surfaceAt((ax + bx) / 2 + nx * 0.6, (az + bz) / 2 + nz * 0.6);
+    if (probe && probe.walkable && Math.abs(probe.y - f.y) <= step) continue;
+    const a2 = [ax - nx * width, az - nz * width], b2 = [bx - nx * width, bz - nz * width];
+    const from = top.pos.length;
+    top.topTri([ax, az], [bx, bz], b2, yTop, lip);
+    top.topTri([ax, az], b2, a2, yTop, lip);
+    faceUp(top, from);
+    side.wall(ax, az, bx, bz, yTop, yFloor - 0.05, 0, l / TILE, lip, low); // outer face
+    side.wall(b2[0], b2[1], a2[0], a2[1], yTop, yFloor - 0.05, 0, l / TILE, lip, low); // inner face
+  }
+}
+
 const KIND = {
-  stone: { map: flagstoneTexture, color: '#ffffff' },
-  warm: { map: flagstoneTexture, color: '#ffe9c9' },
+  stone: { map: flagstoneTexture, color: '#efe7da', emissive: '#2a2219', emissiveIntensity: 0.3 },
+  warm: { map: flagstoneTexture, color: '#f4e4cc', emissive: '#33261a', emissiveIntensity: 0.3 },
   shallow: { map: flagstoneTexture, color: '#79e3dc', emissive: '#0d5a62', emissiveIntensity: 0.55 },
   deep: { map: flagstoneTexture, color: '#3aa6b8', emissive: '#0b4a5c', emissiveIntensity: 0.7 },
   nacre: { map: nacreTexture, color: '#d9cbd6', emissive: '#4a3050', emissiveIntensity: 0.25 },
   sand: { map: sandTexture, color: '#efe0c4' },
+  curb: { map: masonryTexture, color: '#e6d7b8' },
   seabed: { map: sandTexture, color: '#6cb9bf' },
 };
 
@@ -194,9 +235,23 @@ export function buildFloors(map, look) {
       const poly = addStrip(top, f, white);
       faceUp(top, from);
       addWalls(cliffs, poly, f.y, look);
+    } else if (f.shape === 'poly') {
+      // a traced outline with holes: triangulated, walled around the outline and every hole
+      const v2 = (pts) => pts.map(([x, z]) => new THREE.Vector2(x, z));
+      const outer = v2(f.pts), holes = (f.holes || []).map(v2), all = [outer, ...holes].flat();
+      const from = top.pos.length;
+      for (const [a, b, c] of THREE.ShapeUtils.triangulateShape(outer, holes)) top.topTri([all[a].x, all[a].y], [all[b].x, all[b].y], [all[c].x, all[c].y], f.y, white);
+      faceUp(top, from);
+      for (const r of floorRings(f)) addWalls(cliffs, r.pts, f.y, look, null, r.hole);
     } else if (f.shape === 'stairs') {
       addStairs(top, cliffs, f, look, white);
     }
+  }
+  // edging stones around drops (not on sand: the beach just meets the sea)
+  const curbTop = topFor('curb'), curbSide = topFor('curb');
+  for (const f of map.floors) {
+    if (f.kind === 'sand' || f.shape === 'stairs') continue;
+    for (const r of floorRings(f)) addCurbs(curbTop, curbSide, map, f, r.pts, look, r.hole);
   }
   const root = new THREE.Group();
   root.name = 'grotto-floors';

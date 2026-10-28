@@ -1,5 +1,6 @@
 // Dungeon maps (data/dungeons/*.json): flat floors on fixed levels joined by stairs, with water,
-// over a void. Unlike the open world there is no heightfield: the last floor in the list that
+// over a void. Floors are simple shapes or outlines traced from the concept art. Unlike the open
+// world there is no heightfield: the last floor in the list that
 // contains a point is the ground there. A step between two points is walkable when both are on a
 // walkable floor and their heights differ by at most `maxStep`, so a ledge between two levels is
 // a wall and only stairs join them. Props block with circles (`propTypes.*.block`). Links are
@@ -36,6 +37,28 @@ function segDist2(px, pz, ax, az, bx, bz) {
   return dx * dx + dz * dz;
 }
 
+// Point in polygon by crossings, with the edges bucketed in 1 m bands of z so a test only looks
+// at the few edges level with the point (traced outlines have hundreds of points).
+const BAND = 1;
+function prepareRing(pts) {
+  const z0 = Math.min(...pts.map((p) => p[1])), bands = [];
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    const lo = Math.floor((Math.min(a[1], b[1]) - z0) / BAND), hi = Math.floor((Math.max(a[1], b[1]) - z0) / BAND);
+    for (let k = lo; k <= hi; k++) (bands[k] ||= []).push([a[0], a[1], b[0], b[1]]);
+  }
+  return { z0, bands };
+}
+function ringContains(r, x, z) {
+  const edges = r.bands[Math.floor((z - r.z0) / BAND)];
+  if (!edges) return false;
+  let inside = false;
+  for (const [ax, az, bx, bz] of edges) {
+    if ((az > z) !== (bz > z) && x < ax + ((z - az) * (bx - ax)) / (bz - az)) inside = !inside;
+  }
+  return inside;
+}
+
 /** Prepare one floor: bounding box and a containment test giving the height there (or NaN). */
 function prepareFloor(f) {
   const out = { ...f, walkable: WALK[f.kind] ?? false };
@@ -61,6 +84,16 @@ function prepareFloor(f) {
       const t = (x - ax) * ux + (z - az) * uz, side = -(x - ax) * uz + (z - az) * ux;
       if (t < 0 || t > len || Math.abs(side) > h) return NaN;
       return f.y0 + (f.y1 - f.y0) * (t / len);
+    };
+  } else if (f.shape === 'poly') {
+    // a traced outline (data/dungeons/*-trace.json): pts, plus holes cut out of it (rock islands)
+    const rings = [f.pts, ...(f.holes || [])].map(prepareRing);
+    const xs = f.pts.map((p) => p[0]), zs = f.pts.map((p) => p[1]);
+    out.box = [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)];
+    out.heightAt = (x, z) => {
+      if (!ringContains(rings[0], x, z)) return NaN;
+      for (let i = 1; i < rings.length; i++) if (ringContains(rings[i], x, z)) return NaN;
+      return f.y;
     };
   } else throw new Error(`dungeon floor ${f.id}: unknown shape ${f.shape}`);
   return out;

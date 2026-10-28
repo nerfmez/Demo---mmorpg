@@ -28,6 +28,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPrefer
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
 renderer.shadowMap.enabled = true;
+renderer.info.autoReset = false; // counted per frame (scene, shadows and screen grade together)
 renderer.shadowMap.type = THREE.PCFShadowMap;
 const usePost = params.get('post') !== '0';
 const post = usePost ? new PostFX(renderer, { ...RENDERING.post, hazeAmount: 0.08, sunWash: 0 }) : null;
@@ -112,7 +113,13 @@ function enter(where, spawn, facing) {
   sun.color.set(look.sun[0]);
   sun.intensity = look.sun[1];
   state.sunDir = new THREE.Vector3(...look.sun[2]).normalize();
-  const [x, z] = spawn || map.def.spawn;
+  let [x, z] = spawn || map.def.spawn;
+  // never stand on nothing: a spot that cannot be stood on moves to the nearest one that can
+  for (let r = 0, a = 0; Number.isNaN(map.landY(x, z)) && r < 12; a += 0.7) {
+    if (a > Math.PI * 2) { a = 0; r += 0.5; }
+    const [sx, sz] = spawn || map.def.spawn;
+    x = sx + Math.cos(a) * r; z = sz + Math.sin(a) * r;
+  }
   state.pos.x = x; state.pos.z = z;
   state.pos.y = map.landY(x, z);
   state.facing = facing ?? map.def.spawnFacing ?? 0;
@@ -213,7 +220,7 @@ function overviewPose(map) {
   const { minX, maxX, minZ, maxZ } = map.bounds;
   const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2, w = maxX - minX, d = maxZ - minZ;
   const aspect = camera.aspect, fov = THREE.MathUtils.degToRad(camera.fov);
-  const dist = Math.max(d / (2 * Math.tan(fov / 2)) * 1.1, w / (2 * Math.tan(fov / 2) * aspect)) * 0.95;
+  const dist = Math.max(d / (2 * Math.tan(fov / 2)) * 1.1, w / (2 * Math.tan(fov / 2) * aspect)) * 1.12;
   const pitch = THREE.MathUtils.degToRad(58);
   lookAt.set(cx, 0, cz + d * 0.04);
   return tmp.set(cx, Math.sin(pitch) * dist, cz + Math.cos(pitch) * dist);
@@ -236,7 +243,7 @@ function updateCamera(dt) {
   }
   camera.position.lerp(camWant, snapCamera ? 1 : 1 - Math.exp(-6 * dt));
   // the fog belongs to the play camera; the whole-map view looks from much farther
-  const fog = maps[state.where].def.look.fog, far = state.overview ? camera.position.distanceTo(camTarget) : 0;
+  const fog = maps[state.where].def.look.fog, far = state.overview || state.frame ? camera.position.distanceTo(camTarget) : 0;
   scene.fog.near = fog[1] + far;
   scene.fog.far = fog[2] + far * 1.4;
   camera.lookAt(camTarget);
@@ -316,6 +323,7 @@ function frame(now) {
   time += dt;
   step(dt, time);
   updateCamera(dt);
+  renderer.info.reset();
   if (post) post.render(scene, camera, time); else renderer.render(scene, camera);
   if (++frames === 2) $('loading').classList.add('gone');
   requestAnimationFrame(frame);
@@ -329,5 +337,6 @@ window.__grotto = {
   open(instant = false) { discover(GROTTO.outside.links[0], instant); },
   overview(on = true) { state.overview = on; overviewBtn.classList.toggle('on', on); snapCamera = true; },
   zoom(z) { state.zoom = z; snapCamera = true; },
+  info: () => ({ ...renderer.info.render }),
   frame(x, y, z, dist = 14, pitch = 30) { state.frame = x == null ? null : [x, y, z, dist, pitch]; snapCamera = true; },
 };

@@ -25,62 +25,47 @@ const shade = (hex, k) => {
   return `#${c.getHexString()}`;
 };
 
-/** Flagstones in staggered rows (the texture spans 4 m): soft grout, a lit top-left edge, a few cracks. */
+/**
+ * Irregular flagstones (the texture spans 4 m): a seamless Voronoi of about thirty-six stones, each its
+ * own shade with soft mottling, a lit upper-left bevel, a shadowed lower-right bevel and grout
+ * between. Computed per pixel once, so no two courses line up the way bricks do.
+ */
 export function flagstoneTexture() {
   return canvasTexture('flagstone', 512, (g, n) => {
-    const rng = createRng(31);
-    g.fillStyle = '#6f6152';
-    g.fillRect(0, 0, n, n);
-    // rows of uneven height cut into stones of uneven width (some square, some long), each
-    // drawn slightly turned and inset by its own amount so the grout never runs in straight courses
-    const rows = [];
-    for (let y = 0; y < n;) { const rh = rng.range(44, 76); rows.push([y, y + rh > n - 30 ? n - y : rh]); y += rows[rows.length - 1][1]; }
-    for (const [y, rh] of rows) {
-      let x = -Math.round(rng.range(0, 60));
-      while (x < n) {
-        const w = Math.round(rng.chance(0.35) ? rh * rng.range(0.9, 1.15) : rng.range(70, 150));
-        const base = shade('#d8c6a2', rng.range(-0.07, 0.05));
-        const inset = rng.range(2.5, 5), tilt = rng.range(-0.03, 0.03);
-        const draw = (ox) => {
-          const x0 = x + ox + inset, y0 = y + inset, w0 = w - inset * 2, h0 = rh - inset * 2;
-          g.save();
-          g.translate(x0 + w0 / 2, y0 + h0 / 2);
-          g.rotate(tilt);
-          g.translate(-(x0 + w0 / 2), -(y0 + h0 / 2));
-          g.fillStyle = base;
-          g.beginPath();
-          g.roundRect(x0, y0, w0, h0, 7);
-          g.fill();
-          // soft painted shading: light top-left, shadowed bottom-right
-          g.fillStyle = 'rgba(255,248,230,0.35)';
-          g.fillRect(x0 + 3, y0 + 2, w0 - 8, 4);
-          g.fillRect(x0 + 2, y0 + 3, 4, h0 - 8);
-          g.fillStyle = 'rgba(70,52,36,0.22)';
-          g.fillRect(x0 + 5, y0 + h0 - 6, w0 - 8, 5);
-          g.fillRect(x0 + w0 - 6, y0 + 5, 5, h0 - 8);
-          // mottling
-          for (let i = 0; i < 6; i++) {
-            g.fillStyle = `rgba(${rng.chance(0.5) ? '255,240,215' : '90,72,52'},${rng.range(0.05, 0.12)})`;
-            g.beginPath();
-            g.ellipse(x0 + rng.range(8, w0 - 8), y0 + rng.range(8, h0 - 8), rng.range(6, 18), rng.range(4, 10), 0, 0, Math.PI * 2);
-            g.fill();
-          }
-          if (rng.chance(0.18)) {
-            g.strokeStyle = 'rgba(60,46,34,0.45)';
-            g.lineWidth = 1.5;
-            g.beginPath();
-            let cx = x0 + rng.range(10, w0 - 10), cy = y0 + 4;
-            g.moveTo(cx, cy);
-            for (let k = 0; k < 4; k++) { cx += rng.range(-10, 10); cy += h0 / 4; g.lineTo(cx, cy); }
-            g.stroke();
-          }
-          g.restore();
-        };
-        draw(0);
-        if (x + w > n) draw(-n); // wrap so the tile repeats seamlessly
-        if (x < 0) draw(n);
-        x += w;
+    const rng = createRng(31), G = 6, cell = n / G;
+    const jx = [], jy = [], tone = [];
+    for (let i = 0; i < G * G; i++) { jx.push(rng.range(0.2, 0.8)); jy.push(rng.range(0.2, 0.8)); tone.push(rng.range(-0.08, 0.06)); }
+    const base = [214, 196, 160], grout = [132, 116, 96]; // sRGB, as the canvas stores it
+    const img = g.createImageData(n, n), d = img.data;
+    const hash = (x, y) => { const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return h - Math.floor(h); };
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const gx = Math.floor(x / cell), gy = Math.floor(y / cell);
+      let d1 = Infinity, d2 = Infinity, p1x = 0, p1y = 0, p2x = 0, p2y = 0, id = 0;
+      for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
+        const cx = gx + ox, cy = gy + oy, k = ((cy + G) % G) * G + ((cx + G) % G);
+        const px = (cx + jx[k]) * cell, py = (cy + jy[k]) * cell, dd = (px - x) ** 2 + (py - y) ** 2;
+        if (dd < d1) { d2 = d1; p2x = p1x; p2y = p1y; d1 = dd; p1x = px; p1y = py; id = k; }
+        else if (dd < d2) { d2 = dd; p2x = px; p2y = py; }
       }
+      // distance to the edge between the nearest two stones, in pixels
+      const edge = (d2 - d1) / (2 * Math.hypot(p2x - p1x, p2y - p1y));
+      const ex = p2x - p1x, ey = p2y - p1y; // toward the neighbour: down-right edges are in shadow
+      const lit = (ex + ey) < 0 ? 1 : -1;
+      const mott = (hash(Math.floor(x / 9), Math.floor(y / 9)) - 0.5) * 0.06 + (hash(x, y) - 0.5) * 0.035;
+      const shadeK = 1 + (tone[id] + mott + (edge < 7 ? lit * 0.08 * (1 - edge / 7) : 0)) * 1.6;
+      const k = THREE.MathUtils.smoothstep(edge, 0.6, 2.0), i = (y * n + x) * 4;
+      for (let ch = 0; ch < 3; ch++) d[i + ch] = base[ch] * shadeK * k + grout[ch] * (1 - k);
+      d[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    // a few hairline cracks
+    g.strokeStyle = 'rgba(70,56,42,0.35)';
+    g.lineWidth = 1.2;
+    for (let i = 0; i < 7; i++) {
+      let x = rng.range(0, n), y = rng.range(0, n);
+      g.beginPath(); g.moveTo(x, y);
+      for (let k = 0; k < 4; k++) { x += rng.range(-12, 12); y += rng.range(-12, 12); g.lineTo(x, y); }
+      g.stroke();
     }
   });
 }

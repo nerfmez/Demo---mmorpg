@@ -634,8 +634,9 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
 
 ## Dungeon maps (Pearlshell Grotto, standalone preview)
 
-`src/core/dungeon.js` reads `data/dungeons/*.json`: flat floors at fixed heights (circle, ellipse,
-smoothed path, stairs ramp), the last floor containing a point is the ground. A step is walkable
+`src/core/dungeon.js` reads `data/dungeons/*.json`: flat floors at fixed heights (a polygon with
+holes traced from the concept by `scripts/grotto-trace.py`, circle, ellipse, smoothed path, stairs
+ramp), the last floor containing a point is the ground. Polygon tests bucket edges in 1 m bands. A step is walkable
 when both points are on walkable floors within `maxStep` (0.45 m), so ledges are walls and stairs
 join levels; props block with circles from `propTypes`. In Godot: build each floor as a
 `CollisionPolygon3D`/`StaticBody3D` slab with its side walls, stairs as ramps, props as

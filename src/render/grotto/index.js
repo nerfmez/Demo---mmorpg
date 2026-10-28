@@ -6,7 +6,7 @@ import { createRng } from '../../core/rng.js';
 import { disposeObject } from '../dispose.js';
 import { buildFloors } from './floors.js';
 import { buildWater } from './water.js';
-import { buildRim } from './rim.js';
+import { buildRim, rimPoints } from './rim.js';
 import { buildProps } from './props.js';
 import { glowTexture } from './textures.js';
 
@@ -80,8 +80,9 @@ export function buildGrottoScene(map, o = {}) {
     ...(map.def.waterfalls || []).map((w) => [w.at[0], w.at[1], w.w / 2 + 0.8]),
     ...(map.def.links || []).map((l) => [l.at[0], l.at[1], 2.5]),
   ];
-  if (!o.sea) root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1 }).root);
-  const props = buildProps(map);
+  const edge = o.sea ? [] : rimPoints(map, 1.25);
+  if (!o.sea) root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1, points: edge }).root);
+  const props = buildProps(map, { decor: edge, keepClear });
   root.add(props.root);
   // lights, each with a soft pool of its colour on the floor below
   const pools = [];

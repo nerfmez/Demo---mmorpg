@@ -4,7 +4,7 @@
 // Frames: tests/browser/out/grotto/<n>-<name>.png. Fails on page errors or a broken flow.
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
 const OUT = new URL('./out/grotto/', import.meta.url).pathname;
@@ -62,18 +62,21 @@ try {
   assert.equal(await page.evaluate(() => window.__grotto.state.where), 'inside', 'walked through the shell mouth');
   await shot('entrance');
 
+  // where to stand in each area, in concept pixels (data/dungeons/shell-grotto-trace.json), and the facing
+  const TRACE = JSON.parse(readFileSync(new URL('../../data/dungeons/shell-grotto-trace.json', import.meta.url), 'utf8'));
+  const px = ([x, y]) => [(x - TRACE.origin[0]) * TRACE.scale, (y - TRACE.origin[1]) * TRACE.zScale];
   const rooms = [
-    ['coral-steps', -41, 20, 3.0],
-    ['hoard', -68, -35, 3.6],
-    ['junction', -36, -15, 1.0],
-    ['corridor-falls', -12, -25, 0.6],
-    ['coral-island', -4, -1.2, 3.1],
-    ['sealed-arch', -12, -30, 3.1],
-    ['temple', 50, 22, 3.1],
-    ['temple-altar', 45, 15, 2.2],
-    ['throne-steps', 33, -31, 2.4],
-    ['throne', 57, -38.5, 3.1],
-  ];
+    ['coral-steps', [395, 600], 3.0],
+    ['hoard', [240, 240], 3.1],
+    ['junction', [520, 405], 1.6],
+    ['corridor', [760, 420], 1.6],
+    ['coral-island', [660, 540], 3.1],
+    ['sealed-arch', [676, 345], 3.1],
+    ['temple', [1060, 700], 3.1],
+    ['temple-altar', [1120, 690], 3.1],
+    ['throne-steps', [1160, 400], 3.1],
+    ['throne', [1200, 300], 3.1],
+  ].map(([name, at, f]) => [name, ...px(at), f]);
   for (const [name, x, z, f] of rooms) {
     await page.evaluate(([x, z, f]) => window.__grotto.go('inside', x, z, f), [x, z, f]);
     await settle();

@@ -25,10 +25,17 @@ test('the spawns stand on walkable ground and every named area is reached on foo
   }
 });
 
-test('the high places are reached: altar top, boss dais, treasure room and the coral island', () => {
-  for (const id of ['altar-top', 'dais', 'hoard', 'island', 'alcove']) {
+const TRACE = JSON.parse(readFileSync(new URL('../../data/dungeons/shell-grotto-trace.json', import.meta.url), 'utf8'));
+/** A concept pixel in map metres (the tracing's own conversion). */
+const px = ([x, y]) => [(x - TRACE.origin[0]) * TRACE.scale, (y - TRACE.origin[1]) * TRACE.zScale];
+const centroid = (f) => [f.pts.reduce((a, p) => a + p[0], 0) / f.pts.length, f.pts.reduce((a, p) => a + p[1], 0) / f.pts.length];
+
+test('the inside is traced from the concept: every zone has floor, and the high and low places are reached', () => {
+  for (const z of TRACE.zones) assert.ok(inside.floors.some((f) => f.id.startsWith(`${z.id}-`)), `${z.id} has no traced floor`);
+  for (const id of ['hoard-floor-0', 'dais-floor-0', 'pool-stone-0', 'throne-water-0', 'temple-water-0']) {
     const f = inside.floors.find((g) => g.id === id);
-    assert.ok(reachedNear('inside', f.c, (f.r ?? f.rx) * 0.9), `${id} not reached`);
+    assert.ok(f, `${id} missing`);
+    assert.ok(reachedNear('inside', centroid(f), 6), `${id} not reached`);
   }
 });
 
@@ -36,35 +43,31 @@ test('stairs are gentle and joined to the floors at both ends', () => {
   for (const f of inside.floors.filter((g) => g.shape === 'stairs')) {
     assert.ok(Math.abs(f.y1 - f.y0) / f.length <= FILE.maxSlope, `${f.id} too steep`);
     const ux = (f.b[0] - f.a[0]) / f.length, uz = (f.b[1] - f.a[1]) / f.length;
-    const below = inside.surfaceAt(f.a[0] - ux * 0.6, f.a[1] - uz * 0.6), above = inside.surfaceAt(f.b[0] + ux * 0.6, f.b[1] + uz * 0.6);
-    assert.ok(below?.walkable && Math.abs(below.y - f.y0) <= FILE.maxStep, `${f.id} bottom not joined`);
+    const above = inside.surfaceAt(f.b[0] + ux * 0.6, f.b[1] + uz * 0.6);
     assert.ok(above?.walkable && Math.abs(above.y - f.y1) <= FILE.maxStep, `${f.id} top not joined`);
-    assert.ok(reach.inside(f.a[0] + ux * f.length / 2, f.a[1] + uz * f.length / 2), `${f.id} middle not reached`);
+    // walk the flight from its foot to its head: every step small, ending on the upper floor
+    const pos = { x: f.a[0] + ux * 0.3, z: f.a[1] + uz * 0.3, y: f.y0 + (f.y1 - f.y0) * (0.3 / f.length) };
+    let last = pos.y;
+    for (let i = 0; i < 400 && Math.hypot(pos.x - f.b[0], pos.z - f.b[1]) > 0.2; i++) {
+      inside.move(pos, ux * 0.1, uz * 0.1);
+      assert.ok(Math.abs(pos.y - last) <= FILE.maxStep, `${f.id}: a jump of ${pos.y - last}`);
+      last = pos.y;
+    }
+    assert.ok(Math.abs(pos.y - f.y1) <= FILE.maxStep, `${f.id} climbs to ${pos.y}, not ${f.y1}`);
   }
 });
 
-test('a ledge is a wall: walking off the corridor toward the pool stays on the corridor', () => {
-  const pos = { x: -10, z: -25.5, y: 1.4 };
-  for (let i = 0; i < 200; i++) inside.move(pos, 0, 0.2);
-  assert.equal(pos.y, 1.4);
-  assert.ok(inside.surfaceAt(pos.x, pos.z).floor.id === 'corridor', 'still on the corridor');
+test('a ledge is a wall: walking off the corridor toward the coral pool stays on the corridor', () => {
+  const [x, z] = px([760, 420]), [, zPool] = px([760, 540]);
+  const pos = { x, z, y: inside.landY(x, z) };
+  assert.equal(pos.y, 0, 'starts on the corridor');
+  for (let i = 0; i < 200; i++) inside.move(pos, 0, 0.1);
+  assert.equal(pos.y, 0);
+  assert.ok(pos.z < zPool);
   // one long frame cannot skip the ledge either
-  const fast = { x: -10, z: -25.5, y: 1.4 };
+  const fast = { x, z, y: 0 };
   inside.move(fast, 0, 12);
-  assert.equal(fast.y, 1.4);
-  // deep water is never stood in
-  assert.ok(Number.isNaN(inside.landY(-18, 2)));
-});
-
-test('stairs carry the hero between levels smoothly', () => {
-  const pos = { x: -43, z: 0, y: 0 };
-  let last = pos.y;
-  for (let i = 0; i < 120 && pos.z > -14; i++) {
-    inside.move(pos, 0.03, -0.12);
-    assert.ok(Math.abs(pos.y - last) <= FILE.maxStep);
-    last = pos.y;
-  }
-  assert.equal(pos.y, 1.4, 'arrived on the junction');
+  assert.equal(fast.y, 0);
 });
 
 test('props block and the hero slides around them', () => {

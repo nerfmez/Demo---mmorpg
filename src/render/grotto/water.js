@@ -2,7 +2,7 @@
 // uniforms, so every pool and fall shares its program (AGENTS.md: numbers in uniforms).
 import * as THREE from 'three';
 import { glowTexture } from './textures.js';
-import { ellipseOutline } from './floors.js';
+import { floorRings, area } from './floors.js';
 
 const WATER_VERT = `
 #include <common>
@@ -96,8 +96,9 @@ export function buildWater(map, { sea = false } = {}) {
   for (const f of map.floors) {
     if (f.waterY == null) continue;
     const style = sea && f.kind === 'deep' ? WATER.sea : WATER[f.kind] || WATER.deep;
-    const poly = ellipseOutline(f, 1.2);
-    const shape = new THREE.Shape(poly.map(([x, z]) => new THREE.Vector2(x, -z)));
+    const rings = floorRings(f, 1.2);
+    const shape = new THREE.Shape(rings[0].pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+    for (const r of rings.slice(1)) shape.holes.push(new THREE.Path(r.pts.map(([x, z]) => new THREE.Vector2(x, -z))));
     const g = new THREE.ShapeGeometry(shape);
     g.rotateX(-Math.PI / 2); // shape (x, -z) in the XY plane → (x, 0, z)
     const m = waterMaterial(style);

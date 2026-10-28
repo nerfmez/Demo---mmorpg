@@ -643,7 +643,11 @@ join levels; props block with circles from `propTypes`. In Godot: build each flo
 `CylinderShape3D`; or port `surfaceAt`/`move` directly for a CharacterBody3D that ignores physics.
 Links are `Area3D` doors (a secret one is disabled until `inspectAt` finds it). The renderer's
 pieces map to a `MeshInstance3D` per floor material, `MultiMeshInstance3D` for the rim boulders,
-a water shader with the same uniforms, and `OmniLight3D`s. See `docs/SHELL-GROTTO.md`.
+a water shader with the same uniforms, and `OmniLight3D`s. Rooms with `style: "cave"` are dressed by
+`public/models/grotto/grotto-cave.glb`, a render-only model that `scripts/blender/grotto-cave.py` builds
+in world metres from the floor outlines: per floor `cavefloor_<id>`, `cavewall_<id>` and `caverock_<id>`, with
+ambient occlusion baked into vertex colours. Import it as it is (`MeshInstance3D`s with a cel material
+that multiplies vertex colour); collision still comes from the floors, never from this mesh. See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 

@@ -18,6 +18,7 @@ import { PostFX } from '../render/post.js';
 import { GAME_CAMERA_OFFSET } from '../render/game-camera.js';
 import { glowTexture } from '../render/grotto/textures.js';
 import { loadGrottoKit } from '../render/grotto/kit.js';
+import { loadGrottoCave } from '../render/grotto/cave.js';
 
 const params = new URLSearchParams(location.search);
 const SPEED = 6; // m/s, the game's moveSpeed (data/progression.json)
@@ -48,12 +49,12 @@ scene.add(sun, sun.target);
 
 // ---------- the two maps: the beach with the shell (preview only) and the grotto inside ----------
 const maps = { inside: createDungeon(GROTTO.inside, GROTTO), outside: createDungeon(GROTTO.outside, GROTTO) };
-// both scenes are built behind the loading card, once the Blender kit (models/grotto) has loaded
+// both scenes are built behind the loading card, once the Blender models (models/grotto) have loaded
 let views = null;
 const found = new Set(params.get('found') === '1' ? ['shell-mouth'] : []);
-function buildViews(kit) {
+function buildViews(kit, cave) {
   views = {
-    inside: buildGrottoScene(maps.inside, { motes: 420, kit }),
+    inside: buildGrottoScene(maps.inside, { motes: 420, kit, cave }),
     outside: buildGrottoScene(maps.outside, { sea: true, motes: 60, moteColours: ['#ffffff', '#fff1c0'] }),
   };
   for (const v of Object.values(views)) { v.root.visible = false; scene.add(v.root); }
@@ -341,10 +342,12 @@ function frame(now) {
   if (++frames === 2) $('loading').classList.add('gone');
   requestAnimationFrame(frame);
 }
-loadGrottoKit()
-  .catch((e) => { console.warn('grotto kit', e); return null; })
-  .then((kit) => {
-    buildViews(kit);
+Promise.all([
+  loadGrottoKit().catch((e) => { console.warn('grotto kit', e); return null; }),
+  loadGrottoCave().catch((e) => { console.warn('grotto cave', e); return null; }),
+])
+  .then(([kit, cave]) => {
+    buildViews(kit, cave);
     enter(state.where);
     last = performance.now();
     requestAnimationFrame(frame);

@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createDungeon, reachableFrom, smoothPath, turn } from '../../src/core/dungeon.js';
+import { caveSourceHash } from '../../scripts/grotto-cave-input.mjs';
 
 const FILE = JSON.parse(readFileSync(new URL('../../data/dungeons/shell-grotto.json', import.meta.url), 'utf8'));
 const inside = createDungeon(FILE.inside, FILE);
@@ -122,4 +123,16 @@ test('paths are smoothed but keep their ends', () => {
   assert.deepEqual(p[0], [0, 0]);
   assert.deepEqual(p[p.length - 1], [10, 10]);
   assert.ok(p.length > 8);
+});
+
+test('the cave model was built from this map (rebuild: blender -b --python scripts/blender/grotto-cave.py)', () => {
+  // the walls and paving of `cave` rooms are modelled from the floor outlines; a changed outline
+  // with a stale model would leave walls standing in the room or gaps at its edge
+  const glb = readFileSync(new URL('../../public/models/grotto/grotto-cave.glb', import.meta.url));
+  const gltf = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString());
+  assert.equal(gltf.scenes[0].extras?.source, caveSourceHash(FILE), 'grotto-cave.glb is stale');
+  const nodes = new Set(gltf.nodes.map((n) => n.name));
+  const caves = FILE.inside.floors.filter((f) => f.style === 'cave');
+  assert.ok(caves.length > 0, 'the entrance is a cave');
+  for (const f of caves) for (const part of ['cavefloor', 'cavewall', 'caverock']) assert.ok(nodes.has(`${part}_${f.id}`), `${part}_${f.id}`);
 });

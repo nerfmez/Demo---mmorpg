@@ -122,6 +122,13 @@ for i, z in enumerate(zones):
     # leaving a hairline of void between their outlines
     zm = cv2.dilate((label == i).astype(np.uint8), ell(7))
     area = zm & walk
+    if z.get('round'):
+        # a walled room: the rocks and props painted over the floor's edge would leave notches
+        # and fingers in its walls, so the outline is rounded over them (`round` px across)
+        r = z['round']
+        area = cv2.morphologyEx(area, cv2.MORPH_CLOSE, ell(r)) & zm
+        area = cv2.morphologyEx(area, cv2.MORPH_OPEN, ell(r // 2))
+        area = fill_small_holes(area, 20000)
     wet = 'waterFloor' in z and not z.get('stoneOnly')
     base_kind = 'shallow' if wet else 'stone'
     for n, (pts, holes) in enumerate(polygons(area, 3000, 2500)):

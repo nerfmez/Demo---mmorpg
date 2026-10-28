@@ -1,7 +1,7 @@
 // The grotto's modelled kit (public/models/grotto/grotto-kit.glb, made by
-// scripts/blender/grotto-kit.py): rocks, rock walls, paving slabs, rubble, the carved gate,
-// chests, crates and posts. Shading is baked into vertex colours in Blender; here each piece
-// gets a cel material that only tints it. Geometry is shared by every placement (instancing).
+// scripts/blender/grotto-kit.py): the carved gate, chests, crates, posts and corals. Shading is
+// baked into vertex colours in Blender; here each piece gets a cel material that only tints it.
+// Geometry is shared by every placement (instancing). The cave rooms themselves are cave.js.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { toonRamp } from '../toon.js';

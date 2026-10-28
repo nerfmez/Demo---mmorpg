@@ -98,7 +98,7 @@ function rimWalls(map, look, keepClear, tall) {
   const clear = (x, z) => keepClear.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < r * r);
   let seq = 0;
   for (const f of map.floors) {
-    if (f.shape === 'stairs' || f.style === 'cave') continue; // cave floors get the modelled ring (dressing.js)
+    if (f.shape === 'stairs' || f.style === 'cave') continue; // cave floors have modelled walls (cave.js)
     const y = f.waterY ?? f.y;
     for (const ring of floorRings(f, 1)) {
       // walk the ring so that (-dz, dx) points away from the floor, sampled about every metre

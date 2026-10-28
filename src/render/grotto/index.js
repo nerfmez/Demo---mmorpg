@@ -8,7 +8,7 @@ import { buildFloors } from './floors.js';
 import { buildWater } from './water.js';
 import { buildRim, rimPoints } from './rim.js';
 import { buildProps } from './props.js';
-import { buildCaveDressing } from './dressing.js';
+import { buildCave } from './cave.js';
 import { glowTexture } from './textures.js';
 
 const MOTE_VERT = `
@@ -68,7 +68,7 @@ function buildMotes(map, count, colours, seed) {
 /**
  * @param {object} map createDungeon(...) result
  * @param {object} o {sea: true for the beach (the deep floor is open sea), motes: count, tall: rim wall height factor,
- *   kit: the Blender kit (kit.js), which dresses `cave` zones and replaces the simple props}
+ *   kit: the Blender kit (kit.js), which replaces the simple props; cave: the modelled cave rooms (cave.js)}
  */
 export function buildGrottoScene(map, o = {}) {
   const look = map.def.look;
@@ -84,7 +84,7 @@ export function buildGrottoScene(map, o = {}) {
   ];
   const edge = o.sea ? [] : rimPoints(map, 1.25);
   if (!o.sea) root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1, points: edge }).root);
-  if (o.kit) root.add(buildCaveDressing(map, o.kit, edge, { clear: keepClear, seed: (map.def.seed || 1) + 11 }).root);
+  if (o.cave) root.add(buildCave(map, o.cave).root);
   const props = buildProps(map, { decor: edge, keepClear, kit: o.kit });
   root.add(props.root);
   // lights, each with a soft pool of its colour on the floor below
@@ -97,7 +97,8 @@ export function buildGrottoScene(map, o = {}) {
     root.add(light);
     const pool = new THREE.Mesh(new THREE.CircleGeometry(l.range * 0.42, 24), new THREE.MeshBasicMaterial({ map: glowTexture(), color: l.color, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }));
     pool.rotation.x = -Math.PI / 2;
-    pool.position.set(l.at[0], y + 0.06, l.at[1]);
+    // above a cave's old paving: its tilted stones would cut the glow along straight lines
+    pool.position.set(l.at[0], y + (s?.floor.style === 'cave' ? 0.16 : 0.06), l.at[1]);
     pool.renderOrder = 4;
     root.add(pool);
     pools.push({ pool, light, base: l.intensity, phase: l.at[0] });

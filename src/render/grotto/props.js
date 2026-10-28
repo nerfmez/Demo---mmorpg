@@ -218,7 +218,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null } = {})
       }
       case 'coral': {
         if (kit && map.surfaceAt(x, z)?.floor.style === 'cave') {
-          const c = p.color || '#b06cff', sz = s * rng.range(1.9, 2.4);
+          const c = p.color || '#b06cff', sz = s * rng.range(1.3, 1.7);
           putCoral(c, rng.chance(0.5) ? 'coral_bush' : 'coral_fan', x, y - 0.05, z, rng.range(0, 6.28), sz);
           halo(x, y + 0.9 * s, z, 2.4 * s, c, 0.3);
           break;
@@ -396,11 +396,11 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null } = {})
     if (roll > 0.2 || e.stairs || clear(e.x, e.z)) continue; // nothing grows on the treads
     const x = e.x - e.nx * 0.15, z = e.z - e.nz * 0.15, d = { x, y: e.y, z, rot: 0, s: 1 };
     if (kit && e.style === 'cave') {
-      // in a cave the modelled corals grow among the ring's stones, fewer and fuller
-      if (roll < 0.09) {
-        const c = rng.pick(palette), sz = rng.range(1.2, 1.8);
-        putCoral(c, rng.chance(0.5) ? 'coral_bush' : 'coral_fan', e.x + e.nx * 0.3, e.y - 0.1, e.z + e.nz * 0.3, Math.atan2(-e.nx, -e.nz) + rng.range(-0.4, 0.4), sz);
-        if (roll < 0.05) halo(e.x, e.y + sz * 0.7, e.z, sz * 2, c, 0.25);
+      // in a cave the modelled corals grow at the foot of the walls, fewer and fuller
+      if (roll < 0.06) {
+        const c = rng.pick(palette), sz = rng.range(0.8, 1.3);
+        putCoral(c, rng.chance(0.5) ? 'coral_bush' : 'coral_fan', e.x - e.nx * 0.25, e.y - 0.1, e.z - e.nz * 0.25, Math.atan2(-e.nx, -e.nz) + rng.range(-0.4, 0.4), sz);
+        if (roll < 0.03) halo(e.x, e.y + sz * 0.7, e.z, sz * 2, c, 0.22);
       }
       continue;
     }

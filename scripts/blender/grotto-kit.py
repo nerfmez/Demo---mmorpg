@@ -6,12 +6,10 @@ as the renderer asks for it (src/render/grotto/kit.js). Shading is baked into ve
 (light from above, darker cavities, lighter worn edges) so the game's cel materials only tint it.
 
 Pieces (metres, +Y up in Blender becomes +Y up in the glTF):
-  rock_0..rock_5   angular basalt chunks, about 1 m, for the cave rim
-  wall_0..wall_2   columnar rock wall sections for the back of a cave (about 3 m wide, 4-5 m tall)
-  tile_0..tile_3   worn paving slabs (0.9 m), chipped corners, for dungeon floors
-  pebble_0..3      loose rubble
   gate             a carved stone archway (opening 2.6 m wide, 4.4 m tall to the keystone)
-  chest, crate, post
+  chest_body, chest_lid, chest_metal, crate, post
+  coral_bush, coral_fan
+The cave rooms themselves (walls, paving, rubble) are modelled per room by grotto-cave.py.
 """
 import bpy, bmesh, math, random, os
 from mathutils import Vector
@@ -104,73 +102,6 @@ def box(bm, cx, cy, cz, sx, sy, sz, rot=0.0):
         v.co += Vector((cx, cy, cz))
     return vs
 
-
-# ---------------- rocks: blocky stacked stones ----------------
-ROCK = ((0.27, 0.26, 0.25), (0.55, 0.52, 0.48), (0.10, 0.095, 0.09))
-for i in range(6):
-    # points from a squashed box, not a sphere: flat faces and hard edges like split stone
-    sx, sy, sz = rng.uniform(0.8, 1.2), rng.uniform(0.6, 1.0), rng.uniform(0.55, 1.0)
-    pts = []
-    for cx in (-1, 1):
-        for cy in (-1, 1):
-            for cz in (-1, 1):
-                pts.append(Vector((cx * sx * rng.uniform(0.35, 0.5), cy * sy * rng.uniform(0.35, 0.5), cz * sz * rng.uniform(0.35, 0.5) + 0.1)))
-    for _ in range(4):  # a few knocked-off corners
-        pts.append(Vector((rng.uniform(-0.45, 0.45) * sx, rng.uniform(-0.45, 0.45) * sy, rng.uniform(0.3, 0.55) * sz + 0.1)))
-    bm = hull(pts)
-    bevel(bm, 0.03)
-    ob = new_object(f'rock_{i}', bm, 'rock')
-    shade(ob, *ROCK, edge=0.1, jitter=0.12, seed=i)
-
-# ---------------- cave wall: a broken rock face of fused columns ----------------
-for i in range(3):
-    bm = bmesh.new()
-    n = rng.randint(5, 6)
-    width = 3.2
-    for k in range(n):
-        x = (k - (n - 1) / 2) * (width / n) + rng.uniform(-0.1, 0.1)
-        y = rng.uniform(-0.3, 0.15)
-        h = rng.uniform(2.6, 4.2)
-        r = rng.uniform(0.42, 0.6)
-        res = bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=5, radius1=r * 1.25, radius2=r * 0.85, depth=h)
-        lean = rng.uniform(-0.05, 0.05)
-        rot = rng.uniform(0, math.pi)
-        for v in res['verts']:
-            x0, y0 = v.co.x, v.co.y
-            v.co.x = x0 * math.cos(rot) - y0 * math.sin(rot)
-            v.co.y = x0 * math.sin(rot) + y0 * math.cos(rot)
-            v.co.z += h / 2
-            v.co.x += x + v.co.z * lean
-            v.co.y += y
-            if v.co.z > h - 0.01:
-                v.co.z -= rng.uniform(0, 0.5)
-    # a backing slab so no gap shows between the columns
-    box(bm, 0, 0.45, 1.5, width + 0.4, 0.6, 3.0)
-    bevel(bm, 0.035)
-    ob = new_object(f'wall_{i}', bm, 'rock')
-    shade(ob, (0.27, 0.25, 0.23), (0.46, 0.43, 0.39), (0.08, 0.075, 0.07), edge=0.08, jitter=0.1, seed=20 + i)
-
-# ---------------- paving slabs: worn, chipped ----------------
-for i in range(4):
-    bm = bmesh.new()
-    # three 1x1 slabs and one long 2x1 slab (laid over two cells)
-    w, d = (0.9, 0.9) if i < 3 else (1.82, 0.9)
-    box(bm, 0, 0, -0.07, w * rng.uniform(0.96, 0.99), d * rng.uniform(0.96, 0.99), 0.14)
-    bevel(bm, 0.04, 2)
-    ob = new_object(f'tile_{i}', bm, 'stone')
-    # flat worn tops (the placement tilts and tints each slab); the rounded edges catch less light
-    shade(ob, (0.42, 0.39, 0.35), (0.66, 0.62, 0.56), (0.30, 0.27, 0.23), edge=0.04, jitter=0.03, seed=40 + i)
-
-# ---------------- pebbles ----------------
-for i in range(4):
-    pts = [Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-0.6, 0.8))).normalized() * 0.5 for _ in range(9)]
-    bm = hull(pts)
-    s = rng.uniform(0.12, 0.22)
-    for v in bm.verts:
-        v.co *= s
-        v.co.z += s * 0.25
-    ob = new_object(f'pebble_{i}', bm, 'rock')
-    shade(ob, (0.36, 0.34, 0.31), (0.58, 0.55, 0.50), (0.12, 0.11, 0.10), edge=0.2, seed=60 + i)
 
 # ---------------- the carved gate ----------------
 STONE = ((0.56, 0.52, 0.47), (0.74, 0.70, 0.63), (0.22, 0.20, 0.17))

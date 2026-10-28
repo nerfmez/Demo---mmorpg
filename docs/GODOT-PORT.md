@@ -632,6 +632,18 @@ and opening a menu clear held actions and movement; they must never cast a skill
 Keep this behaviour in the Godot touch controls. `tests/browser/ux.mjs` exercises the
 menu workflows and these interrupted gestures at desktop, tablet and phone sizes.
 
+## Dungeon maps (Pearlshell Grotto, standalone preview)
+
+`src/core/dungeon.js` reads `data/dungeons/*.json`: flat floors at fixed heights (circle, ellipse,
+smoothed path, stairs ramp), the last floor containing a point is the ground. A step is walkable
+when both points are on walkable floors within `maxStep` (0.45 m), so ledges are walls and stairs
+join levels; props block with circles from `propTypes`. In Godot: build each floor as a
+`CollisionPolygon3D`/`StaticBody3D` slab with its side walls, stairs as ramps, props as
+`CylinderShape3D`; or port `surfaceAt`/`move` directly for a CharacterBody3D that ignores physics.
+Links are `Area3D` doors (a secret one is disabled until `inspectAt` finds it). The renderer's
+pieces map to a `MeshInstance3D` per floor material, `MultiMeshInstance3D` for the rim boulders,
+a water shader with the same uniforms, and `OmniLight3D`s. See `docs/SHELL-GROTTO.md`.
+
 ## Checklist for the port
 
 1. Copy `data/` and run `npm run export:layout`.

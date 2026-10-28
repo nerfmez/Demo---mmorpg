@@ -63,6 +63,35 @@ const loadMode = params.get('load') || document.querySelector('meta[name="fronti
 const resident = loadMode === 'dev' ? { [world.data.id]: world } : worlds;
 const view = new View(canvas, world, { quality, worlds, resident });
 view.loadMode = loadMode === 'dev' ? 'dev' : 'full';
+// The owner plays on an iPad with no console: a fault that stops the picture is
+// shown on screen (the first of each kind) so a screenshot carries its cause.
+const faults = new Set();
+function reportFault(title, detail = '') {
+  const text = `${title}${detail ? `\n${String(detail).slice(0, 600)}` : ''}`;
+  if (faults.has(text) || faults.size >= 4) return;
+  faults.add(text);
+  console.error(title, detail);
+  let box = document.getElementById('fault');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'fault';
+    box.addEventListener('click', () => box.remove());
+    document.body.append(box);
+  }
+  box.textContent = `ภาพเกมมีปัญหา · แคปหน้าจอนี้ส่งให้ Claude (แตะเพื่อปิด)\n${[...faults].join('\n\n')}`;
+}
+const errorText = (e) => `${e?.message || e}${e?.stack ? `\n${e.stack.split('\n').slice(0, 4).join('\n')}` : ''}`;
+window.addEventListener('error', (e) => reportFault('Error', errorText(e.error || e.message)));
+window.addEventListener('unhandledrejection', (e) => reportFault('Unhandled rejection', errorText(e.reason)));
+canvas.addEventListener('webglcontextlost', (e) => {
+  e.preventDefault();
+  reportFault('WebGL context lost (หน่วยความจำกราฟิกไม่พอ?)');
+});
+canvas.addEventListener('webglcontextrestored', () => reportFault('WebGL context restored'));
+view.renderer.debug.onShaderError = (gl, program, vs, fs) => {
+  const log = [gl.getProgramInfoLog(program), gl.getShaderInfoLog(vs), gl.getShaderInfoLog(fs)].filter(Boolean).join('\n');
+  reportFault('Shader failed to compile/link', log.trim() || `status ${gl.getProgramParameter(program, gl.LINK_STATUS)}`);
+};
 const releaseStartupScheduling = useStartupTaskScheduling(view.buildQueue);
 if (params.get('fireball') === 'legacy') view.vfx.fireballReviewVersion = 'legacy';
 view.coreWorld = coreWorld;
@@ -309,7 +338,18 @@ let fpsN = 0;
 // repeatedly drawing its still-unbatched scene behind that card.
 let initialWorldReady = false;
 
+// A throw inside a frame used to end the loop for good (a frozen, blank world).
+// Report it and keep drawing.
 function frame(now) {
+  try {
+    frameBody(now);
+  } catch (error) {
+    reportFault('Frame error', errorText(error));
+    requestAnimationFrame(frame);
+  }
+}
+
+function frameBody(now) {
   const scale = session?.panels.tab === 'job' ? null : governor?.update(now - last);
   if (scale) view.setRenderScale(scale);
   const dt = Math.min(0.05, (now - last) / 1000);

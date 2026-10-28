@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { runInNewContext } from 'node:vm';
 import { payload, buildConfiguration, verifyBuild } from '../../scripts/ci-build-manifest.mjs';
-import { sealSite, verifySite, restoreSite, selectPublishedRun, publicationRuns, consumedPagesArtifact, extractPagesTar, readPublicationLog } from '../../scripts/ci-published-site.mjs';
+import { sealSite, verifySite, restoreSite, selectPublishedRun, publicationRuns, runJobs, consumedPagesArtifact, extractPagesTar, readPublicationLog } from '../../scripts/ci-published-site.mjs';
 import { browserPlan, FULL_SUITES, SAFETY_SUITES } from '../../scripts/ci-browser-plan.mjs';
 import { browserShards } from '../../scripts/ci-browser-shards.mjs';
 import { proseOnly, resolveDocFollowup } from '../../scripts/ci-doc-followup.mjs';
@@ -112,7 +112,7 @@ function restoreFixture(t, { legacy = false } = {}) {
     'repos/owner/demo': { id: 1 }, 'repos/owner/demo/actions/runs/4': candidate,
     'repos/owner/demo/actions/runs/4/attempts/1': candidate,
     'repos/owner/demo/actions/workflows/deploy.yml/runs?per_page=100': { total_count: 1, workflow_runs: [candidate] },
-    'repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=100': { total_count: 1, jobs: jobs() },
+    'repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=30': { total_count: 1, jobs: jobs() },
     'repos/owner/demo/actions/runs/4/artifacts?per_page=100': { total_count: 1, artifacts: [artifact] },
   };
   const options = { repository: 'owner/demo', directory: join(dir, 'restored'), runId: '4', mode: 'rollback',
@@ -134,8 +134,8 @@ for (const kind of ['digest', 'expired', 'wrong source', 'fork', 'failed publish
     if (kind === 'expired') artifact.expired = true;
     if (kind === 'wrong source') artifact.workflow_run.head_sha = tree;
     if (kind === 'fork') candidate.head_repository.id = 2;
-    if (kind === 'failed publish') responses['repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=100'].jobs = jobs('failure', 'failure');
-    if (kind === 'red live check') responses['repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=100'].jobs = jobs('failure');
+    if (kind === 'failed publish') responses['repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=30'].jobs = jobs('failure', 'failure');
+    if (kind === 'red live check') responses['repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=30'].jobs = jobs('failure');
     if (kind === 'missing artifact') artifact.name = 'other';
     if (kind === 'wrong run') artifact.workflow_run.id = 5;
     if (kind === 'wrong attempt') candidate.run_attempt = 2;
@@ -288,12 +288,21 @@ test('publication history follows pagination so an older rerun cannot disappear 
   await assert.rejects(publicationRuns(async () => ({ total_count: 101, workflow_runs: first.slice(0, 99) }), 'repos/owner/demo'));
 });
 
+test('a large run\'s jobs are read in small pages, complete and unchanging', async () => {
+  const all = Array.from({ length: 61 }, (_, n) => ({ id: n + 1, name: `job ${n}` })), reads = [];
+  const page = path => Number(/&page=(\d+)$/.exec(path)?.[1] || 1);
+  const jobs = await runJobs(async path => { reads.push(path); const p = page(path); return { total_count: 61, jobs: all.slice((p - 1) * 30, p * 30) }; }, 'repos/owner/demo/actions/runs/4/attempts/1/jobs');
+  assert.deepEqual(jobs, all); assert.deepEqual(reads, ['repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=30',
+    'repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=30&page=2', 'repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=30&page=3']);
+  await assert.rejects(runJobs(async () => ({ total_count: 61, jobs: all.slice(0, 29) }), 'jobs'), /Truncated/);
+  await assert.rejects(runJobs(async path => ({ total_count: page(path) === 1 ? 61 : 62, jobs: all.slice(0, 30) }), 'jobs'), /changed/);
+});
 test('later failed retry cannot hide a published earlier attempt or substitute its untested archive', async t => {
   const { options, responses, artifact, candidate, dir } = restoreFixture(t);
   const successful = structuredClone(candidate);
   responses['repos/owner/demo/actions/runs/4/attempts/1'] = successful;
   candidate.run_attempt = 2; candidate.conclusion = 'failure'; candidate.run_started_at = '2026-10-08T11:00:00Z';
-  responses['repos/owner/demo/actions/runs/4/attempts/2/jobs?per_page=100'] = { total_count: 1, jobs: [{ name: 'build', run_attempt: 2, conclusion: 'failure', steps: [] }] };
+  responses['repos/owner/demo/actions/runs/4/attempts/2/jobs?per_page=30'] = { total_count: 1, jobs: [{ name: 'build', run_attempt: 2, conclusion: 'failure', steps: [] }] };
   const restored = await restoreSite(options);
   assert.equal(restored.attempt, 1);
   artifact.created_at = '2026-10-08T11:02:00Z';
@@ -310,11 +319,11 @@ test('deploy-only retry consumes the prior-attempt artifact while rejecting late
   const { options, responses, candidate, artifact, dir } = restoreFixture(t);
   const failed = structuredClone(candidate); failed.conclusion = 'failure';
   responses['repos/owner/demo/actions/runs/4/attempts/1'] = failed;
-  responses['repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=100'].jobs = jobs('failure', 'failure');
+  responses['repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=30'].jobs = jobs('failure', 'failure');
   candidate.run_attempt = 2; candidate.run_started_at = '2026-10-08T11:00:00Z';
   const retried = jobs(); retried[0].run_attempt = 2;
   Object.assign(retried[0].steps[0], { started_at: '2026-10-08T11:01:00Z', completed_at: '2026-10-08T11:02:00Z' });
-  responses['repos/owner/demo/actions/runs/4/attempts/2/jobs?per_page=100'] = { total_count: 1, jobs: retried };
+  responses['repos/owner/demo/actions/runs/4/attempts/2/jobs?per_page=30'] = { total_count: 1, jobs: retried };
   options.readLog = async () => deploymentLog(7, '2026-10-08T11:01:01.1234567Z');
   // Artifact 7 was uploaded at 10:03 in attempt 1; attempt 2 successfully consumes it.
   const restored = await restoreSite(options); assert.equal(restored.attempt, 2); assert.equal(restored.artifact, 7);

@@ -75,6 +75,23 @@ button {
 }
 
 /* ---------- loading ---------- */
+#fault {
+  position: fixed;
+  left: 50%;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  transform: translateX(-50%);
+  max-width: min(92vw, 720px);
+  max-height: 60vh;
+  overflow: auto;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(60, 14, 18, 0.92);
+  color: #ffe3e3;
+  font: 13px/1.4 ui-monospace, Menlo, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  z-index: 100;
+}
 #loading {
   position: fixed;
   inset: 0;

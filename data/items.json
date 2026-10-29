@@ -1592,6 +1592,7 @@
       "slot": "weapon",
       "weaponType": "dagger",
       "requirementStat": "DEX",
+      "secondaryStat": "AGI",
       "optionPool": [
         "attack_flat",
         "crit_pct",

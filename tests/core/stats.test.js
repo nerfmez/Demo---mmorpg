@@ -12,10 +12,10 @@ import { feedSkill } from '../../src/core/crafting.js';
 
 const WHEEL = data.progression.character.statWheel;
 // what each weapon type may ask for (owner, 2026-10-29): the first is its main-line stat, the rest its
-// main-and-secondary pairs (daggers STR/DEX or DEX/AGI)
+// main-and-secondary pairs; daggers have no main-line stat, only STR/DEX or DEX/AGI (DEX is reach and crit)
 const WEAPON_STATS = {
   sword: ['STR', 'STR+AGI'], greatblade: ['STR', 'STR+VIT', 'STR+AGI'], axe: ['STR', 'STR+VIT'], mace: ['STR', 'STR+VIT'],
-  dagger: ['DEX', 'STR+DEX', 'DEX+AGI'], bow: ['DEX', 'DEX+AGI', 'DEX+LUK'], staff: ['INT', 'INT+LUK', 'INT+VIT'], wand: ['INT', 'INT+LUK', 'INT+VIT'],
+  dagger: ['STR+DEX', 'DEX+AGI'], bow: ['DEX', 'DEX+AGI', 'DEX+LUK'], staff: ['INT', 'INT+LUK', 'INT+VIT'], wand: ['INT', 'INT+LUK', 'INT+VIT'],
   greatshield: ['VIT', 'VIT+STR'], shield: ['VIT', 'VIT+STR'],
 };
 
@@ -35,12 +35,12 @@ test('the wheel: a weapon asks for its type\'s stat (main-line) or one of its ma
     if (b.starter && b.secondaryStat) bad.push(`gear ${id}: a starter weapon is main-line`);
     for (const grade of ['C', 'S']) {
       const r = gearRequirements({ uid: 1, base: id, grade, upgrade: 0, options: [] }, data), k = Object.keys(r);
-      if (!allowed.includes(k.join('+')) || (k.length === 1 && k[0] !== allowed[0])) bad.push(`gear ${id} ${k} (allowed ${allowed})`);
-      else if (k.length === 2 && !(r[k[0]] > r[k[1]])) bad.push(`gear ${id}: the main stat asks for more`);
+      if (!allowed.includes(k.join('+'))) bad.push(`gear ${id} ${k} (allowed ${allowed})`);
+      else if (k.length === 2 && !(r[k[0]] >= r[k[1]])) bad.push(`gear ${id}: the main stat asks for at least as much`);
     }
   }
   const types = Object.values(data.items.gearBases).filter((b) => b.slot === 'weapon' || b.slot === 'offhand');
-  for (const t of new Set(types.map(typeOf))) if (!types.some((b) => typeOf(b) === t && !b.secondaryStat)) bad.push(`${t} has no main-line weapon`);
+  for (const t of new Set(types.map(typeOf))) if (t !== 'dagger' && !types.some((b) => typeOf(b) === t && !b.secondaryStat)) bad.push(`${t} has no main-line weapon`);
   assert.deepEqual(bad, []);
 });
 

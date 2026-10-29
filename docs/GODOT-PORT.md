@@ -192,8 +192,8 @@ the character or the stat catches up (`pending`; feeding then settles it free). 
 
 Stats (owner, 2026-10-29, `docs/STATS-TH.md`): the six stats sit on a wheel
 (`progression.character.statWheel`: STR AGI DEX LUK INT VIT). A weapon asks for its type's stat (sword,
-greatblade, axe, mace STR; dagger DEX; bow DEX; staff, wand INT; shields VIT); one with a `secondaryStat`
-(its type's pairs: daggers STR/DEX or DEX/AGI, the rest a neighbour on the wheel) hands it `items.requirements.secondaryShare` (0.4) of the requirement
+greatblade, axe, mace STR; bow DEX; staff, wand INT; shields VIT); one with a `secondaryStat`
+(its type's pairs: daggers only STR/DEX or DEX/AGI, with no main-line dagger; the rest a neighbour on the wheel) hands it `items.requirements.secondaryShare` (0.4) of the requirement
 (`gearRequirements`). A skill for one stat or
 two neighbours on the wheel (its `upgradeStat` first), a mod for one; each stat named is met on its own
 (`tests/core/stats.test.js`). `character.js statTotals(ch, data,

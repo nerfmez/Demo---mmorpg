@@ -804,31 +804,38 @@ function fitHairToHead(T, src, H, geometry) {
     spot.get(key).push(i);
     twins.set(i, spot.get(key));
   }
-  // an ear folds away inside the head only where the hair covers most of it (its fit.ears unset): one
-  // poking out through the hair reads as a stray second ear, but one mostly below a short cut's side
-  // hair is the ear, and folded in it leaves an ear-shaped hollow there
+  // the ears fold away inside the head when the hair covers most of either (its fit.ears unset): one
+  // poking out through the hair reads as a stray second ear, and a style shows both ears or neither
+  // (a lopsided cut, as the curly one's, covers one far more than the other); a style that covers
+  // neither keeps both, a folded ear there leaving an ear-shaped hollow
   const fold = new Set();
-  if (!H.fit.ears) for (const side of [-1, 1]) {
-    const ear = [...ears].filter((i) => P.has(i) && Math.sign(P.get(i)[0]) === side);
-    let hidden = 0;
-    for (const i of ear) {
-      const q = P.get(i), r = Math.hypot(...q);
-      let hit = false;
-      cast(HT, q[0] / r, q[1] / r, q[2] / r, (_, dist) => { if (dist > 0.3 * r && dist <= r + reach) hit = true; });
-      if (hit) hidden++;
-    }
-    if (ear.length && hidden >= 0.5 * ear.length) ear.forEach((i) => fold.add(i));
-    else ear.forEach((i) => keep.add(i));
+  if (!H.fit.ears) {
+    const sides = [-1, 1].map((side) => {
+      const ear = [...ears].filter((i) => P.has(i) && Math.sign(P.get(i)[0]) === side);
+      let hidden = 0;
+      for (const i of ear) {
+        const q = P.get(i), r = Math.hypot(...q);
+        let hit = false;
+        cast(HT, q[0] / r, q[1] / r, q[2] / r, (_, dist) => { if (dist > 0.3 * r && dist <= r + reach) hit = true; });
+        if (hit) hidden++;
+      }
+      return { ear, covered: ear.length > 0 && hidden >= 0.5 * ear.length };
+    });
+    const covered = sides.some((e) => e.covered);
+    for (const { ear } of sides) ear.forEach((i) => (covered ? fold : keep).add(i));
   }
-  // a folded ear is pressed flat onto the skull (the radius of the nearest head point that is not ear,
-  // by direction), not sunk in: a pit where the ear was showed its walls and the outline as a black ear
+  // a folded ear is collapsed onto the skull: each of its points goes to the nearest head point that
+  // is not ear (by direction, just inside it), so its triangles close to nothing. Sunk in, it left a
+  // pit whose walls and outline drew a black ear; pressed flat, its crumpled triangles turned their
+  // backs to the light as black slivers below the hair.
   const neckSet = new Set(k.neck ?? []);
   const skull = [...P.keys()].filter((i) => !ears.has(i) && !neckSet.has(i)).map((i) => { const q = P.get(i), r = Math.hypot(...q); return [q[0] / r, q[1] / r, q[2] / r, r]; });
   const onSkull = (q) => {
     const r = Math.hypot(...q);
-    let best = -2, to = r;
-    for (const [x, y, z, rs] of skull) { const d = (x * q[0] + y * q[1] + z * q[2]) / r; if (d > best) { best = d; to = rs; } }
-    return to - 0.01 * hw;
+    let best = -2, at = null;
+    for (const s of skull) { const d = (s[0] * q[0] + s[1] * q[1] + s[2] * q[2]) / r; if (d > best) { best = d; at = s; } }
+    const to = at[3] - 0.01 * hw;
+    return [at[0] * to, at[1] * to, at[2] * to];
   };
   const lower = (i, to) => { for (const j of twins.get(i) ?? [i]) if (!keep.has(j)) target.set(j, Math.min(target.get(j) ?? Infinity, to)); };
   for (const [i, q] of P) {
@@ -838,7 +845,6 @@ function fitHairToHead(T, src, H, geometry) {
     let near = Infinity;
     cast(HT, q[0] / r, q[1] / r, q[2] / r, (_, dist) => { near = Math.min(near, dist); });
     if (near <= r + reach && near - room(i) < r) lower(i, near - room(i));
-    if (fold.has(i)) lower(i, onSkull(q));
   }
   const under = new Set();
   const apply = () => {
@@ -896,6 +902,11 @@ function fitHairToHead(T, src, H, geometry) {
       for (let n = 0; n < 3; n++) { const i = restTris[bt / 3 + n], rv = Math.hypot(...P.get(i)); lower(i, rv - 2 * (depth + room(i))); }
     }
     if (!apply()) break;
+  }
+  for (const i of fold) {
+    P.set(i, onSkull(P.get(i)));
+    under.add(i);
+    b.fromArray(P.get(i)).add(c).applyMatrix4(toMesh).toArray(moved, i * 3);
   }
   const body = new THREE.BufferGeometry();
   for (const [n, attr] of Object.entries(src.attributes)) body.setAttribute(n, attr);

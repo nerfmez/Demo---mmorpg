@@ -552,10 +552,11 @@ own direction up in it, so the shade ends where the hair does, not along the hea
 The body's `underHair` vertex attribute picks the map (1 red, 0.5 green, 0 none): a part of the head
 may be shaded only if it was taken in under the hair or the hair lies within 0.1 head widths over
 it, and never the neck just under the head joint (`headTuck.neck`), seen between the locks hanging
-past it, nor an ear and the skin within 0.15 head widths of it. An ear folds away only where the hair
-covers at least half of it, and then it is pressed flat onto the skull (the radius of the nearest head
-point that is not ear), not sunk in: a pit there showed its walls and the outline as a black ear. An
-ear mostly beside the hair is left as it is. In Godot, run the same
+past it, nor an ear and the skin within 0.15 head widths of it. Both ears fold away when the hair
+covers at least half of either (a style shows both ears or neither), and then each of their points
+goes to the nearest head point that is not ear (by direction, just inside it), so the ear closes to
+nothing: sunk in it left a pit, pressed flat its crumpled triangles turned their backs to the light,
+both drawing a black ear. A style that covers neither ear keeps both. In Godot, run the same
 fit once when the look is chosen and keep the moved hair and body meshes, that attribute (e.g. in a
 vertex colour channel), the direction map (a texture) and the mesh-to-head-middle transform. The hair is tinted to the
 look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`) and drawn flat, as the

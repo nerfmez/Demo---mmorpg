@@ -1,6 +1,7 @@
 // Title screen, save slots and character creation (HTML over the live 3D world).
 import { seekerBrand } from './fieldhud.js';
 import { icon } from './icons.js';
+import { graphicsSettingsHtml, graphicsAction } from './graphics-settings.js';
 import { art } from './art.js';
 import { LOOK_OPTIONS, DEFAULT_LOOK } from '../render/hero.js';
 import { colorWheelHtml, mountColorWheel } from './color-wheel.js';
@@ -18,13 +19,12 @@ function fmtTime(sec) {
 }
 
 export class Menu {
-  constructor(root, view, data, { onStart, onQuality, getQuality }) {
+  constructor(root, view, data, { onStart, graphics }) {
     this.root = root;
     this.view = view;
     this.data = data;
     this.onStart = onStart;
-    this.onQuality = onQuality;
-    this.getQuality = getQuality;
+    this.graphics = graphics;
     this.el = document.createElement('div');
     this.el.className = 'menu-layer';
     root.appendChild(this.el);
@@ -63,11 +63,9 @@ export class Menu {
   }
 
   showSettings() {
-    const q = this.getQuality();
     this.show(`<div class="menu-card">
       <h2>ตั้งค่ากราฟิก</h2>
-      <div class="switch">${['low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ low: 'ต่ำ (ลื่นสุด)', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}</div>
-      <p class="muted">ถ้า iPad กระตุก ให้เลือก "ต่ำ" (ปิดเงา ลดความละเอียด)</p>
+      ${graphicsSettingsHtml(this.graphics)}
       <button class="mbtn" data-act="title">← กลับ</button></div>`);
   }
 
@@ -197,7 +195,9 @@ export class Menu {
       case 'settings':
         return this.showSettings();
       case 'quality':
-        this.onQuality(t.dataset.q);
+      case 'gfx':
+      case 'gfx-aa':
+        graphicsAction(t, this.graphics);
         return this.showSettings();
       case 'title':
         return this.showTitle();

@@ -44,13 +44,18 @@ const check = (ok, msg) => {
   if (!ok) failures++;
 };
 
+// Software-GL WebKit draws a frame in about a second, so reaching game time .5 after
+// the resident world is ready took 55-75 s on CI runners (owner's call, 29 October
+// 2026: 90 s). This measures the CI machine, not iPad load time.
+const STARTUP_BUDGET_MS = 90000;
+
 // A failed startup must identify every resident region and named dependency, not
 // merely the active static scene. Capture only after the original deadline and
 // always rethrow it; observation cannot promote an overdue startup to a pass.
 async function waitForStartupReady(page, predicate, { device, phase, errors }) {
   const startedAt=performance.now();
   try {
-    await page.waitForFunction(predicate, null, { timeout: 60000 });
+    await page.waitForFunction(predicate, null, { timeout: STARTUP_BUDGET_MS });
     console.log('STARTUP_READY',JSON.stringify({device,phase,elapsedMs:performance.now()-startedAt}));
   } catch (error) {
     const bounded = async task => {

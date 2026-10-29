@@ -5,6 +5,7 @@ import { createWorkshopController } from './workshop-controller.js';
 // Journal (quests + progress), World Map (fast travel) and Settings (graphics + save).
 // The game is paused while a panel is open (single-player demo).
 import { icon } from './icons.js';
+import { graphicsSettingsHtml, graphicsAction } from './graphics-settings.js';
 import { art, arrowArt } from './art.js';
 import { skillsView, modsWorkspace, movementWorkspace, growthWorkspace } from './skillview.js';
 import { tagsHtml, rulesHtml, TAGS as TAG_TH } from './buildmeta.js';
@@ -48,13 +49,12 @@ const fmtTime = (sec) => {
 
 export class Panels {
   /**
-   * @param {{onChange?:Function, onQuality:Function, getQuality:Function, onTitle?:Function, exportSave?:Function, slot?:number|null, onVisibility?:Function, getAvatarContext?:Function}} opts
+   * @param {{onChange?:Function, graphics:object, onTitle?:Function, exportSave?:Function, slot?:number|null, onVisibility?:Function, getAvatarContext?:Function}} opts
    */
-  constructor(root, game, { onChange, onQuality, getQuality, onTitle, exportSave, slot = null, onVisibility, getAvatarContext }) {
+  constructor(root, game, { onChange, graphics, onTitle, exportSave, slot = null, onVisibility, getAvatarContext }) {
     this.game = game;
     this.onChange = onChange;
-    this.onQuality = onQuality;
-    this.getQuality = getQuality;
+    this.graphics = graphics;
     this.onTitle = onTitle;
     this.exportSave = exportSave;
     this.slot = slot;
@@ -421,7 +421,6 @@ export class Panels {
   // ---------- Settings ----------
   // Settings on the left, how to play on the right as short rows with real key caps.
   render_settings() {
-    const q = this.getQuality();
     const saveCard = this.slot
       ? `<div class="muted">เซฟช่อง ${this.slot} · บันทึกอัตโนมัติทุก 10 วินาที และทุกครั้งที่เลเวลอัป ทำภารกิจ หรือเปลี่ยนของ</div>
         <div class="pg-actions"><button class="btn" data-act="save-now">บันทึกตอนนี้</button>
@@ -436,9 +435,7 @@ export class Panels {
       <section class="pg-col">
         ${this.lastResult ? `<div class="result-pop">${this.lastResult}</div>` : ''}
         <div class="pg-box"><h3>เซฟ</h3>${saveCard}</div>
-        <div class="pg-box"><h3>กราฟิก</h3><div class="switch pg-seg">
-          ${['low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ low: 'ต่ำ (ลื่นสุด)', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}
-        </div><div class="muted">ถ้า iPad กระตุก ให้เลือก "ต่ำ" (ปิดเงา ลดความละเอียด)</div></div>
+        <div class="pg-box"><h3>กราฟิก</h3>${graphicsSettingsHtml(this.graphics)}</div>
       </section>
       <section class="pg-col">
         <h3>วิธีเล่น · มือถือ / iPad</h3>
@@ -754,7 +751,9 @@ export class Panels {
         return;
       }
       case 'quality':
-        this.onQuality(t.dataset.q);
+      case 'gfx':
+      case 'gfx-aa':
+        graphicsAction(t, this.graphics);
         return this.render();
       case 'save-now':
         this.onChange?.();

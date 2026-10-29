@@ -638,7 +638,9 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   }
   for (const [name, list] of glowPut) root.add(glowCoralInstances(corals, name, list));
   for (const [name, list] of paintedPut) root.add(paintedInstances(painted, name, list));
-  if (pools.length) root.add(coralPools(pools));
+  // in the dark cave the glow on the floor is the room's light (look.glowPool: opacity, size)
+  const gp = map.def.look.glowPool || [0.2, 1];
+  if (pools.length) root.add(coralPools(pools, gp[0], gp[1]));
   for (const sp of sprites) { sp.renderOrder = 5; root.add(sp); }
   if (glows.length) root.add(glowField(glows));
   return {

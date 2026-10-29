@@ -223,6 +223,7 @@ function addStairs(blocks, f, map, rng) {
  * away (`broken`: the rubble props, [x, z, r]).
  */
 function addCurbs(top, side, map, f, poly, look, hole = false, broken = []) {
+  const stage = new Set(map.def.arena?.floors || []);
   if ((area(poly) > 0) === hole) poly = [...poly].reverse(); // the outward side faces away from the floor
   const width = f.kind === 'deep' ? 0.55 : 0.5;
   const yFloor = f.kind === 'deep' ? f.waterY + 0.25 : f.y;
@@ -239,6 +240,8 @@ function addCurbs(top, side, map, f, poly, look, hole = false, broken = []) {
     const probe = map.surfaceAt((ax + bx) / 2 + nx * 0.6, (az + bz) / 2 + nz * 0.6);
     // open where the floor goes on at its own level; none beside a flight of stairs (its cheek is the wall there)
     if (probe && probe.walkable && (Math.abs(probe.y - f.y) < 0.2 || probe.floor.shape === 'stairs')) { left = 0; continue; }
+    // the boss stage is fought in and out of its water: no edging stones between its floors
+    if (probe && stage.has(f.id) && stage.has(probe.floor.id)) { left = 0; continue; }
     // cut the edge into blocks: 0.8-1.4 m each, 0.07 m apart, 0.12-0.3 m above the floor
     let t = 0;
     while (t < l - 1e-3) {
@@ -380,7 +383,7 @@ function addWear(map, broken) {
 const KIND = {
   stone: { map: flagstoneTexture, color: '#efe7da', emissive: '#2a2219', emissiveIntensity: 0.3 },
   warm: { map: flagstoneTexture, color: '#f4e4cc', emissive: '#33261a', emissiveIntensity: 0.3 },
-  shallow: { map: flagstoneTexture, color: '#7fd4cc', emissive: '#0d5a62', emissiveIntensity: 0.3, paint: { sat: 1, tint: '#ffffff', gain: 1 } },
+  shallow: { map: flagstoneTexture, color: '#74c8c2', emissive: '#0d5a62', emissiveIntensity: 0.2, paint: { sat: 1, tint: '#ffffff', gain: 1 } },
   deep: { map: flagstoneTexture, color: '#3f9fb0', emissive: '#0b4a5c', emissiveIntensity: 0.45, paint: { sat: 1, tint: '#ffffff', gain: 1 } },
   nacre: { map: nacreTexture, color: '#d9cbd6', emissive: '#4a3050', emissiveIntensity: 0.25 },
   sand: { map: sandTexture, color: '#efe0c4', paint: { sat: 1, tint: '#ffffff', gain: 1 } },

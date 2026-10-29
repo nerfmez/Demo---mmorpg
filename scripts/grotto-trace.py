@@ -396,11 +396,25 @@ def break_floors(polys, sites, want, water, seed):
     return out
 
 
+# zones that `join` another are one open room with it (owner, 29 October 2026, the boss room:
+# "walk on the water, take out the rocks in the way"): the rocks the picture paints between them
+# and in their middle are closed over (`joinClose` px), so the room is one floor of stone and
+# water; each zone keeps its own part of it
+joined = {}
+for i, z in enumerate(zones):
+    if z.get('join'):
+        j = next(k for k, o in enumerate(zones) if o['id'] == z['join'])
+        zi, zj = (cv2.dilate((label == k).astype(np.uint8), ell(7)) for k in (i, j))
+        u = cv2.morphologyEx((zi | zj) & walk, cv2.MORPH_CLOSE, ell(z['joinClose'])) & (zi | zj)
+        u = fill_small_holes(u, 200000)
+        joined[i], joined[j] = u & zi, u & zj
+
+
 for i, z in enumerate(zones):
     # each zone reaches a few pixels past its edge, so two zones on one level overlap instead of
     # leaving a hairline of void between their outlines
     zm = cv2.dilate((label == i).astype(np.uint8), ell(7))
-    area = zm & walk
+    area = joined.get(i, zm & walk)
     if z.get('round'):
         # a walled room: the rocks and props painted over the floor's edge would leave notches
         # and fingers in its walls, so the outline is rounded over them (`round` px across)
@@ -617,15 +631,85 @@ def onto_floor(at):
     return [int(walk_pts[k][1]), int(walk_pts[k][0])]
 
 
+# set in order, not scattered (owner, 29 October 2026: "arrange the assets that sit anywhere"):
+# stairs count as floor here, so a stair mouth is never mistaken for an edge
+def stair_px(f):
+    a, b = px(f['a']), px(f['b'])
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    l = math.hypot(dx, dy) or 1
+    hx, hy = -dy / l * f['w'] / 2 / sx, dx / l * f['w'] / 2 / sz
+    return np.array([[a[0] + hx, a[1] + hy], [b[0] + hx, b[1] + hy], [b[0] - hx, b[1] - hy], [a[0] - hx, a[1] - hy]], np.int32)
+
+
+open_floor = final.copy()
+stone = np.zeros_like(walk)
+for f in floors:
+    if f['shape'] == 'stairs':
+        cv2.fillPoly(open_floor, [stair_px(f)], 1)
+        cv2.fillPoly(stone, [stair_px(f)], 1)
+    elif f['shape'] == 'poly' and f.get('kind') == 'stone':
+        cv2.fillPoly(stone, [np.array([px(q) for q in f['pts']], np.int32)], 1)
+        for h in f.get('holes', []):
+            cv2.fillPoly(stone, [np.array([px(q) for q in h], np.int32)], 0)
+to_wall = cv2.distanceTransform(open_floor, cv2.DIST_L2, 5)
+to_rim = cv2.distanceTransform(stone, cv2.DIST_L2, 5)
+# pillars line the stone's rim, a stone's width in from where it drops to water or the dark, as the
+# concept rows them along its walkways and platforms (never out in the water)
+rim_pts = np.argwhere((to_rim >= 7) & (to_rim <= 11))
+# the loose furniture (chests, barrels, crates, candles, posts) stands back against the walls, in
+# front of the corals at their foot, and faces into the room
+wall_pts = np.argwhere((to_wall >= 15) & (to_wall <= 21))
+
+
+def nearest(pts, at):
+    d = (pts[:, 0] - at[1]) ** 2 + (pts[:, 1] - at[0]) ** 2
+    k = int(np.argmin(d))
+    return [int(pts[k][1]), int(pts[k][0])]
+
+
+def onto_rim(at):
+    x, y = at
+    return at if stone[y, x] and 6 <= to_rim[y, x] <= 13 else nearest(rim_pts, at)
+
+
+def against_wall(at):
+    x, y = at
+    return at if 13 <= to_wall[y, x] <= 23 else nearest(wall_pts, at)
+
+
+def into_room(at):
+    """A point a little way into the room from `at`: up the distance from the walls."""
+    x, y = at
+    gy, gx = np.gradient(to_wall[max(0, y - 6):y + 7, max(0, x - 6):x + 7].astype(np.float32))
+    vx, vy = float(gx.mean()), float(gy.mean())
+    l = math.hypot(vx, vy) or 1
+    return [x + vx / l * 20, y + vy / l * 20]
+
+
+PILLARS = ('pillar', 'pillarBroken')
+FURNITURE = ('chest', 'barrel', 'crate', 'candles', 'post')
 props = []
 for p in CFG['props']:
     q = {k: v for k, v in p.items() if k not in ('at', 'face')}
     wall = p['type'] in ('shellGate', 'sealedArch')
-    q['at'] = m(p['at'] if wall else onto_edge(p['at']) if p['type'] in ('coral', 'crystal') else onto_floor(p['at']))
-    if 'face' in p:
+    if wall:
+        at = p['at']
+    elif p['type'] in ('coral', 'crystal'):
+        at = onto_edge(p['at'])
+    elif p['type'] in PILLARS:
+        at = onto_rim(p['at'])
+    elif p['type'] in FURNITURE:
+        at = against_wall(p['at'])
+    else:
+        at = onto_floor(p['at'])
+    q['at'] = m(at)
+    if p['type'] in FURNITURE:
+        q['rot'] = facing(at, into_room(at))
+    elif 'face' in p:
         q['rot'] = facing(p['at'], p['face'])
     props.append(q)
 props += rubble
+
 
 def level(f):
     return f.get('waterY', f['y']) if f['shape'] == 'poly' else None
@@ -671,6 +755,89 @@ def nearest_edge(at, test):
     l = math.hypot(sx, sz) or 1
     return x, z, sx / l, sz / l, f
 
+
+# the boss's arena (owner, 29 October 2026: "make the boss room's ground fit for a fight"): the
+# arena floor (`arena.zone`, the raised dais) is cleared to one open, level stage. Every prop on it
+# moves out along the line from the arena's middle to its rim, the pearl altar goes to the far
+# side from the entry stair as the throne, and the boss stands in front of it facing the stair.
+# The data records the stage (`inside.arena`: middle, clear radius, the boss's spot, the entry).
+def edge_dist(q, rings):
+    best = math.inf
+    for ring in rings:
+        for i in range(len(ring)):
+            (ax, az), (bx, bz) = ring[i], ring[(i + 1) % len(ring)]
+            dx, dz = bx - ax, bz - az
+            t = max(0, min(1, ((q[0] - ax) * dx + (q[1] - az) * dz) / ((dx * dx + dz * dz) or 1)))
+            best = min(best, math.hypot(q[0] - ax - dx * t, q[1] - az - dz * t))
+    return best
+
+
+arena = None
+A = CFG.get('arena')
+if A:
+    # the stage: the walkable floors of its zones together (the dais and the water round it)
+    stage = [f for f in floors if f['shape'] == 'poly' and f['kind'] in ('stone', 'shallow') and any(f['id'].startswith(zn + '-') for zn in A['zones'])]
+    seat = [f for f in stage if f['id'].startswith(A['zones'][0] + '-')]  # the throne stands on the first zone (the dais)
+    xs = [q[0] for f in stage for q in f['pts']]
+    zs = [q[1] for f in stage for q in f['pts']]
+    G, gx0, gz0 = 0.25, min(xs) - 1, min(zs) - 1
+    nx_, nz_ = int((max(xs) - gx0 + 1) / G) + 1, int((max(zs) - gz0 + 1) / G) + 1
+
+    def grid_of(fl):
+        m_ = np.zeros((nz_, nx_), np.uint8)
+        for f in fl:
+            cv2.fillPoly(m_, [np.array([[(q[0] - gx0) / G, (q[1] - gz0) / G] for q in f['pts']], np.int32)], 1)
+            for h in f.get('holes', []):
+                cv2.fillPoly(m_, [np.array([[(q[0] - gx0) / G, (q[1] - gz0) / G] for q in h], np.int32)], 0)
+        return m_, cv2.distanceTransform(m_, cv2.DIST_L2, 5) * G
+
+    st_m, st_d = grid_of(stage)
+    se_m, se_d = grid_of(seat)
+    cell = lambda q: (min(nz_ - 1, max(0, int((q[1] - gz0) / G))), min(nx_ - 1, max(0, int((q[0] - gx0) / G))))
+    on_stage = lambda q: bool(st_m[cell(q)])
+    edge = lambda q: float(st_d[cell(q)])
+    on_seat = lambda q: bool(se_m[cell(q)])
+    k = int(np.argmax(st_d))
+    cz, cx = gz0 + (k // nx_) * G, gx0 + (k % nx_) * G
+    R = float(st_d.flat[k])
+    level_ = seat[0]['y']
+    entry = min((f for f in floors if f['shape'] == 'stairs' and abs(max(f['y0'], f['y1']) - level_) < 0.5),
+                key=lambda f: math.hypot((f['b'] if f['y1'] > f['y0'] else f['a'])[0] - cx, (f['b'] if f['y1'] > f['y0'] else f['a'])[1] - cz))
+    ex, ez = entry['b'] if entry['y1'] > entry['y0'] else entry['a']
+    dx, dz = cx - ex, cz - ez
+    l = math.hypot(dx, dz) or 1
+    dx, dz = dx / l, dz / l
+    # the throne: on the dais, as far past the middle as leaves the altar clear of the dais's rim
+    t = 0.0
+    while on_seat((cx + dx * (t + 0.5), cz + dz * (t + 0.5))) and float(se_d[cell((cx + dx * (t + 0.5), cz + dz * (t + 0.5)))]) > A['thronePad']:
+        t += 0.5
+    throne = [round(cx + dx * t, 2), round(cz + dz * t, 2)]
+    boss = [round(throne[0] - dx * A['bossAhead'], 2), round(throne[1] - dz * A['bossAhead'], 2)]
+    for q in props:
+        if q['type'] == 'bossSnail':  # the boss takes its spot in front of the throne, facing the entry
+            q['at'] = boss
+            q['rot'] = round(math.atan2(-dx, -dz), 3)
+            continue
+        if q['type'] in ('rubble', 'runeCircle') or not on_stage(q['at']) or math.hypot(q['at'][0] - cx, q['at'][1] - cz) > R - 0.35:
+            continue
+        if q['type'] == 'bigPearl':
+            q['at'] = throne
+            q['rot'] = round(math.atan2(-dx, -dz), 3)
+            continue
+        # out along the line from the middle to the edge of the open circle, never onto the entry or the throne
+        ax, az = q['at'][0] - cx, q['at'][1] - cz
+        ang = math.atan2(az, ax) if math.hypot(ax, az) > 0.5 else 0.0
+        for turn in (0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05):
+            ux, uz = math.cos(ang + turn), math.sin(ang + turn)
+            r = R - 0.3  # its body (up to ~1 m) stays outside the clear circle, its foot on the stage
+            at = [round(cx + ux * r, 2), round(cz + uz * r, 2)]
+            if math.hypot(at[0] - ex, at[1] - ez) > A['entryClear'] and math.hypot(at[0] - throne[0], at[1] - throne[1]) > A['entryClear']:
+                break
+        q['at'] = at
+    # a worn ring in the paving marks the stage (no collider)
+    props.append({'type': 'runeCircle', 'at': [round(cx, 2), round(cz, 2)], 'scale': A['ring']})
+    arena = {'floor': seat[0]['id'], 'floors': [f['id'] for f in stage], 'at': [round(cx, 2), round(cz, 2)], 'r': round(R, 1), 'clear': round(R - A['rim'], 1),
+             'boss': boss, 'bossFacing': round(math.atan2(-dx, -dz), 3), 'throne': throne, 'entry': [round(ex, 2), round(ez, 2)]}
 
 # a waterfall pours from where the concept shows it, put on the real edge it pours over (and wider
 # than the trace's widths, which were measured on the far smaller first map: 1.4x over a ledge,
@@ -724,6 +891,14 @@ inside.update({
     'waterfalls': falls,
     'props': props,
 })
+if arena:
+    inside['arena'] = arena
+    # the room's lamp hangs over the stage's middle and reaches its rim
+    lamp = min(inside['lights'], key=lambda l: math.hypot(l['at'][0] - arena['at'][0], l['at'][1] - arena['at'][1]))
+    lamp['at'] = arena['at']
+    lamp['range'] = max(lamp['range'], round(arena['r'] * 2.6))
+else:
+    inside.pop('arena', None)
 inside['_doc'] = 'Generated by scripts/grotto-trace.py from data/dungeons/shell-grotto-trace.json and the concept picture; edit those, not this section.'
 # the beach's door lands at the new spawn
 for l in data['outside']['links']:

@@ -138,6 +138,39 @@ test('the old stone over the water has broken away: each break is wading water b
   }
 });
 
+test('the boss stage is one open room of stone and wading water: nothing blocks its middle, the boss stands on the dais facing the entry, and it is all walked', () => {
+  const a = FILE.inside.arena;
+  assert.ok(a, 'inside.arena');
+  assert.ok(a.clear >= 8, `room to fight: ${a.clear} m clear`);
+  assert.equal(inside.surfaceAt(...a.boss)?.floor.id, a.floor, 'the boss stands on the dais');
+  // the whole clear circle is stage floor (stone or shallow water) and walked from its middle
+  for (let ring = 0.25; ring <= 1; ring += 0.25) for (let k = 0; k < 24; k++) {
+    const t = (k / 24) * Math.PI * 2, x = a.at[0] + Math.cos(t) * (a.clear - 0.5) * ring, z = a.at[1] + Math.sin(t) * (a.clear - 0.5) * ring;
+    const s = inside.surfaceAt(x, z);
+    assert.ok(s && a.floors.includes(s.floor.id) && s.walkable, `stage floor at ${x.toFixed(1)},${z.toFixed(1)}`);
+    if (inside.blockers.some((b) => b.prop === 'bossSnail' && Math.hypot(x - b.x, z - b.z) < b.r + 1)) continue; // the boss's own body is solid
+    assert.ok(reach.inside(x, z) || reachedNear('inside', [x, z], 1), `walked at ${x.toFixed(1)},${z.toFixed(1)}`);
+  }
+  // the dais meets the water in one step: no ledge or rock between them
+  const dais = inside.floors.find((f) => f.id === a.floor), water = inside.floors.find((f) => f.id.startsWith('throne-water'));
+  assert.ok(Math.abs(dais.y - water.y) <= FILE.maxStep, 'the dais steps straight into the water');
+  for (const p of FILE.inside.props) {
+    const block = FILE.propTypes[p.type].block, r = (typeof block === 'number' ? block : 0) * (p.scale ?? 1);
+    if (!r || p.type === 'bigPearl') continue;
+    assert.ok(Math.hypot(p.at[0] - a.at[0], p.at[1] - a.at[1]) - r >= a.clear - 0.01, `${p.type} at ${p.at} stands in the arena`);
+  }
+  const throne = FILE.inside.props.find((p) => p.type === 'bigPearl' && Math.hypot(p.at[0] - a.throne[0], p.at[1] - a.throne[1]) < 0.01);
+  assert.ok(throne, 'the pearl altar is the throne behind the boss');
+  // the boss's body (bossSnail circles, its shell trailing behind it) stays clear of the altar
+  const body = Math.max(...FILE.propTypes.bossSnail.block.map(([dx, dz, r]) => Math.hypot(dx, dz) + r));
+  assert.ok(Math.hypot(a.boss[0] - a.throne[0], a.boss[1] - a.throne[1]) > body + FILE.propTypes.bigPearl.block * throne.scale, 'the boss stands clear of the altar');
+  const facing = [Math.sin(a.bossFacing), Math.cos(a.bossFacing)], toEntry = [a.entry[0] - a.boss[0], a.entry[1] - a.boss[1]];
+  assert.ok(facing[0] * toEntry[0] + facing[1] * toEntry[1] > 0, 'the boss faces the entry');
+  // the boss's own body is solid: its spot is reached at its side
+  const boss = FILE.inside.props.find((p) => p.type === 'bossSnail'), reachBoss = boss ? body * (boss.scale ?? 1) + 1 : 1;
+  assert.ok(reachedNear('inside', a.at, 1) && reachedNear('inside', a.boss, reachBoss), 'the stage is reached on foot');
+});
+
 test('paths are smoothed but keep their ends', () => {
   const p = smoothPath([[0, 0], [10, 0], [10, 10]]);
   assert.deepEqual(p[0], [0, 0]);

@@ -10,7 +10,7 @@ import * as THREE from 'three';
 const FRAG_COMMON = `
 uniform vec3 uSun, uShade, uMid, uLit, uTint, uFloor;
 uniform vec2 uBand;
-uniform float uSat, uGain;
+uniform float uSat, uGain, uDim, uLamp;
 varying vec3 vW; varying vec3 vWN;
 vec3 gradeBy(vec3 c,float sat,float con){ vec3 g=sqrt(max(c,0.)); float l=dot(g,vec3(.299,.587,.114)); g=mix(vec3(l),g,sat); g=(g-.5)*con+.5; g=max(g,0.); return g*g; }
 `;
@@ -32,6 +32,12 @@ export function paintLook(look = {}) {
     // reads in the lum), so it is lifted to the game's stone; the textured floors are near white
     gain: p.gain || {},
     floor: p.floor || '#1c2230',
+    // a dark place: the painted light is dimmed (`dim`) and the lamps (the map's point lights and
+    // the hero's) light the stone around them (`lamp`), so the glowing corals, crystals and pearls
+    // read as the light of the room; `tints` gives a surface kind its own stone (the cave rock)
+    dim: p.dim ?? 1,
+    lamp: p.lamp ?? 0,
+    tints: p.tints || {},
   };
 }
 
@@ -53,8 +59,8 @@ export function gamePaint(look, kind, o = {}) {
   const u = {
     uSun: { value: P.sun }, uShade: { value: new THREE.Vector3(...P.shade) }, uMid: { value: new THREE.Vector3(...P.mid) },
     uLit: { value: new THREE.Vector3(...P.lit) }, uBand: { value: new THREE.Vector2(...P.band) },
-    uSat: { value: o.sat ?? P.sat }, uTint: { value: new THREE.Color(o.tint || P.tint) }, uGain: { value: o.gain ?? P.gain[kind] ?? 1 },
-    uFloor: { value: new THREE.Color(P.floor) },
+    uSat: { value: o.sat ?? P.sat }, uTint: { value: new THREE.Color(o.tint || P.tints[kind] || P.tint) }, uGain: { value: o.gain ?? P.gain[kind] ?? 1 },
+    uFloor: { value: new THREE.Color(P.floor) }, uDim: { value: o.dim ?? P.dim }, uLamp: { value: o.lamp ?? P.lamp },
   };
   m.userData.paint = u;
   m.onBeforeCompile = (s) => {
@@ -84,8 +90,19 @@ export function gamePaint(look, kind, o = {}) {
   vec3 own=diffuseColor.rgb; float lum=dot(own,vec3(.299,.587,.114));
   vec3 base=min(mix(vec3(lum),own,uSat)*uGain,vec3(1.))*uTint;
   vec3 c=mix(base*uShade,base*uMid,t1); c=mix(c,base*uLit,t2);
+  c*=uDim;
+  // the lamps: each point light warms the stone it reaches, soft-wrapped so floors and walls both take it
+  vec3 lamp=vec3(0.);
+  #if NUM_POINT_LIGHTS > 0
+  for(int i=0;i<NUM_POINT_LIGHTS;i++){
+    vec3 lv=pointLights[i].position+vViewPosition; float d=length(lv);
+    float att=getDistanceAttenuation(d,pointLights[i].distance,pointLights[i].decay);
+    lamp+=pointLights[i].color*att*(.35+.65*max(dot(normal,lv/max(d,1e-3)),0.));
+  }
+  #endif
+  c+=base*lamp*uLamp;
   // deep under the floors it fades to the cave's dark, as the game's cliffs fade into shade
-  c=mix(uFloor,c,smoothstep(-9.,-2.,vW.y));
+  c=mix(uFloor,c,smoothstep(-13.,-6.,vW.y));
   outgoingLight=gradeBy(c,1.04,1.12)+totalEmissiveRadiance;
   #include <opaque_fragment>`);
   };

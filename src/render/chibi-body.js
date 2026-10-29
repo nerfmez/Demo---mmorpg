@@ -663,7 +663,8 @@ function hairInsideHelm(T, H, model) {
 const FITTED = new WeakMap(), EDGE = 1e-3;
 const GAP = 2; // fitHairToHead: the widest hole in a hair (direction bins) the head under it is shaded across
 const HAIR_CLOSE = 0.1; // fitHairToHead: the farthest hair (head widths) over a bare part of the head that it shades
-const HAIR_EDGE = 2; // fitHairToHead: the shade's edge this far inside the hair's (shade map cells, 1.9° each)
+const EAR_SKIN = 0.15; // fitHairToHead: the skin round an ear beside the hair (head widths) never shaded
+const HAIR_EDGE = 5; // fitHairToHead: the shade's edge this far inside the hair's (shade map cells, 1.9° each)
 const FOREHEAD = 0.72; // fitHairToHead: the head height (face coordinates) above the drawn face's features
 function fitHairToHead(T, src, H, geometry) {
   const k = T.headTuck;
@@ -762,6 +763,32 @@ function fitHairToHead(T, src, H, geometry) {
     spot.get(key).push(i);
     twins.set(i, spot.get(key));
   }
+  // an ear folds away inside the head only where the hair covers most of it (its fit.ears unset): one
+  // poking out through the hair reads as a stray second ear, but one mostly below a short cut's side
+  // hair is the ear, and folded in it leaves an ear-shaped hollow there
+  const fold = new Set();
+  if (!H.fit.ears) for (const side of [-1, 1]) {
+    const ear = [...ears].filter((i) => P.has(i) && Math.sign(P.get(i)[0]) === side);
+    let hidden = 0;
+    for (const i of ear) {
+      const q = P.get(i), r = Math.hypot(...q);
+      let hit = false;
+      cast(HT, q[0] / r, q[1] / r, q[2] / r, (_, dist) => { if (dist > 0.3 * r && dist <= r + reach) hit = true; });
+      if (hit) hidden++;
+    }
+    if (ear.length && hidden >= 0.5 * ear.length) ear.forEach((i) => fold.add(i));
+    else ear.forEach((i) => keep.add(i));
+  }
+  // a folded ear is pressed flat onto the skull (the radius of the nearest head point that is not ear,
+  // by direction), not sunk in: a pit where the ear was showed its walls and the outline as a black ear
+  const neckSet = new Set(k.neck ?? []);
+  const skull = [...P.keys()].filter((i) => !ears.has(i) && !neckSet.has(i)).map((i) => { const q = P.get(i), r = Math.hypot(...q); return [q[0] / r, q[1] / r, q[2] / r, r]; });
+  const onSkull = (q) => {
+    const r = Math.hypot(...q);
+    let best = -2, to = r;
+    for (const [x, y, z, rs] of skull) { const d = (x * q[0] + y * q[1] + z * q[2]) / r; if (d > best) { best = d; to = rs; } }
+    return to - 0.01 * hw;
+  };
   const lower = (i, to) => { for (const j of twins.get(i) ?? [i]) if (!keep.has(j)) target.set(j, Math.min(target.get(j) ?? Infinity, to)); };
   for (const [i, q] of P) {
     if (keep.has(i)) continue;
@@ -770,9 +797,7 @@ function fitHairToHead(T, src, H, geometry) {
     let near = Infinity;
     cast(HT, q[0] / r, q[1] / r, q[2] / r, (_, dist) => { near = Math.min(near, dist); });
     if (near <= r + reach && near - room(i) < r) lower(i, near - room(i));
-    // the ears fold away inside the head under a hair that covers them (its fit.ears unset), whether
-    // or not a lock lies over them: an ear poking out beside the hair reads as a stray second ear
-    if (ears.has(i)) lower(i, 0.8 * r);
+    if (fold.has(i)) lower(i, onSkull(q));
   }
   const under = new Set();
   const apply = () => {
@@ -842,7 +867,7 @@ function fitHairToHead(T, src, H, geometry) {
   // wide (a gap between the locks shows the shade, never the pale scalp); green: the hair's own
   // directions only, for the forehead (kept in place, above the drawn face's features), whose skin
   // shows between the fringe's locks. `underHair` picks the map: 1 red, 0.5 green, 0 none.
-  let cover = null, frame = null;
+  let cover = null, frame = null, reachOver = null;
   if (src.attributes.underHair) {
     const allow = new Float32Array(src.attributes.underHair.count), fc = src.attributes.face;
     // every hair triangle drawn into the map (MA x MP cells round the head, finer than the fit's bins),
@@ -898,16 +923,32 @@ function fitHairToHead(T, src, H, geometry) {
     };
     // the skin just under the head joint (neck) is taken in under a lock over it but stays skin: seen
     // between the locks hanging past it, it is the neck
-    const nape = new Set(k.neck ?? []);
+    const nape = neckSet;
+    // and an ear and the skin round it (EAR_SKIN head widths), kept or pressed flat: just below the side
+    // hair, seen between it and the hair's edge, shaded it drew a black ear
+    const kept = [...ears].filter((i) => P.has(i)).map((i) => P.get(i)), round = EAR_SKIN * hw;
+    const byEar = (i) => { const q = P.get(i); return kept.some((e) => Math.hypot(q[0] - e[0], q[1] - e[1], q[2] - e[2]) < round); };
     for (const i of P.keys()) {
-      if (nape.has(i)) continue;
-      if (ears.has(i)) allow[i] = !keep.has(i) && close(i) ? 1 : 0; // an ear folded in shows its fold as skin
+      if (nape.has(i) || (kept.length && byEar(i))) continue;
       else if (under.has(i)) allow[i] = 1;
       else if (face.has(i)) allow[i] = fc && fc.getY(i) > FOREHEAD && close(i) ? 0.5 : 0;
       else if (!keep.has(i) && close(i)) allow[i] = 1;
     }
+    // blue: how far out the nearest hair round each direction lies (0 to `far` from the head's middle),
+    // so a pixel is shaded only with the hair close over it: under a side lock standing well off the
+    // head, the head seen from below is skin, not a dark patch
+    const far = 2 * rmax, Rn = 2 * GAP + HAIR_EDGE, nearest = new Float32Array(MA * MP);
+    for (let p = 0; p < MP; p++) for (let u = 0; u < MA; u++) {
+      let best = Infinity;
+      for (let dp = -Rn; dp <= Rn; dp++) for (let du = -Rn; du <= Rn; du++) best = Math.min(best, near[THREE.MathUtils.clamp(p + dp, 0, MP - 1) * MA + ((u + du + MA) % MA)]);
+      nearest[p * MA + u] = best;
+    }
     const texels = new Uint8Array(MA * MP * 4);
-    for (let n = 0; n < MA * MP; n++) { texels[n * 4] = closed[n] * 255; texels[n * 4 + 1] = own[n] * 255; texels[n * 4 + 3] = 255; }
+    for (let n = 0; n < MA * MP; n++) {
+      texels[n * 4] = closed[n] * 255; texels[n * 4 + 1] = own[n] * 255; texels[n * 4 + 3] = 255;
+      texels[n * 4 + 2] = Math.round(Math.min(1, nearest[n] / far) * 255);
+    }
+    reachOver = new THREE.Vector2(far, clear);
     cover = new THREE.DataTexture(texels, MA, MP);
     cover.wrapS = THREE.RepeatWrapping; // round the head; the poles clamp
     cover.magFilter = cover.minFilter = THREE.LinearFilter;
@@ -922,7 +963,7 @@ function fitHairToHead(T, src, H, geometry) {
   body.setIndex(src.index);
   body.boundingSphere = src.boundingSphere;
   body.userData.shared = true; // cached with the body
-  const fitted = { hair: hairGeo, body, cover, frame };
+  const fitted = { hair: hairGeo, body, cover, frame, reachOver };
   byHair.set(geometry, fitted);
   return fitted;
 }
@@ -971,7 +1012,11 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
     const under = o.isSkinnedMesh && !o.userData.garment && o.material.userData.underHair;
     if (!under) return;
     under.value = hair.material.userData.hairColor?.value ?? new THREE.Color(0.08, 0.08, 0.12);
-    if (shadeMap) { o.material.userData.underHairCover.value = shadeMap.cover; o.material.userData.underHairFrame.value.copy(shadeMap.frame); }
+    if (shadeMap) {
+      o.material.userData.underHairCover.value = shadeMap.cover;
+      o.material.userData.underHairFrame.value.copy(shadeMap.frame);
+      o.material.userData.underHairReach.value.copy(shadeMap.reachOver);
+    }
   });
   hair.name = 'Hair'; hull.name = 'Hair-outline';
   g.add(hair, hull);
@@ -1048,7 +1093,8 @@ if (tucked > 0.0) { mvPosition.xyz *= 1.0 + tucked * ${depth.toFixed(4)} / max(l
  * hair's shade, a fixed `HAIR_SHADE` of the hair colour (material.userData.underHair, set by
  * attachChibiHair to the hair's own colour uniform, so the creation colour wheel moves both). Each
  * pixel looks its direction from the head's middle up in the map (`underHairCover`, `underHairFrame`:
- * the mesh to that middle), so the shade ends where the hair does.
+ * the mesh to that middle), so the shade ends where the hair does, and only with the hair close over
+ * it (`underHairReach`: the map's blue scale and the farthest gap that still shades).
  */
 const HAIR_SHADE = 0.3;
 const NO_COVER = new THREE.DataTexture(new Uint8Array(4), 1, 1);
@@ -1056,23 +1102,26 @@ NO_COVER.needsUpdate = true;
 NO_COVER.userData.shared = true;
 function hairShadeMaterial(material) {
   const prev = material.onBeforeCompile, key = material.customProgramCacheKey, u = { value: new THREE.Color(0.06, 0.06, 0.09) };
-  const cover = { value: NO_COVER }, frame = { value: new THREE.Matrix4() };
+  const cover = { value: NO_COVER }, frame = { value: new THREE.Matrix4() }, reach = { value: new THREE.Vector2(1, 0) };
   material.userData.underHair = u;
   material.userData.underHairCover = cover;
   material.userData.underHairFrame = frame;
+  material.userData.underHairReach = reach;
   material.onBeforeCompile = (shader, renderer) => {
     prev?.call(material, shader, renderer);
     shader.uniforms.uUnderHair = u;
     shader.uniforms.uHairCover = cover;
     shader.uniforms.uHeadFrame = frame;
+    shader.uniforms.uHairReach = reach;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nattribute float underHair;\nuniform mat4 uHeadFrame;\nvarying float vUnderHair;\nvarying vec3 vHeadDir;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvUnderHair = underHair;\nvHeadDir = (uHeadFrame * vec4(position, 1.0)).xyz;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uUnderHair;\nuniform sampler2D uHairCover;\nvarying float vUnderHair;\nvarying vec3 vHeadDir;')
+      .replace('#include <common>', '#include <common>\nuniform vec3 uUnderHair;\nuniform sampler2D uHairCover;\nuniform vec2 uHairReach;\nvarying float vUnderHair;\nvarying vec3 vHeadDir;')
       .replace('#include <opaque_fragment>', `vec3 hairDir = normalize(vHeadDir);
-vec2 hairMap = texture2D(uHairCover, vec2(atan(hairDir.x, hairDir.z) / PI * 0.5 + 0.5, acos(clamp(hairDir.y, -1.0, 1.0)) / PI)).rg;
+vec3 hairMap = texture2D(uHairCover, vec2(atan(hairDir.x, hairDir.z) / PI * 0.5 + 0.5, acos(clamp(hairDir.y, -1.0, 1.0)) / PI)).rgb;
 float hairOver = mix(hairMap.g, hairMap.r, clamp(vUnderHair * 2.0 - 1.0, 0.0, 1.0));
+hairOver *= 1.0 - smoothstep(uHairReach.y, 2.0 * uHairReach.y, hairMap.b * uHairReach.x - length(vHeadDir));
 outgoingLight = mix(outgoingLight, uUnderHair * ${HAIR_SHADE.toFixed(2)}, step(0.25, vUnderHair) * smoothstep(0.35, 0.65, hairOver));
 #include <opaque_fragment>`);
   };

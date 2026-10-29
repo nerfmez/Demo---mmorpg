@@ -466,7 +466,7 @@ export class Panels {
       return `<button class="quick-slot ${i === pick ? 'on' : ''} ${def ? '' : 'empty'}" data-act="quick-select" data-slot="${i}" aria-pressed="${i === pick}" aria-label="ช่องไอเทม ${i + 1}${def ? ' · ' + def.nameTh : ' · ว่าง'}">${def ? potionArt(def) : icon('plus')}<b>${def ? ch.consumables[id] || 0 : ''}</b><small>ช่อง ${i + 1} · ปุ่ม ${i + 5}</small></button>`;
     }).join('');
     const rows = data.items.shop.stock.map((id) => {
-      const def = cons.types[id], own = ch.consumables[id] || 0, amt = restoreAmount(data, id, p.maxHp, p.maxMp), r = def.restore;
+      const def = cons.types[id], own = ch.consumables[id] || 0, amt = restoreAmount(data, id, p.maxHp, p.maxMp, this.game.derived.potionHealPct), r = def.restore;
       const gives = def.group === 'hp' ? `ฟื้น HP ${r.hp} + ${r.hpPct}% (≈${amt.hp})` : `ฟื้น MP ${r.mp} + ${r.mpPct}% (≈${amt.mp})`;
       const buys = data.items.shop.buyAmounts.map((n) => {
         const st = buyState(ch, data, id, n);

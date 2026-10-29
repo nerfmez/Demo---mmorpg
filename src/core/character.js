@@ -797,6 +797,12 @@ export function toggleHelm(ch) {
 // ---------- Derived stats ----------
 
 /** Everything combat needs, folded from stats, gear and job nodes. */
+/** MP per second: the base (growing a little with level) times 1 + mpRegenPct/100, plus INT's share. */
+export function mpRegenOf(data, level, mpRegenPct, int) {
+  const b = data.progression.character.base;
+  return (b.mpRegen + (b.mpRegenPerLevel || 0) * (level - 1)) * (1 + mpRegenPct / 100) + int * b.mpRegenPerInt;
+}
+
 export function derive(ch, data) {
   const pc = data.progression.character;
   const d = {
@@ -823,7 +829,9 @@ export function derive(ch, data) {
     hastePct: 0,
     critChancePct: pc.baseCritChancePct,
     damageTakenPct: 0,
-    hpRegen: pc.base.hpRegen,
+    hpRegen: pc.base.hpRegen || 0,
+    hpRegenPct: 0, // of max HP per second (base, VIT, nodes); flat hpRegen adds to it
+    potionHealPct: 0, // more or less HP from health potions (a tank key node takes it down)
     mpRegenPct: 0,
     projectileSpeedPct: 0,
     areaRadiusPct: 0,
@@ -895,7 +903,10 @@ export function derive(ch, data) {
   d.maxHp = Math.round((base.hp + base.hpPerLevel * (ch.level - 1) + base.hpPerVit * stats.VIT + d.maxHp) * (1 + d.maxHpPct / 100));
   d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
   d.maxShield = Math.round(d.maxShield * (1 + d.maxShieldPct / 100)); // spell shield: INT and gear only
-  d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + stats.INT * base.mpRegenPerInt;
+  d.mpRegen = mpRegenOf(data, ch.level, d.mpRegenPct, stats.INT);
+  // HP regeneration (owner, 2026-10-29): a share of max HP per second (base, VIT, nodes) plus flat regen
+  // from gear, capped at hpRegenCapPct of max HP, so it keeps its worth as HP grows
+  d.hpRegen = Math.min(d.maxHp * base.hpRegenCapPct / 100, d.hpRegen + d.maxHp * (base.hpRegenPct + d.hpRegenPct) / 100);
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
   d.critChance = Math.min(1, d.critChancePct / 100); // no design cap on crit chance (owner, 2026-10-25); 100% means every hit crits
   // crit chance past 100% turns into crit damage at a reduced rate, outside the crit damage caps (owner)

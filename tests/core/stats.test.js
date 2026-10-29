@@ -201,3 +201,25 @@ test('options roll from the item class pool: a robe never rolls bow damage, a ch
   assert.ok(!robe.includes('projectile_pct') && !robe.includes('vit_flat') && robe.includes('int_flat'));
   assert.ok(data.items.gearBases.fang_dagger.optionPool.includes('crit_mult_pct'));
 });
+
+test('regeneration keeps its worth: HP regenerates a share of max HP (VIT adds a little, capped), MP grows a little with level, a tank node trades potions for regeneration', async () => {
+  const { restoreAmount } = await import('../../src/core/consumables.js');
+  const b = data.progression.character.base, per = data.progression.character.perStat.VIT;
+  const hero = (level, stats = {}, d = data) => { const ch = createCharacter(d, { kit: 'sword' }); ch.level = level; Object.assign(ch.stats, stats); ch.equipped = Object.fromEntries(Object.keys(ch.equipped).map((k) => [k, null])); return derive(ch, d); };
+  for (const level of [1, 30]) {
+    const d = hero(level);
+    assert.ok(Math.abs(d.hpRegen - d.maxHp * (b.hpRegenPct + per.hpRegenPct * d.stats.VIT) / 100) < 1e-6, `Lv${level}: a share of max HP`);
+  }
+  assert.ok(hero(30).hpRegen > hero(1).hpRegen * 1.5, 'it grows with HP');
+  assert.ok(hero(1, { VIT: 53 }).hpRegen > hero(1).hpRegen * 1.8, 'VIT adds to it');
+  const D = structuredClone(data);
+  D.jobtree.nodes.origin.effects = { ...(D.jobtree.nodes.origin.effects || {}), hpRegen: 1e6 };
+  const capped = hero(1, {}, D);
+  assert.equal(capped.hpRegen, capped.maxHp * b.hpRegenCapPct / 100, 'capped at a share of max HP');
+  assert.ok(hero(30).mpRegen > hero(1).mpRegen, 'MP regeneration grows a little with level');
+  // the tank key node: regeneration up, health potions halved
+  D.jobtree.nodes.origin.effects = { ...(data.jobtree.nodes.origin.effects || {}), hpRegenPct: 1.5, potionHealPct: -50 };
+  const tank = hero(30, {}, D), plain = hero(30);
+  assert.ok(tank.hpRegen > plain.hpRegen * 2);
+  assert.equal(restoreAmount(data, 'hp_potion_m', 5000, 500, tank.potionHealPct).hp * 2, restoreAmount(data, 'hp_potion_m', 5000, 500).hp);
+});

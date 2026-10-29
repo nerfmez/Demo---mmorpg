@@ -163,8 +163,9 @@ test('fast casting runs out of MP in a long fight unless MP is taken too', async
   assert.equal(pure.manaLimited, true, 'a pure speed caster is MP-bound in a boss fight');
   const mixed = longFightDps(data, 'staff', cap, [...new Set([...speed.slice(0, 24), ...mana.filter((id) => !speed.includes(id)).slice(0, 15)])]);
   // every main attack lasts on regeneration at the reference pace (content-budget.test.js), so only
-  // the extra speed runs dry: MP still pays, by less than when the main attack itself overspent
-  assert.ok(mixed.dps > pure.dps * 1.1, `speed with MP (${mixed.dps}) beats speed alone (${pure.dps}) in a long fight`);
+  // the extra speed runs dry: MP still pays, by less than when the main attack itself overspent, and
+  // less again since base MP regeneration grows a little with level (owner, 2026-10-29)
+  assert.ok(mixed.dps > pure.dps * 1.05, `speed with MP (${mixed.dps}) beats speed alone (${pure.dps}) in a long fight`);
 });
 
 test('each displayed line forks locally, with no bridge shortcut',()=>{

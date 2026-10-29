@@ -3,7 +3,7 @@
 // time-to-kill, time-to-die (standing still, no dodging) and minutes per level, so the
 // numbers in data/ can be checked against data.progression.balance.targets by a test.
 // Pure: it never touches a live game. Reproduce with `node scripts/balance-report.mjs`.
-import { createCharacter, derive, expToNext, defenseFactor } from './character.js';
+import { createCharacter, derive, expToNext, defenseFactor, mpRegenOf } from './character.js';
 import { computeSkill } from './skills.js';
 import { gearDropCandidates, gearRecipe } from './crafting.js';
 
@@ -159,7 +159,7 @@ export function longFightDps(data, kit, level, jobNodes = null, seconds = 90, mo
   const b = data.progression.balance, base = data.progression.character.base;
   const { ch, d } = referenceHero(data, kit, level, jobNodes, mods);
   for (const [k, v] of Object.entries(gear)) d[k] = (d[k] || 0) + v;
-  if (gear.mpRegenPct) d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
+  if (gear.mpRegenPct) d.mpRegen = mpRegenOf(data, ch.level, d.mpRegenPct, ch.stats.INT);
   const s = computeSkill(ch, data, d, 0), m = referenceMonster(data, level);
   const crit = 1 + d.critChance * (d.critMult - 1);
   const mdef = m.defense * (1 - (d.penetrationPct || 0) / 100);

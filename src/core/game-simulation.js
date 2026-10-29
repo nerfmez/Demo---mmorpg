@@ -680,7 +680,7 @@ export class Game {
     if (p.dead) return fail('dead');
     if (consumableCount(this.ch, id) < 1) return fail('none');
     if ((p.itemCooldowns[def.group] || 0) > 0) return fail('cooldown');
-    const amount = restoreAmount(this.data, id, p.maxHp, p.maxMp);
+    const amount = restoreAmount(this.data, id, p.maxHp, p.maxMp, this.derived.potionHealPct);
     const hp = Math.min(amount.hp, p.maxHp - p.hp), mp = Math.min(amount.mp, p.maxMp - p.mp);
     if (hp < 1 && mp < 1) return fail('full');
     p.hp += Math.max(0, hp);

@@ -266,22 +266,23 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
  * `skin` colour) give way to that skin first, then the drawn face goes on top. The same goes for the
  * painted-light glow. `texture` may still be loading (null): the painted face shows until it arrives.
  */
-function faceDecalMaterial(m, texture, { width, top, chin, v0, skin }) {
-  const base = m.onBeforeCompile;
-  const u = { uFaceTex: { value: texture }, uFaceFrame: { value: new THREE.Vector4(width, top, chin, v0) }, uFaceSkin: { value: new THREE.Color().setRGB(skin[0] / 255, skin[1] / 255, skin[2] / 255, THREE.SRGBColorSpace) } };
+function faceDecalMaterial(m, texture, { width, top, chin, v0, skin }, iris = null) {
+  const base = m.onBeforeCompile, eye = !!m.userData.eyeColor;
+  const u = { uFaceTex: { value: texture }, uIrisTex: { value: iris }, uFaceFrame: { value: new THREE.Vector4(width, top, chin, v0) }, uFaceSkin: { value: new THREE.Color().setRGB(skin[0] / 255, skin[1] / 255, skin[2] / 255, THREE.SRGBColorSpace) } };
   m.onBeforeCompile = (shader, renderer) => {
     base(shader, renderer);
     Object.assign(shader.uniforms, u);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform sampler2D uFaceTex; uniform vec4 uFaceFrame; uniform vec3 uFaceSkin;`)
+uniform sampler2D uFaceTex; uniform sampler2D uIrisTex; uniform vec4 uFaceFrame; uniform vec3 uFaceSkin;`)
       .replace('void main() {', `vec3 faceDecal( vec3 base ) {
   if ( vFace.z < 0.05 ) return base;
   float u = vFace.x / ( 2.0 * uFaceFrame.x ) + 0.5, t = ( uFaceFrame.y - vFace.y ) / ( uFaceFrame.y - uFaceFrame.z );
   float v = ( t - uFaceFrame.w ) / ( 1.0 - uFaceFrame.w );
   float k = smoothstep( 0.2, 0.6, vFace.z ) * smoothstep( 0.0, 0.04, u ) * smoothstep( 1.0, 0.96, u ) * smoothstep( -0.06, 0.0, v ) * step( v, 1.05 );
   vec3 c = mix( base, uFaceSkin, k * smoothstep( 0.05, 0.2, distance( base, uFaceSkin ) ) );
-  vec4 d = texture2D( uFaceTex, vec2( u, 1.0 - clamp( v, 0.0, 1.0 ) ) );
+  vec2 fuv = vec2( u, 1.0 - clamp( v, 0.0, 1.0 ) );
+  vec4 d = texture2D( uFaceTex, fuv );${eye ? '\n  d.rgb = eyeTint( d.rgb, texture2D( uIrisTex, fuv ).r, uEyeRef.y );' : ''}
   return mix( c, d.rgb, d.a * k * step( 0.0, v ) * step( v, 1.0 ) );
 }
 void main() {`)
@@ -291,7 +292,47 @@ void main() {`)
 #endif`);
   };
   const key = m.customProgramCacheKey;
-  m.customProgramCacheKey = () => key() + '-chibi-face-decal';
+  m.customProgramCacheKey = () => key() + '-chibi-face-decal' + (eye ? '-eyes' : '');
+}
+
+/**
+ * The look's eye colour (`eyes`, any hex; data: hero_chibi.eyeColor). Its `own` colour draws the eyes
+ * as painted. Any other recolours the iris: a drawn face's by its iris mask (faceDecalMaterial), the
+ * painted face's where its paint is bluer than red (`painted`: a smoothstep of blue minus red) on the
+ * front of the face (`front`: a smoothstep of the face coordinates' forward mask). The iris keeps its
+ * painted shading: its brightness over `ref` (the painted [painted, drawn] irises' mean luminance)
+ * scales the chosen colour, half way to the chosen colour's own brightness. Numbers in uniforms.
+ */
+function eyeColorMaterial(m, cfg, eyes, painted) {
+  const base = m.onBeforeCompile, key = m.customProgramCacheKey;
+  const on = !!eyes && eyes.toLowerCase() !== cfg.own.toLowerCase();
+  const u = { uEye: { value: new THREE.Color(on ? eyes : cfg.own) }, uEyeOn: { value: on ? 1 : 0 },
+    uEyeRef: { value: new THREE.Vector4(cfg.ref[0], cfg.ref[1], painted ? 1 : 0, 0) },
+    uEyeMask: { value: new THREE.Vector4(cfg.painted[0], cfg.painted[1], cfg.front[0], cfg.front[1]) } };
+  m.userData.eyeColor = u;
+  m.onBeforeCompile = (shader, renderer) => {
+    base(shader, renderer);
+    Object.assign(shader.uniforms, u);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+uniform vec3 uEye; uniform float uEyeOn; uniform vec4 uEyeRef; uniform vec4 uEyeMask;
+vec3 eyeTint( vec3 c, float w, float ref ) {
+  float t = dot( c, vec3( 0.2126, 0.7152, 0.0722 ) ), le = max( dot( uEye, vec3( 0.2126, 0.7152, 0.0722 ) ), 1e-3 );
+  return mix( c, min( uEye * ( t / le ) * mix( 1.0, le / ref, 0.5 ), vec3( 1.0 ) ), clamp( w, 0.0, 1.0 ) * uEyeOn );
+}
+float eyePainted( vec3 c, float front ) {
+  return uEyeRef.z * smoothstep( uEyeMask.x, uEyeMask.y, c.b - c.r ) * smoothstep( uEyeMask.z, uEyeMask.w, front );
+}`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+#ifdef USE_MAP
+diffuseColor.rgb = eyeTint( diffuseColor.rgb, eyePainted( sampledDiffuseColor.rgb, vFace.z ), uEyeRef.x );
+#endif`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+#ifdef USE_MAP
+totalEmissiveRadiance = eyeTint( totalEmissiveRadiance, eyePainted( texture2D( map, vMapUv ).rgb, vFace.z ), uEyeRef.x * emissive.r );
+#endif`);
+  };
+  m.customProgramCacheKey = () => (key ? key.call(m) : '') + '-eyes';
 }
 
 /**
@@ -514,7 +555,7 @@ export function prepareChibiBody(gltf, cfg) {
   const headTuck = { verts: Uint32Array.from(fitVerts), neck: Uint32Array.from(neck), ears: Uint32Array.from(ears), face: Uint32Array.from(face), toMesh, bone: hb };
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, faceShadow, faceDecal: cfg.faceDecal || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], relaxedHand: cfg.fist?.relaxed ?? 0, paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, faceShadow, faceDecal: cfg.faceDecal || null, eyeColor: cfg.eyeColor || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], relaxedHand: cfg.fist?.relaxed ?? 0, paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -1149,7 +1190,7 @@ export function chibiOutline(map, width, darkness) {
  * Add the chibi body to a built driver rig and give the rig syncSkin(). `weapon`/`offhand` are the
  * held kinds (a bow's grip runs along its limbs, +Y; other weapons along +Z, the blade or shaft).
  */
-export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim = 0.3, weapon = null, offhand = null, face = null } = {}) {
+export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim = 0.3, weapon = null, offhand = null, face = null, iris = null, eyes = null } = {}) {
   const body = SkeletonUtils.clone(T.scene);
   const flash = rig.material.userData.flash;
   const meshes = [];
@@ -1177,7 +1218,8 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     if (T.faceShadow) {
       const follow = faceShadowMaterial(mesh.material, body.getObjectByName('Head'), T.faceShadow.bind, T.faceShadow);
       mesh.onBeforeRender = (renderer, scene, camera) => follow(camera);
-      if (face && T.faceDecal) faceDecalMaterial(mesh.material, face, T.faceDecal);
+      if (T.eyeColor) eyeColorMaterial(mesh.material, T.eyeColor, eyes, !face);
+      if (face && T.faceDecal) faceDecalMaterial(mesh.material, face, T.faceDecal, iris);
     }
     mesh.castShadow = true;
     mesh.receiveShadow = true;

@@ -750,6 +750,13 @@
         "to": 0.45,
         "curve": 0.3
       },
+      "eyeColor": {
+        "_doc": "The look's eye colour (chibi-body.js eyeColorMaterial): `own` (the first eye swatch) draws the eyes as painted; any other recolours the iris, of a drawn face by its iris mask (public/models/faces/iris, scripts/face-iris-mask.py), of the painted face where blue minus red (linear) passes smoothstep `painted` on the face's front (forward mask smoothstep `front`). `ref`: the painted and drawn irises' mean linear luminance, against which the iris keeps its painted shading.",
+        "own": "#2b2e44",
+        "painted": [0.02, 0.06],
+        "front": [0.3, 0.5],
+        "ref": [0.1, 0.26]
+      },
       "faceDecal": {
         "_doc": "The drawn faces (chibi-body.js faceDecalMaterial, public/models/faces/<id>.png, cut from the owner's face sheets): the picture spans `width` either side of the head's middle in the face coordinates (half widths; the head's skull width at the top), and from `v0` of the way down from `top` to `chin` (face heights 0..1) to the chin. On the front of the face the painted features give way to `skin` (the painted skin, sRGB) under it.",
         "width": 0.84,
@@ -1545,6 +1552,12 @@
       "file": "models/outfits/travel_tunic.glb",
       "chibiOutfit": "armor",
       "localInside": true,
+      "tunicCloth": {
+        "_doc": "The shirt's cloth takes the look's tunic colour (chibi-garments.js tunicCloth): texels bright (linear luminance smoothstep `lum`) and pale (saturation under smoothstep `sat`) are multiplied by the chosen colour over `ref` (the default tunic colour, so it draws as painted).",
+        "ref": "#f1e3cc",
+        "lum": [0.18, 0.3],
+        "sat": [0.36, 0.46]
+      },
       "neckline": {
         "_doc": "The collar cut clean per pixel (chibi-garments.js necklineCut), body bind space in chibi metres: a V in front of depth `z` from `tip` (height) at `x`, widening by `slope` per metre up; the neck's round above `cut` within `ring` of its axis; a `trim` band (m) in `color` on the edge.",
         "tip": 0.7675,

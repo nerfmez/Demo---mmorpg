@@ -4,8 +4,9 @@
 # The iris's hue is the face's own: that of its coloured, mid-bright drawing above the mouth. The iris
 # is what lies near that hue there, coloured, neither dark (the lash line, the pupil) nor near-white
 # (the white and its glints) nor light pink (lid blush), in the two largest such pieces (a brow of the
-# same hue is a thin stroke above). Closed eyes, a white stare or a grey iris (too little coloured
-# drawing) have none. Usage: python3 scripts/face-iris-mask.py [face ids...] (all faces when none are given)
+# same hue is a thin stroke above). A grey iris (too little coloured drawing) is the mid-grey inside the
+# two open eye shapes; closed eyes (lines) and a white stare have none: the owner, 29 October 2026,
+# faces that show no iris keep their eyes. Usage: python3 scripts/face-iris-mask.py [face ids...] (all faces when none are given)
 import sys, glob, os
 import numpy as np
 from PIL import Image, ImageFilter
@@ -37,6 +38,22 @@ def smooth(x, a, b):
     return t * t * (3 - 2 * t)
 
 
+def grey(rgb, alpha, sat, lum, pink, above):
+    """An open grey iris (no coloured drawing): the mid-grey inside the two eye shapes (the largest drawn
+    pieces above the mouth, each taller than a closed eye's line), below their lash lines."""
+    H, W = alpha.shape
+    shapes = sorted((p for p in pieces((alpha > 0.35) & above) if p[0] > 400), reverse=True)[:2]
+    m = np.zeros((H, W))
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    for _, _, _, y0, y1, x0, x1 in shapes:
+        if (y1 - y0) < 0.35 * (x1 - x0): continue  # a closed eye: a line
+        box = (slice(y0, y1 + 1), slice(x0, x1 + 1))
+        m[box] = (smooth(lum[box], 0.3, 0.4) * (1 - smooth(lum[box], 0.78, 0.88)) * (1 - smooth(sat[box], 0.2, 0.3))
+                  * smooth((ys[box] - y0) / max(1, y1 - y0), 0.25, 0.4) * smooth(alpha[box], 0.3, 0.6) * (1 - pink[box]))
+    if (m > 0.5).sum() < 1500: return Image.new('L', (W, H)), None  # a white stare: no iris
+    return Image.fromarray((m * 255).astype(np.uint8), 'L').filter(ImageFilter.GaussianBlur(0.7)), 'grey'
+
+
 def mask(path):
     a = np.array(Image.open(path).convert('RGBA')).astype(float) / 255
     rgb, alpha = a[..., :3], a[..., 3]
@@ -54,7 +71,7 @@ def mask(path):
     deg = np.degrees(hue) % 360
     hist = np.bincount((deg[col] // 15).astype(int), minlength=24)
     hist = hist + np.roll(hist, 1) + np.roll(hist, -1)
-    if hist.max() < 3800: return Image.new('L', (W, H)), None
+    if hist.max() < 3800: return grey(rgb, alpha, sat, lum, pink, above)
     h0 = np.radians(hist.argmax() * 15 + 7.5)
     near = 1 - smooth(np.abs(np.angle(np.exp(1j * (hue - h0)))), np.radians(30), np.radians(50))
     # coloured, near that hue, not dark (the lash line, the pupil), not white (the white, glints)
@@ -72,6 +89,7 @@ def mask(path):
     m *= keep
     img = Image.fromarray((m * 255).astype(np.uint8), 'L').filter(ImageFilter.GaussianBlur(0.7))
     return img, round(float(np.degrees(h0)) % 360)
+
 
 ids = sys.argv[1:] or sorted(os.path.basename(p)[:-4] for p in glob.glob(f'{FACES}/*.png'))
 os.makedirs(f'{FACES}/iris', exist_ok=True)

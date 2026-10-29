@@ -10,6 +10,7 @@ import { prepareVrmBody, useVrm } from './vrm-body.js';
 import { prepareChibiBody, prepareChibiHair, useChibi } from './chibi-body.js';
 import { prepareChibiOutfit } from './chibi-garments.js';
 import { prepareMonsterModel, prepareMonsterForm } from './monsterSkin.js';
+import { renderConfig } from './settings.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {parts, outline}
 const loading = new Map(); // deduplicate concurrent/repeated registry loads
@@ -19,7 +20,32 @@ const outfits = new Map(); // chibi outfit models (characters with `chibiOutfit`
 const hairStyles = new Map(); // look.hairStyle -> its chibi hair model id (characters with `chibiHairStyle`), loaded when first chosen
 const failedOutfits = new Set();
 const weaponListeners = new Set();
-const loader = new GLTFLoader();
+const gltfLoader = new GLTFLoader();
+// Hero, outfit, weapon and monster maps cover a few hundred screen pixels at most,
+// while a 2048² map costs 22 MB of GPU memory (four of them pushed the iPad into a
+// lost WebGL context). Larger maps are drawn down once, on load
+// (data/rendering.json → modelTextureMax).
+const loader = { loadAsync: (file) => gltfLoader.loadAsync(file).then(capModelTextures) };
+export function capModelTextures(gltf) {
+  const max = renderConfig.modelTextureMax, sources = new Set();
+  gltf.scene.traverse((o) => {
+    for (const m of [o.material].flat()) if (m) for (const v of Object.values(m)) if (v?.isTexture) sources.add(v.source);
+  });
+  for (const source of sources) {
+    const image = source.data;
+    if (!image?.width || Math.max(image.width, image.height) <= max) continue;
+    const k = max / Math.max(image.width, image.height), canvas = document.createElement('canvas');
+    canvas.width = Math.round(image.width * k);
+    canvas.height = Math.round(image.height * k);
+    const g = canvas.getContext('2d');
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(image, 0, 0, canvas.width, canvas.height);
+    source.data = canvas;
+    source.needsUpdate = true;
+    image.close?.();
+  }
+  return gltf;
+}
 
 /** Register lazy weapons; load character/monster templates at boot as before. */
 export function loadModels(registry = {}, { onWeaponReady } = {}) {

@@ -234,6 +234,9 @@ function startGame(character, slot) {
     return JSON.stringify([game.ch.appearance, gear.helm, gear.weapon, !!F.modelsReady, weaponModelKey(gear.bases)]);
   };
   const refreshPortrait = () => {
+    // Behind the loading card a portrait of the stand-in body is only replaced once
+    // the models arrive; rendering it cost seconds of startup on slower devices.
+    if (!F.modelsReady) return;
     const look = game.ch.appearance;
     const gear = game.gearLook();
     const key = JSON.stringify([look, gear.helm, gear.weapon, !!F.modelsReady, weaponModelKey(gear.bases)]);

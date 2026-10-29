@@ -24,7 +24,8 @@ How the hero's hair styles (`data/models.json` `characters.hero_chibi_hair_<styl
    hair's scalp on the chibi head (`CHIBI_HEAD`: the chibi head dumped from the game in head-bone
    space). The shipped fits are that result 0.8 wide, 0.76 deep and 0.14 head heights lower, the
    tightness the owner approved on the ponytail; then adjusted by eye (`tilt` leans the ponytail back;
-   buns and long were made smaller on the owner's review).
+   long was made smaller on the owner's review; buns was too, then put back to the rule so its back
+   wraps the head as on its source head).
 5. **In game.** `chibi-body.js` `fitHairToHead` keeps the head under the hair (`fit.tuck`); check
    that no hair vertex is inside the head (a ray from the head's middle through it meets an odd
    number of head surfaces beyond it) at every style before shipping.

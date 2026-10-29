@@ -654,7 +654,7 @@
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT",
-      "secondaryStat": "VIT",
+      "secondaryStat": "LUK",
       "itemLevel": 21
     },
     "travel_tunic": {
@@ -1902,7 +1902,7 @@
       "slot": "weapon",
       "weaponType": "staff",
       "requirementStat": "INT",
-      "secondaryStat": "VIT",
+      "secondaryStat": "LUK",
       "optionPool": [
         "magic_flat",
         "spell_pct",
@@ -2151,7 +2151,7 @@
       "slot": "weapon",
       "weaponType": "wand",
       "requirementStat": "INT",
-      "secondaryStat": "VIT",
+      "secondaryStat": "LUK",
       "optionPool": [
         "magic_flat",
         "spell_pct",
@@ -2175,7 +2175,7 @@
       "nameTh": "กระบองสายฟ้าคำราม",
       "slot": "weapon",
       "weaponType": "mace",
-      "requirementStat": "STR",
+      "requirementStat": "INT",
       "secondaryStat": "VIT",
       "optionPool": [
         "attack_flat",
@@ -2224,7 +2224,7 @@
       "slot": "offhand",
       "offhandType": "shield",
       "requirementStat": "VIT",
-      "secondaryStat": "STR",
+      "secondaryStat": "INT",
       "optionPool": [
         "defense_flat",
         "hp_flat",

@@ -9,7 +9,7 @@
     "statPointsPerLevel": 3,
     "startingStatPoints": 4,
     "statWheel": ["STR", "AGI", "DEX", "LUK", "INT", "VIT"],
-    "_statWheelDoc": "Owner, 2026-10-29 (docs/STATS-TH.md): the six stats sit on a wheel in this order (VIT next to STR). A weapon asks for its type's stat (sword, greatblade, axe, mace STR; bow DEX; staff, wand INT; shields VIT), or a main and secondary pair (items.json secondaryStat; daggers are always a pair, STR/DEX or DEX/AGI); a skill asks for one stat or two neighbours on the wheel (main first), a mod for one. Every stat named must be met on its own: none stands in for another. Stats come from trained points, Job Tree nodes and gear options (core/character.js statTotals).",
+    "_statWheelDoc": "Owner, 2026-10-29 (docs/STATS-TH.md): the six stats sit on a wheel in this order (VIT next to STR). A weapon asks for its type's stat (sword, greatblade, axe, mace STR; bow DEX; staff, wand INT; shields VIT), or a main and secondary pair (items.json secondaryStat; daggers are always a pair, STR/DEX or DEX/AGI; staves and wands never ask for VIT, a priest's VIT comes from an INT/VIT mace or a VIT/INT shield); a skill asks for one stat or two neighbours on the wheel (main first), a mod for one. Every stat named must be met on its own: none stands in for another. Stats come from trained points, Job Tree nodes and gear options (core/character.js statTotals).",
     "startingStats": {
       "STR": 3,
       "AGI": 3,

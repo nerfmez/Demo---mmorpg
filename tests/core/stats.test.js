@@ -12,11 +12,12 @@ import { feedSkill } from '../../src/core/crafting.js';
 
 const WHEEL = data.progression.character.statWheel;
 // what each weapon type may ask for (owner, 2026-10-29): the first is its main-line stat, the rest its
-// main-and-secondary pairs; daggers have no main-line stat, only STR/DEX or DEX/AGI (DEX is reach and crit)
+// main-and-secondary pairs; daggers have no main-line stat, only STR/DEX or DEX/AGI (DEX is reach and crit);
+// staves and wands never ask for VIT: a priest's VIT comes from a holy mace (INT/VIT) or a shield (VIT/INT)
 const WEAPON_STATS = {
-  sword: ['STR', 'STR+AGI'], greatblade: ['STR', 'STR+VIT', 'STR+AGI'], axe: ['STR', 'STR+VIT'], mace: ['STR', 'STR+VIT'],
-  dagger: ['STR+DEX', 'DEX+AGI'], bow: ['DEX', 'DEX+AGI', 'DEX+LUK'], staff: ['INT', 'INT+LUK', 'INT+VIT'], wand: ['INT', 'INT+LUK', 'INT+VIT'],
-  greatshield: ['VIT', 'VIT+STR'], shield: ['VIT', 'VIT+STR'],
+  sword: ['STR', 'STR+AGI'], greatblade: ['STR', 'STR+VIT', 'STR+AGI'], axe: ['STR', 'STR+VIT'], mace: ['STR', 'STR+VIT', 'INT+VIT'],
+  dagger: ['STR+DEX', 'DEX+AGI'], bow: ['DEX', 'DEX+AGI', 'DEX+LUK'], staff: ['INT', 'INT+LUK'], wand: ['INT', 'INT+LUK'],
+  greatshield: ['VIT', 'VIT+STR'], shield: ['VIT', 'VIT+STR', 'VIT+INT'],
 };
 
 test('the wheel: a weapon asks for its type\'s stat (main-line) or one of its main-and-secondary pairs, a skill for one or two neighbours, a mod for one', () => {

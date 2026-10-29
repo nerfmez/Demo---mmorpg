@@ -1045,7 +1045,12 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     if (T.tint) { mesh.material.color.setRGB(...T.tint); mesh.material.emissive.multiply(mesh.material.color); }
     tuckedShade(mesh.material, T.underCloth?.under ?? 0.3, T.underCloth?.depth ?? 0.05);
     hairShadeMaterial(mesh.material);
-    mesh.material.side = THREE.FrontSide; // Meshy marks it double-sided; the body is closed
+    // both sides: the head taken in under a hair style (fitHairToHead) steps inward between its
+    // corners, and the step faces turned away from the camera would otherwise be culled, opening holes
+    // at the hairline through which the background shows as pale slivers. The shadow keeps the back
+    // faces only, as before (Meshy marks it double-sided; the rest of the body is closed).
+    mesh.material.side = THREE.DoubleSide;
+    mesh.material.shadowSide = THREE.BackSide;
     if (T.faceShadow) {
       const follow = faceShadowMaterial(mesh.material, body.getObjectByName('Head'), T.faceShadow.bind, T.faceShadow);
       mesh.onBeforeRender = (renderer, scene, camera) => follow(camera);

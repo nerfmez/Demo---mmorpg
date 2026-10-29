@@ -223,6 +223,7 @@ function addStairs(blocks, f, map, rng) {
  * away (`broken`: the rubble props, [x, z, r]).
  */
 function addCurbs(top, side, map, f, poly, look, hole = false, broken = []) {
+  const stage = new Set(map.def.arena?.floors || []);
   if ((area(poly) > 0) === hole) poly = [...poly].reverse(); // the outward side faces away from the floor
   const width = f.kind === 'deep' ? 0.55 : 0.5;
   const yFloor = f.kind === 'deep' ? f.waterY + 0.25 : f.y;
@@ -239,6 +240,8 @@ function addCurbs(top, side, map, f, poly, look, hole = false, broken = []) {
     const probe = map.surfaceAt((ax + bx) / 2 + nx * 0.6, (az + bz) / 2 + nz * 0.6);
     // open where the floor goes on at its own level; none beside a flight of stairs (its cheek is the wall there)
     if (probe && probe.walkable && (Math.abs(probe.y - f.y) < 0.2 || probe.floor.shape === 'stairs')) { left = 0; continue; }
+    // the boss stage is fought in and out of its water: no edging stones between its floors
+    if (probe && stage.has(f.id) && stage.has(probe.floor.id)) { left = 0; continue; }
     // cut the edge into blocks: 0.8-1.4 m each, 0.07 m apart, 0.12-0.3 m above the floor
     let t = 0;
     while (t < l - 1e-3) {

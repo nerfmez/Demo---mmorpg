@@ -684,7 +684,8 @@ outline in `ink`. The cave is dark: the painted light is scaled by `dim`, the po
 attenuated light (a soft wrap), each surface kind may have its own `tints` (the cave rock is dark), and the glow
 pools on the floor use `look.glowPool` [opacity, size]. In Godot this is one `ShaderMaterial` with those uniforms
 (point lights through `LIGHT` in the light() function).
-The boss stage is `inside.arena` (written by `grotto-trace.py`): `floor`, middle `at`, `r`, `clear` (radius kept free of
+The boss stage is `inside.arena` (written by `grotto-trace.py`): the throne room and its dais are one open stage of
+stone (2.0) and wading water (floor 1.6), one step apart; `floors` lists them, `floor` is the dais, middle `at`, `r`, `clear` (radius kept free of
 blocking props), `boss` spot and `bossFacing` (toward the `entry` stair), and the `throne` (the pearl altar behind the boss).
 Spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
 

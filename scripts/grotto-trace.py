@@ -396,11 +396,25 @@ def break_floors(polys, sites, want, water, seed):
     return out
 
 
+# zones that `join` another are one open room with it (owner, 29 October 2026, the boss room:
+# "walk on the water, take out the rocks in the way"): the rocks the picture paints between them
+# and in their middle are closed over (`joinClose` px), so the room is one floor of stone and
+# water; each zone keeps its own part of it
+joined = {}
+for i, z in enumerate(zones):
+    if z.get('join'):
+        j = next(k for k, o in enumerate(zones) if o['id'] == z['join'])
+        zi, zj = (cv2.dilate((label == k).astype(np.uint8), ell(7)) for k in (i, j))
+        u = cv2.morphologyEx((zi | zj) & walk, cv2.MORPH_CLOSE, ell(z['joinClose'])) & (zi | zj)
+        u = fill_small_holes(u, 200000)
+        joined[i], joined[j] = u & zi, u & zj
+
+
 for i, z in enumerate(zones):
     # each zone reaches a few pixels past its edge, so two zones on one level overlap instead of
     # leaving a hairline of void between their outlines
     zm = cv2.dilate((label == i).astype(np.uint8), ell(7))
-    area = zm & walk
+    area = joined.get(i, zm & walk)
     if z.get('round'):
         # a walled room: the rocks and props painted over the floor's edge would leave notches
         # and fingers in its walls, so the outline is rounded over them (`round` px across)
@@ -761,52 +775,64 @@ def edge_dist(q, rings):
 arena = None
 A = CFG.get('arena')
 if A:
-    af = next(f for f in floors if f['shape'] == 'poly' and f['id'].startswith(A['zone'] + '-'))
-    rings = [af['pts'], *af.get('holes', [])]
-    on_stage = lambda q: on_floor(q[0], q[1], af)
-    xs, zs = [q[0] for q in af['pts']], [q[1] for q in af['pts']]
-    best = (0, None)
-    for i in range(int((max(xs) - min(xs)) / 0.5) + 1):
-        for j in range(int((max(zs) - min(zs)) / 0.5) + 1):
-            q = (min(xs) + i * 0.5, min(zs) + j * 0.5)
-            if on_stage(q):
-                d = edge_dist(q, rings)
-                if d > best[0]:
-                    best = (d, q)
-    R, (cx, cz) = best
-    entry = next(f for f in floors if f['shape'] == 'stairs' and abs(max(f['y0'], f['y1']) - af['y']) < 0.05 and edge_dist(f['b'], rings) < 3)
-    ex, ez = entry['b']
+    # the stage: the walkable floors of its zones together (the dais and the water round it)
+    stage = [f for f in floors if f['shape'] == 'poly' and f['kind'] in ('stone', 'shallow') and any(f['id'].startswith(zn + '-') for zn in A['zones'])]
+    seat = [f for f in stage if f['id'].startswith(A['zones'][0] + '-')]  # the throne stands on the first zone (the dais)
+    xs = [q[0] for f in stage for q in f['pts']]
+    zs = [q[1] for f in stage for q in f['pts']]
+    G, gx0, gz0 = 0.25, min(xs) - 1, min(zs) - 1
+    nx_, nz_ = int((max(xs) - gx0 + 1) / G) + 1, int((max(zs) - gz0 + 1) / G) + 1
+
+    def grid_of(fl):
+        m_ = np.zeros((nz_, nx_), np.uint8)
+        for f in fl:
+            cv2.fillPoly(m_, [np.array([[(q[0] - gx0) / G, (q[1] - gz0) / G] for q in f['pts']], np.int32)], 1)
+            for h in f.get('holes', []):
+                cv2.fillPoly(m_, [np.array([[(q[0] - gx0) / G, (q[1] - gz0) / G] for q in h], np.int32)], 0)
+        return m_, cv2.distanceTransform(m_, cv2.DIST_L2, 5) * G
+
+    st_m, st_d = grid_of(stage)
+    se_m, se_d = grid_of(seat)
+    cell = lambda q: (min(nz_ - 1, max(0, int((q[1] - gz0) / G))), min(nx_ - 1, max(0, int((q[0] - gx0) / G))))
+    on_stage = lambda q: bool(st_m[cell(q)])
+    edge = lambda q: float(st_d[cell(q)])
+    on_seat = lambda q: bool(se_m[cell(q)])
+    k = int(np.argmax(st_d))
+    cz, cx = gz0 + (k // nx_) * G, gx0 + (k % nx_) * G
+    R = float(st_d.flat[k])
+    level_ = seat[0]['y']
+    entry = min((f for f in floors if f['shape'] == 'stairs' and abs(max(f['y0'], f['y1']) - level_) < 0.5),
+                key=lambda f: math.hypot((f['b'] if f['y1'] > f['y0'] else f['a'])[0] - cx, (f['b'] if f['y1'] > f['y0'] else f['a'])[1] - cz))
+    ex, ez = entry['b'] if entry['y1'] > entry['y0'] else entry['a']
     dx, dz = cx - ex, cz - ez
     l = math.hypot(dx, dz) or 1
     dx, dz = dx / l, dz / l
-    # the throne: as far past the middle as leaves the altar clear of the rim
+    # the throne: on the dais, as far past the middle as leaves the altar clear of the dais's rim
     t = 0.0
-    while on_stage((cx + dx * (t + 0.5), cz + dz * (t + 0.5))) and edge_dist((cx + dx * (t + 0.5), cz + dz * (t + 0.5)), rings) > A['thronePad']:
+    while on_seat((cx + dx * (t + 0.5), cz + dz * (t + 0.5))) and float(se_d[cell((cx + dx * (t + 0.5), cz + dz * (t + 0.5)))]) > A['thronePad']:
         t += 0.5
     throne = [round(cx + dx * t, 2), round(cz + dz * t, 2)]
     boss = [round(throne[0] - dx * A['bossAhead'], 2), round(throne[1] - dz * A['bossAhead'], 2)]
     for q in props:
-        if q['type'] == 'rubble' or not on_stage(q['at']) or edge_dist(q['at'], rings) <= A['rim'] + 0.2:
+        if q['type'] in ('rubble', 'runeCircle') or not on_stage(q['at']) or math.hypot(q['at'][0] - cx, q['at'][1] - cz) > R - 0.35:
             continue
         if q['type'] == 'bigPearl':
             q['at'] = throne
             q['rot'] = round(math.atan2(-dx, -dz), 3)
             continue
-        # out along the line from the middle, to a stride in from the rim, never onto the entry
+        # out along the line from the middle to the edge of the open circle, never onto the entry or the throne
         ax, az = q['at'][0] - cx, q['at'][1] - cz
         ang = math.atan2(az, ax) if math.hypot(ax, az) > 0.5 else 0.0
         for turn in (0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05):
             ux, uz = math.cos(ang + turn), math.sin(ang + turn)
-            r = 0.0
-            while on_stage((cx + ux * (r + 0.25), cz + uz * (r + 0.25))) and edge_dist((cx + ux * (r + 0.25), cz + uz * (r + 0.25)), rings) > A['rim']:
-                r += 0.25
+            r = R - 0.3  # its body (up to ~1 m) stays outside the clear circle, its foot on the stage
             at = [round(cx + ux * r, 2), round(cz + uz * r, 2)]
             if math.hypot(at[0] - ex, at[1] - ez) > A['entryClear'] and math.hypot(at[0] - throne[0], at[1] - throne[1]) > A['entryClear']:
                 break
         q['at'] = at
     # a worn ring in the paving marks the stage (no collider)
     props.append({'type': 'runeCircle', 'at': [round(cx, 2), round(cz, 2)], 'scale': A['ring']})
-    arena = {'floor': af['id'], 'at': [round(cx, 2), round(cz, 2)], 'r': round(R, 1), 'clear': round(R - A['rim'], 1),
+    arena = {'floor': seat[0]['id'], 'floors': [f['id'] for f in stage], 'at': [round(cx, 2), round(cz, 2)], 'r': round(R, 1), 'clear': round(R - A['rim'], 1),
              'boss': boss, 'bossFacing': round(math.atan2(-dx, -dz), 3), 'throne': throne, 'entry': [round(ex, 2), round(ez, 2)]}
 
 # a waterfall pours from where the concept shows it, put on the real edge it pours over (and wider

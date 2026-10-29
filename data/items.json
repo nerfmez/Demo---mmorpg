@@ -2286,8 +2286,8 @@
       "labelTh": "VIT +{v}",
       "stat": "VIT",
       "growth": "attribute",
-      "min": 3,
-      "max": 8
+      "min": 2,
+      "max": 5
     },
     "agi_flat": {
       "label": "+{v} Agility",
@@ -2309,15 +2309,15 @@
       "label": "+{v}% crit damage",
       "labelTh": "แรงคริ +{v}%",
       "stat": "critMultPct",
-      "min": 5,
-      "max": 12
+      "min": 8,
+      "max": 20
     },
     "crit_pct": {
       "label": "+{v}% crit chance",
       "labelTh": "โอกาสคริติคอล +{v}%",
       "stat": "critChancePct",
-      "min": 1,
-      "max": 4
+      "min": 2,
+      "max": 6
     },
     "hp_flat": {
       "label": "+{v} Max HP",
@@ -2386,6 +2386,7 @@
       "label": "{v}% life leech",
       "labelTh": "ดูดเลือด {v}%",
       "stat": "leechPct",
+      "growth": "fixed",
       "min": 1,
       "max": 2
     },
@@ -2482,10 +2483,11 @@
       "S": [0.7, 1]
     },
     "optionLevelGrowth": {
-      "_doc": "Per item level above 1. flat: 0.146 matches handRules.reference (perItemLevel / base), so a flat option keeps its share of a weapon's base stats (about 3.9x at item level 21). percent (a stat ending in Pct): about 1.5x at item level 21, so percentages stay modest.",
+      "_doc": "Per item level above 1. flat: 0.146 matches handRules.reference (perItemLevel / base), so a flat option keeps its share of a weapon's base stats (about 3.9x at item level 21). percent (a stat ending in Pct): about 1.5x at item level 21, so percentages stay modest. attribute (+STR ... +LUK): 0.05, so stat options reach about 2x at 21 and 4.5x at 70. fixed: no growth (life leech, which a small number already makes strong).",
       "flat": 0.146,
       "percent": 0.025,
-      "attribute": 0.05
+      "attribute": 0.05,
+      "fixed": 0
     },
     "colors": {
       "C": "#718396",

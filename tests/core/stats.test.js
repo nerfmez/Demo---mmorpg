@@ -16,13 +16,15 @@ const WHEEL = data.progression.character.statWheel;
 // staves and wands never ask for VIT: a priest's VIT comes from a holy mace (INT/VIT) or a shield (VIT/INT)
 const WEAPON_STATS = {
   sword: ['STR', 'STR+AGI'], greatblade: ['STR', 'STR+VIT', 'STR+AGI'], axe: ['STR', 'STR+VIT'], mace: ['STR', 'STR+VIT', 'INT+VIT'],
-  dagger: ['STR+DEX', 'DEX+AGI'], bow: ['DEX', 'DEX+AGI', 'DEX+LUK'], staff: ['INT', 'INT+LUK'], wand: ['INT', 'INT+LUK'],
+  dagger: ['STR+DEX', 'DEX+AGI'], bow: ['DEX', 'DEX+AGI', 'DEX+LUK'], staff: ['INT', 'INT+LUK'], wand: ['INT', 'INT+LUK', 'INT+DEX'],
   greatshield: ['VIT', 'VIT+STR'], shield: ['VIT', 'VIT+STR', 'VIT+INT'],
 };
 
 test('the wheel: a weapon asks for its type\'s stat (main-line) or one of its main-and-secondary pairs, a skill for one or two neighbours, a mod for one', () => {
   assert.deepEqual([...WHEEL].sort(), ['AGI', 'DEX', 'INT', 'LUK', 'STR', 'VIT']);
-  const near = (a, b) => [1, WHEEL.length - 1].includes(Math.abs(WHEEL.indexOf(a) - WHEEL.indexOf(b)));
+  // neighbours, or one of the two pairs that skip a stat (STR/DEX daggers, INT/DEX marksman casters)
+  const cross = data.progression.character.crossPairs.map((p) => [...p].sort().join());
+  const near = (a, b) => [1, WHEEL.length - 1].includes(Math.abs(WHEEL.indexOf(a) - WHEEL.indexOf(b))) || cross.includes([a, b].sort().join());
   const bad = [];
   for (const [id, d] of Object.entries(data.skills.combat)) {
     const k = Object.keys(skillRequires(data, d, 30));

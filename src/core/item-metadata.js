@@ -23,6 +23,7 @@ export function optionClass(base) {
   if (base.slot === 'offhand') return 'shield';
   if (base.slot === 'weapon') {
     if (base.weaponType === 'mace') return base.requirementStat === 'INT' ? 'priest' : 'heavy';
+    if (base.weaponType === 'wand' && base.secondaryStat === 'DEX') return 'wand_dex'; // a marksman's wand (INT/DEX)
     return ['greatblade', 'axe'].includes(base.weaponType) ? 'heavy' : base.weaponType;
   }
   return { VIT: 'plate', AGI: 'leather', INT: 'cloth' }[base.requirementStat];

@@ -998,7 +998,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": ["magic_flat", "spell_pct", "crit_pct", "crit_mult_pct", "cdr_pct", "summon_pct", "mp_regen_pct", "int_flat", "luk_flat"]
+      "optionPool": ["magic_flat", "spell_pct", "projectile_pct", "crit_mult_pct", "cdr_pct", "mp_regen_pct", "int_flat", "dex_flat"]
     },
     "ranger_axe": {
       "type": "gear",

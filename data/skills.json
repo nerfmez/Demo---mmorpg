@@ -129,7 +129,7 @@
       "castTime": 0.2,
       "cost": 26,
       "element": "arcane",
-      "requires": { "INT": 3 },
+      "requires": { "INT": 3, "DEX": 2 },
       "upgradeMaterial": "glow_dust",
       "icon": "fire",
       "upgradeStat": "INT",

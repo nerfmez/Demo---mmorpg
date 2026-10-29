@@ -117,6 +117,20 @@ def polygons(mask, min_area, min_hole):
 
 
 floors = []
+
+
+def shapes_mask(shapes):
+    """Hand-drawn stone: polygons, and ellipses {c, r: [rx, ry]}, in concept pixels."""
+    out = np.zeros_like(walk)
+    for sh in shapes:
+        if 'ellipse' in sh:
+            (cx, cy), (rx, ry) = sh['ellipse'], sh['r']
+            cv2.ellipse(out, (int(cx), int(cy)), (int(rx), int(ry)), 0, 0, 360, 1, -1)
+        else:
+            cv2.fillPoly(out, [np.array(sh['poly'], np.int32)], 1)
+    return out
+
+
 for i, z in enumerate(zones):
     # each zone reaches a few pixels past its edge, so two zones on one level overlap instead of
     # leaving a hairline of void between their outlines
@@ -145,7 +159,17 @@ for i, z in enumerate(zones):
             f['walls'] = True  # its edges to the void get the modelled cave wall (grotto-cave.py)
         floors.append(f)
     if wet:
-        for n, (pts, holes) in enumerate(polygons(zm & stone_c, 700, 900)):
+        raised = zm & stone_c
+        if z.get('round'):
+            # the walkways and platforms in the water, rounded the same way over the props painted on them
+            r = max(9, z['round'] // 3) | 1
+            raised = cv2.morphologyEx(raised, cv2.MORPH_CLOSE, ell(r)) & zm
+            raised = cv2.morphologyEx(raised, cv2.MORPH_OPEN, ell(max(5, r // 2) | 1))
+            raised = fill_small_holes(raised, 3000)
+        if z.get('stone'):
+            # where the picture's stone is too broken up by its ruins to trace, it is drawn by hand
+            raised = shapes_mask(z['stone']) & zm
+        for n, (pts, holes) in enumerate(polygons(raised, 700, 900)):
             f = {'id': f"{z['id']}-stone-{n}", 'kind': 'stone', 'shape': 'poly', 'y': z['y'], 'pts': pts}
             if holes:
                 f['holes'] = holes
@@ -160,13 +184,23 @@ def facing(at, face):
     return round(math.atan2(b[0] - a[0], b[1] - a[1]), 3)
 
 
-# a prop the picture shows at the very rim moves onto the traced floor (wall props stay in the wall)
-walk_pts = np.argwhere(cv2.erode(walk, ell(9)) == 1)  # (y, x), a little inside the edge
+# a prop the picture shows at the very rim moves onto the floor as written (wall props stay in the
+# wall): the floors' own outlines, drawn back into pixels (small pieces of a zone are dropped)
+final = np.zeros_like(walk)
+px = lambda q: [round(q[0] / sx + ox), round(q[1] / sz + oy)]
+for f in floors:
+    if f['shape'] != 'poly':
+        continue
+    cv2.fillPoly(final, [np.array([px(q) for q in f['pts']], np.int32)], 1)
+    for h in f.get('holes', []):
+        cv2.fillPoly(final, [np.array([px(q) for q in h], np.int32)], 0)
+inner = cv2.erode(final, ell(9))
+walk_pts = np.argwhere(inner == 1)  # (y, x), a little inside the edge
 
 
 def onto_floor(at):
     x, y = at
-    if walk[min(H - 1, y), min(W - 1, x)] and cv2.erode(walk, ell(9))[min(H - 1, y), min(W - 1, x)]:
+    if inner[min(H - 1, y), min(W - 1, x)]:
         return at
     d = (walk_pts[:, 0] - y) ** 2 + (walk_pts[:, 1] - x) ** 2
     k = int(np.argmin(d))

@@ -11,9 +11,12 @@ import { toonRamp, outlineMaterial } from '../toon.js';
 import { runeTexture, glowTexture, nacreTexture } from './textures.js';
 import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
 import { buildGiantClam } from './clam.js';
+import { GLOW_CORALS, glowCoralInstances } from './corals.js';
 import { glowField } from './glow.js';
 import { kitInstances } from './kit.js';
 
+// which of the painted corals (corals.js) a coral of the map's colour can be
+const GLOW_BY_COLOR = { '#b06cff': ['purple', 'bubbles'], '#4fd9ff': ['blue', 'teal'], '#ff6fd2': ['pink'], '#5f8cff': ['tubes', 'blue'] };
 const STONE = '#cdb995', STONE_DARK = '#a3937a', MOSS = '#55704c', WOOD = '#7a4a2c', GOLD = '#e7b64c';
 
 /** Collects world-space geometry per material key and merges it at the end. */
@@ -104,9 +107,10 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
 /**
  * Build every prop of one map, plus rim decor at `decor` edge points ({x, z, nx, nz, y} from
  * rim.js, kept off `keepClear` [x, z, r] spots). `kit` is the Blender kit, `clam` the painted giant
- * clam (clam.js). Returns {root, update(dt, t), shell}.
+ * clam (clam.js), `corals` the six painted glowing corals (corals.js), which grow in the cave rooms.
+ * Returns {root, update(dt, t), shell}.
  */
-export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null } = {}) {
+export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null } = {}) {
   const root = new THREE.Group();
   root.name = 'grotto-props';
   const batch = new Batch();
@@ -132,6 +136,14 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   const coralPut = new Map(); // `${colour}|${shape}` -> placements
   const putCoral = (color, shape, x, y, z, ry, s) => { const k = `${color}|${shape}`; if (!coralPut.has(k)) coralPut.set(k, []); coralPut.get(k).push({ x, y, z, ry, s }); };
   const halo = (x, y, z, size, color, alpha = 0.4) => glows.push({ x, y, z, size, color, alpha });
+  // the painted corals, by the colour a prop asks for; each placement gets its halo
+  const glowPut = new Map();
+  const putGlow = (color, x, y, z, ry, s) => {
+    const name = rng.pick(GLOW_BY_COLOR[color] || GLOW_BY_COLOR['#b06cff']), h = corals.get(name).height * s;
+    if (!glowPut.has(name)) glowPut.set(name, []);
+    glowPut.get(name).push({ x, y, z, ry, s });
+    halo(x, y + h * 0.55, z, h * 1.5, GLOW_CORALS[name].halo, 0.28);
+  };
   let shell = null;
 
   const groundY = (x, z) => map.surfaceAt(x, z)?.y ?? 0;
@@ -219,6 +231,10 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'coral': {
+        if (corals && map.surfaceAt(x, z)?.floor.style === 'cave') {
+          putGlow(p.color || '#b06cff', x, y - 0.05, z, rot + rng.range(-0.5, 0.5), s * rng.range(0.75, 0.95));
+          break;
+        }
         if (kit && map.surfaceAt(x, z)?.floor.style === 'cave') {
           const c = p.color || '#b06cff', sz = s * rng.range(1.3, 1.7);
           putCoral(c, rng.chance(0.5) ? 'coral_bush' : 'coral_fan', x, y - 0.05, z, rng.range(0, 6.28), sz);
@@ -414,6 +430,11 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     const roll = rng.next();
     if (roll > 0.2 || e.stairs || clear(e.x, e.z)) continue; // nothing grows on the treads
     const x = e.x - e.nx * 0.15, z = e.z - e.nz * 0.15, d = { x, y: e.y, z, rot: 0, s: 1 };
+    if (corals && e.style === 'cave') {
+      // in a cave the painted corals grow at the foot of the walls, fewer and fuller, facing the room
+      if (roll < 0.06) putGlow(rng.pick(palette), e.x - e.nx * 0.3, e.y - 0.1, e.z - e.nz * 0.3, Math.atan2(-e.nx, -e.nz) + rng.range(-0.5, 0.5), rng.range(0.6, 0.95));
+      continue;
+    }
     if (kit && e.style === 'cave') {
       // in a cave the modelled corals grow at the foot of the walls, fewer and fuller
       if (roll < 0.06) {
@@ -444,6 +465,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     inst.castShadow = false;
     root.add(inst);
   }
+  for (const [name, list] of glowPut) root.add(glowCoralInstances(corals, name, list));
   for (const sp of sprites) { sp.renderOrder = 5; root.add(sp); }
   if (glows.length) root.add(glowField(glows));
   return {

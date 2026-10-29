@@ -647,7 +647,11 @@ a water shader with the same uniforms, and `OmniLight3D`s. Rooms with `style: "c
 `public/models/grotto/grotto-cave.glb`, a render-only model that `scripts/blender/grotto-cave.py` builds
 in world metres from the floor outlines: per floor `cavefloor_<id>`, `cavewall_<id>` and `caverock_<id>`, with
 ambient occlusion baked into vertex colours. Import it as it is (`MeshInstance3D`s with a cel material
-that multiplies vertex colour); collision still comes from the floors, never from this mesh. See `docs/SHELL-GROTTO.md`.
+that multiplies vertex colour); collision still comes from the floors, never from this mesh. In those rooms the
+`coral` props and the corals at the foot of the walls are the painted corals of `public/models/grotto/glow-corals.glb`
+(`scripts/blender/grotto-corals.py`): per coral `coral_<name>_body`, cel-lit with half its own vertex colour added as
+emission, and `coral_<name>_glow`, unshaded vertex colour (tinted #d0d0d0), each standing on its own origin; place them
+with `MultiMeshInstance3D`s. A map colour picks the coral (`GLOW_BY_COLOR` in `src/render/grotto/props.js`). See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 

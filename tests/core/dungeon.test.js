@@ -136,3 +136,17 @@ test('the cave model was built from this map (rebuild: blender -b --python scrip
   assert.ok(caves.length > 0, 'the entrance is a cave');
   for (const f of caves) for (const part of ['cavefloor', 'cavewall', 'caverock']) assert.ok(nodes.has(`${part}_${f.id}`), `${part}_${f.id}`);
 });
+
+test('the painted corals hold a body and a glow for every coral the cave rooms grow (blender -b --python scripts/blender/grotto-corals.py)', () => {
+  // src/render/grotto/corals.js asks for these by name; one missing would leave a coral without its glow
+  const glb = readFileSync(new URL('../../public/models/grotto/glow-corals.glb', import.meta.url));
+  const gltf = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString());
+  const nodes = new Set(gltf.nodes.map((n) => n.name));
+  for (const name of ['purple', 'blue', 'teal', 'tubes', 'bubbles', 'pink']) {
+    for (const part of ['body', 'glow']) assert.ok(nodes.has(`coral_${name}_${part}`), `coral_${name}_${part}`);
+  }
+  // each stands on its own foot: the body starts at the floor (y = 0)
+  for (const m of gltf.meshes.filter((m) => m.name.endsWith('_body'))) {
+    assert.ok(Math.abs(gltf.accessors[m.primitives[0].attributes.POSITION].min[1]) < 0.01, `${m.name} stands on y = 0`);
+  }
+});

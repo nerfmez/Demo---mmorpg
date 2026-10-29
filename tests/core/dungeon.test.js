@@ -138,6 +138,31 @@ test('the old stone over the water has broken away: each break is wading water b
   }
 });
 
+test('the boss stage is an open level floor: nothing blocks its middle, the boss stands on it facing the entry, and it is reached', () => {
+  const a = FILE.inside.arena;
+  assert.ok(a, 'inside.arena');
+  const stage = inside.floors.find((f) => f.id === a.floor);
+  assert.ok(a.clear >= 8, `room to fight: ${a.clear} m clear`);
+  for (const [x, z] of [a.at, a.boss]) assert.equal(inside.surfaceAt(x, z)?.floor, stage, 'on the stage');
+  for (let k = 0; k < 16; k++) {
+    const t = (k / 16) * Math.PI * 2, x = a.at[0] + Math.cos(t) * (a.clear - 0.5), z = a.at[1] + Math.sin(t) * (a.clear - 0.5);
+    assert.equal(inside.surfaceAt(x, z)?.floor, stage, 'the clear circle is all stage floor');
+  }
+  for (const p of FILE.inside.props) {
+    const block = FILE.propTypes[p.type].block, r = (typeof block === 'number' ? block : 0) * (p.scale ?? 1);
+    if (!r || p.type === 'bigPearl') continue;
+    assert.ok(Math.hypot(p.at[0] - a.at[0], p.at[1] - a.at[1]) - r >= a.clear - 0.01, `${p.type} at ${p.at} stands in the arena`);
+  }
+  const throne = FILE.inside.props.find((p) => p.type === 'bigPearl' && Math.hypot(p.at[0] - a.throne[0], p.at[1] - a.throne[1]) < 0.01);
+  assert.ok(throne, 'the pearl altar is the throne behind the boss');
+  // the boss's body (bossSnail circles, its shell trailing behind it) stays clear of the altar
+  const reach = Math.max(...FILE.propTypes.bossSnail.block.map(([dx, dz, r]) => Math.hypot(dx, dz) + r));
+  assert.ok(Math.hypot(a.boss[0] - a.throne[0], a.boss[1] - a.throne[1]) > reach + FILE.propTypes.bigPearl.block * throne.scale, 'the boss stands clear of the altar');
+  const facing = [Math.sin(a.bossFacing), Math.cos(a.bossFacing)], toEntry = [a.entry[0] - a.boss[0], a.entry[1] - a.boss[1]];
+  assert.ok(facing[0] * toEntry[0] + facing[1] * toEntry[1] > 0, 'the boss faces the entry');
+  assert.ok(reachedNear('inside', a.at, 1) && reachedNear('inside', a.boss, 1), 'the stage is reached on foot');
+});
+
 test('paths are smoothed but keep their ends', () => {
   const p = smoothPath([[0, 0], [10, 0], [10, 10]]);
   assert.deepEqual(p[0], [0, 0]);

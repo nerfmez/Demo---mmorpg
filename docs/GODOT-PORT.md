@@ -683,7 +683,10 @@ game's grey stone (`sat`, `tint`, per-kind `gain`) and fading to `floor` below -
 outline in `ink`. The cave is dark: the painted light is scaled by `dim`, the point lights add `lamp` x their
 attenuated light (a soft wrap), each surface kind may have its own `tints` (the cave rock is dark), and the glow
 pools on the floor use `look.glowPool` [opacity, size]. In Godot this is one `ShaderMaterial` with those uniforms
-(point lights through `LIGHT` in the light() function). See `docs/SHELL-GROTTO.md`.
+(point lights through `LIGHT` in the light() function).
+The boss stage is `inside.arena` (written by `grotto-trace.py`): `floor`, middle `at`, `r`, `clear` (radius kept free of
+blocking props), `boss` spot and `bossFacing` (toward the `entry` stair), and the `throne` (the pearl altar behind the boss).
+Spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 

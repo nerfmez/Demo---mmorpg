@@ -183,6 +183,36 @@ test('the painted props hold every piece the map asks for (blender -b --python s
   assert.ok(byProp.get('candles').some((p) => p.kind === 'glow'), 'the candles have flames');
 });
 
+test('the textured monsters hold every part their idle motion moves (blender -b --python scripts/blender/grotto-monsters.py)', () => {
+  // src/render/grotto/monsters.js draws mon_<monster>_<part> (with its monster's texture) and moves these parts on their own
+  const glb = readFileSync(new URL('../../public/models/grotto/grotto-monsters.glb', import.meta.url));
+  const gltf = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString());
+  const parts = new Map();
+  for (const n of gltf.nodes) {
+    const m = /^mon_([a-z]+)_([a-z]+)$/.exec(n.name);
+    if (m) parts.set(`${m[1]}.${m[2]}`, gltf.accessors[gltf.meshes[n.mesh].primitives[0].attributes.POSITION]);
+  }
+  const want = { fish: ['body', 'tail', 'finl', 'finr'], slug: ['body', 'cerata', 'pearls'], clam: ['shell', 'eye', 'pearls'] };
+  for (const [mon, list] of Object.entries(want)) {
+    for (const part of list) assert.ok(parts.has(`${mon}.${part}`), `${mon} has its ${part}`);
+    // textured by Meshy: every part has its texture coordinates and a material with a picture
+    for (const n of gltf.nodes.filter((q) => q.name?.startsWith(`mon_${mon}_`))) {
+      const prim = gltf.meshes[n.mesh].primitives[0];
+      assert.ok(prim.attributes.TEXCOORD_0 !== undefined && gltf.materials[prim.material].pbrMetallicRoughness.baseColorTexture, `${n.name} is textured`);
+    }
+    // each stands on its own foot (y = 0), and is about as big as the hero or bigger
+    const acc = [...parts].filter(([k]) => k.startsWith(`${mon}.`)).map(([, a]) => a);
+    const low = Math.min(...acc.map((a) => a.min[1])), size = Math.max(...acc.map((a) => Math.max(a.max[0] - a.min[0], a.max[2] - a.min[2])));
+    assert.ok(Math.abs(low) < 0.01, `${mon} stands on y = 0 (${low})`);
+    assert.ok(size > 1.5, `${mon} is ${size} m across`);
+  }
+  // every monster the map places is one of them
+  const kinds = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam' };
+  const placed = FILE.inside.props.filter((p) => p.type in kinds);
+  assert.ok(placed.length >= 3, 'the monsters are placed');
+  for (const p of placed) assert.ok(inside.surfaceAt(...p.at), `${p.type} at ${p.at} is over a floor`);
+});
+
 test('the painted corals hold a body and a glow for every coral the cave rooms grow (blender -b --python scripts/blender/grotto-corals.py)', () => {
   // src/render/grotto/corals.js asks for these by name; one missing would leave a coral without its glow
   const glb = readFileSync(new URL('../../public/models/grotto/glow-corals.glb', import.meta.url));

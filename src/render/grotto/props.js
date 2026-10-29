@@ -13,6 +13,7 @@ import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.j
 import { buildGiantClam } from './clam.js';
 import { GLOW_CORALS, glowCoralInstances, coralPools } from './corals.js';
 import { paintedInstances } from './painted.js';
+import { buildMonster, idleMonster } from './monsters.js';
 import { glowField } from './glow.js';
 import { kitInstances } from './kit.js';
 
@@ -113,7 +114,7 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
  * `painted` the props from the owner's sheets (painted.js), which take the place of the simple ones.
  * Returns {root, update(dt, t), shell}.
  */
-export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null, painted = null } = {}) {
+export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null, painted = null, monsters = null } = {}) {
   const root = new THREE.Group();
   root.name = 'grotto-props';
   const batch = new Batch();
@@ -451,6 +452,31 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         snail.root.scale.setScalar(s);
         root.add(snail.root);
         animated.push((t, dt) => snail.update(dt, t));
+        break;
+      }
+      case 'pearlFish':
+      case 'pearlSlug':
+      case 'eyeClam': {
+        // the monsters from the owner's sheet (monsters.js), idling where they are put until they
+        // get their rules: the fish swims a slow loop above the water, the slug and the clam stay put
+        if (!monsters) break; // the model did not load: the page still works without it
+        const name = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam' }[p.type], g = buildMonster(monsters, name), phase = rng.range(0, 10);
+        g.scale.setScalar(s);
+        g.rotation.y = rot;
+        root.add(g);
+        const ground = map.surfaceAt(x, z);
+        if (name === 'fish') {
+          const water = ground ? ground.waterY ?? ground.y : y, r = 2.2 * s;
+          animated.push((t) => {
+            const a = t * 0.32 + phase;
+            g.position.set(x + Math.cos(a) * r, water + 0.9 * s + Math.sin(t * 1.4 + phase) * 0.12, z + Math.sin(a) * r);
+            g.rotation.y = -a; // along its loop
+            idleMonster(g, name, t, phase);
+          });
+        } else {
+          g.position.set(x, ground ? ground.y : y, z);
+          animated.push((t) => idleMonster(g, name, t, phase));
+        }
         break;
       }
       case 'giantClam': {

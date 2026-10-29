@@ -479,7 +479,7 @@
         "mp_on_hit"
       ],
       "upgradeMaterial": "wolf_fang",
-      "requirementStat": "AGI",
+      "requirementStat": "STR",
       "secondaryStat": "DEX",
       "itemLevel": 6
     },
@@ -1591,7 +1591,7 @@
       "nameTh": "มีดเปลือกปู",
       "slot": "weapon",
       "weaponType": "dagger",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -1805,8 +1805,8 @@
       "nameTh": "กริชพรานชายแดน",
       "slot": "weapon",
       "weaponType": "dagger",
-      "requirementStat": "AGI",
-      "secondaryStat": "DEX",
+      "requirementStat": "DEX",
+      "secondaryStat": "AGI",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -2125,8 +2125,8 @@
       "nameTh": "มีดแหลมแสงวิญญาณ",
       "slot": "weapon",
       "weaponType": "dagger",
-      "requirementStat": "AGI",
-      "secondaryStat": "DEX",
+      "requirementStat": "DEX",
+      "secondaryStat": "AGI",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -2294,7 +2294,7 @@
       "nameTh": "มีดเขี้ยวซากโบราณ",
       "slot": "weapon",
       "weaponType": "dagger",
-      "requirementStat": "AGI",
+      "requirementStat": "STR",
       "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",

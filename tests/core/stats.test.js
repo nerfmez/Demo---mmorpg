@@ -11,9 +11,15 @@ import { computeSkill, skillRequires, modRequires } from '../../src/core/skills.
 import { feedSkill } from '../../src/core/crafting.js';
 
 const WHEEL = data.progression.character.statWheel;
-const WEAPON_STAT = { sword: 'STR', greatblade: 'STR', axe: 'STR', mace: 'STR', dagger: 'AGI', bow: 'DEX', staff: 'INT', wand: 'INT', greatshield: 'VIT' };
+// what each weapon type may ask for (owner, 2026-10-29): the first is its main-line stat, the rest its
+// main-and-secondary pairs (daggers STR/DEX or DEX/AGI)
+const WEAPON_STATS = {
+  sword: ['STR', 'STR+AGI'], greatblade: ['STR', 'STR+VIT', 'STR+AGI'], axe: ['STR', 'STR+VIT'], mace: ['STR', 'STR+VIT'],
+  dagger: ['DEX', 'STR+DEX', 'DEX+AGI'], bow: ['DEX', 'DEX+AGI', 'DEX+LUK'], staff: ['INT', 'INT+LUK', 'INT+VIT'], wand: ['INT', 'INT+LUK', 'INT+VIT'],
+  greatshield: ['VIT', 'VIT+STR'], shield: ['VIT', 'VIT+STR'],
+};
 
-test('the wheel: a weapon asks for its type\'s stat (main-line) or that and a neighbour (main and secondary), a skill for one or two neighbours, a mod for one', () => {
+test('the wheel: a weapon asks for its type\'s stat (main-line) or one of its main-and-secondary pairs, a skill for one or two neighbours, a mod for one', () => {
   assert.deepEqual([...WHEEL].sort(), ['AGI', 'DEX', 'INT', 'LUK', 'STR', 'VIT']);
   const near = (a, b) => [1, WHEEL.length - 1].includes(Math.abs(WHEEL.indexOf(a) - WHEEL.indexOf(b)));
   const bad = [];
@@ -22,23 +28,19 @@ test('the wheel: a weapon asks for its type\'s stat (main-line) or that and a ne
     if (!k.length || k.length > 2 || (k.length === 2 && !near(...k)) || k[0] !== d.upgradeStat) bad.push(`skill ${id} ${k}`);
   }
   for (const [id, m] of Object.entries(data.mods.mods)) if (Object.keys(m.requires || {}).length > 1) bad.push(`mod ${id}`);
+  const typeOf = (b) => b.weaponType || 'shield';
   for (const [id, b] of Object.entries(data.items.gearBases)) {
     if (b.slot !== 'weapon' && b.slot !== 'offhand') continue;
-    // a main-line weapon asks for its type's stat; a main-and-secondary one adds a neighbour, never more
-    const want = [b.slot === 'offhand' ? 'VIT' : WEAPON_STAT[b.weaponType], ...(b.secondaryStat ? [b.secondaryStat] : [])];
-    if (b.secondaryStat && !near(...want)) bad.push(`gear ${id} secondary ${b.secondaryStat} is not next to ${want[0]}`);
+    const allowed = WEAPON_STATS[typeOf(b)];
     if (b.starter && b.secondaryStat) bad.push(`gear ${id}: a starter weapon is main-line`);
     for (const grade of ['C', 'S']) {
       const r = gearRequirements({ uid: 1, base: id, grade, upgrade: 0, options: [] }, data), k = Object.keys(r);
-      if (k.join() !== want.join()) bad.push(`gear ${id} ${k} (want ${want})`);
+      if (!allowed.includes(k.join('+')) || (k.length === 1 && k[0] !== allowed[0])) bad.push(`gear ${id} ${k} (allowed ${allowed})`);
       else if (k.length === 2 && !(r[k[0]] > r[k[1]])) bad.push(`gear ${id}: the main stat asks for more`);
     }
   }
   const types = Object.values(data.items.gearBases).filter((b) => b.slot === 'weapon' || b.slot === 'offhand');
-  for (const t of new Set(types.map((b) => b.weaponType || 'shield'))) {
-    const of = types.filter((b) => (b.weaponType || 'shield') === t);
-    if (!of.some((b) => !b.secondaryStat)) bad.push(`${t} has no main-line weapon`);
-  }
+  for (const t of new Set(types.map(typeOf))) if (!types.some((b) => typeOf(b) === t && !b.secondaryStat)) bad.push(`${t} has no main-line weapon`);
   assert.deepEqual(bad, []);
 });
 

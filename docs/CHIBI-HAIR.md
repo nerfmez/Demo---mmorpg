@@ -32,8 +32,11 @@ How the hero's hair styles (`data/models.json` `characters.hero_chibi_hair_<styl
 The hair is painted light grey; `hairColorMaterial` draws it flat in the look's `hair` colour (no
 soft light or gloss: lit, the generated paint reads as plastic), darkened only along its painted
 strand lines and by one hard cel shadow tone.
-`fitHairToHead` also marks the head under the hair (`underHair`), drawn in the hair's shade, so a
-gap left between locks shows dark hair, not the scalp.
+`fitHairToHead` also draws the hair's triangles into a map of the directions it covers from the
+head's middle; the head (`underHair`) is drawn in the hair's shade per pixel where that map says
+hair, so a gap left between locks shows dark hair, not the scalp, and the shade ends with the hair,
+not along the head's triangles. The head's split seam vertices move together, and the head is drawn
+on both sides, so no crack or step under the hair opens a pale hole.
 
 ## A face
 

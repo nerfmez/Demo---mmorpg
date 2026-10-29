@@ -533,11 +533,18 @@ chosen (`render/models.js` `chibiHair`). Each is fitted to the chibi head once p
 (`chibi-body.js` `fitHairToHead`, with `fit.tuck`, and `fit.tilt` leaning it back): seen from the
 head's middle, a lock inside the face (`hero_chibi.face`) moves out over it, and the rest of the head
 (the ears under a hair that covers them, `hero_chibi.ears`, and the skin just under the head joint)
-moves in under the hair, so the head never shows through any hair. The head under the hair, and the
-head and forehead round a small gap in it, is drawn in the hair's shade (the body's `underHair`
-vertex attribute, `hairShadeMaterial`: 0.3 of the hair colour), so a gap between locks reads as hair
-in shadow, never as scalp. In Godot, run the same fit once when the look is chosen and keep the moved
-hair and body meshes (and that attribute, e.g. in a vertex colour channel). The hair is tinted to the
+moves in under the hair, so the head never shows through any hair. The head's vertices at one place
+(split along its texture seams) move as one, so no seam opens. The head is drawn on both sides (its
+steps inward under the hair would otherwise open holes at the hairline); its shadow keeps the back
+faces. The head under the hair is drawn in the hair's shade (0.3 of the hair colour,
+`hairShadeMaterial`), decided per pixel: the hair's triangles are drawn once into a 96 x 48 map of
+the directions they cover from the head's middle (red: closed over gaps up to 2 cells, so a gap
+between locks reads as hair in shadow, never as scalp; green: the hair's own directions, for the
+forehead, whose skin shows between the fringe's locks), and each pixel of the head looks its own
+direction up in it, so the shade ends where the hair does, not along the head's large triangles. The
+body's `underHair` vertex attribute picks the map (1 red, 0.5 green, 0 none). In Godot, run the same
+fit once when the look is chosen and keep the moved hair and body meshes, that attribute (e.g. in a
+vertex colour channel), the direction map (a texture) and the mesh-to-head-middle transform. The hair is tinted to the
 look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`) and drawn flat, as the
 owner's sheet draws it (`hairColorMaterial`): no soft light, gloss or rim, only one hard cel shadow
 tone (0.7 of the colour) where the sun does not reach it. Of the painted texture only its strand lines

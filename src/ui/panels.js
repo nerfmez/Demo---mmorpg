@@ -16,6 +16,7 @@ import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse } from '../core/character.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
+import { perkList } from '../core/stat-perks.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, feedSkill, upgradeMovement, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
@@ -335,12 +336,18 @@ export class Panels {
     const face = document.querySelector('#hud .pframe .portrait')?.style.backgroundImage || '';
     const level = (label, now, need, cls) => `<div class="pg-level ${cls}"><div><span>${label}</span><b>${ch[cls === 'job' ? 'jobLevel' : 'level']}</b></div>
       <i class="pg-bar"><i style="width:${Math.max(0, Math.min(100, now / Math.max(1, need) * 100))}%"></i></i><small>${now} / ${need}${cls === 'job' ? ' Job EXP' : ' EXP'}</small></div>`;
+    // stat thresholds (core/stat-perks.js): four chips per stat, tap one to read what they do
+    const perks = Object.fromEntries(perkList(data, d.stats || ch.stats).map((r) => [r.stat, r.perks]));
     const rows = STATS.map((s) => {
       const [name, eff] = STAT_TH[s].split(' · ');
       // the value counts gear and the Job Tree too (the bonus in brackets)
       const total = d.stats?.[s] ?? ch.stats[s], extra = total - ch.stats[s];
+      const open = this.sel.perkStat === s;
+      const chips = (perks[s] || []).map((p) => `<span class="pg-perk${p.active ? ' on' : ''}"><i>${p.at}</i>${esc(p.nameTh)}</span>`).join('');
+      const text = open ? `<div class="pg-perk-text">${(perks[s] || []).map((p) => `<p class="${p.active ? 'on' : ''}"><b>${p.at} · ${esc(p.nameTh)}</b> ${esc(p.descTh)}</p>`).join('')}</div>` : '';
       return `<div class="pg-stat"><span class="pg-ab">${s}</span><span class="pg-nm"><b>${name}</b><small>${eff}</small></span><b class="pg-v">${total}${extra ? `<small> (+${extra})</small>` : ''}</b>
-      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button></div>`;
+      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button>
+      <button class="pg-perks${open ? ' open' : ''}" data-act="stat-perks" data-stat="${s}" aria-expanded="${open}" aria-label="ความสามารถพิเศษ ${s}">${chips}</button>${text}</div>`;
     }).join('');
     const kv = (rows) => `<div class="pg-kv">${rows.filter(Boolean).map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
     const pct = (label, v) => (v ? [label, `+${v.toFixed(0)}%`] : null);
@@ -602,6 +609,9 @@ export class Panels {
       case 'stat':
         allocateStat(ch, t.dataset.stat);
         return this.changed();
+      case 'stat-perks':
+        this.sel.perkStat = this.sel.perkStat === t.dataset.stat ? null : t.dataset.stat;
+        return this.render();
       case 'respec-stats':
         if (respecStats(ch, data)) {
           const inactive=inactiveEquipment(ch,data);

@@ -153,7 +153,8 @@ test('phase 2c mods: poison shift, wide field, building power and momentum chang
   const pulse=(mods,held)=>{const {g,m,s}=fixture('flame_stream',mods);g.executeSkill(s,aim);const c=g.player.channeling;c.t=held;c.next=held;const hp=m.hp;tickFrontier(g,0);return hp-m.hp;};
   const early=pulse(['ramp_cast'],0),late=pulse(['ramp_cast'],3),plainHit=pulse([],0);assert.ok(early<plainHit,'starts weaker');assert.ok(late>plainHit,'grows past the plain channel');}
  // Momentum: the next cast within the window is quicker, once.
- {const {g,ch}=fixture('slash');ch.mods.push({id:'momentum',uid:950,level:1,grade:'C'});ch.movementMods=[950];g.refresh();g.player.movement.charges=2;
+ {const {g,ch}=fixture('slash');ch.mods.push({id:'momentum',uid:950,level:1,grade:'C'});ch.movementMods=[950];g.refresh();g.derived.perks=null;g.player.movement.charges=2; // AGI 50's own quick cast: stat-perks.test
+ 
   assert.ok(g.move.momentum);const normal=g.skills[0].castTime;assert.ok(g.useMovement());g.player.dash=null;
   assert.ok(g.castSlot(0));assert.ok(Math.abs(g.player.cast.total-normal/1.2)<1e-9);g.player.cast=null;g.player.cooldowns[0]=0;
   assert.ok(g.castSlot(0));assert.equal(g.player.cast.total,normal,'only the next cast');}

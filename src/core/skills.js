@@ -279,6 +279,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
   const control = 1 + (derived.controlDurationPct || 0) / 100;
   if (s.chill) s.chill.duration *= control;
   if (s.kind === 'curse_zone') s.duration *= control;
+  if (derived.perks?.dex_pierce && s.kind === 'projectile') s.pierce += derived.perks.dex_pierce.pierce; // DEX 150
   s.arc = Math.min(s.arc, 360);
   s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
   compileFrontier(s, def, activeMods);

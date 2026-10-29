@@ -473,5 +473,44 @@
         0.25
       ]
     }
+  },
+  "statPerks": {
+    "_doc": "Stat thresholds (owner, 2026-10-29): reaching 50/100/150/200 total points (trained + Job Tree + gear) in a stat unlocks a perk that changes behaviour, not just numbers. Rules in src/core/stat-perks.js; nameTh/descTh show on the stats page.",
+    "STR": [
+      {"id":"str_heavy","at":50,"nameTh":"หนักแน่น","descTh":"ทุกการโจมตีระยะประชิดครั้งที่ 4 เป็นท่าหนัก: แรงขึ้น 40% และทำให้ศัตรูชะงัก 0.4 วินาที","every":4,"mult":1.4,"stagger":0.4},
+      {"id":"str_crush","at":100,"nameTh":"ทุบทะลวง","descTh":"ตีศัตรูที่กำลังชะงักแรงขึ้น 25%","mult":1.25},
+      {"id":"str_quake","at":150,"nameTh":"แรงสะเทือน","descTh":"คริติคอลระยะประชิดส่งแรงกระแทก 30% ของดาเมจไปยังศัตรูรอบเป้าในรัศมี 2.5 เมตร","share":0.3,"radius":2.5},
+      {"id":"str_titan","at":200,"nameTh":"พลังยักษ์","descTh":"ท่าหนักมาทุกครั้งที่ 3 และทำให้บอสชะงัก 0.25 วินาที","every":3,"bossStagger":0.25}
+    ],
+    "AGI": [
+      {"id":"agi_rush","at":50,"nameTh":"ก้าวเร่ง","descTh":"หลังใช้สกิลเคลื่อนที่ สกิลถัดไปภายใน 2 วินาทีร่ายเร็วขึ้น 30%","window":2,"speed":0.3},
+      {"id":"agi_graze","at":100,"nameTh":"หลบเฉียด","descTh":"หลบการโจมตีด้วยสกิลเคลื่อนที่ได้ คืนจำนวนครั้งสกิลเคลื่อนที่ 1 ครั้ง (ทุก 4 วินาที)","cooldown":4},
+      {"id":"agi_extra","at":150,"nameTh":"ฝีเท้าเบา","descTh":"สกิลเคลื่อนที่ใช้ได้เพิ่ม 1 ครั้ง","charges":1},
+      {"id":"agi_shadow","at":200,"nameTh":"เงาตามติด","descTh":"หลบการโจมตีได้แล้ว การโจมตีครั้งถัดไปภายใน 2 วินาทีแรงเป็น 2 เท่า","window":2,"mult":2}
+    ],
+    "DEX": [
+      {"id":"dex_opener","at":50,"nameTh":"ตาเหยี่ยว","descTh":"การโจมตีแรกใส่ศัตรูที่เลือดเต็มติดคริติคอลเสมอ"},
+      {"id":"dex_range","at":100,"nameTh":"ยิงไกล","descTh":"กระสุนแรงขึ้น 1% ต่อทุกเมตรที่บิน สูงสุด 25%","perMetre":0.01,"max":0.25},
+      {"id":"dex_pierce","at":150,"nameTh":"ทะลวงเป้า","descTh":"กระสุนทะลุศัตรูเพิ่ม 1 ตัว","pierce":1},
+      {"id":"dex_mark","at":200,"nameTh":"จุดตาย","descTh":"คริติคอลแต่ละครั้งใส่เป้าเดิมเพิ่มแรงคริ 6% ซ้อนได้ 5 ชั้น","perStack":0.06,"stacks":5}
+    ],
+    "LUK": [
+      {"id":"luk_find","at":50,"nameTh":"โชคช่วย","descTh":"ศัตรูมีโอกาส 4% ดรอปคริสตัลสกิลเพิ่ม","chance":0.04,"item":"skill_crystal"},
+      {"id":"luk_escape","at":100,"nameTh":"รอดหวุดหวิด","descTh":"โดนตีจนตาย รอดด้วย HP 1 และอมตะ 1 วินาที (ทุก 90 วินาที)","invulnerable":1,"cooldown":90},
+      {"id":"luk_reset","at":150,"nameTh":"จังหวะดี","descTh":"ใช้สกิลแล้วมีโอกาส 8% คูลดาวน์รีเซ็ตทันที","chance":0.08},
+      {"id":"luk_jackpot","at":200,"nameTh":"แจ็กพอต","descTh":"คริติคอล 10% กลายเป็นแจ็กพอต แรงอีก 2 เท่า","chance":0.1,"mult":2}
+    ],
+    "INT": [
+      {"id":"int_return","at":50,"nameTh":"มานาคืน","descTh":"เวทที่โดนศัตรูคืน MP 15% ของค่าร่าย (ครั้งเดียวต่อการร่าย)","share":0.15},
+      {"id":"int_flow","at":100,"nameTh":"เกราะไหลเวียน","descTh":"เกราะเวทฟื้นเร็วขึ้น 2 เท่า และเริ่มฟื้นเร็วขึ้นครึ่งหนึ่ง","rate":2,"delay":0.5},
+      {"id":"int_echo","at":150,"nameTh":"เสียงสะท้อนเวท","descTh":"เวทโจมตีทุกครั้งที่ 5 ร่ายซ้ำเองอีกครั้งที่แรง 50%","every":5,"mult":0.5,"delay":0.4},
+      {"id":"int_focus","at":200,"nameTh":"จิตแน่วแน่","descTh":"ขณะ MP ตั้งแต่ 80% ขึ้นไป เวทแรงขึ้น 20%","mpPct":80,"mult":1.2}
+    ],
+    "VIT": [
+      {"id":"vit_second","at":50,"nameTh":"ลมหายใจที่สอง","descTh":"HP ต่ำกว่า 35% ฟื้น HP เร็วขึ้น 3 เท่า","hpPct":35,"mult":3},
+      {"id":"vit_iron","at":100,"nameTh":"ผิวเหล็ก","descTh":"ไม่โดนกระเด็น และโดนตีได้บาเรีย 3% ของ HP สูงสุด (ทุก 2 วินาที)","barrierPct":3,"cooldown":2,"duration":3},
+      {"id":"vit_bulwark","at":150,"nameTh":"กำแพงเนื้อ","descTh":"ขณะ HP มากกว่า 70% รับดาเมจลดลง 10%","hpPct":70,"taken":0.9},
+      {"id":"vit_undying","at":200,"nameTh":"ไม่ล้ม","descTh":"โดนตีจนตาย ฟื้น HP เป็น 30% แทน (ทุก 120 วินาที)","healPct":30,"cooldown":120}
+    ]
   }
 }

@@ -363,6 +363,11 @@ export class Hud {
       case 'dodge':
         this.float(e.x, 2.2, e.z, 'หลบ!', 'dodge');
         break;
+      case 'perk': { // a stat threshold perk went off (core/stat-perks.js): its name over the hero or target
+        const p = Object.values(d.progression.statPerks || {}).flat().find((q) => q.id === e.id);
+        if (p) this.float(e.x, 2.6, e.z, `${p.nameTh}!`, 'crit');
+        break;
+      }
       case 'heal':
         this.float(e.x, 2.2, e.z, `+${e.amount}`, 'heal');
         break;

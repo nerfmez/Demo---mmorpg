@@ -7,6 +7,7 @@ import { normalizeSkillGrowth } from './skill-growth.js';
 
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
+import { activePerks } from './stat-perks.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK']; // LUK: crit chance (DEX: crit damage)
 export const CHARACTER_VERSION = 18;
@@ -908,6 +909,10 @@ export function derive(ch, data) {
   // from gear, capped at hpRegenCapPct of max HP, so it keeps its worth as HP grows
   d.hpRegen = Math.min(d.maxHp * base.hpRegenCapPct / 100, d.hpRegen + d.maxHp * (base.hpRegenPct + d.hpRegenPct) / 100);
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
+  // stat thresholds (core/stat-perks.js): the perks the totals unlock, null when none
+  const perks = activePerks(data, stats);
+  d.perks = Object.keys(perks).length ? perks : null;
+  if (perks.agi_extra) d.extraMovementCharges += perks.agi_extra.charges; // after the caps: the perk is the reward
   d.critChance = Math.min(1, d.critChancePct / 100); // no design cap on crit chance (owner, 2026-10-25); 100% means every hit crits
   // crit chance past 100% turns into crit damage at a reduced rate, outside the crit damage caps (owner)
   d.critOverflowPct = Math.max(0, d.critChancePct - 100) * (pc.critOverflowToMultPct || 0);

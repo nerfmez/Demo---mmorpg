@@ -29,7 +29,8 @@ test('legacy small affix pools gain missing grade slots once without rerolling',
 test('power growth is bounded across independent sources; tank and speed caps are authoritative',()=>{
  const ch=createCharacter(data);ch.level=40;for(const stat in ch.stats)ch.stats[stat]=1000;
  ch.jobNodes=Object.keys(data.jobtree.nodes);const d=derive(ch,data),caps=data.progression.character.caps;
- for(const [stat,cap]of Object.entries(caps))assert.ok(cap<0?d[stat]>=cap:d[stat]<=cap,stat);
+ // the AGI 150 perk's extra movement charge is the one thing past a cap (core/stat-perks.js)
+ for(const [stat,cap]of Object.entries(caps))assert.ok(cap<0?d[stat]>=cap:d[stat]<=cap+(stat==='extraMovementCharges'?d.perks.agi_extra.charges:0),stat);
  const low=createCharacter(data);low.stats.STR=999;low.stats.AGI=999;low.skills.slash=1;const before=computeSkill(low,data,derive(low,data),0);low.skills.slash=25;const after=computeSkill(low,data,derive(low,data),0);
  assert.ok(Math.abs(after.damage/before.damage-1.24)<1e-8);
 });

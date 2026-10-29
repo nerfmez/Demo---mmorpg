@@ -9,6 +9,7 @@ import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expTo
 import { computeSkill, movementSkill } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
+import { perkSkillStart, perkSkillEnd, perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkDrops } from './stat-perks.js';
 import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
@@ -17,7 +18,7 @@ import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
 import { buyConsumable, restoreAmount, consumableCount, automaticPotion } from './consumables.js';
 
-const NO_CRIT = Object.freeze({ crit: false }); // Controlled Power (a mod): this skill never crits
+const NO_CRIT = Object.freeze({ crit: false, noCrit: true }); // Controlled Power (a mod): this skill never crits
 const PLAYER_RADIUS = 0.45;
 const POTION_GROUPS = ['hp', 'mp'];
 const PICKUP_RADIUS = 1.4;
@@ -50,6 +51,7 @@ export class Game {
     this.rng = createRng(seed);
     // LUK's lucky dodge rolls on its own stream, so adding it changes no other seeded roll
     this.luckRng = createRng((seed ^ 0x9e3779b9) >>> 0);
+    this.perkRng = createRng((seed ^ 0x2545f491) >>> 0); // stat perks (core/stat-perks.js), likewise apart
     this.time = 0;
     this.events = [];
     this.nextId = 1;
@@ -490,6 +492,7 @@ export class Game {
     if (clearOneShotManualAim) this.input.manualAim = false;
     p.mp -= counter ? 0 : s.cost;
     p.cooldowns[i] = s.cooldown;
+    perkCast(this, s, i);
     // proficiency (core/skill-growth.js): a cast in a fight counts at the skill's own pace
     const fightRange = this.data.progression.skillGrowth?.combatRange || 0;
     if (!counter && this.monsters.some((m) => !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) < fightRange)) {
@@ -616,6 +619,7 @@ export class Game {
     }
     // Momentum: the next cast soon after moving is quicker.
     if (mv.momentum) p.momentum = { until: this.time + mv.duration + mv.momentum.window, speed: mv.momentum.speed };
+    perkMovement(this, mv);
     this.emit({ type: 'movement', kind: mv.id, angle });
     return true;
   }
@@ -908,8 +912,12 @@ export class Game {
     const hpBefore = Math.max(0, m.hp);
     let dmg = adjustFrontierHit(this,m,amount,opts);
     if(m.dead)return 0;
-    const crit = opts.crit ?? false;
-    if (crit) dmg *= this.derived.critMult;
+    let crit = opts.crit ?? false;
+    // stat perks (core/stat-perks.js) on the hero's own skill hits
+    const perk = this.derived.perks && opts.skill && !opts.dot && !opts.byAlly ? perkHit(this, m, opts, crit) : null;
+    if (perk) { dmg *= perk.mult; crit = perk.crit; }
+    if (crit) dmg *= this.derived.critMult * (perk ? perk.critMult : 1);
+    const stagger = Math.max(opts.stagger || 0, perk?.stagger || 0);
     // Penetration ignores a share of the monster's defense.
     const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100) * (1 - (opts.modEffects?.penetrate || 0) / 100); // Piercing Line: a mod's own share
     if (!opts.dot) dmg *= defenseFactor(def, this.data);
@@ -923,12 +931,13 @@ export class Game {
     // a plain hit flinches a monster at most once per flinchLock (a heavy hit's own stagger always does),
     // so rapid light hits cannot hold it in place
     const combat = this.data.progression.combat;
-    if (!opts.dot && !m.boss && (opts.stagger || this.time >= (m.flinchReady || 0))) {
-      m.staggerT = Math.max(m.staggerT || 0, opts.stagger ?? combat?.stagger ?? 0.14);
-      if (!opts.stagger) m.flinchReady = this.time + (combat?.flinchLock || 0);
+    if (!opts.dot && !m.boss && (stagger || this.time >= (m.flinchReady || 0))) {
+      m.staggerT = Math.max(m.staggerT || 0, stagger || (combat?.stagger ?? 0.14));
+      if (!stagger) m.flinchReady = this.time + (combat?.flinchLock || 0);
     }
+    if (m.boss && perk?.bossStagger) m.staggerT = Math.max(m.staggerT || 0, perk.bossStagger);
     this.stats.damageDealt += dmg;
-    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!opts.stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
+    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
       if(!opts.byAlly&&!opts.secondary)this.player.lastHitTarget=m.id;
@@ -947,6 +956,7 @@ export class Game {
       if (opts.leech && !opts.byAlly) this.healPlayer((Math.min(dmg, hpBefore) * opts.leech) / 100, true);
       // an attack gains MP for each enemy it hits (s.mpOnHit: gear, the MP line, a mod)
       if (opts.mpOnHit && !opts.byAlly) this.player.mp = Math.min(manaLimit(this), this.player.mp + opts.mpOnHit);
+      if (perk) perkAfterHit(this, m, dmg, opts, crit);
     } else setAggro(this, m, this.player);
     if (m.hp <= 0) this.killMonster(m);
     return dmg;
@@ -976,6 +986,7 @@ export class Game {
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
     const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng, {}, m.worldId).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId);
+    if (this.derived.perks) drops.push(...perkDrops(this, m));
     drops.forEach((d, i) => {
       const a = (i / Math.max(1, drops.length)) * Math.PI * 2 + this.rng.range(0, 1);
       const r = this.rng.range(0.6, 1.4);
@@ -1032,15 +1043,18 @@ export class Game {
     if (p.dead) return 0;
     if (p.dash && p.dash.inv) {
       this.emit({ type: 'dodge', x: p.x, z: p.z });
+      perkDodge(this, true);
       return 0;
     }
+    if (perkInvulnerable(this)) return 0; // LUK's narrow escape
     // LUK: a lucky dodge, a monster hit that misses entirely (never damage over time)
     if (!opts.dot && this.derived.dodgeChancePct > 0 && this.luckRng.chance(this.derived.dodgeChancePct / 100)) {
       this.emit({ type: 'dodge', x: p.x, z: p.z, lucky: true });
+      perkDodge(this, false);
       return 0;
     }
     const guard=applyGuard(this,amount,source,opts);
-    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100) * buffTaken(p.buffs);
+    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100) * buffTaken(p.buffs) * perkTaken(this);
     let blocked = guard.guarded;
     // A shield blocks hits from in front only; ground hazards (no source) are never blocked.
     if (this.derived.blockChance > 0 && source && source.x !== undefined && !opts.unblockable) {
@@ -1063,11 +1077,12 @@ export class Game {
     const shielded = this.drainShield(dmg);
     dmg -= shielded;
     p.hp -= dmg;
+    perkAfterTaken(this, dmg); // VIT's barrier; a lethal hit may be survived
     if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;
     this.emit({ type: 'playerHit', amount: dmg, absorbed, shielded, blocked, x: p.x, z: p.z });
     if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
-    if (opts.knock && dmg > 0 && !Object.values(p.buffs).some((b) => b.steady)) {
+    if (opts.knock && dmg > 0 && !perkSteady(this) && !Object.values(p.buffs).some((b) => b.steady)) {
       this.cancelCharge();
       this.cancelChannel();
       const d = dirFromAngle(opts.knock.angle);
@@ -1118,7 +1133,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra, ...(s.noCrit ? NO_CRIT : null) };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1129,7 +1144,14 @@ export class Game {
   }
 
   /** Execute a computed skill. mult scales damage (triggers, echoes, repeats). */
-  executeSkill(s, aim, { mult = 1, triggered = false, repeat = 0, step = null } = {}) {
+  executeSkill(s, aim, opts = {}) {
+    // stat perks: a skill's own going-off counts STR's heavy blow and INT's echo; its hits that land
+    // now (melee) see the heavy flag, which ends with them
+    const outer = perkSkillStart(this, s, aim, !opts.triggered && !opts.repeat);
+    try { this.runSkill(s, aim, opts); } finally { perkSkillEnd(this, outer); }
+  }
+
+  runSkill(s, aim, { mult = 1, triggered = false, repeat = 0, step = null } = {}) {
     const p = this.player;
     mult *= this.playerDamageMult();
     const crit = () => this.rollCrit();
@@ -1445,11 +1467,12 @@ export class Game {
     }
     p.hurtT = Math.max(0, p.hurtT - dt);
     const inTown = this.isSafe(p.x, p.z);
-    p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen + (inTown ? p.maxHp * 0.08 : 0)) * dt);
+    p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen * perkRegen(this) + (inTown ? p.maxHp * 0.08 : 0)) * dt);
     p.mp = Math.min(manaLimit(this), p.mp + (this.derived.mpRegen + (inTown ? p.maxMp * 0.08 : 0)) * dt);
     const ss = this.data.progression.combat.spellShield;
     p.shieldIdle += dt;
-    if (p.shield < p.maxShield && p.shieldIdle >= ss.rechargeDelay) p.shield = Math.min(p.maxShield, p.shield + (p.maxShield * ss.rechargePctPerSecond / 100) * dt);
+    const flow = perkShield(this); // INT 100: sooner and faster
+    if (p.shield < p.maxShield && p.shieldIdle >= ss.rechargeDelay * (flow?.delay ?? 1)) p.shield = Math.min(p.maxShield, p.shield + (p.maxShield * ss.rechargePctPerSecond / 100) * (flow?.rate ?? 1) * dt);
     for (const k in p.itemCooldowns) p.itemCooldowns[k] = Math.max(0, p.itemCooldowns[k] - dt);
     for (let i = 0; i < p.cooldowns.length; i++) {
       p.cooldowns[i] = Math.max(0, p.cooldowns[i] - dt);
@@ -1785,7 +1808,7 @@ export class Game {
           if (dist(pr.x, pr.z, m.x, m.z) > m.r + pr.radius) continue;
           pr.hit.add(m.id);
           const s = pr.skill;
-          this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05 }));
+          this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05, travelled: dist(pr.startX, pr.startZ, pr.x, pr.z) }));
           this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
           if (pr.chain > 0) {
             const next = this.monsters

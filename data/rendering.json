@@ -22,7 +22,8 @@
     }
   },
   "nativeAntialias": true,
-  "dynamicResolution": {"enabled": true, "minScale": 0.95, "slowMs": 19.5, "vsyncSlack": 1.12, "stepDown": 0.025, "stepUp": 0.025, "settle": 1.5, "recover": 4},
+  "modelTextureMax": 1024,
+  "dynamicResolution": {"enabled": true, "minScale": 0.8, "slowMs": 19.5, "vsyncSlack": 1.12, "stepDown": 0.05, "stepUp": 0.025, "settle": 1.5, "recover": 4},
   "quality": {
     "low": {"pixelRatio": 1, "shadowMapSize": 0, "post": false},
     "medium": {"pixelRatio": 1.5, "shadowMapSize": 1024, "post": true},

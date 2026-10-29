@@ -4,8 +4,8 @@
     "rusty_sword": {
       "revision": "remake R1",
       "file": "models/weapons/rusty_sword.glb",
-      "sha256": "2d021e4f1a7766c502beb343908ad16a69fb51f703a81502d76cf12d0caf4065",
-      "bytes": 1335312,
+      "sha256": "a2032b136df611cacd9f70eac21b2a032273a2b7139a3493329264d40e15eb52",
+      "bytes": 630812,
       "tris": 5052,
       "materials": 1,
       "embeddedTextures": 2,
@@ -17,13 +17,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "2d021e4f1a7766c502beb343908ad16a69fb51f703a81502d76cf12d0caf4065",
+      "sourceBytes": 1335312,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "fang_bow": {
       "revision": "pair7 R1",
       "file": "models/weapons/fang_bow.glb",
-      "sha256": "ce6813a661eac99a50579b75a50d708ef52d6c373a659a92578d0d157a5ecaab",
-      "bytes": 1798328,
+      "sha256": "03efac44b0492de060ea7524cc4197dd4d5a97ee25daf74a079bd05fdf9ce271",
+      "bytes": 991704,
       "tris": 20996,
       "materials": 1,
       "embeddedTextures": 2,
@@ -35,13 +38,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "bow limbs Y, belly +Z"
+      "orientation": "bow limbs Y, belly +Z",
+      "sourceSha256": "ce6813a661eac99a50579b75a50d708ef52d6c373a659a92578d0d157a5ecaab",
+      "sourceBytes": 1798328,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "frontier_kris": {
       "revision": "pair8 R1",
       "file": "models/weapons/frontier_kris.glb",
-      "sha256": "055aa9bce459c35fdbe369b821117a5e646e219550434befec1570199481ef58",
-      "bytes": 2122152,
+      "sha256": "9b04079e7913875ff88ad8c9574a6eb3d2c6d6424c63356ac0ec80ebe4463334",
+      "bytes": 990552,
       "tris": 9646,
       "materials": 1,
       "embeddedTextures": 2,
@@ -53,13 +59,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "055aa9bce459c35fdbe369b821117a5e646e219550434befec1570199481ef58",
+      "sourceBytes": 2122152,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "fang_dagger": {
       "revision": "blade_detail_r4",
       "file": "models/weapons/fang_dagger.glb",
-      "sha256": "939f8a77f9f708f0ad18afdddd8d164e86dc92ecd3ae117c060032c0dcf3d743",
-      "bytes": 1533856,
+      "sha256": "42ede9c74817b82eb5ebb4941c732cbe04ebdf727e6ffce2f4504cb9535bacfe",
+      "bytes": 929624,
       "tris": 23610,
       "materials": 1,
       "embeddedTextures": 2,
@@ -71,13 +80,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "939f8a77f9f708f0ad18afdddd8d164e86dc92ecd3ae117c060032c0dcf3d743",
+      "sourceBytes": 1533856,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "hermit_cleaver": {
       "revision": "pair6_r1",
       "file": "models/weapons/hermit_cleaver.glb",
-      "sha256": "4a8c6f538e4e8a285cfee3f5c27313ddadbadfec98799325a2fcea2d780521cb",
-      "bytes": 2244960,
+      "sha256": "bacecb7f3429a5b25de949c8b1d96fac7ee2d74fd6455df4705ecbb4b915297f",
+      "bytes": 1038548,
       "tris": 12904,
       "materials": 1,
       "embeddedTextures": 2,
@@ -89,13 +101,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "4a8c6f538e4e8a285cfee3f5c27313ddadbadfec98799325a2fcea2d780521cb",
+      "sourceBytes": 2244960,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "spore_staff": {
       "revision": "pair7 R1",
       "file": "models/weapons/spore_staff.glb",
-      "sha256": "89b357acdca491e5383720963fb61ce08678cc5675cf172dad53ee1b33e42bce",
-      "bytes": 2451460,
+      "sha256": "f26b84200b5ac81b05432bc741f912cb5fa78e292a59770633884bfcc347c50c",
+      "bytes": 1408124,
       "tris": 26164,
       "materials": 1,
       "embeddedTextures": 2,
@@ -107,13 +122,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "89b357acdca491e5383720963fb61ce08678cc5675cf172dad53ee1b33e42bce",
+      "sourceBytes": 2451460,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "tide_staff": {
       "revision": "remake R1",
       "file": "models/weapons/tide_staff.glb",
-      "sha256": "19d3738ebced4bf7f3bc920b898f37d21aa2882af76b6d203f7e9dd1f311c48c",
-      "bytes": 2340576,
+      "sha256": "498b0dd72c6c7e7c024011854c711c338ceb7a97d2fd8d03f8e02f446f23801b",
+      "bytes": 1153036,
       "tris": 17740,
       "materials": 1,
       "embeddedTextures": 2,
@@ -125,13 +143,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "19d3738ebced4bf7f3bc920b898f37d21aa2882af76b6d203f7e9dd1f311c48c",
+      "sourceBytes": 2340576,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "tusk_greatblade": {
       "revision": "blade_detail_r4",
       "file": "models/weapons/tusk_greatblade.glb",
-      "sha256": "3a6a3722364567cfb99ed007ca92a69998be726a57c8d7cbb5feba9d68e587e6",
-      "bytes": 1982672,
+      "sha256": "31ebf44974beeec3b62df36690fbb46845dbd19c7a45e4b9f365c92e6a845fe9",
+      "bytes": 1138884,
       "tris": 27206,
       "materials": 1,
       "embeddedTextures": 2,
@@ -143,13 +164,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "3a6a3722364567cfb99ed007ca92a69998be726a57c8d7cbb5feba9d68e587e6",
+      "sourceBytes": 1982672,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "venom_wand": {
       "revision": "pair6_r1",
       "file": "models/weapons/venom_wand.glb",
-      "sha256": "8feafb42a7a8af044d6783884ebc0d58f2c0b63a6f5b0c834385191d040067a5",
-      "bytes": 1709180,
+      "sha256": "acfbd325c61dae7a80043648a5661f615d1773751b856b3b305bc4397b7f4771",
+      "bytes": 893328,
       "tris": 16008,
       "materials": 1,
       "embeddedTextures": 2,
@@ -161,13 +185,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "8feafb42a7a8af044d6783884ebc0d58f2c0b63a6f5b0c834385191d040067a5",
+      "sourceBytes": 1709180,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "old_bow": {
       "revision": "batch2_r1",
       "file": "models/weapons/old_bow.glb",
-      "sha256": "25b1ebc1d3e9a4f8a0ed7e54f422e36adaef69d93797aa3386ad9168ad0c1f4a",
-      "bytes": 2231076,
+      "sha256": "c02acf91613cc65cf638680cbe7dab5f277884d7513e45ac6216060f62d010b4",
+      "bytes": 795788,
       "tris": 9820,
       "materials": 1,
       "embeddedTextures": 2,
@@ -179,13 +206,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "bow limbs Y, belly +Z"
+      "orientation": "bow limbs Y, belly +Z",
+      "sourceSha256": "25b1ebc1d3e9a4f8a0ed7e54f422e36adaef69d93797aa3386ad9168ad0c1f4a",
+      "sourceBytes": 2231076,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "spore_wand": {
       "revision": "batch2_r1",
       "file": "models/weapons/spore_wand.glb",
-      "sha256": "55ba88ad2f3536e4d2593a7de59af5b150584d66b6a9b97b747661f5d3fe412c",
-      "bytes": 2637216,
+      "sha256": "dfe04a0142276aaee6fa0d7161612793b669020861d79e93886eee81a66495d7",
+      "bytes": 1202048,
       "tris": 33168,
       "materials": 1,
       "embeddedTextures": 2,
@@ -197,13 +227,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "55ba88ad2f3536e4d2593a7de59af5b150584d66b6a9b97b747661f5d3fe412c",
+      "sourceBytes": 2637216,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "tusk_blade": {
       "revision": "batch2_r1",
       "file": "models/weapons/tusk_blade.glb",
-      "sha256": "21be524a54bcbac4209a0d92294cd76e712c90f0f2b26d001331f2ebe3f46a1e",
-      "bytes": 1961488,
+      "sha256": "daeca6b925693612919db4fa0bf197d014f068b38074409bb81fbdea9a211dd2",
+      "bytes": 567264,
       "tris": 7376,
       "materials": 1,
       "embeddedTextures": 2,
@@ -215,13 +248,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "21be524a54bcbac4209a0d92294cd76e712c90f0f2b26d001331f2ebe3f46a1e",
+      "sourceBytes": 1961488,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "apprentice_staff": {
       "revision": "batch2_r1",
       "file": "models/weapons/apprentice_staff.glb",
-      "sha256": "24c2836a3dfb588e5942e3a9d33d3a4a68d27103d5d510de6fea49f9c7b4ca17",
-      "bytes": 2131268,
+      "sha256": "1a0213809dff038e7fcbc5da32723cf72064204ba4bb2eca15cd0c4fb002ab3f",
+      "bytes": 695976,
       "tris": 6156,
       "materials": 1,
       "embeddedTextures": 2,
@@ -233,13 +269,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "24c2836a3dfb588e5942e3a9d33d3a4a68d27103d5d510de6fea49f9c7b4ca17",
+      "sourceBytes": 2131268,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "hunter_bow": {
       "revision": "batch3_r1",
       "file": "models/weapons/hunter_bow.glb",
-      "sha256": "f63e421e3c2aa60e02c07e2555b6570efe126a5a4daea36e78d1aa07566e3976",
-      "bytes": 2167628,
+      "sha256": "a68a113f9c520ddabb6dd2106fc1cdcc836a55c0449e3825722a2066a1f321a8",
+      "bytes": 732460,
       "tris": 9784,
       "materials": 1,
       "embeddedTextures": 2,
@@ -251,13 +290,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "bow limbs Y, belly +Z"
+      "orientation": "bow limbs Y, belly +Z",
+      "sourceSha256": "f63e421e3c2aa60e02c07e2555b6570efe126a5a4daea36e78d1aa07566e3976",
+      "sourceBytes": 2167628,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "tusk_club": {
       "revision": "batch3_r1",
       "file": "models/weapons/tusk_club.glb",
-      "sha256": "8c405316470b24ac945f8495369203a052a1ffc85ae9ffd1c98ba1dba4f9ddd4",
-      "bytes": 2856900,
+      "sha256": "1218bcafacdfcf6b5bd99143fb4713e4e97ffffa125ad8044697147566226a1f",
+      "bytes": 1411104,
       "tris": 22224,
       "materials": 1,
       "embeddedTextures": 2,
@@ -269,13 +311,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "8c405316470b24ac945f8495369203a052a1ffc85ae9ffd1c98ba1dba4f9ddd4",
+      "sourceBytes": 2856900,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "shell_knife": {
       "revision": "R4",
       "file": "models/weapons/shell_knife.glb",
-      "sha256": "e3a4a26814f4fd40f97f3ac9743b5e5c9ee9d3fec7dd2fb928cf047a311db999",
-      "bytes": 1195576,
+      "sha256": "f6d52e35e106da691e607c324b125cf04b48ddbfac9fd372b1f0390c730d4266",
+      "bytes": 715012,
       "tris": 15318,
       "materials": 1,
       "embeddedTextures": 1,
@@ -287,7 +332,10 @@
         0
       ],
       "scale": 1,
-      "orientation": "game X right Y up Z forward; blades +Z, bow limbs Y"
+      "orientation": "game X right Y up Z forward; blades +Z, bow limbs Y",
+      "sourceSha256": "e3a4a26814f4fd40f97f3ac9743b5e5c9ee9d3fec7dd2fb928cf047a311db999",
+      "sourceBytes": 1195576,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "beetle_maul": {
       "revision": "R2",
@@ -328,8 +376,8 @@
     "wolfbite_sword": {
       "revision": "blade_detail_r4",
       "file": "models/weapons/wolfbite_sword.glb",
-      "sha256": "3a8d0b43ae90916f1bc920a74382cbff9fcfd414751bc2eecc23a1ad591a2a40",
-      "bytes": 1714200,
+      "sha256": "a160ecae1d946ca4d14c4798e69fb78f535109ae85f78095debab4e8c0001793",
+      "bytes": 1150532,
       "tris": 34544,
       "materials": 1,
       "embeddedTextures": 2,
@@ -341,13 +389,16 @@
         0
       ],
       "scale": 1,
-      "orientation": "length +Z"
+      "orientation": "length +Z",
+      "sourceSha256": "3a8d0b43ae90916f1bc920a74382cbff9fcfd414751bc2eecc23a1ad591a2a40",
+      "sourceBytes": 1714200,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "ranger_axe": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/ranger_axe.glb",
-      "sha256": "e11776677a594cdfe033b3c49abead2e2a28fb29b8dee182df209fee1e0305ab",
-      "bytes": 7698792,
+      "sha256": "3677d885820825b53734682b98f33f9d39178c2d8fae58a72af0e8d7414ac78f",
+      "bytes": 959632,
       "tris": 8426,
       "materials": 1,
       "embeddedTextures": 4,
@@ -366,13 +417,16 @@
         "scale": 0.43
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "e11776677a594cdfe033b3c49abead2e2a28fb29b8dee182df209fee1e0305ab",
+      "sourceBytes": 7698792,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "knight_greatsword": {
       "revision": "approved 2026-10-07 replacement",
       "file": "models/weapons/knight_greatsword.glb",
-      "sha256": "978c873ea6e25244a77df178669fd53855127fdbe2ea3d5c56dd75f548c66fcf",
-      "bytes": 8077804,
+      "sha256": "b1bc7700a4821c7f8bb9bf1914b624cd9476fbdbe5e171df8fe93f9e0654da63",
+      "bytes": 943056,
       "tris": 8425,
       "materials": 1,
       "embeddedTextures": 4,
@@ -391,13 +445,16 @@
         "scale": 1.55
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "978c873ea6e25244a77df178669fd53855127fdbe2ea3d5c56dd75f548c66fcf",
+      "sourceBytes": 8077804,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "tidecaller_staff": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/tidecaller_staff.glb",
-      "sha256": "0c7a8020d4283464c678261c0ada5d532eac358c0ce702df247371966dab4ed1",
-      "bytes": 10225972,
+      "sha256": "abc119d3755285e43022ee178bfc199030a1b52d69f24f247353e3da6b49f3d7",
+      "bytes": 1113492,
       "tris": 8622,
       "materials": 1,
       "embeddedTextures": 4,
@@ -416,13 +473,16 @@
         "scale": 0.82
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "0c7a8020d4283464c678261c0ada5d532eac358c0ce702df247371966dab4ed1",
+      "sourceBytes": 10225972,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "dusk_longbow": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/dusk_longbow.glb",
-      "sha256": "de87b45c534c91f06c825d06702624d65d698137636ff951779967800875966a",
-      "bytes": 8182592,
+      "sha256": "e0d2e9adabe23b3120ef78ac432717150a59639b640101f25fb6c6455202296d",
+      "bytes": 931248,
       "tris": 8114,
       "materials": 1,
       "embeddedTextures": 4,
@@ -441,13 +501,16 @@
         "scale": 0.48
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "de87b45c534c91f06c825d06702624d65d698137636ff951779967800875966a",
+      "sourceBytes": 8182592,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "greyfang_sabre": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/greyfang_sabre.glb",
-      "sha256": "a78d2df93046c898f39bb7d46e3b2639daed010ae934b17a04052c4b5a928117",
-      "bytes": 7917944,
+      "sha256": "525b18ca31ee0cee99e723939da1caedcbed85b02b43af59cb943e2f02b59862",
+      "bytes": 786248,
       "tris": 8691,
       "materials": 1,
       "embeddedTextures": 4,
@@ -466,13 +529,16 @@
         "scale": 0.44
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "a78d2df93046c898f39bb7d46e3b2639daed010ae934b17a04052c4b5a928117",
+      "sourceBytes": 7917944,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "wisp_staff": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/wisp_staff.glb",
-      "sha256": "f94f3a5bd9a77651d016171eacbfe2e66810105ed239e317a80c406ffcbbdaa9",
-      "bytes": 8680148,
+      "sha256": "39142dabf9d4b7e44e32fdb7fb160ca31494d75d6ebb58424d28b684923326a7",
+      "bytes": 961856,
       "tris": 8229,
       "materials": 1,
       "embeddedTextures": 4,
@@ -491,13 +557,16 @@
         "scale": 0.61
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "f94f3a5bd9a77651d016171eacbfe2e66810105ed239e317a80c406ffcbbdaa9",
+      "sourceBytes": 8680148,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "storm_bow": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/storm_bow.glb",
-      "sha256": "ea2a730f71ee4d292744b847bace7166f9e17fc618ba43134d4af4a7a84111e7",
-      "bytes": 10529532,
+      "sha256": "b689bf0806e8f7fd675ef51f92974c2f88c5a230ea99fb38f61bae394a91ce78",
+      "bytes": 1299960,
       "tris": 7003,
       "materials": 1,
       "embeddedTextures": 4,
@@ -516,13 +585,16 @@
         "scale": 0.48
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "ea2a730f71ee4d292744b847bace7166f9e17fc618ba43134d4af4a7a84111e7",
+      "sourceBytes": 10529532,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "stormglass_blade": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/stormglass_blade.glb",
-      "sha256": "afb5708ec921b674cfc9716ee095ad57c425fd864b63211af78361e5c05819b3",
-      "bytes": 10689960,
+      "sha256": "7646e8777eae95ee7e90047dadda36fff9434f484af189abd22dc36aa741a5bb",
+      "bytes": 1228808,
       "tris": 8587,
       "materials": 1,
       "embeddedTextures": 4,
@@ -541,13 +613,16 @@
         "scale": 0.43
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "afb5708ec921b674cfc9716ee095ad57c425fd864b63211af78361e5c05819b3",
+      "sourceBytes": 10689960,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "wisp_stiletto": {
       "revision": "approved 2026-10-07 replacement",
       "file": "models/weapons/wisp_stiletto.glb",
-      "sha256": "3ec0ff77e7ec9bad9a2a63538e95526e05889084d48c7d24e1a5d91331b15f56",
-      "bytes": 8682252,
+      "sha256": "9585c7c14e86d9d8c24c4bf2416a9f5b6f60e0159e7f1f82b354331f67f9d9f8",
+      "bytes": 988560,
       "tris": 8224,
       "materials": 1,
       "embeddedTextures": 3,
@@ -566,13 +641,16 @@
         "scale": 0.75
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "3ec0ff77e7ec9bad9a2a63538e95526e05889084d48c7d24e1a5d91331b15f56",
+      "sourceBytes": 8682252,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "lantern_wand": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/lantern_wand.glb",
-      "sha256": "0c91cd2e36ec90fd388dcf08ab02258c622f3e1602aaa926e2d825e35add0d9c",
-      "bytes": 9442860,
+      "sha256": "fc78b922bd8b2d4ca9a4b982e8917e31fb311c1b9a08318b79fd024cf211b923",
+      "bytes": 1140496,
       "tris": 7380,
       "materials": 1,
       "embeddedTextures": 4,
@@ -591,13 +669,16 @@
         "scale": 0.38
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "0c91cd2e36ec90fd388dcf08ab02258c622f3e1602aaa926e2d825e35add0d9c",
+      "sourceBytes": 9442860,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "thunder_maul": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/thunder_maul.glb",
-      "sha256": "dd514230f9b2b9ef0fe16eb919ede7f6af8aefb85d89f61c06ea08b410944e16",
-      "bytes": 7863232,
+      "sha256": "5df6a10c7152c5d767936a83b5eff7a39a8751da6c787cb0cbd9578d75f4d158",
+      "bytes": 1004684,
       "tris": 8096,
       "materials": 1,
       "embeddedTextures": 4,
@@ -616,13 +697,16 @@
         "scale": 0.46
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "dd514230f9b2b9ef0fe16eb919ede7f6af8aefb85d89f61c06ea08b410944e16",
+      "sourceBytes": 7863232,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "galebreaker": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/galebreaker.glb",
-      "sha256": "ca7e783b49b634529b0f3628610e687b94db9e678621f65e6b1e1a84bb9b4739",
-      "bytes": 9136672,
+      "sha256": "11443ace6cc42a87900949a48ee66496d163c16360b72e3909accf19b4f6b94c",
+      "bytes": 1095852,
       "tris": 8539,
       "materials": 1,
       "embeddedTextures": 4,
@@ -641,13 +725,16 @@
         "scale": 0.47
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "ca7e783b49b634529b0f3628610e687b94db9e678621f65e6b1e1a84bb9b4739",
+      "sourceBytes": 9136672,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "crag_axe": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/crag_axe.glb",
-      "sha256": "58e831ca1e373fc962148c5fdc279b548b5f8f4f6447eeb65703ffe816ae75db",
-      "bytes": 7304764,
+      "sha256": "f3a7386e37d19276d317d7ba5b730bf15b9a409ca42a43665947af756a4098b8",
+      "bytes": 856072,
       "tris": 8324,
       "materials": 1,
       "embeddedTextures": 4,
@@ -666,13 +753,16 @@
         "scale": 0.46
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "58e831ca1e373fc962148c5fdc279b548b5f8f4f6447eeb65703ffe816ae75db",
+      "sourceBytes": 7304764,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "horn_greatblade": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/horn_greatblade.glb",
-      "sha256": "8b46553fe92725d00c1c68d555cabd60e2b00d6520139c44af6d10c82de007b9",
-      "bytes": 8280604,
+      "sha256": "c4337781b3ed136a0c70ccd1ba50f959f970b5747a935368bc9e030c5309041f",
+      "bytes": 966536,
       "tris": 8042,
       "materials": 1,
       "embeddedTextures": 4,
@@ -691,13 +781,16 @@
         "scale": 0.55
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "8b46553fe92725d00c1c68d555cabd60e2b00d6520139c44af6d10c82de007b9",
+      "sourceBytes": 8280604,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "ancient_staff": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/ancient_staff.glb",
-      "sha256": "86df01ed16b2f2ea8e4ab22b60eba2c7610e606940d92c59bed385995d00ce10",
-      "bytes": 9929492,
+      "sha256": "fcb732d97d14c9debed90216288a140fb510adc9a317d7daed1505e204cf3a9d",
+      "bytes": 1164508,
       "tris": 8138,
       "materials": 1,
       "embeddedTextures": 4,
@@ -716,13 +809,16 @@
         "scale": 0.62
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "86df01ed16b2f2ea8e4ab22b60eba2c7610e606940d92c59bed385995d00ce10",
+      "sourceBytes": 9929492,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "oathblade": {
       "revision": "approved 2026-10-07 replacement",
       "file": "models/weapons/oathblade.glb",
-      "sha256": "8e30f1067fd272d3bad49571acc7b9b019a2b67662417f3b6cdd3f704a454ec2",
-      "bytes": 7459904,
+      "sha256": "5e62ea55114567a3104b22923021c275e59c29c3f7d246f41c58065d630015ef",
+      "bytes": 946116,
       "tris": 7301,
       "materials": 1,
       "embeddedTextures": 3,
@@ -741,13 +837,16 @@
         "scale": 1.16
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "8e30f1067fd272d3bad49571acc7b9b019a2b67662417f3b6cdd3f704a454ec2",
+      "sourceBytes": 7459904,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "ruin_fang": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/ruin_fang.glb",
-      "sha256": "f07013c17f10e4d8d2fd1c7623f9c3f875da0fb1f256e35969399bbc38b8736e",
-      "bytes": 8321480,
+      "sha256": "6d05141a20e49cf5bb98a028304a80ee5eb5e5856e16039d16efde6a2e6f739a",
+      "bytes": 932072,
       "tris": 8695,
       "materials": 1,
       "embeddedTextures": 4,
@@ -766,13 +865,16 @@
         "scale": 0.32
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "f07013c17f10e4d8d2fd1c7623f9c3f875da0fb1f256e35969399bbc38b8736e",
+      "sourceBytes": 8321480,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "relic_wand": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/relic_wand.glb",
-      "sha256": "3794ac66ab1acac96cfd585100a62f9f1535b1213fe3e83c5e5ac7295c7f529e",
-      "bytes": 8154132,
+      "sha256": "ebb7f69f1fc1acdedffd6a3fed705b2c651ec898d2bf26655727ac76b70fb61e",
+      "bytes": 1021060,
       "tris": 8559,
       "materials": 1,
       "embeddedTextures": 4,
@@ -791,13 +893,16 @@
         "scale": 0.33
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "3794ac66ab1acac96cfd585100a62f9f1535b1213fe3e83c5e5ac7295c7f529e",
+      "sourceBytes": 8154132,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     },
     "moonleaf_wand": {
       "revision": "approved 2026-10-07",
       "file": "models/weapons/moonleaf_wand.glb",
-      "sha256": "5923f2b9aee4aa2451edba7d36ccedf39b14171daf1b7756ae3256cf480e4476",
-      "bytes": 8794108,
+      "sha256": "b384d46490b7b9559eae7ebe094c46836f61657c9c9935c5b5aa7a550827bec2",
+      "bytes": 996640,
       "tris": 8788,
       "materials": 1,
       "embeddedTextures": 4,
@@ -816,7 +921,10 @@
         "scale": 0.34
       },
       "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
-      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved",
+      "sourceSha256": "5923f2b9aee4aa2451edba7d36ccedf39b14171daf1b7756ae3256cf480e4476",
+      "sourceBytes": 8794108,
+      "textureShrink": "scripts/shrink-model-textures.py: maps at most 1024 px (rendering.modelTextureMax), unused metal/roughness and occlusion maps removed; geometry byte-identical"
     }
   },
   "batchSourceMain": "f19aee9f6625188cef1c89adf82d28a4a25b0cc5"

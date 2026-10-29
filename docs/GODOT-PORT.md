@@ -435,6 +435,10 @@ Every model loaded through `render/models.js` (hero, outfits, hair, weapons, mon
 maps larger than `rendering.modelTextureMax` (1024) drawn down once on load: a 2048² map
 costs 22 MB of GPU memory and four of them helped push the iPad into a lost WebGL context.
 In Godot, set the import size limit on those textures to the same value.
+The weapon, outfit, hair and chibi hero GLBs themselves are stored at that size by
+`scripts/shrink-model-textures.py` (unused metal/roughness and occlusion maps removed,
+geometry byte-identical), so a weapon downloads about 1 MB instead of 7-11 MB.
+`docs/WEAPON-MODEL-PROVENANCE.json` keeps each weapon's original `sourceSha256`/`sourceBytes`.
 All 38 weapon bases are registered, and only current equipped/portrait weapons load on demand.
 The procedural shape in `equipment.js` remains the pending/failed-load fallback.
 The hero body is `public/models/hero_base.glb` (Meshy, auto-rigged, 24 Mixamo-like bones),

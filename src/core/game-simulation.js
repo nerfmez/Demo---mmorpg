@@ -9,7 +9,7 @@ import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expTo
 import { computeSkill, movementSkill } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
-import { perkSkillStart, perkSkillEnd, perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkDrops } from './stat-perks.js';
+import { perkSkillStart, perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkDrops } from './stat-perks.js';
 import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
@@ -492,7 +492,7 @@ export class Game {
     if (clearOneShotManualAim) this.input.manualAim = false;
     p.mp -= counter ? 0 : s.cost;
     p.cooldowns[i] = s.cooldown;
-    perkCast(this, s, i);
+    perkCast(this, s, i, counter ? 0 : s.cost);
     // proficiency (core/skill-growth.js): a cast in a fight counts at the skill's own pace
     const fightRange = this.data.progression.skillGrowth?.combatRange || 0;
     if (!counter && this.monsters.some((m) => !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) < fightRange)) {
@@ -919,7 +919,7 @@ export class Game {
     if (crit) dmg *= this.derived.critMult * (perk ? perk.critMult : 1);
     const stagger = Math.max(opts.stagger || 0, perk?.stagger || 0);
     // Penetration ignores a share of the monster's defense.
-    const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100) * (1 - (opts.modEffects?.penetrate || 0) / 100); // Piercing Line: a mod's own share
+    const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100) * (1 - (opts.modEffects?.penetrate || 0) / 100) * (1 - (perk?.penetrate || 0)); // Piercing Line: a mod's own share
     if (!opts.dot) dmg *= defenseFactor(def, this.data);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
     if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
@@ -1133,7 +1133,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, ...extra, ...(s.noCrit ? NO_CRIT : null) };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, heavy:s.perkHeavy, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1145,10 +1145,8 @@ export class Game {
 
   /** Execute a computed skill. mult scales damage (triggers, echoes, repeats). */
   executeSkill(s, aim, opts = {}) {
-    // stat perks: a skill's own going-off counts STR's heavy blow and INT's echo; its hits that land
-    // now (melee) see the heavy flag, which ends with them
-    const outer = perkSkillStart(this, s, aim, !opts.triggered && !opts.repeat);
-    try { this.runSkill(s, aim, opts); } finally { perkSkillEnd(this, outer); }
+    // stat perks: a skill's own going-off counts toward STR's heavy blow (a marked copy runs)
+    this.runSkill(this.derived.perks ? perkSkillStart(this, s, !opts.triggered && !opts.repeat) : s, aim, opts);
   }
 
   runSkill(s, aim, { mult = 1, triggered = false, repeat = 0, step = null } = {}) {
@@ -1808,7 +1806,7 @@ export class Game {
           if (dist(pr.x, pr.z, m.x, m.z) > m.r + pr.radius) continue;
           pr.hit.add(m.id);
           const s = pr.skill;
-          this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05, travelled: dist(pr.startX, pr.startZ, pr.x, pr.z) }));
+          this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05 }));
           this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
           if (pr.chain > 0) {
             const next = this.monsters

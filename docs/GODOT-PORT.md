@@ -217,15 +217,17 @@ wherever requirements are checked.
 Stat thresholds (owner, 2026-10-29): `progression.statPerks` lists, per stat, four perks at 50/100/150/200
 total points (`id`, `at`, `nameTh`, `descTh` and the perk's own numbers). `derive()` sets `d.perks` to the
 unlocked ones (`stat-perks.js activePerks`, null when none) and adds AGI 150's movement charge after the caps.
-`src/core/stat-perks.js` holds the rules as hooks the simulation calls: `perkSkillStart/End` around
-`executeSkill` (STR's every-Nth melee swing is heavy; INT's every 5th damaging spell goes off again later at
-half power), `perkHit` before crit in `hitMonster` for the hero's own skill hits (`hitOpts` now carries
-`tags`; projectiles pass `travelled`) and `perkAfterHit` after it (DEX crit marks on the monster
-`perkMarks`, STR's shockwave as `secondary` hits, INT's MP return once per cast), `perkCast` in `castSlot`
-(LUK's cooldown reset, INT's pending return), `perkMovement` in `useMovement`, `perkDodge` on a dodge,
-`perkInvulnerable`/`perkTaken`/`perkSteady`/`perkAfterTaken` in `damagePlayer` (VIT's barrier and the two
-lethal-hit saves), `perkRegen` and `perkShield` in `updatePlayer`, `perkDrops` in `killMonster`, and
-`computeSkill` adds DEX 150's pierce to projectiles. Timers and counters live on `player.perk`; rolls use
+`src/core/stat-perks.js` holds the rules as hooks the simulation calls. Every perk works for every skill
+and weapon (owner: a stat is used by several styles, so no perk helps only one). `executeSkill` asks
+`perkSkillStart` which skill to run: every Nth damaging cast (4th, 3rd at STR 200) runs as a copy marked
+`perkHeavy`, and `hitOpts` passes `heavy` (and `tags`) so arrows and areas carry it. `perkHit` runs before
+crit in `hitMonster` for the hero's own skill hits (also returns DEX's `penetrate`, applied to defense) and
+`perkAfterHit` after it (DEX crit marks `perkMarks` and exposure `perkExposedUntil` on the monster, STR's
+shockwave as `secondary` hits, INT's MP return once per cast), `perkCast(g, s, slot, paid)` in `castSlot`
+(INT's pending return and every 5th paid cast refunded, LUK's cooldown reset), `perkMovement` in
+`useMovement`, `perkDodge` on a dodge, `perkInvulnerable`/`perkTaken`/`perkSteady`/`perkAfterTaken` in
+`damagePlayer` (VIT's barrier and the two lethal-hit saves), `perkRegen` and `perkShield` in
+`updatePlayer`, `perkDrops` in `killMonster`. Timers and counters live on `player.perk`; rolls use
 `game.perkRng`, a stream of their own. Events: `{type:'perk', id, x, z}` (the HUD floats the name). In
 Godot keep one `StatPerks` script with the same hooks. Tested in `tests/core/stat-perks.test.js`.
 

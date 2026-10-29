@@ -32,44 +32,23 @@ const perk = (g, id) => g.derived.perks?.[id];
 
 /** The hero's perk timers and counters (kept on the player, made on first use). */
 function state(g) {
-  return (g.player.perk ||= { swings: 0, spells: 0, heavy: false, grazeReady: 0, shadowUntil: -1, invUntil: -1, escapeReady: 0, undyingReady: 0, ironReady: 0, refunds: {} });
+  return (g.player.perk ||= { swings: 0, casts: 0, grazeReady: 0, shadowUntil: -1, invUntil: -1, escapeReady: 0, undyingReady: 0, ironReady: 0, refunds: {} });
 }
 
 /**
- * A skill goes off (not a repeat, echo or trigger): STR counts melee swings for the heavy blow,
- * INT counts damaging spells for the echo. Returns the heavy flag of a skill this one went off inside,
- * for perkSkillEnd.
+ * A skill goes off (not a repeat, echo or trigger): STR counts attacks of every kind (melee, arrows,
+ * spells) and every Nth is heavy. Returns the skill to run: a heavy one is a copy marked `perkHeavy`,
+ * so its projectiles and areas carry the mark to wherever they land.
  */
-export function perkSkillStart(g, s, aim, counted) {
-  if (!g.derived.perks) return false;
-  const st = state(g), outer = st.heavy; // a skill set off inside another one's hits (a trigger) keeps that one's flag
-  st.heavy = false;
-  if (!counted) return outer;
+export function perkSkillStart(g, s, counted) {
   const heavy = perk(g, 'str_heavy');
-  if (heavy && has(s.tags, 'Melee')) {
-    st.swings++;
-    if (st.swings >= (perk(g, 'str_titan')?.every || heavy.every)) {
-      st.swings = 0;
-      st.heavy = true;
-      g.emit({ type: 'perk', id: 'str_heavy', x: g.player.x, z: g.player.z });
-    }
-  }
-  const echo = perk(g, 'int_echo');
-  if (echo && has(s.tags, 'Spell') && has(s.tags, 'Damage')) {
-    st.spells++;
-    if (st.spells >= echo.every) {
-      st.spells = 0;
-      const p = g.player;
-      g.emit({ type: 'perk', id: echo.id, x: p.x, z: p.z });
-      g.later(echo.delay, () => !p.dead && g.executeSkill(s, aim, { mult: echo.mult, repeat: 99 }));
-    }
-  }
-  return outer;
-}
-
-/** The skill's own hits are done: a heavy swing ends with them (the outer skill's flag comes back). */
-export function perkSkillEnd(g, outer) {
-  if (g.player.perk) g.player.perk.heavy = outer;
+  if (!counted || !heavy || !has(s.tags, 'Damage')) return s;
+  const st = state(g);
+  st.swings++;
+  if (st.swings < (perk(g, 'str_titan')?.every || heavy.every)) return s;
+  st.swings = 0;
+  g.emit({ type: 'perk', id: heavy.id, x: g.player.x, z: g.player.z });
+  return { ...s, perkHeavy: true };
 }
 
 /**
@@ -79,11 +58,10 @@ export function perkSkillEnd(g, outer) {
 export function perkHit(g, m, opts, crit) {
   const p = g.player, st = state(g);
   let mult = 1, critMult = 1, stagger = 0, bossStagger = 0;
-  const melee = has(opts.tags, 'Melee'), spell = has(opts.tags, 'Spell');
   // DEX 50: the opening hit on an untouched enemy always crits (a skill that never crits stays so)
   if (!crit && !opts.noCrit && perk(g, 'dex_opener') && m.hp >= m.maxHp) crit = true;
-  if (st.heavy && melee) {
-    const h = perk(g, 'str_heavy');
+  const h = opts.heavy && perk(g, 'str_heavy'); // an arrow in flight keeps its mark; the perk may be gone by then
+  if (h) {
     mult *= h.mult;
     stagger = h.stagger;
     bossStagger = perk(g, 'str_titan')?.bossStagger || 0;
@@ -94,10 +72,10 @@ export function perkHit(g, m, opts, crit) {
     mult *= shadow.mult;
     st.shadowUntil = -1;
   }
-  const range = perk(g, 'dex_range');
-  if (range && opts.travelled) mult *= 1 + Math.min(range.max, opts.travelled * range.perMetre);
+  const expose = perk(g, 'dex_expose');
+  if (expose && g.time < (m.perkExposedUntil ?? -1)) mult *= expose.mult;
   const focus = perk(g, 'int_focus');
-  if (focus && spell && p.mp >= (p.maxMp * focus.mpPct) / 100) mult *= focus.mult;
+  if (focus && p.mp >= (p.maxMp * focus.mpPct) / 100) mult *= focus.mult;
   if (crit) {
     const mark = perk(g, 'dex_mark');
     if (mark && m.perkMarks) critMult *= 1 + mark.perStack * m.perkMarks;
@@ -107,21 +85,23 @@ export function perkHit(g, m, opts, crit) {
       g.emit({ type: 'perk', id: jack.id, x: m.x, z: m.z });
     }
   }
-  return { mult, crit, critMult, stagger, bossStagger };
+  return { mult, crit, critMult, stagger, bossStagger, penetrate: perk(g, 'dex_armor')?.penetrate || 0 };
 }
 
-/** After the hero's own hit landed: DEX marks, STR's shockwave, INT's mana return. */
+/** After the hero's own hit landed: DEX marks and exposure, STR's shockwave, INT's mana return. */
 export function perkAfterHit(g, m, dmg, opts, crit) {
   const p = g.player, st = state(g);
   const mark = perk(g, 'dex_mark');
   if (mark && crit) m.perkMarks = Math.min(mark.stacks, (m.perkMarks || 0) + 1);
+  const expose = perk(g, 'dex_expose');
+  if (expose && crit) m.perkExposedUntil = g.time + expose.duration;
   const ret = st.refunds[opts.skill];
   if (ret) {
     delete st.refunds[opts.skill];
     p.mp = Math.min(manaLimit(g), p.mp + ret);
   }
   const quake = perk(g, 'str_quake');
-  if (quake && crit && has(opts.tags, 'Melee')) {
+  if (quake && crit) {
     g.emit({ type: 'perk', id: quake.id, x: m.x, z: m.z, radius: quake.radius });
     for (const o of g.monsters) {
       if (o === m || o.dead || o.targetable === false || dist(o.x, o.z, m.x, m.z) - o.r > quake.radius) continue;
@@ -130,12 +110,18 @@ export function perkAfterHit(g, m, dmg, opts, crit) {
   }
 }
 
-/** A cast was paid for (castSlot): LUK may reset its cooldown, INT readies the mana return. */
-export function perkCast(g, s, i) {
+/** A cast was paid for (castSlot): INT readies the mana return and every Nth is free, LUK may reset the cooldown. */
+export function perkCast(g, s, i, paid) {
   if (!g.derived.perks) return;
   const p = g.player, st = state(g);
   const ret = perk(g, 'int_return');
-  if (ret && has(s.tags, 'Spell') && s.cost > 0) st.refunds[s.id] = s.cost * ret.share;
+  if (ret && paid > 0) st.refunds[s.id] = paid * ret.share;
+  const free = perk(g, 'int_free');
+  if (free && paid > 0 && ++st.casts >= free.every) {
+    st.casts = 0;
+    p.mp = Math.min(manaLimit(g), p.mp + paid);
+    g.emit({ type: 'perk', id: free.id, x: p.x, z: p.z });
+  }
   const reset = perk(g, 'luk_reset');
   if (reset && p.cooldowns[i] > 0 && g.perkRng.chance(reset.chance)) {
     p.cooldowns[i] = 0;

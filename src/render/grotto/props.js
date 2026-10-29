@@ -11,12 +11,13 @@ import { toonRamp, outlineMaterial } from '../toon.js';
 import { runeTexture, glowTexture, nacreTexture } from './textures.js';
 import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
 import { buildGiantClam } from './clam.js';
-import { GLOW_CORALS, glowCoralInstances } from './corals.js';
+import { GLOW_CORALS, glowCoralInstances, coralPools } from './corals.js';
 import { glowField } from './glow.js';
 import { kitInstances } from './kit.js';
 
 // which of the painted corals (corals.js) a coral of the map's colour can be
 const GLOW_BY_COLOR = { '#b06cff': ['purple', 'bubbles'], '#4fd9ff': ['blue', 'teal'], '#ff6fd2': ['pink'], '#5f8cff': ['tubes', 'blue'] };
+const UNDERGROWTH = ['bubbles', 'tubes', 'teal', 'pink']; // the low kinds that fill in around a clump
 const STONE = '#cdb995', STONE_DARK = '#a3937a', MOSS = '#55704c', WOOD = '#7a4a2c', GOLD = '#e7b64c';
 
 /** Collects world-space geometry per material key and merges it at the end. */
@@ -136,13 +137,45 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   const coralPut = new Map(); // `${colour}|${shape}` -> placements
   const putCoral = (color, shape, x, y, z, ry, s) => { const k = `${color}|${shape}`; if (!coralPut.has(k)) coralPut.set(k, []); coralPut.get(k).push({ x, y, z, ry, s }); };
   const halo = (x, y, z, size, color, alpha = 0.4) => glows.push({ x, y, z, size, color, alpha });
-  // the painted corals, by the colour a prop asks for; each placement gets its halo
-  const glowPut = new Map();
-  const putGlow = (color, x, y, z, ry, s) => {
-    const name = rng.pick(GLOW_BY_COLOR[color] || GLOW_BY_COLOR['#b06cff']), h = corals.get(name).height * s;
+  // the painted corals grow in clumps, as reefs do: one big coral of the colour asked for, a few
+  // smaller ones of mixed kinds around its foot (along the wall when it grows at one), never two
+  // clumps on top of each other. The clump lights the floor around it (a flat pool, not a halo,
+  // which the floor and walls would cut into a disc).
+  const glowPut = new Map(), clumps = [], pools = [];
+  const putGlow = (name, x, y, z, ry, s) => {
     if (!glowPut.has(name)) glowPut.set(name, []);
     glowPut.get(name).push({ x, y, z, ry, s });
-    halo(x, y + h * 0.55, z, h * 1.5, GLOW_CORALS[name].halo, 0.28);
+  };
+  const clump = (color, x, y, z, ry, s, wall = null) => {
+    if (clumps.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < (r + 1.2 * s) ** 2)) return;
+    const kin = GLOW_BY_COLOR[color] || GLOW_BY_COLOR['#b06cff'], main = rng.pick(kin), big = corals.get(main);
+    putGlow(main, x, y, z, ry, s);
+    let reach = big.radius * s, left = reach, right = reach;
+    const n = rng.int(2, 4);
+    for (let i = 0; i < n; i++) {
+      const others = kin.filter((k) => k !== main); // a smaller copy of the big one beside it would read as a copy
+      const name = others.length && rng.chance(0.25) ? rng.pick(others) : rng.pick(UNDERGROWTH.filter((k) => k !== main)), c = corals.get(name);
+      const ks = s * rng.range(0.3, 0.65), r = c.radius * ks;
+      let px, pz;
+      if (wall) {
+        // beside the last one on this side, along the wall, a little in front of or behind the line
+        const side = i % 2 ? -1 : 1, d = (side > 0 ? right : left) + r * rng.range(0.6, 0.9);
+        if (side > 0) right = d + r; else left = d + r;
+        const out = rng.range(-0.35, 0.25);
+        px = x - wall[1] * side * d + wall[0] * out;
+        pz = z + wall[0] * side * d + wall[1] * out;
+      } else {
+        const a = rng.range(0, Math.PI * 2), d = reach * 0.8 + r * rng.range(0.6, 1.0);
+        px = x + Math.sin(a) * d;
+        pz = z + Math.cos(a) * d;
+      }
+      const ground = map.surfaceAt(px, pz);
+      putGlow(name, px, (ground ? ground.y : y + 0.05) - 0.05, pz, ry + rng.range(-0.9, 0.9), ks);
+    }
+    reach = Math.max(reach, left, right);
+    clumps.push([x, z, reach]);
+    const s0 = map.surfaceAt(x, z);
+    pools.push({ x, y: (s0 ? s0.y : y) + 0.16, z, r: reach + big.height * s * 0.3, color: GLOW_CORALS[main].halo });
   };
   let shell = null;
 
@@ -232,7 +265,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
       }
       case 'coral': {
         if (corals && map.surfaceAt(x, z)?.floor.style === 'cave') {
-          putGlow(p.color || '#b06cff', x, y - 0.05, z, rot + rng.range(-0.5, 0.5), s * rng.range(0.75, 0.95));
+          clump(p.color || '#b06cff', x, y - 0.05, z, rot + rng.range(-0.5, 0.5), s * rng.range(0.7, 1.05));
           break;
         }
         if (kit && map.surfaceAt(x, z)?.floor.style === 'cave') {
@@ -264,7 +297,9 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
           const a = (i / n) * Math.PI * 2 + rng.range(-0.3, 0.3), lean = i === 0 ? 0 : rng.range(0.25, 0.55), hh = (i === 0 ? 1.9 : rng.range(0.9, 1.5)) * s;
           batch.add(crystal, geo.octa, place({ ...base, s: 1 }, Math.cos(a) * 0.3 * (i > 0) * s, hh * 0.45, Math.sin(a) * 0.3 * (i > 0) * s, { sx: 0.45 * s, sy: hh, sz: 0.45 * s, rx: Math.sin(a) * lean, rz: -Math.cos(a) * lean }), '#1d6b8a');
         }
-        halo(x, y + 1.0 * s, z, 3.2 * s, '#7fe8ff', 0.5);
+        // in a cave room its light falls on the floor; a halo there is cut into a disc by the walls
+        if (corals && map.surfaceAt(x, z)?.floor.style === 'cave') pools.push({ x, y: y + 0.16, z, r: 1.6 * s, color: '#7fe8ff' });
+        else halo(x, y + 1.0 * s, z, 3.2 * s, '#7fe8ff', 0.5);
         break;
       }
       case 'pearl':
@@ -432,7 +467,10 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     const x = e.x - e.nx * 0.15, z = e.z - e.nz * 0.15, d = { x, y: e.y, z, rot: 0, s: 1 };
     if (corals && e.style === 'cave') {
       // in a cave the painted corals grow at the foot of the walls, fewer and fuller, facing the room
-      if (roll < 0.06) putGlow(rng.pick(palette), e.x - e.nx * 0.3, e.y - 0.1, e.z - e.nz * 0.3, Math.atan2(-e.nx, -e.nz) + rng.range(-0.5, 0.5), rng.range(0.6, 0.95));
+      if (roll < 0.05) {
+        const big = rng.chance(0.25) ? rng.range(1.0, 1.25) : rng.range(0.55, 0.9); // now and then a tall one
+        clump(rng.pick(palette), e.x - e.nx * 0.3, e.y - 0.1, e.z - e.nz * 0.3, Math.atan2(-e.nx, -e.nz) + rng.range(-0.5, 0.5), big, [e.nx, e.nz]);
+      }
       continue;
     }
     if (kit && e.style === 'cave') {
@@ -466,6 +504,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     root.add(inst);
   }
   for (const [name, list] of glowPut) root.add(glowCoralInstances(corals, name, list));
+  if (pools.length) root.add(coralPools(pools));
   for (const sp of sprites) { sp.renderOrder = 5; root.add(sp); }
   if (glows.length) root.add(glowField(glows));
   return {

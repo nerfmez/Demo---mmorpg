@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { toonRamp, outlineMaterial } from '../toon.js';
+import { glowTexture } from './textures.js';
 
 /** The corals of the sheet, with the outline (a darker same hue) and the halo colour each gets. */
 export const GLOW_CORALS = {
@@ -18,7 +19,7 @@ export const GLOW_CORALS = {
   pink: { outline: '#5a1f55', halo: '#ff8ae0' },
 };
 
-/** Load the painted corals. Resolves Map(name -> {body, glow, height}); rejects if the file is missing. */
+/** Load the painted corals. Resolves Map(name -> {body, glow, height, radius}); rejects if the file is missing. */
 export function loadGlowCorals(url = 'models/grotto/glow-corals.glb') {
   return new Promise((resolve, reject) => {
     new GLTFLoader().load(url, (gltf) => {
@@ -37,7 +38,11 @@ export function loadGlowCorals(url = 'models/grotto/glow-corals.glb') {
         o.geometry.dispose();
         o.material?.dispose?.();
       });
-      for (const c of corals.values()) c.height = c.body.boundingBox.max.y;
+      for (const c of corals.values()) {
+        const b = c.body.boundingBox;
+        c.height = b.max.y;
+        c.radius = Math.max(b.max.x, -b.min.x, b.max.z, -b.min.z) * 0.8; // how far it reaches from its foot
+      }
       resolve(corals);
     }, undefined, reject);
   });
@@ -97,4 +102,20 @@ export function glowCoralInstances(corals, name, list) {
     root.add(inst);
   }
   return root;
+}
+
+/** The light the clumps throw on the floor: flat soft pools, one draw. list of {x, y, z, r, color}. */
+export function coralPools(list) {
+  const plane = new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2);
+  const mat = new THREE.MeshBasicMaterial({ map: glowTexture(), transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending });
+  const inst = new THREE.InstancedMesh(plane, mat, list.length);
+  const m4 = new THREE.Matrix4(), c = new THREE.Color();
+  list.forEach((p, i) => {
+    inst.setMatrixAt(i, m4.makeScale(p.r, 1, p.r).setPosition(p.x, p.y, p.z));
+    inst.setColorAt(i, c.set(p.color));
+  });
+  inst.computeBoundingSphere();
+  inst.renderOrder = 4;
+  inst.name = 'coral-pools';
+  return inst;
 }

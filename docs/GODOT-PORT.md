@@ -651,7 +651,9 @@ that multiplies vertex colour); collision still comes from the floors, never fro
 `coral` props and the corals at the foot of the walls are the painted corals of `public/models/grotto/glow-corals.glb`
 (`scripts/blender/grotto-corals.py`): per coral `coral_<name>_body`, cel-lit with half its own vertex colour added as
 emission, and `coral_<name>_glow`, unshaded vertex colour (tinted #d0d0d0), each standing on its own origin; place them
-with `MultiMeshInstance3D`s. A map colour picks the coral (`GLOW_BY_COLOR` in `src/render/grotto/props.js`). See `docs/SHELL-GROTTO.md`.
+with `MultiMeshInstance3D`s. They grow in clumps (`clump()` in props.js: one coral of the asked colour, 2-4 smaller mixed ones at
+0.3-0.65 of its size around its foot, along the wall at the rim, clumps never overlapping), and each clump lights the floor with a flat
+additive pool (`coralPools`), as do crystals in cave rooms, instead of a camera-facing halo. A map colour picks the coral (`GLOW_BY_COLOR` in `src/render/grotto/props.js`). See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 

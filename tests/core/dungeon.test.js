@@ -192,7 +192,8 @@ test('the textured monsters hold every part their idle motion moves (blender -b 
     const m = /^mon_([a-z]+)_([a-z]+)$/.exec(n.name);
     if (m) parts.set(`${m[1]}.${m[2]}`, gltf.accessors[gltf.meshes[n.mesh].primitives[0].attributes.POSITION]);
   }
-  const want = { fish: ['body', 'tail', 'finl', 'finr'], slug: ['body', 'cerata', 'pearls'], clam: ['shell', 'eye', 'pearls'] };
+  const want = { fish: ['body', 'tail', 'finl', 'finr'], slug: ['body', 'cerata', 'pearls'], clam: ['shell', 'eye', 'pearls'],
+    boss: ['body', 'eyel', 'eyer', 'pearl'], bossshell: ['shell', 'pearl'] };
   for (const [mon, list] of Object.entries(want)) {
     for (const part of list) assert.ok(parts.has(`${mon}.${part}`), `${mon} has its ${part}`);
     // textured by Meshy: every part has its texture coordinates and a material with a picture
@@ -207,9 +208,10 @@ test('the textured monsters hold every part their idle motion moves (blender -b 
     assert.ok(size > 1.5, `${mon} is ${size} m across`);
   }
   // every monster the map places is one of them
-  const kinds = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam' };
+  const kinds = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam', bossSnail: 'boss' };
   const placed = FILE.inside.props.filter((p) => p.type in kinds);
   assert.ok(placed.length >= 3, 'the monsters are placed');
+  assert.ok(placed.some((p) => p.type === 'bossSnail'), 'the boss is on its throne');
   for (const p of placed) assert.ok(inside.surfaceAt(...p.at), `${p.type} at ${p.at} is over a floor`);
 });
 

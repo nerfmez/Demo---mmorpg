@@ -15,10 +15,14 @@ export const GROTTO_MONSTERS = {
   fish: { outline: '#3c3a72' },
   slug: { outline: '#17505c' },
   clam: { outline: '#4a2c3e' },
+  boss: { outline: '#3e1c26' }, // the Pearl Snail King, out of its shell
+  bossshell: { outline: '#2c2a36' }, // the same, hidden in its shell
 };
 // how much of its own colour each part gives off: a little for every part, so the monsters read in
 // the dark of the cave the way the corals do, more for the pearls
-const SELF_LIGHT = 0.2, PEARL_LIGHT = 0.45;
+const SELF_LIGHT = 0.2, PEARL_LIGHT = 0.45, BOSS_PEARL_LIGHT = 0.3; // the boss's great pearl is golden: more would wash it white
+// the boss is big enough to read on its own: much less, or the white barnacles on its shell bloom into glowing spots
+const BOSS_LIGHT = 0.06;
 const WIDTH = 0.012;
 
 /** Load the monsters. Resolves Map(name -> {parts: {part: {geometry, glow}}, map, height}); rejects if the file is missing. */
@@ -36,7 +40,7 @@ export function loadGrottoMonsters(url = 'models/grotto/grotto-monsters.glb') {
         g.userData.shared = true; // kept for the page's life, like the kit
         if (!out.has(m[1])) out.set(m[1], { parts: {}, map: null });
         const mon = out.get(m[1]);
-        mon.parts[m[2]] = { geometry: g, glow: m[2] === 'pearls' ? PEARL_LIGHT : SELF_LIGHT };
+        mon.parts[m[2]] = { geometry: g, glow: m[2] === 'pearls' ? PEARL_LIGHT : m[2] === 'pearl' ? BOSS_PEARL_LIGHT : m[1].startsWith('boss') ? BOSS_LIGHT : SELF_LIGHT };
         if (o.material?.map && !mon.map) {
           mon.map = o.material.map;
           mon.map.userData.shared = true;
@@ -70,13 +74,16 @@ function material(name, map, glow) {
   return m;
 }
 
+const middle = (b) => [(b.min.x + b.max.x) / 2, (b.min.y + b.max.y) / 2, (b.min.z + b.max.z) / 2];
 const sideFin = (b) => [Math.abs(b.min.x) < Math.abs(b.max.x) ? b.min.x : b.max.x, b.max.y, (b.min.z + b.max.z) / 2]; // its top edge, against the body
 // where each moving part hangs from, from its own box: the tail at its front edge, a side fin at
 // the edge against the body, the plumes at their foot, the eye at its middle
 const PIVOT = {
   fish: { tail: (b) => [0, (b.min.y + b.max.y) / 2, b.max.z], finl: (b) => sideFin(b), finr: (b) => sideFin(b) },
   slug: { cerata: (b) => [(b.min.x + b.max.x) / 2, b.min.y, (b.min.z + b.max.z) / 2] },
-  clam: { eye: (b) => [(b.min.x + b.max.x) / 2, (b.min.y + b.max.y) / 2, (b.min.z + b.max.z) / 2] },
+  clam: { eye: (b) => middle(b) },
+  boss: { eyel: (b) => middle(b), eyer: (b) => middle(b), pearl: (b) => middle(b) },
+  bossshell: { pearl: (b) => middle(b) },
 };
 
 /** One monster as a Group with userData.nodes {part: Group}; each moving part's group sits at its pivot. */
@@ -128,5 +135,18 @@ export function idleMonster(group, name, t, phase = 0) {
     const look = Math.floor(k / 2.3), f = Math.min(1, ((k / 2.3) % 1) * 6), h = (a) => { const x = Math.sin(a * 12.9898) * 43758.5453; return x - Math.floor(x) - 0.5; };
     n.eye.rotation.y = THREE.MathUtils.lerp(h(look - 1), h(look), f) * 0.9;
     n.eye.rotation.x = THREE.MathUtils.lerp(h(look + 9), h(look + 10), f) * 0.4;
+  } else if (name === 'boss') {
+    // the king breathes slowly, its great pearl swelling a little with it, and its stalked eyes
+    // look about together, now and then darting
+    const s = Math.sin(k * 0.8);
+    n.body.scale.set(1 + s * 0.008, 1 + s * 0.018, 1 + s * 0.008);
+    n.pearl.scale.setScalar(1 + Math.max(0, Math.sin(k * 0.8 + 0.6)) * 0.04);
+    const look = Math.floor(k / 3.1), f = Math.min(1, ((k / 3.1) % 1) * 5), h = (a) => { const x = Math.sin(a * 78.233) * 43758.5453; return x - Math.floor(x) - 0.5; };
+    for (const eye of [n.eyel, n.eyer]) {
+      eye.rotation.y = THREE.MathUtils.lerp(h(look - 1), h(look), f) * 1.1;
+      eye.rotation.x = THREE.MathUtils.lerp(h(look + 5), h(look + 6), f) * 0.5;
+    }
+  } else if (name === 'bossshell') {
+    n.shell.rotation.z = Math.sin(k * 0.7) * 0.012; // it sits nearly still, rocking a hair
   }
 }

@@ -446,6 +446,30 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'bossSnail': {
+        if (monsters?.has('boss')) {
+          // the Pearl Snail King (monsters.js), from the owner's two pictures: out of its shell most of
+          // the time, now and then pulling into it (the hidden model), then out again (until it gets
+          // its rules, this only shows both)
+          const out = buildMonster(monsters, 'boss'), hid = buildMonster(monsters, 'bossshell'), phase = rng.range(0, 10);
+          for (const g of [out, hid]) {
+            g.position.set(x, y, z);
+            g.rotation.y = rot;
+            g.scale.setScalar(s);
+            root.add(g);
+          }
+          const CYCLE = 12, HIDE = 9; // seconds: out for 9, hidden for 3
+          animated.push((t) => {
+            const c = (t + phase) % CYCLE, hidden = c > HIDE;
+            out.visible = !hidden;
+            hid.visible = hidden;
+            // a quick squash as it goes in or comes out
+            const pop = Math.min(c, Math.abs(c - HIDE), CYCLE - c) < 0.25 ? 0.94 : 1;
+            out.scale.set(s, s * pop, s);
+            hid.scale.set(s, s * pop, s);
+            idleMonster(hidden ? hid : out, hidden ? 'bossshell' : 'boss', t, phase);
+          });
+          break;
+        }
         const snail = buildPearlSnail();
         snail.root.position.set(x, y, z);
         snail.root.rotation.y = rot;

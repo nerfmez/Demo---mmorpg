@@ -79,6 +79,7 @@
     { "type": "coral", "at": [72, 830], "color": "#b06cff", "scale": 1.2 },
     { "type": "coral", "at": [300, 745], "color": "#4fd9ff" },
     { "type": "giantClam", "at": [190, 716], "face": [205, 820], "scale": 1.15 },
+    { "type": "bossSnail", "at": [1201, 196], "face": [1201, 320], "scale": 1.15 },
     { "type": "pearlFish", "at": [600, 580], "scale": 1.0 },
     { "type": "pearlFish", "at": [1100, 840], "scale": 1.1 },
     { "type": "pearlSlug", "at": [335, 560], "face": [335, 660], "scale": 1.0 },

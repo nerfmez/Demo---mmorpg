@@ -15,6 +15,9 @@ textured material:
   fish   body (with its eyes, lips and middle fins), tail, finl, finr
   slug   body (with its feet), cerata (the wing-like plumes on its back), pearls (and the feelers' tips)
   clam   shell (with its barnacles), eye, pearls (the ones in its gape)
+  boss       the Pearl Snail King out of its shell (docs/reference/grotto-boss-snail.png): body (with its
+             shell and barnacles), eyel, eyer (the balls at its stalks' tips), pearl (the great pearl in its shell)
+  bossshell  the boss hidden in its shell (grotto-boss-shell.png): shell, pearl
 """
 import bpy, bmesh, math, os
 from mathutils import Matrix, Vector
@@ -117,19 +120,44 @@ put('clam', 'shell', [shell] + [p for p in small if p not in pearls])
 put('clam', 'eye', [eye])
 put('clam', 'pearls', pearls)
 
+# ---- the boss, the Pearl Snail King, out of its shell: head toward -Y, its shell behind ----
+parts = load(SRC('boss_snail'))
+body = parts[0]
+eyes = [p for p in parts[1:] if p['c'].y < -0.4 and p['c'].z > 0.15]
+pearl = max((p for p in parts[1:] if p not in eyes and p['c'].z > 0.15 and p['c'].y > -0.2), key=lambda p: p['n'])
+rest = [p for p in parts[1:] if p not in eyes and p is not pearl]
+put('boss', 'body', [body] + rest)
+put('boss', 'eyel', [p for p in eyes if p['c'].x < 0])
+put('boss', 'eyer', [p for p in eyes if p['c'].x >= 0])
+put('boss', 'pearl', [pearl])
+
+# ---- the boss hidden in its shell: its mouth toward -X ----
+parts = load(SRC('boss_shell'))
+shell = parts[0]
+# the great pearl: the biggest round piece at the top (Meshy also left a second, smaller ball inside it: that one stays with the shell)
+pearl = max((p for p in parts[1:] if p['c'].z > 0.1 and max(p['size']) > 0.2 and max(p['size']) - min(p['size']) < 0.05), key=lambda p: p['n'])
+put('bossshell', 'shell', [shell] + [p for p in parts[1:] if p is not pearl])
+put('bossshell', 'pearl', [pearl])
+
 # ---- each monster on its own foot in metres, facing -Y; textures brought down ----
-SIZE = {'fish': ('x', 2.0), 'slug': ('y', 1.7), 'clam': ('x', 1.8)}  # metres along the axis, before turning
-TURN = {'fish': math.pi / 2, 'slug': 0.0, 'clam': 0.0}  # the fish's head points -X: turn it to -Y
+SIZE = {'fish': ('x', 2.0), 'slug': ('y', 1.7), 'clam': ('x', 1.8), 'boss': ('y', 6.5), 'bossshell': ('z', None)}  # metres along the axis, before turning
+# the fish's head points -X and the hidden boss's mouth too: turn them to -Y (the hidden boss's spiral
+# then sits on the same side as the boss's own)
+TURN = {'fish': math.pi / 2, 'slug': 0.0, 'clam': 0.0, 'boss': 0.0, 'bossshell': math.pi / 2}
 for name, kinds in MONSTERS.items():
     obs = list(kinds.values())
     vs = [v.co for ob in obs for v in ob.data.vertices]
     axis, metres = SIZE[name]
+    if metres is None:  # the hidden boss: as tall as the boss's shell stands out of it
+        metres = BOSS_HEIGHT * 0.92
     k = 'xyz'.index(axis)
     foot = Vector(((min(v.x for v in vs) + max(v.x for v in vs)) / 2, (min(v.y for v in vs) + max(v.y for v in vs)) / 2, min(v.z for v in vs)))
     m = Matrix.Rotation(TURN[name], 4, 'Z') @ Matrix.Scale(metres / (max(v[k] for v in vs) - min(v[k] for v in vs)), 4) @ Matrix.Translation(-foot)
     for ob in obs:
         ob.data.transform(m)
         ob.location = (0, 0, 0)
+    if name == 'boss':
+        BOSS_HEIGHT = max(v.co.z for ob in obs for v in ob.data.vertices)
 for img in bpy.data.images:
     if img.size[0] > TEXTURE:
         img.scale(TEXTURE, TEXTURE)

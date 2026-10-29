@@ -16,23 +16,42 @@ void main() {
   #include <fog_vertex>
 }`;
 
-// Two drifting wave layers make soft bright caustic bands over a body colour that shifts from
-// the deep tone to the lit tone; the tile floor shows through by the opacity.
+// Clear shallow water: the floor shows through; a fine net of caustic light drifts over it (a few
+// warped-sine iterations, the usual cheap caustic), with small glints that come and go. The body
+// colour moves gently between the lit and the deep tone.
 const WATER_FRAG = `
 #include <common>
 #include <fog_pars_fragment>
 uniform float uTime, uOpacity, uBands, uCaustic;
 uniform vec3 uColor, uDeep, uFoam;
 varying vec3 vWorld;
+float caustic(vec2 q, float t) {
+  vec2 p = mod(q * 6.2831, 6.2831) - 250.0;
+  vec2 i = p;
+  float c = 1.0;
+  for (int n = 0; n < 4; n++) {
+    float tt = t * (1.0 - 3.5 / float(n + 1));
+    i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x));
+    c += 1.0 / length(vec2(p.x / (sin(i.x + tt) / 0.005), p.y / (cos(i.y + tt) / 0.005)));
+  }
+  c /= 4.0;
+  c = 1.17 - pow(c, 1.4);
+  return clamp(pow(abs(c), 8.0), 0.0, 1.0);
+}
+float hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 void main() {
-  vec2 p = vWorld.xz * 1.7;
-  float w1 = sin(p.x * 0.55 + uTime * 0.9) + sin(p.y * 0.62 - uTime * 0.7) + sin((p.x + p.y) * 0.38 + uTime * 0.5);
-  float w2 = sin(p.x * 1.3 - p.y * 0.9 - uTime * 1.4) + sin(p.y * 1.5 + p.x * 0.4 + uTime * 1.1);
-  float band = abs(fract((w1 + w2 * 0.45) * uBands) * 2.0 - 1.0);
-  float caustic = smoothstep(0.86, 0.99, band);
-  vec3 col = mix(uDeep, uColor, 0.55 + 0.25 * sin(w1 * 0.7));
-  col += uFoam * caustic * uCaustic;
-  gl_FragColor = vec4(col, clamp(uOpacity + caustic * uCaustic * 0.35, 0.0, 1.0));
+  vec2 q = vWorld.xz * uBands * 0.16;
+  float net = caustic(q, uTime * 0.35);
+  // glints: a sparse grid of cells, each flashing on its own beat
+  vec2 cell = floor(vWorld.xz * 2.2);
+  float h = hash2(cell);
+  vec2 f = fract(vWorld.xz * 2.2) - 0.5;
+  float glint = smoothstep(0.08, 0.0, length(f)) * step(0.93, h) * pow(max(0.0, sin(uTime * (1.5 + h * 2.0) + h * 40.0)), 6.0);
+  float sway = 0.5 + 0.5 * sin(vWorld.x * 0.21 + uTime * 0.3) * sin(vWorld.z * 0.17 - uTime * 0.25);
+  vec3 col = mix(uDeep, uColor, 0.45 + 0.35 * sway);
+  float light = net * uCaustic + glint;
+  col += uFoam * light;
+  gl_FragColor = vec4(col, clamp(uOpacity + light * 0.5, 0.0, 1.0));
   #include <colorspace_fragment>
   #include <fog_fragment>
 }`;
@@ -83,8 +102,8 @@ const waterMaterial = (u) => new THREE.ShaderMaterial({
 });
 
 const WATER = {
-  shallow: { color: '#4fe0d8', deep: '#1a93a8', foam: '#e9fffb', opacity: 0.34, bands: 0.55, caustic: 0.32 },
-  deep: { color: '#2fc4d8', deep: '#0b5378', foam: '#d6fbff', opacity: 0.72, bands: 0.5, caustic: 0.3 },
+  shallow: { color: '#5ee6dc', deep: '#1c8fa4', foam: '#eafffb', opacity: 0.2, bands: 1.0, caustic: 0.55 },
+  deep: { color: '#2fc4d8', deep: '#0b5378', foam: '#d6fbff', opacity: 0.7, bands: 0.8, caustic: 0.4 },
   sea: { color: '#3fb8cf', deep: '#1a6f9a', foam: '#ffffff', opacity: 0.84, bands: 0.9, caustic: 0.22 },
 };
 

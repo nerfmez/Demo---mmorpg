@@ -151,7 +151,9 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   };
   const putGlow = (name, x, y, z, ry, s) => {
     if (!glowPut.has(name)) glowPut.set(name, []);
-    glowPut.get(name).push({ x, y, z, ry, s });
+    // the painted corals are broad and thin, like the sheet they came from: whatever wall they grow
+    // at, they turn toward the camera (+z), or it would see their edge
+    glowPut.get(name).push({ x, y, z, ry: rng.range(-0.6, 0.6), s });
   };
   const clump = (color, x, y, z, ry, s, wall = null) => {
     if (clumps.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < (r + 1.2 * s) ** 2)) return;
@@ -397,7 +399,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
       }
       case 'runeCircle': {
         // a medallion carved into the temple floor under the water (the concept's circle): stone, not magic
-        const r = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: medallionTexture(), transparent: true, opacity: 0.8, depthWrite: false }));
+        const r = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: medallionTexture(), color: '#c9c2a4', transparent: true, opacity: 0.65, depthWrite: false }));
         r.rotation.x = -Math.PI / 2;
         r.scale.setScalar(s);
         r.position.set(x, y + 0.03, z);

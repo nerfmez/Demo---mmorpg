@@ -25,48 +25,58 @@ const shade = (hex, k) => {
   return `#${c.getHexString()}`;
 };
 
-/**
- * Irregular flagstones (the texture spans 4 m): a seamless Voronoi of about thirty-six stones, each its
- * own shade with soft mottling, a lit upper-left bevel, a shadowed lower-right bevel and grout
- * between. Computed per pixel once, so no two courses line up the way bricks do.
- */
+/** Old cut paving (spans 4 m): rectangular stones of mixed length laid in staggered courses, each
+ * its own tone, its edges bevelled (lit toward the top left, shadowed toward the bottom right),
+ * some corners chipped, a few cracks; dark grout between. Tiles seamlessly. */
 export function flagstoneTexture() {
   return canvasTexture('flagstone', 512, (g, n) => {
-    const rng = createRng(31), G = 6, cell = n / G;
-    const jx = [], jy = [], tone = [];
-    for (let i = 0; i < G * G; i++) { jx.push(rng.range(0.2, 0.8)); jy.push(rng.range(0.2, 0.8)); tone.push(rng.range(-0.08, 0.06)); }
-    const base = [214, 196, 160], grout = [132, 116, 96]; // sRGB, as the canvas stores it
+    const rng = createRng(31);
+    const base = [214, 196, 160], grout = [96, 84, 70]; // sRGB, as the canvas stores it
+    // courses: heights that add up to the tile; stones along each: lengths that wrap round it
+    const rows = [], heights = [92, 70, 84, 78, 96, 92];
+    let y0 = 0;
+    for (const h of heights) {
+      const stones = [];
+      let x = rng.range(0, 60);
+      const start = x;
+      while (x < start + n - 40) {
+        const w = Math.min(rng.range(70, 150), start + n - x);
+        stones.push({ x0: x, x1: x + w, tone: rng.range(-0.1, 0.07), chip: rng.int(0, 7), crack: rng.chance(0.15) });
+        x += w;
+      }
+      stones[stones.length - 1].x1 = start + n; // the last one meets the first across the seam
+      rows.push({ y0, y1: y0 + h, stones });
+      y0 += h;
+    }
     const img = g.createImageData(n, n), d = img.data;
     const hash = (x, y) => { const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return h - Math.floor(h); };
-    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-      const gx = Math.floor(x / cell), gy = Math.floor(y / cell);
-      let d1 = Infinity, d2 = Infinity, p1x = 0, p1y = 0, p2x = 0, p2y = 0, id = 0;
-      for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
-        const cx = gx + ox, cy = gy + oy, k = ((cy + G) % G) * G + ((cx + G) % G);
-        const px = (cx + jx[k]) * cell, py = (cy + jy[k]) * cell, dd = (px - x) ** 2 + (py - y) ** 2;
-        if (dd < d1) { d2 = d1; p2x = p1x; p2y = p1y; d1 = dd; p1x = px; p1y = py; id = k; }
-        else if (dd < d2) { d2 = dd; p2x = px; p2y = py; }
+    for (let y = 0; y < n; y++) {
+      const row = rows.find((r) => y < r.y1);
+      for (let x = 0; x < n; x++) {
+        let st = null, lx = 0;
+        for (const s of row.stones) {
+          for (const xx of [x, x + n]) if (xx >= s.x0 && xx < s.x1) { st = s; lx = xx; }
+        }
+        // distances to the stone's four sides (in pixels), with a little wobble so the cut is not ruled
+        const wob = (hash(Math.floor(lx / 6), row.y0) - 0.5) * 2.2;
+        const dl = lx - st.x0, dr = st.x1 - lx, dt = y - row.y0, db = row.y1 - y;
+        let edge = Math.min(dl, dr, dt, db) + wob;
+        // chipped corners: a bite out of one corner
+        const c = st.chip;
+        if (c < 4) {
+          const cx = c & 1 ? dr : dl, cy = c & 2 ? db : dt;
+          edge = Math.min(edge, (cx + cy) * 0.7 - 7);
+        }
+        const mott = (hash(Math.floor(x / 9), Math.floor(y / 9)) - 0.5) * 0.08 + (hash(x, y) - 0.5) * 0.04;
+        const bevel = edge < 9 ? (Math.min(dl, dt) < Math.min(dr, db) ? 0.1 : -0.12) * (1 - edge / 9) : 0;
+        let shadeK = 1 + (st.tone + mott + bevel) * 1.6;
+        if (st.crack && Math.abs((lx - st.x0) - (y - row.y0) * 0.9 - 20 - Math.sin(y * 0.2) * 4) < 1.1) shadeK *= 0.7;
+        const k = THREE.MathUtils.smoothstep(edge, 1.2, 3.2), i = (y * n + x) * 4;
+        for (let ch = 0; ch < 3; ch++) d[i + ch] = base[ch] * shadeK * k + grout[ch] * (1 - k);
+        d[i + 3] = 255;
       }
-      // distance to the edge between the nearest two stones, in pixels
-      const edge = (d2 - d1) / (2 * Math.hypot(p2x - p1x, p2y - p1y));
-      const ex = p2x - p1x, ey = p2y - p1y; // toward the neighbour: down-right edges are in shadow
-      const lit = (ex + ey) < 0 ? 1 : -1;
-      const mott = (hash(Math.floor(x / 9), Math.floor(y / 9)) - 0.5) * 0.06 + (hash(x, y) - 0.5) * 0.035;
-      const shadeK = 1 + (tone[id] + mott + (edge < 7 ? lit * 0.08 * (1 - edge / 7) : 0)) * 1.6;
-      const k = THREE.MathUtils.smoothstep(edge, 0.6, 2.0), i = (y * n + x) * 4;
-      for (let ch = 0; ch < 3; ch++) d[i + ch] = base[ch] * shadeK * k + grout[ch] * (1 - k);
-      d[i + 3] = 255;
     }
     g.putImageData(img, 0, 0);
-    // a few hairline cracks
-    g.strokeStyle = 'rgba(70,56,42,0.35)';
-    g.lineWidth = 1.2;
-    for (let i = 0; i < 7; i++) {
-      let x = rng.range(0, n), y = rng.range(0, n);
-      g.beginPath(); g.moveTo(x, y);
-      for (let k = 0; k < 4; k++) { x += rng.range(-12, 12); y += rng.range(-12, 12); g.lineTo(x, y); }
-      g.stroke();
-    }
   });
 }
 

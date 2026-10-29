@@ -4,6 +4,7 @@
   "scale": 0.11,
   "zScale": 0.1375,
   "origin": [768, 512],
+  "grow": {"_doc": "the boss room (throne room and dais) stretched from the head of the throne steps: k = [east, north]; fades out west of x 760-860 and south of y 380-420 (scripts/grotto-trace.py)", "at": [1182, 318], "k": [1.35, 1.5], "west": [760, 860], "south": [380, 420]},
   "zones": [
     {"id": "west", "walls": true, "round": 31, "nameTh": "ทางลาดปะการัง", "y": 0, "default": true},
     {"id": "entrance", "tone": "warm", "style": "cave", "round": 61, "y": 0, "poly": [[0, 640], [290, 640], [300, 700], [345, 760], [345, 1010], [0, 1010]]},

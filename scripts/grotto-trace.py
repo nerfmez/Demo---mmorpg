@@ -20,6 +20,90 @@ OUT = ROOT / 'data/dungeons/shell-grotto.json'
 
 img = cv2.imread(str(ROOT / CFG['image']))
 H, W = img.shape[:2]
+
+
+def smooth(a, b, x):
+    t = np.clip((np.asarray(x, np.float64) - a) / (b - a), 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+# the boss room (the throne room and its dais) is bigger than the concept draws it (owner, 29 Oct
+# 2026): the picture and every point in it north of `grow.at` (the head of the throne steps) are
+# stretched away from that point, `k` = [east, north]; the stretch fades out west of the room
+# (`west`, px) and south of it (`south`), so the rooms around it keep their shape. The picture is
+# padded so the stretched room fits; the origin moves with the padding, so metres do not change.
+GROW = CFG.get('grow')
+PAD_T = PAD_R = 0
+
+
+def grow(x, y):
+    """A concept pixel (or arrays of them) in the stretched picture, before padding."""
+    if not GROW:
+        return x, y
+    (ax, ay), (kx, ky) = GROW['at'], GROW['k']
+    sy = 1 - smooth(*GROW['south'], y)
+    sxw = smooth(*GROW['west'], x)
+    return x + (kx - 1) * np.maximum(0, x - ax) * sy, y - (ky - 1) * np.maximum(0, ay - y) * sxw
+
+
+def grow_k(x, y):
+    """How much the stretch widens things at (x, y): (across, down the picture)."""
+    if not GROW:
+        return 1, 1
+    (ax, ay), (kx, ky) = GROW['at'], GROW['k']
+    return (1 + (kx - 1) * float(x > ax) * float(1 - smooth(*GROW['south'], y)),
+            1 + (ky - 1) * float(y < ay) * float(smooth(*GROW['west'], x)))
+
+
+if GROW:
+    gx, gy = grow(np.array([0, W]), np.array([0, 0]))
+    PAD_T = int(math.ceil(max(0, -min(grow(np.array([W * 1.0]), np.array([0.0]))[1][0], 0)))) + 10
+    PAD_R = int(math.ceil(max(0, float(gx.max()) - W))) + 10
+    # each pixel of the new picture takes its colour from where the stretch brought it from
+    HN, WN = H + PAD_T, W + PAD_R
+    dx, dy = np.meshgrid(np.arange(WN, dtype=np.float64), np.arange(HN, dtype=np.float64) - PAD_T)
+    sx_, sy_ = dx.copy(), dy.copy()
+    for _ in range(12):
+        fx, fy = grow(sx_, sy_)
+        jx = 1 + (GROW['k'][0] - 1) * (sx_ > GROW['at'][0]) * (1 - smooth(*GROW['south'], sy_))
+        jy = 1 + (GROW['k'][1] - 1) * (sy_ < GROW['at'][1]) * smooth(*GROW['west'], sx_)
+        sx_ -= (fx - dx) / jx
+        sy_ -= (fy - dy) / jy
+    img = cv2.remap(img, sx_.astype(np.float32), sy_.astype(np.float32), cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
+    H, W = img.shape[:2]
+
+    def gp(q):
+        x, y = grow(np.float64(q[0]), np.float64(q[1]))
+        return [int(round(float(x))), int(round(float(y))) + PAD_T]
+
+    def gpoly(pts):
+        return [gp(q) for q in pts]
+
+    for z in CFG['zones']:
+        if 'poly' in z:
+            z['poly'] = gpoly(z['poly'])
+        for sh in z.get('stone', []):
+            if 'ellipse' in sh:
+                kx_, ky_ = grow_k(*sh['ellipse'])
+                sh['r'] = [sh['r'][0] * kx_, sh['r'][1] * ky_]
+                sh['ellipse'] = gp(sh['ellipse'])
+            else:
+                sh['poly'] = gpoly(sh['poly'])
+    for f in CFG.get('fill', []):
+        f['poly'] = gpoly(f['poly'])
+    for st in CFG['stairs']:
+        st['a'], st['b'] = gp(st['a']), gp(st['b'])
+    CFG['spawn'], CFG['spawnFace'] = gp(CFG['spawn']), gp(CFG['spawnFace'])
+    for r in CFG['regions']:
+        kx_, ky_ = grow_k(*r['at'])
+        r['r'] = r['r'] * math.sqrt(kx_ * ky_)
+        r['at'] = gp(r['at'])
+    for key in ('links', 'lights', 'waterfalls', 'props'):
+        for e in CFG[key]:
+            if 'face' in e:
+                e['face'] = gp(e['face'])
+            e['at'] = gp(e['at'])
+    CFG['origin'] = [CFG['origin'][0], CFG['origin'][1] + PAD_T]
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
 hue, sat, val = hsv[..., 0] * 2, hsv[..., 1] / 255, hsv[..., 2] / 255
 stone = ((val > 0.42) & (sat < 0.55) & ((hue < 60) | (hue > 330))).astype(np.uint8)
@@ -134,14 +218,19 @@ def shapes_mask(shapes):
 # every flight of stairs is cut out of the floors it crosses: the floors meet it at its sides and
 # ends instead of lying over it (which drew a ramp pasted onto a slab)
 stair_cut = np.zeros_like(walk)
+to_px = lambda q: [q[0] / sx + ox, q[1] / sz + oy]  # metres back to concept pixels
 for s in CFG['stairs']:
-    (ax, ay), (bx, by), w = s['a'], s['b'], s['w']
-    l = math.hypot(bx - ax, by - ay) or 1
-    ux, uy = (bx - ax) / l, (by - ay) / l
-    hw, e = w / 2 + 1, 9  # the cut stops short of both ends, so the floors there still meet the flight
-    quad = [[ax - uy * hw + ux * e, ay + ux * hw + uy * e], [bx - uy * hw - ux * e, by + ux * hw - uy * e],
-            [bx + uy * hw - ux * e, by - ux * hw - uy * e], [ax + uy * hw + ux * e, ay - ux * hw + uy * e]]
-    cv2.fillPoly(stair_cut, [np.array(quad, np.int32)], 1)
+    # laid out in metres (the picture's pixels are not square, so a cut made across them is
+    # skewed and leaves a wedge of void beside a diagonal flight): the flight's rectangle a hair
+    # wider than the stairs are written (stairs w/2 + 0.22 m a side, the cut 0.11 m), stopping
+    # about a metre short of both ends, so the floors there still meet the flight
+    A, B = m(s['a']), m(s['b'])
+    l = math.hypot(B[0] - A[0], B[1] - A[1]) or 1
+    ux, uz = (B[0] - A[0]) / l, (B[1] - A[1]) / l
+    hw, e = ml(s['w']) / 2 + 0.11, 1.0
+    quad = [(A[0] + ux * e - uz * hw, A[1] + uz * e + ux * hw), (B[0] - ux * e - uz * hw, B[1] - uz * e + ux * hw),
+            (B[0] - ux * e + uz * hw, B[1] - uz * e - ux * hw), (A[0] + ux * e + uz * hw, A[1] + uz * e - ux * hw)]
+    cv2.fillPoly(stair_cut, [np.array([to_px(q) for q in quad], np.int32)], 1)
 keep = (1 - stair_cut).astype(np.uint8)
 
 # the props the picture places (and the stair ends) stay on sound stone: no break within ~2.5 m
@@ -306,166 +395,6 @@ def break_floors(polys, sites, want, water, seed):
 
 
 for i, z in enumerate(zones):
-    if 'poly' in z:
-        cv2.fillPoly(label, [np.array(z['poly'], np.int32)], i)
-default = next(i for i, z in enumerate(zones) if z.get('default'))
-if default:
-    raise SystemExit('the default zone must come first')
-
-ox, oy = CFG['origin']
-sx, sz = CFG['scale'], CFG['zScale']
-m = lambda p: [round((p[0] - ox) * sx, 2), round((p[1] - oy) * sz, 2)]
-ml = lambda d: d * sx  # a pixel length across, in metres
-
-
-def chaikin(pts, n=2):
-    """Round a closed outline's corners (the traced pixels are jagged)."""
-    for _ in range(n):
-        out = []
-        for i in range(len(pts)):
-            a, b = pts[i], pts[(i + 1) % len(pts)]
-            out += [[a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]]
-        pts = out
-    return pts
-
-
-def polygons(mask, min_area, min_hole):
-    """Outer outlines with their holes, simplified, in metres."""
-    cs, hier = cv2.findContours(mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
-    out = []
-    if hier is None:
-        return out
-    hier = hier[0]
-    for i, c in enumerate(cs):
-        if hier[i][3] != -1 or cv2.contourArea(c) < min_area:
-            continue
-        outer = cv2.approxPolyDP(c, 2.6, True)[:, 0, :]
-        holes = []
-        k = hier[i][2]
-        while k != -1:
-            if cv2.contourArea(cs[k]) >= min_hole:
-                h = cv2.approxPolyDP(cs[k], 2.6, True)[:, 0, :]
-                if len(h) >= 3:
-                    holes.append([m(p) for p in chaikin(h.tolist())])
-            k = hier[k][0]
-        if len(outer) >= 3:
-            out.append(([m(p) for p in chaikin(outer.tolist())], holes))
-    return out
-
-
-floors = []
-
-
-def shapes_mask(shapes):
-    """Hand-drawn stone: polygons, and ellipses {c, r: [rx, ry]}, in concept pixels."""
-    out = np.zeros_like(walk)
-    for sh in shapes:
-        if 'ellipse' in sh:
-            (cx, cy), (rx, ry) = sh['ellipse'], sh['r']
-            cv2.ellipse(out, (int(cx), int(cy)), (int(rx), int(ry)), 0, 0, 360, 1, -1)
-        else:
-            cv2.fillPoly(out, [np.array(sh['poly'], np.int32)], 1)
-    return out
-
-
-# every flight of stairs is cut out of the floors it crosses: the floors meet it at its sides and
-# ends instead of lying over it (which drew a ramp pasted onto a slab)
-stair_cut = np.zeros_like(walk)
-for s in CFG['stairs']:
-    (ax, ay), (bx, by), w = s['a'], s['b'], s['w']
-    l = math.hypot(bx - ax, by - ay) or 1
-    ux, uy = (bx - ax) / l, (by - ay) / l
-    hw, e = w / 2 + 1, 9  # the cut stops short of both ends, so the floors there still meet the flight
-    quad = [[ax - uy * hw + ux * e, ay + ux * hw + uy * e], [bx - uy * hw - ux * e, by + ux * hw - uy * e],
-            [bx + uy * hw - ux * e, by - ux * hw - uy * e], [ax + uy * hw + ux * e, ay - ux * hw + uy * e]]
-    cv2.fillPoly(stair_cut, [np.array(quad, np.int32)], 1)
-keep = (1 - stair_cut).astype(np.uint8)
-
-# the props the picture places (and the stair ends) stay on sound stone: no break within ~2.5 m
-def clearance(stairs, base, per_scale):
-    out = cv2.dilate(stair_cut, ell(stairs))
-    for p in CFG['props']:
-        if p['type'] != 'runeCircle':  # a pattern on the floor (or under the water), not a thing standing there
-            cv2.circle(out, (int(p['at'][0]), int(p['at'][1])), int(base + per_scale * min(1.5, p.get('scale', 1))), 1, -1)
-    return out
-
-
-sound = clearance(45, 22, 10)
-sound_middle = clearance(45, 16, 8)  # a hole stays clear of the props' feet, not of their reach
-rubble = []
-
-
-def pieces(mask):
-    return cv2.connectedComponents(mask.astype(np.uint8), connectivity=4)[0]
-
-
-def ruin(raised, under, seed):
-    """The old stone over the water has given way: bites out of its edges where slabs broke off and
-    sank, small notches along them, and now and then a hole fallen through the middle. Never where
-    it would cut a walkway in two, expose anything but the water floor `under`, or touch the props
-    and stairs. Returns the broken mask; each break adds a sunk-slab `rubble` prop."""
-    rng = np.random.default_rng(seed)
-    safe = cv2.erode(under, ell(9))
-    edge = raised & (1 - cv2.erode(raised, ell(3)))
-    wet = cv2.dilate(safe & (1 - raised), ell(5))
-    cand = np.argwhere((edge == 1) & (wet == 1) & (sound == 0))
-    rng.shuffle(cand)
-    out, n0, breaks = raised.copy(), pieces(raised), []
-    want = max(2, int(edge.sum()) // 170)
-
-    def blob(cx, cy, r, tx, ty, nx, ny, lobes):
-        b = np.zeros_like(raised)
-        for _ in range(lobes):
-            a, d = rng.uniform(-0.8, 0.8) * r, rng.uniform(0, 0.6) * r
-            ax, ay = r * rng.uniform(0.45, 0.85), r * rng.uniform(0.45, 0.85)
-            cv2.ellipse(b, (int(cx + tx * a + nx * d), int(cy + ty * a + ny * d)), (int(ax), int(ay)), rng.uniform(0, 180), 0, 360, 1, -1)
-        return b & safe
-
-    def take(b, at, r, rot, minimum=60):
-        nonlocal out
-        trial = out & (1 - b)
-        if (b & out).sum() < minimum or pieces(trial) != n0:
-            return False
-        out = trial
-        breaks.append(at)
-        rubble.append({'type': 'rubble', 'at': m(at), 'rot': round(rot, 3), 'scale': round(ml(r) / 1.4, 2)})
-        return True
-
-    for y, x in cand:
-        if len(breaks) >= want:
-            break
-        if any((x - bx) ** 2 + (y - by) ** 2 < 55 ** 2 for bx, by in breaks):
-            continue
-        w = raised[max(0, y - 12):y + 13, max(0, x - 12):x + 13]
-        ys, xs = np.nonzero(w)
-        nx, ny = xs.mean() - min(12, x), ys.mean() - min(12, y)  # toward the stone
-        l = math.hypot(nx, ny) or 1
-        nx, ny = nx / l, ny / l
-        r = rng.uniform(10, 20)
-        # facing out of the floor, into the water: the way the slabs slid
-        take(blob(x, y, r, -ny, nx, nx, ny, 3), [int(x), int(y)], r, math.atan2(-nx * sx, -ny * sz))
-    # small chips along the rest of the edge, no rubble
-    for y, x in cand[::7]:
-        if rng.random() < 0.35 and not any((x - bx) ** 2 + (y - by) ** 2 < 30 ** 2 for bx, by in breaks):
-            c = np.zeros_like(raised)
-            cv2.circle(c, (int(x), int(y)), int(rng.uniform(3, 6)), 1, -1)
-            c &= safe
-            if pieces(out & (1 - c)) == n0:
-                out &= 1 - c
-    # a hole fallen through the middle of a wide platform
-    inside = cv2.distanceTransform(out, cv2.DIST_L2, 5)
-    deep = np.argwhere((inside > 30) & (sound_middle == 0) & (safe == 1))
-    rng.shuffle(deep)
-    holes = 0
-    for y, x in deep:
-        if holes >= 1 or any((x - bx) ** 2 + (y - by) ** 2 < 45 ** 2 for bx, by in breaks):
-            continue
-        r = rng.uniform(13, 16)
-        if take(blob(x, y, r, 1, 0, 0, 1, 3) | blob(x, y, r * 0.8, 1, 0, 0, 1, 1), [int(x), int(y)], r, rng.uniform(-math.pi, math.pi), 500):
-            holes += 1
-    return out
-
-for i, z in enumerate(zones):
     # each zone reaches a few pixels past its edge, so two zones on one level overlap instead of
     # leaving a hairline of void between their outlines
     zm = cv2.dilate((label == i).astype(np.uint8), ell(7))
@@ -513,8 +442,35 @@ for i, z in enumerate(zones):
                 f['holes'] = holes
             floors.append(f)
 
+# a flight is as long as its steps need (0.15 m risers, a slope of 0.28) and stands at the far end
+# of the run the concept draws (`b`); the rest of the run is a paved landing at the near end's
+# level, so a long gentle run is a walkway then real steps, not a few deep slabs pasted one after
+# another. Each takes the tone of the room it belongs to.
+def tone_at(q):
+    z = zones[int(label[min(H - 1, int(q[1])), min(W - 1, int(q[0]))])]
+    return z.get('tone')
+
+
 for s in CFG['stairs']:
-    floors.append({'id': s['id'], 'kind': 'stone', 'shape': 'stairs', 'a': m(s['a']), 'b': m(s['b']), 'w': round(ml(s['w']), 2), 'y0': s['y0'], 'y1': s['y1']})
+    # a little wider than its cut (w/2 + 1 px a side), so no slit of void shows along its sides
+    A, B, w = m(s['a']), m(s['b']), round(ml(s['w'] + 4), 2)
+    L = math.hypot(B[0] - A[0], B[1] - A[1])
+    ux, uz = (B[0] - A[0]) / L, (B[1] - A[1]) / L
+    run = min(L, max(abs(s['y1'] - s['y0']) / 0.28, 1.2))
+    if L - run > 0.6:
+        F = [round(B[0] - ux * run, 2), round(B[1] - uz * run, 2)]
+        E = [F[0] + ux * 0.3, F[1] + uz * 0.3]  # under the flight's foot a little: the two meet
+        h = w / 2
+        landing = {'id': f"{s['id']}-landing", 'kind': 'stone', 'shape': 'poly', 'y': s['y0'],
+                   'pts': [[round(x, 2), round(z, 2)] for x, z in ((A[0] + uz * h, A[1] - ux * h), (E[0] + uz * h, E[1] - ux * h), (E[0] - uz * h, E[1] + ux * h), (A[0] - uz * h, A[1] + ux * h))]}
+        if tone_at(s['a']):
+            landing['tone'] = tone_at(s['a'])
+        floors.append(landing)
+        A = F
+    flight = {'id': s['id'], 'kind': 'stone', 'shape': 'stairs', 'a': A, 'b': B, 'w': w, 'y0': s['y0'], 'y1': s['y1']}
+    if tone_at(s['b']):
+        flight['tone'] = tone_at(s['b'])
+    floors.append(flight)
 
 
 def facing(at, face):

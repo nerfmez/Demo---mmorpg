@@ -175,8 +175,8 @@ function addStairs(mesh, cliffs, curb, f, look, white, map) {
   const [ax, az] = f.a, [bx, bz] = f.b, len = f.length, ux = (bx - ax) / len, uz = (bz - az) / len, h = f.w / 2;
   const px = -uz * h, pz = ux * h; // half width, sideways
   const qx = -uz, qz = ux; // unit sideways
-  // steps of about 0.2 m rise, at least 0.5 m deep (the rules walk the ramp under them)
-  const n = Math.max(3, Math.min(Math.round(Math.abs(f.y1 - f.y0) / 0.2), Math.floor(len / 0.5)));
+  // steps of about 0.15 m rise, at least 0.4 m deep (the rules walk the ramp under them)
+  const n = Math.max(3, Math.min(Math.round(Math.abs(f.y1 - f.y0) / 0.15), Math.floor(len / 0.4)));
   const at = (t) => [ax + ux * t, az + uz * t];
   const shadow = new THREE.Color(0.72, 0.72, 0.72), lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.7, 0.7, 0.7);
   const cheekW = Math.min(0.45, h * 0.18), cheekH = 0.3;

@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {readFileSync} from 'node:fs';
-import {renderConfig,qualitySettings,lightingSettings,applyShadowQuality} from '../../src/render/settings.js';
+import {renderConfig,qualitySettings,customQuality,antialiasSamples,lightingSettings,applyShadowQuality} from '../../src/render/settings.js';
 import {patchMaterial,attachWindShadow,timeUniform} from '../../src/render/patch.js';
 import {receivePaintedShadow,syncPaintedLighting,paintedLight} from '../../src/render/painted.js';
 const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
@@ -23,7 +23,32 @@ test('quality switches dispose old shadow targets, do not reallocate unchanged p
  setTarget();applyShadowQuality(renderer,sun,'medium');assert.equal(disposed,1);
  applyShadowQuality(renderer,sun,'low');assert.equal(disposed,2);assert.equal(renderer.shadowMap.enabled,false);assert.equal(sun.shadow.map,null);
  applyShadowQuality(renderer,sun,'high');assert.equal(sun.shadow.mapSize.x,2048);assert.equal(renderer.shadowMap.enabled,true);
- assert.equal(renderConfig.nativeAntialias,true,'native AA is a context-wide policy, not a misleading mutable quality property');
+ assert.match(read('src/render/view.js'),/new THREE\.WebGLRenderer\(\{ canvas, antialias: false/,'the canvas is never multisampled: anti-aliasing is the scene target');
+});
+test('graphics settings: presets lower the resolution, custom takes only listed values, anti-aliasing is separate',async()=>{
+ const g=renderConfig.graphics;
+ assert.ok(qualitySettings('low').pixelRatio<1&&qualitySettings('medium').pixelRatio<1.5&&qualitySettings('high').pixelRatio===2,'low and medium draw fewer pixels (owner, 29 October 2026)');
+ for(const q of ['low','medium','high']){const v=qualitySettings(q);assert.ok(g.pixelRatios.includes(v.pixelRatio)&&g.shadowMapSizes.includes(v.shadowMapSize),q);}
+ assert.deepEqual(g.antialias,[0,2,4]);
+ assert.deepEqual(qualitySettings('custom',{pixelRatio:1,shadowMapSize:2048,post:false,dynres:false}),{name:'custom',pixelRatio:1,shadowMapSize:2048,post:false,dynres:false});
+ const {name,...medium}=qualitySettings('medium');
+ assert.deepEqual(customQuality({pixelRatio:3.3,shadowMapSize:4096,post:'yes'}),medium,'unknown values keep medium');
+ assert.deepEqual(customQuality(null),medium);
+ assert.equal(antialiasSamples('2'),2);assert.equal(antialiasSamples(0),0);assert.equal(antialiasSamples(8),g.defaultAntialias);assert.equal(antialiasSamples(null),g.defaultAntialias,'no saved choice');assert.equal(antialiasSamples(''),g.defaultAntialias);
+ const {graphicsSettingsHtml,graphicsAction,resolutionChoices}=await import('../../src/ui/graphics-settings.js');
+ assert.deepEqual(resolutionChoices(2).map(c=>c.percent),[100,88,75,63,50,43,35]);
+ assert.deepEqual(resolutionChoices(1).map(c=>c.ratio),[1,.85,.7],'no choice above the screen');
+ const state={quality:'medium',values:qualitySettings('medium'),antialias:4,dpr:2,buffer:[1475,1025]};
+ const calls=[],graphics={get:()=>state,setQuality:q=>calls.push(['q',q]),setCustom:(k,v)=>calls.push([k,v]),setAntialias:n=>calls.push(['aa',n])};
+ let html=graphicsSettingsHtml(graphics);
+ assert.ok(html.includes('data-q="custom"')&&html.includes('data-act="gfx-aa" data-v="0"')&&!html.includes('data-k="pixelRatio"'),'custom rows only on the custom preset');
+ assert.match(html,/aria-pressed="true" data-act="gfx-aa" data-v="4"/);
+ state.quality='custom';html=graphicsSettingsHtml(graphics);
+ for(const k of ['pixelRatio','shadowMapSize','post','dynres'])assert.ok(html.includes(`data-k="${k}"`),k);
+ const tap=(dataset)=>graphicsAction({dataset},graphics);
+ assert.equal(tap({act:'gfx',k:'post',v:'false'}),true);assert.equal(tap({act:'gfx',k:'pixelRatio',v:'0.85'}),true);
+ assert.equal(tap({act:'gfx-aa',v:'2'}),true);assert.equal(tap({act:'quality',q:'low'}),true);assert.equal(tap({act:'save-now'}),false);
+ assert.deepEqual(calls,[['post',false],['pixelRatio',.85],['aa',2],['q','low']]);
 });
 test('wind shadow matches fill vertex deformation and alpha silhouette but excludes camera dither',()=>{
  const map=new THREE.Texture(),mat=patchMaterial(new THREE.MeshLambertMaterial({map,alphaTest:.4,side:THREE.DoubleSide}),{wind:.014,windBase:1.2,see:true});
@@ -71,4 +96,13 @@ test('screen grade: authored in data, off on low, neutral-safe values, targets r
  assert.ok(h.r>=fog.clone().convertLinearToSRGB().r-1e-6&&h.b<=1,'the haze is the fog colour lifted toward white');
  const freed=new Set();for(const t of [post.scene,post.glow,post.glowMat,post.compositeMat,post.geometry])t.addEventListener('dispose',()=>freed.add(t));
  post.dispose();assert.equal(freed.size,5);
+ const plain=new PostFX({capabilities:{isWebGL2:true}},cfg,{samples:0,grade:false});
+ assert.equal(plain.scene.samples,0,'anti-aliasing off');let gone=0;plain.scene.addEventListener('dispose',()=>gone++);
+ assert.equal(plain.setSamples(2),true);assert.equal(plain.scene.samples,2);assert.equal(gone,1,'new samples reallocate the target');
+ assert.equal(plain.setSamples(2),false);assert.equal(gone,1);
+ assert.equal(new PostFX({capabilities:{isWebGL2:false}},cfg).scene.samples,0,'WebGL1 has no multisampled targets');
+ const drawn=[];const r={getRenderTarget:()=>null,setRenderTarget:t=>drawn.push(t),render:()=>drawn.push(plain.quad.material)};
+ plain.renderer=r;plain.render(new THREE.Scene(),new THREE.PerspectiveCamera());
+ assert.deepEqual(drawn,[plain.scene,plain.glowMat,null,plain.copyMat],'grade off: resolve and copy only, no glow pass');
+ plain.dispose();
 });

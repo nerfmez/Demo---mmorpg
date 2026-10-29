@@ -4,7 +4,8 @@
 // boulder shapes, one draw each.
 import * as THREE from 'three';
 import { createRng } from '../../core/rng.js';
-import { toonRamp } from '../toon.js';
+import { outlineMaterial } from '../toon.js';
+import { gamePaint } from './game-paint.js';
 import { floorRings, area } from './floors.js';
 
 function boulder(seed, detail = 1) {
@@ -149,7 +150,7 @@ function rimWalls(map, look, keepClear, tall, modelled) {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.computeVertexNormals(); // non-indexed: one normal per facet, the faceted cel look
-  const m = new THREE.Mesh(g, new THREE.MeshToonMaterial({ color: '#ffffff', gradientMap: toonRamp(), vertexColors: true }));
+  const m = new THREE.Mesh(g, gamePaint(look, 'rock'));
   m.castShadow = true;
   m.receiveShadow = true;
   m.name = 'rim-walls';
@@ -164,7 +165,7 @@ function rimWalls(map, look, keepClear, tall, modelled) {
 export function buildRim(map, look, { seed = 1, keepClear = [], tall = 1, points = rimPoints(map, 1.25), modelled = new Set() } = {}) {
   const rng = createRng(seed);
   const shapes = [boulder(seed + 1), boulder(seed + 2), boulder(seed + 3, 0)];
-  const mat = new THREE.MeshToonMaterial({ color: '#ffffff', gradientMap: toonRamp(), vertexColors: true });
+  const mat = gamePaint(look, 'rock'), line = outlineMaterial(look.paint?.ink || '#4a4652', 0.05);
   const lists = shapes.map(() => []);
   const base = new THREE.Color(look.rock), top = new THREE.Color(look.rockTop);
   const clear = (x, z, pad) => keepClear.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < (r + pad) ** 2);
@@ -205,6 +206,11 @@ export function buildRim(map, look, { seed = 1, keepClear = [], tall = 1, points
     inst.receiveShadow = true;
     inst.computeBoundingSphere();
     root.add(inst);
+    // the game's stones carry a soft same-hue outline
+    const hull = new THREE.InstancedMesh(shapes[k], line, list.length);
+    hull.instanceMatrix = inst.instanceMatrix;
+    hull.computeBoundingSphere();
+    root.add(hull);
   });
   return { root, count: lists.reduce((n, l) => n + l.length, 0) };
 }

@@ -669,14 +669,18 @@ types to props as `buildProps` does (pillar, pillarBroken → pillar_broken, fal
 sealedArch → arch_sealed, crystal → crystal_s/m/l by scale, coralTree → coral_tree, bigPearl → pearl_altar, chest → chest / chest_open
 in turn, candles, barrel, crate, post); collision stays the `propTypes` circles. Each `waterfalls` entry has `kind`: `ledge` (pours over the edge at
 `at` toward `facing`, curving out about 0.25 + 0.55·sqrt(fallen m / 3)) or `wall` (runs down the cave wall from `top`); both widen
-to 1.15× at the foot. Stairs are cut out of the floors they cross; the floors in the data are already cut to each flight's sides and squared at its ends (no overlap); draw ~0.15 m steps (at least 0.4 m deep), each tread one course of the paving turned to the flight (UV across/along it, a different course per step) and darker toward the riser behind it, with 0.45 m cheeks and no edging stones beside a flight; the collider stays the ramp. A `rubble` prop
+to 1.15× at the foot. Stairs are cut out of the floors they cross; the floors in the data are already cut to each flight's sides and squared at its ends (no overlap); draw ~0.15 m steps (at least 0.4 m deep) the game's way: each step a course of cut grey stones about 0.9 m across, square to the flight, its joints offset by half a stone on every other step, its front edge standing proud as a riser, and a 0.45 m cheek stone at each side; no edging stones beside a flight; the collider stays the ramp. A `rubble` prop
 (no collider) marks where the stone over the water broke away along the paving joints (the traced floors already have the
 stepped bite); its `stones` ([x, z, w, d], metres) are the pavers that fell: draw each as a 0.22 m slab, its top textured
-from where it lay (uv = position / 4 m, as the floor), slid out along `rot`, tipped down toward the water (some leaning on the
+from where it lay (uv = position / `PAVING_TILE` (6 m), as the floor), slid out along `rot`, tipped down toward the water (some leaning on the
 edge, half out of the water), plus a few chips; leave the edging stones out within 1.4·scale + 0.7 m of it. The paving layout
 is `flagstoneCourses()` (`scripts/grotto-paving.mjs` prints it in metres). Edging stones elsewhere age by
 a hash of their index (13% missing, 17% tipped outward, the rest leaning a little); stone floors get worn-paving decals,
-about one per 45 m², off the props and inside the edge. See `docs/SHELL-GROTTO.md`.
+about one per 45 m², off the props and inside the edge. Floors, walls, rocks and steps use the game's
+painted stone (`src/render/grotto/game-paint.js`, the accepted scenes' `paint()`): three tones from the sun
+direction and the shadow map (shade/mid/lit tints in `look.paint`), the surface's vertex colour pulled into the
+game's grey stone (`sat`, `tint`, per-kind `gain`) and fading to `floor` below -2 m; rocks carry a back-face
+outline in `ink`. In Godot this is one `ShaderMaterial` with those uniforms. See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 
@@ -772,10 +776,15 @@ scene-shadow mask rather than re-lighting individual cards.
 The same wind deformation must be active in both colour and shadow rendering.
 WebGL uses a shared customDepthMaterial per fill material (`render/patch.js`),
 with the fill's alpha texture/test and wind uniforms, but no camera-space dither.
-When changing quality, update and release shadow buffers as well as DPR. WebGL
-native AA is a fixed context policy (including Low), not a switch changed by
-setQuality. Godot can use its own viewport AA controls with equivalent documented
-behaviour. See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
+When changing quality, update and release shadow buffers as well as DPR.
+Graphics settings (owner, 29 October 2026; `rendering.json` -> `graphics`,
+`src/ui/graphics-settings.js`): presets low/medium/high (low 0.85 and medium 1.25
+drawn pixels per screen point, high 2) or `custom`, where resolution, shadow size,
+the screen grade and dynamic resolution are each chosen from listed values.
+Anti-aliasing is a separate setting for every preset (off, x2, x4): the WebGL
+canvas is never multisampled; the scene target's samples are the setting, and with
+the grade off the target is only resolved and copied. In Godot, map this to the
+viewport's `scaling_3d_scale` and `msaa_3d` (disabled/2x/4x). See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
 
 ### Azure Coast local starter (30 September 2026)
 
@@ -957,7 +966,7 @@ the current aligned one-metre map grids, not arbitrary irregular tessellation.
 
 ## Screen grade (post-process)
 
-`render/post.js` (`PostFX`, settings `rendering.json` → `post`, on per preset with `quality.<name>.post`, off on `low`) draws the scene into a 4x multisampled sRGB target, makes a quarter-size bright pass for a soft glow, then one full-screen composite: glow, display-space saturation and contrast, split toning (cool `shadowTint`, warm `lightTint`; 50% grey is neutral), a haze toward the top of the screen in the zone's fog colour lifted by `hazeLift`, a warm screen-blend sun wash centred at `sunWashPos` (screen UV, top-left, the sun's side), a vignette and a 1/255 dither. Models and materials are unchanged; `?post=0` turns it off for comparisons. In Godot, use a `WorldEnvironment` (glow with the same threshold, adjustments for contrast/saturation) plus a screen-space `ColorRect` shader for the toning, haze, sun wash and vignette.
+`render/post.js` (`PostFX`, settings `rendering.json` → `post`, on per preset with `quality.<name>.post`, off on `low`) draws the scene into a multisampled sRGB target (samples = the anti-aliasing setting), makes a quarter-size bright pass for a soft glow, then one full-screen composite: glow, display-space saturation and contrast, split toning (cool `shadowTint`, warm `lightTint`; 50% grey is neutral), a haze toward the top of the screen in the zone's fog colour lifted by `hazeLift`, a warm screen-blend sun wash centred at `sunWashPos` (screen UV, top-left, the sun's side), a vignette and a 1/255 dither. Models and materials are unchanged; `?post=0` turns it off for comparisons. In Godot, use a `WorldEnvironment` (glow with the same threshold, adjustments for contrast/saturation) plus a screen-space `ColorRect` shader for the toning, haze, sun wash and vignette.
 
 ## Local city cohesion presentation
 

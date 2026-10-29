@@ -131,6 +131,19 @@ def shapes_mask(shapes):
     return out
 
 
+# every flight of stairs is cut out of the floors it crosses: the floors meet it at its sides and
+# ends instead of lying over it (which drew a ramp pasted onto a slab)
+stair_cut = np.zeros_like(walk)
+for s in CFG['stairs']:
+    (ax, ay), (bx, by), w = s['a'], s['b'], s['w']
+    l = math.hypot(bx - ax, by - ay) or 1
+    ux, uy = (bx - ax) / l, (by - ay) / l
+    hw, e = w / 2 + 1, 9  # the cut stops short of both ends, so the floors there still meet the flight
+    quad = [[ax - uy * hw + ux * e, ay + ux * hw + uy * e], [bx - uy * hw - ux * e, by + ux * hw - uy * e],
+            [bx + uy * hw - ux * e, by - ux * hw - uy * e], [ax + uy * hw + ux * e, ay - ux * hw + uy * e]]
+    cv2.fillPoly(stair_cut, [np.array(quad, np.int32)], 1)
+keep = (1 - stair_cut).astype(np.uint8)
+
 for i, z in enumerate(zones):
     # each zone reaches a few pixels past its edge, so two zones on one level overlap instead of
     # leaving a hairline of void between their outlines
@@ -143,6 +156,7 @@ for i, z in enumerate(zones):
         area = cv2.morphologyEx(area, cv2.MORPH_CLOSE, ell(r)) & zm
         area = cv2.morphologyEx(area, cv2.MORPH_OPEN, ell(r // 2))
         area = fill_small_holes(area, 20000)
+    area = area & keep
     wet = 'waterFloor' in z and not z.get('stoneOnly')
     base_kind = 'shallow' if wet else 'stone'
     for n, (pts, holes) in enumerate(polygons(area, 3000, 2500)):
@@ -169,6 +183,7 @@ for i, z in enumerate(zones):
         if z.get('stone'):
             # where the picture's stone is too broken up by its ruins to trace, it is drawn by hand
             raised = shapes_mask(z['stone']) & zm
+        raised = raised & keep
         for n, (pts, holes) in enumerate(polygons(raised, 700, 900)):
             f = {'id': f"{z['id']}-stone-{n}", 'kind': 'stone', 'shape': 'poly', 'y': z['y'], 'pts': pts}
             if holes:
@@ -198,6 +213,21 @@ inner = cv2.erode(final, ell(9))
 walk_pts = np.argwhere(inner == 1)  # (y, x), a little inside the edge
 
 
+# corals and crystals grow at the foot of the walls, as in the concept, never out in a walkway:
+# the band of floor a few pixels in from the void
+to_void = cv2.distanceTransform(final, cv2.DIST_L2, 5)
+band_pts = np.argwhere((to_void >= 5) & (to_void <= 13))
+
+
+def onto_edge(at):
+    x, y = at
+    if 0 <= y < H and 0 <= x < W and 0 < to_void[y, x] <= 16:
+        return at
+    d = (band_pts[:, 0] - y) ** 2 + (band_pts[:, 1] - x) ** 2
+    k = int(np.argmin(d))
+    return [int(band_pts[k][1]), int(band_pts[k][0])]
+
+
 def onto_floor(at):
     x, y = at
     if inner[min(H - 1, y), min(W - 1, x)]:
@@ -211,14 +241,90 @@ props = []
 for p in CFG['props']:
     q = {k: v for k, v in p.items() if k not in ('at', 'face')}
     wall = p['type'] in ('shellGate', 'sealedArch')
-    q['at'] = m(p['at'] if wall else onto_floor(p['at']))
+    q['at'] = m(p['at'] if wall else onto_edge(p['at']) if p['type'] in ('coral', 'crystal') else onto_floor(p['at']))
     if 'face' in p:
         q['rot'] = facing(p['at'], p['face'])
     props.append(q)
 
+def level(f):
+    return f.get('waterY', f['y']) if f['shape'] == 'poly' else None
+
+
+def inside_poly(pts, x, z):
+    return cv2.pointPolygonTest(np.array(pts, np.float32), (float(x), float(z)), False) > 0
+
+
+def on_floor(x, z, f):
+    return inside_poly(f['pts'], x, z) and not any(inside_poly(h, x, z) for h in f.get('holes', []))
+
+
+def any_floor(x, z):
+    return any(f['shape'] == 'poly' and on_floor(x, z, f) for f in floors)
+
+
+def nearest_edge(at, test):
+    """The nearest point on the outline of a floor that `test(floor)` picks, with its outward normal
+    (away from that floor), as (x, z, nx, nz, floor)."""
+    best = None
+    for f in floors:
+        if f['shape'] != 'poly' or not test(f):
+            continue
+        for ring in [f['pts'], *f.get('holes', [])]:
+            for i in range(len(ring)):
+                (ax, az), (bx, bz) = ring[i], ring[(i + 1) % len(ring)]
+                dx, dz = bx - ax, bz - az
+                l2 = dx * dx + dz * dz or 1e-9
+                t = max(0.0, min(1.0, ((at[0] - ax) * dx + (at[1] - az) * dz) / l2))
+                x, z = ax + dx * t, az + dz * t
+                d = (x - at[0]) ** 2 + (z - at[1]) ** 2
+                if best is None or d < best[0]:
+                    best = (d, x, z, f)
+    _, x, z, f = best
+    # outward, smoothed over the bend: away from the floor seen within 2.5 m all round
+    sx = sz = 0.0
+    for k in range(24):
+        a = k / 24 * math.tau
+        if on_floor(x + math.cos(a) * 2.5, z + math.sin(a) * 2.5, f):
+            sx -= math.cos(a)
+            sz -= math.sin(a)
+    l = math.hypot(sx, sz) or 1
+    return x, z, sx / l, sz / l, f
+
+
+# a waterfall pours from where the concept shows it, put on the real edge it pours over:
+# `ledge` falls go over the lip of the floor at their top level, into what lies below;
+# `wall` falls run down the cave wall at the back of the floor at their bottom level, from near the
+# wall's top (the modelled walls stand up to 5 m), into that floor's water
 falls = []
+def along_face(w, test):
+    """Where the line through the fall, along the way the concept has it face, meets the edge of a
+    floor `test` picks (the nearest crossing either way, within 15 m), else the nearest edge point."""
+    at, face = m(w['at']), m(w['face'])
+    dx, dz = face[0] - at[0], face[1] - at[1]
+    l = math.hypot(dx, dz) or 1
+    dx, dz = dx / l, dz / l
+    on = lambda x, z: any(f['shape'] == 'poly' and test(f) and on_floor(x, z, f) for f in floors)
+    start = on(*at)
+    for k in range(1, 151):
+        for sgn in (1, -1):
+            x, z = at[0] + dx * sgn * k * 0.1, at[1] + dz * sgn * k * 0.1
+            if on(x, z) != start:
+                return nearest_edge([x, z], test)
+    return nearest_edge(at, test)
+
+
 for w in CFG['waterfalls']:
-    falls.append({'at': m(w['at']), 'facing': facing(w['at'], w['face']), 'w': w['w'], 'top': w['top'], 'bottom': w['bottom']})
+    ledge = any(level(f) is not None and abs(level(f) - w['top']) < 0.3 for f in floors)
+    if ledge:
+        x, z, nx, nz, f = along_face(w, lambda f: level(f) is not None and abs(level(f) - w['top']) < 0.3)
+        fall = {'kind': 'ledge', 'at': [round(x, 2), round(z, 2)], 'facing': round(math.atan2(nx, nz), 3), 'w': w['w'], 'top': w['top'], 'bottom': w['bottom']}
+    else:
+        x, z, nx, nz, f = along_face(w, lambda f: level(f) is not None and abs(level(f) - w['bottom']) < 0.3)
+        # the wall stands on the void side; the fall faces into the room
+        fall = {'kind': 'wall', 'at': [round(x + nx * 0.35, 2), round(z + nz * 0.35, 2)], 'facing': round(math.atan2(-nx, -nz), 3), 'w': w['w'], 'top': round(w['bottom'] + min(4.4, w['top'] - w['bottom']), 2), 'bottom': w['bottom']}
+    if any(math.hypot(fall['at'][0] - g['at'][0], fall['at'][1] - g['at'][1]) < 4 for g in falls):
+        continue  # it landed on the same spot of wall as another: one fall there, not two
+    falls.append(fall)
 
 xs = [p[0] for f in floors if f['shape'] == 'poly' for p in f['pts']]
 zs = [p[1] for f in floors if f['shape'] == 'poly' for p in f['pts']]

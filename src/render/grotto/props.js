@@ -155,6 +155,21 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     // at, they turn toward the camera (+z), or it would see their edge
     glowPut.get(name).push({ x, y, z, ry: rng.range(-0.6, 0.6), s });
   };
+  // how far a point is from the nearest edge over the void (the foot of a wall)
+  const edgeGrid = new Map(), G = 3;
+  for (const e of decor) {
+    const k = `${Math.floor(e.x / G)},${Math.floor(e.z / G)}`;
+    if (!edgeGrid.has(k)) edgeGrid.set(k, []);
+    edgeGrid.get(k).push(e);
+  }
+  const edgeDistance = (x, z) => {
+    let best = Infinity;
+    const gx = Math.floor(x / G), gz = Math.floor(z / G);
+    for (let i = gx - 1; i <= gx + 1; i++) for (let j = gz - 1; j <= gz + 1; j++) {
+      for (const e of edgeGrid.get(`${i},${j}`) || []) best = Math.min(best, Math.hypot(e.x - x, e.z - z));
+    }
+    return best;
+  };
   const clump = (color, x, y, z, ry, s, wall = null) => {
     if (clumps.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < (r + 1.2 * s) ** 2)) return;
     const kin = GLOW_BY_COLOR[color] || GLOW_BY_COLOR['#b06cff'], main = rng.pick(kin), big = corals.get(main);
@@ -179,7 +194,9 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         pz = z + Math.cos(a) * d;
       }
       const ground = map.surfaceAt(px, pz);
-      putGlow(name, px, (ground ? ground.y : y + 0.05) - 0.05, pz, ry + rng.range(-0.9, 0.9), ks);
+      // the small ones stay at the foot of the wall too: never out on a walkway or a stair
+      if (!ground || ground.floor.shape === 'stairs' || edgeDistance(px, pz) > 1.6) continue;
+      putGlow(name, px, ground.y - 0.05, pz, ry + rng.range(-0.9, 0.9), ks);
     }
     reach = Math.max(reach, left, right);
     clumps.push([x, z, reach]);

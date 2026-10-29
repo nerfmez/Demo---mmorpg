@@ -659,7 +659,9 @@ meshes standing on their own origin, where kind is how to draw it: `flat` (cel, 
 `shine`/`shinesm` (the same plus half of the vertex colour as emission), `glow` (unshaded vertex colour, both sides). Map
 types to props as `buildProps` does (pillar, pillarBroken → pillar_broken, fallenPillar → pillar_fallen, arch → arch / arch_shell in turn,
 sealedArch → arch_sealed, crystal → crystal_s/m/l by scale, coralTree → coral_tree, bigPearl → pearl_altar, chest → chest / chest_open
-in turn, candles, barrel, crate, post); collision stays the `propTypes` circles. See `docs/SHELL-GROTTO.md`.
+in turn, candles, barrel, crate, post); collision stays the `propTypes` circles. Each `waterfalls` entry has `kind`: `ledge` (pours over the edge at
+`at` toward `facing`, curving out about 0.25 + 0.55·sqrt(fallen m / 3)) or `wall` (runs down the cave wall from `top`); both widen
+to 1.15× at the foot. Stairs are cut out of the floors they cross; draw ~0.2 m steps with cheeks, the collider stays the ramp. See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 

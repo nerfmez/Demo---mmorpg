@@ -89,15 +89,22 @@ export function area(poly) {
  * Cliff walls around an outline, facing away from the floor and darkening into the void (a
  * `hole` faces into the hole; `inner` faces into a basin, down to that height).
  */
-function addWalls(mesh, poly, yTop, look, inner = null, hole = false) {
+function addWalls(mesh, poly, yTop, look, inner = null, hole = false, map = null, self = null) {
   if ((area(poly) > 0) !== (inner === null && !hole)) poly = [...poly].reverse();
   let u = 0;
-  const lip = new THREE.Color(1, 1, 1), dark = new THREE.Color(look.void), deep = new THREE.Color(0.45, 0.6, 0.65);
+  const lip = new THREE.Color(1, 1, 1), dark = new THREE.Color(look.void), deep = new THREE.Color(0.45, 0.6, 0.65), low = new THREE.Color(0.62, 0.62, 0.62);
   const mid = yTop - FADE;
   for (let i = 0; i < poly.length; i++) {
     const [ax, az] = poly[i], [bx, bz] = poly[(i + 1) % poly.length];
     const l = Math.hypot(bx - ax, bz - az);
+    // what lies past this edge: another floor at this height (no wall: the two meet flush), a lower
+    // floor (a wall down to it, not a cliff into the void) or nothing (the cliff)
+    const nx = l ? -(bz - az) / l : 0, nz = l ? (bx - ax) / l : 0;
+    const past = map && inner === null ? map.surfaceAt((ax + bx) / 2 + nx * 0.5, (az + bz) / 2 + nz * 0.5) : null;
+    const other = past && past.floor !== self ? past : null;
+    if (other && Math.abs(other.y - yTop) < 0.12) { u += l; continue; }
     if (inner !== null) mesh.wall(ax, az, bx, bz, yTop, inner, u / TILE, (u + l) / TILE, lip, deep);
+    else if (other && other.y < yTop) mesh.wall(ax, az, bx, bz, yTop, other.y - 0.4, u / TILE, (u + l) / TILE, lip, low);
     else {
       mesh.wall(ax, az, bx, bz, yTop, mid, u / TILE, (u + l) / TILE, lip, dark);
       mesh.wall(ax, az, bx, bz, mid, BASE, u / TILE, (u + l) / TILE, dark, dark);
@@ -148,28 +155,57 @@ function faceUp(mesh, from) {
   }
 }
 
-function addStairs(mesh, cliffs, f, look, white) {
+function addStairs(mesh, cliffs, curb, f, look, white, map) {
   const [ax, az] = f.a, [bx, bz] = f.b, len = f.length, ux = (bx - ax) / len, uz = (bz - az) / len, h = f.w / 2;
   const px = -uz * h, pz = ux * h; // half width, sideways
-  const n = Math.max(2, Math.round(Math.abs(f.y1 - f.y0) / 0.2));
+  const qx = -uz, qz = ux; // unit sideways
+  // steps of about 0.2 m rise, at least 0.5 m deep (the rules walk the ramp under them)
+  const n = Math.max(3, Math.min(Math.round(Math.abs(f.y1 - f.y0) / 0.2), Math.floor(len / 0.5)));
   const at = (t) => [ax + ux * t, az + uz * t];
-  const shadow = new THREE.Color(0.72, 0.72, 0.72);
+  const shadow = new THREE.Color(0.72, 0.72, 0.72), lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.7, 0.7, 0.7);
+  const cheekW = Math.min(0.45, h * 0.18), cheekH = 0.3;
+  const yAt = (i) => f.y0 + (f.y1 - f.y0) * ((i + 0.5) / n);
   for (let i = 0; i < n; i++) {
     const t0 = (i / n) * len, t1 = ((i + 1) / n) * len;
-    // the step's tread sits at the height of the ramp's middle over that step (the rules walk the ramp)
-    const y = f.y0 + (f.y1 - f.y0) * ((i + 0.5) / n);
+    // the step's tread sits at the height of the ramp's middle over that step
+    const y = yAt(i);
     const [x0, z0] = at(t0), [x1, z1] = at(t1);
     const c00 = [x0 + px, z0 + pz], c01 = [x0 - px, z0 - pz], c10 = [x1 + px, z1 + pz], c11 = [x1 - px, z1 - pz];
     const from = mesh.pos.length;
     mesh.topTri(c00, c10, c11, y, white);
     mesh.topTri(c00, c11, c01, y, white);
     faceUp(mesh, from);
-    // sides of the flight: cliff walls under each step
-    addWalls(cliffs, [c00, c10, c11, c01], y, look);
-    // risers between steps, in the tread's stone
-    const prevY = i === 0 ? Math.min(f.y0, f.y1) - 0.6 : f.y0 + (f.y1 - f.y0) * ((i - 0.5) / n);
-    if (y > prevY) mesh.wall(c01[0], c01[1], c00[0], c00[1], y, prevY, 0, f.w / TILE, white, shadow);
-    else mesh.wall(c00[0], c00[1], c01[0], c01[1], prevY, y, 0, f.w / TILE, white, shadow);
+    // the riser up to this step and a worn nosing along its edge, in the cut stone of the curbs, so
+    // every step reads against the paving
+    const prevY = i === 0 ? Math.min(f.y0, f.y1) - 0.3 : yAt(i - 1);
+    const up = y > prevY, edgeT = up ? t0 : t1; // the step's front edge faces down the flight
+    const [ex, ez] = at(edgeT), back = up ? 1 : -1, nose = Math.min(0.22, (t1 - t0) * 0.3);
+    const e0 = [ex + px, ez + pz], e1 = [ex - px, ez - pz], b0 = [e0[0] + ux * nose * back, e0[1] + uz * nose * back], b1 = [e1[0] + ux * nose * back, e1[1] + uz * nose * back];
+    const fn = curb.pos.length;
+    curb.topTri(e0, e1, b1, y + 0.005, lip);
+    curb.topTri(e0, b1, b0, y + 0.005, lip);
+    faceUp(curb, fn);
+    const lowY = up ? prevY : y, highY = up ? y : prevY;
+    if (up) curb.wall(e1[0], e1[1], e0[0], e0[1], highY, lowY, 0, f.w / TILE, lip, shadow);
+    else curb.wall(e0[0], e0[1], e1[0], e1[1], highY, lowY, 0, f.w / TILE, lip, shadow);
+    // the cheeks: a low stone wall along each side of the flight, stepping down with it
+    for (const side of [1, -1]) {
+      const o0 = [x0 + qx * h * side, z0 + qz * h * side], o1 = [x1 + qx * h * side, z1 + qz * h * side];
+      const i0 = [o0[0] - qx * cheekW * side, o0[1] - qz * cheekW * side], i1 = [o1[0] - qx * cheekW * side, o1[1] - qz * cheekW * side];
+      const top = y + cheekH, f0 = curb.pos.length;
+      curb.topTri(o0, o1, i1, top, lip);
+      curb.topTri(o0, i1, i0, top, lip);
+      faceUp(curb, f0);
+      const out = side > 0 ? [o1, o0] : [o0, o1], inn = side > 0 ? [i0, i1] : [i1, i0];
+      curb.wall(inn[0][0], inn[0][1], inn[1][0], inn[1][1], top, y, 0, (t1 - t0) / TILE, lip, low);
+      // outside: down to whatever is beside the flight
+      const s = map.surfaceAt((o0[0] + o1[0]) / 2 + qx * side * 0.5, (o0[1] + o1[1]) / 2 + qz * side * 0.5);
+      const foot = s ? Math.min(s.y, y) - 0.2 : BASE;
+      curb.wall(out[0][0], out[0][1], out[1][0], out[1][1], top, foot, 0, (t1 - t0) / TILE, lip, s ? low : new THREE.Color(look.void));
+      // the cheek's end where it steps down
+      const e0 = side > 0 ? [i0, o0] : [o0, i0];
+      curb.wall(e0[0][0], e0[0][1], e0[1][0], e0[1][1], top, prevY + cheekH, 0, cheekW / TILE, lip, low);
+    }
   }
 }
 
@@ -243,14 +279,14 @@ export function buildFloors(map, look) {
       if (f.kind === 'deep') {
         // a basin: its rim stands just above the water, walled inside and out
         const rim = f.waterY + 0.25;
-        addWalls(cliffs, poly, rim, look);
+        addWalls(cliffs, poly, rim, look, null, false, map, f);
         addWalls(cliffs, poly, rim, look, f.y);
-      } else addWalls(cliffs, poly, f.y, look);
+      } else addWalls(cliffs, poly, f.y, look, null, false, map, f);
     } else if (f.shape === 'path') {
       const from = top.pos.length;
       const poly = addStrip(top, f, white);
       faceUp(top, from);
-      addWalls(cliffs, poly, f.y, look);
+      addWalls(cliffs, poly, f.y, look, null, false, map, f);
     } else if (f.shape === 'poly') {
       // a traced outline with holes: triangulated, walled around the outline and every hole
       const v2 = (pts) => pts.map(([x, z]) => new THREE.Vector2(x, z));
@@ -258,9 +294,9 @@ export function buildFloors(map, look) {
       const from = top.pos.length;
       for (const [a, b, c] of THREE.ShapeUtils.triangulateShape(outer, holes)) top.topTri([all[a].x, all[a].y], [all[b].x, all[b].y], [all[c].x, all[c].y], f.y, white);
       faceUp(top, from);
-      for (const r of floorRings(f)) addWalls(cliffs, r.pts, f.y, look, null, r.hole);
+      for (const r of floorRings(f)) addWalls(cliffs, r.pts, f.y, look, null, r.hole, map, f);
     } else if (f.shape === 'stairs') {
-      addStairs(top, cliffs, f, look, white);
+      addStairs(top, cliffs, topFor('curb'), f, look, white, map);
     }
   }
   // edging stones around drops (not on sand: the beach just meets the sea)

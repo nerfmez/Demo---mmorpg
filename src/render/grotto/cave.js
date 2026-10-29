@@ -7,7 +7,9 @@
 // a facet's own for the paving and rocks, smooth for the rock face.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { toonRamp } from '../toon.js';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { gamePaint } from './game-paint.js';
+import { outlineMaterial } from '../toon.js';
 
 /** Load the cave model. Resolves {parts: Map(name -> geometry), source}; rejects if the file is missing. */
 export function loadGrottoCave(url = 'models/grotto/grotto-cave.glb') {
@@ -41,10 +43,8 @@ export function loadGrottoCave(url = 'models/grotto/grotto-cave.glb') {
 export function buildCave(map, cave) {
   const root = new THREE.Group();
   root.name = 'cave';
-  const mat = new THREE.MeshToonMaterial({ color: '#ffffff', vertexColors: true, gradientMap: toonRamp() });
-  // the rooms beyond the entrance have no warm lamps, only the cave's cool light: their rock is
-  // tinted warm and lifted a little so it stays the concept's brown-grey, not navy
-  const cool = new THREE.MeshToonMaterial({ color: '#d8d0c8', vertexColors: true, gradientMap: toonRamp(), emissive: '#1c1916', emissiveIntensity: 1 });
+  // the game's painted stone (game-paint.js): the baked occlusion stays, the rock is the game's grey
+  const look = map.def.look, mat = gamePaint(look, 'cave'), cool = gamePaint(look, 'rock');
   for (const f of map.floors) {
     if (f.style !== 'cave' && !f.walls) continue;
     for (const kind of ['cavefloor', 'cavewall', 'caverock']) {
@@ -55,6 +55,18 @@ export function buildCave(map, cave) {
       m.receiveShadow = true;
       m.castShadow = kind !== 'cavefloor';
       root.add(m);
+      // the game's stones carry a soft same-hue outline: a hull on welded, smooth normals so the
+      // facets do not split it
+      if (kind === 'caverock') {
+        let hull = g.clone();
+        hull.deleteAttribute('normal');
+        for (const k of Object.keys(hull.attributes)) if (k !== 'position') hull.deleteAttribute(k);
+        hull = mergeVertices(hull, 1e-3);
+        hull.computeVertexNormals();
+        const line = new THREE.Mesh(hull, outlineMaterial(look.paint?.ink || '#4a4652', 0.05));
+        line.name = `caveline-${f.id}`;
+        root.add(line);
+      }
     }
   }
   return { root };

@@ -4,12 +4,13 @@
 // standing over darkness like the concept. One merged mesh per material.
 import * as THREE from 'three';
 import { toonRamp } from '../toon.js';
+import { gamePaint, stoneBlock, stoneMesh, STONE, STAIR } from './game-paint.js';
 import { createRng } from '../../core/rng.js';
-import { flagstoneTexture, flagstoneCourses, masonryTexture, nacreTexture, sandTexture, dirtTexture, wornTexture } from './textures.js';
+import { PAVING_TILE, flagstoneTexture, masonryTexture, nacreTexture, sandTexture, dirtTexture, wornTexture } from './textures.js';
 
 const BASE = -14; // how far the cliffs fall
 const FADE = 7; // metres for a cliff to darken into the void
-const TILE = 4; // metres one texture repeat covers
+const TILE = PAVING_TILE; // metres one texture repeat covers
 
 class Mesh {
   constructor() { this.pos = []; this.nor = []; this.uv = []; this.col = []; }
@@ -171,64 +172,43 @@ function faceUp(mesh, from) {
   }
 }
 
-function addStairs(mesh, cliffs, curb, f, look, white, map) {
+/**
+ * A flight of stairs laid the game's way (accepted scenes' stoneStairs): every step is a course of
+ * cut grey stones square to the flight, each course level with its front edge standing proud as a
+ * riser, the joints staggered from course to course, and a low cheek stone at each side. The rules
+ * walk the ramp under them; the steps sit at the ramp's middle height over each step.
+ */
+function addStairs(blocks, f, map, rng) {
   const [ax, az] = f.a, [bx, bz] = f.b, len = f.length, ux = (bx - ax) / len, uz = (bz - az) / len, h = f.w / 2;
-  const px = -uz * h, pz = ux * h; // half width, sideways
   const qx = -uz, qz = ux; // unit sideways
-  // steps of about 0.15 m rise, at least 0.4 m deep (the rules walk the ramp under them)
+  // steps of about 0.15 m rise, at least 0.4 m deep
   const n = Math.max(3, Math.min(Math.round(Math.abs(f.y1 - f.y0) / 0.15), Math.floor(len / 0.4)));
-  const at = (t) => [ax + ux * t, az + uz * t];
-  const shadow = new THREE.Color(0.72, 0.72, 0.72), lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.7, 0.7, 0.7);
-  const cheekW = Math.min(0.55, h * 0.2), cheekH = 0.45;
   const yAt = (i) => f.y0 + (f.y1 - f.y0) * ((i + 0.5) / n);
-  const courses = flagstoneCourses(), dark = new THREE.Color(0.74, 0.74, 0.74);
-  const upward = f.y1 > f.y0; // the flight climbs from a to b
+  const ry = Math.atan2(ux, uz), q = new THREE.Quaternion(), m4 = new THREE.Matrix4(), v = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+  const cheekW = Math.min(0.55, h * 0.2), cheekH = 0.45, inner = f.w - cheekW * 2;
+  const place = (x, y, z, w, hh, d, yaw, color) => {
+    q.setFromEuler(new THREE.Euler(0, yaw, 0));
+    m4.compose(v.set(x, y, z), q, one);
+    stoneBlock(blocks, rng, w, hh, d, color, m4);
+  };
   for (let i = 0; i < n; i++) {
-    const t0 = (i / n) * len, t1 = ((i + 1) / n) * len;
-    // the step's tread sits at the height of the ramp's middle over that step
-    const y = yAt(i);
-    const [x0, z0] = at(t0), [x1, z1] = at(t1);
-    const c00 = [x0 + px, z0 + pz], c01 = [x0 - px, z0 - pz], c10 = [x1 + px, z1 + pz], c11 = [x1 - px, z1 - pz];
-    // the tread is laid like a real step, not cut from the paving: one course of long stones runs
-    // across it (the texture turned to the flight, a different course and offset on every step, so
-    // the joints stagger), and it darkens toward the riser behind it, where the next step stands
-    const row = courses[i % courses.length], vFront = 1 - row.y1 / 512, vBack = 1 - row.y0 / 512, shift = i * 0.37;
-    const back1 = upward ? t1 : t0; // the edge the next step rises from
-    const corner = (c, t, side) => ({ c, u: shift + ((side + 1) * h) / TILE, v: t === back1 ? vBack : vFront, col: t === back1 ? dark : white });
-    const quad = [corner(c00, t0, 1), corner(c10, t1, 1), corner(c11, t1, -1), corner(c01, t0, -1)];
-    // counter-clockwise seen from above (the order flips with the flight's turn)
-    const ccw = (quad[1].c[1] - quad[0].c[1]) * (quad[2].c[0] - quad[0].c[0]) - (quad[1].c[0] - quad[0].c[0]) * (quad[2].c[1] - quad[0].c[1]) >= 0;
-    for (const k of ccw ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2]) mesh.vert(quad[k].c[0], y, quad[k].c[1], 0, 1, 0, quad[k].u, quad[k].v, quad[k].col);
-    // the riser up to this step and a worn nosing along its edge, in the cut stone of the curbs, so
-    // every step reads against the paving
-    const prevY = i === 0 ? Math.min(f.y0, f.y1) - 0.3 : yAt(i - 1);
-    const up = y > prevY, edgeT = up ? t0 : t1; // the step's front edge faces down the flight
-    const [ex, ez] = at(edgeT), back = up ? 1 : -1, nose = Math.min(0.22, (t1 - t0) * 0.3);
-    const e0 = [ex + px, ez + pz], e1 = [ex - px, ez - pz], b0 = [e0[0] + ux * nose * back, e0[1] + uz * nose * back], b1 = [e1[0] + ux * nose * back, e1[1] + uz * nose * back];
-    const fn = curb.pos.length;
-    curb.topTri(e0, e1, b1, y + 0.005, lip);
-    curb.topTri(e0, b1, b0, y + 0.005, lip);
-    faceUp(curb, fn);
-    const lowY = up ? prevY : y, highY = up ? y : prevY;
-    if (up) curb.wall(e1[0], e1[1], e0[0], e0[1], highY, lowY, 0, f.w / TILE, lip, shadow);
-    else curb.wall(e0[0], e0[1], e1[0], e1[1], highY, lowY, 0, f.w / TILE, lip, shadow);
-    // the cheeks: a low stone wall along each side of the flight, stepping down with it
+    const t0 = (i / n) * len, t1 = ((i + 1) / n) * len, tm = (t0 + t1) / 2, depth = (t1 - t0) * 1.04;
+    const y = yAt(i), below = i === 0 ? Math.min(f.y0, f.y1) - 0.3 : Math.min(yAt(i - 1), y) - 0.12;
+    const hh = y - below + 0.04, cx = ax + ux * tm, cz = az + uz * tm;
+    // the course: stones about 0.9 m across, offset by half a stone on every other step
+    const k = Math.max(2, Math.round(inner / 0.9)), w = inner / k, shift = i % 2 ? w / 2 : 0;
+    for (let j = -1; j < k; j++) {
+      const a = Math.max(0, j * w + shift), b = Math.min(inner, (j + 1) * w + shift);
+      if (b - a < 0.12) continue;
+      const off = -inner / 2 + (a + b) / 2;
+      place(cx + qx * off, below, cz + qz * off, (b - a) * rng.range(0.94, 0.98), hh, depth, ry + rng.range(-0.02, 0.02), rng.pick(STAIR));
+    }
+    // the cheeks: a taller stone at each side, stepping with the flight
     for (const side of [1, -1]) {
-      const o0 = [x0 + qx * h * side, z0 + qz * h * side], o1 = [x1 + qx * h * side, z1 + qz * h * side];
-      const i0 = [o0[0] - qx * cheekW * side, o0[1] - qz * cheekW * side], i1 = [o1[0] - qx * cheekW * side, o1[1] - qz * cheekW * side];
-      const top = y + cheekH, f0 = curb.pos.length;
-      curb.topTri(o0, o1, i1, top, lip);
-      curb.topTri(o0, i1, i0, top, lip);
-      faceUp(curb, f0);
-      const out = side > 0 ? [o1, o0] : [o0, o1], inn = side > 0 ? [i0, i1] : [i1, i0];
-      curb.wall(inn[0][0], inn[0][1], inn[1][0], inn[1][1], top, y, 0, (t1 - t0) / TILE, lip, low);
-      // outside: down to whatever is beside the flight
-      const s = map.surfaceAt((o0[0] + o1[0]) / 2 + qx * side * 0.5, (o0[1] + o1[1]) / 2 + qz * side * 0.5);
-      const foot = s ? Math.min(s.y, y) - 0.2 : BASE;
-      curb.wall(out[0][0], out[0][1], out[1][0], out[1][1], top, foot, 0, (t1 - t0) / TILE, lip, s ? low : new THREE.Color(look.void));
-      // the cheek's end where it steps down
-      const e0 = side > 0 ? [i0, o0] : [o0, i0];
-      curb.wall(e0[0][0], e0[0][1], e0[1][0], e0[1][1], top, prevY + cheekH, 0, cheekW / TILE, lip, low);
+      const off = side * (h - cheekW / 2), top = y + cheekH;
+      const s = map.surfaceAt(cx + qx * side * (h + 0.5), cz + qz * side * (h + 0.5));
+      const foot = s ? Math.min(s.y, y) - 0.2 : below - 0.6;
+      place(cx + qx * off, foot, cz + qz * off, cheekW, top - foot, depth * 1.01, ry, rng.pick(STONE));
     }
   }
 }
@@ -400,13 +380,13 @@ function addWear(map, broken) {
 const KIND = {
   stone: { map: flagstoneTexture, color: '#efe7da', emissive: '#2a2219', emissiveIntensity: 0.3 },
   warm: { map: flagstoneTexture, color: '#f4e4cc', emissive: '#33261a', emissiveIntensity: 0.3 },
-  shallow: { map: flagstoneTexture, color: '#79e3dc', emissive: '#0d5a62', emissiveIntensity: 0.55 },
-  deep: { map: flagstoneTexture, color: '#3aa6b8', emissive: '#0b4a5c', emissiveIntensity: 0.7 },
+  shallow: { map: flagstoneTexture, color: '#7fd4cc', emissive: '#0d5a62', emissiveIntensity: 0.3, paint: { sat: 1, tint: '#ffffff', gain: 1 } },
+  deep: { map: flagstoneTexture, color: '#3f9fb0', emissive: '#0b4a5c', emissiveIntensity: 0.45, paint: { sat: 1, tint: '#ffffff', gain: 1 } },
   nacre: { map: nacreTexture, color: '#d9cbd6', emissive: '#4a3050', emissiveIntensity: 0.25 },
-  sand: { map: sandTexture, color: '#efe0c4' },
+  sand: { map: sandTexture, color: '#efe0c4', paint: { sat: 1, tint: '#ffffff', gain: 1 } },
   curb: { map: masonryTexture, color: '#e6d7b8' },
   dirt: { map: dirtTexture, color: '#ffffff' },
-  seabed: { map: sandTexture, color: '#6cb9bf' },
+  seabed: { map: sandTexture, color: '#6cb9bf', paint: { sat: 1, tint: '#ffffff', gain: 1 } },
 };
 
 /** Floors and cliffs of one dungeon map. Returns {root, dispose}. */
@@ -414,6 +394,7 @@ export function buildFloors(map, look) {
   const tops = new Map(), cliffs = new Mesh();
   const white = new THREE.Color(1, 1, 1);
   const topFor = (key) => { if (!tops.has(key)) tops.set(key, new Mesh()); return tops.get(key); };
+  const blocks = { pos: [], col: [], line: [] }, stairRng = createRng((map.def.seed || 1) * 7 + 3);
   for (const f of map.floors) {
     const key = f.style === 'cave' ? 'dirt' : f.tone === 'warm' && f.kind === 'stone' ? 'warm' : f.tone === 'seabed' ? 'seabed' : f.kind;
     const top = topFor(key);
@@ -440,7 +421,7 @@ export function buildFloors(map, look) {
       faceUp(top, from);
       for (const r of floorRings(f)) addWalls(cliffs, r.pts, f.y, look, null, r.hole, map, f);
     } else if (f.shape === 'stairs') {
-      addStairs(top, cliffs, topFor('curb'), f, look, white, map);
+      addStairs(blocks, f, map, stairRng);
     }
   }
   // edging stones around drops (not on sand: the beach just meets the sea)
@@ -458,17 +439,19 @@ export function buildFloors(map, look) {
     const g = mesh.geometry();
     if (!g) continue;
     const k = KIND[key];
-    const mat = new THREE.MeshToonMaterial({ color: k.color, map: k.map(), gradientMap: toonRamp(), vertexColors: true, emissive: k.emissive || '#000000', emissiveIntensity: k.emissiveIntensity ?? 1 });
+    // the game's painted stone: water floors keep their own colour, stone takes the game's grey
+    const mat = gamePaint(look, `floor-${key}`, { color: k.color, map: k.map(), emissive: k.emissive || '#000000', emissiveIntensity: k.emissiveIntensity ?? 1, ...(k.paint || {}) });
     const m = new THREE.Mesh(g, mat);
     m.receiveShadow = true;
     m.name = `floor-${key}`;
     root.add(m);
     owned.push(mat);
   }
+  root.add(stoneMesh(blocks, look, 'stairs'));
   const wear = addWear(map, broken);
   if (wear) { root.add(wear); owned.push(wear.material); }
   const cg = cliffs.geometry();
-  const cliffMat = new THREE.MeshToonMaterial({ color: look.cliff, map: masonryTexture(), gradientMap: toonRamp(), vertexColors: true });
+  const cliffMat = gamePaint(look, 'cliffs', { color: look.cliff, map: masonryTexture() });
   const cm = new THREE.Mesh(cg, cliffMat);
   cm.receiveShadow = true;
   cm.castShadow = true;

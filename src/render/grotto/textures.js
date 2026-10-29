@@ -28,6 +28,10 @@ const shade = (hex, k) => {
 /** Old cut paving (spans 4 m): rectangular stones of mixed length laid in staggered courses, each
  * its own tone, its edges bevelled (lit toward the top left, shadowed toward the bottom right),
  * some corners chipped, a few cracks; dark grout between. Tiles seamlessly. */
+
+/** Metres one repeat of the paving texture covers (floors.js and the break layout in
+ *  scripts/grotto-paving.mjs): stones of about a metre beside the hero, the game's paving scale. */
+export const PAVING_TILE = 6;
 /** The paving's layout in canvas pixels of one 512 px tile: courses (y0..y1, top down) of stones
  * (x0..x1, which may run past 512 and wrap). Shared with grotto-trace.py, which breaks the floors
  * along these same joints (scripts/grotto-paving.mjs prints it). */

@@ -289,7 +289,7 @@ test('every new gear recipe crafts with a real optionPool', () => {
   }
 });
 
-test('a higher mod rank asks for more stats: upgrades are refused until it can be met, and an unmet rank goes inactive', async () => {
+test('a higher mod rank asks for more stats: upgrades are refused until it can be met, and an unmet rank works at the rank the stats meet', async () => {
   const { modRequires, computeSkill } = await import('../../src/core/skills.js');
   const { modUpgradeState } = await import('../../src/core/crafting.js');
   const split = data.mods.mods.split, step = data.progression.modUpgrade.requiresStatPerLevel;
@@ -309,6 +309,9 @@ test('a higher mod rank asks for more stats: upgrades are refused until it can b
   inst.level = 2;
   assert.equal(computeSkill(ch, data, derive(ch, data), 0).mods[0].active, true);
   ch.stats.DEX -= 1;
+  const held = computeSkill(ch, data, derive(ch, data), 0).mods[0];
+  assert.deepEqual([held.active, held.level], [true, 1], 'held down to the rank the stats meet');
+  ch.stats.DEX = split.requires.DEX - 1;
   const s = computeSkill(ch, data, derive(ch, data), 0);
   assert.equal(s.mods[0].active, false);
   assert.equal(s.projectiles, 1, 'an inactive mod changes nothing');

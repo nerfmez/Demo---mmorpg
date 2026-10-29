@@ -50,3 +50,4 @@
 .sl-feed { display: flex; gap: 6px; }
 .overlay:not(.is-journal) .pbody .sl-feed .btn { min-height: 44px; }
 small .ok { color: var(--mc-good, #2e9a5e); } small .no { color: var(--mc-bad, #c4513e); }
+.seeker-hero [data-skill-in-use] { display: block; margin-top: 3px; color: var(--mc-bad, #c4513e); }

@@ -1,4 +1,5 @@
-// Movement skills rank up with AGI (owner, 2026-10-25): data.progression.movementUpgrade.
+// Movement skills rank up with their main stat (owner, 2026-10-25; a main stat since 2026-10-29, docs/STATS-TH.md):
+// data.progression.movementUpgrade.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
@@ -7,25 +8,26 @@ import { movementSkill, movementRank } from '../../src/core/skills.js';
 import { movementUpgradeState, upgradeMovement } from '../../src/core/crafting.js';
 
 const mu = data.progression.movementUpgrade;
-function hero(agi = 3) {
+function hero(dex = 3) {
   const ch = createCharacter(data);
   ch.movementSkills = ['dash']; ch.movement = 'dash';
-  ch.stats.AGI = agi; ch.gold = 1e5; ch.materials = { skill_crystal: 50 };
+  ch.stats.DEX = dex; ch.gold = 1e5; ch.materials = { skill_crystal: 50 };
   return ch;
 }
 
-test('every movement skill upgrades with AGI', () => {
-  for (const [id, d] of Object.entries(data.skills.movement)) assert.equal(d.upgradeStat, 'AGI', id);
+test('every movement skill upgrades with a main stat (dash and roll with DEX)', () => {
+  for (const [id, d] of Object.entries(data.skills.movement)) assert.ok(data.progression.character.mainStats.includes(d.upgradeStat), id);
+  assert.equal(data.skills.movement.dash.upgradeStat, 'DEX');
   assert.equal(mu.steps.length, mu.maxLevel - 1);
 });
 
-test('a rank needs the step\'s AGI and its materials, pays them once, and stops at the cap', () => {
+test('a rank needs the step\'s stat and its materials, pays them once, and stops at the cap', () => {
   const ch = hero(mu.steps[0].requiresStat - 1);
   const short = movementUpgradeState(ch, data, 'dash');
   assert.equal(short.reason, 'requires');
   assert.equal(upgradeMovement(ch, data, 'dash').ok, false);
   assert.equal(movementRank(ch, 'dash'), 1, 'nothing changes when refused');
-  ch.stats.AGI = 99;
+  ch.stats.DEX = 99;
   const gold = ch.gold, crystals = ch.materials.skill_crystal;
   assert.equal(upgradeMovement(ch, data, 'dash').level, 2);
   assert.equal(ch.gold, gold - mu.steps[0].gold);

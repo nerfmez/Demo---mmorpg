@@ -600,7 +600,7 @@
         "mp_on_hit"
       ],
       "upgradeMaterial": "greyfang_mane",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "itemLevel": 11
     },
     "horn_greatblade": {
@@ -669,10 +669,12 @@
         "barrier_pct",
         "regen_flat",
         "shield_flat",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 1
     },
     "hide_vest": {
@@ -691,10 +693,12 @@
         "defense_flat",
         "move_pct",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "str_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 1
     },
     "shell_guard": {
@@ -713,10 +717,12 @@
         "hp_flat",
         "barrier_pct",
         "poison_on_hit",
-        "regen_flat"
+        "regen_flat",
+        "str_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 6
     },
     "wolfpelt_coat": {
@@ -736,10 +742,12 @@
         "defense_flat",
         "move_pct",
         "regen_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "wolf_pelt",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 6
     },
     "storm_mantle": {
@@ -763,7 +771,9 @@
         "shield_flat",
         "shield_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT",
@@ -785,10 +795,12 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "move_pct"
+        "move_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 21
     },
     "leather_cap": {
@@ -807,10 +819,12 @@
         "defense_flat",
         "crit_pct",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "int_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 1
     },
     "beetle_helm": {
@@ -829,10 +843,12 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "move_pct"
+        "move_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 6
     },
     "spore_hood": {
@@ -853,7 +869,9 @@
         "regen_flat",
         "magic_flat",
         "shield_flat",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
@@ -880,7 +898,9 @@
         "shield_flat",
         "shield_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT",
@@ -903,7 +923,9 @@
         "defense_flat",
         "attack_flat",
         "melee_pct",
-        "barrier_pct"
+        "barrier_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "warden_horn",
       "requirementStat": "STR",
@@ -926,10 +948,12 @@
         "barrier_pct",
         "regen_flat",
         "material_find",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "dex_flat",
+        "agi_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "itemLevel": 1
     },
     "wolf_boots": {
@@ -948,10 +972,12 @@
         "crit_pct",
         "cdr_pct",
         "hp_flat",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "upgradeMaterial": "wolf_pelt",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "itemLevel": 6
     },
     "wisp_slippers": {
@@ -971,7 +997,9 @@
         "defense_flat",
         "hp_flat",
         "material_find",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "dex_flat",
+        "agi_flat"
       ],
       "upgradeMaterial": "glow_dust",
       "requirementStat": "INT",
@@ -993,10 +1021,12 @@
         "regen_flat",
         "move_pct",
         "cdr_pct",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 21
     },
     "tusk_charm": {
@@ -1016,7 +1046,11 @@
         "defense_flat",
         "gear_find",
         "gold_find",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "DEX",
@@ -1043,7 +1077,11 @@
         "shield_flat",
         "shield_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT",
@@ -1067,7 +1105,11 @@
         "mp_flat",
         "gear_find",
         "gold_find",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
@@ -1091,10 +1133,14 @@
         "attack_flat",
         "gear_find",
         "gold_find",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "hawk_feather",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "itemLevel": 16
     },
     "golem_amulet": {
@@ -1114,10 +1160,14 @@
         "regen_flat",
         "crit_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "golem_heart",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 21
     },
     "ancient_ring": {
@@ -1139,7 +1189,11 @@
         "leech_pct",
         "gear_find",
         "gold_find",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT",
@@ -1155,7 +1209,7 @@
         "maxHp": 112
       },
       "requires": {
-        "VIT": 6
+        "STR": 6
       },
       "starter": false,
       "optionPool": [
@@ -1163,10 +1217,12 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "move_pct"
+        "move_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 1
     },
     "tide_boots": {
@@ -1178,7 +1234,7 @@
         "defense": 32
       },
       "requires": {
-        "AGI": 6
+        "DEX": 6
       },
       "starter": false,
       "optionPool": [
@@ -1188,10 +1244,12 @@
         "hp_flat",
         "mp_flat",
         "material_find",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "dex_flat",
+        "agi_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "itemLevel": 1
     },
     "pearl_pendant": {
@@ -1217,7 +1275,11 @@
         "gold_find",
         "shield_flat",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "sea_pearl",
       "requirementStat": "INT",
@@ -1266,7 +1328,7 @@
         "shield_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 1
     },
     "beetle_buckler": {
@@ -1288,7 +1350,7 @@
         "melee_pct"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 6
     },
     "crag_tower_shield": {
@@ -1311,7 +1373,7 @@
         "barrier_pct"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 21
     },
     "crab_greatshield": {
@@ -1335,7 +1397,7 @@
         "regen_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 1
     },
     "beetle_greatshield": {
@@ -1360,7 +1422,7 @@
         "regen_flat"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 6
     },
     "crag_greatshield": {
@@ -1385,7 +1447,7 @@
         "regen_flat"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 21
     },
     "hide_gloves": {
@@ -1405,7 +1467,9 @@
         "hp_flat",
         "defense_flat",
         "melee_pct",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat"
       ],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "STR",
@@ -1427,10 +1491,12 @@
         "hp_flat",
         "regen_flat",
         "block_pct",
-        "barrier_pct"
+        "barrier_pct",
+        "str_flat",
+        "dex_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 1
     },
     "wolf_grips": {
@@ -1450,7 +1516,9 @@
         "projectile_pct",
         "move_pct",
         "leech_pct",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat"
       ],
       "upgradeMaterial": "wolf_pelt",
       "requirementStat": "DEX",
@@ -1474,7 +1542,9 @@
         "mp_flat",
         "area_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "dex_flat"
       ],
       "upgradeMaterial": "glow_dust",
       "requirementStat": "INT",
@@ -1498,7 +1568,9 @@
         "attack_flat",
         "melee_pct",
         "block_pct",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat"
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "STR",
@@ -1859,7 +1931,7 @@
       "nameTh": "โล่ว่าวอัศวิน",
       "slot": "offhand",
       "offhandType": "shield",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -1882,13 +1954,15 @@
       "nameTh": "เสื้อคลุมพราน",
       "slot": "armor",
       "look": "pelt",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "defense_flat",
         "hp_flat",
         "move_pct",
         "regen_flat",
-        "projectile_pct"
+        "projectile_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 210,
@@ -1904,13 +1978,15 @@
       "nameTh": "ฮู้ดพราน",
       "slot": "helm",
       "look": "hood",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "defense_flat",
         "crit_pct",
         "cdr_pct",
         "move_pct",
-        "hp_flat"
+        "hp_flat",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 95,
@@ -1934,7 +2010,9 @@
         "poison_on_hit",
         "leech_pct",
         "move_pct",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "defense": 32,
@@ -1950,14 +2028,16 @@
       "name": "Trail Boots",
       "nameTh": "รองเท้าเดินป่า",
       "slot": "boots",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
         "hp_flat",
         "regen_flat",
         "cdr_pct",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 64,
@@ -1982,7 +2062,11 @@
         "melee_pct",
         "gear_find",
         "gold_find",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "stats": {
         "critChancePct": 3.5,
@@ -2114,7 +2198,7 @@
       "nameTh": "โล่ที่ราบสูง",
       "slot": "offhand",
       "offhandType": "shield",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -2136,14 +2220,16 @@
       "name": "Gale Boots",
       "nameTh": "รองเท้าวายุ",
       "slot": "boots",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
         "cdr_pct",
         "hp_flat",
         "projectile_pct",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 92,
@@ -2259,7 +2345,9 @@
         "heal_pct",
         "magic_flat",
         "summon_pct",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 103,
@@ -2283,7 +2371,9 @@
         "summon_pct",
         "mp_flat",
         "poison_on_hit",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "magic": 22,
@@ -2308,7 +2398,9 @@
         "hp_flat",
         "heal_pct",
         "material_find",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 52,
@@ -2324,13 +2416,15 @@
       "name": "Wardenstalker Coat",
       "nameTh": "เสื้อพรานผู้พิทักษ์",
       "slot": "armor",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "defense_flat",
         "hp_flat",
         "move_pct",
         "projectile_pct",
-        "regen_flat"
+        "regen_flat",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 463,
@@ -2347,13 +2441,15 @@
       "name": "Wardenstalker Hood",
       "nameTh": "ฮู้ดพรานผู้พิทักษ์",
       "slot": "helm",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "crit_pct",
         "cdr_pct",
         "move_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 165,
@@ -2378,7 +2474,9 @@
         "projectile_pct",
         "leech_pct",
         "move_pct",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "attack": 73,
@@ -2409,10 +2507,14 @@
         "projectile_pct",
         "gear_find",
         "gold_find",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "fern_ear_tuft",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "itemLevel": 6
     },
     "mirrorwing_pendant": {
@@ -2434,7 +2536,11 @@
         "gear_find",
         "gold_find",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "mirror_scale",
       "requirementStat": "INT",
@@ -2457,10 +2563,14 @@
         "regen_flat",
         "barrier_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "rootdigger_claw",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "itemLevel": 6
     },
     "grove_union_ring": {
@@ -2483,7 +2593,11 @@
         "crit_pct",
         "gear_find",
         "gold_find",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "upgradeMaterial": "rootdigger_claw",
       "requirementStat": "DEX",
@@ -2493,13 +2607,15 @@
       "name": "Travel Cap",
       "nameTh": "หมวกเดินทาง",
       "slot": "helm",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 15,
@@ -2522,7 +2638,9 @@
         "projectile_pct",
         "move_pct",
         "leech_pct",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "defense": 10,
@@ -2538,14 +2656,16 @@
       "name": "Boarhide Boots",
       "nameTh": "รองเท้าหนังหมูป่า",
       "slot": "boots",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
         "crit_pct",
         "cdr_pct",
         "hp_flat",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 30,
@@ -2561,13 +2681,15 @@
       "name": "Crabshell Vest",
       "nameTh": "เกราะกระดองปู",
       "slot": "armor",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 75,
@@ -2583,13 +2705,15 @@
       "name": "Beetle Gloves",
       "nameTh": "ถุงมือกระดองด้วง",
       "slot": "gloves",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "defense": 32,
@@ -2605,14 +2729,16 @@
       "name": "Beetle Boots",
       "nameTh": "รองเท้ากระดองด้วง",
       "slot": "boots",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
         "barrier_pct",
         "regen_flat",
         "block_pct",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 42,
@@ -2636,7 +2762,9 @@
         "hp_flat",
         "summon_pct",
         "mp_regen_pct",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 30,
@@ -2652,13 +2780,15 @@
       "name": "Wolfpelt Hood",
       "nameTh": "ฮู้ดหนังหมาป่า",
       "slot": "helm",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 48,
@@ -2675,13 +2805,15 @@
       "name": "Burrowguard Armor",
       "nameTh": "เกราะผู้พิทักษ์โพรง",
       "slot": "armor",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 135,
@@ -2698,13 +2830,15 @@
       "name": "Burrowguard Helm",
       "nameTh": "หมวกผู้พิทักษ์โพรง",
       "slot": "helm",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 56,
@@ -2721,13 +2855,15 @@
       "name": "Burrowguard Gloves",
       "nameTh": "ถุงมือผู้พิทักษ์โพรง",
       "slot": "gloves",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "block_pct"
+        "block_pct",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "defense": 22,
@@ -2744,14 +2880,16 @@
       "name": "Burrowguard Boots",
       "nameTh": "รองเท้าผู้พิทักษ์โพรง",
       "slot": "boots",
-      "requirementStat": "VIT",
+      "requirementStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
         "barrier_pct",
         "regen_flat",
         "block_pct",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 45,
@@ -2774,7 +2912,9 @@
         "defense_flat",
         "magic_flat",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 108,
@@ -2799,7 +2939,9 @@
         "cdr_pct",
         "heal_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 40,
@@ -2824,7 +2966,9 @@
         "cdr_pct",
         "heal_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "magic": 28,
@@ -2848,7 +2992,9 @@
         "defense_flat",
         "barrier_pct",
         "mp_regen_pct",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 24,
@@ -2864,13 +3010,15 @@
       "name": "Fernstep Coat",
       "nameTh": "เสื้อคลุมก้าวเฟิร์น",
       "slot": "armor",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 117,
@@ -2887,13 +3035,15 @@
       "name": "Fernstep Cap",
       "nameTh": "หมวกก้าวเฟิร์น",
       "slot": "helm",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
         "crit_pct",
         "cdr_pct",
-        "hp_flat"
+        "hp_flat",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 40,
@@ -2917,7 +3067,9 @@
         "projectile_pct",
         "move_pct",
         "leech_pct",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "attack": 22,
@@ -2934,14 +3086,16 @@
       "name": "Fernstep Boots",
       "nameTh": "รองเท้าก้าวเฟิร์น",
       "slot": "boots",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
         "crit_pct",
         "cdr_pct",
         "hp_flat",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 27,
@@ -2963,7 +3117,9 @@
         "cdr_pct",
         "heal_pct",
         "magic_flat",
-        "mp_regen_pct"
+        "mp_regen_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 145,
@@ -2988,7 +3144,9 @@
         "cdr_pct",
         "heal_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 71,
@@ -3013,7 +3171,9 @@
         "cdr_pct",
         "heal_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "magic": 43,
@@ -3040,7 +3200,11 @@
         "mp_regen_pct",
         "mana_cost_pct",
         "gear_find",
-        "gold_find"
+        "gold_find",
+        "str_flat",
+        "dex_flat",
+        "int_flat",
+        "luk_flat"
       ],
       "stats": {
         "maxMp": 177,
@@ -3063,7 +3227,9 @@
         "projectile_pct",
         "move_pct",
         "leech_pct",
-        "mp_on_hit"
+        "mp_on_hit",
+        "str_flat",
+        "dex_flat"
       ],
       "stats": {
         "attack": 57,
@@ -3088,7 +3254,9 @@
         "magic_flat",
         "area_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "str_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 278,
@@ -3113,7 +3281,9 @@
         "cdr_pct",
         "heal_pct",
         "mp_regen_pct",
-        "mana_cost_pct"
+        "mana_cost_pct",
+        "int_flat",
+        "vit_flat"
       ],
       "stats": {
         "defense": 82,
@@ -3138,7 +3308,9 @@
         "defense_flat",
         "hp_flat",
         "mp_regen_pct",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 69,
@@ -3154,14 +3326,16 @@
       "name": "Wardenstalker Boots",
       "nameTh": "รองเท้าพรานผู้พิทักษ์",
       "slot": "boots",
-      "requirementStat": "AGI",
+      "requirementStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
         "crit_pct",
         "cdr_pct",
         "hp_flat",
-        "material_find"
+        "material_find",
+        "dex_flat",
+        "agi_flat"
       ],
       "stats": {
         "defense": 91,
@@ -3232,6 +3406,54 @@
       "stat": "poisonChancePct",
       "min": 5,
       "max": 13
+    },
+    "str_flat": {
+      "label": "+{v} Strength",
+      "labelTh": "STR +{v}",
+      "stat": "STR",
+      "growth": "attribute",
+      "min": 2,
+      "max": 5
+    },
+    "dex_flat": {
+      "label": "+{v} Dexterity",
+      "labelTh": "DEX +{v}",
+      "stat": "DEX",
+      "growth": "attribute",
+      "min": 2,
+      "max": 5
+    },
+    "int_flat": {
+      "label": "+{v} Intelligence",
+      "labelTh": "INT +{v}",
+      "stat": "INT",
+      "growth": "attribute",
+      "min": 2,
+      "max": 5
+    },
+    "vit_flat": {
+      "label": "+{v} Vitality",
+      "labelTh": "VIT +{v}",
+      "stat": "VIT",
+      "growth": "attribute",
+      "min": 2,
+      "max": 5
+    },
+    "agi_flat": {
+      "label": "+{v} Agility",
+      "labelTh": "AGI +{v}",
+      "stat": "AGI",
+      "growth": "attribute",
+      "min": 2,
+      "max": 5
+    },
+    "luk_flat": {
+      "label": "+{v} Luck",
+      "labelTh": "LUK +{v}",
+      "stat": "LUK",
+      "growth": "attribute",
+      "min": 2,
+      "max": 5
     },
     "crit_pct": {
       "label": "+{v}% crit chance",
@@ -3405,7 +3627,8 @@
     "optionLevelGrowth": {
       "_doc": "Per item level above 1. flat: 0.146 matches handRules.reference (perItemLevel / base), so a flat option keeps its share of a weapon's base stats (about 3.9x at item level 21). percent (a stat ending in Pct): about 1.5x at item level 21, so percentages stay modest.",
       "flat": 0.146,
-      "percent": 0.025
+      "percent": 0.025,
+      "attribute": 0.05
     },
     "colors": {
       "C": "#718396",
@@ -3556,6 +3779,12 @@
     "extraPowerFactor": 0.5,
     "affixAllowance": 2,
     "weights": {
+      "STR": 0.4,
+      "DEX": 0.4,
+      "INT": 0.4,
+      "VIT": 0.4,
+      "AGI": 0.4,
+      "LUK": 0.4,
       "attack": 0.1,
       "magic": 0.1,
       "defense": 0.1,

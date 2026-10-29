@@ -1,7 +1,7 @@
 // Crafting, upgrades and drops: the Monster -> Material -> Craft/Upgrade/Trade loop.
-import { gearStats, gearRequirements, gearPower, enforceEquipment, inactiveEquipment, meetsRequires, arrowTotal, wornSlot } from './character.js';
+import { gearStats, gearRequirements, gearPower, enforceEquipment, inactiveEquipment, meetsRequires, meetsStats, statTotals, arrowTotal, wornSlot } from './character.js';
 import { equipmentItemLevel, validModGrade } from './item-metadata.js';
-import { modRequires } from './skills.js';
+import { modRequires, skillRequires } from './skills.js';
 
 export function canAfford(ch, cost) {
   for (const k in cost) {
@@ -129,7 +129,7 @@ export function upgradeGear(ch, data, uid) {
 
 // Skill level (data.progression.skillUpgrade; owner, 2026-10-27/29): a skill levels from 1 up to the
 // character's level. Crystals fed to it give skill EXP and cost gold per EXP; a level needs EXP that
-// grows with it, and the skill's upgradeStat gates each band of levels.
+// grows with it, and each level's stat requirement (skills.js skillRequires) must be met to reach it.
 
 /** The highest level a skill can reach now: the character's level, within maxLevel. */
 export const skillLevelCap = (ch, data) => Math.max(1, Math.min(data.progression.skillUpgrade.maxLevel, ch.level));
@@ -140,11 +140,6 @@ export function skillExpNeed(data, level) {
   return Math.max(1, Math.round(a + b * level));
 }
 
-/** The upgradeStat a skill at `level` needs to reach the next level. */
-export function skillStatGate(data, level) {
-  const g = data.progression.skillUpgrade.statGate;
-  return g.start + g.step * Math.floor((level - 1) / g.every);
-}
 
 /** A skill's level state: { ok (crystals can go in now), reason, level, cap, exp, need, gate: { stat,
  * need, ok }, room (EXP still useful before the next level is out of reach) }. */
@@ -152,8 +147,9 @@ export function skillUpgradeState(ch, data, skillId) {
   const level = ch.skills[skillId];
   if (!level) return { ok: false, reason: 'not_learned' };
   const su = data.progression.skillUpgrade, cap = skillLevelCap(ch, data), exp = ch.skillExp?.[skillId] || 0, need = skillExpNeed(data, level);
-  const stat = data.skills.combat[skillId].upgradeStat, have = ch.stats[stat] || 0;
-  const gate = { stat, need: skillStatGate(data, level), ok: have >= skillStatGate(data, level) };
+  const def = data.skills.combat[skillId], stats = statTotals(ch, data).stats, meets = (L) => meetsStats(stats, skillRequires(data, def, L)).ok;
+  const next = skillRequires(data, def, level + 1), stat = def.upgradeStat in next ? def.upgradeStat : Object.keys(next)[0];
+  const gate = { stat, need: next[stat], have: stats[stat] || 0, requires: next, ok: meets(level + 1) };
   // EXP banked from a big crystal past the last reachable level turns into levels once the cap or the
   // stat allows them: feeding then settles them for free
   const pending = level < cap && exp >= need && gate.ok;
@@ -162,10 +158,10 @@ export function skillUpgradeState(ch, data, skillId) {
   if (level >= cap) return { ok: false, reason: 'cap', ...base, room: 0 };
   // useful EXP: through every level the stat already allows, up to the cap (a gated level can still fill)
   let room = -exp;
-  for (let L = level; L < cap; L++) { room += skillExpNeed(data, L); if (have < skillStatGate(data, L)) break; }
+  for (let L = level; L < cap; L++) { room += skillExpNeed(data, L); if (!meets(L + 1)) break; }
   room = Math.max(0, room);
   if (!room && pending) return { ok: true, reason: null, ...base, room };
-  if (!room) return { ok: false, reason: gate.ok ? 'cap' : 'requires', missing: [`${stat} ${gate.need}`], ...base, room };
+  if (!room) return { ok: false, reason: gate.ok ? 'cap' : 'requires', missing: meetsStats(stats, next).missing, ...base, room };
   const crystals = Object.keys(su.crystals).some((k) => (ch.materials[k] || 0) > 0);
   return { ok: crystals, reason: crystals ? null : 'materials', ...base, room };
 }
@@ -184,8 +180,8 @@ export function feedSkill(ch, data, skillId, crystal, count) {
   ch.materials[crystal] -= used; ch.gold -= gold;
   ch.skillExp = { ...(ch.skillExp || {}), [skillId]: st.exp + used * per };
   let level = st.level, levels = 0;
-  const cap = skillLevelCap(ch, data), stat = data.skills.combat[skillId].upgradeStat;
-  while (level < cap && ch.skillExp[skillId] >= skillExpNeed(data, level) && (ch.stats[stat] || 0) >= skillStatGate(data, level)) {
+  const cap = skillLevelCap(ch, data), def = data.skills.combat[skillId], stats = statTotals(ch, data).stats;
+  while (level < cap && ch.skillExp[skillId] >= skillExpNeed(data, level) && meetsStats(stats, skillRequires(data, def, level + 1)).ok) {
     ch.skillExp[skillId] -= skillExpNeed(data, level); level++; levels++;
   }
   ch.skills[skillId] = level;
@@ -198,7 +194,7 @@ export function movementUpgradeState(ch, data, id) {
   const mu = data.progression.movementUpgrade, level = ch.movementRanks?.[id] || 1, step = mu.steps[level - 1];
   if (level >= mu.maxLevel || !step) return { ok: false, reason: 'max' };
   const cost = materialCost(step);
-  const req = meetsRequires(ch, { [data.skills.movement[id].upgradeStat]: step.requiresStat });
+  const req = meetsRequires(ch, { [data.skills.movement[id].upgradeStat]: step.requiresStat }, data);
   if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
   return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
 }
@@ -222,7 +218,7 @@ export function modUpgradeState(ch, data, inst) {
   const cost = modUpgradeCost(data, inst);
   if (!cost) return { ok: false, reason: 'max' };
   // The next rank must be wearable: its stat requirement rises (modRequires).
-  const req = meetsRequires(ch, modRequires(data, data.mods.mods[inst.id], inst.level + 1));
+  const req = meetsRequires(ch, modRequires(data, data.mods.mods[inst.id], inst.level + 1), data);
   if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
   return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
 }

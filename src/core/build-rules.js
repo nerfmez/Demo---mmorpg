@@ -4,8 +4,8 @@
 // line lasts longest) is intended and paid for with a clear weakness elsewhere; overpowered means a
 // build is at least as good as another of equal cost on every axis (it dominates it) or has no
 // weakness at all. Numbers live in data.progression.balance.rules. Pure: no live game.
-import { defenseFactor } from './character.js';
-import { computeSkill, movementSkill, modRequires } from './skills.js';
+import { defenseFactor, statTotals } from './character.js';
+import { computeSkill, movementSkill, modRequires, skillRequires } from './skills.js';
 import { referenceHero, referenceMonster, skillRankAt, farmingIncome } from './balance.js';
 
 export const AXES = ['single', 'pack', 'survival', 'sustain', 'mobility', 'team', 'income'];
@@ -90,14 +90,22 @@ export function buildProfile(data, spec) {
     progression: { ...data.progression, balance: { ...b, builds: { ...b.builds, [spec.kit]: { ...build, skill: loadout[0] } } } } };
   const { ch, d } = referenceHero(D, spec.kit, spec.level, [...(spec.jobNodes || []), gearNode]);
   [...loadout.slice(1), ...support].forEach((id, i) => { ch.slots[i + 1] = { skill: id, mods: [] }; ch.skills[id] = skillRankAt(data, spec.level); });
-  // mods socketed per slot ({ slot: [mod ids] }) at their top level; the hero moves stat points out of
-  // VIT into what a mod requires, so the mod is measured working
+  // mods socketed per slot ({ slot: [mod ids] }) at their top level; the hero moves stat points into what a
+  // mod requires, out of the stats nothing it uses asks for (VIT, AGI, LUK, then an unused main stat) and
+  // never below the start, so the mod is measured at the level such a hero holds (docs/STATS-TH.md)
+  const needs = new Set(ch.slots.flatMap((sl) => sl.skill ? Object.keys(skillRequires(data, data.skills.combat[sl.skill])) : []));
+  for (const ids of Object.values(spec.mods || {})) for (const id of ids) for (const k of Object.keys(data.mods.mods[id].requires || {})) needs.add(k);
+  const spare = ['VIT', 'AGI', 'LUK', ...data.progression.character.mainStats].filter((k) => !needs.has(k)), start = data.progression.character.startingStats;
   for (const [slot, ids] of Object.entries(spec.mods || {})) for (const id of ids) {
     const uid = `bm${slot}.${id}`, level = data.mods.mods[id].maxLevel || 3;
     ch.mods.push({ uid, id, level, grade: 'A' });
     ch.slots[slot].mods.push(uid);
-    for (const [stat, need] of Object.entries(modRequires(data, data.mods.mods[id], level))) if (ch.stats[stat] < need) { ch.stats.VIT -= need - ch.stats[stat]; ch.stats[stat] = need; }
+    for (const [stat, need] of Object.entries(modRequires(data, data.mods.mods[id], level))) for (const k of spare) {
+      const move = Math.min(need - ch.stats[stat], ch.stats[k] - start[k]);
+      if (move > 0) { ch.stats[k] -= move; ch.stats[stat] += move; }
+    }
   }
+  d.stats = statTotals(ch, data).stats; // the moved points meet the requirements (HP and power stay as measured)
   for (const [id, bars] of Object.entries(spec.growth || {})) (ch.skillGrowth ||= {})[id] = { grade: 'S', bars, earned: data.progression.skillGrowth.totalPoints, prof: 0 };
   if (!ch.movement) { ch.movement = 'dash'; ch.movementSkills = ['dash']; } // every hero has a dodge
   // a held channel is measured as one cast per tick: its damage per second over a tick, its drain

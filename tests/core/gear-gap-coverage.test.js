@@ -4,7 +4,7 @@ import {data} from './helpers.js';
 import {createCharacter,equip,gearRequirements,gearPower} from '../../src/core/character.js';
 import {craft,gearDropCandidates} from '../../src/core/crafting.js';
 import {createRng} from '../../src/core/rng.js';
-const plan={sporeweave_vest:[6,'armor','INT'],sporeweave_gloves:[6,'gloves','INT'],moonleaf_slippers:[11,'boots','INT'],wardenstalker_coat:[21,'armor','VIT'],wardenstalker_hood:[21,'helm','AGI'],wardenstalker_gloves:[21,'gloves','DEX']};
+const plan={sporeweave_vest:[6,'armor','INT'],sporeweave_gloves:[6,'gloves','INT'],moonleaf_slippers:[11,'boots','INT'],wardenstalker_coat:[21,'armor','STR'],wardenstalker_hood:[21,'helm','DEX'],wardenstalker_gloves:[21,'gloves','DEX']};
 test('targeted garment recipes craft real graded items and spend exactly their costs',()=>{
  for(const [id,[level,slot,stat]] of Object.entries(plan)){
   const base=data.items.gearBases[id],recipe=data.recipes.recipes[id];

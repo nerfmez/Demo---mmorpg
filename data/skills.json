@@ -363,7 +363,7 @@
       "requires": {},
       "upgradeMaterial": "beetle_shell",
       "icon": "ward",
-      "upgradeStat": "VIT"
+      "upgradeStat": "INT"
     },
     "war_cry": {
       "name": "War Cry",
@@ -716,10 +716,8 @@
       "castTime": 0.2,
       "cost": 128,
       "element": "physical",
-      "requires": {
-        "VIT": 5
-      },
-      "upgradeStat": "VIT",
+      "requires": { "STR": 5 },
+      "upgradeStat": "STR",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "damage": {
@@ -1055,12 +1053,9 @@
       "castTime": 0.2,
       "cost": 160,
       "element": "none",
-      "requires": {
-        "STR": 10,
-        "VIT": 6
-      },
+      "requires": { "STR": 12 },
       "upgradeMaterial": "golem_heart",
-      "upgradeStat": "VIT",
+      "upgradeStat": "STR",
       "job": "heavy",
       "iconPending": true
     },
@@ -1228,12 +1223,9 @@
       "castTime": 0.3,
       "cost": 160,
       "element": "none",
-      "requires": {
-        "STR": 6,
-        "AGI": 6
-      },
+      "requires": { "STR": 10 },
       "upgradeMaterial": "greyfang_mane",
-      "upgradeStat": "AGI",
+      "upgradeStat": "STR",
       "job": "duelist",
       "iconPending": true
     },
@@ -1257,11 +1249,9 @@
       "castTime": 0.3,
       "cost": 192,
       "element": "none",
-      "requires": {
-        "VIT": 8
-      },
+      "requires": { "STR": 8 },
       "upgradeMaterial": "ram_horn",
-      "upgradeStat": "VIT",
+      "upgradeStat": "STR",
       "job": "duelist",
       "iconPending": true
     },
@@ -1286,11 +1276,9 @@
       "castTime": 0.3,
       "cost": 224,
       "element": "none",
-      "requires": {
-        "VIT": 12
-      },
+      "requires": { "STR": 12 },
       "upgradeMaterial": "warden_horn",
-      "upgradeStat": "VIT",
+      "upgradeStat": "STR",
       "job": "guardian",
       "iconPending": true
     },
@@ -1667,7 +1655,7 @@
       "recharge": 5.12,
       "invulnerable": false,
       "icon": "dash",
-      "upgradeStat": "AGI"
+      "upgradeStat": "DEX"
     },
     "roll": {
       "name": "Roll",
@@ -1683,7 +1671,7 @@
       "recharge": 2.08,
       "invulnerable": true,
       "icon": "roll",
-      "upgradeStat": "AGI"
+      "upgradeStat": "DEX"
     },
     "blink": {
       "name": "Blink",
@@ -1704,7 +1692,7 @@
         "INT": 7
       },
       "icon": "blink",
-      "upgradeStat": "AGI"
+      "upgradeStat": "INT"
     },
     "leap": {
       "name": "Leap Slam",
@@ -1732,7 +1720,7 @@
         "STR": 6
       },
       "icon": "leap",
-      "upgradeStat": "AGI"
+      "upgradeStat": "STR"
     }
   }
 }

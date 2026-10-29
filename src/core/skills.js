@@ -1,7 +1,7 @@
 // Skill Core + Skill Mod. computeSkill() folds a skill, its level, its socketed mods and the
 // character's derived stats into one flat description that the simulation executes.
 
-import { meetsRequires } from './character.js';
+import { meetsRequires, meetsStats } from './character.js';
 import { compileFrontier } from './frontier-content.js';
 import { applyBars, growthOf } from './skill-growth.js';
 
@@ -23,6 +23,23 @@ export function modDef(data, id) {
 export function modRequires(data, mod, level = 1) {
   const step = data.progression.modUpgrade.requiresStatPerLevel || 0;
   return Object.fromEntries(Object.entries(mod?.requires || {}).map(([k, v]) => [k, v + step * (level - 1)]));
+}
+
+/** A combat skill's stat requirement at skill `level` (owner, 2026-10-29, docs/STATS-TH.md): its listed
+ * requires (or skillUpgrade.require.base of its upgradeStat) plus require.perLevel for every level above
+ * the first, shared by the listed stats in proportion. */
+export function skillRequires(data, def, level = 1) {
+  const r = data.progression.skillUpgrade.require, req = { ...(def?.requires || {}) };
+  if (!Object.keys(req).length && def?.upgradeStat) req[def.upgradeStat] = r.base;
+  const total = Object.values(req).reduce((a, v) => a + v, 0) || 1, grow = r.perLevel * (Math.max(1, level) - 1);
+  return Object.fromEntries(Object.entries(req).map(([k, v]) => [k, Math.round(v + grow * v / total)]));
+}
+
+/** The level a skill or mod works at: its own, held down to the highest level whose requirement the stats
+ * meet (0: not even the first). requiresAt(level) gives the requirement. */
+export function levelInUse(stats, level, requiresAt) {
+  for (let L = Math.max(1, level); L >= 1; L--) if (meetsStats(stats, requiresAt(L)).ok) return L;
+  return 0;
 }
 
 const ELEMENTS = ['Fire', 'Cold', 'Lightning', 'Poison'];
@@ -66,7 +83,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (!slot || !slot.skill) return null;
   const def = skillDef(data, slot.skill);
   if (!def) return null;
-  const level = ch.skills[slot.skill] || 1;
+  // a skill above what the stats allow works at the highest level they meet (never switched off for it)
+  const stats = derived.stats || ch.stats, owned = ch.skills[slot.skill] || 1;
+  const inUse = levelInUse(stats, owned, (L) => skillRequires(data, def, L)), level = Math.max(1, inUse);
   const levelMult = 1 + data.progression.skillUpgrade.perLevel * (level - 1);
   const tags = new Set(def.tags);
   const s = {
@@ -77,6 +96,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     kind: def.kind,
     tags,
     level,
+    owned,
     element: def.element,
     range: def.range || 0,
     radius: def.radius || 0,
@@ -115,12 +135,12 @@ export function computeSkill(ch, data, derived, slotIndex) {
     leech: derived.leechPct || 0,
     // Some skills need a weapon type in the right hand (requiresWeapon); stats and weapon both gate the cast.
     weaponOk: (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)) && (!def.requiresOffhand || derived.offhand === def.requiresOffhand),
-    requirementsMet: meetsRequires(ch, def.requires).ok && (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)) && (!def.requiresOffhand || derived.offhand === def.requiresOffhand),
+    requirementsMet: inUse > 0 && (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)) && (!def.requiresOffhand || derived.offhand === def.requiresOffhand),
     mods: [],
   };
 
   // power and "increased" modifiers
-  const power = def.power === 'attack' ? derived.attack : def.power === 'spell' ? derived.magic : ch.stats.VIT;
+  const power = def.power === 'attack' ? derived.attack : def.power === 'spell' ? derived.magic : stats.VIT;
   let inc = 0;
   if (tags.has('Melee')) inc += derived.meleeDamagePct;
   if (tags.has('Projectile')) inc += derived.projectileDamagePct;
@@ -152,7 +172,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
       type: sm.type,
       count: sm.count,
       life: sm.life,
-      hp: Math.round(sm.hp.base + sm.hp.vit * ch.stats.VIT + sm.hp.level * ch.level),
+      hp: Math.round(sm.hp.base + sm.hp.vit * stats.VIT + sm.hp.level * ch.level),
       damage: (sm.damage.base + sm.damage.scale * derived.magic) * levelMult * (1 + derived.summonDamagePct / 100),
       speed: sm.speed,
       range: sm.range,
@@ -162,8 +182,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Area') && s.radius) s.radius *= 1 + derived.areaRadiusPct / 100;
   if (tags.has('Melee')) s.arc += derived.meleeArcAdd;
 
+  const modLevel = (m, L) => levelInUse(stats, L, (l) => modRequires(data, m, l));
   const companionMods = slot.mods.map(uid => ch.mods.find(m => m.uid === uid)).filter(i => i && modDef(data, i.id))
-    .filter(i => meetsRequires(ch, modRequires(data, modDef(data, i.id), i.level || 1)).ok).map(i => modDef(data, i.id));
+    .filter(i => modLevel(modDef(data, i.id), i.level || 1) > 0).map(i => modDef(data, i.id));
   let radiusMult = 1, castTimeMult = 1;
   // bars (core/skill-growth.js): the rate bar's speed joins the haste a mod adds
   let hasteAdd = applyBars(data, s, def, growthOf(ch, data, slot.skill));
@@ -175,8 +196,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
     if (!m) continue;
     const fit = modFits(def, m, companionMods);
     const e = m.effect;
-    const L = inst.level || 1;
-    const active = fit.ok && meetsRequires(ch, modRequires(data, m, L)).ok;
+    // a mod above what the stats allow works at the highest level they meet
+    const L = Math.max(1, modLevel(m, inst.level || 1));
+    const active = fit.ok && modLevel(m, inst.level || 1) > 0;
     s.mods.push({ id: inst.id, level: L, active, reason: fit.ok ? (active ? null : 'requires') : fit.reason });
     if (!active) continue; // socketed but inactive until stats are met
     activeMods.push({mod:m,level:L});
@@ -293,12 +315,13 @@ export function movementSkill(ch, data, derived) {
   for (const uid of ch.movementMods || []) {
     const inst = ch.mods.find(m => m.uid === uid), mod = inst && modDef(data, inst.id);
     if (!mod) continue;
-    const active = modFits(def, mod).ok && meetsRequires(ch, modRequires(data, mod, inst.level || 1)).ok;
+    const L = levelInUse(derived.stats || ch.stats, inst.level || 1, (l) => modRequires(data, mod, l));
+    const active = modFits(def, mod).ok && L > 0;
     out.mods.push({ id: inst.id, uid, active });
     if (!active) continue;
     out.distance *= mod.effect.movementDistanceMult || 1;
     out.charges += mod.effect.movementCharges || 0;
-    if (mod.effect.momentumCastSpeed) out.momentum = { speed: lv(mod.effect.momentumCastSpeed, inst.level || 1), window: mod.effect.momentumWindow };
+    if (mod.effect.momentumCastSpeed) out.momentum = { speed: lv(mod.effect.momentumCastSpeed, L), window: mod.effect.momentumWindow };
   }
   if (def.landing) out.landing = { radius: def.landing.radius, damage: def.landing.damage.base + def.landing.damage.scale * derived.attack };
   return out;
@@ -309,7 +332,7 @@ export function movementSkill(ch, data, derived) {
 export function equipSkill(ch, data, slotIndex, skillId) {
   if (skillId !== null) {
     if (!ch.skills[skillId]) return { ok: false, reason: 'not_learned' };
-    const req = meetsRequires(ch, skillDef(data, skillId).requires);
+    const req = meetsRequires(ch, skillRequires(data, skillDef(data, skillId), 1), data);
     if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing };
     // a skill lives in one slot at a time: swap
     const other = ch.slots.findIndex((s) => s.skill === skillId);
@@ -368,7 +391,7 @@ export function unsocketMod(ch, uid) {
 
 export function setMovement(ch, data, id) {
   if (!ch.movementSkills.includes(id)) return { ok: false, reason: 'not_learned' };
-  const req = meetsRequires(ch, movementDef(data, id).requires);
+  const req = meetsRequires(ch, movementDef(data, id).requires, data);
   if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing };
   ch.movement = id;
   return { ok: true };

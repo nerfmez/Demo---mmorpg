@@ -147,7 +147,7 @@ test('blink gathers in place for its delay, then jumps to the aimed spot once', 
 
 test('cast on dodge fires the linked spell when a movement skill ends', () => {
   const g = new Game(data, { seed: 4 });
-  g.ch.stats.AGI = 10;
+  g.ch.stats.DEX = 10;
   g.ch.mods.push({ uid: 999, id: 'cast_on_dodge', level: 1 });
   g.ch.slots[g.ch.slots.findIndex((s) => s.skill === 'firebolt')].mods.push(999);
   g.refresh();

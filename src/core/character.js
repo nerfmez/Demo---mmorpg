@@ -344,11 +344,48 @@ export function allocateStat(ch, stat, n = 1) {
   return true;
 }
 
-export function meetsRequires(ch, requires = {}) {
+/** Whether `stats` meets `requires` ({ stat: need }): { ok, missing: ['STR 12', ...] }. */
+export function meetsStats(stats, requires = {}) {
   const missing = [];
-  for (const k in requires) if ((ch.stats[k] || 0) < requires[k]) missing.push(`${k} ${requires[k]}`);
+  for (const k in requires) if ((stats[k] || 0) < requires[k]) missing.push(`${k} ${requires[k]}`);
   return { ok: missing.length === 0, missing };
 }
+
+/** Whether the character meets `requires`: with data, every stat it has (statTotals); without, trained points. */
+export const meetsRequires = (ch, requires = {}, data = null) => meetsStats(data ? statTotals(ch, data).stats : ch.stats, requires);
+
+/** The six stats an item or Job Tree node adds ({ STR: 4 }; gear options with a stat of STATS). */
+function statPart(values) {
+  const out = {};
+  for (const s of STATS) if (values?.[s]) out[s] = values[s];
+  return out;
+}
+
+/** Every stat the character has (owner, 2026-10-29, docs/STATS-TH.md): trained points, Job Tree nodes and the
+ * stat options of worn gear that is itself in use. An item's own bonus never meets its own requirement: gear
+ * turns on from below, one item at a time once the rest already meet it, so two items cannot hold each other
+ * up. skipUid leaves one item out (its own check). Returns { stats, active: Set of active worn uids }. */
+export function statTotals(ch, data, equipped = ch.equipped, skipUid = null) {
+  const stats = Object.fromEntries(STATS.map((s) => [s, ch.stats?.[s] || 0]));
+  for (const n of ch.jobNodes || []) for (const [k, v] of Object.entries(statPart(data.jobtree.nodes[n]?.effects))) stats[k] += v;
+  const worn = [], active = new Set();
+  for (const slot of data.items.slots || ['weapon', 'armor']) {
+    const item = gearItem(ch, equipped[slot]);
+    if (item && item.uid !== skipUid && !worn.some((w) => w.item.uid === item.uid)) worn.push({ slot, item, bonus: statPart(gearStats(item, data)) });
+  }
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const w of worn) {
+      if (active.has(w.item.uid) || !wearMet(ch, data, w.item, w.slot, equipped, stats)) continue;
+      active.add(w.item.uid); changed = true;
+      for (const [k, v] of Object.entries(w.bonus)) stats[k] += v;
+    }
+  }
+  return { stats, active };
+}
+
+const wearMet = (ch, data, item, slot, equipped, stats) => Object.entries(wearRequirements(ch, data, item, slot, equipped))
+  .every(([k, need]) => (k === 'level' ? ch.level : stats[k] || 0) >= need);
 
 // ---------- Job Tree ----------
 
@@ -579,9 +616,9 @@ export function wearRequirements(ch, data, item, slot = null, equipped = ch.equi
 
 export function gearEquipState(ch, data, item, slot = null, equipped = ch.equipped) {
   if (!item) return { ok:false, reason:'unknown', requires:{}, missing:[] };
-  const requires = wearRequirements(ch,data,item,slot,equipped);
+  const requires = wearRequirements(ch,data,item,slot,equipped), have = statTotals(ch, data, equipped, item.uid).stats;
   const rows = Object.entries(requires).map(([stat, need]) => {
-    const current = stat === 'level' ? ch.level : (ch.stats[stat] || 0);
+    const current = stat === 'level' ? ch.level : (have[stat] || 0);
     return { stat, need, current, deficit: Math.max(0, need - current) };
   });
   const missing = rows.filter(r => r.deficit > 0).map(r =>
@@ -799,26 +836,31 @@ export function derive(ch, data) {
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
   };
+  // stats from every source (statTotals); the gear in use is the gear that meets its requirement
+  const { stats, active } = statTotals(ch, data);
+  d.stats = stats;
   for (const s of STATS) {
     const per = pc.perStat[s] || {};
-    for (const k in per) add(k, per[k] * ch.stats[s]);
+    for (const k in per) add(k, per[k] * stats[s]);
   }
+  const counted = new Set();
   for (const slot of data.items.slots || ['weapon', 'armor']) {
     const item = gearItem(ch, ch.equipped[slot]);
-    if (!item || !gearEquipState(ch,data,item,slot).ok) continue;
+    if (!item || !active.has(item.uid) || counted.has(item.uid)) continue;
+    counted.add(item.uid);
     const gs = gearStats(item, data);
-    for (const k in gs) add(k, gs[k]);
+    for (const k in gs) if (!STATS.includes(k)) add(k, gs[k]);
     const imp = weaponImplicit(item, data);
     for (const k in imp) add(k, imp[k]);
   }
   // A bow's left hand holds the arrows in use: their stats count while any are left.
   const main = gearItem(ch, ch.equipped.weapon);
-  const bow = main && gearEquipState(ch,data,main,'weapon').ok && data.items.weaponTypes[data.items.gearBases[main.base].weaponType]?.ammo;
+  const bow = main && active.has(main.uid) && data.items.weaponTypes[data.items.gearBases[main.base].weaponType]?.ammo;
   const arrow = bow ? arrowInUse(ch, data) : null;
   if (arrow) for (const [k, v] of Object.entries(data.items.arrows.types[arrow].stats)) add(k, v);
   for (const n of ch.jobNodes) {
     const eff = data.jobtree.nodes[n]?.effects || {};
-    for (const k in eff) add(k, eff[k]);
+    for (const k in eff) if (!STATS.includes(k)) add(k, eff[k]);
   }
   const base = pc.base;
   const soft = pc.softCaps;
@@ -826,10 +868,10 @@ export function derive(ch, data) {
     d[stat] = soft.threshold + (d[stat] - soft.threshold) * soft.overflowFactor;
   for (const [stat, limit] of Object.entries(pc.caps || {}))
     d[stat] = limit < 0 ? Math.max(d[stat], limit) : Math.min(d[stat], limit);
-  d.maxHp = Math.round((base.hp + base.hpPerLevel * (ch.level - 1) + base.hpPerVit * ch.stats.VIT + d.maxHp) * (1 + d.maxHpPct / 100));
-  d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * ch.stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
+  d.maxHp = Math.round((base.hp + base.hpPerLevel * (ch.level - 1) + base.hpPerVit * stats.VIT + d.maxHp) * (1 + d.maxHpPct / 100));
+  d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
   d.maxShield = Math.round(d.maxShield * (1 + d.maxShieldPct / 100)); // spell shield: INT and gear only
-  d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
+  d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + stats.INT * base.mpRegenPerInt;
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
   d.critChance = Math.min(1, d.critChancePct / 100); // no design cap on crit chance (owner, 2026-10-25); 100% means every hit crits
   // crit chance past 100% turns into crit damage at a reduced rate, outside the crit damage caps (owner)
@@ -838,8 +880,8 @@ export function derive(ch, data) {
   d.attack = Math.round(d.attack * 10) / 10;
   d.magic = Math.round(d.magic * 10) / 10;
   d.defense = Math.round(d.defense);
-  d.weaponType = main && gearEquipState(ch,data,main,'weapon').ok ? data.items.gearBases[main.base].weaponType : 'none';
-  const off = gearItem(ch, ch.equipped.offhand), offOk = off && gearEquipState(ch,data,off,'offhand').ok;
+  d.weaponType = main && active.has(main.uid) ? data.items.gearBases[main.base].weaponType : 'none';
+  const off = gearItem(ch, ch.equipped.offhand), offOk = off && active.has(off.uid);
   // a greatshield (weapon type with `shield`) is held in both hands: it blocks and counts as the shield
   const greatshield = data.items.weaponTypes[d.weaponType]?.shield;
   d.offhand = offOk ? (handsOf(data, off) === 'off' ? 'shield' : 'weapon') : greatshield ? 'shield' : arrow ? 'arrows' : 'none';

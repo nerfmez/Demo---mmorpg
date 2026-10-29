@@ -2,7 +2,7 @@
 import { art } from './art.js';
 import { icon } from './icons.js';
 import { meetsRequires } from '../core/character.js';
-import { modFits, modRequires, movementRank } from '../core/skills.js';
+import { modFits, modRequires, movementRank, skillRequires, levelInUse } from '../core/skills.js';
 import { modUpgradeCost, skillUpgradeState, modUpgradeState, movementUpgradeState } from '../core/crafting.js';
 import { skillGrowthPreview, modGrowthPreview, upgradeTrack, stateText } from './progressionview.js';
 import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus, slotCapacity } from './buildmeta.js';
@@ -22,7 +22,7 @@ export function skillsView(ui, {describeSkill}) {
   const {game:g,sel}=ui,{ch,data}=g, index=sel.skill??0,slot=ch.slots[index],def=data.skills.combat[slot.skill],s=g.skills[index];
   const filter=sel.skillFilter||'all';
   const choices=Object.entries(data.skills.combat).filter(([,d])=>filter==='all'||d.tags.includes(filter)).map(([id,d])=>{
-    const learned=!!ch.skills[id],req=meetsRequires(ch,d.requires);
+    const learned=!!ch.skills[id],req=meetsRequires(ch,skillRequires(data,d,1),data);
     return `<article class="seeker-library-item ${slot.skill===id?'selected':''}">${art('skill',id)}<div><b>${d.nameTh}</b>${tagsHtml(d.tags)}<small>${learned?'Lv.'+ch.skills[id]:'ยังไม่เรียน'}${req.ok?'':' · ต้อง '+req.missing.join(', ')}</small></div><button class="btn small" data-act="choose-skill" data-slot="${index}" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${slot.skill===id?'ใส่อยู่':'ใส่ช่อง '+(index+1)}</button></article>`;
   }).join('');
   return heading('จัดชุดสกิล','เลือกช่องก่อน แล้วเลือกสกิล · การดูรายละเอียดไม่ใช้วัตถุดิบ')+loadout(ui)+`<div class="seeker-build-grid"><section class="card seeker-focus">
@@ -50,7 +50,7 @@ export function modsWorkspace(ui,{describeSkill}) {
 export function movementWorkspace(ui) {
  const {ch,data}=ui.game;
  return heading('สกิลเคลื่อนที่','หนึ่งช่องแยก · ไม่แย่งช่องต่อสู้ · ม็อดต่อสู้ใช้กับช่องนี้ไม่ได้')+`<div class="seeker-movement-grid">${Object.entries(data.skills.movement).map(([id,d])=>{
-  const learned=ch.movementSkills.includes(id), req=meetsRequires(ch,d.requires);
+  const learned=ch.movementSkills.includes(id), req=meetsRequires(ch,d.requires,data);
   return `<section class="card"><div class="seeker-hero">${art('skill',id)}<div><h3>${d.nameTh}</h3><small>${d.name}${learned?' · Lv.'+movementRank(ch,id):''}</small></div></div><p>${d.desc}</p>${skillMeta(d)}<p>ระยะ ${d.distance} ม. · ${d.charges} ชาร์จพื้นฐาน · คืนชาร์จ ${d.recharge} วิ</p><p>หลบดาเมจระหว่างใช้: ${d.invulnerable?'ได้':'ไม่ได้'}</p><button class="btn ${ch.movement===id?'on':'primary'}" data-act="movement" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${ch.movement===id?'ใช้อยู่':learned?'เลือกใช้':'ยังไม่เรียน'}</button></section>`;
  }).join('')}</div><div class="seeker-result">สกิลที่ใช้อยู่: ${ui.game.move.def.nameTh} · ชาร์จสูงสุด ${ui.game.move.charges} · คืนชาร์จจริง ${ui.game.move.recharge.toFixed(1)} วิ</div>`;
 }
@@ -84,20 +84,20 @@ export function growthWorkspace(ui,{costHtml,describeSkill}) {
 // A skill's level (core/crafting.js feedSkill): up to the character's level; crystals fed give skill EXP,
 // gold per EXP; the skill's stat gates each band of levels. One row per crystal size.
 function skillLevelDetail(ui,e,atService,describeSkill){
- const {ch,data}=ui.game,st=e.state,su=data.progression.skillUpgrade,open=!['cap','max','not_learned'].includes(st.reason)&&st.room>0;
+ const {ch,data}=ui.game,inUse=levelInUse(ui.game.derived.stats,e.level,L=>skillRequires(data,e.def,L)),st=e.state,su=data.progression.skillUpgrade,open=!['cap','max','not_learned'].includes(st.reason)&&st.room>0;
  const status=st.reason==='max'?'เลเวลสูงสุดของสกิลแล้ว':st.reason==='cap'?`เท่าเลเวลตัวละครแล้ว (Lv.${st.cap}) · เลเวลตัวละครขึ้นแล้วอัปต่อได้`:!st.gate.ok&&st.exp>=st.need?`EXP ครบแล้ว · ต้องมี ${st.gate.stat} ${st.gate.need} เพื่อไป Lv.${st.level+1}`:!atService?'ป้อนผลึกได้ที่จุดคราฟต์หรือครูฝึก':'ป้อนผลึกเพื่อรับ EXP สกิล';
  const rows=Object.entries(su.crystals).map(([id,per])=>{
   const have=ch.materials[id]||0,useful=open?Math.min(have,Math.ceil(st.room/per),Math.floor(ch.gold/(per*su.goldPerExp))):0,can=atService&&useful>0;
   return `<div class="sl-crystal"><span class="pg-ic">${art('material',id)}</span><span class="pg-tx"><b>${data.items.materials[id].nameTh}</b><small>มี ${have} · ${per} EXP ต่อเม็ด · ${(per*su.goldPerExp).toLocaleString()} G ต่อเม็ด</small></span><span class="sl-feed"><button class="btn" data-act="skill-feed" data-skill="${e.id}" data-crystal="${id}" data-n="1" ${can?'':'disabled'}>ป้อน 1</button>${useful>1?`<button class="btn primary" data-act="skill-feed" data-skill="${e.id}" data-crystal="${id}" data-n="${useful}" ${can?'':'disabled'}>ป้อน ${useful}</button>`:''}</span></div>`;
  }).join('');
  const preview=st.reason==='cap'||st.reason==='max'?'':skillGrowthPreview(ch,data,e.id,describeSkill);
- return `<section class="card"><div class="seeker-hero">${art('skill',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level} / ${st.cap} · สกิลขึ้นได้ไม่เกินเลเวลตัวละคร</span></div></div>${tagsHtml(e.def.tags)}
-  <div class="sl-exp"><span style="width:${Math.min(100,Math.round(st.exp/st.need*100))}%"></span></div><small class="muted">EXP สกิล ${st.exp} / ${st.need} → Lv.${st.level+1} · ต้องมี ${st.gate.stat} ${st.gate.need} <span class="${st.gate.ok?'ok':'no'}">(มี ${ch.stats[st.gate.stat]||0})</span></small>
+ return `<section class="card"><div class="seeker-hero">${art('skill',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level} / ${st.cap} · สกิลขึ้นได้ไม่เกินเลเวลตัวละคร</span>${inUse<e.level?`<span class="no" data-skill-in-use>ตอนนี้ทำงานที่ Lv.${inUse||0} · ต้องมี ${Object.entries(skillRequires(data,e.def,e.level)).map(([k,v])=>`${k} ${v}`).join(', ')} จึงใช้ Lv.${e.level} เต็ม</span>`:''}</div></div>${tagsHtml(e.def.tags)}
+  <div class="sl-exp"><span style="width:${Math.min(100,Math.round(st.exp/st.need*100))}%"></span></div><small class="muted">EXP สกิล ${st.exp} / ${st.need} → Lv.${st.level+1} · ต้องมี ${st.gate.stat} ${st.gate.need} <span class="${st.gate.ok?'ok':'no'}">(มี ${st.gate.have})</span></small>
   ${preview}<div class="sl-crystals">${rows}</div><div class="pg-foot"><span><p class="${(open||st.pending)&&atService?'ok':'no'}" data-growth-status>${st.pending?'EXP ที่สะสมไว้พอขึ้นเลเวลแล้ว':status}</p><small>สำเร็จแน่นอน · ป้อนเฉพาะที่ใช้ได้ EXP ที่เกินเก็บไว้ · ไม่ใช้แต้มต้นไม้</small></span>${st.pending?`<button class="btn primary" data-act="skill-feed" data-skill="${e.id}" data-crystal="skill_crystal" data-n="0" ${atService?'':'disabled'}>ขึ้นเป็น Lv.${st.level+1}</button>`:''}</div></section>`;
 }
 
-// Movement skills rank up with AGI (data.progression.movementUpgrade): the same list-and-detail page.
-const moveTab=kind=>`<button class="btn ${kind==='move'?'on':''}" data-act="growth-filter" data-id="move" aria-pressed="${kind==='move'}">สกิลเคลื่อนที่ (AGI)</button>`;
+// Movement skills rank up with their main stat (data.progression.movementUpgrade): the same list-and-detail page.
+const moveTab=kind=>`<button class="btn ${kind==='move'?'on':''}" data-act="growth-filter" data-id="move" aria-pressed="${kind==='move'}">สกิลเคลื่อนที่</button>`;
 // Skill bars (core/skill-growth.js, ui/skill-bars.js): points from use, shaped bar by bar.
 const barsTab=kind=>`<button class="btn ${kind==='bars'?'on':''}" data-act="growth-filter" data-id="bars" aria-pressed="${kind==='bars'}">หลอดสกิล</button>`;
 function growthFrame(ui,kind,atService,entries,detail){

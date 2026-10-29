@@ -54,11 +54,11 @@ export function modStatus(ch,data,index,inst) {
   const companionInsts=(slot?.mods||[]).map(u=>ch.mods.find(m=>m.uid===u)).filter(m=>m&&data.mods.mods[m.id]);
   const companions=companionInsts.map(m=>data.mods.mods[m.id]);
   // Higher ranks ask for more stats (modRequires).
-  const fit=modFits(data.skills.combat[slot?.skill],md,companions), req=meetsRequires(ch,modRequires(data,md,inst.level||1)), where=modSlotOf(ch,inst.uid);
+  const fit=modFits(data.skills.combat[slot?.skill],md,companions), req=meetsRequires(ch,modRequires(data,md,1),data), where=modSlotOf(ch,inst.uid);
   const duplicate=!!slot?.mods.some(u=>u!==inst.uid&&ch.mods.find(m=>m.uid===u)?.id===inst.id);
   const full=(slot?.mods.length||0)>=slotCapacity(ch,data,index);
   const own=where===index;
-  const activeCompanions=companionInsts.filter(m=>meetsRequires(ch,modRequires(data,data.mods.mods[m.id],m.level||1)).ok).map(m=>data.mods.mods[m.id]);
+  const activeCompanions=companionInsts.filter(m=>meetsRequires(ch,modRequires(data,data.mods.mods[m.id],1),data).ok).map(m=>data.mods.mods[m.id]);
   const activeFit=modFits(data.skills.combat[slot?.skill],md,activeCompanions);
   const reason=!slot?.skill?'เลือกสกิลในช่องนี้ก่อน':!fit.ok?fitReason(fit):own?'ใส่ในช่องนี้แล้ว':duplicate?'มีม็อดชนิดนี้อยู่แล้ว':full?'ช่องม็อดเต็ม · ถอดหนึ่งชิ้นก่อน':'พร้อมใส่';
   return {fit,req,where,own,reason,active:req.ok&&activeFit.ok,can:!!slot?.skill&&fit.ok&&!own&&!duplicate&&!full};

@@ -8,6 +8,8 @@
     },
     "statPointsPerLevel": 3,
     "startingStatPoints": 4,
+    "mainStats": ["STR", "DEX", "INT"],
+    "_mainStatsDoc": "Owner, 2026-10-29 (docs/STATS-TH.md): STR, DEX and INT are the colours of skills, mods and weapons; every stat requirement uses only them (tests/core/stats.test.js). VIT, AGI and LUK never gate anything: they are bought for HP, speed and luck. Stats come from trained points, Job Tree nodes and gear options (core/character.js statTotals).",
     "startingStats": {
       "STR": 3,
       "AGI": 3,
@@ -120,15 +122,15 @@
     "jobGoldPerLevel": 12
   },
   "movementUpgrade": {
-    "_doc": "AGI raises movement skill ranks (owner, 2026-10-25), at the same workbench or trainer and with the same skill crystals and gold as a combat skill. Each rank above the first shortens the recharge by rechargePerLevel and lengthens the move by distancePerLevel (core/skills.js movementSkill). The skill's upgradeStat (AGI) must reach the step's requiresStat.",
+    "_doc": "Movement skill ranks (owner, 2026-10-25) are raised at the same workbench or trainer and with the same skill crystals and gold as a combat skill. Each rank above the first shortens the recharge by rechargePerLevel and lengthens the move by distancePerLevel (core/skills.js movementSkill). The skill's upgradeStat (a main stat: DEX for dash and roll, INT for blink, STR for leap; docs/STATS-TH.md) must reach the step's requiresStat.",
     "maxLevel": 5,
     "rechargePerLevel": 0.06,
     "distancePerLevel": 0.04,
     "steps": [
-      { "requiresStat": 5, "gold": 35, "skill_crystal": 1 },
-      { "requiresStat": 7, "gold": 90, "skill_crystal": 2 },
-      { "requiresStat": 9, "gold": 180, "skill_crystal": 3 },
-      { "requiresStat": 11, "gold": 320, "skill_crystal": 4 }
+      { "requiresStat": 8, "gold": 35, "skill_crystal": 1 },
+      { "requiresStat": 20, "gold": 90, "skill_crystal": 2 },
+      { "requiresStat": 40, "gold": 180, "skill_crystal": 3 },
+      { "requiresStat": 65, "gold": 320, "skill_crystal": 4 }
     ]
   },
   "skillGrowth": {
@@ -159,14 +161,14 @@
     }
   },
   "skillUpgrade": {
-    "_doc": "Skill level (owner, 2026-10-27/29, docs/SKILL-GROWTH-TH.md): a skill levels from 1 up to the character's level (and maxLevel). Crystals fed to it at a workbench or trainer (including town.skillUpgradeStations) give skill EXP (crystals: EXP per crystal), and every EXP fed costs goldPerExp gold. Level L needs expPerLevel[0] + expPerLevel[1] x L EXP, rounded. The skill's upgradeStat must reach statGate.start + statGate.step x floor((L - 1) / statGate.every) to reach level L + 1. Feeding stops where the next level is out of reach (the character's level or the stat), so crystals are never wasted. perLevel/manaPerLevel: damage and MP cost per level above 1 (MP grows faster). Mod sockets follow the level (mods.slotLevels). Mods remain the source of behaviour changes. No failure or destruction.",
+    "_doc": "Skill level (owner, 2026-10-27/29, docs/SKILL-GROWTH-TH.md): a skill levels from 1 up to the character's level (and maxLevel). Crystals fed to it at a workbench or trainer (including town.skillUpgradeStations) give skill EXP (crystals: EXP per crystal), and every EXP fed costs goldPerExp gold. Level L needs expPerLevel[0] + expPerLevel[1] x L EXP, rounded. Each level asks for stats (owner, 2026-10-29, docs/STATS-TH.md; core/skills.js skillRequires): the skill's requires (or require.base of its upgradeStat) plus require.perLevel per level above 1, shared by its stats in proportion; feeding reaches only levels the stats meet, and a skill above what the stats allow works at the highest level they meet. Feeding stops where the next level is out of reach (the character's level or the stat), so crystals are never wasted. perLevel/manaPerLevel: damage and MP cost per level above 1 (MP grows faster). Mod sockets follow the level (mods.slotLevels). Mods remain the source of behaviour changes. No failure or destruction.",
     "maxLevel": 30,
     "perLevel": 0.01,
     "manaPerLevel": 0.02,
     "crystals": { "skill_crystal": 1, "skill_crystal_m": 5, "skill_crystal_l": 25 },
     "goldPerExp": 10,
     "expPerLevel": [1, 0.15],
-    "statGate": { "start": 5, "step": 2, "every": 6 }
+    "require": { "base": 3, "perLevel": 1.5 }
   },
   "modUpgrade": {
     "maxLevel": 3,
@@ -180,7 +182,7 @@
         "gold": 80
       }
     ],
-    "requiresStatPerLevel": 2,
+    "requiresStatPerLevel": 25,
     "_doc": "Each rank above the first raises the mod stat requirement by requiresStatPerLevel (core/skills.js modRequires); an upgrade is refused until the next rank can be met."
   },
   "openWorldSimulation": {
@@ -405,7 +407,6 @@
           "release_burst": "its MP cost outweighs the measured gain on a Flame Stream that already drains its supply; awaiting the skill growth rebalance",
           "split": "over the mod band on venom_mire: awaiting a decision",
           "chain_return": "adds less than it costs on every skill it fits, or its effect is not measured yet",
-          "advancing_edge": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "gathering_cut": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "laceration": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "status_burst": "adds less than it costs on every skill it fits, or its effect is not measured yet",

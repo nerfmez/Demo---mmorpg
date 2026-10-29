@@ -100,7 +100,7 @@ test('gear upgrades never require character level; a skill levels up to the char
  ch.materials.skill_crystal=5;let before=JSON.stringify(ch);assert.equal(feedSkill(ch,data,'slash','skill_crystal',1).reason,'cap','a skill never passes the character');assert.equal(JSON.stringify(ch),before);
  ch.level=5;ch.stats.STR=0;const fill=feedSkill(ch,data,'slash','skill_crystal',3);assert.deepEqual([fill.ok,fill.used,fill.levels,ch.skills.slash],[true,1,0,1],'a gated level still fills, and no more goes in');
  before=JSON.stringify(ch);assert.equal(feedSkill(ch,data,'slash','skill_crystal',1).reason,'requires','the stat gates the next level');assert.equal(JSON.stringify(ch),before);
- ch.stats.STR=5;assert.ok(feedSkill(ch,data,'slash','skill_crystal',1).ok);assert.equal(ch.skills.slash,3,'the waiting level and the new EXP both count');
+ ch.stats.STR=6;assert.ok(feedSkill(ch,data,'slash','skill_crystal',1).ok);assert.equal(ch.skills.slash,3,'the waiting level and the new EXP both count');
  assert.equal(gearUpgradeCost(data,item).enhancement_stone,3);
 });
 

@@ -23,6 +23,14 @@
   },
   "nativeAntialias": true,
   "modelTextureMax": 1024,
+  "budgets": {
+    "_doc": "iPad budgets, checked by tests (tests/core/asset-budget.test.js, tests/browser/open-world.mjs). Measured 29 October 2026 after the size pass: frames up to 1.37M triangles / 348 draw calls, maps 85.5 / 30.7 / 60.6 MB. Raise a number only with the owner's agreement; first shrink the new content (AGENTS.md, iPad budgets).",
+    "plantTriangles": {"shrub": 500, "crown": 1000},
+    "frameTriangles": 1500000,
+    "frameDrawCalls": 400,
+    "mapGeometryMB": 95,
+    "residentGeometryMB": 220
+  },
   "dynamicResolution": {"enabled": true, "minScale": 0.8, "slowMs": 19.5, "vsyncSlack": 1.12, "stepDown": 0.05, "stepUp": 0.025, "settle": 1.5, "recover": 4},
   "quality": {
     "low": {"pixelRatio": 1, "shadowMapSize": 0, "post": false},

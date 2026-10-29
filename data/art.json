@@ -155,6 +155,7 @@
     ],
     "treeCardsPerSpray": 18,
     "shrubCardsPerSpray": 13,
+    "cardSegments": 2,
     "treeCardSize": [
       0.27,
       0.82

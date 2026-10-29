@@ -1252,7 +1252,8 @@ kept clear of trees and drawn on the map) join every scene exit, the Frontier ga
 three Azure seam trails. Zones follow the same woods (`root_warren` west, `fern_rise` north-east,
 `mirror_pond` between) and their encounter habitats (`data/encounters.json`) moved with them. Map
 look: `look.foliage` gives the map its own leaf and shrub [shadow, mid, light] colours (Moonroot's
-teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`); a zone's `soil`
+teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`; each leaf card is a
+raised arch of `art.anime.cardSegments`² quads, 2 since 29 October 2026: a shrub is 416 triangles, a crown 864); a zone's `soil`
 biases the open soil patches (Moonroot's woods have none); `acceptedScenes.bankShade` {strength,
 tone} gives a scene's steep grass banks a darker two-step cel tone in the terrain shader (vertex
 `aBank * (1 - normal.y)`), so the camp's terrace reads from above. `look.ground` [light, dark]

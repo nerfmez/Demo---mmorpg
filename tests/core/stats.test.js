@@ -13,7 +13,7 @@ import { feedSkill } from '../../src/core/crafting.js';
 const WHEEL = data.progression.character.statWheel;
 const WEAPON_STAT = { sword: 'STR', greatblade: 'STR', axe: 'STR', mace: 'STR', dagger: 'AGI', bow: 'DEX', staff: 'INT', wand: 'INT', greatshield: 'VIT' };
 
-test('the wheel: weapons ask for one stat by type, skills for one or two neighbours, mods for one', () => {
+test('the wheel: a weapon asks for its type\'s stat (main-line) or that and a neighbour (main and secondary), a skill for one or two neighbours, a mod for one', () => {
   assert.deepEqual([...WHEEL].sort(), ['AGI', 'DEX', 'INT', 'LUK', 'STR', 'VIT']);
   const near = (a, b) => [1, WHEEL.length - 1].includes(Math.abs(WHEEL.indexOf(a) - WHEEL.indexOf(b)));
   const bad = [];
@@ -24,11 +24,20 @@ test('the wheel: weapons ask for one stat by type, skills for one or two neighbo
   for (const [id, m] of Object.entries(data.mods.mods)) if (Object.keys(m.requires || {}).length > 1) bad.push(`mod ${id}`);
   for (const [id, b] of Object.entries(data.items.gearBases)) {
     if (b.slot !== 'weapon' && b.slot !== 'offhand') continue;
-    const want = b.slot === 'offhand' ? 'VIT' : WEAPON_STAT[b.weaponType];
+    // a main-line weapon asks for its type's stat; a main-and-secondary one adds a neighbour, never more
+    const want = [b.slot === 'offhand' ? 'VIT' : WEAPON_STAT[b.weaponType], ...(b.secondaryStat ? [b.secondaryStat] : [])];
+    if (b.secondaryStat && !near(...want)) bad.push(`gear ${id} secondary ${b.secondaryStat} is not next to ${want[0]}`);
+    if (b.starter && b.secondaryStat) bad.push(`gear ${id}: a starter weapon is main-line`);
     for (const grade of ['C', 'S']) {
-      const k = Object.keys(gearRequirements({ uid: 1, base: id, grade, upgrade: 0, options: [] }, data));
-      if (k.length !== 1 || k[0] !== want) bad.push(`gear ${id} ${k} (want ${want})`);
+      const r = gearRequirements({ uid: 1, base: id, grade, upgrade: 0, options: [] }, data), k = Object.keys(r);
+      if (k.join() !== want.join()) bad.push(`gear ${id} ${k} (want ${want})`);
+      else if (k.length === 2 && !(r[k[0]] > r[k[1]])) bad.push(`gear ${id}: the main stat asks for more`);
     }
+  }
+  const types = Object.values(data.items.gearBases).filter((b) => b.slot === 'weapon' || b.slot === 'offhand');
+  for (const t of new Set(types.map((b) => b.weaponType || 'shield'))) {
+    const of = types.filter((b) => (b.weaponType || 'shield') === t);
+    if (!of.some((b) => !b.secondaryStat)) bad.push(`${t} has no main-line weapon`);
   }
   assert.deepEqual(bad, []);
 });

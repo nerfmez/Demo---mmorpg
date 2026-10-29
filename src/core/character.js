@@ -596,7 +596,14 @@ export function gearRequirements(item, data) {
   const baseline = gearPower(gearStats({ ...item, grade:'C', upgrade:0, options:[] },data),data);
   const extra = Math.ceil(Math.max(0,gearPower(gearStats(item,data),data) - baseline - rules.affixAllowance) * rules.extraPowerFactor - 1e-9);
   const initial = Object.keys(base.requires || {}).length ? base.requires : { [base.requirementStat]: base.starter ? rules.minimumStat : Math.max(rules.minimumStat,Math.ceil(baseline * rules.basePowerFactor)) };
-  return Object.fromEntries(Object.entries(initial).map(([stat,value]) => [stat,value + extra]));
+  const out = Object.fromEntries(Object.entries(initial).map(([stat,value]) => [stat,value + extra]));
+  // a main-and-secondary weapon (docs/STATS-TH.md) hands secondaryShare of its requirement to the neighbour stat
+  const main = base.requirementStat, sec = base.secondaryStat;
+  if (sec && out[main] && !out[sec]) {
+    const total = out[main], part = Math.round(total * rules.secondaryShare);
+    out[main] = Math.max(rules.minimumStat, total - part); out[sec] = Math.max(rules.minimumStat, part);
+  }
+  return out;
 }
 
 const OTHER_HAND = { weapon: 'offhand', offhand: 'weapon' };

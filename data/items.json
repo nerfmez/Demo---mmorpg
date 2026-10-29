@@ -480,6 +480,7 @@
       ],
       "upgradeMaterial": "wolf_fang",
       "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "itemLevel": 6
     },
     "wisp_staff": {
@@ -505,6 +506,7 @@
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT",
+      "secondaryStat": "LUK",
       "itemLevel": 16
     },
     "spore_wand": {
@@ -554,6 +556,7 @@
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "STR",
+      "secondaryStat": "VIT",
       "itemLevel": 21
     },
     "storm_bow": {
@@ -577,6 +580,7 @@
       ],
       "upgradeMaterial": "storm_quill",
       "requirementStat": "DEX",
+      "secondaryStat": "AGI",
       "itemLevel": 16
     },
     "greyfang_sabre": {
@@ -601,6 +605,7 @@
       ],
       "upgradeMaterial": "greyfang_mane",
       "requirementStat": "STR",
+      "secondaryStat": "AGI",
       "itemLevel": 11
     },
     "horn_greatblade": {
@@ -649,6 +654,7 @@
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT",
+      "secondaryStat": "VIT",
       "itemLevel": 21
     },
     "travel_tunic": {
@@ -1306,6 +1312,7 @@
       ],
       "upgradeMaterial": "beetle_shell",
       "requirementStat": "STR",
+      "secondaryStat": "VIT",
       "itemLevel": 6
     },
     "crab_shield": {
@@ -1374,6 +1381,7 @@
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "VIT",
+      "secondaryStat": "STR",
       "itemLevel": 21
     },
     "crab_greatshield": {
@@ -1423,6 +1431,7 @@
       ],
       "upgradeMaterial": "beetle_shell",
       "requirementStat": "VIT",
+      "secondaryStat": "STR",
       "itemLevel": 6
     },
     "crag_greatshield": {
@@ -1448,6 +1457,7 @@
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "VIT",
+      "secondaryStat": "STR",
       "itemLevel": 21
     },
     "hide_gloves": {
@@ -1698,6 +1708,7 @@
       "slot": "weapon",
       "weaponType": "wand",
       "requirementStat": "INT",
+      "secondaryStat": "LUK",
       "optionPool": [
         "magic_flat",
         "spell_pct",
@@ -1722,6 +1733,7 @@
       "slot": "weapon",
       "weaponType": "greatblade",
       "requirementStat": "STR",
+      "secondaryStat": "VIT",
       "optionPool": [
         "attack_flat",
         "melee_pct",
@@ -1745,6 +1757,7 @@
       "slot": "weapon",
       "weaponType": "staff",
       "requirementStat": "INT",
+      "secondaryStat": "LUK",
       "optionPool": [
         "magic_flat",
         "spell_pct",
@@ -1769,6 +1782,7 @@
       "slot": "weapon",
       "weaponType": "bow",
       "requirementStat": "DEX",
+      "secondaryStat": "AGI",
       "optionPool": [
         "attack_flat",
         "projectile_pct",
@@ -1792,6 +1806,7 @@
       "slot": "weapon",
       "weaponType": "dagger",
       "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -1815,6 +1830,7 @@
       "slot": "weapon",
       "weaponType": "wand",
       "requirementStat": "INT",
+      "secondaryStat": "LUK",
       "optionPool": [
         "magic_flat",
         "spell_pct",
@@ -1885,6 +1901,7 @@
       "slot": "weapon",
       "weaponType": "staff",
       "requirementStat": "INT",
+      "secondaryStat": "VIT",
       "optionPool": [
         "magic_flat",
         "spell_pct",
@@ -1909,6 +1926,7 @@
       "slot": "weapon",
       "weaponType": "bow",
       "requirementStat": "DEX",
+      "secondaryStat": "LUK",
       "optionPool": [
         "attack_flat",
         "projectile_pct",
@@ -1932,6 +1950,7 @@
       "slot": "offhand",
       "offhandType": "shield",
       "requirementStat": "VIT",
+      "secondaryStat": "STR",
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -2083,6 +2102,7 @@
       "slot": "weapon",
       "weaponType": "sword",
       "requirementStat": "STR",
+      "secondaryStat": "AGI",
       "optionPool": [
         "attack_flat",
         "melee_pct",
@@ -2106,6 +2126,7 @@
       "slot": "weapon",
       "weaponType": "dagger",
       "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -2129,6 +2150,7 @@
       "slot": "weapon",
       "weaponType": "wand",
       "requirementStat": "INT",
+      "secondaryStat": "VIT",
       "optionPool": [
         "magic_flat",
         "spell_pct",
@@ -2153,6 +2175,7 @@
       "slot": "weapon",
       "weaponType": "mace",
       "requirementStat": "STR",
+      "secondaryStat": "VIT",
       "optionPool": [
         "attack_flat",
         "melee_pct",
@@ -2176,6 +2199,7 @@
       "slot": "weapon",
       "weaponType": "greatblade",
       "requirementStat": "STR",
+      "secondaryStat": "AGI",
       "optionPool": [
         "attack_flat",
         "melee_pct",
@@ -2199,6 +2223,7 @@
       "slot": "offhand",
       "offhandType": "shield",
       "requirementStat": "VIT",
+      "secondaryStat": "STR",
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -2270,6 +2295,7 @@
       "slot": "weapon",
       "weaponType": "dagger",
       "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -2293,6 +2319,7 @@
       "slot": "weapon",
       "weaponType": "wand",
       "requirementStat": "INT",
+      "secondaryStat": "LUK",
       "optionPool": [
         "magic_flat",
         "spell_pct",
@@ -2317,6 +2344,7 @@
       "slot": "weapon",
       "weaponType": "bow",
       "requirementStat": "DEX",
+      "secondaryStat": "LUK",
       "optionPool": [
         "attack_flat",
         "projectile_pct",
@@ -3773,11 +3801,12 @@
     }
   },
   "requirements": {
-    "_doc": "Wear requirements use trained character stats, not level or gear-granted bonuses. Weighted actual item power above its C/+0 baseline plus a two-affix allowance increases the base requirement. All weights and growth are tunable here.",
+    "_doc": "Wear requirements use every stat the character has (core/character.js statTotals), never the item's own bonus. A weapon asks for its requirementStat; one with a secondaryStat (its neighbour on the stat wheel, docs/STATS-TH.md) gives that stat secondaryShare of the requirement. Weighted actual item power above its C/+0 baseline plus a two-affix allowance increases the base requirement. All weights and growth are tunable here.",
     "minimumStat": 3,
     "basePowerFactor": 0.35,
     "extraPowerFactor": 0.5,
     "affixAllowance": 2,
+    "secondaryShare": 0.4,
     "weights": {
       "STR": 0.4,
       "DEX": 0.4,

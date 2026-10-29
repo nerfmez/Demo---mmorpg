@@ -191,8 +191,10 @@ the character or the stat catches up (`pending`; feeding then settles it free). 
 (`items.upgradeMaterialDrops`), the large one from bosses.
 
 Stats (owner, 2026-10-29, `docs/STATS-TH.md`): the six stats sit on a wheel
-(`progression.character.statWheel`: STR AGI DEX LUK INT VIT). A weapon asks for one stat by type (sword,
-greatblade, axe, mace STR; dagger AGI; bow DEX; staff, wand INT; shields VIT), a skill for one stat or
+(`progression.character.statWheel`: STR AGI DEX LUK INT VIT). A weapon asks for its type's stat (sword,
+greatblade, axe, mace STR; dagger AGI; bow DEX; staff, wand INT; shields VIT); one with a `secondaryStat`
+(a neighbour on the wheel) hands it `items.requirements.secondaryShare` (0.4) of the requirement
+(`gearRequirements`). A skill for one stat or
 two neighbours on the wheel (its `upgradeStat` first), a mod for one; each stat named is met on its own
 (`tests/core/stats.test.js`). `character.js statTotals(ch, data,
 equipped, skipUid)` adds trained points, Job Tree node `effects` named after a stat and the stat options

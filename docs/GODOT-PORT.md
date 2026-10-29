@@ -646,7 +646,7 @@ pieces map to a `MeshInstance3D` per floor material, `MultiMeshInstance3D` for t
 a water shader with the same uniforms, and `OmniLight3D`s. Rooms with `style: "cave"` are dressed by
 `public/models/grotto/grotto-cave.glb`, a render-only model that `scripts/blender/grotto-cave.py` builds
 in world metres from the floor outlines: per floor `cavefloor_<id>`, `cavewall_<id>` and `caverock_<id>`, with
-ambient occlusion baked into vertex colours. Import it as it is (`MeshInstance3D`s with a cel material
+ambient occlusion baked into vertex colours. Floors with `walls` (every room but the entrance) also get `cavewall_<id>`/`caverock_<id>`, only along the edges that meet the void, coarser and lower (rock islands at most 2.4 m); their drops keep the generated ledges. Import it as it is (`MeshInstance3D`s with a cel material
 that multiplies vertex colour); collision still comes from the floors, never from this mesh. In every room the
 `coral` props and the corals at the foot of the walls are the painted corals of `public/models/grotto/glow-corals.glb`
 (`scripts/blender/grotto-corals.py`): per coral `coral_<name>_body`, cel-lit with half its own vertex colour added as

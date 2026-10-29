@@ -85,7 +85,9 @@ export function buildGrottoScene(map, o = {}) {
     ...(map.def.links || []).map((l) => [l.at[0], l.at[1], 2.5]),
   ];
   const edge = o.sea ? [] : rimPoints(map, 1.25);
-  if (!o.sea) root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1, points: edge }).root);
+  // the floors whose walls the cave model carries (the rest keep the generated rim)
+  const modelled = new Set(o.cave ? map.floors.filter((f) => o.cave.parts.has(`cavewall_${f.id}`)).map((f) => f.id) : []);
+  if (!o.sea) root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1, points: edge, modelled }).root);
   if (o.cave) root.add(buildCave(map, o.cave).root);
   const props = buildProps(map, { decor: edge, keepClear, kit: o.kit, clam: o.clam, corals: o.corals, painted: o.painted });
   root.add(props.root);

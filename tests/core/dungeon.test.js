@@ -135,6 +135,10 @@ test('the cave model was built from this map (rebuild: blender -b --python scrip
   const caves = FILE.inside.floors.filter((f) => f.style === 'cave');
   assert.ok(caves.length > 0, 'the entrance is a cave');
   for (const f of caves) for (const part of ['cavefloor', 'cavewall', 'caverock']) assert.ok(nodes.has(`${part}_${f.id}`), `${part}_${f.id}`);
+  // the other rooms are walled where they meet the void (their drops to water keep their ledges)
+  const walled = FILE.inside.floors.filter((f) => f.walls);
+  assert.ok(walled.length >= 5, 'every room beyond the entrance has walls');
+  for (const f of walled) assert.ok(nodes.has(`cavewall_${f.id}`), `cavewall_${f.id}`);
 });
 
 test('the painted props hold every piece the map asks for (blender -b --python scripts/blender/grotto-props.py)', () => {

@@ -141,6 +141,8 @@ for i, z in enumerate(zones):
             f['tone'] = z['tone']
         if z.get('style'):
             f['style'] = z['style']
+        if z.get('walls'):
+            f['walls'] = True  # its edges to the void get the modelled cave wall (grotto-cave.py)
         floors.append(f)
     if wet:
         for n, (pts, holes) in enumerate(polygons(zm & stone_c, 700, 900)):

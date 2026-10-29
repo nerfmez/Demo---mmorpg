@@ -1,7 +1,9 @@
 // What scripts/blender/grotto-cave.py builds the cave from: every `style: "cave"` floor of the
-// Pearlshell Grotto (data/dungeons/shell-grotto.json `inside`), its outline resampled every
-// 0.4 m with the outward normal, and whether the hero walks on past each point (an opening to
-// the next room, kept free of wall) or the floor ends there (a wall). The walk rules are the
+// Pearlshell Grotto (data/dungeons/shell-grotto.json `inside`) and every floor with `walls`, its
+// outline resampled every 0.4 m with the outward normal, and whether the hero walks on past each
+// point (an opening to the next room, kept free of wall), the floor drops to a lower one there
+// (water, a lower room) or it ends at the void (a wall). A cave floor is walled wherever it is not
+// open and gets the old paving; a `walls` floor is walled only where it meets the void. The walk rules are the
 // game's own (src/core/dungeon.js), so the walls stand exactly where the floor stops.
 // Usage: node scripts/grotto-cave-input.mjs > input.json (the Blender script runs it itself).
 import { readFileSync } from 'node:fs';
@@ -14,7 +16,8 @@ const STEP = 0.4;
 /** The part of the map the cave model is built from; the model is stale when this changes. */
 export function caveSource(grotto) {
   const inside = grotto.inside;
-  const floors = inside.floors.filter((f) => f.style === 'cave').map((f) => ({ id: f.id, y: f.y, pts: f.pts, holes: f.holes || [] }));
+  const floors = inside.floors.filter((f) => f.style === 'cave' || f.walls)
+    .map((f) => ({ id: f.id, y: f.y, pts: f.pts, holes: f.holes || [], paving: f.style === 'cave' }));
   const gates = (inside.props || []).filter((p) => p.type === 'shellGate').map((p) => ({ at: p.at, rot: p.rot }));
   return { floors, gates };
 }
@@ -65,16 +68,18 @@ export function caveInput(grotto) {
         const l = Math.hypot(nx, nz) || 1;
         nx /= l; nz /= l;
         // past the edge: another floor the hero walks on at this level (an opening), a lower one (a drop), or nothing
-        let open = false, drop = false;
-        for (const d of [0.7, 1.4]) {
+        let open = false, drop = false, beyond = false;
+        for (const d of [0.7, 1.4, 2.4]) {
           const s = map.surfaceAt(x + nx * d, z + nz * d);
+          if (s && s.floor !== floor) beyond = true;
+          if (d > 1.5) continue;
           if (s && s.floor !== floor && s.walkable && Math.abs(s.y - f.y) <= grotto.maxStep + 0.05) open = true;
           else if (s && s.floor !== floor && s.y < f.y - grotto.maxStep) drop = true;
         }
-        return { x: +x.toFixed(3), z: +z.toFixed(3), nx: +nx.toFixed(4), nz: +nz.toFixed(4), open, drop };
+        return { x: +x.toFixed(3), z: +z.toFixed(3), nx: +nx.toFixed(4), nz: +nz.toFixed(4), open, drop, void: !beyond };
       });
     });
-    out.floors.push({ id: f.id, y: f.y, rings, edges });
+    out.floors.push({ id: f.id, y: f.y, rings, edges, paving: f.paving });
   }
   return out;
 }

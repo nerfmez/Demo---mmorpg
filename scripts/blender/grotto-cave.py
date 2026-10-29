@@ -398,16 +398,25 @@ DRIP = (0.66, 0.60, 0.51)
 ROW = 0.5                    # metres between rows of the wall surface
 
 
+def walled(f):
+    """Which outline points get wall: a cave room is walled wherever the hero cannot walk on; a
+    room with `walls` only where it meets the void (its drops to water or a lower floor keep their
+    ledges)."""
+    return (lambda p: not p['open']) if f.get('paving') else (lambda p: p['void'])
+
+
 def build_walls(f, gates, rng):
     """Two objects: the smooth rock face (`cavewall_`) and the faceted boulders, stalactites and
-    rubble on and around it (`caverock_`)."""
+    rubble on and around it (`caverock_`). The rooms without paving get a coarser wall (they are
+    many times longer than the entrance)."""
     y = f['y']
     face, rocks = Strip(), Builder()
-    for ring in f['edges']:
+    wall_at = walled(f)
+    for ri, ring in enumerate(f['edges']):
         n = len(ring)
         if n < 4:
             continue
-        opened = [p['open'] for p in ring]
+        opened = [not wall_at(p) for p in ring]
         if all(opened):
             continue
         # runs of wall between the openings (a ring with no opening is one closed run)
@@ -426,9 +435,14 @@ def build_walls(f, gates, rng):
                     cur.append(i)
             if cur:
                 runs.append((cur, False))
+        coarse = not f.get('paving')
         for idx, closed in runs:
+            if coarse:
+                idx = idx[::3] if closed or len(idx) < 4 else idx[:-1:3] + [idx[-1]]
             if len(idx) >= 3:
-                wall_run(face, rocks, rng, [ring[i] for i in idx], closed, y, gates, f['step'])
+                # a hole in a floor is a rock island in the room: an outcrop, not a cave wall
+                tallest = 2.4 if ri > 0 else (5.0 if coarse else 8.5)
+                wall_run(face, rocks, rng, [ring[i] for i in idx], closed, y, gates, f['step'] * (3 if coarse else 1), coarse, tallest)
     return [new_object(f'cavewall_{f["id"]}', face.bm, face.cols), new_object(f'caverock_{f["id"]}', rocks.bm, rocks.cols)]
 
 
@@ -473,7 +487,7 @@ def relief(s, h, H, seed):
     return (big - rib_k * rib) * min(1.0, 0.35 + H / 4.0) * smooth(h / 0.5)
 
 
-def wall_run(surface, extras, rng, pts, closed, y, gates, step):
+def wall_run(surface, extras, rng, pts, closed, y, gates, step, coarse=False, tallest=8.5):
     m = len(pts)
     length = (m - 1) * step
     # each outline point: how tall the wall is there, its niche and overhang
@@ -483,7 +497,7 @@ def wall_run(surface, extras, rng, pts, closed, y, gates, step):
         back = smooth((-p['nz'] + 0.25) / 0.95)
         if p['drop']:
             back = 0.0
-        H = 1.4 + (8.5 - 1.4) * back + fbm(s / 7.0, 0.5, 1) * (0.3 + 1.6 * back)
+        H = 1.4 + (tallest - 1.4) * back + fbm(s / 7.0, 0.5, 1) * (0.3 + 1.6 * back) * tallest / 8.5
         if not closed:
             end = min(s, length - s)
             H = 0.9 + (H - 0.9) * smooth(end / 3.0)
@@ -498,10 +512,11 @@ def wall_run(surface, extras, rng, pts, closed, y, gates, step):
         info.append((p['x'], p['z'], p['nx'], p['nz'], s, back, H, recess, 0.9 * back * (1 - min(1.0, recess))))
     # columns every half outline step, rows every ROW metres up the tallest part of this run
     colsrc = []
+    sub = 1 if coarse else 2  # columns per outline step
     for i in range(m if closed else m - 1):
         a, c = info[i], info[(i + 1) % m]
-        for k in range(2):
-            t = k / 2
+        for k in range(sub):
+            t = k / sub
             v = [a[j] + (c[j] - a[j]) * t for j in range(9)]
             if closed and i == m - 1:
                 v[4] = a[4] + step * t
@@ -510,7 +525,7 @@ def wall_run(surface, extras, rng, pts, closed, y, gates, step):
             colsrc.append(v)
     if not closed:
         colsrc.append(list(info[-1]))
-    rows_in = max(4, int(math.ceil(max(v[6] for v in colsrc) / ROW)))
+    rows_in = max(4, int(math.ceil(max(v[6] for v in colsrc) / (ROW * (2.4 if coarse else 1)))))
     grid = []
     for x0, z0, nx, nz, s, back, H, recess, ov in colsrc:
         col = []
@@ -607,13 +622,16 @@ rng = random.Random(4417)
 objects = []
 for f in DATA['floors']:
     f['step'] = DATA['step']
-    edges = [p for ring in f['edges'] for p in ring if not p['open']]
-    kd = KDTree(len(edges))
-    for i, p in enumerate(edges):
-        kd.insert((p['x'], p['z'], 0), i)
-    kd.balance()
-    objects.append(build_floor(f, kd, rng))
-    objects += build_walls(f, DATA['gates'], rng)
+    wall_at = walled(f)
+    edges = [p for ring in f['edges'] for p in ring if wall_at(p)]
+    if f.get('paving'):
+        kd = KDTree(len(edges))
+        for i, p in enumerate(edges):
+            kd.insert((p['x'], p['z'], 0), i)
+        kd.balance()
+        objects.append(build_floor(f, kd, rng))
+    if edges:
+        objects += [ob for ob in build_walls(f, DATA['gates'], rng) if ob.data.polygons]
 
 # ambient occlusion (Cycles), multiplied into the colours: dark gaps between the stones, dark
 # hollows under the overhangs, the floor darker along the foot of the walls

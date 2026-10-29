@@ -36,13 +36,14 @@ export function loadGrottoCave(url = 'models/grotto/grotto-cave.glb') {
   });
 }
 
-/** The modelled cave rooms of `map`: the floor, wall and rock meshes of each cave floor the model has. */
+/** The modelled cave rooms of `map`: the floor, wall and rock meshes of each cave floor the model
+ * has, and the walls of every floor with `walls` (where it meets the void). */
 export function buildCave(map, cave) {
   const root = new THREE.Group();
   root.name = 'cave';
   const mat = new THREE.MeshToonMaterial({ color: '#ffffff', vertexColors: true, gradientMap: toonRamp() });
   for (const f of map.floors) {
-    if (f.style !== 'cave') continue;
+    if (f.style !== 'cave' && !f.walls) continue;
     for (const kind of ['cavefloor', 'cavewall', 'caverock']) {
       const g = cave.parts.get(`${kind}_${f.id}`);
       if (!g) continue;

@@ -10,6 +10,7 @@ import { turn } from '../../core/dungeon.js';
 import { toonRamp, outlineMaterial } from '../toon.js';
 import { runeTexture, glowTexture, nacreTexture } from './textures.js';
 import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
+import { buildGiantClam } from './clam.js';
 import { glowField } from './glow.js';
 import { kitInstances } from './kit.js';
 
@@ -337,6 +338,19 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null } = {})
         snail.root.scale.setScalar(s);
         root.add(snail.root);
         animated.push((t, dt) => snail.update(dt, t));
+        break;
+      }
+      case 'giantClam': {
+        // the clam that keeps a pearl (clam.js); its pearl breathes a soft glow
+        const clam = buildGiantClam();
+        clam.position.set(x, y, z);
+        clam.rotation.y = rot;
+        clam.scale.setScalar(s);
+        root.add(clam);
+        const pearl = clam.userData.nodes.pearl, at = pearl.getWorldPosition(new THREE.Vector3());
+        halo(at.x, at.y, at.z, 0.75 * s, '#efe4ff', 0.3); // around the pearl only, not over the shell
+        const glow = pearl.children[0].material;
+        animated.push((t) => { glow.emissiveIntensity = 0.18 + Math.sin(t * 1.3 + x) * 0.06; });
         break;
       }
       case 'giantShell': {

@@ -41,8 +41,9 @@ export function packTargets(s, pack) {
   }
 }
 
-/** Total damage of one cast before armour and crit (waves, ticks, repeats, a full charge, an echo and
- * a returning shot counted). */
+/** Damage one cast deals to each target it reaches, before armour and crit (waves, ticks, repeats, a
+ * full charge, an echo and a returning shot counted). Several projectiles are not added here: a pack
+ * counts them as separate targets (packTargets), a lone target is reached by fanShots of them. */
 export function castDamage(s) {
   let dmg = s.damage || 0;
   if (s.kind === 'dot_zone') dmg *= s.duration / (s.tick || 0.5);
@@ -51,8 +52,12 @@ export function castDamage(s) {
   if (s.charge) dmg *= s.charge.maxDamageMult || 1;
   if (s.echo) dmg *= 1 + s.echo.mult; // the echo strikes again
   if (s.modEffects?.returnMult) dmg *= 1 + s.modEffects.returnMult; // a returning shot's way back
-  return dmg * Math.max(1, s.projectiles || 1);
+  return dmg;
 }
+
+/** How many of a fan of projectiles reach one lone target: the first, and fanSingleShare of the rest
+ * (progression.balance.rules.control.fanSingleShare: close up a big target takes more of the fan). */
+export const fanShots = (s, data) => 1 + (Math.max(1, s.projectiles || 1) - 1) * (data.progression.balance.rules.control.fanSingleShare ?? 1);
 
 /** Hits of one cast on a pack: the shape's reach, a chain's falloff along its jumps. */
 function packHits(s, pack) {
@@ -68,7 +73,8 @@ function packHits(s, pack) {
  * first is the main attack, the rest are cast whenever ready), support (skills that only help), mods
  * ({ slot: [mod ids] }, at their top level),
  * build (a reference build for a kit not in progression.balance.builds), mpFree (MP never cuts a cast:
- * the content budget prices MP instead, core/content-budget.js) }. Node effects may carry
+ * the content budget prices MP instead, core/content-budget.js), growth ({ skill id: bar points }, at
+ * grade S: core/skill-growth.js) }. Node effects may carry
  * scenario stats the character sheet ignores: singleDamagePct (bosses and single targets),
  * packDamagePct, perTargetDamagePct (per enemy one cast hits, up to perTargetCap), selfTakenPct,
  * teamBuffPct (buffs and heals we give), teamTakenPct (allies near us take less), teamDamagePct
@@ -92,6 +98,7 @@ export function buildProfile(data, spec) {
     ch.slots[slot].mods.push(uid);
     for (const [stat, need] of Object.entries(modRequires(data, data.mods.mods[id], level))) if (ch.stats[stat] < need) { ch.stats.VIT -= need - ch.stats[stat]; ch.stats[stat] = need; }
   }
+  for (const [id, bars] of Object.entries(spec.growth || {})) (ch.skillGrowth ||= {})[id] = { grade: 'S', bars, earned: data.progression.skillGrowth.totalPoints, prof: 0 };
   if (!ch.movement) { ch.movement = 'dash'; ch.movementSkills = ['dash']; } // every hero has a dodge
   // a held channel is measured as one cast per tick: its damage per second over a tick, its drain
   // per second over a tick (the rules: frontier-content.js tickFrontier)
@@ -148,7 +155,7 @@ export function buildProfile(data, spec) {
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
       // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there
       const e = s.modEffects || {}, tip = e.tipMult ? (scen === 'pack' ? 1 + e.tipShare * (e.tipMult - 1) : e.tipMult) : 1;
-      return a + (r[i] + triggered) * castDamage(s) * tip * hits * (1 + burst) * dots(s) * critOf(s) * armourOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
+      return a + (r[i] + triggered) * castDamage(s) * (scen === 'single' ? fanShots(s, data) : 1) * tip * hits * (1 + burst) * dots(s) * critOf(s) * armourOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
     }, 0) * armour * amp * (1 + selfDamage * helperShare);
   };
   // summons fight beside us: each attacks every attackCooldown while it lives (life of every cooldown)
@@ -185,7 +192,7 @@ export function buildProfile(data, spec) {
   const incoming = hitDps * R.pack.size * free * defenseFactor(d.defense, data) * (1 + pct('damageTakenPct')) * guard
     * (1 - Math.min(1, pct('dodgeChancePct'))) * (1 - (d.blockChance || 0) * (1 - data.progression.combat.block.taken));
   // a skill's own leech (a mod) heals from that skill's share of the damage
-  const skillLeech = attacks.reduce((a, s, i) => a + fit(() => 1)[i] * castDamage(s) * critOf(s) * armour * (s.leech || 0) / 100, 0);
+  const skillLeech = attacks.reduce((a, s, i) => a + fit(() => 1)[i] * castDamage(s) * fanShots(s, data) * critOf(s) * armour * (s.leech || 0) / 100, 0);
   // our heals land on us too (a spring at our feet, a cleanse on ourselves)
   const selfHeal = [...attacks, ...helpers].reduce((a, s) => a + (s.heal ? s.heal * (s.kind === 'heal_zone' ? s.duration / s.tick : 1) / s.cooldown * (helpers.includes(s) ? helperShare : 1) : 0), 0);
   const net = incoming - (d.hpRegen || 0) - pct('leechPct') * single - skillLeech - shield - selfHeal;

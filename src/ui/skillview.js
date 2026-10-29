@@ -6,6 +6,7 @@ import { modFits, modRequires, movementRank } from '../core/skills.js';
 import { skillUpgradeCost, modUpgradeCost, skillUpgradeState, modUpgradeState, movementUpgradeState } from '../core/crafting.js';
 import { skillGrowthPreview, modGrowthPreview, upgradeTrack, stateText } from './progressionview.js';
 import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus, slotCapacity } from './buildmeta.js';
+import { barsWorkspace } from './skill-bars.js';
 
 function loadout(ui, modMode=false) {
   const {ch,data}=ui.game, selected=ui.sel.skill??0;
@@ -58,6 +59,8 @@ export function growthWorkspace(ui,{costHtml,describeSkill}) {
  // List of skills or mods on the left; the picked one's level track, preview, cost and button on the right.
  const {game:g,sel}=ui,{ch,data}=g,kind=sel.growthKind||'skill',isSkill=kind==='skill',isMove=kind==='move',atService=g.nearby().skillUpgrade;
  const mu=data.progression.movementUpgrade;
+ if(kind==='bars') return barsWorkspace(ui,{costHtml,frame:(list,note,detail)=>`<div class="pg pg-growth"><section class="pg-col"><div class="pg-seg2"><button class="btn" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn" data-act="growth-filter" data-id="mod">ม็อด</button></div>
+  ${moveTab(kind)}${barsTab(kind)}${note}<div class="pg-list">${list}</div></section><section class="pg-col seeker-growth-grid">${detail}</section></div>`});
  if(isMove) return growthFrame(ui,kind,atService,ch.movementSkills.map(id=>({id,level:movementRank(ch,id),def:data.skills.movement[id],state:movementUpgradeState(ch,data,id)})),e=>moveDetail(ch,data,e,atService,costHtml,mu));
  const entries=isSkill?Object.entries(ch.skills).filter(([id])=>data.skills.combat[id]).map(([id,level])=>({id,level,def:data.skills.combat[id],state:skillUpgradeState(ch,data,id)})):ch.mods.map(inst=>({...inst,def:data.mods.mods[inst.id],state:modUpgradeState(ch,data,inst)}));
  const key=e=>String(isSkill?e.id:e.uid);
@@ -71,18 +74,20 @@ export function growthWorkspace(ui,{costHtml,describeSkill}) {
   return `<section class="card"><div class="seeker-hero">${art(isSkill?'skill':'mod',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</span></div></div>${isSkill?tagsHtml(e.def.tags):rulesHtml(e.def)}${upgradeTrack(levels,e.level-1,'Lv.',2)}${e.state.cost?`${isSkill?skillGrowthPreview(ch,data,e.id,describeSkill):modGrowthPreview(e.def,e.level)}<div class="cost">${costHtml(ch,data,e.state.cost)}</div><div class="pg-foot"><span><p class="${ready?'ok':'no'}" data-growth-status>${status}</p><small>สำเร็จแน่นอน · ใช้ผลึกทักษะและทอง ไม่ใช้แต้มต้นไม้</small></span><button class="btn primary" data-act="${isSkill?'skill-up':'mod-up'}" ${isSkill?`data-skill="${e.id}"`:`data-uid="${e.uid}"`} ${ready?'':'disabled'}>อัปเป็น Lv.${e.level+1}</button></div>`:''}</section>`;
  };
  return `<div class="pg pg-growth"><section class="pg-col"><div class="pg-seg2"><button class="btn ${isSkill?'on':''}" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn ${!isSkill?'on':''}" data-act="growth-filter" data-id="mod">ม็อด</button></div>
-  ${moveTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
+  ${moveTab(kind)}${barsTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
   <div class="pg-list">${list||'<p class="muted">ยังไม่มีรายการในหมวดนี้</p>'}</div></section>
   <section class="pg-col seeker-growth-grid">${cur?detail(cur):''}</section></div>`;
 }
 
 // Movement skills rank up with AGI (data.progression.movementUpgrade): the same list-and-detail page.
 const moveTab=kind=>`<button class="btn ${kind==='move'?'on':''}" data-act="growth-filter" data-id="move" aria-pressed="${kind==='move'}">สกิลเคลื่อนที่ (AGI)</button>`;
+// Skill bars (core/skill-growth.js, ui/skill-bars.js): points from use, shaped bar by bar.
+const barsTab=kind=>`<button class="btn ${kind==='bars'?'on':''}" data-act="growth-filter" data-id="bars" aria-pressed="${kind==='bars'}">หลอดสกิล</button>`;
 function growthFrame(ui,kind,atService,entries,detail){
  const cur=entries.find(e=>e.id===String(ui.sel.growthPick))||entries[0];
  const list=entries.map(e=>`<button class="pg-row ${e===cur?'on':''}" data-act="growth-pick" data-id="${e.id}" aria-pressed="${e===cur}"><span class="pg-ic">${art('skill',e.id)}</span><span class="pg-tx"><b>${e.def.nameTh}</b><small>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</small></span>${atService&&e.state.ok?'<i class="pg-dot" aria-label="อัปได้"></i>':''}</button>`).join('');
  return `<div class="pg pg-growth"><section class="pg-col"><div class="pg-seg2"><button class="btn" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn" data-act="growth-filter" data-id="mod">ม็อด</button></div>
-  ${moveTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
+  ${moveTab(kind)}${barsTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
   <div class="pg-list">${list||'<p class="muted">ยังไม่มีสกิลเคลื่อนที่</p>'}</div></section>
   <section class="pg-col seeker-growth-grid">${cur?detail(cur):''}</section></div>`;
 }

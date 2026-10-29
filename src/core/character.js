@@ -3,12 +3,13 @@
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 import { enterMap } from './maps.js';
 import { migrateQuestJournal } from './quests.js';
+import { normalizeSkillGrowth } from './skill-growth.js';
 
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK']; // LUK: crit chance (DEX: crit damage)
-export const CHARACTER_VERSION = 15;
+export const CHARACTER_VERSION = 16;
 /** Share of a hit armour lets through: 1 - defense / (defense + progression.combat.defenseConstant). */
 export const defenseFactor = (defense, data) => 1 - defense / (defense + data.progression.combat.defenseConstant);
 // v14: raw numbers (HP, attack, magic, defense, MP, regen) grew tenfold; rolled flat options of saved gear follow
@@ -53,6 +54,7 @@ export function createCharacter(data, opts = {}) {
     skills: opening ? {} : { [kit.basic]: 1 },
     movementSkills: [],
     movementRanks: {}, // movement skill id -> rank above 1 (AGI upgrades, crafting.js upgradeMovement)
+    skillGrowth: {}, // skill id -> { grade, bars, earned, prof } (core/skill-growth.js)
     movement: null,
     movementMods: [],
     mods: [],
@@ -283,6 +285,8 @@ export function migrateCharacter(ch, data) {
   ch.movementRanks = Object.fromEntries(Object.entries(ch.movementRanks || {})
     .filter(([id, n]) => data.skills.movement[id] && Number.isInteger(n) && n > 1).map(([id, n]) => [id, Math.min(n, maxMove)]));
   migrateQuestJournal(ch, data, { legacy: (ch.version || 1) < 8 || !hadQuestJournal });
+  // v16: skill bars start empty at grade C with no proficiency; skill ranks and mods are kept as they were
+  normalizeSkillGrowth(ch, data);
   ch.version = CHARACTER_VERSION;
   return ch;
 }

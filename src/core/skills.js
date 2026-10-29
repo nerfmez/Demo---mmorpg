@@ -3,6 +3,7 @@
 
 import { meetsRequires } from './character.js';
 import { compileFrontier } from './frontier-content.js';
+import { applyBars, growthOf } from './skill-growth.js';
 
 export function skillDef(data, id) {
   return data.skills.combat[id] || null;
@@ -161,7 +162,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
 
   const companionMods = slot.mods.map(uid => ch.mods.find(m => m.uid === uid)).filter(i => i && modDef(data, i.id))
     .filter(i => meetsRequires(ch, modRequires(data, modDef(data, i.id), i.level || 1)).ok).map(i => modDef(data, i.id));
-  let radiusMult = 1, hasteAdd = 0, castTimeMult = 1;
+  let radiusMult = 1, castTimeMult = 1;
+  // bars (core/skill-growth.js): the rate bar's speed joins the haste a mod adds
+  let hasteAdd = applyBars(data, s, def, growthOf(ch, data, slot.skill));
   const activeMods = [];
   for (const uid of slot.mods) {
     const inst = ch.mods.find((m) => m.uid === uid);
@@ -240,6 +243,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     s.castTime = def.castTime / (1 + h / 100);
   }
   s.castTime *= castTimeMult;
+  if (s.growthCooldown) s.cooldown *= s.growthCooldown; // the bars' cooldown cost, after speed
   // Elemental Focus: the hit grows, the element's status (burn, chill) is gone
   if (s.noStatus) { s.chill = null; s.burnChance = 0; }
   // Apply tag-specific passives after mods; socket order cannot change the result.

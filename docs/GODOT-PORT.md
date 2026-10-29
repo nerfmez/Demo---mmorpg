@@ -38,7 +38,7 @@ and legacy `Game` reference; `OpenWorldGame` is the live browser simulation.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 15`, with `name`, `appearance` (its `hairStyle` and `face` from `network/protocol.js` `HAIR_STYLES` and `FACES`, its `hair` any hex colour; v15 gives an older look the painted `face: "default"`), `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 16`, with `name`, `appearance` (its `hairStyle` and `face` from `network/protocol.js` `HAIR_STYLES` and `FACES`, its `hair` any hex colour; v15 gives an older look the painted `face: "default"`; v16 adds `skillGrowth`, skill id → `{ grade, bars, earned, prof }`, empty for an older hero), `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## Approved V3 city overlay
 
@@ -269,6 +269,15 @@ per axis (single, pack, survival, sustain, mobility, team, income); `auditBuilds
 pairs (a build dominating another role's specialist), poor choices, builds with no weakness, roles
 that do not lead their axis and same-role gaps (`tests/core/build-rules.test.js`). Pure; port it with
 `balance.js` so new Job Tree content is checked the same way.
+`core/skill-growth.js` holds skill bars (docs/SKILL-GROWTH-TH.md): a skill's `growth` type (data
+`progression.skillGrowth.types`) gives it 2-3 bars; casting it with an enemy within `combatRange` adds
+its pace (the longer of cooldown, cast time, 0.35 s) to proficiency, and each `secondsPerPoint` earns a
+point up to `totalPoints`. The grade (C..S, raised with gold, `gradeMaterial` and a boss part) caps a
+bar. `barEffects` turns points into multipliers from one exchange table (gains add, costs multiply; a
+cost on a stat the skill has no bar for is paid in MP); `computeSkill` applies them (`applyBars`), the
+rate bar's speed joining the haste cap like Quicken. Taking points out costs `respec` gold. The UI
+(`ui/skill-bars.js`) patches its gauges in place so they animate. Monsters flinch from a plain hit at
+most once per `combat.flinchLock`.
 `core/content-budget.js` measures each skill (what it adds to a reference hero of its weapon) and
 each mod (its best gain on a skill it fits) with the same profile, against class bands in
 `progression.balance.budgets`; items outside their band are listed in `budgets.known` with a reason

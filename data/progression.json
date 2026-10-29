@@ -131,6 +131,32 @@
       { "requiresStat": 11, "gold": 320, "skill_crystal": 4 }
     ]
   },
+  "skillGrowth": {
+    "_doc": "Skill bars (owner, 2026-10-27/28, docs/SKILL-GROWTH-TH.md): each skill of a growth type has that type's bars (2 or 3). Bar points come from proficiency: casting a skill with an enemy within combatRange adds its own pace (the longer of its cooldown, cast time and 0.35 s), and every secondsPerPoint of that earns one point, up to totalPoints. A grade (C..S) caps how many points one bar takes; it is raised at a workbench or trainer with gold, the skill's own gradeMaterial and a boss part. Each bar gains on one thing (gains add up) and pays on others (costs multiply); a cost on a stat the skill has no bar for is paid in MP at missingCostToMana of its strength. Speed (rate) joins the skill's haste under the central cap. count adds one projectile every countEvery points, fanned countSpread degrees apart, each projectile dealing (1/n)^countDamageExp of the hit. Taking points out (respec) costs respec.gold + respec.goldPerLevel x level per point; putting them in is free. core/skill-growth.js.",
+    "totalPoints": 12,
+    "grades": { "C": 2, "B": 4, "A": 6, "S": 8 },
+    "secondsPerPoint": 300,
+    "combatRange": 14,
+    "missingCostToMana": 0.5,
+    "respec": { "gold": 25, "goldPerLevel": 2 },
+    "gradeUpgrade": {
+      "B": { "gold": 150, "material": 4 },
+      "A": { "gold": 400, "material": 8, "greyfang_mane": 1 },
+      "S": { "gold": 900, "material": 12, "ancient_core": 1 }
+    },
+    "bars": {
+      "power": { "nameTh": "แรง", "hint": "แรงขึ้น · ช้าลง · เปลืองมานา", "gain": { "damage": 0.07, "size": 0.02 }, "cost": { "cooldown": 1.07, "mana": 1.08 } },
+      "rate": { "nameTh": "ถี่", "hint": "ใช้บ่อยขึ้น · เบาลง", "gain": { "haste": 7 }, "cost": { "damage": 0.97, "size": 0.97, "range": 0.97 } },
+      "size": { "nameTh": "ขนาด", "hint": "วงใหญ่ขึ้น · เบาลง · ช้าลง", "gain": { "size": 0.08 }, "cost": { "damage": 0.96, "cooldown": 1.03, "mana": 1.05 } },
+      "range": { "nameTh": "ไกล", "hint": "ไกลขึ้น · เบาลงนิด", "gain": { "range": 0.08 }, "cost": { "damage": 0.98, "mana": 1.03 } },
+      "duration": { "nameTh": "นาน", "hint": "อยู่นานขึ้น · เบาลง · ช้าลง", "gain": { "duration": 0.08 }, "cost": { "damage": 0.97, "cooldown": 1.03 } },
+      "count": { "nameTh": "จำนวน", "hint": "เพิ่ม 1 ลูกทุก 2 แต้ม · ลูกละเบาลง", "gain": { "countEvery": 2, "countSpread": 10, "countDamageExp": 0.5 }, "cost": { "mana": 1.05 } }
+    },
+    "types": {
+      "projectile": { "nameTh": "ยิงลูก", "bars": ["power", "rate", "count"] },
+      "area": { "nameTh": "วงกว้าง", "bars": ["power", "rate", "size"] }
+    }
+  },
   "skillUpgrade": {
     "_doc": "Skill crystals + gold raise skill rank at a workbench or trainer (including town.skillUpgradeStations), at any character level (only the stat requirement and the materials gate a rank). balanceLevel is not a gate: it is the level the balance model assumes a hero reaches each rank. Mods remain the source of behaviour changes. No failure or destruction.",
     "maxLevel": 5,
@@ -265,11 +291,12 @@
   },
   "slotCount": 4,
   "combat": {
-    "_doc": "defenseConstant: armour takes defense / (defense + defenseConstant) of a hit (core/character.js defenseFactor; it grows with the raw numbers: 2026-10-25 every raw HP/attack/defense/damage/MP value was multiplied by 10). reflectFlat: the flat part of a guard reflect. Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
+    "_doc": "defenseConstant: armour takes defense / (defense + defenseConstant) of a hit (core/character.js defenseFactor; it grows with the raw numbers: 2026-10-25 every raw HP/attack/defense/damage/MP value was multiplied by 10). reflectFlat: the flat part of a guard reflect. Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled; a plain hit flinches a monster at most once per flinchLock seconds (owner, 2026-10-28: rapid light hits must not hold it in place), while a heavy hit's own stagger always applies.",
     "defenseConstant": 600,
     "reflectFlat": 40,
     "comboWindow": 1.1,
     "stagger": 0.14,
+    "flinchLock": 0.6,
     "_inputBufferDoc": "A skill pressed while its cooldown has at most inputBuffer seconds left is remembered and cast the moment the cooldown ends (one press, the latest wins; not for charged or channelled skills), so a press a little early never feels dropped. core/game-simulation.js castSlot.",
     "inputBuffer": 0.25,
     "block": {
@@ -417,8 +444,9 @@
       }
     },
     "rules": {
-      "_doc": "Build balance rules (owner, 2026-10-27; core/build-rules.js, tests/core/build-rules.test.js). A build is a kit, Job Tree nodes, a gear set and support skills; its profile has one number per axis (higher is better): single (boss DPS over fightSeconds, MP counted), pack (DPS into a pack of pack.size monsters within pack.radius m, from the main skill's shape), survival (seconds standing in the reference monster's hits, healing counted), sustain (seconds of the rotation before MP runs dry, up to fightSeconds), mobility (m/s of walking plus the movement skill), team (help per second the support skills give), income (gold-equivalent per hour). Standing out in a build's role is intended; overpowered means a build at equal cost dominates a build of another role (at least (1 - tolerance) of it on every axis and better by tolerance on one), or has no weakness (no axis below weakness x the field's best). Dominance within one role only marks the loser as a poor choice. Builds of one role compare on its axis within sameRoleGap. budgetWeights/budgetBand: a plan's weighted profile (each axis as a share of the field's best) may sit at most budgetBand above or below the median plan (too much or too little for the same points). recover: seconds a cooldown skill holds the hero after its cast (the rotation model fills the rest with the main attack). gearSets: the option ids a player stacks for that aim, spread over every slot (optionsPerItem each, mid rolls); a damage option a skill cannot use is skipped.",
+      "_doc": "Build balance rules (owner, 2026-10-27; core/build-rules.js, tests/core/build-rules.test.js). A build is a kit, Job Tree nodes, a gear set and support skills; its profile has one number per axis (higher is better): single (boss DPS over fightSeconds, MP counted), pack (DPS into a pack of pack.size monsters within pack.radius m, from the main skill's shape), survival (seconds standing in the reference monster's hits, healing counted), sustain (seconds of the rotation before MP runs dry, up to fightSeconds), mobility (m/s of walking plus the movement skill), team (help per second the support skills give), income (gold-equivalent per hour). Standing out in a build's role is intended; overpowered means a build at equal cost dominates a build of another role (at least (1 - tolerance) of it on every axis and better by tolerance on one), or has no weakness (no axis below weakness x the field's best). Dominance within one role only marks the loser as a poor choice. Builds of one role compare on its axis within sameRoleGap. budgetWeights/budgetBand: a plan's weighted profile (each axis as a share of the field's best) may sit at most budgetBand above or below the median plan (too much or too little for the same points). recover: seconds a cooldown skill holds the hero after its cast (the rotation model fills the rest with the main attack). gearSets: the option ids a player stacks for that aim, spread over every slot (optionsPerItem each, mid rolls); a damage option a skill cannot use is skipped. growthSingleCap: no allocation of a skill's bars may lift its single-target damage past this share of the unspent skill, and none may be better at single, pack and MP at once (tests/core/skill-growth.test.js).",
       "fightSeconds": 90,
+      "growthSingleCap": 1.3,
       "pack": { "size": 5, "radius": 2.5 },
       "tolerance": 0.03,
       "weakness": 0.85,
@@ -426,8 +454,8 @@
       "survivalCap": 600,
       "recover": 0.28,
       "control": {
-        "_doc": "Assumptions the profile uses for things it cannot see directly (check them in play): slowShare, how much of a slow keeps a monster from hitting (a chill only slows walking); tauntShare, how much of the pack a taunting summon draws; dodgeUse, how often a dodge is used against its recharge (on-dodge triggers); monsterSpeed, average walking m/s (knockback); burn/poison, the share of a hit a burn (15% x 3 s) or poison (12% x 4 s) adds; cap, the most control can take away; teamShare, how much of our control counts as help for the team.",
-        "slowShare": 0.4, "tauntShare": 0.5, "dodgeUse": 0.5, "monsterSpeed": 3.2, "burn": 0.45, "poison": 0.48, "cap": 0.8, "teamShare": 0.5
+        "_doc": "Assumptions the profile uses for things it cannot see directly (check them in play): slowShare, how much of a slow keeps a monster from hitting (a chill only slows walking); tauntShare, how much of the pack a taunting summon draws; dodgeUse, how often a dodge is used against its recharge (on-dodge triggers); monsterSpeed, average walking m/s (knockback); burn/poison, the share of a hit a burn (15% x 3 s) or poison (12% x 4 s) adds; cap, the most control can take away; teamShare, how much of our control counts as help for the team; fanSingleShare, how much of each projectile past the first in a fan reaches one lone target (the rest fly past it; a pack takes one projectile per monster).",
+        "slowShare": 0.4, "tauntShare": 0.5, "dodgeUse": 0.5, "monsterSpeed": 3.2, "burn": 0.45, "poison": 0.48, "cap": 0.8, "teamShare": 0.5, "fanSingleShare": 0.35
       },
       "budgetBand": 0.25,
       "budgetWeights": { "single": 1, "pack": 1, "survival": 1, "sustain": 0.25, "mobility": 0.25, "team": 1, "income": 0.25 },

@@ -1,0 +1,42 @@
+/* Skill bars page (ui/skill-bars.js): the approved prototype in the menu's own look. Gauges are the HUD's
+   HP/MP bars: a dark glass track of cells, the skill's own amount in the stat's colour, a gain lit gold
+   past the white notch, a loss drained to a red outline. Cells change one by one out from the notch. */
+.sb-card { display: grid; gap: 12px; }
+.sb-card .seeker-hero { position: relative; }
+.sb-grade { margin-left: auto; align-self: start; padding: 4px 12px; border-radius: 10px; background: var(--mc-accent, #2a8f9a); color: #fff; font: 500 15px Mitr, sans-serif; }
+.sb-prof { height: 8px; border-radius: 4px; background: var(--mc-fill, rgba(29,43,54,.06)); overflow: hidden; }
+.sb-prof span { display: block; height: 100%; border-radius: 4px; background: var(--mc-accent, #2a8f9a); }
+.sb-left { margin: 0; color: var(--mc-dim, #687784); }
+.sb-left b { color: var(--mc-ink, #1d2b36); font-weight: 500; }
+.sb-bars { display: grid; gap: 10px; }
+.sb-bar { display: grid; grid-template-columns: 3.6em 48px minmax(0, 1fr) 48px; gap: 4px 8px; align-items: center; }
+.sb-name { font: 500 16px Mitr, sans-serif; }
+.overlay:not(.is-journal) .pbody .sb-step { width: 48px; height: 48px; min-height: 48px; padding: 0; border-radius: 12px; font: 500 22px Mitr, sans-serif; touch-action: manipulation; }
+.sb-step:disabled { opacity: .35; }
+.sb-pips { display: grid; grid-template-columns: repeat(8, 1fr); justify-items: center; pointer-events: none; }
+.sb-pips i { width: min(15px, 66%); aspect-ratio: 1; transform: rotate(45deg); border-radius: 3px; background: rgba(29, 43, 54, .07); transition: background .2s, box-shadow .2s; }
+.sb-pips i.open { background: rgba(42, 143, 154, .22); }
+.sb-pips i.on { background: var(--mc-accent, #2a8f9a); box-shadow: 0 0 6px rgba(42, 143, 154, .6); }
+.sb-hint { grid-column: 1 / -1; font-size: 13px; color: var(--mc-dim, #687784); }
+.sb-key { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--mc-dim, #687784); }
+.sb-key i { display: inline-block; width: 14px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.sb-key .k-gain { background: #ffe08a; box-shadow: 0 0 5px #ffd166; } .sb-key .k-loss { box-shadow: inset 0 0 0 1.5px #ff7a66; }
+.sb-stats { display: grid; gap: 10px; }
+.sb-stat { display: grid; grid-template-columns: 40px minmax(0, 8.2em) minmax(0, 1fr) 6.8em; gap: 10px; align-items: center; }
+@media (max-width: 760px) { .sb-stat { grid-template-columns: 36px minmax(0, 1fr) 6.4em; } .sb-stat .sb-gauge { grid-column: 1 / -1; order: 1; } }
+.sb-badge { width: 40px; height: 40px; border-radius: 12px; background: #1f3346; display: grid; place-items: center; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .18); }
+.sb-badge svg { width: 26px; height: 26px; }
+.sb-nm b { display: block; font-weight: 500; font-size: 14px; line-height: 1.2; }
+.sb-nm small { font-variant-numeric: tabular-nums; color: var(--mc-dim, #687784); font-size: 13px; }
+.sb-gauge { position: relative; height: 22px; border-radius: 11px; background: #1b2b3a; box-shadow: inset 0 2px 4px rgba(0, 0, 0, .45), 0 0 0 2px rgba(255, 255, 255, .7); padding: 4px 6px; display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; }
+.sb-gauge i { border-radius: 3px; background: rgba(255, 255, 255, .07); transition: background .18s, box-shadow .18s, transform .18s; transition-delay: var(--d, 0s); }
+.sb-gauge i.base { background: var(--c); }
+.sb-gauge i.gain { background: #ffe08a; box-shadow: 0 0 6px 1px rgba(255, 214, 102, .85); transform: scaleY(1.15); }
+.sb-gauge i.loss { background: transparent; box-shadow: inset 0 0 0 1.5px #ff7a66; }
+.sb-gauge::after { content: ""; position: absolute; left: 50%; top: -5px; bottom: -5px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 1px #1b2b3a; }
+.sb-word { font-size: 13px; font-weight: 500; text-align: right; white-space: nowrap; }
+.sb-word.g { color: var(--mc-good, #2e9a5e); } .sb-word.b { color: var(--mc-bad, #c4513e); } .sb-word.s { color: var(--mc-faint, #a7b1b9); font-weight: 400; }
+.sb-card .pg-foot b.no { color: var(--mc-bad, #c4513e); }
+.sb-actions { display: flex; gap: 8px; }
+.sb-grade-up { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--mc-hair, rgba(29, 43, 54, .09)); }
+@media (prefers-reduced-motion: reduce) { .sb-gauge i, .sb-pips i { transition: none; } }

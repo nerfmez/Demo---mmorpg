@@ -7,6 +7,7 @@ import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
+import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
@@ -489,6 +490,12 @@ export class Game {
     if (clearOneShotManualAim) this.input.manualAim = false;
     p.mp -= counter ? 0 : s.cost;
     p.cooldowns[i] = s.cooldown;
+    // proficiency (core/skill-growth.js): a cast in a fight counts at the skill's own pace
+    const fightRange = this.data.progression.skillGrowth?.combatRange || 0;
+    if (!counter && this.monsters.some((m) => !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) < fightRange)) {
+      const got = gainProficiency(this.ch, this.data, s.id, Math.max(s.cooldown, s.castTime, 0.35));
+      if (got) this.emit({ type: 'skillPoint', skill: s.id, points: got });
+    }
     if (arrows) {
       const before = arrowInUse(this.ch, this.data);
       spendArrows(this.ch, this.data, arrows);
@@ -913,7 +920,13 @@ export class Game {
     m.hp -= dmg;
     m.hurtT = 0.18;
     // flinch: regular monsters stop for a moment (a started wind-up still goes off)
-    if (!opts.dot && !m.boss) m.staggerT = Math.max(m.staggerT || 0, opts.stagger ?? this.data.progression.combat?.stagger ?? 0.14);
+    // a plain hit flinches a monster at most once per flinchLock (a heavy hit's own stagger always does),
+    // so rapid light hits cannot hold it in place
+    const combat = this.data.progression.combat;
+    if (!opts.dot && !m.boss && (opts.stagger || this.time >= (m.flinchReady || 0))) {
+      m.staggerT = Math.max(m.staggerT || 0, opts.stagger ?? combat?.stagger ?? 0.14);
+      if (!opts.stagger) m.flinchReady = this.time + (combat?.flinchLock || 0);
+    }
     this.stats.damageDealt += dmg;
     this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!opts.stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {

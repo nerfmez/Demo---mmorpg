@@ -388,6 +388,9 @@ export class Hud {
       case 'levelup':
         this.banner(`เลเวล ${e.level}!`, `ได้ Stat Point +${d.progression.character.statPointsPerLevel} · กด C (ตัวละคร) เพื่อลงแต้ม`);
         break;
+      case 'skillPoint':
+        this.toast(`${d.skills.combat[e.skill]?.nameTh || e.skill} · ได้แต้มหลอด +${e.points} · ลงได้ที่หน้าอัปสกิล › หลอดสกิล`, '#2a8f9a');
+        break;
       case 'joblevelup':
         this.toast(`Job Level ${e.level} · ได้ Job Point +1`, '#c59bff');
         if (e.level === d.progression.job.jobChoiceLevel) this.banner('เลือก Job ได้แล้ว!', 'เปิด Job Tree (J) แล้วเลือกสายที่เข้ากับ Build');

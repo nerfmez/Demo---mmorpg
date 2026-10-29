@@ -8,6 +8,8 @@
       "name": "Slash",
       "nameTh": "ฟันกวาด",
       "desc": "ฟันเป็นวงโค้งด้านหน้า สลับซ้าย-ขวาเป็นคอมโบ การโจมตีธรรมดาที่ถอดออกได้เหมือนสกิลอื่น",
+      "growth": "area",
+      "gradeMaterial": "wolf_fang",
       "tags": [
         "Attack",
         "Melee",
@@ -77,6 +79,8 @@
       "name": "Hunter's Shot",
       "nameTh": "ลูกธนูพราน",
       "desc": "ยิงลูกธนูเร็วตรงไปข้างหน้า ระยะ 10 ม. การโจมตีระยะไกลสายกายภาพ",
+      "growth": "projectile",
+      "gradeMaterial": "hawk_feather",
       "tags": [
         "Attack",
         "Projectile",
@@ -140,6 +144,8 @@
       "name": "Firebolt",
       "nameTh": "ลูกไฟ",
       "desc": "ยิงลูกไฟตรงไปข้างหน้า มีโอกาสทำให้ติดไฟ",
+      "growth": "projectile",
+      "gradeMaterial": "wisp_core",
       "tags": [
         "Spell",
         "Projectile",

@@ -7,6 +7,8 @@ import { createWorkshopController } from './workshop-controller.js';
 import { icon } from './icons.js';
 import { art, arrowArt } from './art.js';
 import { skillsView, modsWorkspace, movementWorkspace, growthWorkspace } from './skillview.js';
+import { patchBars, stepBar } from './skill-bars.js';
+import { allocateBars, upgradeGrade } from '../core/skill-growth.js';
 import { tagsHtml, rulesHtml, TAGS as TAG_TH } from './buildmeta.js';
 import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
@@ -283,6 +285,7 @@ export class Panels {
     if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal')){this.jobJournal.refresh();return;}
     this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
+    if (this.tab === 'growth') patchBars(this);
     if(this.lastResult && ['skills','mods','movement','growth','job'].includes(this.tab)) this.body.insertAdjacentHTML('afterbegin', `<div class="result-pop" role="status">${this.lastResult}</div>`);
     this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this) : null;
     this.body.scrollTop = scroll;
@@ -545,6 +548,7 @@ export class Panels {
         return this.render(true);
       case 'growth-pick':
         this.sel.growthPick = t.dataset.id;
+        this.sel.barDraft = null;
         return this.render();
       case 'close-journal': return this.close();
       case 'dismiss-node': this.sel.node = null; return this.render();
@@ -629,6 +633,25 @@ export class Panels {
         if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');
         r = upgradeMovement(ch, data, t.dataset.id);
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
+        return this.changed();
+      case 'bar-step':
+        stepBar(this, t.dataset.id, t.dataset.bar, Number(t.dataset.d));
+        return patchBars(this);
+      case 'bar-reset':
+        this.sel.barDraft = null;
+        return patchBars(this);
+      case 'bar-apply':
+        if (!this.sel.barDraft) return;
+        r = allocateBars(ch, data, t.dataset.id, this.sel.barDraft.bars, true);
+        if (!r.ok) return this.flash({ gold: 'Gold ไม่พอสำหรับถอนแต้ม', points: 'แต้มไม่พอ', cap: 'เกินความยาวหลอดของเกรดนี้' }[r.reason] || r.reason);
+        this.sel.barDraft = null;
+        this.lastResult = r.removed ? `ถอนแต้ม ${r.removed} แต้ม · ใช้ ${r.gold.toLocaleString()} G` : 'บันทึกหลอดแล้ว';
+        return this.changed();
+      case 'bar-grade':
+        if (!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด');
+        r = upgradeGrade(ch, data, t.dataset.id, true);
+        if (!r.ok) return this.flash(r.reason === 'materials' ? 'วัตถุดิบหรือ Gold ไม่พอ' : 'เกรดสูงสุดแล้ว');
+        this.lastResult = `อัปเป็นเกรด ${r.to} แล้ว · หลอดยาวขึ้น`;
         return this.changed();
       case 'skill-up':
         if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');

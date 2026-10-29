@@ -3,13 +3,17 @@
 import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
 const out=process.env.WORLD_OUT||new URL(`./out/open-world-${engine.name()}/`,import.meta.url).pathname;
 mkdirSync(out,{recursive:true});
 const port=4207,url=`http://127.0.0.1:${port}/?fresh=1&quality=${process.env.WORLD_QUALITY||'high'}&seed=4&dynres=0`;
 const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','preview','--host','127.0.0.1','--port',String(port),'--strictPort'],{stdio:'ignore'});
 let browser,page;const errors=[],warnings=[],report={};
+// Performance budget (data/rendering.json -> budgets): every fixed view's full frame,
+// shadow and screen-grade passes included, and each map's resident geometry.
+const frames=[];
+const frameBudget=async label=>frames.push({label,...await page.evaluate(()=>{const v=__frontier.view,r=v.renderer;r.info.autoReset=false;r.info.reset();v.draw();const t={triangles:r.info.render.triangles,calls:r.info.render.calls};r.info.autoReset=true;return t;})});
 try{
  for(let i=0;;i++){try{if((await fetch(url)).ok)break;}catch{}if(i>60)throw Error('preview startup');await new Promise(r=>setTimeout(r,100));}
  browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
@@ -27,7 +31,7 @@ try{
  });
  assert.ok(report.ready.regions.every(r=>r.state==='imported-ready'&&r.spatial),'all regional content is ready before play');
  await page.evaluate(()=>{const f=__frontier;f.paused=true;f.game.player.x=165;f.game.player.z=85;f.view.heroY=f.game.world.groundY(165,85);f.view.snapCamera();});
- await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/01-high-ground.png'});
+ await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/01-high-ground.png'});await frameBudget('01-high-ground');
  report.view=await page.evaluate(()=>{const v=__frontier.view;return {camera:v.camera.position.toArray(),regions:[...v.regions].map(([id,r])=>({id,spatial:{...r.spatial.stats},buffers:r.bufferStats})),objects:(()=>{let n=0;v.scene.traverse(()=>n++);return n;})()};});
  const joins=[
   {from:'azure-harbor-v1',to:'frontier-wilds-v1',at:[-159.7,-92],key:'ArrowLeft',name:'02-coastal-join'},
@@ -41,7 +45,7 @@ try{
   await page.waitForFunction(id=>__frontier.game.data.world.id===id,join.to,{timeout:15000});await page.keyboard.up(join.key);
   const crossing=await page.evaluate(()=>{const f=__frontier,g=f.game,v=f.view;f.paused=true;return {sameWorld:g.world===__worldIdentity,sameActors:__actorIds.every(id=>g.monsters.some(m=>m.id===id)),world:g.data.world.id,position:g.worldPoint(g.player.x,g.player.z),queueSteps:v.buildQueue.stats.steps-__queueSteps,memory:{...v.renderer.info.memory}};});
   assert.ok(crossing.sameWorld&&crossing.sameActors,'resident world and actors survive crossing');assert.equal(crossing.queueSteps,0,'walking performs no region build/GPU preparation');
-  report.crossings.push({...join,...crossing});await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/'+join.name+'.png'});
+  report.crossings.push({...join,...crossing});await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/'+join.name+'.png'});await frameBudget(join.name);
  }
  // Actual touch gesture in the same mobile session, using the production zone.
  const client=engine===chromium?await page.context().newCDPSession(page):null;
@@ -62,15 +66,21 @@ try{
  await page.setViewportSize({width:1194,height:834});
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await page.evaluate(()=>{__frontier.input.reset();window.dispatchEvent(new Event('resize'));});
- await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/05-ipad-high.png'});
+ await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/05-ipad-high.png'});await frameBudget('05-ipad-high');
  report.ipad=await page.evaluate(()=>({viewport:[innerWidth,innerHeight],regions:[...__frontier.view.regions].map(([id,r])=>({id,spatial:{...r.spatial.stats}}))}));
  await page.setViewportSize({width:1440,height:900});
  await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/06-desktop-high.png'});
  await page.setViewportSize({width:1194,height:834});
  for(const [id,name] of [['frontier-wilds-v1','07-frontier-town'],['azure-harbor-v1','08-azure-town']]){
   await page.evaluate(id=>{const f=__frontier,g=f.game;const at=g.worlds[id].data.town.workbench;f.input.reset();[g.player.x,g.player.z]=g.scenePoint(id,...at);g.activateRegion(id);f.view.switchRegion(id);f.view.heroY=g.world.groundY(g.player.x,g.player.z);f.view.snapCamera();},id);
-  await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/'+name+'.png'});
+  await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/'+name+'.png'});await frameBudget(name);
  }
+ report.budget={frames,regions:await page.evaluate(()=>[...__frontier.view.regions].map(([id,r])=>({id,geometryMB:+(r.stats.residentGeometry.bytesAfter/1e6).toFixed(1)})))};
+ const budgets=JSON.parse(readFileSync(new URL('../../data/rendering.json',import.meta.url))).budgets,over=[];
+ for(const f of frames){if(f.triangles>budgets.frameTriangles)over.push(`${f.label}: ${f.triangles} triangles > ${budgets.frameTriangles}`);if(f.calls>budgets.frameDrawCalls)over.push(`${f.label}: ${f.calls} draw calls > ${budgets.frameDrawCalls}`);}
+ for(const r of report.budget.regions)if(r.geometryMB>budgets.mapGeometryMB)over.push(`${r.id}: ${r.geometryMB} MB geometry > ${budgets.mapGeometryMB}`);
+ const resident=report.budget.regions.reduce((n,r)=>n+r.geometryMB,0);if(resident>budgets.residentGeometryMB)over.push(`all maps: ${resident.toFixed(1)} MB geometry > ${budgets.residentGeometryMB}`);
+ assert.deepEqual(over,[],'iPad budget (data/rendering.json budgets; AGENTS.md iPad budgets): shrink the new content first');
  report.events=await page.evaluate(()=>__crossingEvents);assert.ok(!report.events.some(e=>e.type==='travel'||e.type==='travelRefused'),'no loading/combat seam notice or reload');
  assert.deepEqual(errors,[]);report.errors=errors;report.warningCounts=Object.fromEntries([...new Set(warnings)].map(w=>[w,warnings.filter(s=>s===w).length]));
  writeFileSync(out+'/report.json',JSON.stringify(report,null,2));console.log('PASS unified world',JSON.stringify({startupMs:report.startupMs,regions:report.ready.regions.length,crossings:report.crossings.map(c=>c.queueSteps),memory:report.ready.memory,touch:report.touch}));

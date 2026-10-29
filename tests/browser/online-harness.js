@@ -47,7 +47,7 @@ async function fixture() {
   }
   const view = { renderer, camera, scene, game, world: { groundY: () => 0, surfaceY: () => 0 }, worldPrepared: true, region: { staticReady: true }, hero: {}, zoom: 1, monsterViews: new Map(), project: () => null, screenToGround: () => null };
   const root = document.getElementById('hud'), hud = new Hud(root, game, view);
-  const panels = new Panels(root, game, { onChange() {}, onQuality() {}, getQuality: () => 'low' });
+  const panels = new Panels(root, game, { onChange() {}, graphics: { get: () => ({ quality: 'low', values: { pixelRatio: 1, shadowMapSize: 0, post: false, dynres: true }, antialias: 4, dpr: 1, buffer: [1, 1] }), setQuality() {}, setCustom() {}, setAntialias() {} } });
   let presence;
   const ui = { blocked: () => state.player.gate.blocked, panelOpen: () => state.player.gate.blocked || panels.isOpen || !!presence?.open, closePanel: () => panels.close(), togglePanel: t => panels.toggle(t), interact() { const n = game.nearby(); if (n.shop) panels.open('shop'); else if (n.workbench) panels.open('craft'); }, configureSkill() {} };
   const input = new Input(root, canvas, game, view, ui);

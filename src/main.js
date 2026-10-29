@@ -39,6 +39,10 @@ const fresh = !onlineRuntime && params.has('fresh');
 const coarse = matchMedia('(pointer: coarse)').matches;
 document.body.classList.toggle('touch', coarse);
 let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
+// Settings -> graphics: the custom preset's own choices and anti-aliasing (?aa=0|2|4 for reviews)
+let customQuality = null;
+try { customQuality = JSON.parse(loadPref('graphicsCustom', 'null')); } catch { customQuality = null; }
+const antialias = params.get('aa') ?? loadPref('antialias', null);
 
 migrateLegacy();
 // The selected saved region chooses the fixed atlas origin; all regions form one
@@ -61,7 +65,7 @@ const hudRoot = document.getElementById('hud');
 // play, as always: walking never builds a scene. Rules worlds are complete either way.
 const loadMode = params.get('load') || document.querySelector('meta[name="frontier-load"]')?.content || 'full';
 const resident = loadMode === 'dev' ? { [world.data.id]: world } : worlds;
-const view = new View(canvas, world, { quality, worlds, resident });
+const view = new View(canvas, world, { quality, custom: customQuality, antialias, worlds, resident });
 view.loadMode = loadMode === 'dev' ? 'dev' : 'full';
 // The owner plays on an iPad with no console: a fault that stops the picture is
 // shown on screen (the first of each kind) so a screenshot carries its cause.
@@ -124,9 +128,31 @@ trackStartupReadiness({models:loadModels(data.models, { onWeaponReady: (id) => {
   F.modelsReady = true;
 });
 const setQuality = (q) => {
+  // the first custom choice starts from the preset in use, so nothing changes until a row is changed
+  if (q === 'custom' && !customQuality) {
+    const { name, ...values } = view.qualityValues();
+    customQuality = values;
+    savePref('graphicsCustom', JSON.stringify(customQuality));
+  }
   quality = q;
   savePref('quality', q);
-  view.setQuality(q);
+  view.setQuality(q, customQuality);
+  if (!view.dynres) { if (governor) governor.scale = 1; view.setRenderScale(1); }
+};
+// What the settings pages read and change (src/ui/graphics-settings.js).
+const graphics = {
+  get: () => ({ quality, values: view.qualityValues(), antialias: view.antialias, dpr: window.devicePixelRatio || 1, buffer: [canvas.width, canvas.height] }),
+  setQuality,
+  setCustom(key, value) {
+    customQuality = { ...view.qualityValues(), [key]: value };
+    delete customQuality.name;
+    savePref('graphicsCustom', JSON.stringify(customQuality));
+    setQuality('custom');
+  },
+  setAntialias(samples) {
+    view.setAntialias(samples);
+    savePref('antialias', String(view.antialias));
+  },
 };
 
 const F = (window.__frontier = { view, fps: 0, paused: false, game: null, equip }); // equip: browser tests dress the hero
@@ -183,8 +209,7 @@ function startGame(character, slot) {
   let completion;
   const panels = new Panels(hudRoot, game, {
     onChange: save,
-    onQuality: setQuality,
-    getQuality: () => quality,
+    graphics,
     onTitle: () => {
       save();
       location.href = location.pathname;
@@ -296,8 +321,7 @@ function startGame(character, slot) {
 // ---------- menu (title, save slots, character creation) ----------
 const menu = new Menu(hudRoot, view, data, {
   onStart: (ch, slot) => startGame(ch, slot),
-  onQuality: setQuality,
-  getQuality: () => quality,
+  graphics,
 });
 F.menu = menu;
 
@@ -361,7 +385,7 @@ function frame(now) {
 }
 
 function frameBody(now) {
-  const scale = session?.panels.tab === 'job' ? null : governor?.update(now - last);
+  const scale = session?.panels.tab === 'job' || !view.dynres ? null : governor?.update(now - last);
   if (scale) view.setRenderScale(scale);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;

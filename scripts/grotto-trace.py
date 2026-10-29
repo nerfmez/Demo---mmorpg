@@ -617,12 +617,81 @@ def onto_floor(at):
     return [int(walk_pts[k][1]), int(walk_pts[k][0])]
 
 
+# set in order, not scattered (owner, 29 October 2026: "arrange the assets that sit anywhere"):
+# stairs count as floor here, so a stair mouth is never mistaken for an edge
+def stair_px(f):
+    a, b = px(f['a']), px(f['b'])
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    l = math.hypot(dx, dy) or 1
+    hx, hy = -dy / l * f['w'] / 2 / sx, dx / l * f['w'] / 2 / sz
+    return np.array([[a[0] + hx, a[1] + hy], [b[0] + hx, b[1] + hy], [b[0] - hx, b[1] - hy], [a[0] - hx, a[1] - hy]], np.int32)
+
+
+open_floor = final.copy()
+stone = np.zeros_like(walk)
+for f in floors:
+    if f['shape'] == 'stairs':
+        cv2.fillPoly(open_floor, [stair_px(f)], 1)
+        cv2.fillPoly(stone, [stair_px(f)], 1)
+    elif f['shape'] == 'poly' and f.get('kind') == 'stone':
+        cv2.fillPoly(stone, [np.array([px(q) for q in f['pts']], np.int32)], 1)
+        for h in f.get('holes', []):
+            cv2.fillPoly(stone, [np.array([px(q) for q in h], np.int32)], 0)
+to_wall = cv2.distanceTransform(open_floor, cv2.DIST_L2, 5)
+to_rim = cv2.distanceTransform(stone, cv2.DIST_L2, 5)
+# pillars line the stone's rim, a stone's width in from where it drops to water or the dark, as the
+# concept rows them along its walkways and platforms (never out in the water)
+rim_pts = np.argwhere((to_rim >= 7) & (to_rim <= 11))
+# the loose furniture (chests, barrels, crates, candles, posts) stands back against the walls, in
+# front of the corals at their foot, and faces into the room
+wall_pts = np.argwhere((to_wall >= 15) & (to_wall <= 21))
+
+
+def nearest(pts, at):
+    d = (pts[:, 0] - at[1]) ** 2 + (pts[:, 1] - at[0]) ** 2
+    k = int(np.argmin(d))
+    return [int(pts[k][1]), int(pts[k][0])]
+
+
+def onto_rim(at):
+    x, y = at
+    return at if stone[y, x] and 6 <= to_rim[y, x] <= 13 else nearest(rim_pts, at)
+
+
+def against_wall(at):
+    x, y = at
+    return at if 13 <= to_wall[y, x] <= 23 else nearest(wall_pts, at)
+
+
+def into_room(at):
+    """A point a little way into the room from `at`: up the distance from the walls."""
+    x, y = at
+    gy, gx = np.gradient(to_wall[max(0, y - 6):y + 7, max(0, x - 6):x + 7].astype(np.float32))
+    vx, vy = float(gx.mean()), float(gy.mean())
+    l = math.hypot(vx, vy) or 1
+    return [x + vx / l * 20, y + vy / l * 20]
+
+
+PILLARS = ('pillar', 'pillarBroken')
+FURNITURE = ('chest', 'barrel', 'crate', 'candles', 'post')
 props = []
 for p in CFG['props']:
     q = {k: v for k, v in p.items() if k not in ('at', 'face')}
     wall = p['type'] in ('shellGate', 'sealedArch')
-    q['at'] = m(p['at'] if wall else onto_edge(p['at']) if p['type'] in ('coral', 'crystal') else onto_floor(p['at']))
-    if 'face' in p:
+    if wall:
+        at = p['at']
+    elif p['type'] in ('coral', 'crystal'):
+        at = onto_edge(p['at'])
+    elif p['type'] in PILLARS:
+        at = onto_rim(p['at'])
+    elif p['type'] in FURNITURE:
+        at = against_wall(p['at'])
+    else:
+        at = onto_floor(p['at'])
+    q['at'] = m(at)
+    if p['type'] in FURNITURE:
+        q['rot'] = facing(at, into_room(at))
+    elif 'face' in p:
         q['rot'] = facing(p['at'], p['face'])
     props.append(q)
 props += rubble

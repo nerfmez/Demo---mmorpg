@@ -680,7 +680,10 @@ about one per 45 m², off the props and inside the edge. Floors, walls, rocks an
 painted stone (`src/render/grotto/game-paint.js`, the accepted scenes' `paint()`): three tones from the sun
 direction and the shadow map (shade/mid/lit tints in `look.paint`), the surface's vertex colour pulled into the
 game's grey stone (`sat`, `tint`, per-kind `gain`) and fading to `floor` below -2 m; rocks carry a back-face
-outline in `ink`. In Godot this is one `ShaderMaterial` with those uniforms. See `docs/SHELL-GROTTO.md`.
+outline in `ink`. The cave is dark: the painted light is scaled by `dim`, the point lights add `lamp` x their
+attenuated light (a soft wrap), each surface kind may have its own `tints` (the cave rock is dark), and the glow
+pools on the floor use `look.glowPool` [opacity, size]. In Godot this is one `ShaderMaterial` with those uniforms
+(point lights through `LIGHT` in the light() function). See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 

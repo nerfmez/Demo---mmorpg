@@ -105,13 +105,13 @@ export function glowCoralInstances(corals, name, list) {
 }
 
 /** The light the clumps throw on the floor: flat soft pools, one draw. list of {x, y, z, r, color}. */
-export function coralPools(list) {
+export function coralPools(list, opacity = 0.2, grow = 1) {
   const plane = new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2);
-  const mat = new THREE.MeshBasicMaterial({ map: glowTexture(), transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending });
+  const mat = new THREE.MeshBasicMaterial({ map: glowTexture(), transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending });
   const inst = new THREE.InstancedMesh(plane, mat, list.length);
   const m4 = new THREE.Matrix4(), c = new THREE.Color();
   list.forEach((p, i) => {
-    inst.setMatrixAt(i, m4.makeScale(p.r, 1, p.r).setPosition(p.x, p.y, p.z));
+    inst.setMatrixAt(i, m4.makeScale(p.r * grow, 1, p.r * grow).setPosition(p.x, p.y, p.z));
     inst.setColorAt(i, c.set(p.color));
   });
   inst.computeBoundingSphere();

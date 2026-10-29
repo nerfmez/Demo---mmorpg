@@ -380,7 +380,7 @@ function addWear(map, broken) {
 const KIND = {
   stone: { map: flagstoneTexture, color: '#efe7da', emissive: '#2a2219', emissiveIntensity: 0.3 },
   warm: { map: flagstoneTexture, color: '#f4e4cc', emissive: '#33261a', emissiveIntensity: 0.3 },
-  shallow: { map: flagstoneTexture, color: '#7fd4cc', emissive: '#0d5a62', emissiveIntensity: 0.3, paint: { sat: 1, tint: '#ffffff', gain: 1 } },
+  shallow: { map: flagstoneTexture, color: '#74c8c2', emissive: '#0d5a62', emissiveIntensity: 0.2, paint: { sat: 1, tint: '#ffffff', gain: 1 } },
   deep: { map: flagstoneTexture, color: '#3f9fb0', emissive: '#0b4a5c', emissiveIntensity: 0.45, paint: { sat: 1, tint: '#ffffff', gain: 1 } },
   nacre: { map: nacreTexture, color: '#d9cbd6', emissive: '#4a3050', emissiveIntensity: 0.25 },
   sand: { map: sandTexture, color: '#efe0c4', paint: { sat: 1, tint: '#ffffff', gain: 1 } },

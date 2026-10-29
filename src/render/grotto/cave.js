@@ -43,14 +43,14 @@ export function loadGrottoCave(url = 'models/grotto/grotto-cave.glb') {
 export function buildCave(map, cave) {
   const root = new THREE.Group();
   root.name = 'cave';
-  // the game's painted stone (game-paint.js): the baked occlusion stays, the rock is the game's grey
+  // painted stone (game-paint.js): the baked occlusion stays; the rock has its own dark cave tint
   const look = map.def.look, mat = gamePaint(look, 'cave'), cool = gamePaint(look, 'rock');
   for (const f of map.floors) {
     if (f.style !== 'cave' && !f.walls) continue;
     for (const kind of ['cavefloor', 'cavewall', 'caverock']) {
       const g = cave.parts.get(`${kind}_${f.id}`);
       if (!g) continue;
-      const m = new THREE.Mesh(g, f.style === 'cave' ? mat : cool);
+      const m = new THREE.Mesh(g, kind === 'cavefloor' ? mat : cool); // the floor is paving, the rest cave rock
       m.name = `${kind}-${f.id}`;
       m.receiveShadow = true;
       m.castShadow = kind !== 'cavefloor';

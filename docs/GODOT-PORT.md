@@ -889,6 +889,15 @@ conservative `custom_aabb` on the static geometry; do not shorten the bounds to 
 grass batch's current visible instance count. Medium keeps its existing shadow
 size, filtering and screen grade.
 
+Once a static resident buffer reaches the GPU, its CPU copy is dropped
+(`releaseResidentArraysOnUpload`, `render/resident-geometry.js`): holding both for
+every map ran the iPad out of memory. Bounds are computed first. Grass, shared
+templates, skinned/morphing, dynamic-usage, interleaved, points/lines, waypoint
+stones, NPCs and animated parts keep their arrays. Because a restored WebGL
+context could not re-upload them, a lost context saves and reloads the page
+straight back into the game (at most once every three minutes). Godot keeps
+imported mesh data on the GPU only by default, so no equivalent step is needed.
+
 ## Finite terrain joins
 
 Finite terrain joins: the two linked maps' decorative heightfields have different

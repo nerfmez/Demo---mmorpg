@@ -114,3 +114,48 @@ export function compactResidentGeometry(region) {
   stats.bytesAfter = bytes(geometries);stats.bytesSaved = stats.bytesBefore - stats.bytesAfter;
   region.stats ||= {};region.stats.residentGeometry = stats;return stats;
 }
+
+// Once a static resident buffer is on the GPU its CPU copy is dead weight: holding
+// both for every map ran the iPad out of memory (a lost WebGL context, blank 2D
+// canvases). Each eligible array is dropped by its own upload callback, so a buffer
+// that has not reached the GPU keeps its data. Kept: grass (culling snapshots),
+// shared templates, skinned/morphing, dynamic-usage, interleaved, points/lines,
+// waypoint stones, NPCs and other animated parts (some rewrite their arrays each frame).
+// A lost context cannot re-upload the dropped arrays; main.js reloads the page then.
+const protoUpload = THREE.BufferAttribute.prototype.onUploadCallback;
+function dropArray() { this.array = null; }
+
+/** After compaction, before GPU warming. Startup-only. */
+export function releaseResidentArraysOnUpload(region) {
+  if (region.disposed) return null;
+  const eligible = new Set(), kept = new Set();
+  const keepTree = new Set();
+  const live = [...(region.waypointStones?.values?.() || []), ...(region.npcs || []).flatMap(n => [n.root, n.scarf?.mesh]),
+    ...(region.acceptedAnimations || []).flatMap(a => [a.landmark?.rotor, a.waypoint?.root]),
+    ...Object.values(region.weaponProps || {}), region.wreck];
+  for (const object of live) object?.traverse(o => keepTree.add(o));
+  region.root.traverse(object => { if (object.userData.spatialDynamic) object.traverse(o => keepTree.add(o)); });
+  region.root.traverse(object => {
+    const geometry = object.geometry;
+    if (!geometry) return;
+    const keep = keepTree.has(object) || object.isPoints || object.isLine || object.isSprite || object.userData.grassCulling || object.name === 'ground-blended-grass' ||
+      geometry.userData.shared || object.isSkinnedMesh || object.morphTargetInfluences ||
+      Object.keys(geometry.morphAttributes).length || !geometry.attributes.position;
+    if (keep) for (const attribute of geometryAttributes(geometry)) kept.add(storage(attribute));
+    else eligible.add(geometry);
+  });
+  const stats = { geometries: 0, attributes: 0, bytes: 0 };
+  for (const geometry of eligible) {
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+    let any = false;
+    for (const attribute of [...Object.values(geometry.attributes), geometry.index].filter(Boolean)) {
+      if (attribute.isInterleavedBufferAttribute || kept.has(attribute) || !attribute.array ||
+          attribute.usage !== THREE.StaticDrawUsage || attribute.onUploadCallback !== protoUpload) continue;
+      attribute.onUploadCallback = dropArray;
+      stats.attributes++;stats.bytes += attribute.array.byteLength;any = true;
+    }
+    if (any) stats.geometries++;
+  }
+  region.stats ||= {};region.stats.releasedArrays = stats;return stats;
+}

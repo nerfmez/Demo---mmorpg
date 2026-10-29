@@ -86,6 +86,14 @@ window.addEventListener('unhandledrejection', (e) => reportFault('Unhandled reje
 canvas.addEventListener('webglcontextlost', (e) => {
   e.preventDefault();
   reportFault('WebGL context lost (หน่วยความจำกราฟิกไม่พอ?)');
+  // Resident scenery keeps no CPU copy of its GPU buffers (render/resident-geometry.js),
+  // so a restored context could not redraw it: save and start again, at most once a
+  // few minutes (a loss on every start is shown, not looped).
+  let last = 0;
+  try { last = Number(sessionStorage.getItem('frontier.contextReload')) || 0; } catch { /* storage blocked */ }
+  if (!session || Date.now() - last < 180000) return;
+  try { sessionStorage.setItem('frontier.contextReload', String(Date.now())); } catch { /* storage blocked */ }
+  travelTo(session.game.snapshot(), session.slot, 'กำลังโหลดใหม่ (หน่วยความจำไม่พอ)');
 });
 canvas.addEventListener('webglcontextrestored', () => reportFault('WebGL context restored'));
 view.renderer.debug.onShaderError = (gl, program, vs, fs) => {

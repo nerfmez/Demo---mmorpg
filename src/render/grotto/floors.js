@@ -174,31 +174,46 @@ function addStairs(mesh, cliffs, f, look, white) {
 }
 
 /**
- * Edging stones: a raised band just inside every edge where the floor drops away (to the void,
- * to deep water or to a lower level), the way the concept rims its paths, pools and rooms. Edges
- * that join walkable ground at the same level (a path entering a room, a stair foot) stay open.
+ * Edging stones: a row of raised blocks just inside every edge where the floor drops away (to the
+ * void, to water or to a lower level), the way the concept rims its walkways, pools and rooms;
+ * each block its own length and height, with a narrow gap between. Edges that join ground at the
+ * same level (a path entering a room, a stair foot) stay open. A walkway over shallow water gets
+ * them too, although the hero can wade off it.
  */
 function addCurbs(top, side, map, f, poly, look, hole = false) {
   if ((area(poly) > 0) === hole) poly = [...poly].reverse(); // the outward side faces away from the floor
-  const width = f.kind === 'deep' ? 0.55 : 0.42;
+  const width = f.kind === 'deep' ? 0.55 : 0.5;
   const yFloor = f.kind === 'deep' ? f.waterY + 0.25 : f.y;
-  const yTop = f.kind === 'shallow' ? f.waterY + 0.1 : yFloor + (f.kind === 'deep' ? 0.08 : 0.12);
+  const yBase = f.kind === 'shallow' ? f.waterY + 0.08 : yFloor + (f.kind === 'deep' ? 0.06 : 0.16);
   const lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.7, 0.7, 0.7);
-  const step = map.rules.maxStep;
+  const hash = (n) => { const h = Math.sin(n * 91.345 + 7.13) * 43758.5453; return h - Math.floor(h); };
+  // `left` is what remains of the current block; one used up to rounding counts as used up (or t stops moving)
+  let block = 0, left = 0, blockH = yBase; // the current block, what is left of it (used up below 1e-4: rounding would stall t) and its top
   for (let i = 0; i < poly.length; i++) {
     const [ax, az] = poly[i], [bx, bz] = poly[(i + 1) % poly.length];
     const l = Math.hypot(bx - ax, bz - az);
     if (l < 1e-4) continue;
     const nx = -(bz - az) / l, nz = (bx - ax) / l; // outward
     const probe = map.surfaceAt((ax + bx) / 2 + nx * 0.6, (az + bz) / 2 + nz * 0.6);
-    if (probe && probe.walkable && Math.abs(probe.y - f.y) <= step) continue;
-    const a2 = [ax - nx * width, az - nz * width], b2 = [bx - nx * width, bz - nz * width];
-    const from = top.pos.length;
-    top.topTri([ax, az], [bx, bz], b2, yTop, lip);
-    top.topTri([ax, az], b2, a2, yTop, lip);
-    faceUp(top, from);
-    side.wall(ax, az, bx, bz, yTop, yFloor - 0.05, 0, l / TILE, lip, low); // outer face
-    side.wall(b2[0], b2[1], a2[0], a2[1], yTop, yFloor - 0.05, 0, l / TILE, lip, low); // inner face
+    if (probe && probe.walkable && Math.abs(probe.y - f.y) < 0.2) { left = 0; continue; }
+    // cut the edge into blocks: 0.8-1.4 m each, 0.07 m apart, 0.12-0.3 m above the floor
+    let t = 0;
+    while (t < l - 1e-3) {
+      if (left <= 1e-4) { block++; left = 0.8 + hash(block) * 0.6; blockH = yBase + hash(block + 0.5) * 0.14; t += 0.07; continue; }
+      const t1 = Math.min(l, t + left);
+      const p = [ax + ((bx - ax) * t) / l, az + ((bz - az) * t) / l], q = [ax + ((bx - ax) * t1) / l, az + ((bz - az) * t1) / l];
+      const p2 = [p[0] - nx * width, p[1] - nz * width], q2 = [q[0] - nx * width, q[1] - nz * width];
+      const from = top.pos.length;
+      top.topTri(p, q, q2, blockH, lip);
+      top.topTri(p, q2, p2, blockH, lip);
+      faceUp(top, from);
+      side.wall(p[0], p[1], q[0], q[1], blockH, yFloor - 0.05, 0, (t1 - t) / TILE, lip, low); // outer face
+      side.wall(q2[0], q2[1], p2[0], p2[1], blockH, yFloor - 0.05, 0, (t1 - t) / TILE, lip, low); // inner face
+      side.wall(p2[0], p2[1], p[0], p[1], blockH, yFloor - 0.05, 0, width / TILE, lip, low); // its ends
+      side.wall(q[0], q[1], q2[0], q2[1], blockH, yFloor - 0.05, 0, width / TILE, lip, low);
+      left -= t1 - t;
+      t = t1;
+    }
   }
 }
 

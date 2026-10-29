@@ -42,12 +42,15 @@ export function buildCave(map, cave) {
   const root = new THREE.Group();
   root.name = 'cave';
   const mat = new THREE.MeshToonMaterial({ color: '#ffffff', vertexColors: true, gradientMap: toonRamp() });
+  // the rooms beyond the entrance have no warm lamps, only the cave's cool light: their rock is
+  // tinted warm and lifted a little so it stays the concept's brown-grey, not navy
+  const cool = new THREE.MeshToonMaterial({ color: '#d8d0c8', vertexColors: true, gradientMap: toonRamp(), emissive: '#1c1916', emissiveIntensity: 1 });
   for (const f of map.floors) {
     if (f.style !== 'cave' && !f.walls) continue;
     for (const kind of ['cavefloor', 'cavewall', 'caverock']) {
       const g = cave.parts.get(`${kind}_${f.id}`);
       if (!g) continue;
-      const m = new THREE.Mesh(g, mat);
+      const m = new THREE.Mesh(g, f.style === 'cave' ? mat : cool);
       m.name = `${kind}-${f.id}`;
       m.receiveShadow = true;
       m.castShadow = kind !== 'cavefloor';

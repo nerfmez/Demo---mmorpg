@@ -239,7 +239,7 @@ UP = Vector((0, 0, 1))
 TONES = [(0.62, 0.57, 0.49), (0.55, 0.53, 0.49), (0.58, 0.52, 0.44), (0.50, 0.47, 0.42)]
 DIRT = (0.34, 0.28, 0.22)
 MOSS = (0.31, 0.37, 0.27)
-ROCK = (0.42, 0.39, 0.35)
+ROCK = (0.50, 0.44, 0.37)
 
 
 def build_floor(f, wall_kd, rng):
@@ -391,8 +391,8 @@ def stone(b, rng, poly, y, w, sunk=False, look=None):
 
 # ---------------------------------------------------------------- the walls
 
-FACE = (0.56, 0.50, 0.43)    # the warm rock of the inner face
-CRUST = (0.42, 0.39, 0.37)   # the darker rock on top and on the front rim
+FACE = (0.60, 0.52, 0.43)    # the warm rock of the inner face
+CRUST = (0.52, 0.46, 0.40)   # the darker rock on top and on the front rim (warm brown-grey, as the concept)
 FOOT = (0.36, 0.30, 0.25)
 DRIP = (0.66, 0.60, 0.51)
 ROW = 0.5                    # metres between rows of the wall surface
@@ -550,6 +550,9 @@ def wall_run(surface, extras, rng, pts, closed, y, gates, step, coarse=False, ta
         if kind == 2:
             return mul(CRUST, 0.9 + 0.3 * max(0.0, fbm(s / 1.3, h, 7)))
         streak = 0.84 + 0.16 * fbm(s / 0.6, h / 4.0, 6)
+        # the rock is laid down in strata: bands of lighter and darker stone that wander a little
+        band = abs(math.sin(h * 2.4 + 0.9 * fbm(s / 5.0, h / 3.0, 8)))
+        streak *= 0.86 + 0.2 * smooth((band - 0.35) / 0.4)
         c = mix(FOOT, FACE, smooth((h - 0.15) / 1.4))
         c = mix(c, CRUST, smooth((h / max(H, 1e-3) - 0.85) / 0.15) * 0.6)
         return mul(c, streak)
@@ -678,7 +681,7 @@ for ob in objects:
     for i in range(len(col.data)):
         k = occ[i]
         c = col.data[i].color
-        col.data[i].color = (c[0] * (0.22 + 0.78 * k), c[1] * (0.22 + 0.78 * k), c[2] * (0.24 + 0.76 * k), 1.0)
+        col.data[i].color = (c[0] * (0.32 + 0.68 * k), c[1] * (0.32 + 0.68 * k), c[2] * (0.33 + 0.67 * k), 1.0)
     me.color_attributes.remove(me.color_attributes['ao'])
     me.color_attributes.active_color = me.color_attributes['Col']
 

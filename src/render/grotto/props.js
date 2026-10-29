@@ -513,22 +513,14 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'rubble': {
-        // where the old stone broke off (grotto-trace.py): its biggest slab leans from the broken edge
-        // into the water (floors.js draws it in the paving); here the smaller pieces sunk further
-        // out and the chips around them. Local +z is the way they slid. They lie in the water, so
-        // the hero wades past them.
+        // where the old stone broke off (grotto-trace.py): the paving stones that fell are drawn
+        // with the floors (floors.js, from p.stones); here only the chips and grit broken off them,
+        // in the water round the break. Local +z is the way they slid; the hero wades past them.
         const g = map.surfaceAt(x, z), floorY = g ? g.y : y, wy = g?.waterY ?? floorY + 0.25;
-        let top = floorY + 0.4;
-        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-          const q = map.surfaceAt(x + dx * 1.8 * s, z + dz * 1.8 * s);
-          if (q && q.y > floorY && q.y < floorY + 1) top = Math.max(top, q.y);
-        }
         const at = { x, y: floorY, z, rot, s: 1 };
-        batch.add(slab, geo.box, place(at, rng.range(-0.7, 0.7) * s, Math.min(0.14, top - floorY - 0.2), 1.25 * s, { sx: 0.95 * s, sy: 0.22, sz: 0.8 * s, rx: rng.range(0.45, 0.8), rz: rng.range(-0.3, 0.3), ry: rng.range(-0.6, 0.6) }), '#5a4a38');
-        if (rng.chance(0.6)) batch.add(stoneDark, geo.box, place(at, rng.range(-0.8, 0.8) * s, 0.06, rng.range(1.2, 1.8) * s, { sx: 0.9 * s, sy: 0.18, sz: 0.7 * s, ry: rng.range(0, 3), rz: rng.range(-0.1, 0.1) }));
-        for (let i = rng.int(3, 5); i > 0; i--) {
-          const c = rng.range(0.18, 0.42), a = rng.range(-1.6, 1.6), d = rng.range(0.5, 1.6) * s;
-          batch.add(rng.chance(0.5) ? slab : stoneDark, geo.box, place(at, Math.sin(a) * d, Math.min(c * 0.35, wy - floorY - 0.04), Math.cos(a) * d, { sx: c, sy: c * 0.7, sz: c * rng.range(0.8, 1.3), rx: rng.range(-0.5, 0.5), ry: rng.range(0, 3), rz: rng.range(-0.5, 0.5) }), '#5a4a38');
+        for (let i = rng.int(4, 7); i > 0; i--) {
+          const c = rng.range(0.14, 0.36), a = rng.range(-1.7, 1.7), d = rng.range(0.3, 1.9) * s;
+          batch.add(rng.chance(0.5) ? slab : stoneDark, geo.box, place(at, Math.sin(a) * d, Math.min(c * 0.3, wy - floorY - 0.04), Math.cos(a) * d, { sx: c, sy: c * 0.6, sz: c * rng.range(0.7, 1.4), rx: rng.range(-0.5, 0.5), ry: rng.range(0, 3), rz: rng.range(-0.5, 0.5) }), '#5a4a38');
         }
         break;
       }

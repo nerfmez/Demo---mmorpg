@@ -9,7 +9,7 @@ are left as they are.
 
 Usage: python3 scripts/grotto-trace.py [--debug out.png]   (needs numpy and opencv-python)
 """
-import json, math, sys
+import json, math, subprocess, sys
 from pathlib import Path
 import numpy as np
 import cv2
@@ -68,6 +68,243 @@ for f in CFG.get('fill', []):
 # zone map: later zones win; the default zone is everything else
 label = np.zeros((H, W), np.uint8)
 zones = CFG['zones']
+for i, z in enumerate(zones):
+    if 'poly' in z:
+        cv2.fillPoly(label, [np.array(z['poly'], np.int32)], i)
+default = next(i for i, z in enumerate(zones) if z.get('default'))
+if default:
+    raise SystemExit('the default zone must come first')
+
+ox, oy = CFG['origin']
+sx, sz = CFG['scale'], CFG['zScale']
+m = lambda p: [round((p[0] - ox) * sx, 2), round((p[1] - oy) * sz, 2)]
+ml = lambda d: d * sx  # a pixel length across, in metres
+
+
+def chaikin(pts, n=2):
+    """Round a closed outline's corners (the traced pixels are jagged)."""
+    for _ in range(n):
+        out = []
+        for i in range(len(pts)):
+            a, b = pts[i], pts[(i + 1) % len(pts)]
+            out += [[a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]]
+        pts = out
+    return pts
+
+
+def polygons(mask, min_area, min_hole):
+    """Outer outlines with their holes, simplified, in metres."""
+    cs, hier = cv2.findContours(mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    out = []
+    if hier is None:
+        return out
+    hier = hier[0]
+    for i, c in enumerate(cs):
+        if hier[i][3] != -1 or cv2.contourArea(c) < min_area:
+            continue
+        outer = cv2.approxPolyDP(c, 2.6, True)[:, 0, :]
+        holes = []
+        k = hier[i][2]
+        while k != -1:
+            if cv2.contourArea(cs[k]) >= min_hole:
+                h = cv2.approxPolyDP(cs[k], 2.6, True)[:, 0, :]
+                if len(h) >= 3:
+                    holes.append([m(p) for p in chaikin(h.tolist())])
+            k = hier[k][0]
+        if len(outer) >= 3:
+            out.append(([m(p) for p in chaikin(outer.tolist())], holes))
+    return out
+
+
+floors = []
+
+
+def shapes_mask(shapes):
+    """Hand-drawn stone: polygons, and ellipses {c, r: [rx, ry]}, in concept pixels."""
+    out = np.zeros_like(walk)
+    for sh in shapes:
+        if 'ellipse' in sh:
+            (cx, cy), (rx, ry) = sh['ellipse'], sh['r']
+            cv2.ellipse(out, (int(cx), int(cy)), (int(rx), int(ry)), 0, 0, 360, 1, -1)
+        else:
+            cv2.fillPoly(out, [np.array(sh['poly'], np.int32)], 1)
+    return out
+
+
+# every flight of stairs is cut out of the floors it crosses: the floors meet it at its sides and
+# ends instead of lying over it (which drew a ramp pasted onto a slab)
+stair_cut = np.zeros_like(walk)
+for s in CFG['stairs']:
+    (ax, ay), (bx, by), w = s['a'], s['b'], s['w']
+    l = math.hypot(bx - ax, by - ay) or 1
+    ux, uy = (bx - ax) / l, (by - ay) / l
+    hw, e = w / 2 + 1, 9  # the cut stops short of both ends, so the floors there still meet the flight
+    quad = [[ax - uy * hw + ux * e, ay + ux * hw + uy * e], [bx - uy * hw - ux * e, by + ux * hw - uy * e],
+            [bx + uy * hw - ux * e, by - ux * hw - uy * e], [ax + uy * hw + ux * e, ay - ux * hw + uy * e]]
+    cv2.fillPoly(stair_cut, [np.array(quad, np.int32)], 1)
+keep = (1 - stair_cut).astype(np.uint8)
+
+# the props the picture places (and the stair ends) stay on sound stone: no break within ~2.5 m
+def clearance(stairs, base, per_scale):
+    out = cv2.dilate(stair_cut, ell(stairs))
+    for p in CFG['props']:
+        if p['type'] != 'runeCircle':  # a pattern on the floor (or under the water), not a thing standing there
+            cv2.circle(out, (int(p['at'][0]), int(p['at'][1])), int(base + per_scale * min(1.5, p.get('scale', 1))), 1, -1)
+    return out
+
+
+sound = clearance(45, 22, 10)
+sound_middle = clearance(45, 16, 8)  # a hole stays clear of the props' feet, not of their reach
+rubble = []
+
+# the paving's joints (the floor texture's own layout, scripts/grotto-paving.mjs): old stone breaks
+# along them, whole stones at a time, so a break is a stepped bite, not a smooth curve
+PAVING = json.loads(subprocess.run(['node', str(ROOT / 'scripts/grotto-paving.mjs')], capture_output=True, text=True, check=True).stdout)
+RES = 0.05  # metres per pixel of the grid the floors are broken on
+
+
+def break_sites(raised, under, seed):
+    """Where the old stone over the water has given way, in concept pixels: points on its edges
+    toward the water (about one per 170 px of edge, 55 px apart) and now and then one in the middle
+    of a wide platform. None near the props or the stairs."""
+    rng = np.random.default_rng(seed)
+    safe = cv2.erode(under, ell(9))
+    edge = raised & (1 - cv2.erode(raised, ell(3)))
+    wet = cv2.dilate(safe & (1 - raised), ell(5))
+    cand = np.argwhere((edge == 1) & (wet == 1) & (sound == 0))
+    rng.shuffle(cand)
+    sites, want = [], max(2, int(edge.sum()) // 170)
+    for y, x in cand:
+        if len(sites) >= want * 2:  # some will not take (break_floors)
+            break
+        if any((x - q['px'][0]) ** 2 + (y - q['px'][1]) ** 2 < 55 ** 2 for q in sites):
+            continue
+        w = raised[max(0, y - 12):y + 13, max(0, x - 12):x + 13]
+        ys, xs = np.nonzero(w)
+        nx, ny = xs.mean() - min(12, x), ys.mean() - min(12, y)  # toward the stone
+        ox, oz = -nx * sx, -ny * sz  # out of it, in metres
+        l = math.hypot(ox, oz) or 1
+        sites.append({'kind': 'edge', 'px': (int(x), int(y)), 'at': m([x, y]), 'out': (ox / l, oz / l)})
+    inside = cv2.distanceTransform(raised, cv2.DIST_L2, 5)
+    deep = np.argwhere((inside > 30) & (sound_middle == 0) & (safe == 1))
+    rng.shuffle(deep)
+    for y, x in deep[:40]:
+        if not any((x - q['px'][0]) ** 2 + (y - q['px'][1]) ** 2 < 45 ** 2 for q in sites):
+            a = rng.uniform(-math.pi, math.pi)
+            sites.insert(0, {'kind': 'hole', 'px': (int(x), int(y)), 'at': m([x, y]), 'out': (math.sin(a), math.cos(a))})
+            break
+    return sites, want
+
+
+def pavers_near(x, z, r):
+    """The paving stones (x0, z0, x1, z1) within r of (x, z), in metres."""
+    T, out = PAVING['tile'], []
+    for tz in range(math.floor((z - r) / T), math.floor((z + r) / T) + 1):
+        for row in PAVING['rows']:
+            z0, z1 = tz * T + row['z0'], tz * T + row['z1']
+            if z1 < z - r or z0 > z + r:
+                continue
+            for tx in range(math.floor((x - r) / T) - 1, math.floor((x + r) / T) + 1):
+                for a, b in row['stones']:
+                    x0, x1 = tx * T + a, tx * T + b
+                    if x1 >= x - r and x0 <= x + r:
+                        out.append((x0, z0, x1, z1))
+    return out
+
+
+def break_floors(polys, sites, want, water, seed):
+    """Break the stone floors `polys` ([(pts, holes)] in metres) at `sites`: the paving stones
+    round each one are gone, the farthest of them snapped across along a jagged line, so the edge
+    steps along the joints. A break that would cut a floor in two, or reach past the water floor
+    under it (`water`, same form), is not made. Each break adds a `rubble` prop listing its stones
+    (x, z, w, d), which fell into the water. Returns the floors, now unrounded outlines."""
+    rng = np.random.default_rng(seed)
+    pts_all = [q for pts, _ in polys for q in pts]
+    if not pts_all:
+        return polys
+    x0, z0 = min(q[0] for q in pts_all) - 1, min(q[1] for q in pts_all) - 1
+    x1, z1 = max(q[0] for q in pts_all) + 1, max(q[1] for q in pts_all) + 1
+    GW, GH = int((x1 - x0) / RES) + 1, int((z1 - z0) / RES) + 1
+    g = lambda q: [round((q[0] - x0) / RES), round((q[1] - z0) / RES)]
+
+    def raster(ps):
+        out = np.zeros((GH, GW), np.uint8)
+        for pts, holes in ps:
+            cv2.fillPoly(out, [np.array([g(q) for q in pts], np.int32)], 1)
+            for h in holes:
+                cv2.fillPoly(out, [np.array([g(q) for q in h], np.int32)], 0)
+        return out
+
+    floor, safe = raster(polys), cv2.erode(raster(water), cv2.getStructuringElement(cv2.MORPH_RECT, (17, 17)))
+    clean = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))  # square: it keeps the joints' right angles
+
+    def big_pieces(mask):
+        n, lab, st, _ = cv2.connectedComponentsWithStats(mask, connectivity=4)
+        return sum(1 for k in range(1, n) if st[k][4] * RES * RES >= 0.5)
+
+    n0, made = big_pieces(floor), 0
+    for site in sites:
+        if made >= want + 1:
+            break
+        sx_, sz_ = site['at']
+        hole = site['kind'] == 'hole'
+        R = rng.uniform(0.9, 1.3) if hole else rng.uniform(1.2, 2.1)
+        cut, stones = np.zeros_like(floor), []
+        for (a0, b0, a1, b1) in pavers_near(sx_, sz_, R + 1.2):
+            cx, cz = (a0 + a1) / 2, (b0 + b1) / 2
+            d = math.hypot(cx - sx_, cz - sz_)
+            if d > R * rng.uniform(0.55, 1.15):
+                continue
+            stone = np.zeros_like(floor)
+            cv2.rectangle(stone, g((a0, b0)), g((a1, b1)), 1, -1)
+            if not (stone & floor).any():
+                continue
+            w, dd = a1 - a0, b1 - b0
+            if d > 0.5 * R and rng.random() < 0.45:
+                # snapped across: only the part toward the break is gone, along a jagged line
+                ux, uz = (sx_ - cx) / (d or 1), (sz_ - cz) / (d or 1)
+                px_, pz_ = -uz, ux
+                c = (cx + ux * rng.uniform(-0.15, 0.2) * max(w, dd), cz + uz * rng.uniform(-0.15, 0.2) * max(w, dd))
+                L = max(w, dd)
+                p0 = (c[0] + px_ * L + ux * rng.uniform(-0.12, 0.12), c[1] + pz_ * L + uz * rng.uniform(-0.12, 0.12))
+                p1 = (c[0] + px_ * L * rng.uniform(-0.3, 0.3) + ux * rng.uniform(-0.15, 0.15), c[1] + pz_ * L * rng.uniform(-0.3, 0.3) + uz * rng.uniform(-0.15, 0.15))
+                p2 = (c[0] - px_ * L + ux * rng.uniform(-0.12, 0.12), c[1] - pz_ * L + uz * rng.uniform(-0.12, 0.12))
+                side = np.zeros_like(floor)
+                cv2.fillPoly(side, [np.array([g(p0), g(p1), g(p2), g((p2[0] + ux * 3, p2[1] + uz * 3)), g((p0[0] + ux * 3, p0[1] + uz * 3))], np.int32)], 1)
+                stone &= side
+                k = 0.5
+                stones.append([round(cx + ux * L * 0.25, 2), round(cz + uz * L * 0.25, 2), round(w * (k if abs(ux) > abs(uz) else 1), 2), round(dd * (1 if abs(ux) > abs(uz) else k), 2)])
+            else:
+                stones.append([round(cx, 2), round(cz, 2), round(w, 2), round(dd, 2)])
+            cut |= stone
+        cut &= safe
+        trial = cv2.morphologyEx(floor & (1 - cut), cv2.MORPH_OPEN, clean)
+        gone = int((floor & (1 - trial)).sum()) * RES * RES
+        if gone < 0.6 or big_pieces(trial) != n0:
+            continue
+        floor = trial
+        made += 1
+        rubble.append({'type': 'rubble', 'at': [round(sx_, 2), round(sz_, 2)], 'rot': round(math.atan2(*site['out']), 3),
+                       'scale': round(R / 1.4, 2), 'stones': stones})
+    # back to outlines (crumbs of stone left on their own are dropped)
+    cs, hier = cv2.findContours(floor, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    w_ = lambda c: [[round(x0 + (p[0] + 0.5) * RES, 2), round(z0 + (p[1] + 0.5) * RES, 2)] for p in cv2.approxPolyDP(c, 1.2, True)[:, 0, :].tolist()]
+    out = []
+    if hier is None:
+        return out
+    hier = hier[0]
+    for k, c in enumerate(cs):
+        if hier[k][3] != -1 or cv2.contourArea(c) * RES * RES < 0.5:
+            continue
+        holes, j = [], hier[k][2]
+        while j != -1:
+            if cv2.contourArea(cs[j]) * RES * RES >= 0.3:
+                holes.append(w_(cs[j]))
+            j = hier[j][0]
+        out.append((w_(c), holes))
+    return out
+
+
 for i, z in enumerate(zones):
     if 'poly' in z:
         cv2.fillPoly(label, [np.array(z['poly'], np.int32)], i)
@@ -267,8 +504,10 @@ for i, z in enumerate(zones):
         if z.get('stone'):
             # where the picture's stone is too broken up by its ruins to trace, it is drawn by hand
             raised = shapes_mask(z['stone']) & zm
-        raised = ruin(raised & keep, area, 97 + i)
-        for n, (pts, holes) in enumerate(polygons(raised, 700, 450)):
+        raised = raised & keep
+        sites, want = break_sites(raised, area, 97 + i)
+        water_here = [(f['pts'], f.get('holes', [])) for f in floors if f['id'].startswith(f"{z['id']}-water-")]
+        for n, (pts, holes) in enumerate(break_floors(polygons(raised, 700, 900), sites, want, water_here, 97 + i)):
             f = {'id': f"{z['id']}-stone-{n}", 'kind': 'stone', 'shape': 'poly', 'y': z['y'], 'pts': pts}
             if holes:
                 f['holes'] = holes

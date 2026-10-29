@@ -287,48 +287,62 @@ function addCurbs(top, side, map, f, poly, look, hole = false, broken = []) {
 }
 
 /**
- * Where the old stone broke away (the rubble props), the biggest piece of it: a slab of the paving
- * itself, tilted, its inner end still near the broken edge and the rest sunk under the water.
- * Its top goes in with the floor's paving, its sides with the curbs. The smaller pieces and chips
- * are props (props.js).
+ * The paving stones that fell where the old floor broke (each rubble prop lists them, grotto-trace.py):
+ * every one its own slab, showing its own stone of the paving (its top keeps the texture of the place
+ * it came from), slid out the way the break faces, tipped and sunk to the water floor; the ones from
+ * the edge still lean on it, half out of the water. Tops go in with the paving, sides with the curbs.
  */
-function addSunkSlabs(top, side, map, broken) {
+function addSunkStones(top, side, map, props) {
   const lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.62, 0.62, 0.62), m4 = new THREE.Matrix4(), e = new THREE.Euler(), v = new THREE.Vector3(), n = new THREE.Vector3();
   const hash = (k) => { const h = Math.sin(k * 51.73 + 3.1) * 43758.5453; return h - Math.floor(h); };
-  broken.forEach(([x, z, r, rot], i) => {
-    const g = map.surfaceAt(x, z);
-    if (!g || g.waterY == null) return;
-    const s = r / 1.4;
-    let edgeY = null;
-    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const q = map.surfaceAt(x + dx * 1.8 * s, z + dz * 1.8 * s);
-      if (q && q.y > g.y && q.y < g.y + 1) edgeY = Math.max(edgeY ?? q.y, q.y);
+  let k = 0;
+  for (const p of props) {
+    const [bx, bz] = p.at, rot = p.rot ?? 0, ox = Math.sin(rot), oz = Math.cos(rot);
+    for (const [cx, cz, w0, d0] of p.stones || []) {
+      k++;
+      const g = map.surfaceAt(cx + ox * 0.6, cz + oz * 0.6) || map.surfaceAt(bx, bz);
+      if (!g || g.waterY == null) continue;
+      const w = w0 * 0.94, d = d0 * 0.94, t = 0.22; // a hair smaller than its gap: worn as it fell
+      // how far it slid out, how it tipped (toward the water, a little sideways) and how it turned
+      const slide = 0.2 + hash(k) * 0.7, along = (cx - bx) * ox + (cz - bz) * oz; // stones from the rim slide less
+      const x = cx + ox * slide * (along > -0.3 ? 1 : 0.4), z = cz + oz * slide * (along > -0.3 ? 1 : 0.4);
+      const leanOnEdge = hash(k + 0.3) < 0.45;
+      const tilt = leanOnEdge ? 0.35 + hash(k + 0.5) * 0.35 : hash(k + 0.5) * 0.25;
+      const roll = (hash(k + 0.7) - 0.5) * 0.5, yaw = (hash(k + 0.9) - 0.5) * 0.7;
+      const y = leanOnEdge ? g.waterY - 0.12 : g.y + 0.02 + hash(k + 0.1) * 0.08;
+      // tip about the axis across the slide: the stone's far side (toward the water) goes down
+      const qy = Math.atan2(ox, oz) + yaw;
+      m4.makeRotationFromEuler(e.set(tilt, qy, roll, 'YXZ')).setPosition(x, y, z);
+      const local = (lx, ly, lz) => v.set(lx, ly, lz).applyMatrix4(m4).toArray();
+      // the stone's own corners in its local frame (turned back so they keep the joints' lines, all
+      // but the small turn it took as it fell)
+      const c = Math.cos(yaw - qy), s = Math.sin(yaw - qy), corner = (sx, sz) => [sx * w / 2 * c - sz * d / 2 * s, sx * w / 2 * s + sz * d / 2 * c];
+      const base = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => corner(a, b));
+      const P = [...base.map(([lx, lz]) => local(lx, t / 2, lz)), ...base.map(([lx, lz]) => local(lx, -t / 2, lz))];
+      // its top shows the stone it was: uv from where it lay
+      const uv = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => [(cx + a * w / 2) / TILE, (cz + b * d / 2) / TILE]);
+      n.set(0, 1, 0).applyEuler(e);
+      const from = top.pos.length;
+      for (const q of [0, 2, 1, 0, 3, 2]) top.vert(P[q][0], P[q][1], P[q][2], n.x, n.y, n.z, uv[q][0], uv[q][1], lip);
+      faceUp(top, from);
+      const mid = [(P[0][0] + P[2][0]) / 2, (P[0][2] + P[2][2]) / 2];
+      for (const [i, j] of [[0, 1], [1, 2], [2, 3], [3, 0]]) {
+        const a = P[i], b = P[j], ab = P[j + 4], aa = P[i + 4];
+        let nx = (a[0] + b[0]) / 2 - mid[0], nz = (a[2] + b[2]) / 2 - mid[1];
+        const l = Math.hypot(nx, nz) || 1;
+        nx /= l; nz /= l;
+        // wind each side to face out: (a, b, b-bottom) is front-facing when (b - a) x (down) points along n
+        const ex = b[0] - a[0], ez = b[2] - a[2], out = -ez * nx + ex * nz < 0;
+        const quad = out ? [a, b, ab, a, ab, aa] : [b, a, aa, b, aa, ab];
+        const cols = out ? [lip, lip, low, lip, low, low] : [lip, lip, low, lip, low, low];
+        quad.forEach((q, qi) => side.vert(q[0], q[1], q[2], nx, 0, nz, (qi % 3) * 0.1, q[1] / TILE, cols[qi]));
+      }
     }
-    const w = 2.1 * s * (0.85 + hash(i) * 0.3), d = 1.7 * s, t = 0.3, hi = (edgeY ?? g.waterY + 0.1) - 0.1, lo = g.y + 0.05;
-    const tilt = Math.atan2(hi - lo, d) * (0.85 + hash(i + 0.5) * 0.2);
-    const yaw = rot + (hash(i + 0.25) - 0.5) * 0.5, roll = (hash(i + 0.75) - 0.5) * 0.25;
-    // inward (local -z) end up at the edge, the middle a little out from the break
-    m4.makeRotationFromEuler(e.set(tilt, yaw, roll, 'YXZ')).setPosition(x + Math.sin(yaw) * 0.15 * s, (hi + lo) / 2 - t / 2, z + Math.cos(yaw) * 0.15 * s);
-    const c = (lx, ly, lz) => v.set(lx, ly, lz).applyMatrix4(m4).toArray();
-    const P = [[-w / 2, t, -d / 2], [w / 2, t, -d / 2], [w / 2, t, d / 2], [-w / 2, t, d / 2], [-w / 2, 0, -d / 2], [w / 2, 0, -d / 2], [w / 2, 0, d / 2], [-w / 2, 0, d / 2]].map((p) => c(...p));
-    n.set(0, 1, 0).applyEuler(e);
-    const face = (mesh, idx, nx, ny, nz, cols) => {
-      for (const k of [0, 1, 2, 0, 2, 3]) { const [px, py, pz] = P[idx[k]]; mesh.vert(px, py, pz, nx, ny, nz, px / TILE, (pz + py) / TILE, cols[k]); }
-    };
-    const from = top.pos.length;
-    face(top, [0, 3, 2, 1], n.x, n.y, n.z, [lip, lip, lip, lip]);
-    faceUp(top, from);
-    // the four sides (the broken edges), each facing out of the slab
-    const sides = [[0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]];
-    for (const q of sides) {
-      const [a, b] = [P[q[0]], P[q[1]]], mx = (a[0] + b[0]) / 2 - (P[0][0] + P[2][0]) / 2, mz = (a[2] + b[2]) / 2 - (P[0][2] + P[2][2]) / 2, l = Math.hypot(mx, mz) || 1;
-      face(side, q, mx / l, 0, mz / l, [lip, lip, low, low]);
-    }
-  });
+  }
 }
 
 /**
- * Wear on the paving: decals of a damp stain, missing pavers and cracks (wornTexture), about one
+ * Wear on the paving: decals of a damp stain, hairline cracks and chipped spots (wornTexture), about one
  * every 45 m² of stone floor and one beside every break (the rubble props), never under a prop or
  * over an edge. Returns a Mesh (one draw) or null.
  */
@@ -423,7 +437,7 @@ export function buildFloors(map, look) {
   // edging stones around drops (not on sand: the beach just meets the sea)
   const curbTop = topFor('curb'), curbSide = topFor('curb');
   const broken = (map.def.props || []).filter((p) => p.type === 'rubble').map((p) => [p.at[0], p.at[1], 1.4 * (p.scale ?? 1), p.rot ?? 0]);
-  addSunkSlabs(topFor('stone'), curbSide, map, broken);
+  addSunkStones(topFor('stone'), curbSide, map, (map.def.props || []).filter((p) => p.type === 'rubble'));
   for (const f of map.floors) {
     if (f.kind === 'sand' || f.shape === 'stairs' || f.style === 'cave') continue; // a cave's rim is its stone ring
     for (const r of floorRings(f)) addCurbs(curbTop, curbSide, map, f, r.pts, look, r.hole, broken);

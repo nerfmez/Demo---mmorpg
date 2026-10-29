@@ -28,26 +28,34 @@ const shade = (hex, k) => {
 /** Old cut paving (spans 4 m): rectangular stones of mixed length laid in staggered courses, each
  * its own tone, its edges bevelled (lit toward the top left, shadowed toward the bottom right),
  * some corners chipped, a few cracks; dark grout between. Tiles seamlessly. */
+/** The paving's layout in canvas pixels of one 512 px tile: courses (y0..y1, top down) of stones
+ * (x0..x1, which may run past 512 and wrap). Shared with grotto-trace.py, which breaks the floors
+ * along these same joints (scripts/grotto-paving.mjs prints it). */
+export function flagstoneCourses(n = 512) {
+  const rng = createRng(31);
+  // courses: heights that add up to the tile; stones along each: lengths that wrap round it
+  const rows = [], heights = [92, 70, 84, 78, 96, 92];
+  let y0 = 0;
+  for (const h of heights) {
+    const stones = [];
+    let x = rng.range(0, 60);
+    const start = x;
+    while (x < start + n - 40) {
+      const w = Math.min(rng.range(70, 150), start + n - x);
+      stones.push({ x0: x, x1: x + w, tone: rng.range(-0.1, 0.07), chip: rng.int(0, 7), crack: rng.chance(0.15) });
+      x += w;
+    }
+    stones[stones.length - 1].x1 = start + n; // the last one meets the first across the seam
+    rows.push({ y0, y1: y0 + h, stones });
+    y0 += h;
+  }
+  return rows;
+}
+
 export function flagstoneTexture() {
   return canvasTexture('flagstone', 512, (g, n) => {
-    const rng = createRng(31);
     const base = [214, 196, 160], grout = [96, 84, 70]; // sRGB, as the canvas stores it
-    // courses: heights that add up to the tile; stones along each: lengths that wrap round it
-    const rows = [], heights = [92, 70, 84, 78, 96, 92];
-    let y0 = 0;
-    for (const h of heights) {
-      const stones = [];
-      let x = rng.range(0, 60);
-      const start = x;
-      while (x < start + n - 40) {
-        const w = Math.min(rng.range(70, 150), start + n - x);
-        stones.push({ x0: x, x1: x + w, tone: rng.range(-0.1, 0.07), chip: rng.int(0, 7), crack: rng.chance(0.15) });
-        x += w;
-      }
-      stones[stones.length - 1].x1 = start + n; // the last one meets the first across the seam
-      rows.push({ y0, y1: y0 + h, stones });
-      y0 += h;
-    }
+    const rows = flagstoneCourses(n);
     const img = g.createImageData(n, n), d = img.data;
     const hash = (x, y) => { const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return h - Math.floor(h); };
     for (let y = 0; y < n; y++) {
@@ -227,8 +235,7 @@ export function medallionTexture() {
 }
 
 /** Wear on the old paving, four patches in a 2x2 sheet (transparent around them): a damp stain,
- * a paver or two gone (a dark pit with broken lit edges and grit in it), cracks running out from
- * it, a few specks of sea moss. Laid over the floors as decals (floors.js). */
+ * hairline cracks, a shallow chipped spot or two with a lit broken lip, a few specks of sea moss. Laid over the floors as decals (floors.js). */
 export function wornTexture() {
   return canvasTexture('worn', 512, (g, n) => {
     const rng = createRng(57), h = n / 2;
@@ -251,30 +258,24 @@ export function wornTexture() {
         g.fillStyle = grad;
         g.fillRect(ox, oy, h, h);
       }
-      // cracks out of the middle
-      g.strokeStyle = 'rgba(40,32,26,0.85)';
+      // hairline cracks out of the middle, running on along the joints' directions
+      g.strokeStyle = 'rgba(58,48,38,0.5)';
       g.lineCap = 'round';
-      for (let i = rng.int(3, 5); i > 0; i--) {
-        let x = cx, y = cy, a = rng.range(0, Math.PI * 2);
-        g.lineWidth = rng.range(1.6, 2.6);
+      for (let i = rng.int(2, 4); i > 0; i--) {
+        let x = cx + rng.range(-10, 10), y = cy + rng.range(-10, 10), a = (rng.int(0, 3) * Math.PI) / 2 + rng.range(-0.5, 0.5);
+        g.lineWidth = rng.range(1.0, 1.8);
         g.beginPath(); g.moveTo(x, y);
-        for (let k = rng.int(4, 7); k > 0; k--) { a += rng.range(-0.6, 0.6); x += Math.cos(a) * rng.range(10, 20); y += Math.sin(a) * rng.range(10, 20); g.lineTo(x, y); }
+        for (let k = rng.int(3, 6); k > 0; k--) { a += rng.range(-0.5, 0.5); x += Math.cos(a) * rng.range(8, 18); y += Math.sin(a) * rng.range(8, 18); g.lineTo(x, y); }
         g.stroke();
       }
-      // the pavers gone: a lit broken rim, the dark pit, grit and a chip or two in it
-      for (let i = cell === 3 ? 1 : rng.int(1, 2); i > 0; i--) {
-        const px = cx + rng.range(-22, 22), py = cy + rng.range(-22, 22), r = rng.range(22, 36);
-        const pit = jag(px, py, r);
-        g.fillStyle = 'rgba(236,222,196,0.55)';
-        fillPoly(pit.map(([x, y]) => [x - 2, y - 2]));
-        g.fillStyle = 'rgba(46,38,32,0.95)';
+      // a chipped-out spot or two: shallow, the stone's own colour a little darker, a lit broken lip
+      for (let i = rng.int(1, 2); i > 0; i--) {
+        const px = cx + rng.range(-30, 30), py = cy + rng.range(-30, 30), r = rng.range(8, 15);
+        const pit = jag(px, py, r, 7);
+        g.fillStyle = 'rgba(240,228,204,0.35)';
+        fillPoly(pit.map(([x, y]) => [x - 1.5, y - 1.5]));
+        g.fillStyle = 'rgba(120,104,84,0.5)';
         fillPoly(pit);
-        g.fillStyle = 'rgba(30,24,20,0.9)';
-        fillPoly(pit.map(([x, y]) => [px + (x - px) * 0.75 + 3, py + (y - py) * 0.75 + 3]));
-        for (let k = rng.int(3, 6); k > 0; k--) {
-          g.fillStyle = rng.chance(0.5) ? 'rgba(150,134,112,0.95)' : 'rgba(104,92,78,0.95)';
-          fillPoly(jag(px + rng.range(-r * 0.5, r * 0.5), py + rng.range(-r * 0.5, r * 0.5), rng.range(3, 8), 5));
-        }
       }
       // sea moss in the damp
       for (let i = rng.int(6, 12); i > 0; i--) {

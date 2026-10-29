@@ -1,4 +1,4 @@
-// Movement skills rank up with their main stat (owner, 2026-10-25; a main stat since 2026-10-29, docs/STATS-TH.md):
+// Movement skills rank up with their own stat (owner, 2026-10-25; dash and roll AGI, blink INT, leap STR):
 // data.progression.movementUpgrade.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,16 +8,15 @@ import { movementSkill, movementRank } from '../../src/core/skills.js';
 import { movementUpgradeState, upgradeMovement } from '../../src/core/crafting.js';
 
 const mu = data.progression.movementUpgrade;
-function hero(dex = 3) {
+function hero(agi = 3) {
   const ch = createCharacter(data);
   ch.movementSkills = ['dash']; ch.movement = 'dash';
-  ch.stats.DEX = dex; ch.gold = 1e5; ch.materials = { skill_crystal: 50 };
+  ch.stats.AGI = agi; ch.gold = 1e5; ch.materials = { skill_crystal: 50 };
   return ch;
 }
 
-test('every movement skill upgrades with a main stat (dash and roll with DEX)', () => {
-  for (const [id, d] of Object.entries(data.skills.movement)) assert.ok(data.progression.character.mainStats.includes(d.upgradeStat), id);
-  assert.equal(data.skills.movement.dash.upgradeStat, 'DEX');
+test('every movement skill upgrades with its own stat (dash and roll with AGI)', () => {
+  for (const id of ['dash', 'roll']) assert.equal(data.skills.movement[id].upgradeStat, 'AGI', id);
   assert.equal(mu.steps.length, mu.maxLevel - 1);
 });
 
@@ -27,7 +26,7 @@ test('a rank needs the step\'s stat and its materials, pays them once, and stops
   assert.equal(short.reason, 'requires');
   assert.equal(upgradeMovement(ch, data, 'dash').ok, false);
   assert.equal(movementRank(ch, 'dash'), 1, 'nothing changes when refused');
-  ch.stats.DEX = 99;
+  ch.stats.AGI = 99;
   const gold = ch.gold, crystals = ch.materials.skill_crystal;
   assert.equal(upgradeMovement(ch, data, 'dash').level, 2);
   assert.equal(ch.gold, gold - mu.steps[0].gold);

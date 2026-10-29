@@ -39,7 +39,7 @@ test('complete catalogue socket/UI/compiled compatibility agrees and every new m
  for(const [mid,md]of Object.entries(data.mods.mods)){
   let consumers=0;
   for(const[sid,sd]of Object.entries(data.skills.combat)){
-   const ch=createCharacter(data);ch.stats={STR:99,DEX:99,INT:99,AGI:99,VIT:99};ch.skills[sid]=1;ch.slots[0]={skill:sid,mods:[]};ch.mods=[{id:mid,uid:100,level:1,grade:'C'}];
+   const ch=createCharacter(data);ch.stats={STR:99,DEX:99,INT:99,AGI:99,VIT:99,LUK:99};ch.skills[sid]=1;ch.slots[0]={skill:sid,mods:[]};ch.mods=[{id:mid,uid:100,level:1,grade:'C'}];
    const fit=modFits(sd,md).ok;assert.equal(modStatus(ch,data,0,ch.mods[0]).fit.ok,fit,mid+'/'+sid);
    assert.equal(socketMod(ch,data,0,100).ok,fit,mid+'/'+sid);
    if(fit){const s=computeSkill(ch,data,derive(ch,data),0);assert(s.mods[0].active,mid+'/'+sid);consumers++;}

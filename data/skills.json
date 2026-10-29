@@ -30,7 +30,7 @@
       "castTime": 0.18,
       "cost": 22,
       "element": "physical",
-      "requires": {},
+      "requires": { "STR": 3, "AGI": 2 },
       "upgradeMaterial": "boar_tusk",
       "icon": "slash",
       "upgradeStat": "STR"
@@ -60,9 +60,7 @@
       "castTime": 0.24,
       "cost": 96,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "AGI": 2 },
       "upgradeMaterial": "wolf_fang",
       "icon": "whirl",
       "upgradeStat": "STR",
@@ -100,7 +98,7 @@
       "castTime": 0.2,
       "cost": 22,
       "element": "physical",
-      "requires": {},
+      "requires": { "DEX": 3, "AGI": 2 },
       "upgradeMaterial": "boar_tusk",
       "icon": "arrow",
       "upgradeStat": "DEX",
@@ -131,7 +129,7 @@
       "castTime": 0.2,
       "cost": 26,
       "element": "arcane",
-      "requires": {},
+      "requires": { "INT": 3 },
       "upgradeMaterial": "glow_dust",
       "icon": "fire",
       "upgradeStat": "INT",
@@ -166,7 +164,7 @@
       "cost": 56,
       "element": "fire",
       "burnChance": 0.25,
-      "requires": {},
+      "requires": { "INT": 3 },
       "upgradeMaterial": "glow_dust",
       "icon": "fire",
       "upgradeStat": "INT"
@@ -195,9 +193,7 @@
       "castTime": 0.24,
       "cost": 160,
       "element": "lightning",
-      "requires": {
-        "INT": 6
-      },
+      "requires": { "INT": 4, "LUK": 2 },
       "upgradeMaterial": "wisp_core",
       "icon": "spark",
       "upgradeStat": "INT"
@@ -227,9 +223,7 @@
       "castTime": 0.3,
       "cost": 224,
       "element": "physical",
-      "requires": {
-        "INT": 6
-      },
+      "requires": { "INT": 4, "VIT": 2 },
       "upgradeMaterial": "beetle_shell",
       "icon": "stone",
       "upgradeStat": "INT"
@@ -261,9 +255,7 @@
         "slow": 0.55,
         "duration": 3
       },
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "INT": 3, "VIT": 2 },
       "upgradeMaterial": "glow_dust",
       "icon": "frost",
       "upgradeStat": "INT"
@@ -292,9 +284,7 @@
       "castTime": 0.2,
       "cost": 19,
       "element": "poison",
-      "requires": {
-        "DEX": 6
-      },
+      "requires": { "DEX": 4, "LUK": 2 },
       "upgradeMaterial": "spore_sac",
       "icon": "mire",
       "upgradeStat": "DEX",
@@ -329,12 +319,10 @@
       "castTime": 0.3,
       "cost": 192,
       "element": "arcane",
-      "requires": {
-        "INT": 7
-      },
+      "requires": { "LUK": 4, "INT": 3 },
       "upgradeMaterial": "spore_sac",
       "icon": "hex",
-      "upgradeStat": "INT"
+      "upgradeStat": "LUK"
     },
     "ward": {
       "name": "Ward",
@@ -360,10 +348,10 @@
       "castTime": 0.25,
       "cost": 192,
       "element": "none",
-      "requires": {},
+      "requires": { "VIT": 3, "INT": 2 },
       "upgradeMaterial": "beetle_shell",
       "icon": "ward",
-      "upgradeStat": "INT"
+      "upgradeStat": "VIT"
     },
     "war_cry": {
       "name": "War Cry",
@@ -385,9 +373,7 @@
       "castTime": 0.3,
       "cost": 192,
       "element": "none",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "VIT": 2 },
       "upgradeMaterial": "wolf_pelt",
       "icon": "warcry",
       "upgradeStat": "STR"
@@ -418,12 +404,10 @@
       "castTime": 0.3,
       "cost": 288,
       "element": "none",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "VIT": 3, "INT": 2 },
       "upgradeMaterial": "glow_dust",
       "icon": "heal",
-      "upgradeStat": "INT"
+      "upgradeStat": "VIT"
     },
     "spirit_wolf": {
       "name": "Spirit Wolf",
@@ -457,12 +441,10 @@
       "castTime": 0.4,
       "cost": 320,
       "element": "physical",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "VIT": 3, "INT": 2 },
       "upgradeMaterial": "wolf_pelt",
       "icon": "wolf",
-      "upgradeStat": "INT"
+      "upgradeStat": "VIT"
     },
     "charged_shot": {
       "name": "Power Draw",
@@ -488,9 +470,7 @@
       "castTime": 0.2,
       "cost": 128,
       "element": "physical",
-      "requires": {
-        "DEX": 5
-      },
+      "requires": { "DEX": 3, "LUK": 2 },
       "requiresWeapon": [
         "bow"
       ],
@@ -524,10 +504,8 @@
       "castTime": 0.15,
       "cost": 128,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
-      "upgradeStat": "STR",
+      "requires": { "VIT": 3, "STR": 2 },
+      "upgradeStat": "VIT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "requiresWeapon": [
@@ -564,10 +542,8 @@
       "castTime": 0.18,
       "cost": 19,
       "element": "physical",
-      "requires": {
-        "DEX": 5
-      },
-      "upgradeStat": "DEX",
+      "requires": { "AGI": 3, "DEX": 2 },
+      "upgradeStat": "AGI",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "requiresWeapon": [
@@ -602,9 +578,7 @@
       "castTime": 0.5,
       "cost": 128,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "VIT": 2 },
       "upgradeStat": "STR",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -641,9 +615,7 @@
       "castTime": 0.4,
       "cost": 128,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "VIT": 2 },
       "upgradeStat": "STR",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -679,9 +651,7 @@
       "castTime": 0.65,
       "cost": 192,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "VIT": 2 },
       "upgradeStat": "STR",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -716,8 +686,8 @@
       "castTime": 0.2,
       "cost": 128,
       "element": "physical",
-      "requires": { "STR": 5 },
-      "upgradeStat": "STR",
+      "requires": { "VIT": 3, "STR": 2 },
+      "upgradeStat": "VIT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "damage": {
@@ -750,9 +720,7 @@
       "castTime": 0.3,
       "cost": 192,
       "element": "physical",
-      "requires": {
-        "DEX": 5
-      },
+      "requires": { "DEX": 3, "AGI": 2 },
       "upgradeStat": "DEX",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -786,9 +754,7 @@
       "castTime": 0.2,
       "cost": 20,
       "element": "fire",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "INT": 5 },
       "upgradeStat": "INT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -824,9 +790,7 @@
       "castTime": 0.3,
       "cost": 256,
       "element": "cold",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "INT": 3, "VIT": 2 },
       "upgradeStat": "INT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -860,10 +824,8 @@
       "castTime": 0.3,
       "cost": 192,
       "element": "none",
-      "requires": {
-        "INT": 5
-      },
-      "upgradeStat": "INT",
+      "requires": { "VIT": 3, "INT": 2 },
+      "upgradeStat": "VIT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "heal": {
@@ -892,10 +854,8 @@
       "castTime": 0.3,
       "cost": 0,
       "element": "none",
-      "requires": {
-        "INT": 5
-      },
-      "upgradeStat": "INT",
+      "requires": { "VIT": 3, "INT": 2 },
+      "upgradeStat": "VIT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "radius": 5,
@@ -922,9 +882,7 @@
       "castTime": 0.4,
       "cost": 320,
       "element": "physical",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "INT": 3, "VIT": 2 },
       "upgradeStat": "INT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -980,9 +938,7 @@
         "duration": 1,
         "bossDuration": 0.3
       },
-      "requires": {
-        "STR": 12
-      },
+      "requires": { "STR": 7, "VIT": 5 },
       "requiresWeapon": [
         "greatblade",
         "axe",
@@ -1020,9 +976,7 @@
       "castTime": 0.8,
       "cost": 256,
       "element": "physical",
-      "requires": {
-        "STR": 12
-      },
+      "requires": { "STR": 7, "VIT": 5 },
       "requiresWeapon": [
         "greatblade",
         "axe",
@@ -1053,9 +1007,9 @@
       "castTime": 0.2,
       "cost": 160,
       "element": "none",
-      "requires": { "STR": 12 },
+      "requires": { "VIT": 7, "STR": 5 },
       "upgradeMaterial": "golem_heart",
-      "upgradeStat": "STR",
+      "upgradeStat": "VIT",
       "job": "heavy",
       "iconPending": true
     },
@@ -1086,14 +1040,12 @@
       "castTime": 0.22,
       "cost": 38,
       "element": "physical",
-      "requires": {
-        "DEX": 8
-      },
+      "requires": { "STR": 5, "AGI": 3 },
       "requiresWeapon": [
         "dagger"
       ],
       "upgradeMaterial": "mantis_scythe",
-      "upgradeStat": "DEX",
+      "upgradeStat": "STR",
       "job": "blade",
       "iconPending": true
     },
@@ -1125,14 +1077,12 @@
       "castTime": 0.15,
       "cost": 35,
       "element": "physical",
-      "requires": {
-        "DEX": 8
-      },
+      "requires": { "STR": 5, "AGI": 3 },
       "requiresWeapon": [
         "dagger"
       ],
       "upgradeMaterial": "dusk_pelt",
-      "upgradeStat": "DEX",
+      "upgradeStat": "STR",
       "job": "blade",
       "iconPending": true
     },
@@ -1166,14 +1116,12 @@
       "castTime": 0.25,
       "cost": 144,
       "element": "physical",
-      "requires": {
-        "DEX": 14
-      },
+      "requires": { "AGI": 8, "DEX": 6 },
       "requiresWeapon": [
         "dagger"
       ],
       "upgradeMaterial": "dusk_pelt",
-      "upgradeStat": "DEX",
+      "upgradeStat": "AGI",
       "job": "blade",
       "iconPending": true
     },
@@ -1196,9 +1144,7 @@
       "castTime": 0.3,
       "cost": 160,
       "element": "none",
-      "requires": {
-        "STR": 8
-      },
+      "requires": { "STR": 5, "VIT": 3 },
       "upgradeMaterial": "wolf_pelt",
       "upgradeStat": "STR",
       "job": "duelist",
@@ -1223,7 +1169,7 @@
       "castTime": 0.3,
       "cost": 160,
       "element": "none",
-      "requires": { "STR": 10 },
+      "requires": { "STR": 6, "AGI": 4 },
       "upgradeMaterial": "greyfang_mane",
       "upgradeStat": "STR",
       "job": "duelist",
@@ -1249,9 +1195,9 @@
       "castTime": 0.3,
       "cost": 192,
       "element": "none",
-      "requires": { "STR": 8 },
+      "requires": { "VIT": 5, "STR": 3 },
       "upgradeMaterial": "ram_horn",
-      "upgradeStat": "STR",
+      "upgradeStat": "VIT",
       "job": "duelist",
       "iconPending": true
     },
@@ -1276,9 +1222,9 @@
       "castTime": 0.3,
       "cost": 224,
       "element": "none",
-      "requires": { "STR": 12 },
+      "requires": { "VIT": 7, "STR": 5 },
       "upgradeMaterial": "warden_horn",
-      "upgradeStat": "STR",
+      "upgradeStat": "VIT",
       "job": "guardian",
       "iconPending": true
     },
@@ -1302,11 +1248,9 @@
       "castTime": 0.4,
       "cost": 288,
       "element": "none",
-      "requires": {
-        "INT": 10
-      },
+      "requires": { "VIT": 6, "INT": 4 },
       "upgradeMaterial": "sea_pearl",
-      "upgradeStat": "INT",
+      "upgradeStat": "VIT",
       "job": "priest",
       "iconPending": true
     },
@@ -1336,9 +1280,7 @@
       "castTime": 0.2,
       "cost": 160,
       "element": "physical",
-      "requires": {
-        "DEX": 10
-      },
+      "requires": { "DEX": 6, "AGI": 4 },
       "requiresWeapon": [
         "bow"
       ],
@@ -1371,9 +1313,7 @@
       "castTime": 0.55,
       "cost": 256,
       "element": "physical",
-      "requires": {
-        "DEX": 14
-      },
+      "requires": { "DEX": 8, "LUK": 6 },
       "requiresWeapon": [
         "bow"
       ],
@@ -1408,9 +1348,7 @@
       "castTime": 0.5,
       "cost": 416,
       "element": "fire",
-      "requires": {
-        "INT": 14
-      },
+      "requires": { "INT": 14 },
       "upgradeMaterial": "rune_core",
       "upgradeStat": "INT",
       "job": "elemage",
@@ -1448,9 +1386,7 @@
       "castTime": 0.4,
       "cost": 384,
       "element": "cold",
-      "requires": {
-        "INT": 14
-      },
+      "requires": { "INT": 8, "VIT": 6 },
       "upgradeMaterial": "sea_pearl",
       "upgradeStat": "INT",
       "job": "elemage",
@@ -1483,9 +1419,7 @@
       "castTime": 0.4,
       "cost": 384,
       "element": "lightning",
-      "requires": {
-        "INT": 14
-      },
+      "requires": { "INT": 8, "LUK": 6 },
       "upgradeMaterial": "storm_quill",
       "upgradeStat": "INT",
       "job": "elemage",
@@ -1519,11 +1453,9 @@
       "castTime": 0.35,
       "cost": 288,
       "element": "arcane",
-      "requires": {
-        "INT": 10
-      },
+      "requires": { "VIT": 6, "INT": 4 },
       "upgradeMaterial": "warden_horn",
-      "upgradeStat": "INT",
+      "upgradeStat": "VIT",
       "job": "priest",
       "iconPending": true
     },
@@ -1556,11 +1488,9 @@
       "castTime": 0.3,
       "cost": 192,
       "element": "arcane",
-      "requires": {
-        "INT": 8
-      },
+      "requires": { "LUK": 5, "INT": 3 },
       "upgradeMaterial": "mirror_scale",
-      "upgradeStat": "INT",
+      "upgradeStat": "LUK",
       "job": "priest",
       "iconPending": true
     },
@@ -1587,16 +1517,13 @@
       "castTime": 0.24,
       "cost": 38,
       "element": "arcane",
-      "requires": {
-        "STR": 8,
-        "INT": 8
-      },
+      "requires": { "STR": 10, "AGI": 6 },
       "requiresWeapon": [
         "sword",
         "greatblade"
       ],
       "upgradeMaterial": "rune_core",
-      "upgradeStat": "INT",
+      "upgradeStat": "STR",
       "job": "spellblade",
       "iconPending": true
     },
@@ -1627,10 +1554,7 @@
       "castTime": 0.35,
       "cost": 112,
       "element": "arcane",
-      "requires": {
-        "STR": 8,
-        "INT": 8
-      },
+      "requires": { "STR": 10, "AGI": 6 },
       "requiresWeapon": [
         "sword"
       ],
@@ -1655,7 +1579,7 @@
       "recharge": 5.12,
       "invulnerable": false,
       "icon": "dash",
-      "upgradeStat": "DEX"
+      "upgradeStat": "AGI"
     },
     "roll": {
       "name": "Roll",
@@ -1671,7 +1595,7 @@
       "recharge": 2.08,
       "invulnerable": true,
       "icon": "roll",
-      "upgradeStat": "DEX"
+      "upgradeStat": "AGI"
     },
     "blink": {
       "name": "Blink",

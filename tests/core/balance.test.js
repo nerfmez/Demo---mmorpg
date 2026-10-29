@@ -30,7 +30,7 @@ test('power growth is bounded across independent sources; tank and speed caps ar
  const ch=createCharacter(data);ch.level=40;for(const stat in ch.stats)ch.stats[stat]=1000;
  ch.jobNodes=Object.keys(data.jobtree.nodes);const d=derive(ch,data),caps=data.progression.character.caps;
  for(const [stat,cap]of Object.entries(caps))assert.ok(cap<0?d[stat]>=cap:d[stat]<=cap,stat);
- const low=createCharacter(data);low.stats.STR=999;low.skills.slash=1;const before=computeSkill(low,data,derive(low,data),0);low.skills.slash=25;const after=computeSkill(low,data,derive(low,data),0);
+ const low=createCharacter(data);low.stats.STR=999;low.stats.AGI=999;low.skills.slash=1;const before=computeSkill(low,data,derive(low,data),0);low.skills.slash=25;const after=computeSkill(low,data,derive(low,data),0);
  assert.ok(Math.abs(after.damage/before.damage-1.24)<1e-8);
 });
 test('upgrade previews describe real stats without spending, rolling or modifying gear',()=>{

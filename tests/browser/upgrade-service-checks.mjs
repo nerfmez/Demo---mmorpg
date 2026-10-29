@@ -16,9 +16,9 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
     p.close();
     g.ch.gold = change.gold ?? 1213;
     g.ch.materials.skill_crystal = change.crystals ?? 3;
-    // Multistrike (DEX 6) reaches rank 2 at DEX 6 + requiresStatPerLevel; Life Leech (STR 5) is one short
+    // Multistrike (AGI 6) reaches rank 2 at AGI 6 + requiresStatPerLevel; Life Leech (VIT 5) is one short
     const step = g.data.progression.modUpgrade.requiresStatPerLevel;
-    Object.assign(g.ch.stats, { DEX: change.dex ?? 6 + step, VIT: 5, STR: 4 + step });
+    Object.assign(g.ch.stats, { AGI: change.agi ?? 6 + step, VIT: 4 + step, STR: 5 });
     g.ch.skills.slash = 1; g.ch.skillExp = {}; g.ch.level = Math.max(g.ch.level, 5);
     g.ch.mods = [{ uid: 9001, id: 'multistrike', level: change.level ?? 1 }, { uid: 9002, id: 'life_leech', level: 1 }];
     for (const slot of g.ch.slots) slot.mods = [];
@@ -41,7 +41,7 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
       await activate('[data-act="growth-pick"][data-id="9002"]');
       const leech = page.locator('[data-act="mod-up"][data-uid="9002"]');
       assert.equal(await leech.isDisabled(), true);
-      assert.match(await page.locator('.seeker-growth-grid [data-growth-status]').innerText(), /STR 30/);
+      assert.match(await page.locator('.seeker-growth-grid [data-growth-status]').innerText(), /VIT 30/);
       await activate('[data-act="growth-pick"][data-id="9001"]');
       await repeat.scrollIntoViewIfNeeded();
       await capture('upgrade-service-' + name);
@@ -94,7 +94,7 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
       assert.deepEqual(await values(), before, kind + ': handler refuses stale enabled button outside services');
       assert.match(await page.locator('.result-pop').innerText(), /กลับจุดคราฟต์หรือครูฝึก/);
     }
-    for (const change of [{ dex: 30 }, { gold: 39 }, { crystals: 1 }]) {
+    for (const change of [{ agi: 30 }, { gold: 39 }, { crystals: 1 }]) {
       await fixture(trainer, change);
       assert.equal(await page.locator(repeatSelector).isDisabled(), true);
       assert.doesNotMatch(await repeatCard().innerText(), /พร้อมอัปเกรด/);

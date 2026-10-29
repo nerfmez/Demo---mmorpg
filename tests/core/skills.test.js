@@ -100,9 +100,7 @@ test('equipping a skill that is in another slot swaps them', () => {
 
 test('new skill kinds compute their extra parameters', () => {
   const ch = createCharacter(data);
-  ch.stats.INT = 10;
-  ch.stats.STR = 10;
-  ch.stats.DEX = 10;
+  for (const k in ch.stats) ch.stats[k] = 15; // every skill's first-level requirement (two stats each)
   for (const id of Object.keys(data.skills.combat)) ch.skills[id] = 1;
   const d = derive(ch, data);
   const at = (id) => {

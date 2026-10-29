@@ -337,9 +337,9 @@ export class Panels {
       <i class="pg-bar"><i style="width:${Math.max(0, Math.min(100, now / Math.max(1, need) * 100))}%"></i></i><small>${now} / ${need}${cls === 'job' ? ' Job EXP' : ' EXP'}</small></div>`;
     const rows = STATS.map((s) => {
       const [name, eff] = STAT_TH[s].split(' · ');
-      // STR/DEX/INT are the colours skills, mods and weapons ask for; the value counts gear and the tree too
-      const main = data.progression.character.mainStats.includes(s), total = d.stats?.[s] ?? ch.stats[s], extra = total - ch.stats[s];
-      return `<div class="pg-stat"><span class="pg-ab">${s}</span><span class="pg-nm"><b>${name}</b><small>${eff}${main ? ' · ค่าหลัก ใช้เป็นเงื่อนไข' : ''}</small></span><b class="pg-v">${total}${extra ? `<small> (+${extra})</small>` : ''}</b>
+      // the value counts gear and the Job Tree too (the bonus in brackets)
+      const total = d.stats?.[s] ?? ch.stats[s], extra = total - ch.stats[s];
+      return `<div class="pg-stat"><span class="pg-ab">${s}</span><span class="pg-nm"><b>${name}</b><small>${eff}</small></span><b class="pg-v">${total}${extra ? `<small> (+${extra})</small>` : ''}</b>
       <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button></div>`;
     }).join('');
     const kv = (rows) => `<div class="pg-kv">${rows.filter(Boolean).map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
@@ -357,7 +357,7 @@ export class Panels {
         <div class="muted">ได้เลเวลละ ${data.progression.character.statPointsPerLevel} แต้ม · ใช้เป็นเงื่อนไขของอาวุธ สกิล และม็อด</div>
         <div class="pg-list">${rows}</div>
         <div class="pg-foot"><span class="muted">รีแต้มด้วยเงินในเกม · ในนิคมเท่านั้น</span>
-          <button class="btn" data-act="respec-stats" ${!near.inTown || ch.gold < cost.stats ? 'disabled' : ''}>รีแต้ม · ${cost.stats} G</button></div>
+          <button class="btn" data-act="respec-stats" ${!near.inTown || ch.gold < cost.stats ? 'disabled' : ''}>รีแต้ม · ${cost.stats ? `${cost.stats} G` : 'ฟรี 1 ครั้ง (กฎค่าสถานะใหม่)'}</button></div>
       </section>
       <section class="pg-col">
         <h4>การโจมตี</h4>${kv([['พลังโจมตี', d.attack], ['พลังเวท', d.magic], ['โอกาสคริ', `${Math.round(d.critChance * 100)}%`], ['แรงคริ', `×${d.critMult.toFixed(2)}`], d.dodgeChancePct ? ['โอกาสหลบ', `${d.dodgeChancePct.toFixed(1)}%`] : null, pct('ดาเมจประชิด', d.meleeDamagePct), pct('ดาเมจยิง', d.projectileDamagePct), pct('ดาเมจเวท', d.spellDamagePct), pct('ดาเมจวงกว้าง', d.areaDamagePct), pct('ดาเมจอัญเชิญ', d.summonDamagePct), d.poisonChancePct ? ['โอกาสติดพิษ', `${d.poisonChancePct.toFixed(0)}%`] : null])}

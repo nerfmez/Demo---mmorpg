@@ -224,7 +224,7 @@
         "costMult": 1.4
       },
       "requires": {
-        "DEX": 6
+        "AGI": 6
       },
       "id": "multistrike"
     },
@@ -363,7 +363,7 @@
         "costMult": 1.15
       },
       "requires": {
-        "STR": 5
+        "VIT": 5
       },
       "id": "life_leech"
     },
@@ -418,7 +418,7 @@
         "costMult": 1.2
       },
       "requires": {
-        "STR": 6
+        "VIT": 6
       },
       "id": "spiked_ward"
     },
@@ -485,7 +485,7 @@
         "costMult": 1.2
       },
       "requires": {
-        "DEX": 8
+        "AGI": 8
       },
       "id": "cast_on_dodge"
     },
@@ -504,7 +504,7 @@
         "movementCharges": 1
       },
       "requires": {
-        "DEX": 5
+        "AGI": 5
       },
       "maxLevel": 1,
       "prototype": true,
@@ -614,7 +614,7 @@
         "costMult": 1.15
       },
       "requires": {
-        "DEX": 5
+        "AGI": 5
       },
       "prototype": true,
       "id": "advancing_edge"
@@ -677,7 +677,7 @@
         "costMult": 1.2
       },
       "requires": {
-        "DEX": 5
+        "LUK": 5
       },
       "prototype": true,
       "id": "laceration"
@@ -741,7 +741,7 @@
         "costMult": 1.2
       },
       "requires": {
-        "INT": 5
+        "VIT": 5
       },
       "prototype": true,
       "id": "following_field",
@@ -832,7 +832,7 @@
         "costMult": 1.25
       },
       "requires": {
-        "INT": 5
+        "VIT": 5
       },
       "prototype": true,
       "id": "healing_barrier"
@@ -862,7 +862,7 @@
         "costMult": 1.2
       },
       "requires": {
-        "STR": 6
+        "VIT": 6
       },
       "prototype": true,
       "id": "breaking_ward"
@@ -890,7 +890,7 @@
         "costMult": 1.25
       },
       "requires": {
-        "INT": 6
+        "LUK": 6
       },
       "prototype": true,
       "id": "spreading_hex"
@@ -915,7 +915,7 @@
         "costMult": 1.15
       },
       "requires": {
-        "DEX": 5
+        "VIT": 5
       },
       "prototype": true,
       "id": "focused_pack"
@@ -941,7 +941,7 @@
         "costMult": 1.15
       },
       "requires": {
-        "INT": 6
+        "VIT": 6
       },
       "prototype": true,
       "id": "guardian_bond"
@@ -1007,7 +1007,7 @@
         "costMult": 1.2
       },
       "requires": {
-        "STR": 8
+        "VIT": 8
       },
       "prototype": true,
       "id": "cast_on_guard"
@@ -1051,7 +1051,7 @@
         "costMult": 1.15
       },
       "requires": {
-        "DEX": 5
+        "LUK": 5
       },
       "id": "poison_shift"
     },
@@ -1134,7 +1134,7 @@
         "momentumWindow": 2
       },
       "requires": {
-        "DEX": 5
+        "AGI": 5
       },
       "id": "momentum"
     },
@@ -1265,7 +1265,7 @@
         "costMult": 1.3
       },
       "requires": {
-        "DEX": 6
+        "AGI": 6
       },
       "id": "quicken"
     },
@@ -1291,7 +1291,7 @@
         "costMult": 1.3
       },
       "requires": {
-        "INT": 5
+        "VIT": 5
       },
       "id": "prolong"
     },
@@ -1596,7 +1596,7 @@
         "costMult": 1.2
       },
       "requires": {
-        "STR": 6
+        "VIT": 6
       },
       "id": "control_duration"
     }

@@ -90,20 +90,21 @@ export function buildProfile(data, spec) {
     progression: { ...data.progression, balance: { ...b, builds: { ...b.builds, [spec.kit]: { ...build, skill: loadout[0] } } } } };
   const { ch, d } = referenceHero(D, spec.kit, spec.level, [...(spec.jobNodes || []), gearNode]);
   [...loadout.slice(1), ...support].forEach((id, i) => { ch.slots[i + 1] = { skill: id, mods: [] }; ch.skills[id] = skillRankAt(data, spec.level); });
-  // mods socketed per slot ({ slot: [mod ids] }) at their top level; the hero moves stat points into what a
-  // mod requires, out of the stats nothing it uses asks for (VIT, AGI, LUK, then an unused main stat) and
-  // never below the start, so the mod is measured at the level such a hero holds (docs/STATS-TH.md)
-  const needs = new Set(ch.slots.flatMap((sl) => sl.skill ? Object.keys(skillRequires(data, data.skills.combat[sl.skill])) : []));
-  for (const ids of Object.values(spec.mods || {})) for (const id of ids) for (const k of Object.keys(data.mods.mods[id].requires || {})) needs.add(k);
-  const spare = ['VIT', 'AGI', 'LUK', ...data.progression.character.mainStats].filter((k) => !needs.has(k)), start = data.progression.character.startingStats;
+  // mods socketed per slot ({ slot: [mod ids] }) at their top level. The hero moves stat points into what its
+  // skills (at their level) and mods ask for, out of the stats nothing it uses asks for and never below the
+  // start, so each is measured at the level such a hero holds (docs/STATS-TH.md)
+  const asks = ch.slots.filter((sl) => sl.skill).map((sl) => skillRequires(data, data.skills.combat[sl.skill], ch.skills[sl.skill]));
   for (const [slot, ids] of Object.entries(spec.mods || {})) for (const id of ids) {
     const uid = `bm${slot}.${id}`, level = data.mods.mods[id].maxLevel || 3;
     ch.mods.push({ uid, id, level, grade: 'A' });
     ch.slots[slot].mods.push(uid);
-    for (const [stat, need] of Object.entries(modRequires(data, data.mods.mods[id], level))) for (const k of spare) {
-      const move = Math.min(need - ch.stats[stat], ch.stats[k] - start[k]);
-      if (move > 0) { ch.stats[k] -= move; ch.stats[stat] += move; }
-    }
+    asks.push(modRequires(data, data.mods.mods[id], level));
+  }
+  const needs = new Set(asks.flatMap((r) => Object.keys(r))), start = data.progression.character.startingStats;
+  const spare = ['VIT', 'LUK', 'AGI', 'INT', 'DEX', 'STR'].filter((k) => !needs.has(k));
+  for (const r of asks) for (const [stat, need] of Object.entries(r)) for (const k of spare) {
+    const move = Math.min(need - ch.stats[stat], ch.stats[k] - start[k]);
+    if (move > 0) { ch.stats[k] -= move; ch.stats[stat] += move; }
   }
   d.stats = statTotals(ch, data).stats; // the moved points meet the requirements (HP and power stay as measured)
   for (const [id, bars] of Object.entries(spec.growth || {})) (ch.skillGrowth ||= {})[id] = { grade: 'S', bars, earned: data.progression.skillGrowth.totalPoints, prof: 0 };

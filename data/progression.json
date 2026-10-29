@@ -8,8 +8,8 @@
     },
     "statPointsPerLevel": 3,
     "startingStatPoints": 4,
-    "mainStats": ["STR", "DEX", "INT"],
-    "_mainStatsDoc": "Owner, 2026-10-29 (docs/STATS-TH.md): STR, DEX and INT are the colours of skills, mods and weapons; every stat requirement uses only them (tests/core/stats.test.js). VIT, AGI and LUK never gate anything: they are bought for HP, speed and luck. Stats come from trained points, Job Tree nodes and gear options (core/character.js statTotals).",
+    "statWheel": ["STR", "AGI", "DEX", "LUK", "INT", "VIT"],
+    "_statWheelDoc": "Owner, 2026-10-29 (docs/STATS-TH.md): the six stats sit on a wheel in this order (VIT next to STR). A weapon asks for one stat (sword, greatblade, axe, mace STR; dagger AGI; bow DEX; staff, wand INT; shields VIT); a skill asks for one stat or two neighbours on the wheel (main first), a mod for one. Every stat named must be met on its own: none stands in for another. Stats come from trained points, Job Tree nodes and gear options (core/character.js statTotals).",
     "startingStats": {
       "STR": 3,
       "AGI": 3,
@@ -168,7 +168,7 @@
     "crystals": { "skill_crystal": 1, "skill_crystal_m": 5, "skill_crystal_l": 25 },
     "goldPerExp": 10,
     "expPerLevel": [1, 0.15],
-    "require": { "base": 3, "perLevel": 1.5 }
+    "require": { "base": 3, "perLevel": 1.7 }
   },
   "modUpgrade": {
     "maxLevel": 3,
@@ -333,7 +333,7 @@
         },
         "stats": {
           "STR": 0.6,
-          "DEX": 0.1
+          "AGI": 0.2
         }
       },
       "bow": {
@@ -346,7 +346,7 @@
         },
         "stats": {
           "DEX": 0.6,
-          "AGI": 0.1
+          "AGI": 0.25
         }
       },
       "staff": {
@@ -407,6 +407,9 @@
           "release_burst": "its MP cost outweighs the measured gain on a Flame Stream that already drains its supply; awaiting the skill growth rebalance",
           "split": "over the mod band on venom_mire: awaiting a decision",
           "chain_return": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "mana_siphon": "its stat sits off the side of the wheel of the skills it fits: the points the measured hero moves into it cost more than it adds; awaiting the mod review (phase 5)",
+          "advancing_edge": "adds less than it costs on every skill it fits once its top-rank stat (AGI) is paid for; awaiting the mod review (phase 5)",
+          "ramp_cast": "its stat (INT) sits off the side of the wheel of the skills it fits: the points the measured hero moves into it cost more than it adds; awaiting the mod review (phase 5)",
           "gathering_cut": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "laceration": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "status_burst": "adds less than it costs on every skill it fits, or its effect is not measured yet",

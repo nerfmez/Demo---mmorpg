@@ -38,7 +38,7 @@ and legacy `Game` reference; `OpenWorldGame` is the live browser simulation.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 17`, with `name`, `appearance` (its `hairStyle` and `face` from `network/protocol.js` `HAIR_STYLES` and `FACES`, its `hair` any hex colour; v15 gives an older look the painted `face: "default"`; v16 adds `skillGrowth`, skill id → `{ grade, bars, earned, prof }`, empty for an older hero; v17 adds `skillExp`, skill id → EXP fed toward the next level, and turns each old skill rank 1-5 into the level 1/4/10/17/24, kept even above the character's level), `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 18`, with `name`, `appearance` (its `hairStyle` and `face` from `network/protocol.js` `HAIR_STYLES` and `FACES`, its `hair` any hex colour; v15 gives an older look the painted `face: "default"`; v16 adds `skillGrowth`, skill id → `{ grade, bars, earned, prof }`, empty for an older hero; v17 adds `skillExp`, skill id → EXP fed toward the next level, and turns each old skill rank 1-5 into the level 1/4/10/17/24, kept even above the character's level; v18 adds `freeStatRespec`, true once for a hero who had trained stats when requirements moved to the stat wheel, making one `respecStats` free), `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## Approved V3 city overlay
 
@@ -190,9 +190,11 @@ the character or the stat catches up (`pending`; feeding then settles it free). 
 `mods.slotLevels` (1/4/10/17/24). Small and medium crystals drop from every monster
 (`items.upgradeMaterialDrops`), the large one from bosses.
 
-Stats (owner, 2026-10-29, `docs/STATS-TH.md`): STR, DEX and INT (`progression.character.mainStats`)
-are the only stats any requirement uses (skills, mods, weapons, offhands, movement upgrades;
-`tests/core/stats.test.js`); VIT, AGI and LUK gate nothing. `character.js statTotals(ch, data,
+Stats (owner, 2026-10-29, `docs/STATS-TH.md`): the six stats sit on a wheel
+(`progression.character.statWheel`: STR AGI DEX LUK INT VIT). A weapon asks for one stat by type (sword,
+greatblade, axe, mace STR; dagger AGI; bow DEX; staff, wand INT; shields VIT), a skill for one stat or
+two neighbours on the wheel (its `upgradeStat` first), a mod for one; each stat named is met on its own
+(`tests/core/stats.test.js`). `character.js statTotals(ch, data,
 equipped, skipUid)` adds trained points, Job Tree node `effects` named after a stat and the stat options
 of worn gear (`gearOptions` `str_flat` ... `luk_flat`, `growth: "attribute"` in `optionLevelGrowth`); gear
 turns on from below (an item is active once the rest already meet its requirement), so an item's own
@@ -200,7 +202,7 @@ bonus never meets its own requirement and two items cannot hold each other up. `
 totals (`d.stats`) for `perStat`, HP per VIT and MP per INT, and counts only active gear;
 `meetsRequires(ch, requires, data)` checks the totals (`meetsStats` checks a given stats object).
 `skills.js skillRequires(data, def, level)` = the skill's `requires` (or `skillUpgrade.require.base` of
-its `upgradeStat`) + `require.perLevel` (1.5) per level above 1, shared by its stats in proportion;
+its `upgradeStat`) + `require.perLevel` (1.7) per level above 1, shared by its stats in proportion;
 `modRequires` adds `modUpgrade.requiresStatPerLevel` (25) per mod level. `levelInUse` holds a skill or
 mod above what the stats allow at the highest level they meet (`computeSkill` `s.level`, `s.owned`); it
 is switched off only below its first level. In Godot keep `Character.stat_totals()` and call it

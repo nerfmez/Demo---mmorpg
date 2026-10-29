@@ -9,7 +9,7 @@ import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK']; // LUK: crit chance (DEX: crit damage)
-export const CHARACTER_VERSION = 17;
+export const CHARACTER_VERSION = 18;
 // v17: a skill's rank 1-5 became a level up to the character's; each old rank becomes the level the old
 // balance model gave it (the same mod sockets). It is kept even above the character's level: that skill
 // only waits to grow until the character catches up.
@@ -60,6 +60,7 @@ export function createCharacter(data, opts = {}) {
     movementRanks: {}, // movement skill id -> rank above 1 (AGI upgrades, crafting.js upgradeMovement)
     skillGrowth: {}, // skill id -> { grade, bars, earned, prof } (core/skill-growth.js)
     skillExp: {}, // skill id -> EXP fed toward its next level (core/crafting.js feedSkill)
+    freeStatRespec: false, // one stat respec costs nothing (v18: the stat wheel changed what skills ask for)
     movement: null,
     movementMods: [],
     mods: [],
@@ -295,6 +296,10 @@ export function migrateCharacter(ch, data) {
   if ((ch.version || 1) < 17) for (const id of Object.keys(ch.skills)) ch.skills[id] = OLD_RANK_LEVELS[Math.min(5, Math.max(1, ch.skills[id] | 0)) - 1];
   for (const id of Object.keys(ch.skills)) ch.skills[id] = Math.max(1, Math.min(data.progression.skillUpgrade.maxLevel, ch.skills[id] | 0));
   ch.skillExp = Object.fromEntries(Object.entries(ch.skillExp || {}).filter(([id, n]) => ch.skills[id] && Number.isFinite(n) && n > 0));
+  // v18: requirements moved to the stat wheel (docs/STATS-TH.md); a hero who trained stats under the old
+  // rules gets one stat respec free (respecCost)
+  if ((ch.version || 1) < 18) ch.freeStatRespec = STATS.some((s) => ch.stats[s] > data.progression.character.startingStats[s]);
+  ch.freeStatRespec = ch.freeStatRespec === true;
   ch.version = CHARACTER_VERSION;
   return ch;
 }
@@ -517,7 +522,7 @@ export function currentJob(ch, data) {
 
 export function respecCost(ch, data) {
   const r = data.progression.respec;
-  return { stats: r.statsGoldPerLevel * ch.level, job: r.jobGoldPerLevel * ch.jobLevel };
+  return { stats: ch.freeStatRespec ? 0 : r.statsGoldPerLevel * ch.level, job: r.jobGoldPerLevel * ch.jobLevel };
 }
 
 export function respecStats(ch, data) {
@@ -529,6 +534,7 @@ export function respecStats(ch, data) {
   ch.stats = { ...start };
   ch.statPoints += spent;
   ch.gold -= cost;
+  ch.freeStatRespec = false;
   enforceEquipment(ch, data);
   return true;
 }

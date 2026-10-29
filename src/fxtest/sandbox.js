@@ -87,7 +87,7 @@ export function benchMods(data, skill, selected = []) {
 // cooldown and cast time / (1 + haste / 100).
 export function createBench(data, skill, mods = [], { seed = 71, fusion = null, fusionRules = null, movement = 'dash', haste = null } = {}) {
   const ch = createCharacter(data, { kit: 'bow' });
-  ch.stats = { STR: 60, AGI: 50, VIT: 50, INT: 60, DEX: 60, LUK: 50 };
+  ch.stats = { STR: 60, AGI: 60, VIT: 60, INT: 60, DEX: 60, LUK: 60 };
   ch.skills[skill] = 1;
   ch.mods = mods.map((m) => ({ id: m.id, uid: ch.nextUid++, level: m.level || 1, grade: 'C' }));
   if (fusion) ch.skills[fusion] = 1;

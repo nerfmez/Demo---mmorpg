@@ -479,7 +479,7 @@
         "mp_on_hit"
       ],
       "upgradeMaterial": "wolf_fang",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "itemLevel": 6
     },
     "wisp_staff": {
@@ -600,7 +600,7 @@
         "mp_on_hit"
       ],
       "upgradeMaterial": "greyfang_mane",
-      "requirementStat": "DEX",
+      "requirementStat": "STR",
       "itemLevel": 11
     },
     "horn_greatblade": {
@@ -1328,7 +1328,7 @@
         "shield_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 1
     },
     "beetle_buckler": {
@@ -1350,7 +1350,7 @@
         "melee_pct"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 6
     },
     "crag_tower_shield": {
@@ -1373,7 +1373,7 @@
         "barrier_pct"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 21
     },
     "crab_greatshield": {
@@ -1397,7 +1397,7 @@
         "regen_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 1
     },
     "beetle_greatshield": {
@@ -1422,7 +1422,7 @@
         "regen_flat"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 6
     },
     "crag_greatshield": {
@@ -1447,7 +1447,7 @@
         "regen_flat"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 21
     },
     "hide_gloves": {
@@ -1581,7 +1581,7 @@
       "nameTh": "มีดเปลือกปู",
       "slot": "weapon",
       "weaponType": "dagger",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -1791,7 +1791,7 @@
       "nameTh": "กริชพรานชายแดน",
       "slot": "weapon",
       "weaponType": "dagger",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -1931,7 +1931,7 @@
       "nameTh": "โล่ว่าวอัศวิน",
       "slot": "offhand",
       "offhandType": "shield",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -2105,7 +2105,7 @@
       "nameTh": "มีดแหลมแสงวิญญาณ",
       "slot": "weapon",
       "weaponType": "dagger",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -2198,7 +2198,7 @@
       "nameTh": "โล่ที่ราบสูง",
       "slot": "offhand",
       "offhandType": "shield",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -2269,7 +2269,7 @@
       "nameTh": "มีดเขี้ยวซากโบราณ",
       "slot": "weapon",
       "weaponType": "dagger",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "attack_flat",
         "crit_pct",

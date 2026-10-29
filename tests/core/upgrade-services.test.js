@@ -13,10 +13,10 @@ const place = pos => { [game.player.x, game.player.z] = pos; };
 function screenshotState() {
   game.ch.gold = 1213;
   game.ch.materials = { skill_crystal: 3 };
-  // Multistrike (DEX 6) reaches rank 2 at DEX 6 + requiresStatPerLevel; Life Leech (STR 5) is one short of it
+  // Multistrike (AGI 6) reaches rank 2 at AGI 6 + requiresStatPerLevel; Life Leech (VIT 5) is one short of it
   const step = data.progression.modUpgrade.requiresStatPerLevel;
-  game.ch.stats.DEX = 6 + step;
-  game.ch.stats.STR = 4 + step;
+  game.ch.stats.AGI = 6 + step;
+  game.ch.stats.VIT = 4 + step;
   game.ch.mods = [{ uid: 901, id: 'multistrike', level: 1 }, { uid: 902, id: 'life_leech', level: 1 }];
 }
 // the page shows the picked mod's card; the list picks the first mod by default
@@ -55,7 +55,7 @@ test('Repeat Slash screenshot state has matching ready status and enabled button
     assert.match(card(html, 901), /class="ok" data-growth-status>พร้อมอัปเกรด/);
     assert.doesNotMatch(button(html, 901), /disabled/);
     const leech = markup('902');
-    assert.match(card(leech, 902), new RegExp(`ต้องมี STR ${5 + data.progression.modUpgrade.requiresStatPerLevel}`));
+    assert.match(card(leech, 902), new RegExp(`ต้องมี VIT ${5 + data.progression.modUpgrade.requiresStatPerLevel}`));
     assert.match(button(leech, 902), /disabled/);
     assert.ok(upgradeMod(game.ch, data, 901).ok);
     assert.equal(game.ch.mods[0].level, 2);
@@ -80,7 +80,7 @@ test('outside services, the card explains why a funded mod button is disabled', 
 
 test('stat, gold, crystal and max-rank rules remain atomic', () => {
   place(town.trainer);
-  for (const change of [() => { game.ch.stats.DEX -= 1; }, () => { game.ch.gold = 39; }, () => { game.ch.materials.skill_crystal = 1; }]) {
+  for (const change of [() => { game.ch.stats.AGI -= 1; }, () => { game.ch.gold = 39; }, () => { game.ch.materials.skill_crystal = 1; }]) {
     screenshotState(); change();
     const before = JSON.stringify(game.ch), html = markup();
     assert.match(button(html, 901), /disabled/);

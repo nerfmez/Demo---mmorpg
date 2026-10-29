@@ -12,7 +12,7 @@ const MULTIPLY = ['extraProjectiles', 'repeats', 'echoDelay', 'trigger', 'return
 
 /** The skill `id` in slot 0 with the given mods at `level`, every stat high enough. */
 function withMods(id, mods, level = 1, ch = createCharacter(data)) {
-  ch.stats = { STR: 99, DEX: 99, INT: 99, AGI: 99, VIT: 99 };
+  ch.stats = { STR: 99, DEX: 99, INT: 99, AGI: 99, VIT: 99, LUK: 99 };
   ch.skills[id] = 1;
   ch.mods = mods.map((m, i) => ({ uid: 900 + i, id: m, level }));
   ch.slots[0] = { skill: id, mods: ch.mods.map((m) => m.uid) };

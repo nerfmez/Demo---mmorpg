@@ -1,7 +1,8 @@
-// Stats (owner, 2026-10-29, docs/STATS-TH.md): STR, DEX and INT are the colours every requirement uses;
-// VIT, AGI and LUK never gate anything. Stats come from trained points, Job Tree nodes and gear options,
-// and requirements grow with the level of the skill or mod, so a focused hero meets them and a hybrid
-// needs gear and the tree.
+// Stats (owner, 2026-10-29, docs/STATS-TH.md): the six stats sit on a wheel (STR AGI DEX LUK INT VIT, VIT
+// next to STR). A weapon asks for one stat, a skill for one or two neighbours on the wheel, a mod for one,
+// and each stat named must be met on its own. Stats come from trained points, Job Tree nodes and gear
+// options, and requirements grow with the level of the skill or mod, so a hero who stays on one side of the
+// wheel meets them and one who mixes sides needs gear and the tree.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
@@ -9,18 +10,25 @@ import { createCharacter, derive, statTotals, gearEquipState, gearRequirements }
 import { computeSkill, skillRequires, modRequires } from '../../src/core/skills.js';
 import { feedSkill } from '../../src/core/crafting.js';
 
-const MAIN = data.progression.character.mainStats;
+const WHEEL = data.progression.character.statWheel;
+const WEAPON_STAT = { sword: 'STR', greatblade: 'STR', axe: 'STR', mace: 'STR', dagger: 'AGI', bow: 'DEX', staff: 'INT', wand: 'INT', greatshield: 'VIT' };
 
-test('every requirement and upgrade stat is a main stat (STR, DEX, INT)', () => {
-  assert.deepEqual(MAIN, ['STR', 'DEX', 'INT']);
+test('the wheel: weapons ask for one stat by type, skills for one or two neighbours, mods for one', () => {
+  assert.deepEqual([...WHEEL].sort(), ['AGI', 'DEX', 'INT', 'LUK', 'STR', 'VIT']);
+  const near = (a, b) => [1, WHEEL.length - 1].includes(Math.abs(WHEEL.indexOf(a) - WHEEL.indexOf(b)));
   const bad = [];
-  const check = (where, stats) => { for (const k of stats) if (!MAIN.includes(k)) bad.push(`${where} ${k}`); };
-  for (const [id, d] of Object.entries(data.skills.combat)) check(id, [...Object.keys(skillRequires(data, d, 30)), d.upgradeStat]);
-  for (const [id, d] of Object.entries(data.skills.movement)) check(id, [...Object.keys(d.requires || {}), d.upgradeStat]);
-  for (const [id, m] of Object.entries(data.mods.mods)) check(id, Object.keys(modRequires(data, m, 3)));
+  for (const [id, d] of Object.entries(data.skills.combat)) {
+    const k = Object.keys(skillRequires(data, d, 30));
+    if (!k.length || k.length > 2 || (k.length === 2 && !near(...k)) || k[0] !== d.upgradeStat) bad.push(`skill ${id} ${k}`);
+  }
+  for (const [id, m] of Object.entries(data.mods.mods)) if (Object.keys(m.requires || {}).length > 1) bad.push(`mod ${id}`);
   for (const [id, b] of Object.entries(data.items.gearBases)) {
-    for (const grade of ['C', 'S']) check(id, Object.keys(gearRequirements({ uid: 1, base: id, grade, upgrade: 0, options: [] }, data)).filter((k) => k !== 'level'));
-    check(id, [b.requirementStat, ...Object.keys(b.requires || {})]);
+    if (b.slot !== 'weapon' && b.slot !== 'offhand') continue;
+    const want = b.slot === 'offhand' ? 'VIT' : WEAPON_STAT[b.weaponType];
+    for (const grade of ['C', 'S']) {
+      const k = Object.keys(gearRequirements({ uid: 1, base: id, grade, upgrade: 0, options: [] }, data));
+      if (k.length !== 1 || k[0] !== want) bad.push(`gear ${id} ${k} (want ${want})`);
+    }
   }
   assert.deepEqual(bad, []);
 });
@@ -46,35 +54,36 @@ test("an item's own stat never meets its own requirement, and two items cannot h
   assert.equal(derive(ch, data).weaponType, 'none');
   ch.stats.STR = need;
   assert.equal(derive(ch, data).stats.STR, need + 5, 'once met, its bonus counts');
-  // a shield that gives STR beside the sword that gives STR: each would meet its need only with the other's
+  // a sword that gives VIT and a shield that gives STR: each would meet its need only with the other's bonus
+  sword.options = [{ id: 'vit_flat', value: 5 }];
   const shield = { uid: 9901, base: 'crab_shield', grade: 'C', upgrade: 0, options: [{ id: 'str_flat', value: 5 }] };
   ch.gear.push(shield); ch.equipped.offhand = shield.uid;
-  const low = Math.min(need, gearRequirements(shield, data).STR) - 1;
-  assert.ok(low + 5 >= Math.max(need, gearRequirements(shield, data).STR), 'the pair would lift each other');
-  ch.stats.STR = low;
+  ch.stats.STR = gearRequirements(sword, data).STR - 1; ch.stats.VIT = gearRequirements(shield, data).VIT - 1;
   const { active } = statTotals(ch, data);
   assert.deepEqual([active.has(sword.uid), active.has(shield.uid)], [false, false], 'neither turns on');
-  assert.equal(derive(ch, data).stats.STR, low);
+  ch.stats.STR += 1;
+  assert.deepEqual([...['sword', 'shield'].map((_, i) => statTotals(ch, data).active.has([sword, shield][i].uid))], [true, true], 'met on its own, the sword lifts the shield');
 });
 
 test('a skill asks for more at every level; above what the stats allow it works at the highest level they meet', () => {
   const r = data.progression.skillUpgrade.require, slash = data.skills.combat.slash;
-  assert.deepEqual(skillRequires(data, slash, 1), { STR: r.base });
-  assert.deepEqual(skillRequires(data, slash, 21), { STR: Math.round(r.base + r.perLevel * 20) });
+  assert.deepEqual(skillRequires(data, slash, 1), slash.requires);
+  const total = slash.requires.STR + slash.requires.AGI;
+  assert.deepEqual(skillRequires(data, slash, 21), Object.fromEntries(Object.entries(slash.requires).map(([k, v]) => [k, Math.round(v + r.perLevel * 20 * v / total)])));
   // a hybrid skill shares the growth between its stats in proportion
   const hybrid = Object.entries(data.skills.combat).find(([, d]) => Object.keys(d.requires || {}).length === 2);
   if (hybrid) {
     const [, d] = hybrid, at = skillRequires(data, d, 11), total = Object.values(d.requires).reduce((a, v) => a + v, 0);
     for (const [k, v] of Object.entries(d.requires)) assert.equal(at[k], Math.round(v + r.perLevel * 10 * v / total), k);
   }
-  const ch = createCharacter(data, { kit: 'sword' });
-  ch.level = 30; ch.skills.slash = 20; ch.stats.STR = skillRequires(data, slash, 12).STR;
+  const ch = createCharacter(data, { kit: 'sword' }), meet = (L) => Object.assign(ch.stats, skillRequires(data, slash, L));
+  ch.level = 30; ch.skills.slash = 20; meet(12);
   const s = computeSkill(ch, data, derive(ch, data), 0);
   assert.deepEqual([s.requirementsMet, s.owned, s.level], [true, 20, 12], 'held at level 12, never switched off');
   ch.stats.STR = 0;
   assert.equal(computeSkill(ch, data, derive(ch, data), 0).requirementsMet, false, 'below the first level it cannot be used');
   // feeding stops where the next level's requirement is not met
-  ch.stats.STR = skillRequires(data, slash, 12).STR; ch.skills.slash = 1; ch.skillExp = {}; ch.gold = 1e6; ch.materials = { skill_crystal: 999 };
+  meet(12); ch.skills.slash = 1; ch.skillExp = {}; ch.gold = 1e6; ch.materials = { skill_crystal: 999 };
   feedSkill(ch, data, 'slash', 'skill_crystal', 999);
   assert.equal(ch.skills.slash, 12);
 });
@@ -88,12 +97,28 @@ test('a mod above what the stats allow works at the highest rank they meet', () 
   assert.deepEqual([m.active, m.level], [true, 2]);
 });
 
-test('target numbers: at the planned level a focused hero meets its skill, a two-colour hero needs gear and the tree', () => {
-  const pc = data.progression.character, r = data.progression.skillUpgrade.require;
-  const level = 70, points = pc.startingStatPoints + pc.statPointsPerLevel * (level - 1), start = pc.startingStats.STR;
-  const need = skillRequires(data, data.skills.combat.slash, level).STR;
-  assert.ok(start + 0.6 * points >= need, `60% of the points (${start + 0.6 * points}) meets a Lv${level} skill (${need})`);
-  assert.ok(start + 0.3 * points < need, `30% (${start + 0.3 * points}) does not: a hybrid takes stats from gear and the tree`);
-  assert.ok(start + 0.3 * points + 45 >= need, 'with about 45 from gear and the tree it does');
-  assert.ok(r.perLevel > 1, 'requirements reach the hundreds at the long-term cap');
+test('target numbers: at Lv70 a hero on one side of the wheel meets its skill from level points; no stat stands in for another; two sides need gear and the tree', () => {
+  const pc = data.progression.character, level = 70, points = pc.startingStatPoints + pc.statPointsPerLevel * (level - 1), start = 3;
+  const slash = skillRequires(data, data.skills.combat.slash, level), ward = skillRequires(data, data.skills.combat.ward, level);
+  const ch = createCharacter(data, { kit: 'sword' }), at = (stats) => { ch.level = level; ch.skills.slash = level; ch.stats = { ...ch.stats, ...stats }; return computeSkill(ch, data, derive(ch, data), 0).level; };
+  assert.equal(at({ STR: start + Math.floor(points * 0.5), AGI: start + Math.floor(points * 0.3) }), level, 'half the points in STR and a third in AGI hold Slash at Lv70');
+  assert.ok(at({ STR: start + points, AGI: start }) < 10, 'all in STR does not: AGI is asked for on its own');
+  const twoSides = slash.STR + slash.AGI + ward.VIT + ward.INT - 4 * start;
+  assert.ok(twoSides > points && twoSides - points < 60, `Slash and Ward at Lv70 ask ${twoSides} points of ${points}: the rest from gear and the tree`);
+});
+
+test('v18: a hero who trained stats under the old rules gets one stat respec free, once', async () => {
+  const { migrateCharacter, respecCost, respecStats, CHARACTER_VERSION } = await import('../../src/core/character.js');
+  const old = createCharacter(data, { kit: 'sword' });
+  old.version = 17; delete old.freeStatRespec; old.stats.STR += 20; old.gold = 0;
+  const m = migrateCharacter(old, data);
+  assert.deepEqual([m.version, m.freeStatRespec, respecCost(m, data).stats], [CHARACTER_VERSION, true, 0]);
+  const once = JSON.stringify(m); migrateCharacter(m, data); assert.equal(JSON.stringify(m), once, 'idempotent');
+  assert.ok(respecStats(m, data), 'free with no gold');
+  assert.deepEqual([m.freeStatRespec, m.stats.STR, m.gold], [false, data.progression.character.startingStats.STR, 0]);
+  assert.ok(respecCost(m, data).stats > 0, 'the next one costs gold again');
+  assert.equal(migrateCharacter(m, data).freeStatRespec, false, 'a later load does not grant it again');
+  const untrained = createCharacter(data, { kit: 'bow' }); untrained.version = 17;
+  assert.equal(migrateCharacter(untrained, data).freeStatRespec, false, 'nothing trained, nothing to refund');
+  assert.equal(createCharacter(data).freeStatRespec, false);
 });

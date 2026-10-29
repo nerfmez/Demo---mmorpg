@@ -8,7 +8,7 @@ import {computeSkill,movementSkill,socketMod,socketMovementMod,unsocketMod,modSl
 import {tickFrontier,manaLimit,executeFrontier,wallBlocked,compileFrontier} from '../../src/core/frontier-content.js';
 import {modUpgradeState} from '../../src/core/crafting.js';
 const fixture=(id='charged_shot',mods=[])=>{
- const ch=createCharacter(data,{kit:'bow'});ch.movementSkills=Object.keys(data.skills.movement);ch.movement='roll';ch.stats={STR:50,DEX:50,INT:50,AGI:50,VIT:50};ch.skills[id]=1;ch.slots=[{skill:id,mods:[]},...ch.slots.slice(1).map(()=>({skill:null,mods:[]}))];
+ const ch=createCharacter(data,{kit:'bow'});ch.movementSkills=Object.keys(data.skills.movement);ch.movement='roll';ch.stats={STR:50,DEX:50,INT:50,AGI:50,VIT:50,LUK:50};ch.skills[id]=1;ch.slots=[{skill:id,mods:[]},...ch.slots.slice(1).map(()=>({skill:null,mods:[]}))];
  ch.mods=mods.map((id,i)=>({id,uid:900+i,level:1,grade:'C'}));ch.slots[0].mods=ch.mods.map(m=>m.uid);
  const g=new Game(data,{seed:71,character:ch});g.player.x=0;g.player.z=0;g.player.facing=Math.PI/2;g.derived.weaponType=data.skills.combat[id].requiresWeapon?.[0]||'sword';g.derived.offhand='shield';g.skills=ch.slots.map((_,i)=>computeSkill(ch,data,g.derived,i));
  const m=g.monsters[0];m.x=2;m.z=0;m.hp=m.maxHp=100000;m.defense=0;m.facing=Math.PI;m.boss=false;m.state='chase';m.aggro=true;m.statuses={};g.monsters=[m];
@@ -29,7 +29,7 @@ test('cancel, movement, death, refresh and missing release resources never shoot
 test('movement mod halves all four distances, adds one maximum charge and preserves other mechanics',()=>{
  const {ch}=fixture();ch.slots[0].mods=[];ch.mods=[{id:'short_stride',uid:901,level:1}];assert(socketMovementMod(ch,data,901).ok);assert.equal(modSlotOf(ch,901),-2);
  for(const id of Object.keys(data.skills.movement)){ch.movement=id;const before=movementSkill({...ch,movementMods:[]},data,derive(ch,data)),after=movementSkill(ch,data,derive(ch,data));assert.equal(after.distance,before.distance*.5,id);assert.equal(after.charges,before.charges+1,id);assert.equal(after.duration,before.duration,id);assert.equal(after.recharge,before.recharge,id);assert.equal(after.invulnerable,before.invulnerable,id);assert.deepEqual(after.landing,before.landing,id);}
- ch.stats.DEX=1;assert.equal(movementSkill(ch,data,derive(ch,data)).mods[0].active,false);assert.equal(ch.movementMods[0],901);ch.stats.DEX=50;assert(movementSkill(ch,data,derive(ch,data)).mods[0].active);assert.equal(modUpgradeState(ch,data,ch.mods[0]).reason,'max');unsocketMod(ch,901);assert.equal(modSlotOf(ch,901),-1);
+ ch.stats.AGI=1;assert.equal(movementSkill(ch,data,derive(ch,data)).mods[0].active,false);assert.equal(ch.movementMods[0],901);ch.stats.AGI=50;assert(movementSkill(ch,data,derive(ch,data)).mods[0].active);assert.equal(modUpgradeState(ch,data,ch.mods[0]).reason,'max');unsocketMod(ch,901);assert.equal(modSlotOf(ch,901),-1);
 });
 test('v8 migration adds a separate empty movement socket and preserves ownership/loadout, repeat is idempotent',()=>{
  const {ch}=fixture('firebolt',['split']);ch.version=8;delete ch.movementMods;const before=structuredClone(ch);migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.deepEqual(ch.movementMods,[]);assert.deepEqual(ch.mods,before.mods);assert.deepEqual(ch.slots,before.slots);assert.deepEqual(ch.gear,before.gear);const once=structuredClone(ch);migrateCharacter(ch,data);assert.deepEqual(ch,once);

@@ -93,9 +93,9 @@ test('MP on hit options roll small, on attack gear only; spell gear rolls MP reg
   assert.equal(o.mp_on_hit.stat, 'mpOnHit');
   assert.ok(optionRange(data, 'mp_on_hit', 'S', 21).max <= 8, 'a top roll stays small next to skill costs');
   for (const [id, b] of Object.entries(data.items.gearBases)) {
-    const t = b.weaponType;
-    if (['staff', 'wand'].includes(t)) assert.ok(!b.optionPool.includes('mp_on_hit') && b.optionPool.includes('mp_regen_pct'), id);
-    if (['sword', 'dagger', 'axe', 'mace', 'greatblade', 'bow'].includes(t)) assert.ok(b.optionPool.includes('mp_on_hit') && !b.optionPool.includes('mana_cost_pct'), id);
+    const t = b.weaponType, caster = ['staff', 'wand'].includes(t) || (b.slot === 'weapon' && b.requirementStat === 'INT'); // a priest's mace is a caster's
+    if (caster) assert.ok(!b.optionPool.includes('mp_on_hit') && b.optionPool.includes('mp_regen_pct'), id);
+    else if (['sword', 'dagger', 'axe', 'mace', 'greatblade', 'bow'].includes(t)) assert.ok(b.optionPool.includes('mp_on_hit') && !b.optionPool.includes('mana_cost_pct'), id);
   }
 });
 

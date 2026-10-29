@@ -9,14 +9,7 @@
         "boar_hide": 2,
         "gold": 20
       },
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "crit_pct",
-        "poison_on_hit",
-        "leech_pct",
-        "mp_on_hit"
-      ],
+      "optionPool": ["melee_pct", "attack_flat", "crit_pct", "leech_pct", "cdr_pct", "mp_on_hit", "str_flat", "agi_flat"],
       "itemLevel": 1
     },
     "hunter_bow": {
@@ -27,14 +20,7 @@
         "boar_hide": 4,
         "gold": 20
       },
-      "optionPool": [
-        "attack_flat",
-        "projectile_pct",
-        "crit_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit"
-      ],
+      "optionPool": ["projectile_pct", "attack_flat", "crit_pct", "crit_mult_pct", "cdr_pct", "poison_on_hit", "mp_on_hit", "dex_flat", "agi_flat", "luk_flat"],
       "itemLevel": 1
     },
     "fang_dagger": {
@@ -46,14 +32,7 @@
         "boar_tusk": 10,
         "gold": 60
       },
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "leech_pct",
-        "poison_on_hit",
-        "melee_pct",
-        "mp_on_hit"
-      ],
+      "optionPool": ["attack_flat", "crit_pct", "crit_mult_pct", "poison_on_hit", "cdr_pct", "leech_pct", "mp_on_hit", "str_flat", "dex_flat", "agi_flat"],
       "itemLevel": 6
     },
     "wisp_staff": {
@@ -67,16 +46,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "magic_flat",
-        "area_pct",
-        "spell_pct",
-        "mp_flat",
-        "cdr_pct",
-        "heal_pct",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ],
+      "optionPool": ["magic_flat", "spell_pct", "area_pct", "mp_flat", "mp_regen_pct", "mana_cost_pct", "crit_pct", "int_flat", "luk_flat"],
       "itemLevel": 16
     },
     "spore_wand": {
@@ -87,15 +57,7 @@
         "glow_dust": 1,
         "gold": 25
       },
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "summon_pct",
-        "poison_on_hit",
-        "cdr_pct",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ],
+      "optionPool": ["magic_flat", "spell_pct", "crit_pct", "crit_mult_pct", "cdr_pct", "summon_pct", "mp_regen_pct", "int_flat", "luk_flat"],
       "itemLevel": 1
     },
     "crag_axe": {
@@ -109,14 +71,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "hp_flat",
-        "defense_flat",
-        "leech_pct",
-        "mp_on_hit"
-      ],
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"],
       "itemLevel": 21
     },
     "storm_bow": {
@@ -129,14 +84,7 @@
         "boar_tusk": 18,
         "gold": 300
       },
-      "optionPool": [
-        "attack_flat",
-        "projectile_pct",
-        "crit_pct",
-        "move_pct",
-        "cdr_pct",
-        "mp_on_hit"
-      ],
+      "optionPool": ["projectile_pct", "attack_flat", "crit_pct", "crit_mult_pct", "cdr_pct", "poison_on_hit", "mp_on_hit", "dex_flat", "agi_flat", "luk_flat"],
       "itemLevel": 16
     },
     "greyfang_sabre": {
@@ -149,14 +97,7 @@
         "boar_tusk": 12,
         "gold": 150
       },
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "crit_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit"
-      ],
+      "optionPool": ["melee_pct", "attack_flat", "crit_pct", "leech_pct", "cdr_pct", "mp_on_hit", "str_flat", "agi_flat"],
       "itemLevel": 11
     },
     "horn_greatblade": {
@@ -171,14 +112,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "crit_pct",
-        "hp_flat",
-        "defense_flat",
-        "mp_on_hit"
-      ],
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"],
       "itemLevel": 21
     },
     "ancient_staff": {
@@ -193,16 +127,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "magic_flat",
-        "area_pct",
-        "spell_pct",
-        "heal_pct",
-        "cdr_pct",
-        "mp_flat",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ],
+      "optionPool": ["magic_flat", "spell_pct", "area_pct", "mp_flat", "mp_regen_pct", "mana_cost_pct", "crit_pct", "int_flat", "luk_flat"],
       "itemLevel": 21
     },
     "hide_vest": {
@@ -212,15 +137,7 @@
         "boar_hide": 6,
         "gold": 15
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "move_pct",
-        "barrier_pct",
-        "regen_flat",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 1
     },
     "shell_guard": {
@@ -232,15 +149,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "barrier_pct",
-        "poison_on_hit",
-        "regen_flat",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 6
     },
     "wolfpelt_coat": {
@@ -252,15 +161,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "move_pct",
-        "regen_flat",
-        "barrier_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 6
     },
     "storm_mantle": {
@@ -273,19 +174,7 @@
         "spore_sac": 23,
         "gold": 300
       },
-      "optionPool": [
-        "mp_flat",
-        "spell_pct",
-        "cdr_pct",
-        "move_pct",
-        "magic_flat",
-        "shield_flat",
-        "shield_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 16
     },
     "crag_plate": {
@@ -299,15 +188,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "move_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 21
     },
     "leather_cap": {
@@ -317,15 +198,7 @@
         "boar_hide": 4,
         "gold": 10
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "crit_pct",
-        "barrier_pct",
-        "regen_flat",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 1
     },
     "beetle_helm": {
@@ -337,15 +210,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "move_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 6
     },
     "spore_hood": {
@@ -356,17 +221,7 @@
         "venom_gland": 3,
         "gold": 60
       },
-      "optionPool": [
-        "heal_pct",
-        "mp_flat",
-        "summon_pct",
-        "regen_flat",
-        "magic_flat",
-        "shield_flat",
-        "mp_regen_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 6
     },
     "feather_circlet": {
@@ -379,19 +234,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "cdr_pct",
-        "mp_flat",
-        "spell_pct",
-        "crit_pct",
-        "magic_flat",
-        "shield_flat",
-        "shield_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 16
     },
     "horned_helm": {
@@ -405,15 +248,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "attack_flat",
-        "melee_pct",
-        "barrier_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 21
     },
     "wolf_boots": {
@@ -425,16 +260,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "crit_pct",
-        "cdr_pct",
-        "hp_flat",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 6
     },
     "wisp_slippers": {
@@ -445,17 +271,7 @@
         "boar_hide": 2,
         "gold": 30
       },
-      "optionPool": [
-        "mp_flat",
-        "move_pct",
-        "cdr_pct",
-        "defense_flat",
-        "hp_flat",
-        "material_find",
-        "mp_regen_pct",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
       "itemLevel": 1
     },
     "crag_greaves": {
@@ -469,16 +285,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "regen_flat",
-        "move_pct",
-        "cdr_pct",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "move_pct"],
       "itemLevel": 21
     },
     "tusk_charm": {
@@ -488,20 +295,7 @@
         "boar_tusk": 4,
         "gold": 20
       },
-      "optionPool": [
-        "crit_pct",
-        "attack_flat",
-        "melee_pct",
-        "projectile_pct",
-        "defense_flat",
-        "gear_find",
-        "gold_find",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 1
     },
     "wisp_pendant": {
@@ -515,23 +309,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "spell_pct",
-        "area_pct",
-        "heal_pct",
-        "gear_find",
-        "gold_find",
-        "shield_flat",
-        "shield_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 16
     },
     "spore_amulet": {
@@ -542,20 +320,7 @@
         "venom_gland": 3,
         "gold": 60
       },
-      "optionPool": [
-        "heal_pct",
-        "regen_flat",
-        "summon_pct",
-        "poison_on_hit",
-        "mp_flat",
-        "gear_find",
-        "gold_find",
-        "mp_regen_pct",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 6
     },
     "feather_charm": {
@@ -568,20 +333,7 @@
         "boar_tusk": 18,
         "gold": 300
       },
-      "optionPool": [
-        "move_pct",
-        "cdr_pct",
-        "projectile_pct",
-        "crit_pct",
-        "attack_flat",
-        "gear_find",
-        "gold_find",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 16
     },
     "golem_amulet": {
@@ -595,19 +347,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "crit_pct",
-        "gear_find",
-        "gold_find",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 21
     },
     "ancient_ring": {
@@ -622,20 +362,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "attack_flat",
-        "magic_flat",
-        "crit_pct",
-        "cdr_pct",
-        "leech_pct",
-        "gear_find",
-        "gold_find",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 21
     },
     "learn_whirl_blade": {
@@ -902,15 +629,7 @@
         "crab_shell": 5,
         "gold": 30
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "move_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 1
     },
     "tide_boots": {
@@ -921,17 +640,7 @@
         "hawk_feather": 1,
         "gold": 30
       },
-      "optionPool": [
-        "move_pct",
-        "cdr_pct",
-        "defense_flat",
-        "hp_flat",
-        "mp_flat",
-        "material_find",
-        "mp_regen_pct",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 1
     },
     "pearl_pendant": {
@@ -942,22 +651,7 @@
         "crab_shell": 2,
         "gold": 45
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "spell_pct",
-        "heal_pct",
-        "summon_pct",
-        "gear_find",
-        "gold_find",
-        "shield_flat",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 1
     },
     "salt_boots": {
@@ -968,17 +662,7 @@
         "crab_shell": 2,
         "gold": 12
       },
-      "optionPool": [
-        "move_pct",
-        "cdr_pct",
-        "defense_flat",
-        "hp_flat",
-        "mp_flat",
-        "material_find",
-        "mp_regen_pct",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 1
     },
     "shore_circlet": {
@@ -991,19 +675,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "cdr_pct",
-        "mp_flat",
-        "spell_pct",
-        "crit_pct",
-        "magic_flat",
-        "shield_flat",
-        "shield_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 16
     },
     "hermit_guard": {
@@ -1015,15 +687,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "barrier_pct",
-        "poison_on_hit",
-        "regen_flat",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 6
     },
     "beetle_maul": {
@@ -1034,14 +698,7 @@
         "boar_tusk": 13,
         "gold": 60
       },
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "hp_flat",
-        "defense_flat",
-        "leech_pct",
-        "mp_on_hit"
-      ],
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"],
       "itemLevel": 6
     },
     "crab_shield": {
@@ -1052,14 +709,7 @@
         "salt_gel": 2,
         "gold": 25
       },
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "block_pct",
-        "regen_flat",
-        "barrier_pct",
-        "shield_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "regen_flat", "barrier_pct", "shield_flat", "vit_flat", "str_flat", "int_flat"],
       "itemLevel": 1
     },
     "beetle_buckler": {
@@ -1071,13 +721,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "block_pct",
-        "regen_flat",
-        "melee_pct"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "regen_flat", "barrier_pct", "shield_flat", "vit_flat", "str_flat", "int_flat"],
       "itemLevel": 6
     },
     "crag_tower_shield": {
@@ -1091,13 +735,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "block_pct",
-        "regen_flat",
-        "barrier_pct"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "regen_flat", "barrier_pct", "shield_flat", "vit_flat", "str_flat", "int_flat"],
       "itemLevel": 21
     },
     "crab_greatshield": {
@@ -1108,14 +746,7 @@
         "salt_gel": 3,
         "gold": 30
       },
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "defense_flat",
-        "hp_flat",
-        "block_pct",
-        "regen_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "attack_flat", "melee_pct", "regen_flat", "mp_on_hit", "vit_flat", "str_flat"],
       "itemLevel": 1
     },
     "beetle_greatshield": {
@@ -1127,14 +758,7 @@
         "boar_hide": 14,
         "gold": 90
       },
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "defense_flat",
-        "hp_flat",
-        "block_pct",
-        "regen_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "attack_flat", "melee_pct", "regen_flat", "mp_on_hit", "vit_flat", "str_flat"],
       "itemLevel": 6
     },
     "crag_greatshield": {
@@ -1148,14 +772,7 @@
         "ruin_shard": 3,
         "gold": 650
       },
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "defense_flat",
-        "hp_flat",
-        "block_pct",
-        "regen_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "attack_flat", "melee_pct", "regen_flat", "mp_on_hit", "vit_flat", "str_flat"],
       "itemLevel": 21
     },
     "hide_gloves": {
@@ -1165,16 +782,7 @@
         "boar_hide": 4,
         "gold": 15
       },
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "hp_flat",
-        "defense_flat",
-        "melee_pct",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
       "itemLevel": 1
     },
     "shell_mitts": {
@@ -1185,15 +793,7 @@
         "shore_feather": 2,
         "gold": 15
       },
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "regen_flat",
-        "block_pct",
-        "barrier_pct",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
       "itemLevel": 1
     },
     "wolf_grips": {
@@ -1205,16 +805,7 @@
         "boar_tusk": 10,
         "gold": 60
       },
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "projectile_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
       "itemLevel": 6
     },
     "wisp_wraps": {
@@ -1228,17 +819,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "cdr_pct",
-        "mp_flat",
-        "area_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "magic_flat"],
       "itemLevel": 16
     },
     "crag_gauntlets": {
@@ -1252,16 +833,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "attack_flat",
-        "melee_pct",
-        "block_pct",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
       "itemLevel": 21
     },
     "arrows_feather": {
@@ -1311,14 +883,7 @@
         "gold": 20
       },
       "itemLevel": 1,
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "projectile_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["attack_flat", "crit_pct", "crit_mult_pct", "poison_on_hit", "cdr_pct", "leech_pct", "mp_on_hit", "str_flat", "dex_flat", "agi_flat"]
     },
     "tusk_club": {
       "type": "gear",
@@ -1329,14 +894,7 @@
         "gold": 20
       },
       "itemLevel": 1,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "hp_flat",
-        "defense_flat",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"]
     },
     "tusk_greatblade": {
       "type": "gear",
@@ -1347,14 +905,7 @@
         "gold": 20
       },
       "itemLevel": 1,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "area_pct",
-        "hp_flat",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"]
     },
     "tide_staff": {
       "type": "gear",
@@ -1365,15 +916,7 @@
         "gold": 20
       },
       "itemLevel": 1,
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "area_pct",
-        "mp_flat",
-        "cdr_pct",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ]
+      "optionPool": ["magic_flat", "spell_pct", "area_pct", "mp_flat", "mp_regen_pct", "mana_cost_pct", "crit_pct", "int_flat", "luk_flat"]
     },
     "wolfbite_sword": {
       "type": "gear",
@@ -1385,14 +928,7 @@
         "gold": 60
       },
       "itemLevel": 6,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "crit_pct",
-        "leech_pct",
-        "hp_flat",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "crit_pct", "leech_pct", "cdr_pct", "mp_on_hit", "str_flat", "agi_flat"]
     },
     "venom_wand": {
       "type": "gear",
@@ -1403,15 +939,7 @@
         "gold": 60
       },
       "itemLevel": 6,
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "poison_on_hit",
-        "cdr_pct",
-        "mp_flat",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ]
+      "optionPool": ["magic_flat", "spell_pct", "crit_pct", "crit_mult_pct", "cdr_pct", "summon_pct", "mp_regen_pct", "int_flat", "luk_flat"]
     },
     "hermit_cleaver": {
       "type": "gear",
@@ -1423,14 +951,7 @@
         "gold": 60
       },
       "itemLevel": 6,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "area_pct",
-        "defense_flat",
-        "hp_flat",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"]
     },
     "spore_staff": {
       "type": "gear",
@@ -1441,15 +962,7 @@
         "gold": 60
       },
       "itemLevel": 6,
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "summon_pct",
-        "poison_on_hit",
-        "heal_pct",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ]
+      "optionPool": ["magic_flat", "spell_pct", "area_pct", "mp_flat", "mp_regen_pct", "mana_cost_pct", "crit_pct", "int_flat", "luk_flat"]
     },
     "fang_bow": {
       "type": "gear",
@@ -1460,14 +973,7 @@
         "gold": 60
       },
       "itemLevel": 6,
-      "optionPool": [
-        "attack_flat",
-        "projectile_pct",
-        "crit_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["projectile_pct", "attack_flat", "crit_pct", "crit_mult_pct", "cdr_pct", "poison_on_hit", "mp_on_hit", "dex_flat", "agi_flat", "luk_flat"]
     },
     "frontier_kris": {
       "type": "gear",
@@ -1480,14 +986,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "poison_on_hit",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["attack_flat", "crit_pct", "crit_mult_pct", "poison_on_hit", "cdr_pct", "leech_pct", "mp_on_hit", "str_flat", "dex_flat", "agi_flat"]
     },
     "moonleaf_wand": {
       "type": "gear",
@@ -1499,15 +998,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "heal_pct",
-        "cdr_pct",
-        "mp_flat",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ]
+      "optionPool": ["magic_flat", "spell_pct", "crit_pct", "crit_mult_pct", "cdr_pct", "summon_pct", "mp_regen_pct", "int_flat", "luk_flat"]
     },
     "ranger_axe": {
       "type": "gear",
@@ -1520,14 +1011,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "hp_flat",
-        "defense_flat",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"]
     },
     "knight_greatsword": {
       "type": "gear",
@@ -1540,14 +1024,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "area_pct",
-        "hp_flat",
-        "defense_flat",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"]
     },
     "tidecaller_staff": {
       "type": "gear",
@@ -1560,15 +1037,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "area_pct",
-        "barrier_pct",
-        "mp_flat",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ]
+      "optionPool": ["magic_flat", "spell_pct", "area_pct", "mp_flat", "mp_regen_pct", "mana_cost_pct", "crit_pct", "int_flat", "luk_flat"]
     },
     "dusk_longbow": {
       "type": "gear",
@@ -1581,14 +1050,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "attack_flat",
-        "projectile_pct",
-        "crit_pct",
-        "move_pct",
-        "cdr_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["projectile_pct", "attack_flat", "crit_pct", "crit_mult_pct", "cdr_pct", "poison_on_hit", "mp_on_hit", "dex_flat", "agi_flat", "luk_flat"]
     },
     "kite_shield": {
       "type": "gear",
@@ -1600,13 +1062,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "block_pct",
-        "regen_flat",
-        "barrier_pct"
-      ]
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "regen_flat", "barrier_pct", "shield_flat", "vit_flat", "str_flat", "int_flat"]
     },
     "ranger_coat": {
       "type": "gear",
@@ -1618,15 +1074,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "move_pct",
-        "regen_flat",
-        "projectile_pct",
-        "str_flat",
-        "vit_flat"
-      ]
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"]
     },
     "ranger_hood": {
       "type": "gear",
@@ -1638,15 +1086,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "defense_flat",
-        "crit_pct",
-        "cdr_pct",
-        "move_pct",
-        "hp_flat",
-        "int_flat",
-        "vit_flat"
-      ]
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"]
     },
     "brigand_gloves": {
       "type": "gear",
@@ -1659,16 +1099,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "poison_on_hit",
-        "leech_pct",
-        "move_pct",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat"
-      ]
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"]
     },
     "trail_boots": {
       "type": "gear",
@@ -1681,16 +1112,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "hp_flat",
-        "regen_flat",
-        "cdr_pct",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ]
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"]
     },
     "fang_talisman": {
       "type": "gear",
@@ -1703,20 +1125,7 @@
         "gold": 150
       },
       "itemLevel": 11,
-      "optionPool": [
-        "crit_pct",
-        "attack_flat",
-        "move_pct",
-        "leech_pct",
-        "melee_pct",
-        "gear_find",
-        "gold_find",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ]
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"]
     },
     "stormglass_blade": {
       "type": "gear",
@@ -1730,14 +1139,7 @@
         "gold": 300
       },
       "itemLevel": 16,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "crit_pct",
-        "cdr_pct",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "crit_pct", "leech_pct", "cdr_pct", "mp_on_hit", "str_flat", "agi_flat"]
     },
     "wisp_stiletto": {
       "type": "gear",
@@ -1751,14 +1153,7 @@
         "gold": 300
       },
       "itemLevel": 16,
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "cdr_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["attack_flat", "crit_pct", "crit_mult_pct", "poison_on_hit", "cdr_pct", "leech_pct", "mp_on_hit", "str_flat", "dex_flat", "agi_flat"]
     },
     "lantern_wand": {
       "type": "gear",
@@ -1772,15 +1167,7 @@
         "gold": 300
       },
       "itemLevel": 16,
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "summon_pct",
-        "cdr_pct",
-        "mp_flat",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ]
+      "optionPool": ["magic_flat", "spell_pct", "crit_pct", "crit_mult_pct", "cdr_pct", "summon_pct", "mp_regen_pct", "int_flat", "luk_flat"]
     },
     "thunder_maul": {
       "type": "gear",
@@ -1793,14 +1180,7 @@
         "gold": 300
       },
       "itemLevel": 16,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "area_pct",
-        "hp_flat",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["magic_flat", "spell_pct", "heal_pct", "hp_flat", "mp_regen_pct", "barrier_pct", "int_flat", "vit_flat"]
     },
     "galebreaker": {
       "type": "gear",
@@ -1814,14 +1194,7 @@
         "gold": 300
       },
       "itemLevel": 16,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "area_pct",
-        "move_pct",
-        "hp_flat",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"]
     },
     "highland_shield": {
       "type": "gear",
@@ -1835,13 +1208,7 @@
         "gold": 300
       },
       "itemLevel": 16,
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "block_pct",
-        "regen_flat",
-        "barrier_pct"
-      ]
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "regen_flat", "barrier_pct", "shield_flat", "vit_flat", "str_flat", "int_flat"]
     },
     "gale_boots": {
       "type": "gear",
@@ -1855,16 +1222,7 @@
         "gold": 300
       },
       "itemLevel": 16,
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "cdr_pct",
-        "hp_flat",
-        "projectile_pct",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ]
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"]
     },
     "oathblade": {
       "type": "gear",
@@ -1879,14 +1237,7 @@
         "gold": 500
       },
       "itemLevel": 21,
-      "optionPool": [
-        "attack_flat",
-        "melee_pct",
-        "crit_pct",
-        "hp_flat",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["melee_pct", "attack_flat", "crit_pct", "leech_pct", "cdr_pct", "mp_on_hit", "str_flat", "agi_flat"]
     },
     "ruin_fang": {
       "type": "gear",
@@ -1901,14 +1252,7 @@
         "gold": 500
       },
       "itemLevel": 21,
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "poison_on_hit",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["attack_flat", "crit_pct", "crit_mult_pct", "poison_on_hit", "cdr_pct", "leech_pct", "mp_on_hit", "str_flat", "dex_flat", "agi_flat"]
     },
     "relic_wand": {
       "type": "gear",
@@ -1923,15 +1267,7 @@
         "gold": 500
       },
       "itemLevel": 21,
-      "optionPool": [
-        "magic_flat",
-        "spell_pct",
-        "area_pct",
-        "cdr_pct",
-        "mp_flat",
-        "mp_regen_pct",
-        "mana_cost_pct"
-      ]
+      "optionPool": ["magic_flat", "spell_pct", "crit_pct", "crit_mult_pct", "cdr_pct", "summon_pct", "mp_regen_pct", "int_flat", "luk_flat"]
     },
     "skyrender_bow": {
       "type": "gear",
@@ -1945,14 +1281,7 @@
         "gold": 500
       },
       "itemLevel": 21,
-      "optionPool": [
-        "attack_flat",
-        "projectile_pct",
-        "crit_pct",
-        "cdr_pct",
-        "move_pct",
-        "mp_on_hit"
-      ]
+      "optionPool": ["projectile_pct", "attack_flat", "crit_pct", "crit_mult_pct", "cdr_pct", "poison_on_hit", "mp_on_hit", "dex_flat", "agi_flat", "luk_flat"]
     },
     "arrows_hunter": {
       "type": "arrow",
@@ -1972,16 +1301,7 @@
         "boar_hide": 3,
         "gold": 60
       },
-      "optionPool": [
-        "defense_flat",
-        "mp_flat",
-        "heal_pct",
-        "magic_flat",
-        "summon_pct",
-        "mp_regen_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 6
     },
     "sporeweave_gloves": {
@@ -1992,16 +1312,7 @@
         "glow_dust": 3,
         "gold": 60
       },
-      "optionPool": [
-        "magic_flat",
-        "heal_pct",
-        "summon_pct",
-        "mp_flat",
-        "poison_on_hit",
-        "mp_regen_pct",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "magic_flat"],
       "itemLevel": 6
     },
     "moonleaf_slippers": {
@@ -2013,17 +1324,7 @@
         "venom_gland": 10,
         "gold": 150
       },
-      "optionPool": [
-        "mp_flat",
-        "cdr_pct",
-        "defense_flat",
-        "hp_flat",
-        "heal_pct",
-        "material_find",
-        "mp_regen_pct",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
       "itemLevel": 11
     },
     "wardenstalker_coat": {
@@ -2038,15 +1339,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "defense_flat",
-        "hp_flat",
-        "move_pct",
-        "projectile_pct",
-        "regen_flat",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 21
     },
     "wardenstalker_hood": {
@@ -2061,15 +1354,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "crit_pct",
-        "cdr_pct",
-        "move_pct",
-        "defense_flat",
-        "hp_flat",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 21
     },
     "wardenstalker_gloves": {
@@ -2084,16 +1369,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "projectile_pct",
-        "leech_pct",
-        "move_pct",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
       "itemLevel": 21
     },
     "learn_slash": {
@@ -2158,20 +1434,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "move_pct",
-        "crit_pct",
-        "cdr_pct",
-        "attack_flat",
-        "projectile_pct",
-        "gear_find",
-        "gold_find",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 6
     },
     "mirrorwing_pendant": {
@@ -2183,21 +1446,7 @@
         "spore_sac": 10,
         "gold": 60
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "spell_pct",
-        "cdr_pct",
-        "barrier_pct",
-        "gear_find",
-        "gold_find",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 6
     },
     "burrowguard_brooch": {
@@ -2209,19 +1458,7 @@
         "boar_tusk": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "block_pct",
-        "regen_flat",
-        "barrier_pct",
-        "gear_find",
-        "gold_find",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 6
     },
     "grove_union_ring": {
@@ -2234,20 +1471,7 @@
         "boar_tusk": 20,
         "gold": 150
       },
-      "optionPool": [
-        "attack_flat",
-        "magic_flat",
-        "hp_flat",
-        "move_pct",
-        "crit_pct",
-        "gear_find",
-        "gold_find",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 11
     },
     "learn_charged_shot": {
@@ -2775,15 +1999,7 @@
         "shore_feather": 2,
         "gold": 20
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "block_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 1
     },
     "travel_gloves": {
@@ -2794,16 +2010,7 @@
         "salt_gel": 2,
         "gold": 20
       },
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "projectile_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
       "itemLevel": 1
     },
     "boarhide_boots": {
@@ -2814,16 +2021,7 @@
         "shore_feather": 2,
         "gold": 20
       },
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "crit_pct",
-        "cdr_pct",
-        "hp_flat",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 1
     },
     "crabshell_vest": {
@@ -2834,15 +2032,7 @@
         "salt_gel": 2,
         "gold": 20
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "block_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 1
     },
     "beetle_gloves": {
@@ -2854,15 +2044,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "block_pct",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
       "itemLevel": 6
     },
     "beetle_boots": {
@@ -2874,16 +2056,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "block_pct",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "move_pct"],
       "itemLevel": 6
     },
     "sporeweave_boots": {
@@ -2894,17 +2067,7 @@
         "glow_dust": 3,
         "gold": 60
       },
-      "optionPool": [
-        "mp_flat",
-        "heal_pct",
-        "defense_flat",
-        "hp_flat",
-        "summon_pct",
-        "mp_regen_pct",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
       "itemLevel": 6
     },
     "wolfpelt_hood": {
@@ -2916,15 +2079,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "crit_pct",
-        "cdr_pct",
-        "hp_flat",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 6
     },
     "burrowguard_armor": {
@@ -2936,15 +2091,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "block_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 6
     },
     "burrowguard_helm": {
@@ -2956,15 +2103,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "block_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
       "itemLevel": 6
     },
     "burrowguard_gloves": {
@@ -2976,15 +2115,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "block_pct",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
       "itemLevel": 6
     },
     "burrowguard_boots": {
@@ -2996,16 +2127,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "hp_flat",
-        "defense_flat",
-        "barrier_pct",
-        "regen_flat",
-        "block_pct",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "move_pct"],
       "itemLevel": 6
     },
     "mirrorwing_robe": {
@@ -3017,17 +2139,7 @@
         "spore_sac": 10,
         "gold": 60
       },
-      "optionPool": [
-        "mp_flat",
-        "barrier_pct",
-        "spell_pct",
-        "defense_flat",
-        "magic_flat",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 6
     },
     "mirrorwing_hood": {
@@ -3039,17 +2151,7 @@
         "spore_sac": 10,
         "gold": 60
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "spell_pct",
-        "cdr_pct",
-        "heal_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 6
     },
     "mirrorwing_gloves": {
@@ -3061,17 +2163,7 @@
         "spore_sac": 10,
         "gold": 60
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "spell_pct",
-        "cdr_pct",
-        "heal_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "magic_flat"],
       "itemLevel": 6
     },
     "mirrorwing_boots": {
@@ -3083,17 +2175,7 @@
         "spore_sac": 10,
         "gold": 60
       },
-      "optionPool": [
-        "mp_flat",
-        "move_pct",
-        "cdr_pct",
-        "defense_flat",
-        "barrier_pct",
-        "mp_regen_pct",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
       "itemLevel": 6
     },
     "fernstep_coat": {
@@ -3105,15 +2187,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "crit_pct",
-        "cdr_pct",
-        "hp_flat",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 6
     },
     "fernstep_cap": {
@@ -3125,15 +2199,7 @@
         "boar_tusk": 10,
         "gold": 60
       },
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "crit_pct",
-        "cdr_pct",
-        "hp_flat",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 6
     },
     "fernstep_gloves": {
@@ -3145,16 +2211,7 @@
         "boar_tusk": 10,
         "gold": 60
       },
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "projectile_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
       "itemLevel": 6
     },
     "fernstep_boots": {
@@ -3166,16 +2223,7 @@
         "boar_hide": 10,
         "gold": 60
       },
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "crit_pct",
-        "cdr_pct",
-        "hp_flat",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 6
     },
     "moonleaf_robe": {
@@ -3187,16 +2235,7 @@
         "venom_gland": 10,
         "gold": 150
       },
-      "optionPool": [
-        "defense_flat",
-        "mp_flat",
-        "cdr_pct",
-        "heal_pct",
-        "magic_flat",
-        "mp_regen_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 11
     },
     "moonleaf_cowl": {
@@ -3208,17 +2247,7 @@
         "venom_gland": 10,
         "gold": 150
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "spell_pct",
-        "cdr_pct",
-        "heal_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 11
     },
     "moonleaf_gloves": {
@@ -3230,17 +2259,7 @@
         "venom_gland": 10,
         "gold": 150
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "spell_pct",
-        "cdr_pct",
-        "heal_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "magic_flat"],
       "itemLevel": 11
     },
     "moonleaf_pendant": {
@@ -3252,21 +2271,7 @@
         "venom_gland": 10,
         "gold": 150
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "heal_pct",
-        "cdr_pct",
-        "spell_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "gear_find",
-        "gold_find",
-        "str_flat",
-        "dex_flat",
-        "int_flat",
-        "luk_flat"
-      ],
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
       "itemLevel": 11
     },
     "storm_gloves": {
@@ -3280,16 +2285,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "attack_flat",
-        "crit_pct",
-        "projectile_pct",
-        "move_pct",
-        "leech_pct",
-        "mp_on_hit",
-        "str_flat",
-        "dex_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
       "itemLevel": 16
     },
     "wisp_robe": {
@@ -3302,17 +2298,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "mp_flat",
-        "spell_pct",
-        "defense_flat",
-        "magic_flat",
-        "area_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "str_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 16
     },
     "wisp_hood": {
@@ -3325,17 +2311,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "magic_flat",
-        "mp_flat",
-        "spell_pct",
-        "cdr_pct",
-        "heal_pct",
-        "mp_regen_pct",
-        "mana_cost_pct",
-        "int_flat",
-        "vit_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
       "itemLevel": 16
     },
     "wisp_boots": {
@@ -3348,17 +2324,7 @@
         "storm_quill": 1,
         "gold": 300
       },
-      "optionPool": [
-        "mp_flat",
-        "move_pct",
-        "cdr_pct",
-        "defense_flat",
-        "hp_flat",
-        "mp_regen_pct",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
       "itemLevel": 16
     },
     "wardenstalker_boots": {
@@ -3373,16 +2339,7 @@
         "ruin_shard": 2,
         "gold": 500
       },
-      "optionPool": [
-        "move_pct",
-        "defense_flat",
-        "crit_pct",
-        "cdr_pct",
-        "hp_flat",
-        "material_find",
-        "dex_flat",
-        "agi_flat"
-      ],
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 21
     }
   }

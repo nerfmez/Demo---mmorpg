@@ -184,3 +184,20 @@ test('armour asks for its level and its class stat: heavy VIT (or VIT/STR), ligh
   }
   assert.deepEqual(bad, []);
 });
+
+test('options roll from the item class pool: a robe never rolls bow damage, a charm rolls the widest, finds only on charms', async () => {
+  const { optionClass } = await import('../../src/core/item-metadata.js');
+  const P = data.items.optionPools, bad = [];
+  for (const [id, b] of Object.entries(data.items.gearBases)) {
+    const c = optionClass(b), want = [...new Set([...P.classes[c], ...(P.slotExtras[`${c}.${b.slot}`] || [])])];
+    if (b.optionPool.join() !== want.join()) bad.push(`${id} (${c})`);
+    if (want.length < data.items.grades.optionCount.S) bad.push(`${id}: fewer options than an S grade rolls`);
+    const recipe = Object.values(data.recipes.recipes).find((r) => r.result === id && r.optionPool);
+    if (recipe && recipe.optionPool.join() !== want.join()) bad.push(`recipe of ${id}`);
+  }
+  for (const o of Object.values(P.classes).flat()) if (!data.items.gearOptions[o]) bad.push(`unknown option ${o}`);
+  assert.deepEqual(bad, []);
+  const robe = data.items.gearBases.sporeweave_vest.optionPool;
+  assert.ok(!robe.includes('projectile_pct') && !robe.includes('vit_flat') && robe.includes('int_flat'));
+  assert.ok(data.items.gearBases.fang_dagger.optionPool.includes('crit_mult_pct'));
+});

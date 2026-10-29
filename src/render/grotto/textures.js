@@ -182,6 +182,40 @@ export function runeTexture() {
   }, { repeat: false });
 }
 
+/** The carved medallion in the temple floor (the concept's circle under the water): pale stone rings
+ * with a groove beside each, a ring of radial slabs, an eight-petal rosette and a boss. Not magic: it
+ * does not glow. */
+export function medallionTexture() {
+  return canvasTexture('medallion', 512, (g, n) => {
+    const c = n / 2, groove = 'rgba(24,58,60,0.75)', stone = 'rgba(236,224,182,0.95)', worn = 'rgba(236,224,182,0.55)';
+    g.clearRect(0, 0, n, n);
+    // each line is carved: a dark groove, then the pale edge beside it
+    const ring = (r, w) => {
+      g.lineWidth = w + 3; g.strokeStyle = groove; g.beginPath(); g.arc(c + 2, c + 2, r, 0, Math.PI * 2); g.stroke();
+      g.lineWidth = w; g.strokeStyle = stone; g.beginPath(); g.arc(c, c, r, 0, Math.PI * 2); g.stroke();
+    };
+    const line = (a, r0, r1, w, col = stone) => {
+      const x0 = c + Math.cos(a) * r0, y0 = c + Math.sin(a) * r0, x1 = c + Math.cos(a) * r1, y1 = c + Math.sin(a) * r1;
+      g.lineWidth = w + 2; g.strokeStyle = groove; g.beginPath(); g.moveTo(x0 + 2, y0 + 2); g.lineTo(x1 + 2, y1 + 2); g.stroke();
+      g.lineWidth = w; g.strokeStyle = col; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+    };
+    ring(244, 9); ring(226, 3); ring(164, 5); ring(150, 2); ring(74, 4); ring(30, 3);
+    for (let i = 0; i < 36; i++) line((i / 36) * Math.PI * 2, 166, 224, i % 3 ? 2 : 4, i % 3 ? worn : stone); // the slabs of the outer band
+    for (let i = 0; i < 16; i++) line((i / 16) * Math.PI * 2 + 0.1, 76, 148, 2, worn);
+    // the rosette: eight lens-shaped petals
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      g.save(); g.translate(c, c); g.rotate(a);
+      for (const [col, off, w] of [[groove, 2, 5], [stone, 0, 3]]) {
+        g.strokeStyle = col; g.lineWidth = w;
+        g.beginPath(); g.moveTo(32 + off, off); g.quadraticCurveTo(90 + off, -34 + off, 146 + off, off); g.quadraticCurveTo(90 + off, 34 + off, 32 + off, off); g.stroke();
+      }
+      g.restore();
+    }
+    g.fillStyle = stone; g.beginPath(); g.arc(c, c, 14, 0, Math.PI * 2); g.fill();
+  }, { repeat: false });
+}
+
 /** Radial glow (white centre to transparent edge) for light pools and halos. */
 export function glowTexture() {
   return canvasTexture('glow', 128, (g, n) => {

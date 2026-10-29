@@ -8,7 +8,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { createRng } from '../../core/rng.js';
 import { turn } from '../../core/dungeon.js';
 import { toonRamp, outlineMaterial } from '../toon.js';
-import { runeTexture, glowTexture, nacreTexture } from './textures.js';
+import { runeTexture, glowTexture, nacreTexture, medallionTexture } from './textures.js';
 import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
 import { buildGiantClam } from './clam.js';
 import { GLOW_CORALS, glowCoralInstances, coralPools } from './corals.js';
@@ -396,13 +396,13 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'runeCircle': {
-        const r = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: runeTexture(), color: '#7ff6ff', transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }));
+        // a medallion carved into the temple floor under the water (the concept's circle): stone, not magic
+        const r = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: medallionTexture(), transparent: true, opacity: 0.8, depthWrite: false }));
         r.rotation.x = -Math.PI / 2;
         r.scale.setScalar(s);
         r.position.set(x, y + 0.03, z);
         r.renderOrder = 1;
         root.add(r);
-        spin.push({ mesh: r, axis: 'z', speed: 0.06, pulse: true });
         break;
       }
       case 'rock':

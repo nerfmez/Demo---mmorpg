@@ -9,7 +9,7 @@ import {WebGLLights} from 'three/src/renderers/webgl/WebGLLights.js';
 import {WebGLShadowMap} from 'three/src/renderers/webgl/WebGLShadowMap.js';
 import {FrameBuildQueue,afterPaint,useStartupTaskScheduling} from '../../src/render/build-queue.js';
 import {prepareSpatialRegion} from '../../src/render/spatial-region.js';
-import {compactResidentGeometry} from '../../src/render/resident-geometry.js';
+import {compactResidentGeometry, releaseResidentArraysOnUpload} from '../../src/render/resident-geometry.js';
 
 const source=readFileSync(new URL('../../src/main.js',import.meta.url),'utf8');
 // Region imports pull Vite-only JSON/assets. Evaluate the unchanged production
@@ -19,9 +19,9 @@ const placementSource=regionSource.slice(regionSource.indexOf('export function p
 const placeRegion=Function(placementSource.replace(/^export /gm,'')+'\nreturn placeRegion;')();
 const residentSource=readFileSync(new URL('../../src/render/resident-world.js',import.meta.url),'utf8');
 const warmResidentSteps=Function('THREE',residentSource.slice(residentSource.indexOf('export function* warmResidentSteps('),residentSource.indexOf('export async function prepareResidentWorld(')).replace(/^export /gm,'')+'\nreturn warmResidentSteps;')(THREE);
-const prepareResidentWorld=Function('THREE','startRegion','placeRegion','prepareSpatialRegion','compactResidentGeometry',
+const prepareResidentWorld=Function('THREE','startRegion','placeRegion','prepareSpatialRegion','compactResidentGeometry','releaseResidentArraysOnUpload',
   residentSource.replace(/^import .*;\n/gm,'').replace(/^export /gm,'')+'\nreturn prepareResidentWorld;')(
-    THREE,()=>{throw new Error('the harness supplies all three native resident regions');},placeRegion,prepareSpatialRegion,compactResidentGeometry);
+    THREE,()=>{throw new Error('the harness supplies all three native resident regions');},placeRegion,prepareSpatialRegion,compactResidentGeometry,releaseResidentArraysOnUpload);
 const frameSource=source.slice(source.indexOf('function frame(now) {'),source.indexOf('if (tripCharacter)'));
 const startupSource=source.slice(source.lastIndexOf('view.worldReady.then('));
 assert.ok(startupSource.startsWith('view.worldReady.then('),'execute the production all-world readiness callback');

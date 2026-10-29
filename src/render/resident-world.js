@@ -2,7 +2,7 @@
 // only changes visibility; no terrain build, GPU colour readback or imports run.
 import * as THREE from 'three';
 import { startRegion, placeRegion } from './region.js';
-import { compactResidentGeometry } from './resident-geometry.js';
+import { compactResidentGeometry, releaseResidentArraysOnUpload } from './resident-geometry.js';
 import { prepareSpatialRegion, updateSpatialRegion, restoreSpatialRegion } from './spatial-region.js';
 
 // compileAsync prepares programs but does not upload vertex buffers. Submit every
@@ -132,7 +132,7 @@ export async function prepareResidentWorld(view, worlds) {
   for (const region of view.regions.values()) if (region.grassError) throw region.grassError;
   // Pack all shared buffers before warming any region: aliases across regions
   // must never invalidate a buffer after its first gameplay-ready upload.
-  for(const region of view.regions.values()) region.bufferStats = compactResidentGeometry(region);
+  for(const region of view.regions.values()){region.bufferStats = compactResidentGeometry(region);releaseResidentArraysOnUpload(region);}
   for(const [id,region] of view.regions){
     const [x,z]=region.world.data.atlas.offset;
     placeRegion(region,x-origin[0],z-origin[1]);

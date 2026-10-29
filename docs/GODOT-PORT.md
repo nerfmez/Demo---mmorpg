@@ -435,6 +435,10 @@ Every model loaded through `render/models.js` (hero, outfits, hair, weapons, mon
 maps larger than `rendering.modelTextureMax` (1024) drawn down once on load: a 2048² map
 costs 22 MB of GPU memory and four of them helped push the iPad into a lost WebGL context.
 In Godot, set the import size limit on those textures to the same value.
+The weapon, outfit, hair and chibi hero GLBs themselves are stored at that size by
+`scripts/shrink-model-textures.py` (unused metal/roughness and occlusion maps removed,
+geometry byte-identical), so a weapon downloads about 1 MB instead of 7-11 MB.
+`docs/WEAPON-MODEL-PROVENANCE.json` keeps each weapon's original `sourceSha256`/`sourceBytes`.
 All 38 weapon bases are registered, and only current equipped/portrait weapons load on demand.
 The procedural shape in `equipment.js` remains the pending/failed-load fallback.
 The hero body is `public/models/hero_base.glb` (Meshy, auto-rigged, 24 Mixamo-like bones),
@@ -889,6 +893,15 @@ conservative `custom_aabb` on the static geometry; do not shorten the bounds to 
 grass batch's current visible instance count. Medium keeps its existing shadow
 size, filtering and screen grade.
 
+Once a static resident buffer reaches the GPU, its CPU copy is dropped
+(`releaseResidentArraysOnUpload`, `render/resident-geometry.js`): holding both for
+every map ran the iPad out of memory. Bounds are computed first. Grass, shared
+templates, skinned/morphing, dynamic-usage, interleaved, points/lines, waypoint
+stones, NPCs and animated parts keep their arrays. Because a restored WebGL
+context could not re-upload them, a lost context saves and reloads the page
+straight back into the game (at most once every three minutes). Godot keeps
+imported mesh data on the GPU only by default, so no equivalent step is needed.
+
 ## Finite terrain joins
 
 Finite terrain joins: the two linked maps' decorative heightfields have different
@@ -1239,7 +1252,8 @@ kept clear of trees and drawn on the map) join every scene exit, the Frontier ga
 three Azure seam trails. Zones follow the same woods (`root_warren` west, `fern_rise` north-east,
 `mirror_pond` between) and their encounter habitats (`data/encounters.json`) moved with them. Map
 look: `look.foliage` gives the map its own leaf and shrub [shadow, mid, light] colours (Moonroot's
-teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`); a zone's `soil`
+teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`; each leaf card is a
+raised arch of `art.anime.cardSegments`² quads, 2 since 29 October 2026: a shrub is 416 triangles, a crown 864); a zone's `soil`
 biases the open soil patches (Moonroot's woods have none); `acceptedScenes.bankShade` {strength,
 tone} gives a scene's steep grass banks a darker two-step cel tone in the terrain shader (vertex
 `aBank * (1 - normal.y)`), so the camp's terrace reads from above. `look.ground` [light, dark]

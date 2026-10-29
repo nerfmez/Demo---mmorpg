@@ -12,6 +12,7 @@ import { runeTexture, glowTexture, nacreTexture } from './textures.js';
 import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
 import { buildGiantClam } from './clam.js';
 import { GLOW_CORALS, glowCoralInstances, coralPools } from './corals.js';
+import { paintedInstances } from './painted.js';
 import { glowField } from './glow.js';
 import { kitInstances } from './kit.js';
 
@@ -108,10 +109,11 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
 /**
  * Build every prop of one map, plus rim decor at `decor` edge points ({x, z, nx, nz, y} from
  * rim.js, kept off `keepClear` [x, z, r] spots). `kit` is the Blender kit, `clam` the painted giant
- * clam (clam.js), `corals` the six painted glowing corals (corals.js), which grow in the cave rooms.
+ * clam (clam.js), `corals` the six painted glowing corals (corals.js), which grow in clumps in every room,
+ * `painted` the props from the owner's sheets (painted.js), which take the place of the simple ones.
  * Returns {root, update(dt, t), shell}.
  */
-export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null } = {}) {
+export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null, painted = null } = {}) {
   const root = new THREE.Group();
   root.name = 'grotto-props';
   const batch = new Batch();
@@ -142,6 +144,11 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   // clumps on top of each other. The clump lights the floor around it (a flat pool, not a halo,
   // which the floor and walls would cut into a disc).
   const glowPut = new Map(), clumps = [], pools = [];
+  const paintedPut = new Map();
+  const putPainted = (name, x, y, z, ry, s = 1) => {
+    if (!paintedPut.has(name)) paintedPut.set(name, []);
+    paintedPut.get(name).push({ x, y, z, ry, s });
+  };
   const putGlow = (name, x, y, z, ry, s) => {
     if (!glowPut.has(name)) glowPut.set(name, []);
     glowPut.get(name).push({ x, y, z, ry, s });
@@ -177,7 +184,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     const s0 = map.surfaceAt(x, z);
     pools.push({ x, y: (s0 ? s0.y : y) + 0.16, z, r: reach + big.height * s * 0.3, color: GLOW_CORALS[main].halo });
   };
-  let shell = null;
+  let shell = null, archKind = 0, chestKind = 0;
 
   const groundY = (x, z) => map.surfaceAt(x, z)?.y ?? 0;
   for (const p of map.def.props) {
@@ -190,6 +197,10 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     switch (p.type) {
       case 'pillar':
       case 'pillarBroken': {
+        if (painted) {
+          putPainted(p.type === 'pillar' ? 'pillar' : 'pillar_broken', x, y, z, rot + (rng.int(0, 3) * Math.PI) / 2, s * rng.range(0.92, 1.05));
+          break;
+        }
         const h = p.type === 'pillar' ? 4.4 : p.h ?? 1.8;
         batch.add(stoneDark, geo.box, place(base, 0, 0.25, 0, { sx: 1.45, sy: 0.5, sz: 1.45 }), '#4e4232');
         if (p.type === 'pillar') {
@@ -206,6 +217,12 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
       }
       case 'arch':
       case 'sealedArch': {
+        if (painted) {
+          // the two open arches are the two kinds of the sheet; the sealed one glows with its seal
+          putPainted(p.type === 'sealedArch' ? 'arch_sealed' : archKind++ % 2 ? 'arch_shell' : 'arch', x, y, z, rot, s);
+          if (p.type === 'sealedArch') pools.push({ x, y: y + 0.16, z, r: 3.2, color: '#7fe8ff' });
+          break;
+        }
         const sealed = p.type === 'sealedArch', half = sealed ? 2.8 : 2.6, h = sealed ? 4.6 : 4.0;
         for (const side of [-1, 1]) {
           batch.add(stoneDark, geo.box, place(base, side * half, 0.3, 0, { sx: 1.5, sy: 0.6, sz: 1.5 }), '#4e4232');
@@ -264,7 +281,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'coral': {
-        if (corals && map.surfaceAt(x, z)?.floor.style === 'cave') {
+        if (corals) {
           clump(p.color || '#b06cff', x, y - 0.05, z, rot + rng.range(-0.5, 0.5), s * rng.range(0.7, 1.05));
           break;
         }
@@ -281,6 +298,13 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'coralTree': {
+        if (painted) {
+          // the great coral of the steps: its light falls on the floor round it, small corals at its foot
+          putPainted('coral_tree', x, y - 0.1, z, rot, s);
+          pools.push({ x, y: y + 0.16, z, r: 4.5 * s, color: '#e090ff' });
+          if (corals) for (const [dx, dz, c] of [[2.2, 1.0, '#ff6fd2'], [-2.0, -0.6, '#4fd9ff']]) clump(c, x + dx * s, groundY(x + dx * s, z + dz * s) - 0.05, z + dz * s, rot + rng.range(-1, 1), rng.range(0.6, 0.8));
+          break;
+        }
         batch.add(stoneDark, geo.sphere, place(base, 0, -0.2, 0, { sx: 4.2, sy: 1.3, sz: 4.2 }), '#4e4232');
         batch.add(coralMat('#c27bff'), treeGeo, place(base, 0, 0.3, 0, { sx: 1, sy: 1.1, sz: 1 }));
         batch.add(coralMat('#ff7fd8'), coralGeos[2], place(base, 1.4, 0.2, 0.6, { sx: 2.2, sy: 2.2, sz: 2.2 }));
@@ -292,6 +316,12 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'crystal': {
+        if (painted) {
+          const k = s > 1.25 ? 'crystal_l' : s < 0.9 ? 'crystal_s' : rng.pick(['crystal_m', 'crystal_m', 'crystal_s', 'crystal_l']);
+          putPainted(k, x, y - 0.05, z, rng.range(0, 6.28), 1 + (s - 1) * 0.3);
+          pools.push({ x, y: y + 0.16, z, r: 1.4 + painted.get(k).height * 0.5, color: '#7fe8ff' });
+          break;
+        }
         const n = 5;
         for (let i = 0; i < n; i++) {
           const a = (i / n) * Math.PI * 2 + rng.range(-0.3, 0.3), lean = i === 0 ? 0 : rng.range(0.25, 0.55), hh = (i === 0 ? 1.9 : rng.range(0.9, 1.5)) * s;
@@ -304,6 +334,11 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
       }
       case 'pearl':
       case 'bigPearl': {
+        if (painted && p.type === 'bigPearl') {
+          putPainted('pearl_altar', x, y, z, rot, s);
+          pools.push({ x, y: y + 0.16, z, r: 3.2 * s, color: '#ffe3f4' });
+          break;
+        }
         const big = p.type === 'bigPearl', r = (big ? 1.25 : 0.32) * s;
         if (big) {
           batch.add(stoneDark, geo.cyl, place({ ...base, s: 1 }, 0, 0.3, 0, { sx: 2.6 * s, sy: 0.6, sz: 2.6 * s }), '#4e4232');
@@ -326,6 +361,11 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'chest': {
+        if (painted) {
+          putPainted(chestKind++ % 2 ? 'chest_open' : 'chest', x, y, z, rot);
+          halo(x, y + 0.7, z, 1.2, '#ffd27a', 0.18);
+          break;
+        }
         if (kit) {
           for (const part of ['chest_body', 'chest_lid', 'chest_metal']) putKit(part, x, y, z, rot);
           halo(x, y + 0.9, z, 1.6, '#ffd27a', 0.25);
@@ -340,6 +380,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'candles': {
+        if (painted) { putPainted('candles', x, y, z, rng.range(0, 6.28), s * rng.range(0.9, 1.15)); break; }
         const n = 4 + rng.int(0, 2);
         for (let i = 0; i < n; i++) {
           const a = rng.range(0, 6.28), r = rng.range(0, 0.6), hh = rng.range(0.3, 0.9);
@@ -418,16 +459,19 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'barrel': {
+        if (painted) { putPainted('barrel', x, y, z, rng.range(0, 6.28)); break; }
         batch.add(wood, geo.cyl, place(base, 0, 0.5, 0, { sx: 0.85, sy: 1.0, sz: 0.85 }), '#3a2414');
         for (const yy of [0.18, 0.82]) batch.add(stoneDark, geo.cyl, place(base, 0, yy, 0, { sx: 0.9, sy: 0.08, sz: 0.9 }));
         if (rng.chance(0.5)) batch.add(wood, geo.cyl, place(base, 0.75, 0.42, 0.3, { sx: 0.8, sy: 0.95, sz: 0.8, rx: Math.PI / 2, ry: rng.range(0, 3) }), '#3a2414');
         break;
       }
       case 'post':
-        if (kit) putKit('post', x, y, z, rot + rng.range(-0.2, 0.2), s);
+        if (painted) putPainted('post', x, y, z, rot + rng.range(-0.3, 0.3), s);
+        else if (kit) putKit('post', x, y, z, rot + rng.range(-0.2, 0.2), s);
         else batch.add(stone, geo.box, place(base, 0, 0.65, 0, { sx: 0.5, sy: 1.3, sz: 0.5 }), '#5a4a38');
         break;
       case 'crate': {
+        if (painted) { putPainted('crate', x, y, z, rot); if (rng.chance(0.5)) putPainted('crate', x + 0.06, y + 0.9 * 0.98, z - 0.05, rot + 0.5, 0.75); break; }
         if (kit) { putKit('crate', x, y, z, rot); if (rng.chance(0.5)) putKit('crate', x + 0.08, y + 0.7, z - 0.05, rot + 0.5, 0.8); break; }
         batch.add(wood, geo.box, place(base, 0, 0.4, 0, { sx: 0.85, sy: 0.8, sz: 0.85 }), '#3a2414');
         batch.add(stoneDark, geo.box, place(base, 0, 0.4, 0, { sx: 0.9, sy: 0.12, sz: 0.9 }));
@@ -449,6 +493,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'fallenPillar': {
+        if (painted) { putPainted('pillar_fallen', x, y, z, rot, s); break; }
         batch.add(stone, geo.box, place(base, 0, 0.48, 0, { sx: 0.95, sy: 0.95, sz: 3.6, rx: 0.05 }), '#5a4a38');
         batch.add(stoneDark, geo.box, place(base, 0, 0.7, -2.1, { sx: 1.4, sy: 1.4, sz: 0.5 }), '#4e4232');
         batch.add(stone, geo.box, place(base, 0.4, 0.3, 2.4, { sx: 0.8, sy: 0.6, sz: 0.9, ry: 0.5 }), '#5a4a38');
@@ -465,11 +510,17 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     const roll = rng.next();
     if (roll > 0.2 || e.stairs || clear(e.x, e.z)) continue; // nothing grows on the treads
     const x = e.x - e.nx * 0.15, z = e.z - e.nz * 0.15, d = { x, y: e.y, z, rot: 0, s: 1 };
-    if (corals && e.style === 'cave') {
-      // in a cave the painted corals grow at the foot of the walls, fewer and fuller, facing the room
+    if (corals) {
+      // the painted corals grow at the foot of the walls, fewer and fuller, facing the room; now and
+      // then a crystal cluster among them
       if (roll < 0.05) {
         const big = rng.chance(0.25) ? rng.range(1.0, 1.25) : rng.range(0.55, 0.9); // now and then a tall one
         clump(rng.pick(palette), e.x - e.nx * 0.3, e.y - 0.1, e.z - e.nz * 0.3, Math.atan2(-e.nx, -e.nz) + rng.range(-0.5, 0.5), big, [e.nx, e.nz]);
+      } else if (painted && roll < 0.075 && !clumps.some(([cx, cz, r]) => (e.x - cx) ** 2 + (e.z - cz) ** 2 < (r + 1) ** 2)) {
+        const k = rng.chance(0.7) ? 'crystal_s' : 'crystal_m';
+        putPainted(k, e.x - e.nx * 0.2, e.y - 0.08, e.z - e.nz * 0.2, rng.range(0, 6.28), rng.range(0.8, 1.1));
+        clumps.push([e.x, e.z, 1]);
+        pools.push({ x: e.x - e.nx * 0.6, y: e.y + 0.16, z: e.z - e.nz * 0.6, r: 1.6, color: '#7fe8ff' });
       }
       continue;
     }
@@ -504,6 +555,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     root.add(inst);
   }
   for (const [name, list] of glowPut) root.add(glowCoralInstances(corals, name, list));
+  for (const [name, list] of paintedPut) root.add(paintedInstances(painted, name, list));
   if (pools.length) root.add(coralPools(pools));
   for (const sp of sprites) { sp.renderOrder = 5; root.add(sp); }
   if (glows.length) root.add(glowField(glows));

@@ -647,13 +647,19 @@ a water shader with the same uniforms, and `OmniLight3D`s. Rooms with `style: "c
 `public/models/grotto/grotto-cave.glb`, a render-only model that `scripts/blender/grotto-cave.py` builds
 in world metres from the floor outlines: per floor `cavefloor_<id>`, `cavewall_<id>` and `caverock_<id>`, with
 ambient occlusion baked into vertex colours. Import it as it is (`MeshInstance3D`s with a cel material
-that multiplies vertex colour); collision still comes from the floors, never from this mesh. In those rooms the
+that multiplies vertex colour); collision still comes from the floors, never from this mesh. In every room the
 `coral` props and the corals at the foot of the walls are the painted corals of `public/models/grotto/glow-corals.glb`
 (`scripts/blender/grotto-corals.py`): per coral `coral_<name>_body`, cel-lit with half its own vertex colour added as
 emission, and `coral_<name>_glow`, unshaded vertex colour (tinted #d0d0d0), each standing on its own origin; place them
 with `MultiMeshInstance3D`s. They grow in clumps (`clump()` in props.js: one coral of the asked colour, 2-4 smaller mixed ones at
 0.3-0.65 of its size around its foot, along the wall at the rim, clumps never overlapping), and each clump lights the floor with a flat
-additive pool (`coralPools`), as do crystals in cave rooms, instead of a camera-facing halo. A map colour picks the coral (`GLOW_BY_COLOR` in `src/render/grotto/props.js`). See `docs/SHELL-GROTTO.md`.
+additive pool (`coralPools`), as do crystals, the coral tree, the sealed arch and the pearl altar, instead of a camera-facing halo. A map colour picks the coral (`GLOW_BY_COLOR` in `src/render/grotto/props.js`).
+The other props are `public/models/grotto/grotto-props.glb` (`scripts/blender/grotto-props.py`): per prop `prop_<name>_<kind>`
+meshes standing on their own origin, where kind is how to draw it: `flat` (cel, flat shading) and `smooth` (cel, smooth),
+`shine`/`shinesm` (the same plus half of the vertex colour as emission), `glow` (unshaded vertex colour, both sides). Map
+types to props as `buildProps` does (pillar, pillarBroken → pillar_broken, fallenPillar → pillar_fallen, arch → arch / arch_shell in turn,
+sealedArch → arch_sealed, crystal → crystal_s/m/l by scale, coralTree → coral_tree, bigPearl → pearl_altar, chest → chest / chest_open
+in turn, candles, barrel, crate, post); collision stays the `propTypes` circles. See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 

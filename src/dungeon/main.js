@@ -21,6 +21,7 @@ import { loadGrottoKit } from '../render/grotto/kit.js';
 import { loadGrottoCave } from '../render/grotto/cave.js';
 import { loadGiantClam } from '../render/grotto/clam.js';
 import { loadGlowCorals } from '../render/grotto/corals.js';
+import { loadPaintedProps } from '../render/grotto/painted.js';
 
 const params = new URLSearchParams(location.search);
 const SPEED = 6; // m/s, the game's moveSpeed (data/progression.json)
@@ -54,9 +55,9 @@ const maps = { inside: createDungeon(GROTTO.inside, GROTTO), outside: createDung
 // both scenes are built behind the loading card, once the Blender models (models/grotto) have loaded
 let views = null;
 const found = new Set(params.get('found') === '1' ? ['shell-mouth'] : []);
-function buildViews(kit, cave, clam, corals) {
+function buildViews(kit, cave, clam, corals, painted) {
   views = {
-    inside: buildGrottoScene(maps.inside, { motes: 420, kit, cave, clam, corals }),
+    inside: buildGrottoScene(maps.inside, { motes: 420, kit, cave, clam, corals, painted }),
     outside: buildGrottoScene(maps.outside, { sea: true, motes: 60, moteColours: ['#ffffff', '#fff1c0'] }),
   };
   for (const v of Object.values(views)) { v.root.visible = false; scene.add(v.root); }
@@ -349,9 +350,10 @@ Promise.all([
   loadGrottoCave().catch((e) => { console.warn('grotto cave', e); return null; }),
   loadGiantClam().catch((e) => { console.warn('giant clam', e); return null; }),
   loadGlowCorals().catch((e) => { console.warn('glow corals', e); return null; }),
+  loadPaintedProps().catch((e) => { console.warn('grotto props', e); return null; }),
 ])
-  .then(([kit, cave, clam, corals]) => {
-    buildViews(kit, cave, clam, corals);
+  .then(([kit, cave, clam, corals, painted]) => {
+    buildViews(kit, cave, clam, corals, painted);
     enter(state.where);
     last = performance.now();
     requestAnimationFrame(frame);

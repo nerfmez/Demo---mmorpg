@@ -137,6 +137,28 @@ test('the cave model was built from this map (rebuild: blender -b --python scrip
   for (const f of caves) for (const part of ['cavefloor', 'cavewall', 'caverock']) assert.ok(nodes.has(`${part}_${f.id}`), `${part}_${f.id}`);
 });
 
+test('the painted props hold every piece the map asks for (blender -b --python scripts/blender/grotto-props.py)', () => {
+  // src/render/grotto/painted.js draws prop_<name>_<kind>; props.js asks for these names
+  const glb = readFileSync(new URL('../../public/models/grotto/grotto-props.glb', import.meta.url));
+  const gltf = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString());
+  const byProp = new Map();
+  for (const n of gltf.nodes) {
+    const m = /^prop_(\w+?)_(flat|smooth|shine|shinesm|glow)$/.exec(n.name);
+    if (m) byProp.set(m[1], [...(byProp.get(m[1]) || []), { kind: m[2], mesh: gltf.meshes[n.mesh] }]);
+  }
+  const names = ['crystal_s', 'crystal_m', 'crystal_l', 'coral_tree', 'chest', 'chest_open', 'candles', 'barrel', 'crate', 'post',
+    'pillar', 'pillar_broken', 'pillar_fallen', 'arch', 'arch_shell', 'arch_sealed', 'pearl_altar'];
+  for (const name of names) {
+    const pieces = byProp.get(name);
+    assert.ok(pieces?.some((p) => p.kind !== 'glow'), `${name} has a lit piece`);
+    // each stands on its own foot: its lowest point is the floor (y = 0)
+    const low = Math.min(...pieces.map((p) => gltf.accessors[p.mesh.primitives[0].attributes.POSITION].min[1]));
+    assert.ok(Math.abs(low) < 0.01, `${name} stands on y = 0 (${low})`);
+  }
+  assert.ok(byProp.get('arch_sealed').some((p) => p.kind === 'glow'), 'the sealed door has its glowing seal');
+  assert.ok(byProp.get('candles').some((p) => p.kind === 'glow'), 'the candles have flames');
+});
+
 test('the painted corals hold a body and a glow for every coral the cave rooms grow (blender -b --python scripts/blender/grotto-corals.py)', () => {
   // src/render/grotto/corals.js asks for these by name; one missing would leave a coral without its glow
   const glb = readFileSync(new URL('../../public/models/grotto/glow-corals.glb', import.meta.url));

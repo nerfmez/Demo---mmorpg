@@ -34,8 +34,9 @@ soft light or gloss: lit, the generated paint reads as plastic), darkened only a
 strand lines and by one hard cel shadow tone.
 `fitHairToHead` also draws the hair's triangles into a map of the directions it covers from the
 head's middle; the head (`underHair`) is drawn in the hair's shade per pixel where that map says
-hair, so a gap left between locks shows dark hair, not the scalp, and the shade ends with the hair,
-not along the head's triangles. The head's split seam vertices move together, and the head is drawn
+hair, so a gap left between locks shows dark hair, not the scalp, and the shade ends just inside the
+hair's edge, not along the head's triangles. Only the head under or close under the hair is shaded,
+never the neck below the head joint. The head's split seam vertices move together, and the head is drawn
 on both sides, so no crack or step under the hair opens a pale hole.
 
 ## A face

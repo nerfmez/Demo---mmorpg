@@ -503,14 +503,15 @@ export function prepareChibiBody(gltf, cfg) {
   // and the jaw's underside and nape just under the head joint (skin mostly on the head bone), which a turned
   // head lifts beside the locks hanging past it
   const hb = mesh.skeleton.bones.indexOf(bones.Head), onHead = (i) => { let w = 0; for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === hb) w += sw.getComponent(i, k); return w; };
-  const fitVerts = headVerts.concat([...Array(pos.count).keys()].filter((i) => wp[i * 3 + 1] <= headY && wp[i * 3 + 1] > headY - 0.2 * hs3.y && onHead(i) >= 0.5));
+  const neck = [...Array(pos.count).keys()].filter((i) => wp[i * 3 + 1] <= headY && wp[i * 3 + 1] > headY - 0.2 * hs3.y && onHead(i) >= 0.5);
+  const fitVerts = headVerts.concat(neck);
   for (const i of fitVerts) {
     v.fromArray(wp, i * 3);
     const y = (v.y - head.min.y) / hs3.y, z = (v.z - head.min.z) / hs3.z;
     if (e && Math.abs(v.x - hc3.x) / hs3.x >= e.out && y >= e.y[0] && y <= e.y[1]) ears.push(i);
     else if (f && z >= f.front && y <= f.top && Math.abs(v.x - hc3.x) / hs3.x <= f.side) face.push(i);
   }
-  const headTuck = { verts: Uint32Array.from(fitVerts), ears: Uint32Array.from(ears), face: Uint32Array.from(face), toMesh, bone: hb };
+  const headTuck = { verts: Uint32Array.from(fitVerts), neck: Uint32Array.from(neck), ears: Uint32Array.from(ears), face: Uint32Array.from(face), toMesh, bone: hb };
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
   return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, faceShadow, faceDecal: cfg.faceDecal || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], relaxedHand: cfg.fist?.relaxed ?? 0, paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
@@ -661,6 +662,8 @@ function hairInsideHelm(T, H, model) {
  */
 const FITTED = new WeakMap(), EDGE = 1e-3;
 const GAP = 2; // fitHairToHead: the widest hole in a hair (direction bins) the head under it is shaded across
+const HAIR_CLOSE = 0.1; // fitHairToHead: the farthest hair (head widths) over a bare part of the head that it shades
+const HAIR_EDGE = 2; // fitHairToHead: the shade's edge this far inside the hair's (shade map cells, 1.9° each)
 const FOREHEAD = 0.72; // fitHairToHead: the head height (face coordinates) above the drawn face's features
 function fitHairToHead(T, src, H, geometry) {
   const k = T.headTuck;
@@ -842,43 +845,68 @@ function fitHairToHead(T, src, H, geometry) {
   let cover = null, frame = null;
   if (src.attributes.underHair) {
     const allow = new Float32Array(src.attributes.underHair.count), fc = src.attributes.face;
-    for (const i of P.keys()) {
-      if (under.has(i) || (ears.has(i) && !keep.has(i))) allow[i] = 1;
-      else if (face.has(i)) allow[i] = fc && fc.getY(i) > FOREHEAD ? 0.5 : 0;
-      else if (!keep.has(i)) allow[i] = 1;
-    }
-    // every hair triangle drawn into the map, sampled finer than a bin, so a large lock leaves no hole
-    const own = new Uint8Array(NA * NP), d0 = new THREE.Vector3(), d1 = new THREE.Vector3(), d2 = new THREE.Vector3(), d = new THREE.Vector3();
+    // every hair triangle drawn into the map (MA x MP cells round the head, finer than the fit's bins),
+    // sampled finer than a cell, so a large lock leaves no hole
+    const MA = 2 * NA, MP = 2 * NP, cell = (v) => {
+      const u = ((Math.atan2(v.x, v.z) / Math.PI + 1) / 2) * MA, w = (Math.acos(THREE.MathUtils.clamp(v.y, -1, 1)) / Math.PI) * MP;
+      return Math.min(MP - 1, Math.floor(w)) * MA + (Math.floor(u) % MA);
+    };
+    let own = new Uint8Array(MA * MP);
+    const near = new Float32Array(MA * MP).fill(Infinity); // the nearest hair in each cell, from the head's middle
+    const d0 = new THREE.Vector3(), d1 = new THREE.Vector3(), d2 = new THREE.Vector3(), d = new THREE.Vector3();
     const dir = (h, v) => v.fromBufferAttribute(hp, h).multiply(scale).add(position).sub(c);
     for (let t = 0; t < (hix ? hix.length : hp.count); t += 3) {
       const A = dir(hix ? hix[t] : t, d0), B = dir(hix ? hix[t + 1] : t + 1, d1), C = dir(hix ? hix[t + 2] : t + 2, d2);
       // a triangle reaching in near the head (a lock hanging far from it, as the ponytail's tail, covers nothing)
-      if (Math.min(A.length(), B.length(), C.length()) > rmax) continue;
+      const ra = A.length(), rb = B.length(), rc = C.length();
+      if (Math.min(ra, rb, rc) > rmax) continue;
       A.normalize(); B.normalize(); C.normalize();
-      const n = Math.min(24, Math.ceil(Math.max(A.angleTo(B), B.angleTo(C), C.angleTo(A)) / (Math.PI / NP / 2)) || 1);
+      const n = Math.min(48, Math.ceil(Math.max(A.angleTo(B), B.angleTo(C), C.angleTo(A)) / (Math.PI / MP / 2)) || 1);
       for (let i = 0; i <= n; i++) for (let j = 0; j <= n - i; j++) {
-        d.set(0, 0, 0).addScaledVector(A, n - i - j).addScaledVector(B, i).addScaledVector(C, j).normalize();
-        const [u, w] = bin(d.x, d.y, d.z);
-        own[Math.min(NP - 1, Math.floor(w)) * NA + (Math.floor(u) % NA)] = 1;
+        const ci = cell(d.set(0, 0, 0).addScaledVector(A, n - i - j).addScaledVector(B, i).addScaledVector(C, j));
+        own[ci] = 1;
+        near[ci] = Math.min(near[ci], (ra * (n - i - j) + rb * i + rc * j) / n);
       }
     }
-    let closed = own;
-    const morph = (dilate) => {
-      const F = new Uint8Array(closed.length);
-      for (let p = 0; p < NP; p++) for (let u = 0; u < NA; u++) {
+    const morph = (m, r, dilate) => {
+      const F = new Uint8Array(m.length);
+      for (let p = 0; p < MP; p++) for (let u = 0; u < MA; u++) {
         let v = dilate ? 0 : 1;
-        for (let dp = -GAP; dp <= GAP; dp++) for (let du = -GAP; du <= GAP; du++) {
-          const x = closed[THREE.MathUtils.clamp(p + dp, 0, NP - 1) * NA + ((u + du + NA) % NA)];
+        for (let dp = -r; dp <= r; dp++) for (let du = -r; du <= r; du++) {
+          const x = m[THREE.MathUtils.clamp(p + dp, 0, MP - 1) * MA + ((u + du + MA) % MA)];
           v = dilate ? v | x : v & x;
         }
-        F[p * NA + u] = v;
+        F[p * MA + u] = v;
       }
-      closed = F;
+      return F;
     };
-    morph(true); morph(false);
-    const texels = new Uint8Array(NA * NP * 4);
-    for (let n = 0; n < NA * NP; n++) { texels[n * 4] = closed[n] * 255; texels[n * 4 + 1] = own[n] * 255; texels[n * 4 + 3] = 255; }
-    cover = new THREE.DataTexture(texels, NA, NP);
+    // closed over the gaps between locks; then both maps taken in from the hair's edge (HAIR_EDGE cells),
+    // so the head just under the edge shows its skin, as a hairline does, not a dark band
+    let closed = morph(morph(own, 2 * GAP, true), 2 * GAP, false);
+    closed = morph(closed, HAIR_EDGE, false);
+    own = morph(own, HAIR_EDGE, false);
+    // which of the head the map may shade: what was taken in under the hair, and the rest of the head with
+    // hair close over it (round its direction, within HAIR_CLOSE head widths); the skin under a lock
+    // hanging well clear of it (the nape behind long side locks) stays skin
+    const R = 2 * GAP, q = new THREE.Vector3(), clear = HAIR_CLOSE * hw;
+    const close = (i) => {
+      const r = Math.hypot(...P.get(i)), ci = cell(q.fromArray(P.get(i))), p0 = Math.floor(ci / MA), u0 = ci % MA;
+      let best = Infinity;
+      for (let dp = -R; dp <= R; dp++) for (let du = -R; du <= R; du++) best = Math.min(best, near[THREE.MathUtils.clamp(p0 + dp, 0, MP - 1) * MA + ((u0 + du + MA) % MA)]);
+      return best <= r + clear;
+    };
+    // the skin just under the head joint (neck) is taken in under a lock over it but stays skin: seen
+    // between the locks hanging past it, it is the neck
+    const nape = new Set(k.neck ?? []);
+    for (const i of P.keys()) {
+      if (nape.has(i)) continue;
+      if (under.has(i) || (ears.has(i) && !keep.has(i))) allow[i] = 1;
+      else if (face.has(i)) allow[i] = fc && fc.getY(i) > FOREHEAD && close(i) ? 0.5 : 0;
+      else if (!keep.has(i) && close(i)) allow[i] = 1;
+    }
+    const texels = new Uint8Array(MA * MP * 4);
+    for (let n = 0; n < MA * MP; n++) { texels[n * 4] = closed[n] * 255; texels[n * 4 + 1] = own[n] * 255; texels[n * 4 + 3] = 255; }
+    cover = new THREE.DataTexture(texels, MA, MP);
     cover.wrapS = THREE.RepeatWrapping; // round the head; the poles clamp
     cover.magFilter = cover.minFilter = THREE.LinearFilter;
     cover.generateMipmaps = false;

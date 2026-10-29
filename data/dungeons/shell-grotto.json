@@ -97,14 +97,14 @@
       {"at": [48.07, -41.53], "y": 5.5, "color": "#ffd6f0", "intensity": 7, "range": 26}
     ],
     "waterfalls": [
-      {"kind": "ledge", "at": [-12.98, 18.25], "facing": -0.524, "w": 3.0, "top": -0.62, "bottom": -10},
-      {"kind": "wall", "at": [40.8, -61.28], "facing": 0.393, "w": 2.6, "top": 6.26, "bottom": 1.86},
-      {"kind": "wall", "at": [20.79, -51.74], "facing": 0.916, "w": 2.4, "top": 6.26, "bottom": 1.86},
-      {"kind": "wall", "at": [72.28, -51.7], "facing": -0.785, "w": 2.4, "top": 6.26, "bottom": 1.86},
-      {"kind": "ledge", "at": [51.02, -18.16], "facing": -0.785, "w": 2.4, "top": 1.86, "bottom": -2.14},
-      {"kind": "ledge", "at": [55.45, -20.13], "facing": 1.309, "w": 2.0, "top": 1.86, "bottom": -2.14},
-      {"kind": "ledge", "at": [18.48, -0.86], "facing": -0.262, "w": 2.4, "top": 0, "bottom": -2.14},
-      {"kind": "ledge", "at": [49.19, 59.7], "facing": -0.131, "w": 3.0, "top": -2.14, "bottom": -12}
+      {"kind": "ledge", "at": [-12.98, 18.25], "facing": -0.524, "w": 4.2, "top": -0.62, "bottom": -10},
+      {"kind": "wall", "at": [40.8, -61.28], "facing": 0.393, "w": 4.7, "top": 6.26, "bottom": 1.86},
+      {"kind": "wall", "at": [20.79, -51.74], "facing": 0.916, "w": 4.3, "top": 6.26, "bottom": 1.86},
+      {"kind": "wall", "at": [72.28, -51.7], "facing": -0.785, "w": 4.3, "top": 6.26, "bottom": 1.86},
+      {"kind": "ledge", "at": [51.02, -18.16], "facing": -0.785, "w": 3.4, "top": 1.86, "bottom": -2.14},
+      {"kind": "ledge", "at": [55.45, -20.13], "facing": 1.309, "w": 2.8, "top": 1.86, "bottom": -2.14},
+      {"kind": "ledge", "at": [18.48, -0.86], "facing": -0.262, "w": 3.4, "top": 0, "bottom": -2.14},
+      {"kind": "ledge", "at": [49.19, 59.7], "facing": -0.131, "w": 4.2, "top": -2.14, "bottom": -12}
     ],
     "props": [
       {"type": "shellGate", "at": [-75.24, 30.25], "rot": 0.796},

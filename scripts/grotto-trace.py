@@ -291,7 +291,9 @@ def nearest_edge(at, test):
     return x, z, sx / l, sz / l, f
 
 
-# a waterfall pours from where the concept shows it, put on the real edge it pours over:
+# a waterfall pours from where the concept shows it, put on the real edge it pours over (and wider
+# than the trace's widths, which were measured on the far smaller first map: 1.4x over a ledge,
+# 1.8x down a wall):
 # `ledge` falls go over the lip of the floor at their top level, into what lies below;
 # `wall` falls run down the cave wall at the back of the floor at their bottom level, from near the
 # wall's top (the modelled walls stand up to 5 m), into that floor's water
@@ -317,11 +319,11 @@ for w in CFG['waterfalls']:
     ledge = any(level(f) is not None and abs(level(f) - w['top']) < 0.3 for f in floors)
     if ledge:
         x, z, nx, nz, f = along_face(w, lambda f: level(f) is not None and abs(level(f) - w['top']) < 0.3)
-        fall = {'kind': 'ledge', 'at': [round(x, 2), round(z, 2)], 'facing': round(math.atan2(nx, nz), 3), 'w': w['w'], 'top': w['top'], 'bottom': w['bottom']}
+        fall = {'kind': 'ledge', 'at': [round(x, 2), round(z, 2)], 'facing': round(math.atan2(nx, nz), 3), 'w': round(w['w'] * 1.4, 1), 'top': w['top'], 'bottom': w['bottom']}
     else:
         x, z, nx, nz, f = along_face(w, lambda f: level(f) is not None and abs(level(f) - w['bottom']) < 0.3)
         # the wall stands on the void side; the fall faces into the room
-        fall = {'kind': 'wall', 'at': [round(x + nx * 0.35, 2), round(z + nz * 0.35, 2)], 'facing': round(math.atan2(-nx, -nz), 3), 'w': w['w'], 'top': round(w['bottom'] + min(4.4, w['top'] - w['bottom']), 2), 'bottom': w['bottom']}
+        fall = {'kind': 'wall', 'at': [round(x + nx * 0.35, 2), round(z + nz * 0.35, 2)], 'facing': round(math.atan2(-nx, -nz), 3), 'w': round(w['w'] * 1.8, 1), 'top': round(w['bottom'] + min(4.4, w['top'] - w['bottom']), 2), 'bottom': w['bottom']}
     if any(math.hypot(fall['at'][0] - g['at'][0], fall['at'][1] - g['at'][1]) < 4 for g in falls):
         continue  # it landed on the same spot of wall as another: one fall there, not two
     falls.append(fall)

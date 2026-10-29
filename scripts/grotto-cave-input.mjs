@@ -76,7 +76,11 @@ export function caveInput(grotto) {
           if (s && s.floor !== floor && s.walkable && Math.abs(s.y - f.y) <= grotto.maxStep + 0.05) open = true;
           else if (s && s.floor !== floor && s.y < f.y - grotto.maxStep) drop = true;
         }
-        return { x: +x.toFixed(3), z: +z.toFixed(3), nx: +nx.toFixed(4), nz: +nz.toFixed(4), open, drop, void: !beyond };
+        // a wall with another room close behind it divides two rooms: it stays a low ridge, or it
+        // would hide the room behind it from the camera (the concept's dividers are rubble banks)
+        let divider = false;
+        for (const d of [3.5, 5.5, 8, 11]) if (map.surfaceAt(x + nx * d, z + nz * d)) divider = true;
+        return { x: +x.toFixed(3), z: +z.toFixed(3), nx: +nx.toFixed(4), nz: +nz.toFixed(4), open, drop, void: !beyond, divider };
       });
     });
     out.floors.push({ id: f.id, y: f.y, rings, edges, paving: f.paving });

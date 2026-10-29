@@ -497,7 +497,10 @@ def wall_run(surface, extras, rng, pts, closed, y, gates, step, coarse=False, ta
         back = smooth((-p['nz'] + 0.25) / 0.95)
         if p['drop']:
             back = 0.0
-        H = 1.4 + (tallest - 1.4) * back + fbm(s / 7.0, 0.5, 1) * (0.3 + 1.6 * back) * tallest / 8.5
+        if coarse and p.get('divider'):
+            back = min(back, 0.12)  # a ridge between two rooms, low so the camera sees past it
+        low = 0.8 if coarse else 1.4
+        H = low + (tallest - low) * back + fbm(s / 7.0, 0.5, 1) * (0.3 + 1.6 * back) * tallest / 8.5
         if not closed:
             end = min(s, length - s)
             H = 0.9 + (H - 0.9) * smooth(end / 3.0)
@@ -572,8 +575,9 @@ def wall_run(surface, extras, rng, pts, closed, y, gates, step, coarse=False, ta
         for k in (0, ncol - 1):
             # a boulder hides the cut end
             x0, z0, nx, nz = colsrc[k][:4]
-            sz = rng.uniform(0.9, 1.2)
-            extras.rock(rng, W(x0 + nx * 0.5, y + 0.2, z0 + nz * 0.5), (sz * 1.2, sz * 1.1, sz * 1.1), mul(CRUST, 1.1), flat=0.85, sink=0.25)
+            # in the walled rooms the ends meet a passage: a smaller stone, set back off the way
+            sz, u = (rng.uniform(0.45, 0.65), 0.9) if coarse else (rng.uniform(0.9, 1.2), 0.5)
+            extras.rock(rng, W(x0 + nx * u, y + 0.2, z0 + nz * u), (sz * 1.2, sz * 1.1, sz * 1.1), mul(CRUST, 1.1), flat=0.85, sink=0.25)
 
     # stalactites under the overhang, rubble along the foot, a crust of boulders on the low rim
     for i, (x0, z0, nx, nz, s, back, H, recess, ov) in enumerate(info):
@@ -588,10 +592,11 @@ def wall_run(surface, extras, rng, pts, closed, y, gates, step, coarse=False, ta
             u = rng.uniform(-0.5, 0.05)
             sz = rng.uniform(0.14, 0.3) * (1 + 0.4 * back)
             extras.rock(rng, W(x0 + nx * u, y, z0 + nz * u), (sz * 1.25, sz, sz), mul(ROCK, rng.uniform(0.85, 1.1)), flat=0.7, sink=0.3)
-        if back < 0.35 and rng.random() < 0.55:
-            # the low front rim is a crust of piled boulders, as in the concept
-            u = rng.uniform(0.0, 1.6)
-            sz = rng.uniform(0.35, 0.8) * (1.2 - back)
+        if back < 0.35 and rng.random() < (0.3 if coarse else 0.55):
+            # the low front rim is a crust of piled boulders, as in the concept (smaller in the
+            # walled rooms, set back from the edge, so they do not stand in front of the way)
+            u = rng.uniform(0.4, 1.8) if coarse else rng.uniform(0.0, 1.6)
+            sz = rng.uniform(0.35, 0.8) * (1.2 - back) * (0.6 if coarse else 1.0)
             extras.rock(rng, W(x0 + nx * u, y + H * rng.uniform(0.55, 0.95), z0 + nz * u), (sz * 1.25, sz * 1.15, sz), mul(CRUST, rng.uniform(0.95, 1.3)), flat=0.85, sink=0.3)
         elif rng.random() < 0.3:
             # and the top of the tall walls too

@@ -49,7 +49,7 @@ export function barsWorkspace(ui, { costHtml, frame }) {
   const cur = ids.includes(sel.growthPick) ? sel.growthPick : ids[0];
   const list = ids.map((id) => {
     const st = growthState(ch, data, id);
-    return `<button class="pg-row ${id === cur ? 'on' : ''}" data-act="growth-pick" data-id="${id}" aria-pressed="${id === cur}"><span class="pg-ic">${art('skill', id)}</span><span class="pg-tx"><b>${data.skills.combat[id].nameTh}</b><small>เกรด ${st.grade} · แต้ม ${st.spent}/${st.earned}${st.free ? ` · ว่าง ${st.free}` : ''}</small></span>${st.free ? '<i class="pg-dot" aria-label="มีแต้มว่าง"></i>' : ''}</button>`;
+    return `<button class="pg-row ${id === cur ? 'on' : ''}" data-act="growth-pick" data-id="${id}" aria-pressed="${id === cur}"><span class="pg-ic">${art('skill', id)}</span><span class="pg-tx"><b>${data.skills.combat[id].nameTh}</b><small>เกรด ${st.grade} · แต้ม ${st.spent}/${st.earned} (เกรดนี้ได้ ${st.limit})${st.free ? ` · ว่าง ${st.free}` : ''}</small></span>${st.free ? '<i class="pg-dot" aria-label="มีแต้มว่าง"></i>' : ''}</button>`;
   }).join('');
   const note = '<p class="muted">ตอนนี้มีหลอดเฉพาะ ฟันกวาด ลูกธนูพราน และลูกไฟ · สกิลอื่นตามมาทีหลัง</p>';
   return frame(list || '<p class="muted">ยังไม่มีสกิลที่มีหลอด · เรียนฟันกวาด ลูกธนูพราน หรือลูกไฟก่อน</p>', note, cur ? barsDetail(ui, cur, costHtml) : '');
@@ -65,9 +65,9 @@ function barsDetail(ui, id, costHtml) {
     <span class="sb-hint">${G.bars[b].hint}</span></div>`).join('');
   const gauges = columns(hasCount).map(([label, key]) => `<div class="sb-stat" data-stat="${key}"><span class="sb-badge"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[key]}</svg></span><span class="sb-nm"><b>${label}</b><small></small></span><span class="sb-gauge" style="--c:${COLOR[key]}">${'<i></i>'.repeat(20)}</span><span class="sb-word"></span></div>`).join('');
   const grade = st.nextGrade
-    ? `<div class="sb-grade-up"><div class="cost">${costHtml(ch, data, st.nextCost)}</div><button class="btn" data-act="bar-grade" data-id="${id}" ${atService ? '' : 'disabled'}>อัปเป็นเกรด ${st.nextGrade} (หลอดยาว ${G.grades[st.nextGrade]})</button>${atService ? '' : '<small class="muted">อัปเกรดได้ที่จุดคราฟต์หรือครูฝึก</small>'}</div>`
+    ? `<div class="sb-grade-up"><div class="cost">${costHtml(ch, data, st.nextCost)}</div><button class="btn" data-act="bar-grade" data-id="${id}" ${atService ? '' : 'disabled'}>อัปเป็นเกรด ${st.nextGrade} (รวม ${G.gradeTotals[st.nextGrade]} แต้ม · หลอดละ ${G.grades[st.nextGrade]})</button>${atService ? '' : '<small class="muted">อัปเกรดได้ที่จุดคราฟต์หรือครูฝึก</small>'}</div>`
     : '<p class="muted">เกรดสูงสุดแล้ว</p>';
-  const prof = st.earned >= st.total ? 'ความชำนาญเต็มแล้ว' : `ความชำนาญ ${Math.floor(st.prof)} / ${st.need} · ใช้สกิลนี้ระหว่างสู้เพื่อรับแต้ม`;
+  const prof = st.earned >= st.total ? 'ความชำนาญเต็มแล้ว' : st.waiting ? `ความชำนาญเต็ม · เกรด ${st.grade} มีได้ ${st.limit} แต้ม · อัปเป็นเกรด ${st.nextGrade} เพื่อรับแต้มต่อ` : `ความชำนาญ ${Math.floor(st.prof)} / ${st.need} · ใช้สกิลนี้ระหว่างสู้เพื่อรับแต้ม`;
   return `<section class="card sb-card" data-bars="${id}">
     <div class="seeker-hero">${art('skill', id)}<div><h3>${def.nameTh}</h3><span>ประเภท${G.types[def.growth].nameTh} · หลอด ${st.barIds.map((b) => G.bars[b].nameTh).join(' · ')}</span></div><span class="sb-grade">เกรด ${st.grade}</span></div>
     <div class="sb-prof"><span style="width:${st.earned >= st.total ? 100 : Math.round(st.prof / st.need * 100)}%"></span></div><small class="muted">${prof}</small>
@@ -92,7 +92,7 @@ export function patchBars(ui) {
     const [minus, plus] = row.querySelectorAll('.sb-step');
     minus.disabled = n <= 0; plus.disabled = n >= st.cap || used >= st.earned;
   }
-  card.querySelector('[data-left]').innerHTML = `แต้มว่าง <b>${st.earned - used}</b> จาก ${st.earned} · เกรด ${st.grade} ลงได้หลอดละไม่เกิน <b>${st.cap}</b>`;
+  card.querySelector('[data-left]').innerHTML = `แต้มว่าง <b>${st.earned - used}</b> จาก ${st.earned} · เกรด ${st.grade} มีได้รวม <b>${st.limit}</b> แต้ม หลอดละไม่เกิน <b>${st.cap}</b>`;
   const zero = Object.fromEntries(st.barIds.map((b) => [b, 0])), base = barStats(g, id, zero), now = barStats(g, id, draft);
   for (const [, key, dir, fmt, better, worse] of columns(st.barIds.includes('count'))) {
     const el = card.querySelector(`[data-stat="${key}"]`), ch1 = now[key] / base[key] - 1, pct = Math.round(Math.abs(ch1) * 100);

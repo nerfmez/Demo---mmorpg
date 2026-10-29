@@ -29,10 +29,13 @@ export function growthOf(ch, data, id) {
   return {
     grade: grades.includes(g.grade) ? g.grade : grades[0],
     bars: { ...emptyBars(), ...(g.bars || {}) },
-    earned: Math.max(0, Math.min(G(data).totalPoints, g.earned | 0)),
+    earned: Math.max(0, Math.min(limitOf(data, grades.includes(g.grade) ? g.grade : grades[0]), g.earned | 0)),
     prof: Math.max(0, +g.prof || 0),
   };
 }
+
+/** The points a skill can hold at a grade (the grade caps the whole skill, not only each bar). */
+export const limitOf = (data, grade) => G(data).gradeTotals?.[grade] ?? G(data).totalPoints;
 
 const spentOf = (bars) => BAR_KEYS.reduce((a, k) => a + (bars[k] || 0), 0);
 
@@ -90,18 +93,20 @@ export function growthState(ch, data, id) {
   if (!g) return null;
   const cfg = G(data), spent = spentOf(g.bars), grades = Object.keys(cfg.grades), next = grades[grades.indexOf(g.grade) + 1] || null;
   return { ...g, bars: g.bars, barIds: barsOf(data, data.skills.combat[id]), cap: cfg.grades[g.grade], spent, free: g.earned - spent,
-    total: cfg.totalPoints, need: cfg.secondsPerPoint, nextGrade: next, nextCost: next ? gradeCost(data, id, next) : null };
+    total: cfg.totalPoints, limit: limitOf(data, g.grade), waiting: g.earned >= limitOf(data, g.grade) && g.earned < cfg.totalPoints, need: cfg.secondsPerPoint, nextGrade: next, nextCost: next ? gradeCost(data, id, next) : null };
 }
 
 /** Proficiency: a cast of a skill with bars, worth `pace` seconds (its own rhythm, so a slow skill
- * grows as fast as a quick one used at its pace). Returns the points earned by it (0 or more). */
+ * grows as fast as a quick one used at its pace). At its grade's total the bar fills and waits for the
+ * next grade (no points are banked past it). Returns the points earned by it (0 or more). */
 export function gainProficiency(ch, data, id, pace) {
   const g = growthOf(ch, data, id);
   if (!g || g.earned >= G(data).totalPoints) return 0;
-  const need = G(data).secondsPerPoint;
+  const need = G(data).secondsPerPoint, limit = limitOf(data, g.grade);
   let prof = g.prof + Math.max(0, pace), earned = g.earned, got = 0;
-  while (prof >= need && earned < G(data).totalPoints) { prof -= need; earned++; got++; }
+  while (prof >= need && earned < limit) { prof -= need; earned++; got++; }
   if (earned >= G(data).totalPoints) prof = 0;
+  else if (earned >= limit) prof = Math.min(prof, need);
   store(ch, id, { ...g, prof, earned });
   return got;
 }
@@ -157,6 +162,8 @@ export function upgradeGrade(ch, data, id, apply = false) {
     for (const [k, n] of Object.entries(cost)) { if (k === 'gold') ch.gold -= n; else ch.materials[k] -= n; }
     const g = growthOf(ch, data, id);
     store(ch, id, { ...g, grade: st.nextGrade });
+    // a full bar that was waiting for this grade turns into its point now
+    if (g.prof >= G(data).secondsPerPoint) gainProficiency(ch, data, id, 0);
   }
   return { ok: true, cost, to: st.nextGrade };
 }

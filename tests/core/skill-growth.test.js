@@ -57,13 +57,23 @@ test('compiled skills carry the bars: projectiles, a fan, speed under the cap, a
   near(capped.cooldown, data.skills.combat.firebolt.cooldown / (1 + data.progression.character.caps.hastePct / 100), 'no speed past the cap');
 });
 
-test('points come from casting in a fight, at the skill\'s own pace, up to the total', () => {
+test('points come from casting in a fight, at the skill\'s own pace, up to what its grade holds', () => {
   const ch = createLearnedCharacter(data);
   assert.equal(gainProficiency(ch, data, 'meteor', 999), 0, 'no bars, no points');
   assert.equal(gainProficiency(ch, data, 'slash', G.secondsPerPoint - 1), 0);
   assert.equal(gainProficiency(ch, data, 'slash', 1), 1);
-  assert.equal(gainProficiency(ch, data, 'slash', G.secondsPerPoint * 40), G.totalPoints - 1);
-  const st = growthState(ch, data, 'slash');
+  // the grade caps the whole skill, not only each bar: the bar fills and waits for the next grade
+  assert.equal(gainProficiency(ch, data, 'slash', G.secondsPerPoint * 40), G.gradeTotals.C - 1);
+  let st = growthState(ch, data, 'slash');
+  assert.deepEqual([st.earned, st.prof, st.waiting], [G.gradeTotals.C, G.secondsPerPoint, true]);
+  assert.ok(G.gradeTotals.C <= G.grades.C * st.barIds.length && G.gradeTotals.S === G.totalPoints);
+  const cost = gradeCost(data, 'slash', 'B'); ch.gold = cost.gold; ch.materials = { [data.skills.combat.slash.gradeMaterial]: cost[data.skills.combat.slash.gradeMaterial] };
+  assert.ok(upgradeGrade(ch, data, 'slash', true).ok);
+  st = growthState(ch, data, 'slash');
+  assert.deepEqual([st.earned, st.prof], [G.gradeTotals.C + 1, 0], 'the waiting bar becomes a point at the new grade');
+  ch.skillGrowth.slash.grade = 'S';
+  assert.equal(gainProficiency(ch, data, 'slash', G.secondsPerPoint * 40), G.totalPoints - G.gradeTotals.C - 1);
+  st = growthState(ch, data, 'slash');
   assert.equal(st.earned, G.totalPoints); assert.equal(st.prof, 0); assert.equal(st.free, G.totalPoints);
   // in the game: a cast only counts with an enemy close by, and announces a new point
   const g = new Game(data, { seed: 5 }), i = g.ch.slots.findIndex((s) => s.skill === 'slash'), p = g.player;
@@ -80,10 +90,13 @@ test('points come from casting in a fight, at the skill\'s own pace, up to the t
 
 test('allocating: only the skill\'s bars, within the grade cap and the points earned; taking back costs gold', () => {
   const ch = createLearnedCharacter(data); ch.gold = 10000; ch.level = 10;
-  ch.skillGrowth = { slash: { grade: 'C', bars: {}, earned: 5, prof: 0 } };
+  ch.skillGrowth = { slash: { grade: 'B', bars: {}, earned: 5, prof: 0 } };
   assert.equal(allocateBars(ch, data, 'slash', { count: 1 }).reason, 'bar');
-  assert.equal(allocateBars(ch, data, 'slash', { power: G.grades.C + 1 }).reason, 'cap');
+  assert.equal(allocateBars(ch, data, 'slash', { power: G.grades.B + 1 }).reason, 'cap');
   assert.equal(allocateBars(ch, data, 'slash', { power: 2, rate: 2, size: 2 }).reason, 'points');
+  ch.skillGrowth.slash.grade = 'C';
+  assert.equal(growthState(ch, data, 'slash').earned, G.gradeTotals.C, 'a grade holds no more than its total');
+  ch.skillGrowth.slash.grade = 'B';
   const put = allocateBars(ch, data, 'slash', { power: 2, rate: 2, size: 1 }, true);
   assert.deepEqual([put.ok, put.gold], [true, 0], 'putting points in is free');
   const back = allocateBars(ch, data, 'slash', { power: 0, rate: 2, size: 1 }, true);

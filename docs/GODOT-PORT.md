@@ -544,15 +544,17 @@ faces. The head under the hair is drawn in the hair's shade (0.3 of the hair col
 `hairShadeMaterial`), decided per pixel: the hair's triangles near the head are drawn once into a
 192 x 96 map of the directions they cover from the head's middle (red: closed over gaps up to 6
 cells, so a gap between locks reads as hair in shadow, never as scalp; green: the hair's own
-directions, for the forehead, whose skin shows between the fringe's locks; both then taken in 5 cells
-from the hair's edge, so the head just under the edge shows skin, as a hairline does; blue: how far
-out the nearest hair lies, so a pixel is shaded only with hair within 0.1 head widths over it and the
-head seen from below under a side lock standing off it is skin), and each pixel of the head looks its
+directions, for the forehead, whose skin shows between the fringe's locks; both with every uncovered patch the hair
+encloses filled (any under a tenth of the face-and-neck patch: a fringe's gaps run into the face and
+stay), then taken in 5 cells from the hair's edge, so the head just under the edge shows skin, as a
+hairline does; blue: how far out the nearest hair lies, so near the hair's edge a pixel is shaded only
+with hair within 0.1 head widths over it and the head seen from below under a side lock standing off
+it is skin, while 10 cells inside the edge it is shaded however far a full style's hair stands), and each pixel of the head looks its
 own direction up in it, so the shade ends where the hair does, not along the head's large triangles.
 The body's `underHair` vertex attribute picks the map (1 red, 0.5 green, 0 none): a part of the head
 may be shaded only if it was taken in under the hair or the hair lies within 0.1 head widths over
 it, and never the neck just under the head joint (`headTuck.neck`), seen between the locks hanging
-past it, nor an ear and the skin within 0.15 head widths of it. Both ears fold away when the hair
+past it, nor an ear left out and the skin within 0.15 head widths of it. Both ears fold away when the hair
 covers at least half of either (a style shows both ears or neither), and then each of their points
 goes to the nearest head point that is not ear (by direction, just inside it), so the ear closes to
 nothing: sunk in it left a pit, pressed flat its crumpled triangles turned their backs to the light,

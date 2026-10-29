@@ -963,11 +963,12 @@ function fitHairToHead(T, src, H, geometry) {
     // wider by as much, so a small hole inside the hair stays closed)
     let closed = morph(morph(own, 2 * GAP + HAIR_EDGE, true), 2 * GAP + HAIR_EDGE, false);
     // a hole of any size inside the hair (a gap between a full style's locks) is covered too: every
-    // uncovered patch but the largest (the face and the neck below) and those as big as a tenth of it
-    {
-      const seen = new Int32Array(closed.length).fill(-1), sizes = [];
-      for (let s0 = 0; s0 < closed.length; s0++) {
-        if (closed[s0] || seen[s0] >= 0) continue;
+    // uncovered patch but the largest (the face and the neck below) and those as big as a tenth of it;
+    // in both maps (a gap between a fringe's locks stays open: it runs down into the face)
+    const fill = (m) => {
+      const seen = new Int32Array(m.length).fill(-1), sizes = [];
+      for (let s0 = 0; s0 < m.length; s0++) {
+        if (m[s0] || seen[s0] >= 0) continue;
         const id = sizes.length, stack = [s0];
         let n = 0;
         seen[s0] = id;
@@ -978,14 +979,16 @@ function fitHairToHead(T, src, H, geometry) {
             const pp = p + dp;
             if (pp < 0 || pp >= MP) continue;
             const c1 = pp * MA + ((u + du + MA) % MA);
-            if (!closed[c1] && seen[c1] < 0) { seen[c1] = id; stack.push(c1); }
+            if (!m[c1] && seen[c1] < 0) { seen[c1] = id; stack.push(c1); }
           }
         }
         sizes.push(n);
       }
       const big = Math.max(0, ...sizes);
-      for (let c0 = 0; c0 < closed.length; c0++) if (!closed[c0] && sizes[seen[c0]] < 0.1 * big) closed[c0] = 1;
-    }
+      for (let c0 = 0; c0 < m.length; c0++) if (!m[c0] && sizes[seen[c0]] < 0.1 * big) m[c0] = 1;
+    };
+    fill(closed);
+    fill(own);
     closed = morph(closed, HAIR_EDGE, false);
     own = morph(own, HAIR_EDGE, false);
     // which of the head the map may shade: what was taken in under the hair, and the rest of the head with

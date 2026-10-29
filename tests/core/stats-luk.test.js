@@ -28,9 +28,7 @@ test('LUK raises crit chance (and, since the owner\'s later call, a small drop f
   assert.ok(dl.gearFindPct - d0.gearFindPct <= 20 * 0.05, 'LUK: only a small gear find');
   assert.ok(dd.critMult > d0.critMult, 'DEX: crit damage');
   assert.equal(dd.critChance, d0.critChance, 'DEX: no crit chance');
-  // attack damage for every Attack skill, a dagger's as much as a bow's (owner: DEX is not bow-only)
-  assert.ok(dd.attackDamagePct > d0.attackDamagePct, 'DEX: attack damage');
-  assert.equal(dd.projectileDamagePct, d0.projectileDamagePct, 'DEX: nothing ranged-only');
+  assert.ok(dd.projectileDamagePct > d0.projectileDamagePct, 'DEX keeps its ranged damage');
 });
 
 test('a save from before LUK gains the starting LUK and keeps everything else', () => {

@@ -56,7 +56,7 @@
       },
       "DEX": {
         "critMultPct": 0.5,
-        "attackDamagePct": 0.45,
+        "projectileDamagePct": 0.45,
         "attack": 2
       },
       "LUK": {

@@ -881,8 +881,9 @@ function fitHairToHead(T, src, H, geometry) {
       return F;
     };
     // closed over the gaps between locks; then both maps taken in from the hair's edge (HAIR_EDGE cells),
-    // so the head just under the edge shows its skin, as a hairline does, not a dark band
-    let closed = morph(morph(own, 2 * GAP, true), 2 * GAP, false);
+    // so the head just under the edge shows its skin, as a hairline does, not a dark band (closed the
+    // wider by as much, so a small hole inside the hair stays closed)
+    let closed = morph(morph(own, 2 * GAP + HAIR_EDGE, true), 2 * GAP + HAIR_EDGE, false);
     closed = morph(closed, HAIR_EDGE, false);
     own = morph(own, HAIR_EDGE, false);
     // which of the head the map may shade: what was taken in under the hair, and the rest of the head with
@@ -900,7 +901,8 @@ function fitHairToHead(T, src, H, geometry) {
     const nape = new Set(k.neck ?? []);
     for (const i of P.keys()) {
       if (nape.has(i)) continue;
-      if (under.has(i) || (ears.has(i) && !keep.has(i))) allow[i] = 1;
+      if (ears.has(i)) allow[i] = !keep.has(i) && close(i) ? 1 : 0; // an ear folded in shows its fold as skin
+      else if (under.has(i)) allow[i] = 1;
       else if (face.has(i)) allow[i] = fc && fc.getY(i) > FOREHEAD && close(i) ? 0.5 : 0;
       else if (!keep.has(i) && close(i)) allow[i] = 1;
     }

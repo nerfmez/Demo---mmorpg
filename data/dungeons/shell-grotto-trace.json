@@ -10,7 +10,7 @@
     {"id": "entrance", "tone": "warm", "style": "cave", "round": 61, "y": 0, "poly": [[0, 640], [290, 640], [300, 700], [345, 760], [345, 1010], [0, 1010]]},
     {"id": "hoard", "walls": true, "round": 41, "tone": "warm", "y": 1.2, "poly": [[80, 60], [455, 60], [455, 300], [445, 330], [425, 345], [80, 350]]},
     {"id": "pool", "walls": true, "round": 41, "y": -0.5, "waterFloor": -0.9, "waterY": -0.62, "poly": [[530, 470], [600, 448], [760, 452], [800, 470], [820, 540], [790, 600], [700, 665], [560, 665], [500, 600], [500, 520]]},
-    {"id": "temple", "walls": true, "round": 51, "stone": [{"_doc": "the altar's dais", "ellipse": [1085, 668], "r": [70, 52]}, {"_doc": "the walkway east of the dais", "poly": [[1150, 672], [1300, 686], [1306, 722], [1150, 712]]}, {"_doc": "its arm south to the tall pillar", "poly": [[1284, 700], [1326, 700], [1338, 800], [1294, 804]]}, {"_doc": "the north-east walkway with the fallen pillar", "poly": [[1236, 560], [1262, 538], [1392, 592], [1372, 624]]}, {"_doc": "the landing under the temple steps", "poly": [[838, 600], [878, 588], [960, 616], [962, 652], [880, 656], [846, 634]]}, {"_doc": "the tall pillar's platform", "poly": [[866, 736], [948, 730], [956, 794], [870, 800]]}], "y": -2.0, "waterFloor": -2.4, "waterY": -2.14, "poly": [[700, 660], [770, 590], [870, 520], [1000, 490], [1200, 475], [1300, 425], [1520, 500], [1530, 820], [1300, 1010], [880, 1010], [690, 820]]},
+    {"id": "temple", "walls": true, "round": 51, "stone": [{"_doc": "the altar's dais", "ellipse": [1085, 668], "r": [70, 52]}, {"_doc": "the walkway east of the dais", "poly": [[1150, 672], [1300, 686], [1306, 722], [1150, 712]]}, {"_doc": "its arm south to the tall pillar", "poly": [[1284, 700], [1326, 700], [1338, 800], [1294, 804]]}, {"_doc": "the north-east walkway with the fallen pillar", "poly": [[1236, 560], [1262, 538], [1392, 592], [1372, 624]]}, {"_doc": "the landing under the temple steps", "poly": [[838, 600], [878, 588], [960, 616], [962, 652], [880, 656], [846, 634]]}, {"_doc": "the tall pillar's platform", "poly": [[866, 736], [948, 730], [956, 794], [870, 800]]}], "y": -4.0, "waterFloor": -4.4, "waterY": -4.14, "poly": [[700, 660], [770, 590], [870, 520], [1000, 490], [1200, 475], [1300, 425], [1520, 500], [1530, 820], [1300, 1010], [880, 1010], [690, 820]]},
     {"id": "throne", "walls": true, "round": 51, "stone": [{"_doc": "the walkway along the room's foot, to the dais steps", "poly": [[1000, 298], [1110, 292], [1250, 300], [1300, 318], [1296, 348], [1180, 340], [1060, 336], [995, 330]]}, {"_doc": "the platform east of the steps, with the pearl", "poly": [[1296, 318], [1380, 320], [1420, 350], [1400, 372], [1310, 366]]}, {"_doc": "the base of the pillar west of the dais", "ellipse": [1005, 238], "r": [34, 24]}, {"_doc": "the base of the pillar by the walkway", "ellipse": [1058, 292], "r": [32, 22]}, {"_doc": "the base of the pillar behind the dais", "ellipse": [1175, 166], "r": [28, 20]}, {"_doc": "the base of the east pillar", "ellipse": [1410, 330], "r": [32, 22]}], "y": 2.0, "waterFloor": 1.6, "waterY": 1.86, "poly": [[860, 20], [1520, 20], [1520, 390], [1250, 400], [1200, 345], [1100, 330], [860, 310]]},
     {"id": "dais", "walls": true, "round": 31, "y": 2.8, "stoneOnly": true, "poly": [[1120, 175], [1185, 95], [1310, 105], [1340, 200], [1300, 295], [1150, 295]]}
   ],
@@ -22,7 +22,7 @@
   "stairs": [
     {"id": "hoard-steps", "a": [490, 395], "b": [425, 332], "w": 46, "y0": 0, "y1": 1.2},
     {"id": "island-steps", "a": [560, 428], "b": [622, 478], "w": 40, "y0": 0, "y1": -0.5},
-    {"id": "temple-steps", "a": [745, 540], "b": [862, 648], "w": 52, "y0": -0.5, "y1": -2.0},
+    {"id": "temple-steps", "a": [745, 540], "b": [862, 648], "w": 52, "y0": -0.5, "y1": -4.0},
     {"id": "throne-steps", "a": [1152, 415], "b": [1182, 318], "w": 52, "y0": 0, "y1": 2.0},
     {"id": "dais-steps", "a": [1212, 330], "b": [1205, 272], "w": 44, "y0": 2.0, "y1": 2.8}
   ],
@@ -56,10 +56,10 @@
     { "at": [1232, 55], "face": [1232, 200], "w": 3.0, "top": 9.0, "bottom": 1.86 },
     { "at": [962, 140], "face": [1040, 220], "w": 2.4, "top": 7.5, "bottom": 1.86 },
     { "at": [1412, 150], "face": [1340, 230], "w": 2.4, "top": 7.5, "bottom": 1.86 },
-    { "at": [1232, 400], "face": [1232, 500], "w": 2.4, "top": 1.86, "bottom": -2.14 },
-    { "at": [1272, 410], "face": [1272, 500], "w": 2.0, "top": 1.86, "bottom": -2.14 },
-    { "at": [936, 488], "face": [936, 600], "w": 2.4, "top": 0, "bottom": -2.14 },
-    { "at": [1215, 935], "face": [1215, 1040], "w": 3.0, "top": -2.14, "bottom": -12 }
+    { "at": [1232, 400], "face": [1232, 500], "w": 2.4, "top": 1.86, "bottom": -4.14 },
+    { "at": [1272, 410], "face": [1272, 500], "w": 2.0, "top": 1.86, "bottom": -4.14 },
+    { "at": [936, 488], "face": [936, 600], "w": 2.4, "top": 0, "bottom": -4.14 },
+    { "at": [1215, 935], "face": [1215, 1040], "w": 3.0, "top": -4.14, "bottom": -14 }
   ],
   "props": [
     { "type": "shellGate", "at": [84, 732], "face": [176, 804] },

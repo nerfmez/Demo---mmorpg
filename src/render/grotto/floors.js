@@ -249,7 +249,8 @@ function addCurbs(top, side, map, f, poly, look, hole = false, broken = []) {
     if (l < 1e-4) continue;
     const nx = -(bz - az) / l, nz = (bx - ax) / l; // outward
     const probe = map.surfaceAt((ax + bx) / 2 + nx * 0.6, (az + bz) / 2 + nz * 0.6);
-    if (probe && probe.walkable && Math.abs(probe.y - f.y) < 0.2) { left = 0; continue; }
+    // open where the floor goes on at its own level; none beside a flight of stairs (its cheek is the wall there)
+    if (probe && probe.walkable && (Math.abs(probe.y - f.y) < 0.2 || probe.floor.shape === 'stairs')) { left = 0; continue; }
     // cut the edge into blocks: 0.8-1.4 m each, 0.07 m apart, 0.12-0.3 m above the floor
     let t = 0;
     while (t < l - 1e-3) {

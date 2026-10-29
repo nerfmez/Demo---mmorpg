@@ -669,7 +669,7 @@ types to props as `buildProps` does (pillar, pillarBroken → pillar_broken, fal
 sealedArch → arch_sealed, crystal → crystal_s/m/l by scale, coralTree → coral_tree, bigPearl → pearl_altar, chest → chest / chest_open
 in turn, candles, barrel, crate, post); collision stays the `propTypes` circles. Each `waterfalls` entry has `kind`: `ledge` (pours over the edge at
 `at` toward `facing`, curving out about 0.25 + 0.55·sqrt(fallen m / 3)) or `wall` (runs down the cave wall from `top`); both widen
-to 1.15× at the foot. Stairs are cut out of the floors they cross; draw ~0.15 m steps (at least 0.4 m deep) with cheeks, the collider stays the ramp; a flight's `<id>-landing` floor is an ordinary paved poly floor. A `rubble` prop
+to 1.15× at the foot. Stairs are cut out of the floors they cross; the floors in the data are already cut to each flight's sides and squared at its ends (no overlap); draw ~0.15 m steps (at least 0.4 m deep) with cheeks and no edging stones beside a flight; the collider stays the ramp. A `rubble` prop
 (no collider) marks where the stone over the water broke away along the paving joints (the traced floors already have the
 stepped bite); its `stones` ([x, z, w, d], metres) are the pavers that fell: draw each as a 0.22 m slab, its top textured
 from where it lay (uv = position / 4 m, as the floor), slid out along `rot`, tipped down toward the water (some leaning on the

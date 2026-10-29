@@ -231,7 +231,9 @@ for s in CFG['stairs']:
     quad = [(A[0] + ux * e - uz * hw, A[1] + uz * e + ux * hw), (B[0] - ux * e - uz * hw, B[1] - uz * e + ux * hw),
             (B[0] - ux * e + uz * hw, B[1] - uz * e - ux * hw), (A[0] + ux * e + uz * hw, A[1] + uz * e - ux * hw)]
     cv2.fillPoly(stair_cut, [np.array([to_px(q) for q in quad], np.int32)], 1)
-keep = (1 - stair_cut).astype(np.uint8)
+# the floors themselves are cut to each flight later, in metres (the joints below); this mask only
+# keeps the breaks away from the stairs
+keep = np.ones_like(walk)
 
 # the props the picture places (and the stair ends) stay on sound stone: no break within ~2.5 m
 def clearance(stairs, base, per_scale):
@@ -442,10 +444,8 @@ for i, z in enumerate(zones):
                 f['holes'] = holes
             floors.append(f)
 
-# a flight is as long as its steps need (0.15 m risers, a slope of 0.28) and stands at the far end
-# of the run the concept draws (`b`); the rest of the run is a paved landing at the near end's
-# level, so a long gentle run is a walkway then real steps, not a few deep slabs pasted one after
-# another. Each takes the tone of the room it belongs to.
+# each flight runs the whole length the concept draws (its steps are deep, as the picture's are)
+# and takes the tone of the room it climbs to
 def tone_at(q):
     z = zones[int(label[min(H - 1, int(q[1])), min(W - 1, int(q[0]))])]
     return z.get('tone')
@@ -453,24 +453,125 @@ def tone_at(q):
 
 for s in CFG['stairs']:
     # a little wider than its cut (w/2 + 1 px a side), so no slit of void shows along its sides
-    A, B, w = m(s['a']), m(s['b']), round(ml(s['w'] + 4), 2)
-    L = math.hypot(B[0] - A[0], B[1] - A[1])
-    ux, uz = (B[0] - A[0]) / L, (B[1] - A[1]) / L
-    run = min(L, max(abs(s['y1'] - s['y0']) / 0.28, 1.2))
-    if L - run > 0.6:
-        F = [round(B[0] - ux * run, 2), round(B[1] - uz * run, 2)]
-        E = [F[0] + ux * 0.3, F[1] + uz * 0.3]  # under the flight's foot a little: the two meet
-        h = w / 2
-        landing = {'id': f"{s['id']}-landing", 'kind': 'stone', 'shape': 'poly', 'y': s['y0'],
-                   'pts': [[round(x, 2), round(z, 2)] for x, z in ((A[0] + uz * h, A[1] - ux * h), (E[0] + uz * h, E[1] - ux * h), (E[0] - uz * h, E[1] + ux * h), (A[0] - uz * h, A[1] + ux * h))]}
-        if tone_at(s['a']):
-            landing['tone'] = tone_at(s['a'])
-        floors.append(landing)
-        A = F
-    flight = {'id': s['id'], 'kind': 'stone', 'shape': 'stairs', 'a': A, 'b': B, 'w': w, 'y0': s['y0'], 'y1': s['y1']}
+    flight = {'id': s['id'], 'kind': 'stone', 'shape': 'stairs', 'a': m(s['a']), 'b': m(s['b']), 'w': round(ml(s['w'] + 4), 2), 'y0': s['y0'], 'y1': s['y1']}
     if tone_at(s['b']):
         flight['tone'] = tone_at(s['b'])
     floors.append(flight)
+
+
+def metre_outlines(mask, x0, z0):
+    """A mask on the RES grid with its corner at (x0, z0) back to [(pts, holes)] in metres,
+    biggest first (crumbs under 0.5 m² dropped)."""
+    cs, hier = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    w_ = lambda c: [[round(x0 + (p[0] + 0.5) * RES, 2), round(z0 + (p[1] + 0.5) * RES, 2)] for p in cv2.approxPolyDP(c, 1.2, True)[:, 0, :].tolist()]
+    out = []
+    if hier is None:
+        return out
+    hier = hier[0]
+    for k, c in enumerate(cs):
+        if hier[k][3] != -1 or cv2.contourArea(c) * RES * RES < 0.5:
+            continue
+        holes, j = [], hier[k][2]
+        while j != -1:
+            if cv2.contourArea(cs[j]) * RES * RES >= 0.3:
+                holes.append(w_(cs[j]))
+            j = hier[j][0]
+        out.append((cv2.contourArea(c), w_(c), holes))
+    return [(pts, holes) for _, pts, holes in sorted(out, key=lambda o: -o[0])]
+
+
+def dist_to_poly(q, pts):
+    if inside_pts(q, pts):
+        return 0.0
+    best = math.inf
+    for i in range(len(pts)):
+        (ax, az), (bx, bz) = pts[i], pts[(i + 1) % len(pts)]
+        dx, dz = bx - ax, bz - az
+        t = max(0, min(1, ((q[0] - ax) * dx + (q[1] - az) * dz) / ((dx * dx + dz * dz) or 1)))
+        best = min(best, math.hypot(q[0] - ax - dx * t, q[1] - az - dz * t))
+    return best
+
+
+def inside_pts(q, pts):
+    c = False
+    for i in range(len(pts)):
+        (ax, az), (bx, bz) = pts[i], pts[(i + 1) % len(pts)]
+        if (az > q[1]) != (bz > q[1]) and q[0] < ax + (bx - ax) * (q[1] - az) / (bz - az):
+            c = not c
+    return c
+
+
+# where a flight meets the floors, the joint is built, not overlapped. A flight stops at the edge
+# of the floor it reaches (its ends are drawn back to that edge where the concept's line runs on
+# into the floor, as long as the slope stays walkable), the floor at each end's level gets a square
+# apron as wide as the flight (1.5 m deep), so it meets the steps along one straight line across
+# them, and every floor is cut back to the flight's own sides, so none lies over it or leaves a slit
+# beside it. Worked on the RES grid in metres, like the breaks.
+APRON, MAX_SLOPE = 1.5, 0.28
+for st in [f for f in floors if f['shape'] == 'stairs']:
+    rise = abs(st['y1'] - st['y0'])
+    ends = []
+    for key, y_end in (('a', st['y0']), ('b', st['y1'])):
+        cands = [f for f in floors if f['shape'] == 'poly' and f['kind'] == 'stone' and abs(f['y'] - y_end) < 0.05]
+        best = min(cands, key=lambda f: dist_to_poly(st[key], f['pts']), default=None)
+        ends.append(best if best is not None and dist_to_poly(st[key], best['pts']) < 4 else None)
+    for (key, other), f_end in zip((('a', 'b'), ('b', 'a')), ends):
+        if f_end is None:
+            continue
+        p, q = st[key], st[other]
+        L = math.hypot(q[0] - p[0], q[1] - p[1])
+        ux, uz = (q[0] - p[0]) / L, (q[1] - p[1]) / L
+        t = 0.0
+        while inside_pts((p[0] + ux * (t + 0.1), p[1] + uz * (t + 0.1)), f_end['pts']) and rise / (L - t - 0.1) <= MAX_SLOPE:
+            t += 0.1
+        st[key] = [round(p[0] + ux * t, 2), round(p[1] + uz * t, 2)]
+    (ax, az), (bx, bz), h = st['a'], st['b'], st['w'] / 2
+    L = math.hypot(bx - ax, bz - az)
+    ux, uz = (bx - ax) / L, (bz - az) / L
+    rect = lambda t0, t1: [(ax + ux * t0 - uz * h, az + uz * t0 + ux * h), (ax + ux * t1 - uz * h, az + uz * t1 + ux * h),
+                           (ax + ux * t1 + uz * h, az + uz * t1 - ux * h), (ax + ux * t0 + uz * h, az + uz * t0 - ux * h)]
+    run = rect(0, L)
+    # each apron reaches 5 cm under the flight's end, so the two meet (the flight is listed later and wins there)
+    aprons = [(f_end, r) for f_end, r in zip(ends, (rect(-APRON, 0.05), rect(L - 0.05, L + APRON))) if f_end is not None]
+    reach = [q for r in [run] + [r for _, r in aprons] for q in r]
+    rx0, rz0 = min(q[0] for q in reach) - 0.5, min(q[1] for q in reach) - 0.5
+    rx1, rz1 = max(q[0] for q in reach) + 0.5, max(q[1] for q in reach) + 0.5
+    for f in [f for f in floors if f['shape'] == 'poly']:
+        xs, zs = [q[0] for q in f['pts']], [q[1] for q in f['pts']]
+        mine = [r for g_, r in aprons if g_ is f]
+        if (max(xs) < rx0 or min(xs) > rx1 or max(zs) < rz0 or min(zs) > rz1) and not mine:
+            continue
+        x0, z0 = min(min(xs), rx0) - 1, min(min(zs), rz0) - 1
+        x1, z1 = max(max(xs), rx1) + 1, max(max(zs), rz1) + 1
+        GW, GH = int((x1 - x0) / RES) + 1, int((z1 - z0) / RES) + 1
+        g = lambda q: [round((q[0] - x0) / RES), round((q[1] - z0) / RES)]
+        fill = lambda mask, pts, v: cv2.fillPoly(mask, [np.array([g(q) for q in pts], np.int32)], v)
+        mask = np.zeros((GH, GW), np.uint8)
+        fill(mask, f['pts'], 1)
+        for hole in f.get('holes', []):
+            fill(mask, hole, 0)
+        before = mask.copy()
+        fill(mask, run, 0)
+        for r in mine:
+            fill(mask, r, 1)
+        if (mask == before).all():
+            continue
+        pieces = metre_outlines(mask, x0, z0)
+        if not pieces:
+            floors.remove(f)
+            continue
+        f['pts'] = pieces[0][0]
+        f.pop('holes', None)
+        if pieces[0][1]:
+            f['holes'] = pieces[0][1]
+        # what the flight cut off: a real part of the floor stays its own floor, a sliver under 10 m² goes
+        area = lambda P: abs(sum(P[i][0] * P[(i + 1) % len(P)][1] - P[(i + 1) % len(P)][0] * P[i][1] for i in range(len(P)))) / 2
+        for k, (pts, holes) in enumerate(q for q in pieces[1:] if area(q[0]) >= 10):
+            extra = {**f, 'id': f"{f['id']}-{k + 1}", 'pts': pts}
+            extra.pop('holes', None)
+            if holes:
+                extra['holes'] = holes
+            floors.insert(floors.index(f) + 1, extra)
 
 
 def facing(at, face):

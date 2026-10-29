@@ -20,13 +20,18 @@ export function optionList(data, options, grade, itemLevel = 1) {
 export function upgradeTrack(notes, completed, prefix='Lv.',first=1) {
  return `<ol class="upgrade-track">${notes.map((note,i)=>`<li class="${i<completed?'done':i===completed?'next':''}"><b>${prefix}${i+first}</b><small>${esc(note)}</small></li>`).join('')}</ol>`;
 }
-export function wearRequirements(ch, requires, label='เงื่อนไขสวมใส่') {
- if(requires.level!==undefined){const gap=Math.max(0,requires.level-ch.level);return `<div class="gear-requires"><b>${label}</b><span class="${gap?'no':'ok'}" data-required-level="${requires.level}">ต้อง Lv.${requires.level} · ปัจจุบัน Lv.${ch.level}${gap?` · ขาด ${gap} เลเวล`:''}</span></div>`;}
- return `<div class="gear-requires"><b>${label}</b>${Object.entries(requires).map(([stat,need])=>{const current=ch.stats[stat]||0,gap=Math.max(0,need-current);return `<span class="${gap?'no':'ok'}" data-required-stat="${stat}" data-need="${need}">${stat} มี <strong>${current}</strong> / ต้องใช้ <strong>${need}</strong>${gap?` · ขาด <strong>${gap}</strong>`:''}</span>`;}).join('')}</div>`;
+export function wearRequirements(ch, requires, label='เงื่อนไขสวมใส่', have=ch.stats) {
+ // armour asks for its level and its stats; a weapon for its stats; a charm for its level (owner, 2026-10-29)
+ const rows=Object.entries(requires).map(([stat,need])=>{
+  if(stat==='level'){const gap=Math.max(0,need-ch.level);return `<span class="${gap?'no':'ok'}" data-required-level="${need}">ต้อง Lv.${need} · ปัจจุบัน Lv.${ch.level}${gap?` · ขาด ${gap} เลเวล`:''}</span>`;}
+  const current=have?.[stat]||0,gap=Math.max(0,need-current);
+  return `<span class="${gap?'no':'ok'}" data-required-stat="${stat}" data-need="${need}">${stat} มี <strong>${current}</strong> / ต้องใช้ <strong>${need}</strong>${gap?` · ขาด <strong>${gap}</strong>`:''}</span>`;
+ });
+ return `<div class="gear-requires"><b>${label}</b>${rows.join('')}</div>`;
 }
 export function wearRequirementRange(ch, preview) {
- if(preview.maxRequires.level!==undefined)return wearRequirements(ch,preview.maxRequires,'หลังเลื่อนเกรด')+'<small>เลเวลที่ต้องการคงเดิม · เกรด ตีบวก และออฟชั่นไม่เพิ่มเลเวลสวมใส่</small>';
- return `<div class="gear-requires"><b>รีเควสหลังเลื่อนเกรด</b>${Object.entries(preview.maxRequires).map(([stat,max])=>`<span class="${ch.stats[stat]>=max?'ok':'no'}">${stat} ${preview.minRequires[stat]===max?max:preview.minRequires[stat]+'–'+max} · มี ${ch.stats[stat]}</span>`).join('')}</div><small>รีเควสจริงขึ้นกับออฟชั่นใหม่ที่สุ่มได้</small>`;
+ if(preview.maxRequires.level!==undefined&&Object.keys(preview.maxRequires).length===1)return wearRequirements(ch,preview.maxRequires,'หลังเลื่อนเกรด')+'<small>เลเวลที่ต้องการคงเดิม · เกรด ตีบวก และออฟชั่นไม่เพิ่มเลเวลสวมใส่</small>';
+ return `<div class="gear-requires"><b>รีเควสหลังเลื่อนเกรด</b>${Object.entries(preview.maxRequires).filter(([stat])=>stat!=='level').map(([stat,max])=>`<span class="${ch.stats[stat]>=max?'ok':'no'}">${stat} ${preview.minRequires[stat]===max?max:preview.minRequires[stat]+'–'+max} · มี ${ch.stats[stat]}</span>`).join('')}</div><small>รีเควสจริงขึ้นกับออฟชั่นใหม่ที่สุ่มได้</small>`;
 }
 export function gearUpgradeTrack(data, item) {
  return `<ol class="upgrade-track">${Array.from({length:data.items.upgrade.max},(_,i)=>`<li class="${i<item.upgrade?'done':i===item.upgrade?'next':''}"><b>+${i+1}</b><small>${Object.entries(gearRequirements({...item,upgrade:i+1},data)).map(([stat,n])=>(stat==='level'?'Lv.':stat+' ')+n).join(', ')}</small></li>`).join('')}</ol>`;

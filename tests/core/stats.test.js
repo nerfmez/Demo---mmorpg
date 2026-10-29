@@ -46,8 +46,9 @@ test('the wheel: a weapon asks for its type\'s stat (main-line) or one of its ma
 });
 
 test('gear options and Job Tree nodes add stats; derived stats use the total', () => {
-  const ch = createCharacter(data, { kit: 'sword' }), base = derive(ch, data);
-  const armor = ch.gear.find((g) => data.items.gearBases[g.base].slot === 'armor');
+  const ch = createCharacter(data, { kit: 'sword' });
+  ch.stats.AGI = 20; // the tunic asks for AGI (more with a +STR option)
+  const base = derive(ch, data), armor = ch.gear.find((g) => data.items.gearBases[g.base].slot === 'armor');
   armor.options.push({ id: 'str_flat', value: 10 });
   const geared = derive(ch, data);
   assert.equal(geared.stats.STR, ch.stats.STR + 10);
@@ -168,4 +169,18 @@ test('weapon stats follow what the weapon asks for: main-line carries damage onl
   // the priest's mace deals magic and adds HP; an INT shield adds a spell shield
   assert.ok(data.items.gearBases.thunder_maul.stats.magic > 0 && data.items.gearBases.thunder_maul.stats.maxHp > 0);
   assert.ok(data.items.gearBases.highland_shield.stats.maxShield > 0);
+});
+
+test('armour asks for its level and its class stat: heavy VIT (or VIT/STR), light AGI (or AGI/DEX), cloth INT (or INT/LUK, never VIT); a charm its level only', () => {
+  const allowed = { VIT: ['STR'], AGI: ['DEX'], INT: ['LUK'] }, bad = [];
+  for (const [id, b] of Object.entries(data.items.gearBases)) {
+    if (!['armor', 'helm', 'gloves', 'boots', 'charm'].includes(b.slot)) continue;
+    const r = gearRequirements({ uid: 1, base: id, grade: 'S', upgrade: 5, options: [] }, data), k = Object.keys(r);
+    if (b.slot === 'charm') { if (k.join() !== 'level') bad.push(`${id}: a charm asks for its level only`); continue; }
+    const want = ['level', b.requirementStat, ...(b.secondaryStat ? [b.secondaryStat] : [])];
+    if (!allowed[b.requirementStat] || (b.secondaryStat && !allowed[b.requirementStat].includes(b.secondaryStat))) bad.push(`${id}: ${b.requirementStat}/${b.secondaryStat}`);
+    if (k.join() !== want.join()) bad.push(`${id}: ${k}`);
+    if (b.starter && b.secondaryStat) bad.push(`${id}: starter armour asks for one stat`);
+  }
+  assert.deepEqual(bad, []);
 });

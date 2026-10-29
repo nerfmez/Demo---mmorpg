@@ -394,7 +394,7 @@ export class Panels {
       ${wt ? `<div class="gear-implicit">${wt.nameTh} · ${Object.entries(imp)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>` : ''}
-      ${optionList(data,it.options,it.grade,equipmentItemLevel(data,it))}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires)}`;
+      ${optionList(data,it.options,it.grade,equipmentItemLevel(data,it))}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires,undefined,this.game.derived.stats)}`;
   }
 
   render_bag() {

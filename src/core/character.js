@@ -591,8 +591,9 @@ export function gearPower(stats, data) {
 
 export function gearRequirements(item, data) {
   const base = data.items.gearBases[item.base], rules = data.items.requirements;
-  if (['armor', 'helm', 'gloves', 'boots', 'charm'].includes(base.slot))
-    return { level: equipmentItemLevel(data, item) };
+  // a charm asks for a level only; armour asks for its level and, like a weapon, its stats (owner, 2026-10-29)
+  if (base.slot === 'charm') return { level: equipmentItemLevel(data, item) };
+  const level = ['armor', 'helm', 'gloves', 'boots'].includes(base.slot) ? { level: equipmentItemLevel(data, item) } : {};
   const baseline = gearPower(gearStats({ ...item, grade:'C', upgrade:0, options:[] },data),data);
   const extra = Math.ceil(Math.max(0,gearPower(gearStats(item,data),data) - baseline - rules.affixAllowance) * rules.extraPowerFactor - 1e-9);
   const initial = Object.keys(base.requires || {}).length ? base.requires : { [base.requirementStat]: base.starter ? rules.minimumStat : Math.max(rules.minimumStat,Math.ceil(baseline * rules.basePowerFactor)) };
@@ -603,7 +604,7 @@ export function gearRequirements(item, data) {
     const total = out[main], part = Math.round(total * rules.secondaryShare);
     out[main] = Math.max(rules.minimumStat, total - part); out[sec] = Math.max(rules.minimumStat, part);
   }
-  return out;
+  return { ...level, ...out };
 }
 
 const OTHER_HAND = { weapon: 'offhand', offhand: 'weapon' };
@@ -638,7 +639,8 @@ export function gearEquipState(ch, data, item, slot = null, equipped = ch.equipp
     r.stat === 'level' ? `Lv. มี ${r.current} / ต้องใช้ ${r.need} · ขาด ${r.deficit} เลเวล`
       : `${r.stat} มี ${r.current} / ต้องใช้ ${r.need} · ขาด ${r.deficit}`);
   const ok = missing.length === 0;
-  return { ok, reason: ok ? null : requires.level !== undefined ? 'level' : 'requires', requires, rows, missing,
+  const short = rows.find((r) => r.stat === 'level' && r.deficit > 0);
+  return { ok, reason: ok ? null : short ? 'level' : 'requires', requires, rows, missing,
     ...(requires.level !== undefined ? { need: requires.level, current: ch.level } : {}) };
 }
 

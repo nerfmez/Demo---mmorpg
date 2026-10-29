@@ -640,7 +640,7 @@
         "vit_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "STR",
+      "requirementStat": "AGI",
       "itemLevel": 1
     },
     "hide_vest": {
@@ -664,7 +664,7 @@
         "vit_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "STR",
+      "requirementStat": "AGI",
       "itemLevel": 1
     },
     "shell_guard": {
@@ -688,7 +688,7 @@
         "vit_flat"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 6
     },
     "wolfpelt_coat": {
@@ -713,7 +713,7 @@
         "vit_flat"
       ],
       "upgradeMaterial": "wolf_pelt",
-      "requirementStat": "STR",
+      "requirementStat": "AGI",
       "itemLevel": 6
     },
     "storm_mantle": {
@@ -766,7 +766,7 @@
         "vit_flat"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 21
     },
     "leather_cap": {
@@ -790,7 +790,7 @@
         "vit_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "STR",
+      "requirementStat": "AGI",
       "itemLevel": 1
     },
     "beetle_helm": {
@@ -814,7 +814,7 @@
         "vit_flat"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 6
     },
     "spore_hood": {
@@ -894,7 +894,8 @@
         "vit_flat"
       ],
       "upgradeMaterial": "warden_horn",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
+      "secondaryStat": "STR",
       "itemLevel": 21
     },
     "travel_boots": {
@@ -919,7 +920,7 @@
         "agi_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "itemLevel": 1
     },
     "wolf_boots": {
@@ -943,7 +944,7 @@
         "agi_flat"
       ],
       "upgradeMaterial": "wolf_pelt",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "itemLevel": 6
     },
     "wisp_slippers": {
@@ -992,7 +993,7 @@
         "agi_flat"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 21
     },
     "tusk_charm": {
@@ -1174,9 +1175,7 @@
         "defense": 72,
         "maxHp": 112
       },
-      "requires": {
-        "STR": 6
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "hp_flat",
@@ -1188,7 +1187,7 @@
         "vit_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 1
     },
     "tide_boots": {
@@ -1199,9 +1198,7 @@
         "moveSpeedPct": 4.5,
         "defense": 32
       },
-      "requires": {
-        "DEX": 6
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "move_pct",
@@ -1215,7 +1212,7 @@
         "agi_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "itemLevel": 1
     },
     "pearl_pendant": {
@@ -1227,9 +1224,7 @@
         "magic": 29,
         "maxHp": 80
       },
-      "requires": {
-        "INT": 6
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "magic_flat",
@@ -1429,7 +1424,8 @@
         "dex_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "STR",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "itemLevel": 1
     },
     "shell_mitts": {
@@ -1453,7 +1449,7 @@
         "dex_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "itemLevel": 1
     },
     "wolf_grips": {
@@ -1478,7 +1474,8 @@
         "dex_flat"
       ],
       "upgradeMaterial": "wolf_pelt",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "itemLevel": 6
     },
     "wisp_wraps": {
@@ -1530,7 +1527,8 @@
         "dex_flat"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
+      "secondaryStat": "STR",
       "itemLevel": 21
     },
     "shell_knife": {
@@ -1872,7 +1870,7 @@
       "nameTh": "เสื้อคลุมพราน",
       "slot": "armor",
       "look": "pelt",
-      "requirementStat": "STR",
+      "requirementStat": "AGI",
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -1896,7 +1894,7 @@
       "nameTh": "ฮู้ดพราน",
       "slot": "helm",
       "look": "hood",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "defense_flat",
         "crit_pct",
@@ -1921,7 +1919,8 @@
       "nameTh": "ถุงมือโจรป่า",
       "slot": "gloves",
       "look": "pelt",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -1946,7 +1945,7 @@
       "name": "Trail Boots",
       "nameTh": "รองเท้าเดินป่า",
       "slot": "boots",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "move_pct",
         "defense_flat",
@@ -2125,7 +2124,7 @@
       "name": "Gale Boots",
       "nameTh": "รองเท้าวายุ",
       "slot": "boots",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "move_pct",
         "defense_flat",
@@ -2312,7 +2311,7 @@
       "name": "Wardenstalker Coat",
       "nameTh": "เสื้อพรานผู้พิทักษ์",
       "slot": "armor",
-      "requirementStat": "STR",
+      "requirementStat": "AGI",
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -2337,7 +2336,8 @@
       "name": "Wardenstalker Hood",
       "nameTh": "ฮู้ดพรานผู้พิทักษ์",
       "slot": "helm",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "crit_pct",
         "cdr_pct",
@@ -2363,7 +2363,8 @@
       "name": "Wardenstalker Gloves",
       "nameTh": "ถุงมือพรานผู้พิทักษ์",
       "slot": "gloves",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -2503,7 +2504,7 @@
       "name": "Travel Cap",
       "nameTh": "หมวกเดินทาง",
       "slot": "helm",
-      "requirementStat": "STR",
+      "requirementStat": "AGI",
       "optionPool": [
         "hp_flat",
         "defense_flat",
@@ -2527,7 +2528,8 @@
       "name": "Travel Gloves",
       "nameTh": "ถุงมือเดินทาง",
       "slot": "gloves",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -2552,7 +2554,7 @@
       "name": "Boarhide Boots",
       "nameTh": "รองเท้าหนังหมูป่า",
       "slot": "boots",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "move_pct",
         "defense_flat",
@@ -2577,7 +2579,7 @@
       "name": "Crabshell Vest",
       "nameTh": "เกราะกระดองปู",
       "slot": "armor",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "optionPool": [
         "hp_flat",
         "defense_flat",
@@ -2601,7 +2603,7 @@
       "name": "Beetle Gloves",
       "nameTh": "ถุงมือกระดองด้วง",
       "slot": "gloves",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "optionPool": [
         "hp_flat",
         "defense_flat",
@@ -2625,7 +2627,7 @@
       "name": "Beetle Boots",
       "nameTh": "รองเท้ากระดองด้วง",
       "slot": "boots",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "optionPool": [
         "hp_flat",
         "defense_flat",
@@ -2676,7 +2678,8 @@
       "name": "Wolfpelt Hood",
       "nameTh": "ฮู้ดหนังหมาป่า",
       "slot": "helm",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
@@ -2701,7 +2704,7 @@
       "name": "Burrowguard Armor",
       "nameTh": "เกราะผู้พิทักษ์โพรง",
       "slot": "armor",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "optionPool": [
         "hp_flat",
         "defense_flat",
@@ -2726,7 +2729,7 @@
       "name": "Burrowguard Helm",
       "nameTh": "หมวกผู้พิทักษ์โพรง",
       "slot": "helm",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "optionPool": [
         "hp_flat",
         "defense_flat",
@@ -2751,7 +2754,8 @@
       "name": "Burrowguard Gloves",
       "nameTh": "ถุงมือผู้พิทักษ์โพรง",
       "slot": "gloves",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
+      "secondaryStat": "STR",
       "optionPool": [
         "hp_flat",
         "defense_flat",
@@ -2776,7 +2780,7 @@
       "name": "Burrowguard Boots",
       "nameTh": "รองเท้าผู้พิทักษ์โพรง",
       "slot": "boots",
-      "requirementStat": "STR",
+      "requirementStat": "VIT",
       "optionPool": [
         "hp_flat",
         "defense_flat",
@@ -2855,6 +2859,7 @@
       "nameTh": "ถุงมือปีกกระจก",
       "slot": "gloves",
       "requirementStat": "INT",
+      "secondaryStat": "LUK",
       "optionPool": [
         "magic_flat",
         "mp_flat",
@@ -2906,7 +2911,7 @@
       "name": "Fernstep Coat",
       "nameTh": "เสื้อคลุมก้าวเฟิร์น",
       "slot": "armor",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "move_pct",
         "defense_flat",
@@ -2931,7 +2936,8 @@
       "name": "Fernstep Cap",
       "nameTh": "หมวกก้าวเฟิร์น",
       "slot": "helm",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
@@ -2956,7 +2962,8 @@
       "name": "Fernstep Gloves",
       "nameTh": "ถุงมือก้าวเฟิร์น",
       "slot": "gloves",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -2982,7 +2989,7 @@
       "name": "Fernstep Boots",
       "nameTh": "รองเท้าก้าวเฟิร์น",
       "slot": "boots",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
       "optionPool": [
         "move_pct",
         "defense_flat",
@@ -3116,7 +3123,8 @@
       "name": "Storm Gloves",
       "nameTh": "ถุงมือพายุ",
       "slot": "gloves",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "attack_flat",
         "crit_pct",
@@ -3222,7 +3230,8 @@
       "name": "Wardenstalker Boots",
       "nameTh": "รองเท้าพรานผู้พิทักษ์",
       "slot": "boots",
-      "requirementStat": "DEX",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
       "optionPool": [
         "move_pct",
         "defense_flat",
@@ -3669,7 +3678,7 @@
     }
   },
   "requirements": {
-    "_doc": "Wear requirements use every stat the character has (core/character.js statTotals), never the item's own bonus. A weapon asks for its requirementStat; one with a secondaryStat (its neighbour on the stat wheel, docs/STATS-TH.md) gives that stat secondaryShare of the requirement. Weighted actual item power above its C/+0 baseline plus a two-affix allowance increases the base requirement. All weights and growth are tunable here.",
+    "_doc": "Wear requirements use every stat the character has (core/character.js statTotals), never the item's own bonus. A weapon, shield or armour piece (armor, helm, gloves, boots, on top of its level) asks for its requirementStat; one with a secondaryStat (its neighbour on the stat wheel, docs/STATS-TH.md) gives that stat secondaryShare of the requirement. Weighted actual item power above its C/+0 baseline plus a two-affix allowance increases the base requirement. All weights and growth are tunable here.",
     "minimumStat": 3,
     "basePowerFactor": 0.35,
     "extraPowerFactor": 0.5,

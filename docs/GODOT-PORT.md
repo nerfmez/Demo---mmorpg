@@ -194,7 +194,9 @@ Stats (owner, 2026-10-29, `docs/STATS-TH.md`): the six stats sit on a wheel
 (`progression.character.statWheel`: STR AGI DEX LUK INT VIT). A weapon asks for its type's stat (sword,
 greatblade, axe, mace STR; bow DEX; staff, wand INT; shields VIT); one with a `secondaryStat`
 (its type's pairs, `tests/core/stats.test.js` `WEAPON_STATS`: daggers only STR/DEX or DEX/AGI with no main-line dagger; staves and wands only INT/LUK; maces STR/VIT or INT/VIT; shields VIT/STR or VIT/INT) hands it `items.requirements.secondaryShare` (0.4) of the requirement
-(`gearRequirements`). Weapon and shield base stats follow the same stats (`items.weaponIdentity`, written once by
+(`gearRequirements`). Armour pieces (armor, helm, gloves, boots) ask for their level and, the same way, their class stat
+(heavy VIT or VIT/STR, light AGI or AGI/DEX, cloth INT or INT/LUK, never VIT); a charm asks for its level
+only; the requirement follows the item's class, not the stats it gives. Weapon and shield base stats follow the same stats (`items.weaponIdentity`, written once by
 `scripts/gear-identity.mjs`): main-line weapons carry damage only, main-and-secondary ones trade `damageCut` of
 their tier damage for the secondary stat's identity stat at a value that grows slowly with item level. A skill for one stat or
 two neighbours on the wheel (its `upgradeStat` first), a mod for one; each stat named is met on its own

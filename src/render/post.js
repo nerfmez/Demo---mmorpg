@@ -2,7 +2,9 @@
 // soft glow on bright highlights, a gentle distance haze in the zone's fog colour toward the top
 // of the screen (farther ground in this camera), a warm sunlight wash from the sun's side, split toning (cool shadows, warm light), contrast/saturation and a
 // vignette. Models and materials are untouched. Cost: one quarter-size glow pass and one
-// full-screen composite; off on the low preset (the scene then draws straight to the canvas).
+// full-screen composite. With the grade off (the low preset) but anti-aliasing on, the same
+// multisampled target is only resolved and copied to the screen; with both off the scene draws
+// straight to the canvas. The canvas itself is never multisampled.
 import * as THREE from 'three';
 
 const VERT = `varying vec2 vUv;
@@ -56,6 +58,12 @@ void main() {
   gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }`;
 
+// grade off: the resolved scene as the canvas would have shown it (linear -> display)
+const COPY_FRAG = `uniform sampler2D tScene;
+varying vec2 vUv;
+vec3 toSRGB(vec3 c) { return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
+void main() { gl_FragColor = vec4(toSRGB(clamp(texture2D(tScene, vUv).rgb, 0.0, 1.0)), 1.0); }`;
+
 const WHITE = new THREE.Color(1, 1, 1);
 
 const tri = () => {
@@ -65,14 +73,15 @@ const tri = () => {
 };
 
 export class PostFX {
-  constructor(renderer, cfg) {
+  /** samples: the anti-aliasing setting (0 off); grade: false only resolves and copies. */
+  constructor(renderer, cfg, { samples = cfg.samples ?? 4, grade = true } = {}) {
     this.renderer = renderer;
     this.cfg = cfg;
     this.width = 0;
     this.height = 0;
-    const isGL2 = renderer.capabilities?.isWebGL2 !== false;
-    // the canvas's native AA does not apply inside a target: multisample it instead
-    this.scene = new THREE.WebGLRenderTarget(1, 1, { samples: isGL2 ? cfg.samples ?? 4 : 0, colorSpace: THREE.SRGBColorSpace });
+    this.grade = grade;
+    this.isGL2 = renderer.capabilities?.isWebGL2 !== false;
+    this.scene = new THREE.WebGLRenderTarget(1, 1, { samples: this.isGL2 ? samples : 0, colorSpace: THREE.SRGBColorSpace });
     this.glow = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false }); // 8-bit: the bright pass never exceeds 1, and every iPad can render to it
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     this.geometry = tri();
@@ -93,6 +102,10 @@ export class PostFX {
         uSun: { value: col(cfg.sunWashColor) }, uSunAmt: { value: cfg.sunWash }, uSunPos: { value: new THREE.Vector2(...cfg.sunWashPos) }, uAspect: { value: 1 },
         uVignette: { value: cfg.vignette }, uTime: { value: 0 },
       },
+    });
+    this.copyMat = new THREE.ShaderMaterial({
+      vertexShader: VERT, fragmentShader: COPY_FRAG, depthTest: false, depthWrite: false,
+      uniforms: { tScene: { value: this.scene.texture } },
     });
     this.quad = new THREE.Mesh(this.geometry, this.glowMat);
     this.quad.frustumCulled = false;
@@ -116,6 +129,15 @@ export class PostFX {
     return true;
   }
 
+  /** Change the anti-aliasing samples; the scene target is reallocated on its next use. */
+  setSamples(samples) {
+    samples = this.isGL2 ? samples : 0;
+    if (samples === this.scene.samples) return false;
+    this.scene.dispose();
+    this.scene.samples = samples;
+    return true;
+  }
+
   /** The haze takes the zone's fog colour (linear, as THREE.Color holds it), lifted toward white. */
   setHaze(fog) {
     const h = this.compositeMat.uniforms.uHaze.value.copy(fog).convertLinearToSRGB();
@@ -127,6 +149,12 @@ export class PostFX {
     const prev = r.getRenderTarget();
     r.setRenderTarget(this.scene);
     r.render(scene, camera);
+    if (!this.grade) {
+      this.quad.material = this.copyMat;
+      r.setRenderTarget(prev);
+      r.render(this.quadScene, this.camera);
+      return;
+    }
     this.quad.material = this.glowMat;
     r.setRenderTarget(this.glow);
     r.render(this.quadScene, this.camera);
@@ -141,6 +169,7 @@ export class PostFX {
     this.glow.dispose();
     this.glowMat.dispose();
     this.compositeMat.dispose();
+    this.copyMat.dispose();
     this.geometry.dispose();
   }
 }

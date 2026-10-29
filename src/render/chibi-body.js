@@ -705,6 +705,7 @@ const FITTED = new WeakMap(), EDGE = 1e-3;
 const GAP = 2; // fitHairToHead: the widest hole in a hair (direction bins) the head under it is shaded across
 const HAIR_CLOSE = 0.1; // fitHairToHead: the farthest hair (head widths) over a bare part of the head that it shades
 const EAR_SKIN = 0.15; // fitHairToHead: the skin round an ear beside the hair (head widths) never shaded
+const HAIR_DEEP = 10; // fitHairToHead: shade map cells inside the hair's edge where the head is shaded however far the hair stands
 const HAIR_EDGE = 5; // fitHairToHead: the shade's edge this far inside the hair's (shade map cells, 1.9° each)
 const FOREHEAD = 0.72; // fitHairToHead: the head height (face coordinates) above the drawn face's features
 function fitHairToHead(T, src, H, geometry) {
@@ -961,14 +962,43 @@ function fitHairToHead(T, src, H, geometry) {
     // so the head just under the edge shows its skin, as a hairline does, not a dark band (closed the
     // wider by as much, so a small hole inside the hair stays closed)
     let closed = morph(morph(own, 2 * GAP + HAIR_EDGE, true), 2 * GAP + HAIR_EDGE, false);
+    // a hole of any size inside the hair (a gap between a full style's locks) is covered too: every
+    // uncovered patch but the largest (the face and the neck below) and those as big as a tenth of it
+    {
+      const seen = new Int32Array(closed.length).fill(-1), sizes = [];
+      for (let s0 = 0; s0 < closed.length; s0++) {
+        if (closed[s0] || seen[s0] >= 0) continue;
+        const id = sizes.length, stack = [s0];
+        let n = 0;
+        seen[s0] = id;
+        while (stack.length) {
+          const c0 = stack.pop(), p = Math.floor(c0 / MA), u = c0 % MA;
+          n++;
+          for (const [dp, du] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const pp = p + dp;
+            if (pp < 0 || pp >= MP) continue;
+            const c1 = pp * MA + ((u + du + MA) % MA);
+            if (!closed[c1] && seen[c1] < 0) { seen[c1] = id; stack.push(c1); }
+          }
+        }
+        sizes.push(n);
+      }
+      const big = Math.max(0, ...sizes);
+      for (let c0 = 0; c0 < closed.length; c0++) if (!closed[c0] && sizes[seen[c0]] < 0.1 * big) closed[c0] = 1;
+    }
     closed = morph(closed, HAIR_EDGE, false);
     own = morph(own, HAIR_EDGE, false);
     // which of the head the map may shade: what was taken in under the hair, and the rest of the head with
     // hair close over it (round its direction, within HAIR_CLOSE head widths); the skin under a lock
     // hanging well clear of it (the nape behind long side locks) stays skin
     const R = 2 * GAP, q = new THREE.Vector3(), clear = HAIR_CLOSE * hw;
+    // deep inside the hair (HAIR_DEEP cells from its edge) the head is shaded however far out the hair
+    // stands (a full, puffed style): the closeness rule is for the hair's edge, where a lock hangs
+    // clear of the head
+    const deep = morph(closed, HAIR_DEEP, false);
     const close = (i) => {
       const r = Math.hypot(...P.get(i)), ci = cell(q.fromArray(P.get(i))), p0 = Math.floor(ci / MA), u0 = ci % MA;
+      if (deep[ci]) return true;
       let best = Infinity;
       for (let dp = -R; dp <= R; dp++) for (let du = -R; du <= R; du++) best = Math.min(best, near[THREE.MathUtils.clamp(p0 + dp, 0, MP - 1) * MA + ((u0 + du + MA) % MA)]);
       return best <= r + clear;
@@ -976,9 +1006,10 @@ function fitHairToHead(T, src, H, geometry) {
     // the skin just under the head joint (neck) is taken in under a lock over it but stays skin: seen
     // between the locks hanging past it, it is the neck
     const nape = neckSet;
-    // and an ear and the skin round it (EAR_SKIN head widths), kept or pressed flat: just below the side
-    // hair, seen between it and the hair's edge, shaded it drew a black ear
-    const kept = [...ears].filter((i) => P.has(i)).map((i) => P.get(i)), round = EAR_SKIN * hw;
+    // and an ear left out and the skin round it (EAR_SKIN head widths): just below the side hair, seen
+    // between it and the hair's edge, shaded it drew a black ear (a folded ear is closed onto the skull
+    // and shaded with it, or the head round it showed through gaps in the hair)
+    const kept = [...ears].filter((i) => P.has(i) && !fold.has(i)).map((i) => P.get(i)), round = EAR_SKIN * hw;
     const byEar = (i) => { const q = P.get(i); return kept.some((e) => Math.hypot(q[0] - e[0], q[1] - e[1], q[2] - e[2]) < round); };
     for (const i of P.keys()) {
       if (nape.has(i) || (kept.length && byEar(i))) continue;
@@ -998,7 +1029,7 @@ function fitHairToHead(T, src, H, geometry) {
     const texels = new Uint8Array(MA * MP * 4);
     for (let n = 0; n < MA * MP; n++) {
       texels[n * 4] = closed[n] * 255; texels[n * 4 + 1] = own[n] * 255; texels[n * 4 + 3] = 255;
-      texels[n * 4 + 2] = Math.round(Math.min(1, nearest[n] / far) * 255);
+      texels[n * 4 + 2] = deep[n] ? 0 : Math.round(Math.min(1, nearest[n] / far) * 255);
     }
     reachOver = new THREE.Vector2(far, clear);
     cover = new THREE.DataTexture(texels, MA, MP);

@@ -133,3 +133,19 @@ test('v18: a hero who trained stats under the old rules gets one stat respec fre
   assert.equal(migrateCharacter(untrained, data).freeStatRespec, false, 'nothing trained, nothing to refund');
   assert.equal(createCharacter(data).freeStatRespec, false);
 });
+
+test('finesse (a key node): melee attack comes from DEX instead of STR; nothing is added, so a STR hero gains nothing', () => {
+  const D = structuredClone(data);
+  D.jobtree.nodes.origin.effects = { ...(D.jobtree.nodes.origin.effects || {}), finesse: 1 };
+  const per = data.progression.character.perStat;
+  const hero = (d, stats) => { const ch = createCharacter(d, { kit: 'sword' }); Object.assign(ch.stats, stats); return derive(ch, d); };
+  const dexHero = { STR: 3, DEX: 80 }, strHero = { STR: 80, DEX: 3 };
+  const plainDex = hero(data, dexHero), keyDex = hero(D, dexHero), plainStr = hero(data, strHero), keyStr = hero(D, strHero);
+  // DEX now gives STR's attack and melee damage, and drops its own attack
+  assert.ok(Math.abs(keyDex.attack - (plainDex.attack + per.STR.attack * (80 - 3) - per.DEX.attack * 80)) < 1e-6, 'DEX gives STR\'s attack instead of its own');
+  assert.ok(Math.abs(keyDex.meleeDamagePct - (plainDex.meleeDamagePct + per.STR.meleeDamagePct * (80 - 3))) < 1e-6);
+  assert.equal(keyDex.maxHp, plainDex.maxHp, 'HP still comes from STR');
+  assert.equal(keyDex.critMultPct, plainDex.critMultPct, 'DEX keeps its crit power');
+  assert.ok(keyStr.attack < plainStr.attack && keyStr.meleeDamagePct < plainStr.meleeDamagePct, 'a STR hero loses by taking it');
+  assert.ok(Math.abs(keyDex.attack - (plainStr.attack - per.DEX.attack * 3)) < 1e-6, 'the same points give the same attack either way (less the 3 DEX a STR hero keeps)');
+});

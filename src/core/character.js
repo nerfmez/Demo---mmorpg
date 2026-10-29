@@ -852,9 +852,18 @@ export function derive(ch, data) {
   // stats from every source (statTotals); the gear in use is the gear that meets its requirement
   const { stats, active } = statTotals(ch, data);
   d.stats = stats;
+  // finesse (a Job Tree key node, owner 2026-10-29): melee attack comes from DEX instead of STR. STR's
+  // attack and melee damage are counted from DEX, DEX's own attack is dropped and STR keeps only its HP,
+  // so a fast crit melee build can live on DEX and nothing is added on top
+  const finesse = Math.min(1, (ch.jobNodes || []).reduce((a, n) => a + (data.jobtree.nodes[n]?.effects?.finesse || 0), 0));
   for (const s of STATS) {
     const per = pc.perStat[s] || {};
-    for (const k in per) add(k, per[k] * stats[s]);
+    for (const k in per) {
+      let points = stats[s];
+      if (finesse && s === 'STR' && (k === 'attack' || k === 'meleeDamagePct')) points = stats.STR * (1 - finesse) + stats.DEX * finesse;
+      else if (finesse && s === 'DEX' && k === 'attack') points = stats.DEX * (1 - finesse);
+      add(k, per[k] * points);
+    }
   }
   const counted = new Set();
   for (const slot of data.items.slots || ['weapon', 'armor']) {
@@ -873,7 +882,7 @@ export function derive(ch, data) {
   if (arrow) for (const [k, v] of Object.entries(data.items.arrows.types[arrow].stats)) add(k, v);
   for (const n of ch.jobNodes) {
     const eff = data.jobtree.nodes[n]?.effects || {};
-    for (const k in eff) if (!STATS.includes(k)) add(k, eff[k]);
+    for (const k in eff) if (!STATS.includes(k) && k !== 'finesse') add(k, eff[k]);
   }
   const base = pc.base;
   const soft = pc.softCaps;

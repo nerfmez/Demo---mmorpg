@@ -734,10 +734,15 @@ scene-shadow mask rather than re-lighting individual cards.
 The same wind deformation must be active in both colour and shadow rendering.
 WebGL uses a shared customDepthMaterial per fill material (`render/patch.js`),
 with the fill's alpha texture/test and wind uniforms, but no camera-space dither.
-When changing quality, update and release shadow buffers as well as DPR. WebGL
-native AA is a fixed context policy (including Low), not a switch changed by
-setQuality. Godot can use its own viewport AA controls with equivalent documented
-behaviour. See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
+When changing quality, update and release shadow buffers as well as DPR.
+Graphics settings (owner, 29 October 2026; `rendering.json` -> `graphics`,
+`src/ui/graphics-settings.js`): presets low/medium/high (low 0.85 and medium 1.25
+drawn pixels per screen point, high 2) or `custom`, where resolution, shadow size,
+the screen grade and dynamic resolution are each chosen from listed values.
+Anti-aliasing is a separate setting for every preset (off, x2, x4): the WebGL
+canvas is never multisampled; the scene target's samples are the setting, and with
+the grade off the target is only resolved and copied. In Godot, map this to the
+viewport's `scaling_3d_scale` and `msaa_3d` (disabled/2x/4x). See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
 
 ### Azure Coast local starter (30 September 2026)
 
@@ -919,7 +924,7 @@ the current aligned one-metre map grids, not arbitrary irregular tessellation.
 
 ## Screen grade (post-process)
 
-`render/post.js` (`PostFX`, settings `rendering.json` → `post`, on per preset with `quality.<name>.post`, off on `low`) draws the scene into a 4x multisampled sRGB target, makes a quarter-size bright pass for a soft glow, then one full-screen composite: glow, display-space saturation and contrast, split toning (cool `shadowTint`, warm `lightTint`; 50% grey is neutral), a haze toward the top of the screen in the zone's fog colour lifted by `hazeLift`, a warm screen-blend sun wash centred at `sunWashPos` (screen UV, top-left, the sun's side), a vignette and a 1/255 dither. Models and materials are unchanged; `?post=0` turns it off for comparisons. In Godot, use a `WorldEnvironment` (glow with the same threshold, adjustments for contrast/saturation) plus a screen-space `ColorRect` shader for the toning, haze, sun wash and vignette.
+`render/post.js` (`PostFX`, settings `rendering.json` → `post`, on per preset with `quality.<name>.post`, off on `low`) draws the scene into a multisampled sRGB target (samples = the anti-aliasing setting), makes a quarter-size bright pass for a soft glow, then one full-screen composite: glow, display-space saturation and contrast, split toning (cool `shadowTint`, warm `lightTint`; 50% grey is neutral), a haze toward the top of the screen in the zone's fog colour lifted by `hazeLift`, a warm screen-blend sun wash centred at `sunWashPos` (screen UV, top-left, the sun's side), a vignette and a 1/255 dither. Models and materials are unchanged; `?post=0` turns it off for comparisons. In Godot, use a `WorldEnvironment` (glow with the same threshold, adjustments for contrast/saturation) plus a screen-space `ColorRect` shader for the toning, haze, sun wash and vignette.
 
 ## Local city cohesion presentation
 

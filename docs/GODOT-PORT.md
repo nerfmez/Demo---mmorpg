@@ -431,6 +431,10 @@ by negative `grip`, rotate with Euler XYZ radians, then uniformly scale into tha
 Apply the same fit in Godot before attaching to a `BoneAttachment3D` on either hand;
 bow limbs run along Y and the belly points +Z. Staff grips seat on the shaft midpoint.
 The cached fitted geometry and textures are shared; each rig owns its toon materials.
+Every model loaded through `render/models.js` (hero, outfits, hair, weapons, monsters) has
+maps larger than `rendering.modelTextureMax` (1024) drawn down once on load: a 2048² map
+costs 22 MB of GPU memory and four of them helped push the iPad into a lost WebGL context.
+In Godot, set the import size limit on those textures to the same value.
 All 38 weapon bases are registered, and only current equipped/portrait weapons load on demand.
 The procedural shape in `equipment.js` remains the pending/failed-load fallback.
 The hero body is `public/models/hero_base.glb` (Meshy, auto-rigged, 24 Mixamo-like bones),

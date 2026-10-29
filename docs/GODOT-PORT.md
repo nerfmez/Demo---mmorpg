@@ -211,7 +211,7 @@ totals (`d.stats`) for `perStat`, HP per VIT and MP per INT, and counts only act
 its `upgradeStat`) + `require.perLevel` (1.7) per level above 1, shared by its stats in proportion;
 `modRequires` adds `modUpgrade.requiresStatPerLevel` (25) per mod level. `levelInUse` holds a skill or
 mod above what the stats allow at the highest level they meet (`computeSkill` `s.level`, `s.owned`); it
-is switched off only below its first level. A Job Tree node effect `finesse` (0..1) makes STR's `attack` and `meleeDamagePct` rows count DEX instead of STR and drops DEX's own `attack` row by the same share (`derive`), so melee attack can come from DEX with nothing added. In Godot keep `Character.stat_totals()` and call it
+is switched off only below its first level. A Job Tree node effect `finesse` (0..1) makes STR's `attack` and `meleeDamagePct` rows count DEX instead of STR and drops DEX's own `attack` and `attackDamagePct` rows by the same share (`derive`; DEX's `attackDamagePct` raises every Attack skill, daggers as much as bows), so melee attack can come from DEX with nothing added. In Godot keep `Character.stat_totals()` and call it
 wherever requirements are checked.
 
 Stat thresholds (owner, 2026-10-29): `progression.statPerks` lists, per stat, four perks at 50/100/150/200

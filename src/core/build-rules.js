@@ -13,7 +13,7 @@ export const AXES = ['single', 'pack', 'survival', 'sustain', 'mobility', 'team'
 // a damage option counts only when the skill can use it (a sword gains nothing from spell damage)
 export const USES = {
   attack: (s) => s.power !== 'spell', magic: (s) => s.power === 'spell',
-  meleeDamagePct: (s) => s.tags.has('Melee'), projectileDamagePct: (s) => s.tags.has('Projectile'),
+  attackDamagePct: (s) => s.tags.has('Attack'), meleeDamagePct: (s) => s.tags.has('Melee'), projectileDamagePct: (s) => s.tags.has('Projectile'),
   spellDamagePct: (s) => s.tags.has('Spell'), areaDamagePct: (s) => s.tags.has('Area'), summonDamagePct: (s) => s.tags.has('Summon'),
 };
 

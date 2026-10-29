@@ -118,6 +118,26 @@ test('the giant shell hides a secret door: it opens only after inspecting it, an
   }
 });
 
+test('the old stone over the water has broken away: each break is wading water beside the stone, reached, and no walkway was cut in two', () => {
+  const breaks = FILE.inside.props.filter((p) => p.type === 'rubble');
+  assert.ok(breaks.length >= 8, `only ${breaks.length} breaks`);
+  for (const b of breaks) {
+    const s = inside.surfaceAt(...b.at);
+    assert.ok(s && s.walkable && s.waterY != null && s.y < s.waterY, `break at ${b.at} is not in the water`);
+    assert.ok(reachedNear('inside', b.at, 2), `break at ${b.at} not reached`);
+    // the stone it broke from is right there
+    const r = 1.4 * b.scale + 1.5;
+    const near = [[r, 0], [-r, 0], [0, r], [0, -r], [r * 0.7, r * 0.7], [-r * 0.7, r * 0.7], [r * 0.7, -r * 0.7], [-r * 0.7, -r * 0.7]]
+      .some(([dx, dz]) => inside.surfaceAt(b.at[0] + dx, b.at[1] + dz)?.floor.id.includes('-stone-'));
+    assert.ok(near, `break at ${b.at} is not beside the stone`);
+  }
+  // the hand-drawn walkways of the temple and the throne room are still one piece each
+  for (const z of ['temple', 'throne']) {
+    const shapes = TRACE.zones.find((q) => q.id === z).stone.length;
+    assert.ok(inside.floors.filter((f) => f.id.startsWith(`${z}-stone-`)).length <= shapes, `${z} stone split into pieces`);
+  }
+});
+
 test('paths are smoothed but keep their ends', () => {
   const p = smoothPath([[0, 0], [10, 0], [10, 10]]);
   assert.deepEqual(p[0], [0, 0]);

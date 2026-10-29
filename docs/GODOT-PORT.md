@@ -669,7 +669,12 @@ types to props as `buildProps` does (pillar, pillarBroken → pillar_broken, fal
 sealedArch → arch_sealed, crystal → crystal_s/m/l by scale, coralTree → coral_tree, bigPearl → pearl_altar, chest → chest / chest_open
 in turn, candles, barrel, crate, post); collision stays the `propTypes` circles. Each `waterfalls` entry has `kind`: `ledge` (pours over the edge at
 `at` toward `facing`, curving out about 0.25 + 0.55·sqrt(fallen m / 3)) or `wall` (runs down the cave wall from `top`); both widen
-to 1.15× at the foot. Stairs are cut out of the floors they cross; draw ~0.2 m steps with cheeks, the collider stays the ramp. See `docs/SHELL-GROTTO.md`.
+to 1.15× at the foot. Stairs are cut out of the floors they cross; draw ~0.2 m steps with cheeks, the collider stays the ramp. A `rubble` prop
+(no collider) marks where the stone over the water broke away (the traced floors already have the bite): draw one tilted
+slab of paving (about 2.1×1.7×0.3 m × scale, high end at the broken edge, low end on the water floor) plus a smaller sunk
+slab and chips along its `rot`, and leave the edging stones out within 1.4·scale + 0.7 m of it. Edging stones elsewhere age by
+a hash of their index (13% missing, 17% tipped outward, the rest leaning a little); stone floors get worn-paving decals,
+about one per 45 m², off the props and inside the edge. See `docs/SHELL-GROTTO.md`.
 
 ## Checklist for the port
 

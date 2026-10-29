@@ -226,6 +226,66 @@ export function medallionTexture() {
   }, { repeat: false });
 }
 
+/** Wear on the old paving, four patches in a 2x2 sheet (transparent around them): a damp stain,
+ * a paver or two gone (a dark pit with broken lit edges and grit in it), cracks running out from
+ * it, a few specks of sea moss. Laid over the floors as decals (floors.js). */
+export function wornTexture() {
+  return canvasTexture('worn', 512, (g, n) => {
+    const rng = createRng(57), h = n / 2;
+    const jag = (cx, cy, r, k = 9) => {
+      const pts = [];
+      for (let i = 0; i < k; i++) { const a = (i / k) * Math.PI * 2 + rng.range(-0.25, 0.25), d = r * rng.range(0.6, 1.1); pts.push([cx + Math.cos(a) * d, cy + Math.sin(a) * d]); }
+      return pts;
+    };
+    const fillPoly = (pts) => { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); };
+    for (let cell = 0; cell < 4; cell++) {
+      const ox = (cell % 2) * h, oy = Math.floor(cell / 2) * h, cx = ox + h / 2, cy = oy + h / 2;
+      g.save();
+      g.beginPath(); g.rect(ox, oy, h, h); g.clip();
+      // the damp stain, soft and uneven
+      for (let i = 0; i < 6; i++) {
+        const x = cx + rng.range(-40, 40), y = cy + rng.range(-40, 40), r = rng.range(40, 80);
+        const grad = g.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, 'rgba(52,44,36,0.22)');
+        grad.addColorStop(1, 'rgba(52,44,36,0)');
+        g.fillStyle = grad;
+        g.fillRect(ox, oy, h, h);
+      }
+      // cracks out of the middle
+      g.strokeStyle = 'rgba(40,32,26,0.85)';
+      g.lineCap = 'round';
+      for (let i = rng.int(3, 5); i > 0; i--) {
+        let x = cx, y = cy, a = rng.range(0, Math.PI * 2);
+        g.lineWidth = rng.range(1.6, 2.6);
+        g.beginPath(); g.moveTo(x, y);
+        for (let k = rng.int(4, 7); k > 0; k--) { a += rng.range(-0.6, 0.6); x += Math.cos(a) * rng.range(10, 20); y += Math.sin(a) * rng.range(10, 20); g.lineTo(x, y); }
+        g.stroke();
+      }
+      // the pavers gone: a lit broken rim, the dark pit, grit and a chip or two in it
+      for (let i = cell === 3 ? 1 : rng.int(1, 2); i > 0; i--) {
+        const px = cx + rng.range(-22, 22), py = cy + rng.range(-22, 22), r = rng.range(22, 36);
+        const pit = jag(px, py, r);
+        g.fillStyle = 'rgba(236,222,196,0.55)';
+        fillPoly(pit.map(([x, y]) => [x - 2, y - 2]));
+        g.fillStyle = 'rgba(46,38,32,0.95)';
+        fillPoly(pit);
+        g.fillStyle = 'rgba(30,24,20,0.9)';
+        fillPoly(pit.map(([x, y]) => [px + (x - px) * 0.75 + 3, py + (y - py) * 0.75 + 3]));
+        for (let k = rng.int(3, 6); k > 0; k--) {
+          g.fillStyle = rng.chance(0.5) ? 'rgba(150,134,112,0.95)' : 'rgba(104,92,78,0.95)';
+          fillPoly(jag(px + rng.range(-r * 0.5, r * 0.5), py + rng.range(-r * 0.5, r * 0.5), rng.range(3, 8), 5));
+        }
+      }
+      // sea moss in the damp
+      for (let i = rng.int(6, 12); i > 0; i--) {
+        g.fillStyle = `rgba(${rng.int(60, 80)},${rng.int(110, 130)},${rng.int(96, 112)},${rng.range(0.25, 0.5)})`;
+        g.beginPath(); g.arc(cx + rng.range(-70, 70), cy + rng.range(-70, 70), rng.range(2, 6), 0, Math.PI * 2); g.fill();
+      }
+      g.restore();
+    }
+  }, { repeat: false });
+}
+
 /** Radial glow (white centre to transparent edge) for light pools and halos. */
 export function glowTexture() {
   return canvasTexture('glow', 128, (g, n) => {

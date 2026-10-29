@@ -144,6 +144,90 @@ for s in CFG['stairs']:
     cv2.fillPoly(stair_cut, [np.array(quad, np.int32)], 1)
 keep = (1 - stair_cut).astype(np.uint8)
 
+# the props the picture places (and the stair ends) stay on sound stone: no break within ~2.5 m
+def clearance(stairs, base, per_scale):
+    out = cv2.dilate(stair_cut, ell(stairs))
+    for p in CFG['props']:
+        if p['type'] != 'runeCircle':  # a pattern on the floor (or under the water), not a thing standing there
+            cv2.circle(out, (int(p['at'][0]), int(p['at'][1])), int(base + per_scale * min(1.5, p.get('scale', 1))), 1, -1)
+    return out
+
+
+sound = clearance(45, 22, 10)
+sound_middle = clearance(45, 16, 8)  # a hole stays clear of the props' feet, not of their reach
+rubble = []
+
+
+def pieces(mask):
+    return cv2.connectedComponents(mask.astype(np.uint8), connectivity=4)[0]
+
+
+def ruin(raised, under, seed):
+    """The old stone over the water has given way: bites out of its edges where slabs broke off and
+    sank, small notches along them, and now and then a hole fallen through the middle. Never where
+    it would cut a walkway in two, expose anything but the water floor `under`, or touch the props
+    and stairs. Returns the broken mask; each break adds a sunk-slab `rubble` prop."""
+    rng = np.random.default_rng(seed)
+    safe = cv2.erode(under, ell(9))
+    edge = raised & (1 - cv2.erode(raised, ell(3)))
+    wet = cv2.dilate(safe & (1 - raised), ell(5))
+    cand = np.argwhere((edge == 1) & (wet == 1) & (sound == 0))
+    rng.shuffle(cand)
+    out, n0, breaks = raised.copy(), pieces(raised), []
+    want = max(2, int(edge.sum()) // 170)
+
+    def blob(cx, cy, r, tx, ty, nx, ny, lobes):
+        b = np.zeros_like(raised)
+        for _ in range(lobes):
+            a, d = rng.uniform(-0.8, 0.8) * r, rng.uniform(0, 0.6) * r
+            ax, ay = r * rng.uniform(0.45, 0.85), r * rng.uniform(0.45, 0.85)
+            cv2.ellipse(b, (int(cx + tx * a + nx * d), int(cy + ty * a + ny * d)), (int(ax), int(ay)), rng.uniform(0, 180), 0, 360, 1, -1)
+        return b & safe
+
+    def take(b, at, r, rot, minimum=60):
+        nonlocal out
+        trial = out & (1 - b)
+        if (b & out).sum() < minimum or pieces(trial) != n0:
+            return False
+        out = trial
+        breaks.append(at)
+        rubble.append({'type': 'rubble', 'at': m(at), 'rot': round(rot, 3), 'scale': round(ml(r) / 1.4, 2)})
+        return True
+
+    for y, x in cand:
+        if len(breaks) >= want:
+            break
+        if any((x - bx) ** 2 + (y - by) ** 2 < 55 ** 2 for bx, by in breaks):
+            continue
+        w = raised[max(0, y - 12):y + 13, max(0, x - 12):x + 13]
+        ys, xs = np.nonzero(w)
+        nx, ny = xs.mean() - min(12, x), ys.mean() - min(12, y)  # toward the stone
+        l = math.hypot(nx, ny) or 1
+        nx, ny = nx / l, ny / l
+        r = rng.uniform(10, 20)
+        # facing out of the floor, into the water: the way the slabs slid
+        take(blob(x, y, r, -ny, nx, nx, ny, 3), [int(x), int(y)], r, math.atan2(-nx * sx, -ny * sz))
+    # small chips along the rest of the edge, no rubble
+    for y, x in cand[::7]:
+        if rng.random() < 0.35 and not any((x - bx) ** 2 + (y - by) ** 2 < 30 ** 2 for bx, by in breaks):
+            c = np.zeros_like(raised)
+            cv2.circle(c, (int(x), int(y)), int(rng.uniform(3, 6)), 1, -1)
+            c &= safe
+            if pieces(out & (1 - c)) == n0:
+                out &= 1 - c
+    # a hole fallen through the middle of a wide platform
+    inside = cv2.distanceTransform(out, cv2.DIST_L2, 5)
+    deep = np.argwhere((inside > 30) & (sound_middle == 0) & (safe == 1))
+    rng.shuffle(deep)
+    holes = 0
+    for y, x in deep:
+        if holes >= 1 or any((x - bx) ** 2 + (y - by) ** 2 < 45 ** 2 for bx, by in breaks):
+            continue
+        r = rng.uniform(13, 16)
+        if take(blob(x, y, r, 1, 0, 0, 1, 3) | blob(x, y, r * 0.8, 1, 0, 0, 1, 1), [int(x), int(y)], r, rng.uniform(-math.pi, math.pi), 500):
+            holes += 1
+    return out
+
 for i, z in enumerate(zones):
     # each zone reaches a few pixels past its edge, so two zones on one level overlap instead of
     # leaving a hairline of void between their outlines
@@ -183,8 +267,8 @@ for i, z in enumerate(zones):
         if z.get('stone'):
             # where the picture's stone is too broken up by its ruins to trace, it is drawn by hand
             raised = shapes_mask(z['stone']) & zm
-        raised = raised & keep
-        for n, (pts, holes) in enumerate(polygons(raised, 700, 900)):
+        raised = ruin(raised & keep, area, 97 + i)
+        for n, (pts, holes) in enumerate(polygons(raised, 700, 450)):
             f = {'id': f"{z['id']}-stone-{n}", 'kind': 'stone', 'shape': 'poly', 'y': z['y'], 'pts': pts}
             if holes:
                 f['holes'] = holes
@@ -245,6 +329,7 @@ for p in CFG['props']:
     if 'face' in p:
         q['rot'] = facing(p['at'], p['face'])
     props.append(q)
+props += rubble
 
 def level(f):
     return f.get('waterY', f['y']) if f['shape'] == 'poly' else None

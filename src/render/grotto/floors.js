@@ -4,7 +4,8 @@
 // standing over darkness like the concept. One merged mesh per material.
 import * as THREE from 'three';
 import { toonRamp } from '../toon.js';
-import { flagstoneTexture, masonryTexture, nacreTexture, sandTexture, dirtTexture } from './textures.js';
+import { createRng } from '../../core/rng.js';
+import { flagstoneTexture, masonryTexture, nacreTexture, sandTexture, dirtTexture, wornTexture } from './textures.js';
 
 const BASE = -14; // how far the cliffs fall
 const FADE = 7; // metres for a cliff to darken into the void
@@ -25,6 +26,21 @@ class Mesh {
     this.vert(bx, yTop, bz, nx, 0, nz, u1, v(yTop), cTop);
     this.vert(ax, yBot, az, nx, 0, nz, u0, v(yBot), cBot);
     this.vert(bx, yBot, bz, nx, 0, nz, u1, v(yBot), cBot);
+  }
+  /** A wall whose top slopes, from yA at a to yB at b. */
+  wallSlope(ax, az, bx, bz, yA, yB, yBot, u0, u1, cTop, cBot) {
+    const dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1, nx = -dz / l, nz = dx / l;
+    const v = (y) => y / TILE;
+    this.vert(ax, yA, az, nx, 0, nz, u0, v(yA), cTop);
+    this.vert(ax, yBot, az, nx, 0, nz, u0, v(yBot), cBot);
+    this.vert(bx, yB, bz, nx, 0, nz, u1, v(yB), cTop);
+    this.vert(bx, yB, bz, nx, 0, nz, u1, v(yB), cTop);
+    this.vert(ax, yBot, az, nx, 0, nz, u0, v(yBot), cBot);
+    this.vert(bx, yBot, bz, nx, 0, nz, u1, v(yBot), cBot);
+  }
+  /** A top quad a-b-c-d whose corners stand at their own heights (a tilted block). */
+  tiltedTop(a, b, c, d, ya, yb, yc, yd, col) {
+    for (const [[x, z], y] of [[a, ya], [b, yb], [c, yc], [a, ya], [c, yc], [d, yd]]) this.vert(x, y, z, 0, 1, 0, x / TILE, z / TILE, col);
   }
   geometry() {
     if (!this.pos.length) return null;
@@ -214,9 +230,11 @@ function addStairs(mesh, cliffs, curb, f, look, white, map) {
  * void, to water or to a lower level), the way the concept rims its walkways, pools and rooms;
  * each block its own length and height, with a narrow gap between. Edges that join ground at the
  * same level (a path entering a room, a stair foot) stay open. A walkway over shallow water gets
- * them too, although the hero can wade off it.
+ * them too, although the hero can wade off it. The stones are old: now and then one is gone, one
+ * has tipped over the edge or sunk, the rest sit a little crooked; none line an edge that broke
+ * away (`broken`: the rubble props, [x, z, r]).
  */
-function addCurbs(top, side, map, f, poly, look, hole = false) {
+function addCurbs(top, side, map, f, poly, look, hole = false, broken = []) {
   if ((area(poly) > 0) === hole) poly = [...poly].reverse(); // the outward side faces away from the floor
   const width = f.kind === 'deep' ? 0.55 : 0.5;
   const yFloor = f.kind === 'deep' ? f.waterY + 0.25 : f.y;
@@ -224,7 +242,7 @@ function addCurbs(top, side, map, f, poly, look, hole = false) {
   const lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.7, 0.7, 0.7);
   const hash = (n) => { const h = Math.sin(n * 91.345 + 7.13) * 43758.5453; return h - Math.floor(h); };
   // `left` is what remains of the current block; one used up to rounding counts as used up (or t stops moving)
-  let block = 0, left = 0, blockH = yBase; // the current block, what is left of it (used up below 1e-4: rounding would stall t) and its top
+  let block = 0, left = 0, blockH = yBase, wear = 1, tipOut = 0, lean = 0; // the current block, what is left of it (used up below 1e-4: rounding would stall t), its top and how it has aged
   for (let i = 0; i < poly.length; i++) {
     const [ax, az] = poly[i], [bx, bz] = poly[(i + 1) % poly.length];
     const l = Math.hypot(bx - ax, bz - az);
@@ -235,22 +253,125 @@ function addCurbs(top, side, map, f, poly, look, hole = false) {
     // cut the edge into blocks: 0.8-1.4 m each, 0.07 m apart, 0.12-0.3 m above the floor
     let t = 0;
     while (t < l - 1e-3) {
-      if (left <= 1e-4) { block++; left = 0.8 + hash(block) * 0.6; blockH = yBase + hash(block + 0.5) * 0.14; t += 0.07; continue; }
+      if (left <= 1e-4) {
+        block++;
+        left = 0.8 + hash(block) * 0.6;
+        blockH = yBase + hash(block + 0.5) * 0.14;
+        wear = hash(block + 0.25);
+        tipOut = wear < 0.3 ? 0.12 + hash(block + 0.75) * 0.22 : 0; // tipped over the edge (or sunk, at the water)
+        lean = (hash(block + 0.6) - 0.5) * (tipOut ? 0.16 : 0.07); // one end lower than the other
+        t += 0.07;
+        continue;
+      }
       const t1 = Math.min(l, t + left);
       const p = [ax + ((bx - ax) * t) / l, az + ((bz - az) * t) / l], q = [ax + ((bx - ax) * t1) / l, az + ((bz - az) * t1) / l];
-      const p2 = [p[0] - nx * width, p[1] - nz * width], q2 = [q[0] - nx * width, q[1] - nz * width];
-      const from = top.pos.length;
-      top.topTri(p, q, q2, blockH, lip);
-      top.topTri(p, q2, p2, blockH, lip);
-      faceUp(top, from);
-      side.wall(p[0], p[1], q[0], q[1], blockH, yFloor - 0.05, 0, (t1 - t) / TILE, lip, low); // outer face
-      side.wall(q2[0], q2[1], p2[0], p2[1], blockH, yFloor - 0.05, 0, (t1 - t) / TILE, lip, low); // inner face
-      side.wall(p2[0], p2[1], p[0], p[1], blockH, yFloor - 0.05, 0, width / TILE, lip, low); // its ends
-      side.wall(q[0], q[1], q2[0], q2[1], blockH, yFloor - 0.05, 0, width / TILE, lip, low);
+      const mx = (p[0] + q[0]) / 2, mz = (p[1] + q[1]) / 2;
+      const gone = wear < 0.13 || broken.some(([x, z, r]) => (mx - x) ** 2 + (mz - z) ** 2 < (r + 0.7) ** 2);
+      if (!gone) {
+        const p2 = [p[0] - nx * width, p[1] - nz * width], q2 = [q[0] - nx * width, q[1] - nz * width];
+        // corner heights: the outer edge drops when the stone tips out; the ends lean
+        const hp = blockH - tipOut - lean, hq = blockH - tipOut + lean, hp2 = blockH - tipOut * 0.25 - lean, hq2 = blockH - tipOut * 0.25 + lean;
+        const from = top.pos.length;
+        top.tiltedTop(p, q, q2, p2, hp, hq, hq2, hp2, lip);
+        faceUp(top, from);
+        const bot = yFloor - 0.05 - tipOut * 0.5;
+        side.wallSlope(p[0], p[1], q[0], q[1], hp, hq, bot, 0, (t1 - t) / TILE, lip, low); // outer face
+        side.wallSlope(q2[0], q2[1], p2[0], p2[1], hq2, hp2, bot, 0, (t1 - t) / TILE, lip, low); // inner face
+        side.wallSlope(p2[0], p2[1], p[0], p[1], hp2, hp, bot, 0, width / TILE, lip, low); // its ends
+        side.wallSlope(q[0], q[1], q2[0], q2[1], hq, hq2, bot, 0, width / TILE, lip, low);
+      }
       left -= t1 - t;
       t = t1;
     }
   }
+}
+
+/**
+ * Where the old stone broke away (the rubble props), the biggest piece of it: a slab of the paving
+ * itself, tilted, its inner end still near the broken edge and the rest sunk under the water.
+ * Its top goes in with the floor's paving, its sides with the curbs. The smaller pieces and chips
+ * are props (props.js).
+ */
+function addSunkSlabs(top, side, map, broken) {
+  const lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.62, 0.62, 0.62), m4 = new THREE.Matrix4(), e = new THREE.Euler(), v = new THREE.Vector3(), n = new THREE.Vector3();
+  const hash = (k) => { const h = Math.sin(k * 51.73 + 3.1) * 43758.5453; return h - Math.floor(h); };
+  broken.forEach(([x, z, r, rot], i) => {
+    const g = map.surfaceAt(x, z);
+    if (!g || g.waterY == null) return;
+    const s = r / 1.4;
+    let edgeY = null;
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const q = map.surfaceAt(x + dx * 1.8 * s, z + dz * 1.8 * s);
+      if (q && q.y > g.y && q.y < g.y + 1) edgeY = Math.max(edgeY ?? q.y, q.y);
+    }
+    const w = 2.1 * s * (0.85 + hash(i) * 0.3), d = 1.7 * s, t = 0.3, hi = (edgeY ?? g.waterY + 0.1) - 0.1, lo = g.y + 0.05;
+    const tilt = Math.atan2(hi - lo, d) * (0.85 + hash(i + 0.5) * 0.2);
+    const yaw = rot + (hash(i + 0.25) - 0.5) * 0.5, roll = (hash(i + 0.75) - 0.5) * 0.25;
+    // inward (local -z) end up at the edge, the middle a little out from the break
+    m4.makeRotationFromEuler(e.set(tilt, yaw, roll, 'YXZ')).setPosition(x + Math.sin(yaw) * 0.15 * s, (hi + lo) / 2 - t / 2, z + Math.cos(yaw) * 0.15 * s);
+    const c = (lx, ly, lz) => v.set(lx, ly, lz).applyMatrix4(m4).toArray();
+    const P = [[-w / 2, t, -d / 2], [w / 2, t, -d / 2], [w / 2, t, d / 2], [-w / 2, t, d / 2], [-w / 2, 0, -d / 2], [w / 2, 0, -d / 2], [w / 2, 0, d / 2], [-w / 2, 0, d / 2]].map((p) => c(...p));
+    n.set(0, 1, 0).applyEuler(e);
+    const face = (mesh, idx, nx, ny, nz, cols) => {
+      for (const k of [0, 1, 2, 0, 2, 3]) { const [px, py, pz] = P[idx[k]]; mesh.vert(px, py, pz, nx, ny, nz, px / TILE, (pz + py) / TILE, cols[k]); }
+    };
+    const from = top.pos.length;
+    face(top, [0, 3, 2, 1], n.x, n.y, n.z, [lip, lip, lip, lip]);
+    faceUp(top, from);
+    // the four sides (the broken edges), each facing out of the slab
+    const sides = [[0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]];
+    for (const q of sides) {
+      const [a, b] = [P[q[0]], P[q[1]]], mx = (a[0] + b[0]) / 2 - (P[0][0] + P[2][0]) / 2, mz = (a[2] + b[2]) / 2 - (P[0][2] + P[2][2]) / 2, l = Math.hypot(mx, mz) || 1;
+      face(side, q, mx / l, 0, mz / l, [lip, lip, low, low]);
+    }
+  });
+}
+
+/**
+ * Wear on the paving: decals of a damp stain, missing pavers and cracks (wornTexture), about one
+ * every 45 m² of stone floor and one beside every break (the rubble props), never under a prop or
+ * over an edge. Returns a Mesh (one draw) or null.
+ */
+function addWear(map, broken) {
+  const rng = createRng((map.def.seed || 1) * 13 + 5), mesh = new Mesh(), white = new THREE.Color(1, 1, 1);
+  const props = (map.def.props || []).filter((p) => p.type !== 'rubble' && p.type !== 'runeCircle');
+  const clearOfProps = (x, z) => props.every((p) => (p.at[0] - x) ** 2 + (p.at[1] - z) ** 2 > (1.6 + 1.2 * (p.scale ?? 1)) ** 2);
+  const put = (f, x, z, size) => {
+    const a = rng.range(0, Math.PI * 2), c = Math.cos(a) * size / 2, s = Math.sin(a) * size / 2;
+    const corners = [[x - c + s, z - s - c], [x + c + s, z + s - c], [x + c - s, z + s + c], [x - c - s, z - s + c]];
+    if (!corners.every(([cx, cz]) => map.surfaceAt(cx, cz)?.floor === f)) return false;
+    const cell = rng.int(0, 3), u0 = (cell % 2) / 2, v0 = 1 - Math.floor(cell / 2) / 2; // the canvas runs top down, the texture bottom up
+    const uv = [[u0, v0], [u0 + 0.5, v0], [u0 + 0.5, v0 - 0.5], [u0, v0 - 0.5]], y = f.y + 0.012;
+    const from = mesh.pos.length;
+    for (const k of [0, 1, 2, 0, 2, 3]) mesh.vert(corners[k][0], y, corners[k][1], 0, 1, 0, uv[k][0], uv[k][1], white);
+    faceUp(mesh, from);
+    return true;
+  };
+  for (const f of map.floors) {
+    if (f.shape !== 'poly' || f.kind !== 'stone' || f.style === 'cave') continue;
+    const [x0, z0, x1, z1] = f.box;
+    let want = Math.round(Math.abs(area(f.pts)) / 45);
+    for (let tries = want * 12; want > 0 && tries > 0; tries--) {
+      const x = rng.range(x0, x1), z = rng.range(z0, z1);
+      if (map.surfaceAt(x, z)?.floor !== f || !clearOfProps(x, z)) continue;
+      if (put(f, x, z, rng.range(1.6, 2.6))) want--;
+    }
+  }
+  // the floor cracked where it broke: just inside each break, toward the nearest stone
+  for (const [bx, bz, r] of broken) {
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2, x = bx + Math.sin(a) * (r + 0.9), z = bz + Math.cos(a) * (r + 0.9), s = map.surfaceAt(x, z);
+      if (s && s.floor.kind === 'stone' && s.floor.shape === 'poly' && clearOfProps(x, z) && put(s.floor, x, z, 1.5)) break;
+    }
+  }
+  const g = mesh.geometry();
+  if (!g) return null;
+  const mat = new THREE.MeshToonMaterial({ map: wornTexture(), gradientMap: toonRamp(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const m = new THREE.Mesh(g, mat);
+  m.receiveShadow = true;
+  m.renderOrder = 1;
+  m.name = 'floor-wear';
+  return m;
 }
 
 const KIND = {
@@ -301,9 +422,11 @@ export function buildFloors(map, look) {
   }
   // edging stones around drops (not on sand: the beach just meets the sea)
   const curbTop = topFor('curb'), curbSide = topFor('curb');
+  const broken = (map.def.props || []).filter((p) => p.type === 'rubble').map((p) => [p.at[0], p.at[1], 1.4 * (p.scale ?? 1), p.rot ?? 0]);
+  addSunkSlabs(topFor('stone'), curbSide, map, broken);
   for (const f of map.floors) {
     if (f.kind === 'sand' || f.shape === 'stairs' || f.style === 'cave') continue; // a cave's rim is its stone ring
-    for (const r of floorRings(f)) addCurbs(curbTop, curbSide, map, f, r.pts, look, r.hole);
+    for (const r of floorRings(f)) addCurbs(curbTop, curbSide, map, f, r.pts, look, r.hole, broken);
   }
   const root = new THREE.Group();
   root.name = 'grotto-floors';
@@ -319,6 +442,8 @@ export function buildFloors(map, look) {
     root.add(m);
     owned.push(mat);
   }
+  const wear = addWear(map, broken);
+  if (wear) { root.add(wear); owned.push(wear.material); }
   const cg = cliffs.geometry();
   const cliffMat = new THREE.MeshToonMaterial({ color: look.cliff, map: masonryTexture(), gradientMap: toonRamp(), vertexColors: true });
   const cm = new THREE.Mesh(cg, cliffMat);

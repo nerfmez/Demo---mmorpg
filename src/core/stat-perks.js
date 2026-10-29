@@ -32,7 +32,7 @@ const perk = (g, id) => g.derived.perks?.[id];
 
 /** The hero's perk timers and counters (kept on the player, made on first use). */
 function state(g) {
-  return (g.player.perk ||= { swings: 0, casts: 0, grazeReady: 0, shadowUntil: -1, invUntil: -1, escapeReady: 0, undyingReady: 0, ironReady: 0, refunds: {} });
+  return (g.player.perk ||= { swings: 0, casts: 0, focusId: null, focusHits: 0, grazeReady: 0, shadowUntil: -1, invUntil: -1, escapeReady: 0, undyingReady: 0, ironReady: 0, refunds: {} });
 }
 
 /**
@@ -58,8 +58,6 @@ export function perkSkillStart(g, s, counted) {
 export function perkHit(g, m, opts, crit) {
   const p = g.player, st = state(g);
   let mult = 1, critMult = 1, stagger = 0, bossStagger = 0;
-  // DEX 50: the opening hit on an untouched enemy always crits (a skill that never crits stays so)
-  if (!crit && !opts.noCrit && perk(g, 'dex_opener') && m.hp >= m.maxHp) crit = true;
   const h = opts.heavy && perk(g, 'str_heavy'); // an arrow in flight keeps its mark; the perk may be gone by then
   if (h) {
     mult *= h.mult;
@@ -72,8 +70,13 @@ export function perkHit(g, m, opts, crit) {
     mult *= shadow.mult;
     st.shadowUntil = -1;
   }
-  const expose = perk(g, 'dex_expose');
-  if (expose && g.time < (m.perkExposedUntil ?? -1)) mult *= expose.mult;
+  // DEX 150: hits on the hero's target grow while it stays the same target
+  const focus150 = perk(g, 'dex_focus');
+  if (focus150 && m.id === p.targetId) {
+    if (st.focusId !== m.id) { st.focusId = m.id; st.focusHits = 0; }
+    mult *= 1 + Math.min(focus150.max, focus150.perHit * st.focusHits);
+    st.focusHits++;
+  }
   const focus = perk(g, 'int_focus');
   if (focus && p.mp >= (p.maxMp * focus.mpPct) / 100) mult *= focus.mult;
   if (crit) {
@@ -88,13 +91,11 @@ export function perkHit(g, m, opts, crit) {
   return { mult, crit, critMult, stagger, bossStagger, penetrate: perk(g, 'dex_armor')?.penetrate || 0 };
 }
 
-/** After the hero's own hit landed: DEX marks and exposure, STR's shockwave, INT's mana return. */
+/** After the hero's own hit landed: DEX marks, STR's shockwave, INT's mana return. */
 export function perkAfterHit(g, m, dmg, opts, crit) {
   const p = g.player, st = state(g);
   const mark = perk(g, 'dex_mark');
   if (mark && crit) m.perkMarks = Math.min(mark.stacks, (m.perkMarks || 0) + 1);
-  const expose = perk(g, 'dex_expose');
-  if (expose && crit) m.perkExposedUntil = g.time + expose.duration;
   const ret = st.refunds[opts.skill];
   if (ret) {
     delete st.refunds[opts.skill];

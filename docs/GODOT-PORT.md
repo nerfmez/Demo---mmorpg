@@ -221,8 +221,9 @@ unlocked ones (`stat-perks.js activePerks`, null when none) and adds AGI 150's m
 and weapon (owner: a stat is used by several styles, so no perk helps only one). `executeSkill` asks
 `perkSkillStart` which skill to run: every Nth damaging cast (4th, 3rd at STR 200) runs as a copy marked
 `perkHeavy`, and `hitOpts` passes `heavy` (and `tags`) so arrows and areas carry it. `perkHit` runs before
-crit in `hitMonster` for the hero's own skill hits (also returns DEX's `penetrate`, applied to defense) and
-`perkAfterHit` after it (DEX crit marks `perkMarks` and exposure `perkExposedUntil` on the monster, STR's
+crit in `hitMonster` for the hero's own skill hits (also returns DEX's `penetrate`, applied to defense; DEX 150's
+bonus grows on hits to `player.targetId` and starts again on a new target; `computeSkill` adds DEX 100's `rangePct`) and
+`perkAfterHit` after it (DEX crit marks `perkMarks` on the monster, STR's
 shockwave as `secondary` hits, INT's MP return once per cast), `perkCast(g, s, slot, paid)` in `castSlot`
 (INT's pending return and every 5th paid cast refunded, LUK's cooldown reset), `perkMovement` in
 `useMovement`, `perkDodge` on a dodge, `perkInvulnerable`/`perkTaken`/`perkSteady`/`perkAfterTaken` in

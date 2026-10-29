@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LearnedGame as Game, legacyData as data } from './helpers.js';
 import { activePerks, perkList, PERK_STATS } from '../../src/core/stat-perks.js';
+import { computeSkill } from '../../src/core/skills.js';
 
 const withStats = (g, stats) => {
   Object.assign(g.ch.stats, stats);
@@ -46,7 +47,7 @@ test('every stat has four perks at 50/100/150/200, named and described, and the 
     }
   }
   const stats = { STR: 149, AGI: 0, DEX: 50, LUK: 0, INT: 200, VIT: 0 };
-  assert.deepEqual(Object.keys(activePerks(data, stats)).sort(), ['dex_opener', 'int_free', 'int_flow', 'int_focus', 'int_return', 'str_crush', 'str_heavy'].sort());
+  assert.deepEqual(Object.keys(activePerks(data, stats)).sort(), ['dex_armor', 'int_free', 'int_flow', 'int_focus', 'int_return', 'str_crush', 'str_heavy'].sort());
   const list = perkList(data, stats);
   assert.equal(list.length, 6);
   assert.deepEqual(list.find((r) => r.stat === 'STR').perks.map((p) => p.active), [true, true, false, false]);
@@ -130,28 +131,33 @@ test('AGI: a quick cast after moving, a dodge refunds a charge, +1 charge, a dou
   assert.ok(Math.abs(doubled / base - 2) < 0.03, `${doubled} ${base}`);
 });
 
-test('DEX: the opening hit crits, hits ignore part of the armour, crits expose and mark the target', () => {
+test('DEX: hits ignore part of the armour, every skill reaches further, the same target takes more, crits mark it', () => {
   const { g, m } = setup({ DEX: 200 });
-  g.drainEvents();
-  g.executeSkill(g.skills[0], aimAt(g, m));
-  assert.equal(g.drainEvents().find((e) => e.type === 'hit').crit, true, 'full HP: a crit');
-  assert.equal(m.perkMarks, 1);
-  g.executeSkill(g.skills[0], aimAt(g, m));
-  assert.equal(g.drainEvents().find((e) => e.type === 'hit').crit, false, 'not full HP any more');
-  // exposed for 3 s after a crit: +10%
-  const exposed = g.hitMonster(m, 1000, { skill: 'slash', crit: false });
-  g.time += 3.1;
-  const after = g.hitMonster(m, 1000, { skill: 'slash', crit: false });
-  assert.ok(Math.abs(exposed / after - 1.1) < 0.01, `${exposed} ${after}`);
   // armour: 15% of the monster's defense is ignored by the hero's own skills
   m.defense = 200;
   const pierced = g.hitMonster(m, 1000, { skill: 'slash', crit: false });
   const plain = g.hitMonster(m, 1000, { element: 'physical' });
   assert.ok(pierced > plain * 1.01, `${pierced} ${plain}`);
   m.defense = 0;
+  // reach: +10% range on a dagger cut and an arrow alike
+  for (const id of ['slash', 'firebolt']) {
+    const i = g.ch.slots.findIndex((q) => q.skill === id);
+    const far = computeSkill(g.ch, data, g.derived, i), near = computeSkill(g.ch, data, { ...g.derived, perks: null }, i);
+    assert.ok(Math.abs(far.range / near.range - 1.1) < 1e-9, id);
+  }
+  // the same target: +3% a hit up to +15%, a new target starts again
+  g.player.targetId = m.id;
+  const hits = [];
+  for (let i = 0; i < 7; i++) hits.push(g.hitMonster(m, 1000, { skill: 'slash', crit: false }));
+  assert.ok(Math.abs(hits[1] / hits[0] - 1.03) < 0.01 && Math.abs(hits[6] / hits[0] - 1.15) < 0.01, hits.join());
+  g.player.targetId = 'other';
+  assert.ok(Math.abs(g.hitMonster(m, 1000, { skill: 'slash', crit: false }) / hits[0] - 1) < 0.01, 'not the target: no bonus');
+  g.player.targetId = m.id;
+  g.player.perk.focusId = 'other';
+  assert.ok(Math.abs(g.hitMonster(m, 1000, { skill: 'slash', crit: false }) / hits[0] - 1) < 0.01, 'a new target starts again');
+  g.player.targetId = null;
   // each crit on the same target adds crit damage, up to five stacks
   m.perkMarks = 0;
-  m.perkExposedUntil = 1e9; // keep the exposure on both sides of the comparison
   const c0 = g.hitMonster(m, 1000, { skill: 'slash', crit: true });
   for (let i = 0; i < 6; i++) g.hitMonster(m, 1000, { skill: 'slash', crit: true });
   assert.equal(m.perkMarks, 5);

@@ -279,6 +279,12 @@ export function computeSkill(ch, data, derived, slotIndex) {
   const control = 1 + (derived.controlDurationPct || 0) / 100;
   if (s.chill) s.chill.duration *= control;
   if (s.kind === 'curse_zone') s.duration *= control;
+  // DEX 100 (core/stat-perks.js): every skill reaches further
+  const reach = derived.perks?.dex_reach;
+  if (reach) {
+    s.range *= 1 + reach.rangePct / 100;
+    if (s.kind === 'melee_nova') s.radius *= 1 + reach.rangePct / 100;
+  }
   s.arc = Math.min(s.arc, 360);
   s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
   compileFrontier(s, def, activeMods);

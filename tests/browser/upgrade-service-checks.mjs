@@ -17,7 +17,7 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
     g.ch.gold = change.gold ?? 1213;
     g.ch.materials.skill_crystal = change.crystals ?? 3;
     Object.assign(g.ch.stats, { DEX: change.dex ?? 8, VIT: 5, STR: 5 });
-    g.ch.skills.slash = 1;
+    g.ch.skills.slash = 1; g.ch.skillExp = {}; g.ch.level = Math.max(g.ch.level, 5);
     g.ch.mods = [{ uid: 9001, id: 'multistrike', level: change.level ?? 1 }, { uid: 9002, id: 'life_leech', level: 1 }];
     for (const slot of g.ch.slots) slot.mods = [];
     [g.player.x, g.player.z] = pos;
@@ -56,11 +56,12 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
       assert.match(await repeatCard().innerText(), /Lv\.2/);
       // The same service also accepts skills, using their existing data-driven cost.
       await activate('[data-act="growth-filter"][data-id="skill"]');
+      // one small crystal: its EXP at goldPerExp gold each
       const cost = await page.evaluate(() => {
-        const step = __frontier.game.data.progression.skillUpgrade.steps[0];
-        return { gold: step.gold, crystals: step.skill_crystal };
+        const su = __frontier.game.data.progression.skillUpgrade;
+        return { gold: su.crystals.skill_crystal * su.goldPerExp, crystals: 1 };
       });
-      await activate('[data-act="skill-up"][data-skill="slash"]');
+      await activate('[data-act="skill-feed"][data-skill="slash"][data-crystal="skill_crystal"][data-n="1"]');
       assert.deepEqual(await values(), { mod: 2, skill: 2, gold: 1173 - cost.gold, crystals: 1 - cost.crystals });
     }
     if (reload) {
@@ -83,7 +84,7 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
     for (const kind of ['mod', 'skill']) {
       await fixture(trainer);
       if (kind === 'skill') await activate('[data-act="growth-filter"][data-id="skill"]');
-      const selector = kind === 'mod' ? repeatSelector : '[data-act="skill-up"][data-skill="slash"]';
+      const selector = kind === 'mod' ? repeatSelector : '[data-act="skill-feed"][data-skill="slash"][data-crystal="skill_crystal"][data-n="1"]';
       assert.equal(await page.locator(selector).isEnabled(), true);
       const before = await values();
       await page.evaluate(pos => { [__frontier.game.player.x, __frontier.game.player.z] = pos; }, away);

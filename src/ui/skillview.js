@@ -3,7 +3,7 @@ import { art } from './art.js';
 import { icon } from './icons.js';
 import { meetsRequires } from '../core/character.js';
 import { modFits, modRequires, movementRank } from '../core/skills.js';
-import { skillUpgradeCost, modUpgradeCost, skillUpgradeState, modUpgradeState, movementUpgradeState } from '../core/crafting.js';
+import { modUpgradeCost, skillUpgradeState, modUpgradeState, movementUpgradeState } from '../core/crafting.js';
 import { skillGrowthPreview, modGrowthPreview, upgradeTrack, stateText } from './progressionview.js';
 import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus, slotCapacity } from './buildmeta.js';
 import { barsWorkspace } from './skill-bars.js';
@@ -65,18 +65,35 @@ export function growthWorkspace(ui,{costHtml,describeSkill}) {
  const entries=isSkill?Object.entries(ch.skills).filter(([id])=>data.skills.combat[id]).map(([id,level])=>({id,level,def:data.skills.combat[id],state:skillUpgradeState(ch,data,id)})):ch.mods.map(inst=>({...inst,def:data.mods.mods[inst.id],state:modUpgradeState(ch,data,inst)}));
  const key=e=>String(isSkill?e.id:e.uid);
  const cur=entries.find(e=>key(e)===String(sel.growthPick))||entries[0];
- const list=entries.map(e=>`<button class="pg-row ${e===cur?'on':''}" data-act="growth-pick" data-id="${key(e)}" aria-pressed="${e===cur}"><span class="pg-ic">${art(isSkill?'skill':'mod',e.id)}</span><span class="pg-tx"><b>${e.def.nameTh}</b><small>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</small></span>${atService&&e.state.ok?'<i class="pg-dot" aria-label="อัปได้"></i>':''}</button>`).join('');
+ const sub=e=>isSkill?`Lv.${e.level} / ${e.state.cap??e.level}${e.state.reason==='cap'?' · เต็มตามเลเวลตัวละคร':e.state.reason==='max'?' · สูงสุด':` · EXP ${e.state.exp}/${e.state.need}`}`:`Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}`;
+ const list=entries.map(e=>`<button class="pg-row ${e===cur?'on':''}" data-act="growth-pick" data-id="${key(e)}" aria-pressed="${e===cur}"><span class="pg-ic">${art(isSkill?'skill':'mod',e.id)}</span><span class="pg-tx"><b>${e.def.nameTh}</b><small>${sub(e)}</small></span>${atService&&e.state.ok?'<i class="pg-dot" aria-label="อัปได้"></i>':''}</button>`).join('');
  const detail=e=>{
+  if(isSkill) return skillLevelDetail(ui,e,atService,describeSkill);
   const ready=atService&&e.state.ok;
   const status=e.state.ok&&!atService?'ต้องอยู่ใกล้จุดคราฟต์หรือครูฝึก':stateText(e.state);
   const reqText=r=>Object.entries(r).map(([k,v])=>k+' '+v).join(', ')||'ไม่มีเงื่อนไข';
-  const levels=isSkill?data.progression.skillUpgrade.steps.map(s=>e.def.upgradeStat+' '+s.requiresStat):data.progression.modUpgrade.cost.map((_,i)=>reqText(modRequires(data,e.def,i+2)));
-  return `<section class="card"><div class="seeker-hero">${art(isSkill?'skill':'mod',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</span></div></div>${isSkill?tagsHtml(e.def.tags):rulesHtml(e.def)}${upgradeTrack(levels,e.level-1,'Lv.',2)}${e.state.cost?`${isSkill?skillGrowthPreview(ch,data,e.id,describeSkill):modGrowthPreview(e.def,e.level)}<div class="cost">${costHtml(ch,data,e.state.cost)}</div><div class="pg-foot"><span><p class="${ready?'ok':'no'}" data-growth-status>${status}</p><small>สำเร็จแน่นอน · ใช้ผลึกทักษะและทอง ไม่ใช้แต้มต้นไม้</small></span><button class="btn primary" data-act="${isSkill?'skill-up':'mod-up'}" ${isSkill?`data-skill="${e.id}"`:`data-uid="${e.uid}"`} ${ready?'':'disabled'}>อัปเป็น Lv.${e.level+1}</button></div>`:''}</section>`;
+  const levels=data.progression.modUpgrade.cost.map((_,i)=>reqText(modRequires(data,e.def,i+2)));
+  return `<section class="card"><div class="seeker-hero">${art('mod',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</span></div></div>${rulesHtml(e.def)}${upgradeTrack(levels,e.level-1,'Lv.',2)}${e.state.cost?`${modGrowthPreview(e.def,e.level)}<div class="cost">${costHtml(ch,data,e.state.cost)}</div><div class="pg-foot"><span><p class="${ready?'ok':'no'}" data-growth-status>${status}</p><small>สำเร็จแน่นอน · ใช้ผลึกทักษะและทอง ไม่ใช้แต้มต้นไม้</small></span><button class="btn primary" data-act="mod-up" data-uid="${e.uid}" ${ready?'':'disabled'}>อัปเป็น Lv.${e.level+1}</button></div>`:''}</section>`;
  };
  return `<div class="pg pg-growth"><section class="pg-col"><div class="pg-seg2"><button class="btn ${isSkill?'on':''}" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn ${!isSkill?'on':''}" data-act="growth-filter" data-id="mod">ม็อด</button></div>
   ${moveTab(kind)}${barsTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
   <div class="pg-list">${list||'<p class="muted">ยังไม่มีรายการในหมวดนี้</p>'}</div></section>
   <section class="pg-col seeker-growth-grid">${cur?detail(cur):''}</section></div>`;
+}
+
+// A skill's level (core/crafting.js feedSkill): up to the character's level; crystals fed give skill EXP,
+// gold per EXP; the skill's stat gates each band of levels. One row per crystal size.
+function skillLevelDetail(ui,e,atService,describeSkill){
+ const {ch,data}=ui.game,st=e.state,su=data.progression.skillUpgrade,open=!['cap','max','not_learned'].includes(st.reason)&&st.room>0;
+ const status=st.reason==='max'?'เลเวลสูงสุดของสกิลแล้ว':st.reason==='cap'?`เท่าเลเวลตัวละครแล้ว (Lv.${st.cap}) · เลเวลตัวละครขึ้นแล้วอัปต่อได้`:!st.gate.ok&&st.exp>=st.need?`EXP ครบแล้ว · ต้องมี ${st.gate.stat} ${st.gate.need} เพื่อไป Lv.${st.level+1}`:!atService?'ป้อนผลึกได้ที่จุดคราฟต์หรือครูฝึก':'ป้อนผลึกเพื่อรับ EXP สกิล';
+ const rows=Object.entries(su.crystals).map(([id,per])=>{
+  const have=ch.materials[id]||0,useful=open?Math.min(have,Math.ceil(st.room/per),Math.floor(ch.gold/(per*su.goldPerExp))):0,can=atService&&useful>0;
+  return `<div class="sl-crystal"><span class="pg-ic">${art('material',id)}</span><span class="pg-tx"><b>${data.items.materials[id].nameTh}</b><small>มี ${have} · ${per} EXP ต่อเม็ด · ${(per*su.goldPerExp).toLocaleString()} G ต่อเม็ด</small></span><span class="sl-feed"><button class="btn" data-act="skill-feed" data-skill="${e.id}" data-crystal="${id}" data-n="1" ${can?'':'disabled'}>ป้อน 1</button>${useful>1?`<button class="btn primary" data-act="skill-feed" data-skill="${e.id}" data-crystal="${id}" data-n="${useful}" ${can?'':'disabled'}>ป้อน ${useful}</button>`:''}</span></div>`;
+ }).join('');
+ const preview=st.reason==='cap'||st.reason==='max'?'':skillGrowthPreview(ch,data,e.id,describeSkill);
+ return `<section class="card"><div class="seeker-hero">${art('skill',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level} / ${st.cap} · สกิลขึ้นได้ไม่เกินเลเวลตัวละคร</span></div></div>${tagsHtml(e.def.tags)}
+  <div class="sl-exp"><span style="width:${Math.min(100,Math.round(st.exp/st.need*100))}%"></span></div><small class="muted">EXP สกิล ${st.exp} / ${st.need} → Lv.${st.level+1} · ต้องมี ${st.gate.stat} ${st.gate.need} <span class="${st.gate.ok?'ok':'no'}">(มี ${ch.stats[st.gate.stat]||0})</span></small>
+  ${preview}<div class="sl-crystals">${rows}</div><div class="pg-foot"><span><p class="${(open||st.pending)&&atService?'ok':'no'}" data-growth-status>${st.pending?'EXP ที่สะสมไว้พอขึ้นเลเวลแล้ว':status}</p><small>สำเร็จแน่นอน · ป้อนเฉพาะที่ใช้ได้ EXP ที่เกินเก็บไว้ · ไม่ใช้แต้มต้นไม้</small></span>${st.pending?`<button class="btn primary" data-act="skill-feed" data-skill="${e.id}" data-crystal="skill_crystal" data-n="0" ${atService?'':'disabled'}>ขึ้นเป็น Lv.${st.level+1}</button>`:''}</div></section>`;
 }
 
 // Movement skills rank up with AGI (data.progression.movementUpgrade): the same list-and-detail page.

@@ -46,10 +46,12 @@ export function modFits(skill, mod, companions = []) {
   return { ok: true };
 }
 
-/** Mod sockets a combat skill has at `rank` (mods.json slotsByRank, last entry = max). */
-export function modSlotsFor(data, rank = 1) {
-  const by = data.mods.slotsByRank;
-  return by[Math.min(Math.max(rank, 1), by.length) - 1];
+/** Mod sockets a combat skill has at skill `level` (mods.json slotsByRank, each from its slotLevels level). */
+export function modSlotsFor(data, level = 1) {
+  const by = data.mods.slotsByRank, from = data.mods.slotLevels || by.map((_, i) => i + 1);
+  let n = by[0];
+  from.forEach((L, i) => { if (level >= L) n = by[i]; });
+  return n;
 }
 export const maxModSlots = data => Math.max(...data.mods.slotsByRank);
 

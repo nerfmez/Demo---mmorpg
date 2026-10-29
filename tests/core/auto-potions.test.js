@@ -10,7 +10,8 @@ test('new and v11 saves default both automatic potions OFF without changing owne
  const ch=createCharacter(data);assert.equal(ch.autoPotions.hp.enabled,false);assert.equal(ch.autoPotions.mp.enabled,false);
  ch.version=11;ch.autoPotions.hp.enabled=true;ch.gold=777;ch.skills.firebolt=3;ch.consumables.hp_potion_l=2;
  const keep=structuredClone(ch),m=migrateCharacter(ch,data);
- for(const key of ['gold','skills','consumables','quickItems','gear','arrows'])assert.deepEqual(m[key],keep[key]);
+ for(const key of ['gold','consumables','quickItems','gear','arrows'])assert.deepEqual(m[key],keep[key]);
+ assert.deepEqual(m.skills,{...keep.skills,firebolt:10}); // v17: old rank 3 is skill level 10
  assert.equal(m.autoPotions.hp.enabled,false);enable({ch:m},'hp',42,'hp_potion_l');enable({ch:m},'mp',18);
  const reloaded=migrateCharacter(JSON.parse(JSON.stringify(m)),data);assert.deepEqual(reloaded.autoPotions,m.autoPotions);
 });

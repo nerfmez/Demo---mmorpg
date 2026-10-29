@@ -133,9 +133,10 @@ test('an element-changing mod lets elemental damage apply to the skill', () => {
   assert.ok(Math.abs(cold / base - 1.5) < 0.2, `${cold} vs ${base}`);
 });
 
-test('mod sockets grow with skill rank', () => {
-  const by = data.mods.slotsByRank;
-  assert.equal(by.length, data.progression.skillUpgrade.maxLevel, 'one entry per skill rank');
+test('mod sockets grow with skill level', () => {
+  const by = data.mods.slotsByRank, from = data.mods.slotLevels;
+  assert.equal(from.length, by.length, 'one level per socket step');
+  assert.ok(from[0] === 1 && from.every((L, i) => L > (from[i - 1] ?? 0) && L <= data.progression.skillUpgrade.maxLevel), 'steps rise within the level range');
   assert.ok(by.every((n, i) => n >= (by[i - 1] ?? 0)), 'never shrinks with rank');
   assert.equal(by[0], 2, 'rank 1 keeps the two sockets older saves already use');
   const ch = createCharacter(data);
@@ -144,11 +145,11 @@ test('mod sockets grow with skill rank', () => {
   for (const id of ['split', 'pierce']) assert.ok(socketMod(ch, data, fb, give(ch, id)).ok);
   const third = give(ch, 'terminal_burst');
   assert.equal(socketMod(ch, data, fb, third).reason, 'full');
-  ch.skills.firebolt = 3;
-  assert.ok(socketMod(ch, data, fb, third).ok, 'rank 3 opens a third socket');
+  ch.skills.firebolt = from[2];
+  assert.ok(socketMod(ch, data, fb, third).ok, 'the third step opens a third socket');
   assert.equal(computeSkill(ch, data, derive(ch, data), fb).mods.filter((m) => m.active).length, 3);
-  ch.skills.firebolt = 5;
-  assert.ok(socketMod(ch, data, fb, give(ch, 'returning_shot')).ok, 'rank 5 opens a fourth socket');
+  ch.skills.firebolt = from[4];
+  assert.ok(socketMod(ch, data, fb, give(ch, 'returning_shot')).ok, 'the last step opens a fourth socket');
   assert.equal(socketMod(ch, data, fb, give(ch, 'status_burst')).reason, 'full');
 });
 

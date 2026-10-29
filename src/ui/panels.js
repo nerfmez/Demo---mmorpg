@@ -17,7 +17,7 @@ import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse } from '../core/character.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
-import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, upgradeMovement, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
+import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, feedSkill, upgradeMovement, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
 import { inventoryView } from './inventory.js';
 import { potionArt } from './potionart.js';
@@ -653,10 +653,11 @@ export class Panels {
         if (!r.ok) return this.flash(r.reason === 'materials' ? 'วัตถุดิบหรือ Gold ไม่พอ' : 'เกรดสูงสุดแล้ว');
         this.lastResult = `อัปเป็นเกรด ${r.to} แล้ว · หลอดยาวขึ้น`;
         return this.changed();
-      case 'skill-up':
-        if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');
-        r = upgradeSkill(ch, data, t.dataset.skill);
-        if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
+      case 'skill-feed':
+        if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่อป้อนผลึก');
+        r = feedSkill(ch, data, t.dataset.skill, t.dataset.crystal, Number(t.dataset.n));
+        if (!r.ok) return this.flash({ cap: 'สกิลเท่าเลเวลตัวละครแล้ว', gold: 'Gold ไม่พอ', materials: 'ผลึกไม่พอ', requires: 'ค่าสถานะยังไม่ถึง' }[r.reason] || REASON_TH[r.reason] || r.reason);
+        this.lastResult = !r.used ? `${data.skills.combat[t.dataset.skill].nameTh} Lv.${r.level} จาก EXP ที่สะสมไว้` : `ป้อนผลึก ${r.used} เม็ด · ใช้ ${r.gold.toLocaleString()} G${r.levels ? ` · ${data.skills.combat[t.dataset.skill].nameTh} Lv.${r.level}` : ''}`;
         return this.changed();
       case 'node':
         this.sel.node = t.dataset.id;

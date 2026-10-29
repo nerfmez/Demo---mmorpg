@@ -50,8 +50,8 @@ test('every combat mod multiplies the cost, and the multipliers stack; movement 
   const bare = skillWith('slash'), two = skillWith('slash', ['multistrike', 'wide_arc']);
   assert.ok(two.mods.every((m) => m.active));
   assert.ok(Math.abs(two.cost - bare.cost * M.multistrike.effect.costMult * M.wide_arc.effect.costMult) < 1e-9);
-  // a channel's drain follows the same rank and mod multipliers
-  const ch1 = skillWith('flame_stream', [], 1), ch5 = skillWith('flame_stream', [], 5);
+  // a channel's drain follows the same skill level and mod multipliers
+  const ch1 = skillWith('flame_stream', [], 1), ch5 = skillWith('flame_stream', [], 25);
   assert.ok(ch5.channel.manaPerSecond / ch1.channel.manaPerSecond > 1.4);
   assert.equal(C.flame_stream.channel.manaPerSecond, 80, 'the data itself is never changed');
 });

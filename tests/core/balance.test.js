@@ -10,6 +10,7 @@ test('v2 migration preserves surviving network ownership and roll quality',()=>{
  ch.gear.push({uid:99,base:'tusk_blade',grade:'A',upgrade:4,options:[{id:'attack_flat',value:6}]});
  const before={gold:ch.gold,materials:structuredClone(ch.materials),equipped:structuredClone(ch.equipped),skills:structuredClone(ch.skills),stats:structuredClone(ch.stats),nextUid:ch.nextUid};
  const def=data.items.gearOptions.attack_flat;
+ before.skills.slash=24; // v17: old rank 5 is skill level 24
  migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.equal(ch.jobPoints,7);assert.deepEqual(ch.jobNodes,['origin','v1','v2','vj','v4']);
  assert.deepEqual({gold:ch.gold,materials:ch.materials,equipped:ch.equipped,skills:ch.skills,stats:ch.stats,nextUid:ch.nextUid},before);
  const item=ch.gear.find(g=>g.uid===99);assert.equal(item.upgrade,4);assert.equal(item.grade,'A');assert.equal(item.options[0].value,def.max);assert.ok(ch.progress.balanceMigration);
@@ -29,7 +30,7 @@ test('power growth is bounded across independent sources; tank and speed caps ar
  const ch=createCharacter(data);ch.level=40;for(const stat in ch.stats)ch.stats[stat]=1000;
  ch.jobNodes=Object.keys(data.jobtree.nodes);const d=derive(ch,data),caps=data.progression.character.caps;
  for(const [stat,cap]of Object.entries(caps))assert.ok(cap<0?d[stat]>=cap:d[stat]<=cap,stat);
- const low=createCharacter(data);low.skills.slash=1;const before=computeSkill(low,data,derive(low,data),0);low.skills.slash=5;const after=computeSkill(low,data,derive(low,data),0);
+ const low=createCharacter(data);low.skills.slash=1;const before=computeSkill(low,data,derive(low,data),0);low.skills.slash=25;const after=computeSkill(low,data,derive(low,data),0);
  assert.ok(Math.abs(after.damage/before.damage-1.24)<1e-8);
 });
 test('upgrade previews describe real stats without spending, rolling or modifying gear',()=>{

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData } from '../../src/core/data-node.js';
 import { Game } from '../../src/core/game.js';
-import { modUpgradeState, upgradeMod, upgradeSkill } from '../../src/core/crafting.js';
+import { modUpgradeState, upgradeMod, feedSkill } from '../../src/core/crafting.js';
 import { growthWorkspace } from '../../src/ui/skillview.js';
 
 const data = loadData();
@@ -90,8 +90,8 @@ test('stat, gold, crystal and max-rank rules remain atomic', () => {
   const before = JSON.stringify(game.ch);
   assert.equal(upgradeMod(game.ch, data, 901).reason, 'max');
   assert.equal(JSON.stringify(game.ch), before);
-  game.ch.stats.STR = 5; game.ch.skills.slash = 1;
-  assert.ok(upgradeSkill(game.ch, data, 'slash').ok);
+  game.ch.stats.STR = 5; game.ch.skills.slash = 1; game.ch.level = 5;
+  assert.ok(feedSkill(game.ch, data, 'slash', 'skill_crystal', 1).ok);
   assert.equal(game.ch.skills.slash, 2);
 });
 

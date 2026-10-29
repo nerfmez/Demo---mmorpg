@@ -294,6 +294,8 @@ for (const id of ['enhancement_stone', 'skill_crystal']) material[id] = `<image 
 const supplied = (path) => `<image href="${(import.meta.env?.BASE_URL || '/') + path}" width="128" height="128"/>`;
 for (const id of ['fern_ear_hare', 'mirrorwing_moth', 'rootdigger_mole']) monster[id] = supplied(`assets/icons/monster/${id}.png`);
 for (const id of ['fern_ear_tuft', 'mirror_scale', 'rootdigger_claw']) material[id] = supplied(`assets/moonroot/material/${id}.png`);
+// the medium and large skill crystals: the supplied small crystal recoloured into clusters (scripts/make-crystal-icons.py)
+for (const id of ['skill_crystal_m', 'skill_crystal_l']) material[id] = supplied(`assets/crystal/${id}.png`);
 for (const id of ['fernstep_charm', 'mirrorwing_pendant', 'burrowguard_brooch', 'grove_union_ring']) gear[id] = supplied(`assets/moonroot/gear/${id}.png`);
 
 export const ART = { gear, material, skill, mod, monster, zone, job };

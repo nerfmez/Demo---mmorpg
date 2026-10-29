@@ -38,7 +38,7 @@ and legacy `Game` reference; `OpenWorldGame` is the live browser simulation.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 16`, with `name`, `appearance` (its `hairStyle` and `face` from `network/protocol.js` `HAIR_STYLES` and `FACES`, its `hair` any hex colour; v15 gives an older look the painted `face: "default"`; v16 adds `skillGrowth`, skill id → `{ grade, bars, earned, prof }`, empty for an older hero), `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 17`, with `name`, `appearance` (its `hairStyle` and `face` from `network/protocol.js` `HAIR_STYLES` and `FACES`, its `hair` any hex colour; v15 gives an older look the painted `face: "default"`; v16 adds `skillGrowth`, skill id → `{ grade, bars, earned, prof }`, empty for an older hero; v17 adds `skillExp`, skill id → EXP fed toward the next level, and turns each old skill rank 1-5 into the level 1/4/10/17/24, kept even above the character's level), `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## Approved V3 city overlay
 
@@ -176,16 +176,28 @@ materials continue to encode attack/mechanic/support. See [the initial mapping](
 Crafted C/B/A/S gear has 2/3/4/5 unique affixes. Every base/recipe pool supports five.
 Grade promotion retains existing rolls and +N, adding one unique affix. Enhancement
 +1..+5 changes base stats by 4% per step. Both upgrades use materials/gold only: no
-character-level or stat gate. Skill ranks 2..5 retain their separate Lv4/10/17/24 and
-stat gates, 6% direct growth and 12% MP growth; mods supply behavioural growth.
+character-level or stat gate. Skill levels (below) grow 1% damage and 2% MP per level; mods
+supply behavioural growth.
+
+Skill level (owner, 2026-10-27/29, `docs/SKILL-GROWTH-TH.md` phase 2b; `crafting.js`): a combat
+skill levels from 1 to `skillLevelCap` = the character's level (within `skillUpgrade.maxLevel`, 30).
+At a workbench or trainer `feedSkill(ch, data, id, crystal, count)` feeds crystals of one size
+(`skillUpgrade.crystals`: small 1, medium 5, large 25 EXP) into `ch.skillExp[id]`, paying
+`goldPerExp` gold per EXP. Level L needs `skillExpNeed` = round(`expPerLevel`[0] + [1] x L) EXP, and
+the skill's `upgradeStat` must reach `skillStatGate` = `statGate.start` + `step` x floor((L - 1) /
+`every`) to pass to L + 1. Only crystals the reachable levels can use go in (`skillUpgradeState`
+`room`); EXP past the last reachable level from a big crystal stays banked and becomes levels when
+the character or the stat catches up (`pending`; feeding then settles it free). Mod sockets follow
+`mods.slotLevels` (1/4/10/17/24). Small and medium crystals drop from every monster
+(`items.upgradeMaterialDrops`), the large one from bosses.
 
 MP economy (owner, 2026-10-26, after Path of Exile and Undecember): every combat skill has a
 `cost` (an aura reserves MP instead); the quick main attacks are cheap, physical ones cheaper than
-the spell. `computeSkill` sets `costScale` = (1 + `skillUpgrade.manaPerLevel` x (rank - 1)) x
+the spell. `computeSkill` sets `costScale` = (1 + `skillUpgrade.manaPerLevel` x (level - 1)) x
 (1 - `manaCostReductionPct`/100) x the product of every active mod's `effect.costMult` (every
 combat mod has one, 1.15-1.4; Mana Siphon 1; movement mods none), then `cost = def.cost x
-costScale` and a channel's `manaPerSecond x costScale`. A rank raises the cost faster than the damage
-(12% against 6%), and cast speed spends it faster, so damage and speed without MP investment end
+costScale` and a channel's `manaPerSecond x costScale`. A level raises the cost faster than the damage
+(2% against 1%), and cast speed spends it faster, so damage and speed without MP investment end
 MP-bound (`balance.js longFightDps` takes `mods` and `gear` and counts MP gained on hit). MP on
 hit (`mpOnHit`, derived stat): `s.mpOnHit` is the derived value plus Mana Siphon's, for Attack
 skills only; `hitMonster` adds it to MP (up to `manaLimit`) for each enemy a direct hit lands on
@@ -357,8 +369,8 @@ labeled separately; only a fitting companion's `grants` add fit eligibility. Cal
 (`element`, `trigger`, `trajectory`, `displace`, `status`, `spread`) never share a skill. Shape tags (`Arc`,
 `Nova`, `Ground`, `Zone`, `Barrier`) name the delivery the player sees, so no hidden `kind`
 filter is needed. Failures return `{reason: 'needs'|'on'|'not'|'family', tags|family}`.
-Mod sockets come from `mods.json` `slotsByRank` indexed by the skill's rank (`modSlotsFor`);
-changing a slot's skill already clears its mods, so a lower-rank skill never inherits extras.
+Mod sockets come from `mods.json` `slotsByRank`, each entry from its `slotLevels` skill level on
+(`modSlotsFor`); changing a slot's skill already clears its mods, so a lower-level skill never inherits extras.
 **Dash cut (`dash_line`, Blink Draw `draw_cut`, owner 2026-10-27).** After its cast time the hero
 dashes `range` m along the aim in `dashTime` s (`player.dash` kind `draw_cut`, `inv: false`; walls and
 cliffs stop it through `moveEntity`; the last frame of any dash moves only what is left, so a dash goes
@@ -917,7 +929,7 @@ Spirit Wolf (`renderer: spirit`) has a small inward summoning mark and two short
 
 Potion presentation resolves `${group}_potion_${size}` through the supplied PNG registry under `assets/icons/consumable/`; `ui/potionart.js` retains the authored SVG for definitions without a registered PNG. Shop cards, slot selection and HUD buttons share this resolver. Preserve each 512px canvas and its transparent padding when importing into Godot: the small/medium/large progression is painted into the image, so fit the complete texture rather than cropping to its alpha bounds. The five mid/high monster parts (`mantis_scythe`, `viper_scale`, `ram_horn`, `dusk_pelt`, `rune_core`) similarly resolve supplied PNGs through the material registry for inventory, recipe costs and ground loot. Item IDs, counts and save fields stay the same.
 
-Skill and mod ranks are no longer gated by character level: only materials, gold and the stat requirement count. `skillUpgrade.steps[].balanceLevel` is only the balance model's assumption of when a hero affords each rank (`core/balance.js skillRankAt`).
+Mod ranks are not gated by character level: only materials, gold and the stat requirement count. A skill's level is capped by the character's level (skill level above); the balance model assumes a skill at the character's level (`core/balance.js skillRankAt`).
 
 ## Rendering performance (static batching and dynamic resolution)
 
@@ -1055,11 +1067,11 @@ as the city. Saves were `version: 5` here (adds `progress.maps`); v6 adds hands,
 ### Dedicated upgrade materials (local implementation, 2026-10-05)
 
 `items.upgrade.cost` prices +1..+5 with `enhancement_stone` (1/2/3/4/6) and
-unchanged gold. `progression.skillUpgrade.steps` uses `skill_crystal` (1/2/3/4),
-and `modUpgrade.cost` uses the same crystal (2/3). Never interpret these as Grade;
+unchanged gold. Skill levels take `skill_crystal`, `skill_crystal_m` and `skill_crystal_l` as EXP
+(see Skill level), and `modUpgrade.cost` uses the small crystal (2/3). Never interpret these as Grade;
 existing grade-promotion costs and base crafting recipes remain unchanged.
 `rollDrops` appends `items.upgradeMaterialDrops` to monster/zone drops, with the
-same seeded RNG and material-find multiplier (3% stone, 2% crystal, quantity 1).
+same seeded RNG and material-find multiplier (3% stone, 6% small and 1.5% medium skill crystal, quantity 1; bosses drop one large crystal).
 Minions still award gold only. Gear salvage creates no base stones/crystals at any grade, keeps existing recipe-part
 refunds and returns floor(50% of the total enhancement stone investment), e.g. +5
 uses 16 and refunds 8. Legacy +N items receive

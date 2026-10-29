@@ -40,3 +40,13 @@
 .sb-actions { display: flex; gap: 8px; }
 .sb-grade-up { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--mc-hair, rgba(29, 43, 54, .09)); }
 @media (prefers-reduced-motion: reduce) { .sb-gauge i, .sb-pips i { transition: none; } }
+/* skill level page (ui/skillview.js skillLevelDetail): an EXP bar and one feed row per crystal size */
+.sl-exp { height: 8px; border-radius: 4px; background: var(--mc-fill, rgba(29,43,54,.06)); overflow: hidden; }
+.sl-exp span { display: block; height: 100%; border-radius: 4px; background: #54d2d1; }
+.sl-crystals { display: grid; gap: 8px; }
+.sl-crystal { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 14px; background: var(--mc-fill, rgba(29,43,54,.055)); }
+.sl-crystal .pg-tx { flex: 1; min-width: 0; display: grid; }
+.sl-crystal .pg-tx small { color: var(--mc-dim, #687784); }
+.sl-feed { display: flex; gap: 6px; }
+.overlay:not(.is-journal) .pbody .sl-feed .btn { min-height: 44px; }
+small .ok { color: var(--mc-good, #2e9a5e); } small .no { color: var(--mc-bad, #c4513e); }

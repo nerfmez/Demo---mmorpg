@@ -9,7 +9,11 @@ import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK']; // LUK: crit chance (DEX: crit damage)
-export const CHARACTER_VERSION = 16;
+export const CHARACTER_VERSION = 17;
+// v17: a skill's rank 1-5 became a level up to the character's; each old rank becomes the level the old
+// balance model gave it (the same mod sockets). It is kept even above the character's level: that skill
+// only waits to grow until the character catches up.
+const OLD_RANK_LEVELS = [1, 4, 10, 17, 24];
 /** Share of a hit armour lets through: 1 - defense / (defense + progression.combat.defenseConstant). */
 export const defenseFactor = (defense, data) => 1 - defense / (defense + data.progression.combat.defenseConstant);
 // v14: raw numbers (HP, attack, magic, defense, MP, regen) grew tenfold; rolled flat options of saved gear follow
@@ -55,6 +59,7 @@ export function createCharacter(data, opts = {}) {
     movementSkills: [],
     movementRanks: {}, // movement skill id -> rank above 1 (AGI upgrades, crafting.js upgradeMovement)
     skillGrowth: {}, // skill id -> { grade, bars, earned, prof } (core/skill-growth.js)
+    skillExp: {}, // skill id -> EXP fed toward its next level (core/crafting.js feedSkill)
     movement: null,
     movementMods: [],
     mods: [],
@@ -287,6 +292,9 @@ export function migrateCharacter(ch, data) {
   migrateQuestJournal(ch, data, { legacy: (ch.version || 1) < 8 || !hadQuestJournal });
   // v16: skill bars start empty at grade C with no proficiency; skill ranks and mods are kept as they were
   normalizeSkillGrowth(ch, data);
+  if ((ch.version || 1) < 17) for (const id of Object.keys(ch.skills)) ch.skills[id] = OLD_RANK_LEVELS[Math.min(5, Math.max(1, ch.skills[id] | 0)) - 1];
+  for (const id of Object.keys(ch.skills)) ch.skills[id] = Math.max(1, Math.min(data.progression.skillUpgrade.maxLevel, ch.skills[id] | 0));
+  ch.skillExp = Object.fromEntries(Object.entries(ch.skillExp || {}).filter(([id, n]) => ch.skills[id] && Number.isFinite(n) && n > 0));
   ch.version = CHARACTER_VERSION;
   return ch;
 }

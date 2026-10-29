@@ -68,7 +68,8 @@ function buildMotes(map, count, colours, seed) {
 /**
  * @param {object} map createDungeon(...) result
  * @param {object} o {sea: true for the beach (the deep floor is open sea), motes: count, tall: rim wall height factor,
- *   kit: the Blender kit (kit.js), which replaces the simple props; cave: the modelled cave rooms (cave.js)}
+ *   kit: the Blender kit (kit.js), which replaces the simple props; cave: the modelled cave rooms (cave.js);
+ *   clam: the painted giant clam (clam.js)}
  */
 export function buildGrottoScene(map, o = {}) {
   const look = map.def.look;
@@ -85,7 +86,7 @@ export function buildGrottoScene(map, o = {}) {
   const edge = o.sea ? [] : rimPoints(map, 1.25);
   if (!o.sea) root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1, points: edge }).root);
   if (o.cave) root.add(buildCave(map, o.cave).root);
-  const props = buildProps(map, { decor: edge, keepClear, kit: o.kit });
+  const props = buildProps(map, { decor: edge, keepClear, kit: o.kit, clam: o.clam });
   root.add(props.root);
   // lights, each with a soft pool of its colour on the floor below
   const pools = [];

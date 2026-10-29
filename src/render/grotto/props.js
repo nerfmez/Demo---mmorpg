@@ -103,9 +103,10 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
 
 /**
  * Build every prop of one map, plus rim decor at `decor` edge points ({x, z, nx, nz, y} from
- * rim.js, kept off `keepClear` [x, z, r] spots). Returns {root, update(dt, t), shell}.
+ * rim.js, kept off `keepClear` [x, z, r] spots). `kit` is the Blender kit, `clam` the painted giant
+ * clam (clam.js). Returns {root, update(dt, t), shell}.
  */
-export function buildProps(map, { decor = [], keepClear = [], kit = null } = {}) {
+export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null } = {}) {
   const root = new THREE.Group();
   root.name = 'grotto-props';
   const batch = new Batch();
@@ -342,15 +343,19 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null } = {})
       }
       case 'giantClam': {
         // the clam that keeps a pearl (clam.js); its pearl breathes a soft glow
-        const clam = buildGiantClam();
-        clam.position.set(x, y, z);
-        clam.rotation.y = rot;
-        clam.scale.setScalar(s);
-        root.add(clam);
-        const pearl = clam.userData.nodes.pearl, at = pearl.getWorldPosition(new THREE.Vector3());
+        if (!clam) break; // the model did not load: the page still works without it
+        const c = buildGiantClam(clam);
+        c.position.set(x, y, z);
+        c.rotation.y = rot;
+        c.scale.setScalar(s);
+        root.add(c);
+        c.updateMatrixWorld(true);
+        const pearl = c.userData.nodes.pearl.children[0];
+        pearl.geometry.computeBoundingBox();
+        const at = pearl.geometry.boundingBox.getCenter(new THREE.Vector3()).applyMatrix4(pearl.matrixWorld);
         halo(at.x, at.y, at.z, 0.75 * s, '#efe4ff', 0.3); // around the pearl only, not over the shell
-        const glow = pearl.children[0].material;
-        animated.push((t) => { glow.emissiveIntensity = 0.18 + Math.sin(t * 1.3 + x) * 0.06; });
+        const glow = pearl.material;
+        animated.push((t) => { glow.emissiveIntensity = 0.2 + Math.sin(t * 1.3) * 0.06; });
         break;
       }
       case 'giantShell': {

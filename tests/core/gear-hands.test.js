@@ -119,7 +119,7 @@ test('a greatshield fills both hands, blocks as the shield and swings the basic 
   assert.equal(look.weapon, 'greatshield');
   assert.equal(look.offhand, null);
   // the three greatshields follow their materials' tiers and are crafted at the workbench
-  for (const [id, il, part] of [['crab_greatshield', 1, 'crab_shell'], ['beetle_greatshield', 6, 'beetle_shell'], ['crag_greatshield', 21, 'crag_stone']]) {
+  for (const [id, il, part] of [['crab_greatshield', 1, 'crab_shell'], ['beetle_greatshield', 10, 'beetle_shell'], ['crag_greatshield', 40, 'crag_stone']]) {
     assert.equal(data.items.gearBases[id].itemLevel, il, id);
     assert.equal(data.items.gearBases[id].upgradeMaterial, part, id);
     assert.equal(data.recipes.recipes[id].result, id);

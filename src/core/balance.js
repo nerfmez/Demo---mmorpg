@@ -7,10 +7,10 @@ import { createCharacter, derive, expToNext, defenseFactor, mpRegenOf } from './
 import { computeSkill } from './skills.js';
 import { gearDropCandidates, gearRecipe } from './crafting.js';
 
-/** The expected gear item level at character level `level`: the highest tier reached. */
+/** The expected gear item level at character level `level`: pieces found or made at the hero's own level
+ * (each piece has its own item level inside its base's range, items.gearLevels). */
 export function gearTierAt(data, level) {
-  const tiers = data.progression.balance.gearTiers;
-  return tiers.filter((t) => t <= level).pop() || tiers[0];
+  return Math.max(1, level);
 }
 
 /** Skill level the reference hero has at character `level`: kept up with the character (a skill levels

@@ -86,7 +86,7 @@ test('quest rewards are a share of a level at the quest level', () => {
 test('the reference hero is built from real rules: its main skill and the expected gear tier', () => {
   for (const kit of Object.keys(B.builds)) {
     const { ch, d, itemLevel } = referenceHero(data, kit, 12);
-    assert.equal(itemLevel, 11);
+    assert.equal(itemLevel, 12, 'a piece found at the hero\'s own level (items.gearLevels)');
     const s = computeSkill(ch, data, d, 0);
     assert.equal(s.id, B.builds[kit].skill);
     assert.ok(s.weaponOk, kit + ' main skill fits the kit weapon');
@@ -164,8 +164,9 @@ test('fast casting runs out of MP in a long fight unless MP is taken too', async
   const mixed = longFightDps(data, 'staff', cap, [...new Set([...speed.slice(0, 24), ...mana.filter((id) => !speed.includes(id)).slice(0, 15)])]);
   // every main attack lasts on regeneration at the reference pace (content-budget.test.js), so only
   // the extra speed runs dry: MP still pays, by less than when the main attack itself overspent, and
-  // less again since base MP regeneration grows a little with level (owner, 2026-10-29)
-  assert.ok(mixed.dps > pure.dps * 1.05, `speed with MP (${mixed.dps}) beats speed alone (${pure.dps}) in a long fight`);
+  // less again since base MP regeneration grows a little with level (owner, 2026-10-29); at the Lv40 cap
+  // (levels stretched 1.625x, the per-level regen with them) the margin is small: still a gain, reported
+  assert.ok(mixed.dps > pure.dps * 1.02, `speed with MP (${mixed.dps}) beats speed alone (${pure.dps}) in a long fight`);
 });
 
 test('each displayed line forks locally, with no bridge shortcut',()=>{

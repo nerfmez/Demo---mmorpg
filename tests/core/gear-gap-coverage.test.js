@@ -4,7 +4,8 @@ import {data} from './helpers.js';
 import {createCharacter,equip,gearRequirements,gearPower} from '../../src/core/character.js';
 import {craft,gearDropCandidates} from '../../src/core/crafting.js';
 import {createRng} from '../../src/core/rng.js';
-const plan={sporeweave_vest:[6,'armor','INT'],sporeweave_gloves:[6,'gloves','INT'],moonleaf_slippers:[11,'boots','INT'],wardenstalker_coat:[21,'armor','AGI'],wardenstalker_hood:[21,'helm','AGI'],wardenstalker_gloves:[21,'gloves','AGI']};
+// first item level of each base's range (items.gearLevels, owner 2026-10-29: cloth and leather are group B)
+const plan={sporeweave_vest:[5,'armor','INT'],sporeweave_gloves:[5,'gloves','INT'],moonleaf_slippers:[15,'boots','INT'],wardenstalker_coat:[35,'armor','AGI'],wardenstalker_hood:[35,'helm','AGI'],wardenstalker_gloves:[35,'gloves','AGI']};
 test('targeted garment recipes craft real graded items and spend exactly their costs',()=>{
  for(const [id,[level,slot,stat]] of Object.entries(plan)){
   const base=data.items.gearBases[id],recipe=data.recipes.recipes[id];

@@ -1,10 +1,10 @@
 {
   "_doc": "Character Level gives Stat Points. Job Level (separate EXP) gives Job Points for the Job Tree. Skill/Mod levels are raised with materials + gold. Respec costs in-game gold only.",
   "character": {
-    "maxLevel": 30,
+    "maxLevel": 70,
     "expCurve": {
-      "base": 22,
-      "exponent": 2.2
+      "base": 12,
+      "exponent": 2
     },
     "statPointsPerLevel": 3,
     "startingStatPoints": 4,
@@ -28,7 +28,7 @@
       "mpPerLevel": 12,
       "mpPerInt": 25,
       "mpRegen": 25,
-      "mpRegenPerLevel": 0.1,
+      "mpRegenPerLevel": 0.0615,
       "hpRegen": 0,
       "hpRegenPct": 0.5,
       "hpRegenCapPct": 3,
@@ -168,7 +168,7 @@
   },
   "skillUpgrade": {
     "_doc": "Skill level (owner, 2026-10-27/29, docs/SKILL-GROWTH-TH.md): a skill levels from 1 up to the character's level (and maxLevel). Crystals fed to it at a workbench or trainer (including town.skillUpgradeStations) give skill EXP (crystals: EXP per crystal), and every EXP fed costs goldPerExp gold. Level L needs expPerLevel[0] + expPerLevel[1] x L EXP, rounded. Each level asks for stats (owner, 2026-10-29, docs/STATS-TH.md; core/skills.js skillRequires): the skill's requires (or require.base of its upgradeStat) plus require.perLevel per level above 1, shared by its stats in proportion; feeding reaches only levels the stats meet, and a skill above what the stats allow works at the highest level they meet. Feeding stops where the next level is out of reach (the character's level or the stat), so crystals are never wasted. perLevel/manaPerLevel: damage and MP cost per level above 1 (MP grows faster). Mod sockets follow the level (mods.slotLevels). Mods remain the source of behaviour changes. No failure or destruction.",
-    "maxLevel": 30,
+    "maxLevel": 70,
     "perLevel": 0.01,
     "manaPerLevel": 0.02,
     "crystals": { "skill_crystal": 1, "skill_crystal_m": 5, "skill_crystal_l": 25 },
@@ -304,14 +304,7 @@
   },
   "balance": {
     "_doc": "Balance model (core/balance.js, tests/core/balance-model.test.js): a reference hero per kit fights the average normal monster of its level wearing the expected gear tier. Targets are what the tuning must keep. weaponFactor follows items.handRules (sword kit dual-wields two light weapons).",
-    "monsterCap": 25,
-    "gearTiers": [
-      1,
-      6,
-      11,
-      16,
-      21
-    ],
+    "monsterCap": 40,
     "secondsPerKill": 6,
     "monster": {
       "hitMult": 1.1,
@@ -321,11 +314,11 @@
       "gradeMult": 1.08,
       "defense": [
         70,
-        55
+        33.8
       ],
       "maxHp": [
         180,
-        100
+        61.5
       ]
     },
     "builds": {

@@ -1,4 +1,4 @@
-// Mid/high monsters (levels 11-24): each has its own readable pattern, gives experience at the
+// Mid/high monsters (levels 17-40 since the stretch to 1-40, owner 2026-10-29): each has its own readable pattern, gives experience at the
 // pace of its zone and is the main source of the parts its gear tier needs, so high gear does not
 // hang on repeated boss kills. Attack safety: no damage before the authored time, never twice.
 import { test } from 'node:test';
@@ -28,7 +28,7 @@ function arena(type, level = 15) {
   return { g, m, hits, step, until, place };
 }
 
-test('five new monsters fill levels 11-24 with patterns of their own', () => {
+test('five newer monsters live in the upper levels with patterns of their own; every level 1-40 has a monster of its own', () => {
   const signature = (m) => [m.behavior, ...Object.keys(m.attacks).sort()].join('|');
   const old = new Set(Object.entries(M).filter(([id]) => !NEW.includes(id)).map(([, m]) => signature(m)));
   for (const id of NEW) {
@@ -37,10 +37,11 @@ test('five new monsters fill levels 11-24 with patterns of their own', () => {
     assert.ok(!old.has(signature(m)), `${id} is not a copy of an older monster's pattern`);
     for (const a of Object.values(m.attacks)) assert.ok(a.windup >= 0.4, `${id}: every attack has a visible wind-up`);
     const where = spawns.filter((s) => s.monster === id);
-    assert.ok(where.length && where.every((s) => s.level[0] >= 11), `${id} lives in the mid/high zones`);
+    assert.ok(where.length && where.every((s) => s.level[0] >= 17), `${id} lives in the mid/high zones`);
   }
-  // the gap is filled: every level band from 11 to 24 has a new monster
-  for (let level = 11; level <= 24; level++) assert.ok(spawns.some((s) => NEW.includes(s.monster) && s.level[0] <= level && s.level[1] >= level), `level ${level}`);
+  // each kind has one fixed level range (monsters.json levels); a spawn outside it is a marked placeholder
+  for (const s of spawns) if (!s.temporary) assert.ok(s.level[0] >= M[s.monster].levels[0] && s.level[1] <= M[s.monster].levels[1], `${s.monster}@${s.zone} ${s.level}`);
+  for (let level = 1; level <= data.progression.balance.monsterCap; level++) assert.ok(spawns.some((s) => !s.temporary && s.level[0] <= level && s.level[1] >= level), `level ${level}`);
 });
 
 test('new monsters give experience at the pace of their zone, never above its fastest', () => {
@@ -57,18 +58,21 @@ test('new monsters give experience at the pace of their zone, never above its fa
 test('high gear is crafted from monsters of its band; boss parts are a small key, not the bulk', () => {
   const boss = bossOnlyMaterials(data);
   for (const item of ['greyfang_mane', 'warden_horn', 'ancient_core']) assert.ok(boss.has(item), item + ' stays a boss part');
-  const band = (tier) => { let m = 0; for (let l = tier; l < tier + 5; l++) m += balanceAt(data, 'sword', l).minutes; return m; };
+  // a base's band is its item-level range (items.gearLevels); tiers are its place in the line
+  const B = data.items.gearBases, starts = (b) => Object.values(data.items.gearLevels.starts).find((s) => s.includes(b.itemLevel) && (s.indexOf(b.itemLevel) + 1 < s.length ? s[s.indexOf(b.itemLevel) + 1] - 1 : data.items.gearLevels.alignedFrom - 1) === b.maxItemLevel);
+  const tier = (r) => starts(B[r.result]).indexOf(r.itemLevel);
+  const band = (r) => { let m = 0; for (let l = r.itemLevel; l <= Math.min(B[r.result].maxItemLevel, r.itemLevel + 9); l++) m += balanceAt(data, 'sword', l).minutes; return m; };
   const avg = {};
-  for (const r of gear.filter((x) => x.itemLevel >= 11)) {
+  for (const r of gear.filter((x) => tier(x) >= 2)) {
     for (const [item, n] of Object.entries(r.cost)) if (boss.has(item)) assert.ok(n <= 2, `${r.result}: ${item} ×${n}`);
     const f = recipeFarming(data, r);
     assert.ok(f.bossKills <= 2, `${r.result} needs ${f.bossKills} boss kills`);
     // at least three pieces of a tier can be farmed while levelling through its band
-    assert.ok(f.minutes * 3 <= band(r.itemLevel), `${r.result}: ${f.minutes.toFixed(0)} min vs band ${band(r.itemLevel).toFixed(0)} min`);
-    (avg[r.itemLevel] ||= []).push(f.minutes);
+    assert.ok(f.minutes * 3 <= band(r), `${r.result}: ${f.minutes.toFixed(0)} min vs band ${band(r).toFixed(0)} min`);
+    (avg[tier(r)] ||= []).push(f.minutes);
   }
   const mean = (t) => avg[t].reduce((a, b) => a + b, 0) / avg[t].length;
-  assert.ok(mean(11) < mean(16) && mean(16) < mean(21), 'each tier takes longer to farm');
+  assert.ok(mean(2) < mean(3) && mean(3) < mean(4), 'each tier takes longer to farm');
   // the main part of each new monster feeds several recipes of its band
   for (const [id, part] of [['thicket_mantis', 'mantis_scythe'], ['reed_viper', 'viper_scale'], ['ironhorn_ram', 'ram_horn'], ['duskmane_stalker', 'dusk_pelt'], ['rune_sentinel', 'rune_core']]) {
     assert.ok(M[id].drops.some((d) => d.item === part), id);

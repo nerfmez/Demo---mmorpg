@@ -47,11 +47,18 @@ export function optionRange(data, id, grade, itemLevel = 1) {
 }
 const rollOption = (data, id, grade, itemLevel, rng) => { const r = optionRange(data, id, grade, itemLevel); return { id, value: rng.int(r.min, r.max) }; };
 
-export function rollGear(data, recipe, rng) {
+/** The item level a piece of `baseId` gets when made or found at `level`: inside the base's range (items.gearLevels). */
+export function pieceLevel(data, baseId, level) {
+  const b = data.items.gearBases[baseId], lo = b.itemLevel || 1;
+  return Math.max(lo, Math.min(b.maxItemLevel ?? lo, Math.round(level || lo)));
+}
+
+/** A crafted piece: its grade and options; `level` (the crafter's) sets its item level inside the base's range. */
+export function rollGear(data, recipe, rng, level = null) {
   const g = data.items.grades;
   const grade = rng.weighted(g.weights);
   const pool = [...recipe.optionPool];
-  const options = [], itemLevel = equipmentItemLevel(data, {base:recipe.result, itemLevel:recipe.itemLevel});
+  const options = [], itemLevel = level === null ? equipmentItemLevel(data, {base:recipe.result, itemLevel:recipe.itemLevel}) : pieceLevel(data, recipe.result, level);
   for (let i = 0; i < g.optionCount[grade] && pool.length; i++) {
     const idx = Math.floor(rng.next() * pool.length);
     options.push(rollOption(data, pool.splice(idx, 1)[0], grade, itemLevel, rng));
@@ -66,7 +73,7 @@ export function craft(ch, data, recipeId, rng) {
   const r = data.recipes.recipes[recipeId];
   pay(ch, r.cost);
   if (r.type === 'gear') {
-    const item = { uid: ch.nextUid++, ...rollGear(data, r, rng) };
+    const item = { uid: ch.nextUid++, ...rollGear(data, r, rng, ch.level) };
     ch.gear.push(item);
     return { ok: true, kind: 'gear', item };
   }
@@ -403,16 +410,17 @@ export function toggleGearLock(ch, uid) {
 
 // ---------- Gear drops ----------
 
-/** Bases a monster can drop at `level`: made from its parts, at the tier for that level. */
+/** Bases a monster can drop at `level`: made from its parts, whose item-level range holds `level`; a line
+ * with no such base gives its newest one below (the piece tops out at that base's last level). */
 export function gearDropCandidates(data, monsterId, level) {
   const parts = new Set(data.monsters.monsters[monsterId].drops.map((d) => d.item).filter((i) => i !== 'gold'));
-  const made = new Set(Object.values(data.recipes.recipes).filter((r) => r.type === 'gear' && Object.keys(r.cost).some((k) => parts.has(k))).map((r) => r.result));
-  const tiers = data.progression.balance.gearTiers.filter((t) => t <= level);
-  for (const tier of tiers.reverse()) {
-    const list = [...made].filter((id) => !data.items.gearBases[id].starter && data.items.gearBases[id].itemLevel === tier);
-    if (list.length) return list;
-  }
-  return [];
+  const made = [...new Set(Object.values(data.recipes.recipes).filter((r) => r.type === 'gear' && Object.keys(r.cost).some((k) => parts.has(k))).map((r) => r.result))]
+    .filter((id) => !data.items.gearBases[id].starter);
+  const B = data.items.gearBases, inRange = made.filter((id) => B[id].itemLevel <= level && level <= (B[id].maxItemLevel ?? B[id].itemLevel));
+  if (inRange.length) return inRange;
+  const below = made.filter((id) => B[id].itemLevel <= level);
+  const top = Math.max(...below.map((id) => B[id].itemLevel));
+  return below.filter((id) => B[id].itemLevel === top);
 }
 
 /** One kill's gear drop (or null). Rolls a grade, then a base and options like a craft. */
@@ -432,8 +440,9 @@ export function rollGearDrop(data, monsterId, level, boss, rng, gearFindPct = 0)
   if (!grade) return null;
   const base = list[Math.floor(rng.next() * list.length)], def = data.items.gearBases[base];
   const pool = [...def.optionPool], options = [];
+  const itemLevel = pieceLevel(data, base, level);
   for (let i = 0; i < data.items.grades.optionCount[grade] && pool.length; i++) {
-    options.push(rollOption(data, pool.splice(Math.floor(rng.next() * pool.length), 1)[0], grade, def.itemLevel, rng));
+    options.push(rollOption(data, pool.splice(Math.floor(rng.next() * pool.length), 1)[0], grade, itemLevel, rng));
   }
-  return { base, itemLevel: def.itemLevel, grade, upgrade: 0, options };
+  return { base, itemLevel, grade, upgrade: 0, options };
 }

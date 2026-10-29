@@ -1,5 +1,5 @@
 {
-  "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up.",
+  "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up. levels: each kind's one fixed level range (owner, 2026-10-29: no kind returns at other levels); a map spawn stays inside it unless marked temporary (a placeholder until a new monster fills that zone).",
   "monsters": {
     "tusk_boar": {
       "name": "Boarbull",
@@ -52,6 +52,10 @@
           "min": 3,
           "max": 7
         }
+      ],
+      "levels": [
+        3,
+        7
       ]
     },
     "moss_beetle": {
@@ -105,6 +109,10 @@
           "min": 4,
           "max": 9
         }
+      ],
+      "levels": [
+        9,
+        11
       ]
     },
     "reef_crab": {
@@ -152,7 +160,11 @@
           "max": 8
         }
       ],
-      "primaryAttack": "pinch"
+      "primaryAttack": "pinch",
+      "levels": [
+        1,
+        3
+      ]
     },
     "marsh_wisp": {
       "name": "Lostlight Wisp",
@@ -206,6 +218,10 @@
           "min": 4,
           "max": 10
         }
+      ],
+      "levels": [
+        25,
+        28
       ]
     },
     "thornback_wolf": {
@@ -282,6 +298,10 @@
           "min": 4,
           "max": 9
         }
+      ],
+      "levels": [
+        9,
+        11
       ]
     },
     "sporecap": {
@@ -333,6 +353,10 @@
           "min": 3,
           "max": 7
         }
+      ],
+      "levels": [
+        5,
+        9
       ]
     },
     "crag_golem": {
@@ -387,6 +411,10 @@
           "min": 8,
           "max": 16
         }
+      ],
+      "levels": [
+        33,
+        37
       ]
     },
     "gale_hawk": {
@@ -438,7 +466,11 @@
           "max": 10
         }
       ],
-      "flyer": true
+      "flyer": true,
+      "levels": [
+        28,
+        31
+      ]
     },
     "greyfang": {
       "name": "Greyfang Alpha",
@@ -540,6 +572,10 @@
           "min": 60,
           "max": 90
         }
+      ],
+      "levels": [
+        22,
+        22
       ]
     },
     "horned_warden": {
@@ -634,6 +670,10 @@
           "min": 80,
           "max": 120
         }
+      ],
+      "levels": [
+        40,
+        40
       ]
     },
     "salt_slime": {
@@ -691,7 +731,11 @@
           "max": 5
         }
       ],
-      "primaryAttack": "slap"
+      "primaryAttack": "slap",
+      "levels": [
+        1,
+        3
+      ]
     },
     "shore_gull": {
       "name": "นกชายฝั่ง",
@@ -743,7 +787,11 @@
         "distance": 2.6,
         "duration": 1.2,
         "pause": 0.4
-      }
+      },
+      "levels": [
+        2,
+        4
+      ]
     },
     "hermit_crab": {
       "name": "เสฉวนหินปะการัง",
@@ -806,7 +854,11 @@
           "max": 5
         }
       ],
-      "primaryAttack": "pinch"
+      "primaryAttack": "pinch",
+      "levels": [
+        10,
+        12
+      ]
     },
     "thicket_mantis": {
       "name": "Thicket Mantis",
@@ -867,6 +919,10 @@
           "min": 4,
           "max": 9
         }
+      ],
+      "levels": [
+        17,
+        21
       ]
     },
     "reed_viper": {
@@ -930,6 +986,10 @@
           "min": 3,
           "max": 8
         }
+      ],
+      "levels": [
+        22,
+        25
       ]
     },
     "ironhorn_ram": {
@@ -943,7 +1003,7 @@
       "radius": 0.95,
       "aggroRange": 10,
       "leashRange": 22,
-      "exp": 30,
+      "exp": 40,
       "jobExp": 20,
       "attacks": {
         "stomp": {
@@ -983,6 +1043,10 @@
           "min": 6,
           "max": 12
         }
+      ],
+      "levels": [
+        29,
+        32
       ]
     },
     "duskmane_stalker": {
@@ -996,7 +1060,7 @@
       "radius": 0.8,
       "aggroRange": 10,
       "leashRange": 22,
-      "exp": 24,
+      "exp": 27,
       "jobExp": 16,
       "circle": [
         4.5,
@@ -1041,6 +1105,10 @@
           "min": 5,
           "max": 11
         }
+      ],
+      "levels": [
+        31,
+        34
       ]
     },
     "rune_sentinel": {
@@ -1054,7 +1122,7 @@
       "radius": 0.9,
       "aggroRange": 11,
       "leashRange": 12,
-      "exp": 32,
+      "exp": 30,
       "jobExp": 21,
       "attacks": {
         "beam": {
@@ -1093,6 +1161,10 @@
           "min": 6,
           "max": 12
         }
+      ],
+      "levels": [
+        35,
+        40
       ]
     },
     "fern_ear_hare": {
@@ -1154,6 +1226,10 @@
           "min": 1,
           "max": 3
         }
+      ],
+      "levels": [
+        9,
+        12
       ]
     },
     "mirrorwing_moth": {
@@ -1216,6 +1292,10 @@
           "min": 4,
           "max": 8
         }
+      ],
+      "levels": [
+        12,
+        14
       ]
     },
     "rootdigger_mole": {
@@ -1270,6 +1350,10 @@
           "min": 5,
           "max": 9
         }
+      ],
+      "levels": [
+        14,
+        16
       ]
     }
   }

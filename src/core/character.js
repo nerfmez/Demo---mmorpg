@@ -556,12 +556,25 @@ export function gearItem(ch, uid) {
 }
 
 /** Stats of one item: base stats x grade x upgrade, plus rolled options. */
+// Power stats a piece's own item level grows (items.gearLevels): a base's stats are those at its first level
+const LEVEL_POWER = ['attack', 'magic', 'defense', 'maxHp', 'maxMp', 'maxShield'];
+/** How much a power stat of `base` grows at `itemLevel` against its first level: weapons and shields follow
+ * items.handRules.reference, armour and charms the balance model's set (progression.balance.gear). */
+export function gearLevelScale(data, base, stat, itemLevel) {
+  const lo = base.itemLevel || 1, L = Math.max(lo, Math.min(itemLevel, base.maxItemLevel ?? lo));
+  if (L === lo || !LEVEL_POWER.includes(stat)) return 1;
+  const ref = data.items.handRules.reference, g = data.progression.balance.gear;
+  const curve = base.slot === 'weapon' || base.slot === 'offhand' ? [ref.base, ref.perItemLevel] : stat === 'maxHp' ? g.maxHp : g.defense;
+  return (curve[0] + curve[1] * (L - 1)) / (curve[0] + curve[1] * (lo - 1));
+}
+
 export function gearStats(item, data) {
   const base = data.items.gearBases[item.base];
   const g = data.items.grades;
   const mult = g.statMult[item.grade] * (1 + item.upgrade * data.items.upgrade.statPerLevel);
+  const il = equipmentItemLevel(data, item);
   const out = {};
-  for (const k in base.stats) out[k] = Math.round(base.stats[k] * mult * 10) / 10;
+  for (const k in base.stats) out[k] = Math.round(base.stats[k] * mult * gearLevelScale(data, base, k, il) * 10) / 10;
   for (const o of item.options) {
     const stat = data.items.gearOptions[o.id].stat;
     out[stat] = (out[stat] || 0) + o.value;

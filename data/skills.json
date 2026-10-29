@@ -300,7 +300,7 @@
     "hex": {
       "name": "Weakening Hex",
       "nameTh": "คำสาปอ่อนแรง",
-      "desc": "สาปศัตรูในวง ให้รับดาเมจเพิ่ม 25% และตีเบาลง 20% เป็นเวลา 6 วินาที เหมาะกับปาร์ตี้",
+      "desc": "สาปศัตรูในวง ให้รับดาเมจเพิ่ม 23% และตีเบาลง 20% เป็นเวลา 6 วินาที เหมาะกับปาร์ตี้",
       "tags": [
         "Spell",
         "Area",
@@ -313,7 +313,7 @@
       "range": 11,
       "radius": 3.5,
       "duration": 6,
-      "takenMult": 1.25,
+      "takenMult": 1.23,
       "dealtMult": 0.8,
       "cooldown": 20,
       "castTime": 0.3,
@@ -586,8 +586,8 @@
         "axe"
       ],
       "damage": {
-        "base": 224,
-        "scale": 1.92
+        "base": 381,
+        "scale": 3.26
       },
       "arc": 80,
       "exposure": {
@@ -925,8 +925,8 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 672,
-        "scale": 5.12
+        "base": 874,
+        "scale": 6.66
       },
       "range": 3.2,
       "arc": 140,
@@ -966,8 +966,8 @@
       "kind": "melee_line",
       "power": "attack",
       "damage": {
-        "base": 544,
-        "scale": 4.48
+        "base": 734,
+        "scale": 6.05
       },
       "range": 8,
       "width": 1.8,

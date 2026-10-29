@@ -949,7 +949,7 @@
     "following_aura": {
       "name": "Following Aura",
       "nameTh": "บัฟเป็นวงติดตาม",
-      "desc": "เปลี่ยนบัฟเป็น Aura สำรอง MP 25% ให้ผล 50/55/60% ของเดิม พันธมิตรต้องอยู่ในระยะ",
+      "desc": "เปลี่ยนบัฟเป็น Aura สำรอง MP 25% ให้ผล 55/60/65% ของเดิม พันธมิตรต้องอยู่ในระยะ",
       "tags": [
         "Buff"
       ],
@@ -958,9 +958,9 @@
       ],
       "effect": {
         "buffAura": [
-          0.5,
           0.55,
-          0.6
+          0.6,
+          0.65
         ],
         "auraReserve": 0.25,
         "costMult": 1.2
@@ -1608,7 +1608,7 @@
     3,
     4
   ],
-  "slotLevels": [1, 4, 10, 17, 24],
+  "slotLevels": [1, 6, 16, 27, 38],
   "maxMovementMods": 1,
   "signatureCooldown": 12
 }

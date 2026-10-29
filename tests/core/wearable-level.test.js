@@ -45,7 +45,7 @@ test('underlevel crafting, upgrading and grading keep costs/rolls and fixed wear
 
 test('legacy load retains inactive underlevel wearables without loss or duplicates',()=>{
  const ch=fund(createCharacter(data));ch.level=1;ch.version=5;
- const affected=[];for(const slot of slots){const [id]=bases.find(([,b])=>b.slot===slot&&b.itemLevel===21);const it=item(ch,id);ch.equipped[slot]=it.uid;affected.push(it.uid);}
+ const affected=[];for(const slot of slots){const [id]=bases.find(([,b])=>b.slot===slot&&b.itemLevel>=35);const it=item(ch,id);ch.equipped[slot]=it.uid;affected.push(it.uid);}
  for(let n=0;n<300;n++)item(ch,'tide_boots',{itemLevel:1});
  const ownership=ch.gear.map(i=>({uid:i.uid,base:i.base,grade:i.grade,upgrade:i.upgrade,options:i.options})),next=ch.nextUid;
  migrateCharacter(ch,data);for(const [n,slot] of slots.entries()){assert.equal(ch.equipped[slot],affected[n]);assert.equal(gearEquipState(ch,data,ch.gear.find(i=>i.uid===affected[n])).ok,false);}
@@ -55,17 +55,19 @@ test('legacy load retains inactive underlevel wearables without loss or duplicat
 });
 
 test('missing metadata uses existing base fallback; valid custom level remains authoritative and cap migration enforces last',()=>{
- const ch=createCharacter(data),it=item(ch,'sporeweave_vest');assert.equal(gearRequirements(it,data).level,6);for(const stat in ch.stats)ch.stats[stat]=999;
+ const ch=createCharacter(data),it=item(ch,'sporeweave_vest');assert.equal(gearRequirements(it,data).level,5);for(const stat in ch.stats)ch.stats[stat]=999;
  it.itemLevel=21;ch.level=20;assert.equal(gearEquipState(ch,data,it).ok,false);ch.level=21;assert.ok(gearEquipState(ch,data,it).ok);
- const original=gearStats(it,data);it.itemLevel=31;assert.deepEqual(gearStats(it,data),original);ch.level=40;ch.statPoints=100;ch.equipped.armor=it.uid;
- migrateCharacter(ch,data);assert.equal(ch.level,30);assert.equal(ch.equipped.armor,it.uid);assert.equal(it.itemLevel,31);assert.ok(ch.gear.includes(it));assert.match(ch.progress.equipmentNotice,/สถานะไม่ได้ใช้/);
+ // power stops at the top of the base's range (items.gearLevels): a custom level past it adds nothing
+ const original=gearStats(it,data);it.itemLevel=71;assert.deepEqual(gearStats(it,data),original);ch.level=80;ch.statPoints=100;ch.equipped.armor=it.uid;
+ migrateCharacter(ch,data);assert.equal(ch.level,70);assert.equal(ch.equipped.armor,it.uid);assert.equal(it.itemLevel,71);assert.ok(ch.gear.includes(it));assert.match(ch.progress.equipmentNotice,/สถานะไม่ได้ใช้/);
 });
 
-test('all 41 weapons and 5 shields retain stat gates, grade/upgrade scaling and ignore level metadata',()=>{
+test('all 41 weapons and 5 shields retain stat gates and grade/upgrade scaling; their gate follows the piece level inside its range',()=>{
  const held=Object.entries(data.items.gearBases).filter(([,b])=>['weapon','offhand'].includes(b.slot));assert.equal(held.length,46);
  for(const [id]of held){const ch=createCharacter(data),it=item(ch,id,{itemLevel:999});ch.level=1;const req=gearRequirements(it,data);assert.equal(req.level,undefined,id);
   for(const stat in req)ch.stats[stat]=req[stat];assert.ok(gearEquipState(ch,data,it).ok,id);
   ch.level=99;for(const stat in req)ch.stats[stat]=0;assert.equal(gearEquipState(ch,data,it).ok,false,id);
-  assert.deepEqual(gearRequirements({...it,itemLevel:1},data),req);const raised=gearRequirements({...it,grade:'S',upgrade:5},data);for(const stat in req)assert.ok(raised[stat]>=req[stat],id);
+  const b=data.items.gearBases[id];assert.deepEqual(gearRequirements({...it,itemLevel:b.maxItemLevel},data),req,'past the range: the top of it');
+  const first=gearRequirements({...it,itemLevel:1},data);for(const stat in req)assert.ok(first[stat]<=req[stat],id);const raised=gearRequirements({...it,grade:'S',upgrade:5},data);for(const stat in req)assert.ok(raised[stat]>=req[stat],id);
  }
 });

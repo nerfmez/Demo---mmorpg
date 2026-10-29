@@ -44,10 +44,10 @@ test('Moonroot Grove fills the blank strip between Azure Coast and the Frontier 
   const w = worlds[GROVE], t = grove.town;
   for (const p of [t.workbench, t.shop, t.respawn, grove.playerSpawn]) assert.ok(w.isSafe(...p), String(p));
   assert.ok(grove.waypoints.some((wp) => wp.unlocked));
-  // the level band bridges Azure (to 8) and the Frontier forest (10-12)
+  // the level band bridges Azure (to 12) and the Frontier forest (16-19), levels stretched to 1-40 (owner, 2026-10-29)
   const levels = grove.spawns.flatMap((s) => s.level);
-  assert.equal(Math.min(...levels), 6);
-  assert.equal(Math.max(...levels), 10);
+  assert.equal(Math.min(...levels), 9);
+  assert.equal(Math.max(...levels), 16);
   for (const s of grove.spawns) assert.ok(NEW.includes(s.monster), s.monster);
 });
 

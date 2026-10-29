@@ -19,12 +19,13 @@ test('every gear base/recipe and mod recipe has valid authored metadata',()=>{
   for(const kit of ['sword','bow','staff'])assert.ok(createCharacter(data,{kit}).gear.every(i=>i.itemLevel===1));
 });
 
-test('crafting copies the specific recipe level and mod grade, independent of enhancement/rank',()=>{
+// gear levels (owner, 2026-10-29, items.gearLevels): a crafted piece takes the crafter's level inside its base's range
+test('crafting sets the piece level from the crafter inside the base range, and copies the mod grade, independent of enhancement/rank',()=>{
   const ch=funded();
   for(const [id,recipe]of Object.entries(data.recipes.recipes)){
     if(!['gear','mod'].includes(recipe.type))continue;
     const result=craft(ch,data,id,createRng(7));assert.ok(result.ok,id);
-    if(recipe.type==='gear'){assert.equal(result.item.itemLevel,recipe.itemLevel);assert.equal(result.item.upgrade,0);}
+    if(recipe.type==='gear'){assert.equal(result.item.itemLevel,data.items.gearBases[recipe.result].maxItemLevel,'a top-level crafter makes the top of the range');assert.equal(result.item.upgrade,0);}
     else{assert.equal(result.item.grade,recipe.grade);assert.equal(result.item.level,1);}
   }
   // Gear tiers: every recipe makes items at its base's tier (scripts/gear-tiers.mjs).
@@ -52,10 +53,11 @@ test('metadata normalization preserves v5 map records, active map, position and 
   normalizeItemMetadata(ch,data);assert.deepEqual(ch,expected);normalizeItemMetadata(ch,data);assert.deepEqual(ch,expected);
 });
 
-test('weapon item level remains metadata and does not change stats or trained-stat gates',()=>{
-  const ch=funded();const item=craft(ch,data,'horn_greatblade',createRng(5)).item;
-  const low={...item,itemLevel:1},high={...item,itemLevel:999};
-  assert.deepEqual(gearStats(low,data),gearStats(high,data));assert.deepEqual(gearRequirements(low,data),gearRequirements(high,data));
+test('a weapon\'s item level grows its power and stat gate inside the base range, and never past it',()=>{
+  const ch=funded();const item=craft(ch,data,'horn_greatblade',createRng(5)).item,b=data.items.gearBases.horn_greatblade;
+  const low={...item,itemLevel:b.itemLevel},high={...item,itemLevel:b.maxItemLevel},over={...item,itemLevel:999};
+  assert.ok(gearStats(high,data).attack>gearStats(low,data).attack);assert.deepEqual(gearStats(over,data),gearStats(high,data),'capped at the range end');
+  assert.ok(gearRequirements(high,data).STR>gearRequirements(low,data).STR,'a stronger piece asks for more');
   ch.level=1;assert.ok(gearEquipState(ch,data,high).ok,'raw stats meet requirements at character level 1');
   ch.level=40;ch.stats.STR=0;assert.equal(gearEquipState(ch,data,low).ok,false,'high character level does not replace stat requirements');
 });

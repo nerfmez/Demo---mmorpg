@@ -180,7 +180,7 @@ character-level or stat gate. Skill levels (below) grow 1% damage and 2% MP per 
 supply behavioural growth.
 
 Skill level (owner, 2026-10-27/29, `docs/SKILL-GROWTH-TH.md` phase 2b; `crafting.js`): a combat
-skill levels from 1 to `skillLevelCap` = the character's level (within `skillUpgrade.maxLevel`, 30).
+skill levels from 1 to `skillLevelCap` = the character's level (within `skillUpgrade.maxLevel`, 70).
 At a workbench or trainer `feedSkill(ch, data, id, crystal, count)` feeds crystals of one size
 (`skillUpgrade.crystals`: small 1, medium 5, large 25 EXP) into `ch.skillExp[id]`, paying
 `goldPerExp` gold per EXP. Level L needs `skillExpNeed` = round(`expPerLevel`[0] + [1] x L) EXP, and
@@ -213,6 +213,22 @@ its `upgradeStat`) + `require.perLevel` (1.7) per level above 1, shared by its s
 mod above what the stats allow at the highest level they meet (`computeSkill` `s.level`, `s.owned`); it
 is switched off only below its first level. A Job Tree node effect `finesse` (0..1) makes STR's `attack` and `meleeDamagePct` rows count DEX instead of STR and drops DEX's own `attack` row by the same share (`derive`), so melee attack can come from DEX with nothing added. In Godot keep `Character.stat_totals()` and call it
 wherever requirements are checked.
+
+Levels and gear ranges (owner, 2026-10-29, `docs/STATS-TH.md` section 6): the character goes to
+`character.maxLevel` 70; today's monsters cover 1-40 (`balance.monsterCap`), bosses may sit above. Each monster
+kind has one fixed range (`monsters.json` `levels`); a map spawn stays inside it unless it carries
+`temporary: true` (a placeholder until a new monster fills that zone). A gear base covers an item-level range
+(`itemLevel`..`maxItemLevel`, written by `scripts/gear-levels.mjs` from `items.gearLevels`: lines in group A start
+at 1/10/20/30/40, group B at 1/5/15/25/35, every line ends at 54 and from `alignedFrom` 55 all lines get new bases
+together; `knownGaps` lists the lines still missing a base). Each piece has its own item level inside that range:
+`crafting.js pieceLevel(data, base, level)` clamps a level into it; a drop takes the monster's level
+(`rollGearDrop`), a craft the crafter's (`rollGear(data, recipe, rng, ch.level)`); `gearDropCandidates` offers the
+bases (made from the monster's parts) whose range holds its level, else the newest below. `character.js
+gearLevelScale` grows a piece's power stats (attack, magic, defense, maxHp, maxMp, maxShield) from its base's first
+level along `handRules.reference` (weapons, shields) or `balance.gear` (armour, charms), so the stat requirement
+follows; percentages stay the base's own. Per-item-level growth (reference, identity, option growth, the set
+curves) was divided by 1.625 when levels stretched from 1-25 to 1-40. The balance model gives the reference hero
+gear at its own level (`gearTierAt` = level). The crafting page shows the level the piece will get and its range.
 
 Stat thresholds (owner, 2026-10-29): `progression.statPerks` lists, per stat, four perks at 50/100/150/200
 total points (`id`, `at`, `nameTh`, `descTh` and the perk's own numbers). `derive()` sets `d.perks` to the

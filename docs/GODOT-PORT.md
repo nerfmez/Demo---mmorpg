@@ -538,14 +538,14 @@ moves in under the hair, so the head never shows through any hair. The head's ve
 steps inward under the hair would otherwise open holes at the hairline); its shadow keeps the back
 faces. The head under the hair is drawn in the hair's shade (0.3 of the hair colour,
 `hairShadeMaterial`), decided per pixel: the hair's triangles near the head are drawn once into a
-192 x 96 map of the directions they cover from the head's middle (red: closed over gaps up to 4
+192 x 96 map of the directions they cover from the head's middle (red: closed over gaps up to 6
 cells, so a gap between locks reads as hair in shadow, never as scalp; green: the hair's own
 directions, for the forehead, whose skin shows between the fringe's locks; both then taken in 2 cells
 from the hair's edge, so the head just under the edge shows skin, as a hairline does), and each pixel
 of the head looks its own direction up in it, so the shade ends where the hair does, not along the
 head's large triangles. The body's `underHair` vertex attribute picks the map (1 red, 0.5 green, 0
 none): a part of the head may be shaded only if it was taken in under the hair or the hair lies
-within 0.1 head widths over it, and never the neck just under the head joint (`headTuck.neck`), seen
+within 0.1 head widths over it (a folded ear only the latter), and never the neck just under the head joint (`headTuck.neck`), seen
 between the locks hanging past it. In Godot, run the same
 fit once when the look is chosen and keep the moved hair and body meshes, that attribute (e.g. in a
 vertex colour channel), the direction map (a texture) and the mesh-to-head-middle transform. The hair is tinted to the

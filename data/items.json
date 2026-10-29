@@ -346,10 +346,7 @@
       "nameTh": "ดาบสนิม",
       "slot": "weapon",
       "weaponType": "sword",
-      "stats": {
-        "attack": 60,
-        "magic": 20
-      },
+      "stats": { "attack": 60, "magic": 20 },
       "requires": {},
       "starter": true,
       "optionPool": [
@@ -369,10 +366,7 @@
       "nameTh": "ธนูเก่า",
       "slot": "weapon",
       "weaponType": "bow",
-      "stats": {
-        "attack": 143,
-        "magic": 22
-      },
+      "stats": { "attack": 140, "magic": 25 },
       "requires": {},
       "starter": true,
       "optionPool": [
@@ -392,10 +386,7 @@
       "nameTh": "คทาฝึกหัด",
       "slot": "weapon",
       "weaponType": "staff",
-      "stats": {
-        "attack": 44,
-        "magic": 154
-      },
+      "stats": { "magic": 158, "attack": 40 },
       "requires": {},
       "starter": true,
       "optionPool": [
@@ -416,10 +407,7 @@
       "nameTh": "ดาบเขี้ยวหมูป่า",
       "slot": "weapon",
       "weaponType": "sword",
-      "stats": {
-        "attack": 115,
-        "magic": 14
-      },
+      "stats": { "attack": 116, "magic": 13 },
       "requires": {
         "STR": 6
       },
@@ -441,10 +429,7 @@
       "nameTh": "ธนูพราน",
       "slot": "weapon",
       "weaponType": "bow",
-      "stats": {
-        "attack": 226,
-        "magic": 31
-      },
+      "stats": { "attack": 231, "magic": 26 },
       "requires": {},
       "starter": false,
       "optionPool": [
@@ -464,10 +449,7 @@
       "nameTh": "มีดเขี้ยวหมาป่า",
       "slot": "weapon",
       "weaponType": "dagger",
-      "stats": {
-        "attack": 191,
-        "critChancePct": 3.4
-      },
+      "stats": { "attack": 176, "critMultPct": 15 },
       "requires": {},
       "starter": false,
       "optionPool": [
@@ -488,10 +470,7 @@
       "nameTh": "คทาภูตไฟ",
       "slot": "weapon",
       "weaponType": "staff",
-      "stats": {
-        "attack": 140,
-        "magic": 701
-      },
+      "stats": { "magic": 608, "attack": 107, "critChancePct": 13.4 },
       "requires": {},
       "starter": false,
       "optionPool": [
@@ -514,10 +493,7 @@
       "nameTh": "ไม้เท้าสปอร์",
       "slot": "weapon",
       "weaponType": "wand",
-      "stats": {
-        "attack": 22,
-        "magic": 101
-      },
+      "stats": { "magic": 98, "attack": 25 },
       "requires": {
         "INT": 5
       },
@@ -540,10 +516,7 @@
       "nameTh": "ขวานผาหิน",
       "slot": "weapon",
       "weaponType": "axe",
-      "stats": {
-        "attack": 682,
-        "maxHp": 292
-      },
+      "stats": { "attack": 599, "maxHp": 360 },
       "requires": {},
       "starter": false,
       "optionPool": [
@@ -564,10 +537,7 @@
       "nameTh": "ธนูพายุ",
       "slot": "weapon",
       "weaponType": "bow",
-      "stats": {
-        "attack": 716,
-        "magic": 125
-      },
+      "stats": { "attack": 608, "magic": 107, "hastePct": 19.6 },
       "requires": {},
       "starter": false,
       "optionPool": [
@@ -588,11 +558,7 @@
       "nameTh": "ดาบโค้งเกรย์แฟง",
       "slot": "weapon",
       "weaponType": "sword",
-      "stats": {
-        "attack": 242,
-        "critChancePct": 5.8,
-        "moveSpeedPct": 3.4
-      },
+      "stats": { "attack": 251, "hastePct": 11 },
       "requires": {},
       "starter": false,
       "optionPool": [
@@ -613,10 +579,7 @@
       "nameTh": "ดาบใหญ่เขาผู้พิทักษ์",
       "slot": "weapon",
       "weaponType": "greatblade",
-      "stats": {
-        "attack": 848,
-        "magic": 186
-      },
+      "stats": { "attack": 827, "magic": 207 },
       "requires": {},
       "starter": false,
       "optionPool": [
@@ -636,10 +599,7 @@
       "nameTh": "คทาแกนโบราณ",
       "slot": "weapon",
       "weaponType": "staff",
-      "stats": {
-        "attack": 186,
-        "magic": 848
-      },
+      "stats": { "magic": 703, "attack": 176, "critChancePct": 16 },
       "requires": {},
       "starter": false,
       "optionPool": [
@@ -1298,10 +1258,7 @@
       "nameTh": "กระบองกระดองด้วง",
       "slot": "weapon",
       "weaponType": "mace",
-      "stats": {
-        "attack": 298,
-        "maxHp": 161
-      },
+      "stats": { "attack": 265, "maxHp": 144 },
       "optionPool": [
         "attack_flat",
         "melee_pct",
@@ -1322,10 +1279,7 @@
       "nameTh": "โล่กระดองปู",
       "slot": "offhand",
       "offhandType": "shield",
-      "stats": {
-        "defense": 40,
-        "blockChancePct": 10
-      },
+      "stats": { "defense": 40, "blockChancePct": 10 },
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -1345,10 +1299,7 @@
       "nameTh": "โล่กลมกระดองด้วง",
       "slot": "offhand",
       "offhandType": "shield",
-      "stats": {
-        "defense": 48,
-        "blockChancePct": 12
-      },
+      "stats": { "defense": 48, "blockChancePct": 12 },
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -1367,11 +1318,7 @@
       "nameTh": "โล่หอคอยศิลาผา",
       "slot": "offhand",
       "offhandType": "shield",
-      "stats": {
-        "defense": 261,
-        "maxHp": 433,
-        "blockChancePct": 18
-      },
+      "stats": { "defense": 261, "maxHp": 433, "blockChancePct": 18, "attack": 90 },
       "optionPool": [
         "defense_flat",
         "hp_flat",
@@ -1601,10 +1548,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 102,
-        "critChancePct": 3.6
-      },
+      "stats": { "attack": 90, "critMultPct": 10, "hastePct": 6 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "crab_shell",
@@ -1624,10 +1568,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 166,
-        "maxHp": 180
-      },
+      "stats": { "attack": 166 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "boar_tusk",
@@ -1647,10 +1588,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 216,
-        "magic": 48
-      },
+      "stats": { "attack": 211, "magic": 53 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "boar_tusk",
@@ -1671,10 +1609,7 @@
         "mp_regen_pct",
         "mana_cost_pct"
       ],
-      "stats": {
-        "attack": 40,
-        "magic": 224
-      },
+      "stats": { "magic": 224, "attack": 40 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "sea_pearl",
@@ -1694,10 +1629,7 @@
         "hp_flat",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 187,
-        "magic": 21
-      },
+      "stats": { "attack": 187, "magic": 21 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_fang",
@@ -1719,10 +1651,7 @@
         "mp_regen_pct",
         "mana_cost_pct"
       ],
-      "stats": {
-        "attack": 31,
-        "magic": 176
-      },
+      "stats": { "magic": 150, "attack": 26, "critChancePct": 5.8 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "venom_gland",
@@ -1743,10 +1672,7 @@
         "hp_flat",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 374,
-        "magic": 82
-      },
+      "stats": { "attack": 310, "magic": 78, "maxHp": 174 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "hermit_fragment",
@@ -1768,10 +1694,7 @@
         "mp_regen_pct",
         "mana_cost_pct"
       ],
-      "stats": {
-        "attack": 68,
-        "magic": 388
-      },
+      "stats": { "magic": 330, "attack": 58, "critChancePct": 8.3 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -1792,10 +1715,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 402,
-        "magic": 55
-      },
+      "stats": { "attack": 349, "magic": 39, "hastePct": 12.3 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_fang",
@@ -1816,10 +1736,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 251,
-        "critChancePct": 8.9
-      },
+      "stats": { "attack": 221, "critMultPct": 20, "hastePct": 11 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_fang",
@@ -1841,10 +1758,7 @@
         "mp_regen_pct",
         "mana_cost_pct"
       ],
-      "stats": {
-        "attack": 44,
-        "magic": 251
-      },
+      "stats": { "magic": 213, "attack": 38, "critChancePct": 7.5 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -1864,10 +1778,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 408,
-        "maxHp": 430
-      },
+      "stats": { "attack": 408 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "beetle_shell",
@@ -1887,10 +1798,7 @@
         "defense_flat",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 532,
-        "magic": 117
-      },
+      "stats": { "attack": 519, "magic": 130 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "greyfang_mane",
@@ -1912,10 +1820,7 @@
         "mp_regen_pct",
         "mana_cost_pct"
       ],
-      "stats": {
-        "attack": 97,
-        "magic": 552
-      },
+      "stats": { "magic": 469, "attack": 83, "critChancePct": 10.9 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "sea_pearl",
@@ -1936,10 +1841,7 @@
         "cdr_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 571,
-        "magic": 78
-      },
+      "stats": { "attack": 496, "magic": 55, "critChancePct": 10.9 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_pelt",
@@ -1959,11 +1861,7 @@
         "regen_flat",
         "barrier_pct"
       ],
-      "stats": {
-        "defense": 101,
-        "maxHp": 289,
-        "blockChancePct": 15
-      },
+      "stats": { "defense": 101, "maxHp": 289, "blockChancePct": 15, "attack": 50 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "beetle_shell",
@@ -2112,10 +2010,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 344,
-        "magic": 38
-      },
+      "stats": { "attack": 293, "magic": 33, "hastePct": 13.5 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "hawk_feather",
@@ -2136,10 +2031,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 325,
-        "critChancePct": 11.5
-      },
+      "stats": { "attack": 287, "critMultPct": 25, "hastePct": 13.5 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wisp_core",
@@ -2161,10 +2053,7 @@
         "mp_regen_pct",
         "mana_cost_pct"
       ],
-      "stats": {
-        "attack": 57,
-        "magic": 325
-      },
+      "stats": { "magic": 276, "attack": 49, "critChancePct": 9.3 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wisp_core",
@@ -2185,10 +2074,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 528,
-        "maxHp": 574
-      },
+      "stats": { "magic": 488, "maxHp": 288 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "crag_stone",
@@ -2209,10 +2095,7 @@
         "hp_flat",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 690,
-        "magic": 151
-      },
+      "stats": { "attack": 572, "magic": 143, "hastePct": 19.6 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "hawk_feather",
@@ -2232,11 +2115,7 @@
         "regen_flat",
         "barrier_pct"
       ],
-      "stats": {
-        "defense": 168,
-        "maxHp": 481,
-        "blockChancePct": 17
-      },
+      "stats": { "defense": 168, "maxHp": 481, "blockChancePct": 17, "maxShield": 240 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "crag_stone",
@@ -2281,10 +2160,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 423,
-        "magic": 47
-      },
+      "stats": { "attack": 423, "magic": 47 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "crag_stone",
@@ -2305,10 +2181,7 @@
         "leech_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 399,
-        "critChancePct": 14.1
-      },
+      "stats": { "attack": 400, "critMultPct": 30 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "storm_quill",
@@ -2330,10 +2203,7 @@
         "mp_regen_pct",
         "mana_cost_pct"
       ],
-      "stats": {
-        "attack": 71,
-        "magic": 399
-      },
+      "stats": { "magic": 340, "attack": 60, "critChancePct": 11 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wisp_core",
@@ -2354,10 +2224,7 @@
         "move_pct",
         "mp_on_hit"
       ],
-      "stats": {
-        "attack": 910,
-        "magic": 124
-      },
+      "stats": { "attack": 791, "magic": 88, "critChancePct": 16 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "storm_quill",
@@ -3809,6 +3676,8 @@
     "affixAllowance": 2,
     "secondaryShare": 0.4,
     "weights": {
+      "critMultPct": 0.4,
+      "maxShield": 0.008,
       "STR": 0.4,
       "DEX": 0.4,
       "INT": 0.4,
@@ -3837,6 +3706,21 @@
       "mpOnHit": 0.6,
       "manaCostReductionPct": 0.6,
       "blockChancePct": 0.6
+    }
+  },
+  "weaponIdentity": {
+    "_doc": "Owner, 2026-10-29 (docs/STATS-TH.md; scripts/gear-identity.mjs, tests/core/stats.test.js): a weapon's stats follow the stats it asks for. A main-line weapon carries only damage (attack, or magic for staves, wands and INT weapons); a shield its guard stats. A main-and-secondary weapon deals its tier's damage (handRules reference) less damageCut and gains its secondary stat's identity (stats: AGI speed, DEX crit power, LUK crit chance, VIT HP, INT spell shield, STR attack) at base + perItemLevel x (item level - 1), times handScale of its hands, so percentages do not grow with weapon damage; a DEX/AGI dagger also gives up mainCut for DEX's identity. A main-and-secondary shield keeps its guard and adds the secondary identity. Greatshields already pair a VIT guard with STR attack.",
+    "damageCut": 0.15,
+    "mainCut": 0.1,
+    "handScale": { "light": 1, "heavy": 1.2, "two": 1.45, "off": 1 },
+    "stats": { "STR": "attack", "AGI": "hastePct", "DEX": "critMultPct", "LUK": "critChancePct", "VIT": "maxHp", "INT": "maxShield" },
+    "values": {
+      "attack": { "base": 10, "perItemLevel": 4 },
+      "hastePct": { "base": 6, "perItemLevel": 0.5 },
+      "critMultPct": { "base": 10, "perItemLevel": 1 },
+      "critChancePct": { "base": 4, "perItemLevel": 0.35 },
+      "maxHp": { "base": 60, "perItemLevel": 12 },
+      "maxShield": { "base": 60, "perItemLevel": 12 }
     }
   },
   "handRules": {

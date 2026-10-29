@@ -150,3 +150,22 @@ test('finesse (a key node): melee attack comes from DEX instead of STR; nothing 
   assert.ok(keyStr.attack < plainStr.attack && keyStr.meleeDamagePct < plainStr.meleeDamagePct, 'a STR hero loses by taking it');
   assert.ok(Math.abs(keyDex.attack - (plainStr.attack - per.DEX.attack * 3)) < 1e-6, 'the same points give the same attack either way (less the 3 DEX a STR hero keeps)');
 });
+
+test('weapon stats follow what the weapon asks for: main-line carries damage only, a secondary stat adds its identity at a modest size', () => {
+  const ID = data.items.weaponIdentity, GUARD = ['defense', 'maxHp', 'blockChancePct'], bad = [];
+  for (const [id, b] of Object.entries(data.items.gearBases)) {
+    if ((b.slot !== 'weapon' && b.slot !== 'offhand') || b.weaponType === 'greatshield') continue;
+    const keys = Object.keys(b.stats), base = b.slot === 'offhand' ? GUARD : ['attack', 'magic'];
+    const extra = keys.filter((k) => !base.includes(k)), want = [];
+    if (b.weaponType === 'dagger' && b.requirementStat === 'DEX') want.push(ID.stats.DEX);
+    if (b.secondaryStat) want.push(ID.stats[b.secondaryStat]);
+    if (extra.sort().join() !== [...new Set(want)].filter((k) => !base.includes(k)).sort().join()) bad.push(`${id}: ${extra} (want ${want})`);
+    const caster = ['staff', 'wand'].includes(b.weaponType) || b.requirementStat === 'INT';
+    if (b.slot === 'weapon' && !((b.stats[caster ? 'magic' : 'attack'] || 0) > (b.stats[caster ? 'attack' : 'magic'] || 0))) bad.push(`${id}: deals ${caster ? 'magic' : 'attack'}`);
+    if ((b.stats.hastePct || 0) > 25 || (b.stats.critChancePct || 0) > 20 || (b.stats.critMultPct || 0) > 40) bad.push(`${id}: a percentage too large`);
+  }
+  assert.deepEqual(bad, []);
+  // the priest's mace deals magic and adds HP; an INT shield adds a spell shield
+  assert.ok(data.items.gearBases.thunder_maul.stats.magic > 0 && data.items.gearBases.thunder_maul.stats.maxHp > 0);
+  assert.ok(data.items.gearBases.highland_shield.stats.maxShield > 0);
+});

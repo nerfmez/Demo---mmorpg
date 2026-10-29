@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { toonRamp } from '../toon.js';
 import { createRng } from '../../core/rng.js';
-import { flagstoneTexture, masonryTexture, nacreTexture, sandTexture, dirtTexture, wornTexture } from './textures.js';
+import { flagstoneTexture, flagstoneCourses, masonryTexture, nacreTexture, sandTexture, dirtTexture, wornTexture } from './textures.js';
 
 const BASE = -14; // how far the cliffs fall
 const FADE = 7; // metres for a cliff to darken into the void
@@ -179,18 +179,26 @@ function addStairs(mesh, cliffs, curb, f, look, white, map) {
   const n = Math.max(3, Math.min(Math.round(Math.abs(f.y1 - f.y0) / 0.15), Math.floor(len / 0.4)));
   const at = (t) => [ax + ux * t, az + uz * t];
   const shadow = new THREE.Color(0.72, 0.72, 0.72), lip = new THREE.Color(1, 1, 1), low = new THREE.Color(0.7, 0.7, 0.7);
-  const cheekW = Math.min(0.45, h * 0.18), cheekH = 0.3;
+  const cheekW = Math.min(0.55, h * 0.2), cheekH = 0.45;
   const yAt = (i) => f.y0 + (f.y1 - f.y0) * ((i + 0.5) / n);
+  const courses = flagstoneCourses(), dark = new THREE.Color(0.74, 0.74, 0.74);
+  const upward = f.y1 > f.y0; // the flight climbs from a to b
   for (let i = 0; i < n; i++) {
     const t0 = (i / n) * len, t1 = ((i + 1) / n) * len;
     // the step's tread sits at the height of the ramp's middle over that step
     const y = yAt(i);
     const [x0, z0] = at(t0), [x1, z1] = at(t1);
     const c00 = [x0 + px, z0 + pz], c01 = [x0 - px, z0 - pz], c10 = [x1 + px, z1 + pz], c11 = [x1 - px, z1 - pz];
-    const from = mesh.pos.length;
-    mesh.topTri(c00, c10, c11, y, white);
-    mesh.topTri(c00, c11, c01, y, white);
-    faceUp(mesh, from);
+    // the tread is laid like a real step, not cut from the paving: one course of long stones runs
+    // across it (the texture turned to the flight, a different course and offset on every step, so
+    // the joints stagger), and it darkens toward the riser behind it, where the next step stands
+    const row = courses[i % courses.length], vFront = 1 - row.y1 / 512, vBack = 1 - row.y0 / 512, shift = i * 0.37;
+    const back1 = upward ? t1 : t0; // the edge the next step rises from
+    const corner = (c, t, side) => ({ c, u: shift + ((side + 1) * h) / TILE, v: t === back1 ? vBack : vFront, col: t === back1 ? dark : white });
+    const quad = [corner(c00, t0, 1), corner(c10, t1, 1), corner(c11, t1, -1), corner(c01, t0, -1)];
+    // counter-clockwise seen from above (the order flips with the flight's turn)
+    const ccw = (quad[1].c[1] - quad[0].c[1]) * (quad[2].c[0] - quad[0].c[0]) - (quad[1].c[0] - quad[0].c[0]) * (quad[2].c[1] - quad[0].c[1]) >= 0;
+    for (const k of ccw ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2]) mesh.vert(quad[k].c[0], y, quad[k].c[1], 0, 1, 0, quad[k].u, quad[k].v, quad[k].col);
     // the riser up to this step and a worn nosing along its edge, in the cut stone of the curbs, so
     // every step reads against the paving
     const prevY = i === 0 ? Math.min(f.y0, f.y1) - 0.3 : yAt(i - 1);

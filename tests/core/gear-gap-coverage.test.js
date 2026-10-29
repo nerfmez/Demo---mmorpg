@@ -27,19 +27,18 @@ test('new garments require their authored character level and their stats (owner
   assert.equal(gearRequirements({...item,upgrade:5,grade:'S'},data).level,level);
  }
 });
-test('additions remain inside existing slot budgets and retain deliberate tradeoffs',()=>{
+test('additions follow their class against the slot budget (owner, 2026-10-29: plate toughest, leather quick, cloth spell shield and MP)',()=>{
  const share={armor:.45,helm:.2,gloves:.1,boots:.15},g=data.progression.balance.gear;
  for(const id of Object.keys(plan)){
   const b=data.items.gearBases[id],il=b.itemLevel;
   const W=data.items.requirements.weights,target=((g.defense[0]+g.defense[1]*(il-1))*W.defense+(g.maxHp[0]+g.maxHp[1]*(il-1))*W.maxHp)*share[b.slot];
-  assert.ok(Math.abs(gearPower(b.stats,data)-target)<.15,id+' follows existing formula after rounding');
+  const ratio=gearPower(b.stats,data)/target;assert.ok(ratio>0.8&&ratio<1.6,id+' '+ratio.toFixed(2));
  }
  assert.equal(data.items.gearBases.moonleaf_slippers.stats.mpRegenPct,undefined);
  assert.ok(data.items.gearBases.wisp_slippers.stats.mpRegenPct>0);
  assert.ok(data.items.gearBases.wardenstalker_coat.stats.defense<data.items.gearBases.crag_plate.stats.defense);
- assert.ok(data.items.gearBases.wardenstalker_hood.stats.maxHp<data.items.gearBases.ranger_hood.stats.maxHp);
- assert.equal(data.items.gearBases.wardenstalker_gloves.stats.maxHp,undefined);
- assert.ok(data.items.gearBases.crag_gauntlets.stats.maxHp>0);
+ assert.ok(data.items.gearBases.wardenstalker_gloves.stats.maxHp<data.items.gearBases.crag_gauntlets.stats.maxHp);
+ assert.ok(data.items.gearBases.sporeweave_vest.stats.maxShield>0&&!data.items.gearBases.sporeweave_vest.stats.maxHp,'cloth carries a spell shield, not HP');
 });
 test('new garments enter existing material-based gear drop candidates without new loot rules',()=>{
  for(const [id,[level]] of Object.entries(plan))assert.ok(Object.keys(data.monsters.monsters).some(monster=>gearDropCandidates(data,monster,level).includes(id)),id+' can drop through its recipe parts');

@@ -525,10 +525,7 @@
       "nameTh": "เสื้อเดินทาง",
       "slot": "armor",
       "look": "tunic",
-      "stats": {
-        "defense": 30,
-        "maxHp": 100
-      },
+      "stats": { "defense": 25, "maxHp": 65 },
       "requires": {},
       "starter": true,
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
@@ -541,10 +538,7 @@
       "nameTh": "เสื้อหนังหมูป่า",
       "slot": "armor",
       "look": "hide",
-      "stats": {
-        "defense": 64,
-        "maxHp": 240
-      },
+      "stats": { "moveSpeedPct": 2, "defense": 25, "maxHp": 64 },
       "requires": {},
       "starter": false,
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
@@ -557,10 +551,7 @@
       "nameTh": "เกราะกระดองด้วง",
       "slot": "armor",
       "look": "shell",
-      "stats": {
-        "defense": 163,
-        "maxHp": 204
-      },
+      "stats": { "defense": 179, "maxHp": 352 },
       "requires": {},
       "starter": false,
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
@@ -573,11 +564,7 @@
       "nameTh": "เสื้อคลุมหนังหมาป่า",
       "slot": "armor",
       "look": "pelt",
-      "stats": {
-        "defense": 127,
-        "maxHp": 287,
-        "moveSpeedPct": 4.3
-      },
+      "stats": { "moveSpeedPct": 3.3, "defense": 119, "maxHp": 235 },
       "requires": {},
       "starter": false,
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
@@ -590,11 +577,7 @@
       "nameTh": "ผ้าคลุมพายุ",
       "slot": "armor",
       "look": "mantle",
-      "stats": {
-        "defense": 278,
-        "maxMp": 866,
-        "hastePct": 49.5
-      },
+      "stats": { "hastePct": 13.5, "defense": 272, "maxShield": 730, "maxMp": 438 },
       "requires": {},
       "starter": false,
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
@@ -607,10 +590,7 @@
       "nameTh": "เกราะผาหิน",
       "slot": "armor",
       "look": "plate",
-      "stats": {
-        "defense": 539,
-        "maxHp": 829
-      },
+      "stats": { "defense": 605, "maxHp": 1128 },
       "requires": {},
       "starter": false,
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
@@ -623,10 +603,7 @@
       "nameTh": "หมวกหนัง",
       "slot": "helm",
       "look": "cap",
-      "stats": {
-        "defense": 24,
-        "maxHp": 80
-      },
+      "stats": { "critChancePct": 3, "defense": 9, "maxHp": 24 },
       "requires": {},
       "starter": false,
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
@@ -639,10 +616,7 @@
       "nameTh": "หมวกกระดองด้วง",
       "slot": "helm",
       "look": "beetle",
-      "stats": {
-        "defense": 72,
-        "maxHp": 102
-      },
+      "stats": { "defense": 79, "maxHp": 156 },
       "requires": {},
       "starter": false,
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
@@ -655,10 +629,7 @@
       "nameTh": "ฮู้ดสปอร์",
       "slot": "helm",
       "look": "hood",
-      "stats": {
-        "defense": 59,
-        "healPct": 13.9
-      },
+      "stats": { "healPct": 8, "defense": 44, "maxShield": 124, "maxMp": 74 },
       "requires": {},
       "starter": false,
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
@@ -671,11 +642,7 @@
       "nameTh": "มงกุฎขนนก",
       "slot": "helm",
       "look": "circlet",
-      "stats": {
-        "defense": 78,
-        "hastePct": 44.1,
-        "maxMp": 393
-      },
+      "stats": { "hastePct": 13.5, "defense": 115, "maxShield": 310, "maxMp": 186 },
       "requires": {},
       "starter": false,
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
@@ -688,11 +655,7 @@
       "nameTh": "หมวกเขาผู้พิทักษ์",
       "slot": "helm",
       "look": "horned",
-      "stats": {
-        "defense": 179,
-        "maxHp": 448,
-        "attack": 54
-      },
+      "stats": { "attack": 54, "defense": 246, "maxHp": 458 },
       "requires": {},
       "starter": false,
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
@@ -705,10 +668,7 @@
       "name": "Travel Boots",
       "nameTh": "รองเท้าเดินทาง",
       "slot": "boots",
-      "stats": {
-        "defense": 20,
-        "moveSpeedPct": 2
-      },
+      "stats": { "moveSpeedPct": 2, "defense": 5, "maxHp": 14 },
       "requires": {},
       "starter": true,
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
@@ -720,10 +680,7 @@
       "name": "Wolf Boots",
       "nameTh": "รองเท้าหมาป่า",
       "slot": "boots",
-      "stats": {
-        "defense": 30,
-        "moveSpeedPct": 4.2
-      },
+      "stats": { "moveSpeedPct": 3.3, "defense": 36, "maxHp": 72 },
       "requires": {},
       "starter": false,
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
@@ -735,10 +692,7 @@
       "name": "Wisp Slippers",
       "nameTh": "รองเท้าภูตไฟ",
       "slot": "boots",
-      "stats": {
-        "defense": 24,
-        "mpRegenPct": 15
-      },
+      "stats": { "mpRegenPct": 8, "defense": 4, "maxShield": 15, "maxMp": 9 },
       "requires": {},
       "starter": false,
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
@@ -750,10 +704,7 @@
       "name": "Crag Greaves",
       "nameTh": "สนับแข้งผาหิน",
       "slot": "boots",
-      "stats": {
-        "defense": 174,
-        "maxHp": 348
-      },
+      "stats": { "defense": 202, "maxHp": 376 },
       "requires": {},
       "starter": false,
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "move_pct"],
@@ -856,10 +807,7 @@
       "nameTh": "หมวกกระดองปู",
       "slot": "helm",
       "look": "beetle",
-      "stats": {
-        "defense": 72,
-        "maxHp": 112
-      },
+      "stats": { "defense": 18, "maxHp": 46 },
       "requires": {},
       "starter": false,
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
@@ -871,10 +819,7 @@
       "name": "Tide Walkers",
       "nameTh": "รองเท้าเดินคลื่น",
       "slot": "boots",
-      "stats": {
-        "moveSpeedPct": 4.5,
-        "defense": 32
-      },
+      "stats": { "moveSpeedPct": 2, "defense": 6, "maxHp": 16 },
       "requires": {},
       "starter": false,
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
@@ -1014,10 +959,7 @@
       "nameTh": "ถุงมือหนังหมูป่า",
       "slot": "gloves",
       "look": "hide",
-      "stats": {
-        "defense": 15,
-        "attack": 15
-      },
+      "stats": { "attack": 15, "critChancePct": 1.5, "defense": 2, "maxHp": 5 },
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
       "upgradeMaterial": "boar_hide",
       "requirementStat": "AGI",
@@ -1031,10 +973,7 @@
       "nameTh": "ถุงมือเปลือกปู",
       "slot": "gloves",
       "look": "shell",
-      "stats": {
-        "defense": 25,
-        "maxHp": 60
-      },
+      "stats": { "defense": 9, "maxHp": 23 },
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
       "upgradeMaterial": "crab_shell",
       "requirementStat": "VIT",
@@ -1047,10 +986,7 @@
       "nameTh": "ถุงมือหนังหมาป่า",
       "slot": "gloves",
       "look": "pelt",
-      "stats": {
-        "attack": 25,
-        "critChancePct": 3
-      },
+      "stats": { "attack": 25, "critChancePct": 2.5, "defense": 20, "maxHp": 38 },
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
       "upgradeMaterial": "wolf_pelt",
       "requirementStat": "AGI",
@@ -1064,10 +1000,7 @@
       "nameTh": "ผ้าพันมือแสงวิญญาณ",
       "slot": "gloves",
       "look": "wrap",
-      "stats": {
-        "magic": 69,
-        "hastePct": 17.1
-      },
+      "stats": { "magic": 69, "hastePct": 6.8, "defense": 33, "maxShield": 88, "maxMp": 53 },
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "magic_flat"],
       "upgradeMaterial": "glow_dust",
       "requirementStat": "INT",
@@ -1080,11 +1013,7 @@
       "nameTh": "ถุงมือเหล็กศิลาผา",
       "slot": "gloves",
       "look": "plate",
-      "stats": {
-        "defense": 90,
-        "maxHp": 180,
-        "attack": 30
-      },
+      "stats": { "attack": 30, "defense": 121, "maxHp": 226 },
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "VIT",
@@ -1316,10 +1245,7 @@
       "look": "pelt",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 210,
-        "maxHp": 1398
-      },
+      "stats": { "moveSpeedPct": 4.5, "defense": 216, "maxHp": 412 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_pelt",
@@ -1332,11 +1258,7 @@
       "look": "hood",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 95,
-        "maxHp": 476,
-        "hastePct": 4.8
-      },
+      "stats": { "hastePct": 11, "defense": 94, "maxHp": 180 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_pelt",
@@ -1350,11 +1272,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
-      "stats": {
-        "defense": 32,
-        "attack": 32,
-        "critChancePct": 1.6
-      },
+      "stats": { "attack": 32, "critChancePct": 3.5, "defense": 39, "maxHp": 74 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_pelt",
@@ -1366,11 +1284,7 @@
       "slot": "boots",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 64,
-        "moveSpeedPct": 3.2,
-        "maxHp": 257
-      },
+      "stats": { "moveSpeedPct": 4.5, "defense": 68, "maxHp": 129 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_pelt",
@@ -1481,11 +1395,7 @@
       "slot": "boots",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 92,
-        "moveSpeedPct": 4.6,
-        "maxHp": 370
-      },
+      "stats": { "moveSpeedPct": 5.8, "defense": 99, "maxHp": 185 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "hawk_feather",
@@ -1552,11 +1462,7 @@
       "slot": "armor",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
-      "stats": {
-        "defense": 103,
-        "maxMp": 514,
-        "healPct": 17.1
-      },
+      "stats": { "healPct": 8, "defense": 104, "maxShield": 294, "maxMp": 176 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -1569,11 +1475,7 @@
       "slot": "gloves",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "magic_flat"],
-      "stats": {
-        "magic": 22,
-        "maxMp": 111,
-        "healPct": 4.4
-      },
+      "stats": { "magic": 22, "healPct": 4, "defense": 14, "maxShield": 40, "maxMp": 24 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -1586,11 +1488,7 @@
       "slot": "boots",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
-      "stats": {
-        "defense": 52,
-        "maxMp": 346,
-        "hastePct": 10.5
-      },
+      "stats": { "hastePct": 11, "defense": 57, "maxShield": 155, "maxMp": 93 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -1602,11 +1500,7 @@
       "slot": "armor",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 463,
-        "maxHp": 1235,
-        "moveSpeedPct": 6.2
-      },
+      "stats": { "moveSpeedPct": 7, "defense": 411, "maxHp": 765 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "greyfang_mane",
@@ -1620,12 +1514,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 165,
-        "maxHp": 412,
-        "critChancePct": 11,
-        "hastePct": 8.1
-      },
+      "stats": { "critChancePct": 11, "hastePct": 16, "defense": 168, "maxHp": 314 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "greyfang_mane",
@@ -1639,11 +1528,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
-      "stats": {
-        "attack": 73,
-        "critChancePct": 7.3,
-        "defense": 24
-      },
+      "stats": { "attack": 73, "critChancePct": 5.5, "defense": 72, "maxHp": 134 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "greyfang_mane",
@@ -1718,10 +1603,7 @@
       "slot": "helm",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 15,
-        "maxHp": 60
-      },
+      "stats": { "critChancePct": 3, "defense": 9, "maxHp": 24 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "boar_hide",
@@ -1735,10 +1617,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
-      "stats": {
-        "defense": 10,
-        "attack": 10
-      },
+      "stats": { "attack": 10, "critChancePct": 1.5, "defense": 3, "maxHp": 7 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "boar_hide",
@@ -1751,11 +1630,7 @@
       "slot": "boots",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 30,
-        "maxHp": 80,
-        "moveSpeedPct": 2
-      },
+      "stats": { "moveSpeedPct": 2, "defense": 6, "maxHp": 16 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "boar_hide",
@@ -1767,10 +1642,7 @@
       "slot": "armor",
       "requirementStat": "VIT",
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
-      "stats": {
-        "defense": 75,
-        "maxHp": 120
-      },
+      "stats": { "defense": 40, "maxHp": 102 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "crab_shell",
@@ -1783,10 +1655,7 @@
       "slot": "gloves",
       "requirementStat": "VIT",
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
-      "stats": {
-        "defense": 32,
-        "maxHp": 100
-      },
+      "stats": { "defense": 40, "maxHp": 78 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "beetle_shell",
@@ -1799,11 +1668,7 @@
       "slot": "boots",
       "requirementStat": "VIT",
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "move_pct"],
-      "stats": {
-        "defense": 42,
-        "maxHp": 150,
-        "moveSpeedPct": 0.9
-      },
+      "stats": { "moveSpeedPct": 1.6, "defense": 55, "maxHp": 108 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "beetle_shell",
@@ -1815,11 +1680,7 @@
       "slot": "boots",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
-      "stats": {
-        "defense": 30,
-        "maxMp": 180,
-        "healPct": 8
-      },
+      "stats": { "healPct": 8, "defense": 32, "maxShield": 90, "maxMp": 54 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -1832,11 +1693,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 48,
-        "maxHp": 200,
-        "critChancePct": 3.2
-      },
+      "stats": { "critChancePct": 5, "defense": 50, "maxHp": 98 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wolf_pelt",
@@ -1849,11 +1706,7 @@
       "slot": "armor",
       "requirementStat": "VIT",
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
-      "stats": {
-        "defense": 135,
-        "maxHp": 337,
-        "hpRegen": 12
-      },
+      "stats": { "hpRegen": 12, "defense": 171, "maxHp": 337 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "rootdigger_claw",
@@ -1866,11 +1719,7 @@
       "slot": "helm",
       "requirementStat": "VIT",
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
-      "stats": {
-        "defense": 56,
-        "maxHp": 200,
-        "barrierPct": 5.3
-      },
+      "stats": { "barrierPct": 3, "defense": 77, "maxHp": 153 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "rootdigger_claw",
@@ -1884,11 +1733,7 @@
       "requirementStat": "VIT",
       "secondaryStat": "STR",
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
-      "stats": {
-        "defense": 22,
-        "maxHp": 75,
-        "attack": 12
-      },
+      "stats": { "attack": 12, "defense": 34, "maxHp": 68 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "rootdigger_claw",
@@ -1901,10 +1746,7 @@
       "slot": "boots",
       "requirementStat": "VIT",
       "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "move_pct"],
-      "stats": {
-        "defense": 45,
-        "maxHp": 187
-      },
+      "stats": { "defense": 60, "maxHp": 117 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "rootdigger_claw",
@@ -1916,11 +1758,7 @@
       "slot": "armor",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
-      "stats": {
-        "defense": 108,
-        "maxMp": 575,
-        "barrierPct": 9.6
-      },
+      "stats": { "barrierPct": 6, "defense": 105, "maxShield": 297, "maxMp": 178 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "mirror_scale",
@@ -1933,11 +1771,7 @@
       "slot": "helm",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
-      "stats": {
-        "defense": 40,
-        "maxMp": 320,
-        "spellDamagePct": 5.3
-      },
+      "stats": { "spellDamagePct": 7, "defense": 45, "maxShield": 125, "maxMp": 75 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "mirror_scale",
@@ -1951,10 +1785,7 @@
       "requirementStat": "INT",
       "secondaryStat": "LUK",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "magic_flat"],
-      "stats": {
-        "magic": 28,
-        "critChancePct": 2.4
-      },
+      "stats": { "magic": 28, "critChancePct": 2.5, "defense": 10, "maxShield": 27, "maxMp": 16 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "mirror_scale",
@@ -1967,11 +1798,7 @@
       "slot": "boots",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
-      "stats": {
-        "defense": 24,
-        "moveSpeedPct": 3,
-        "maxMp": 150
-      },
+      "stats": { "moveSpeedPct": 3.3, "defense": 28, "maxShield": 79, "maxMp": 47 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "mirror_scale",
@@ -1983,11 +1810,7 @@
       "slot": "armor",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 117,
-        "maxHp": 270,
-        "moveSpeedPct": 5.9
-      },
+      "stats": { "moveSpeedPct": 3.3, "defense": 119, "maxHp": 235 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "fern_ear_tuft",
@@ -2001,11 +1824,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 40,
-        "maxHp": 200,
-        "critChancePct": 4.8
-      },
+      "stats": { "critChancePct": 5, "defense": 50, "maxHp": 98 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "fern_ear_tuft",
@@ -2019,11 +1838,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
-      "stats": {
-        "attack": 22,
-        "critChancePct": 2.4,
-        "projectileDamagePct": 4
-      },
+      "stats": { "attack": 22, "critChancePct": 2.5, "projectileDamagePct": 3.5, "defense": 19, "maxHp": 37 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "fern_ear_tuft",
@@ -2036,10 +1851,7 @@
       "slot": "boots",
       "requirementStat": "AGI",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 27,
-        "moveSpeedPct": 4.7
-      },
+      "stats": { "moveSpeedPct": 3.3, "defense": 36, "maxHp": 72 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "fern_ear_tuft",
@@ -2051,11 +1863,7 @@
       "slot": "armor",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
-      "stats": {
-        "defense": 145,
-        "maxMp": 1125,
-        "hastePct": 32.1
-      },
+      "stats": { "hastePct": 11, "defense": 187, "maxShield": 509, "maxMp": 306 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -2068,11 +1876,7 @@
       "slot": "helm",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
-      "stats": {
-        "defense": 71,
-        "maxMp": 500,
-        "healPct": 14.3
-      },
+      "stats": { "healPct": 11, "defense": 81, "maxShield": 220, "maxMp": 132 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -2085,11 +1889,7 @@
       "slot": "gloves",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "magic_flat"],
-      "stats": {
-        "magic": 43,
-        "maxMp": 143,
-        "hastePct": 7.2
-      },
+      "stats": { "magic": 43, "hastePct": 5.5, "defense": 24, "maxShield": 65, "maxMp": 39 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "spore_sac",
@@ -2119,11 +1919,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
-      "stats": {
-        "attack": 57,
-        "critChancePct": 6.2,
-        "projectileDamagePct": 10.3
-      },
+      "stats": { "attack": 57, "critChancePct": 4.5, "projectileDamagePct": 6.5, "defense": 52, "maxHp": 98 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "hawk_feather",
@@ -2136,11 +1932,7 @@
       "slot": "armor",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
-      "stats": {
-        "defense": 278,
-        "maxMp": 1621,
-        "spellDamagePct": 15.4
-      },
+      "stats": { "spellDamagePct": 13, "defense": 275, "maxShield": 737, "maxMp": 442 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "wisp_core",
@@ -2153,11 +1945,7 @@
       "slot": "helm",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat"],
-      "stats": {
-        "defense": 82,
-        "maxMp": 721,
-        "hastePct": 25.8
-      },
+      "stats": { "hastePct": 13.5, "defense": 115, "maxShield": 310, "maxMp": 186 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "glow_dust",
@@ -2170,11 +1958,7 @@
       "slot": "boots",
       "requirementStat": "INT",
       "optionPool": ["mp_flat", "mp_regen_pct", "shield_flat", "shield_pct", "spell_pct", "heal_pct", "mana_cost_pct", "int_flat", "luk_flat", "move_pct"],
-      "stats": {
-        "defense": 69,
-        "mpRegenPct": 30.9,
-        "moveSpeedPct": 5.5
-      },
+      "stats": { "mpRegenPct": 23, "moveSpeedPct": 5.8, "defense": 67, "maxShield": 179, "maxMp": 107 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "glow_dust",
@@ -2187,12 +1971,7 @@
       "requirementStat": "AGI",
       "secondaryStat": "DEX",
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
-      "stats": {
-        "defense": 91,
-        "moveSpeedPct": 7.2,
-        "maxHp": 378,
-        "critChancePct": 6
-      },
+      "stats": { "moveSpeedPct": 7, "critChancePct": 11, "defense": 118, "maxHp": 219 },
       "requires": {},
       "starter": false,
       "upgradeMaterial": "greyfang_mane",
@@ -2685,6 +2464,28 @@
       "maxHp": { "base": 60, "perItemLevel": 12 },
       "maxShield": { "base": 60, "perItemLevel": 12 }
     }
+  },
+  "armorIdentity": {
+    "_doc": "Owner, 2026-10-29 (docs/STATS-TH.md; scripts/armor-identity.mjs, tests/core/stats.test.js): an armour piece's stats follow its class (the stat it asks for: VIT plate, AGI leather, INT cloth), measured against its slot's share of the balance model's set (progression.balance.gear defense and maxHp at its item level). core: multiples of that defense and HP (cloth turns the HP into a spell shield and MP). Plate is the toughest; leather trades some for speed and crit (a leather piece without either gains movement on body and feet, crit on head and hands); cloth carries a spell shield and MP. flavour: the piece's own percentages (speed, crit, healing ...) at that share of their cap (base + perItemLevel x (item level - 1), times capScale for small slots: gloves already carry attack or magic); other flavour stats (attack, magic, regeneration) stay as authored; the class's flavourCost of all flavour's power comes out of the core (leather least: speed is what it is for) (down to minCore of it). A crafted item level 1 piece is craftedStarter times a starter.",
+    "classes": {
+      "plate": { "core": { "defense": [1.15, "defense"], "maxHp": [1.15, "maxHp"] }, "flavour": 0.5, "flavourCost": 0.5 },
+      "leather": { "core": { "defense": [0.8, "defense"], "maxHp": [0.8, "maxHp"] }, "flavour": 1, "flavourCost": 0.25 },
+      "cloth": { "core": { "defense": [0.7, "defense"], "maxShield": [1, "maxHp"], "maxMp": [0.6, "maxHp"] }, "flavour": 1, "flavourCost": 0.5 }
+    },
+    "caps": {
+      "hastePct": { "base": 6, "perItemLevel": 0.5 },
+      "moveSpeedPct": { "base": 2, "perItemLevel": 0.25 },
+      "critChancePct": { "base": 3, "perItemLevel": 0.4 },
+      "spellDamagePct": { "base": 4, "perItemLevel": 0.6 },
+      "projectileDamagePct": { "base": 4, "perItemLevel": 0.6 },
+      "healPct": { "base": 5, "perItemLevel": 0.6 },
+      "barrierPct": { "base": 4, "perItemLevel": 0.4 },
+      "mpRegenPct": { "base": 8, "perItemLevel": 1 }
+    },
+    "slotShare": { "armor": 0.45, "helm": 0.2, "gloves": 0.1, "boots": 0.15 },
+    "craftedStarter": 1.1,
+    "minCore": 0.3,
+    "capScale": { "gloves": 0.5 }
   },
   "optionPools": {
     "_doc": "Owner, 2026-10-29 (docs/STATS-TH.md): a base rolls options from its class's pool (what that kind of item is for), plus its slot's extras for armour, so a robe never rolls bow damage. Classes: weapons by type (greatblades and axes are heavy; a mace is heavy, or priest when it asks for INT), shield for every offhand, armour by what it asks for (VIT plate, AGI leather, INT cloth), charm. Charms roll the widest pool, the only drop-find options and every stat. A starter item rolls its pool's first options at their minimum, so a pool starts with options that leave a starter wearable. scripts/option-pools.mjs writes each base's and recipe's optionPool from here; tests/core/stats.test.js checks they match.",

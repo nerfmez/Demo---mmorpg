@@ -223,3 +223,23 @@ test('regeneration keeps its worth: HP regenerates a share of max HP (VIT adds a
   assert.ok(tank.hpRegen > plain.hpRegen * 2);
   assert.equal(restoreAmount(data, 'hp_potion_m', 5000, 500, tank.potionHealPct).hp * 2, restoreAmount(data, 'hp_potion_m', 5000, 500).hp);
 });
+
+test('armour stats follow the class: plate toughest, leather quick, cloth a spell shield and MP; percentages stay under their cap', () => {
+  const A = data.items.armorIdentity, CLASS = { VIT: 'plate', AGI: 'leather', INT: 'cloth' }, bad = [], best = {};
+  for (const [id, b] of Object.entries(data.items.gearBases)) {
+    if (!A.slotShare[b.slot]) continue;
+    const c = CLASS[b.requirementStat], s = b.stats, il = b.itemLevel;
+    if (c === 'cloth' && (s.maxHp || !s.maxShield || !s.maxMp)) bad.push(`${id}: cloth carries a spell shield and MP, not HP`);
+    if (c !== 'cloth' && (!s.maxHp || s.maxShield)) bad.push(`${id}: HP, no spell shield`);
+    if (c === 'leather' && !b.starter && !['moveSpeedPct', 'hastePct', 'critChancePct'].some((k) => s[k])) bad.push(`${id}: leather carries speed or crit`);
+    for (const [k, cap] of Object.entries(A.caps)) if ((s[k] || 0) > (cap.base + cap.perItemLevel * (il - 1)) + 0.05 + 1e-9) bad.push(`${id}: ${k} over its cap`); // a tenth for rounding
+    const key = `${b.slot}.${il}`;
+    ((best[key] ||= {})[c] ||= []).push(s.defense);
+  }
+  assert.deepEqual(bad, []);
+  const max = (l) => Math.max(...(l || [0]));
+  for (const [key, by] of Object.entries(best)) {
+    if (by.plate && by.leather) assert.ok(max(by.plate) > max(by.leather), `${key}: plate defends more than leather`);
+    if (by.leather && by.cloth) assert.ok(max(by.leather) > max(by.cloth), `${key}: leather defends more than cloth`);
+  }
+});

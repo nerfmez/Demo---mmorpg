@@ -341,16 +341,19 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
-let last = performance.now(), time = 0, frames = 0;
-function frame(now) {
-  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); // the first rAF time can precede performance.now()
-  last = now;
+let last = performance.now(), time = 0, frames = 0, stepped = false;
+function draw(dt) {
   time += dt;
   step(dt, time);
   updateCamera(dt);
   renderer.info.reset();
   if (post) post.render(scene, camera, time); else renderer.render(scene, camera);
   if (++frames === 2) $('loading').classList.add('gone');
+}
+function frame(now) {
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); // the first rAF time can precede performance.now()
+  last = now;
+  if (!stepped) draw(dt);
   requestAnimationFrame(frame);
 }
 Promise.all([
@@ -376,5 +379,7 @@ window.__grotto = {
   overview(on = true) { state.overview = on; overviewBtn.classList.toggle('on', on); snapCamera = true; },
   zoom(z) { state.zoom = z; snapCamera = true; },
   info: () => ({ ...renderer.info.render }),
+  // a review clip (tests/browser/grotto-video.mjs) draws frame by frame at a fixed step, whatever the renderer's speed
+  step(dt) { stepped = true; draw(dt); },
   frame(x, y, z, dist = 14, pitch = 30) { state.frame = x == null ? null : [x, y, z, dist, pitch]; snapCamera = true; },
 };

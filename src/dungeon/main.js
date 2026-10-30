@@ -1,8 +1,9 @@
-// Pearlshell Grotto preview (dungeon.html): the dungeon built on its own page before it joins the
-// game. Walk the hero around the beach with the giant shell, find the shell's secret mouth, go
-// inside and explore every room. The rules are src/core/dungeon.js (the game will use the same);
-// this page only reads them, draws and takes input. ?at=inside starts inside, ?found=1 opens the
-// shell, ?view=overview starts in the whole-map view, ?post=0 turns the screen grade off.
+// Pearlshell Grotto (dungeon.html): the dungeon inside the game's Singing Conch, on its own page.
+// The game opens it from the conch (save.js stashDungeon: slot or unsaved character, the hero's
+// look and gear); the hero starts at the spawn and the pearl gate goes back to the game beside the
+// conch. Opened directly (no trip) it is a preview and the gate leads to the title. The rules are
+// src/core/dungeon.js; this page only reads them, draws and takes input. ?view=overview starts in
+// the whole-map view, ?post=0 turns the screen grade off.
 import * as THREE from 'three';
 import '@fontsource/mitr/thai-400.css';
 import '@fontsource/mitr/latin-400.css';
@@ -10,6 +11,7 @@ import GROTTO from '../../data/dungeons/shell-grotto.json';
 import RENDERING from '../../data/rendering.json';
 import MODELS from '../../data/models.json';
 import { createDungeon } from '../core/dungeon.js';
+import { peekDungeon, leaveDungeon } from '../save.js';
 import { buildGrottoScene } from '../render/grotto/index.js';
 import { buildHumanoid, HumanoidAnimator, DEFAULT_LOOK } from '../render/hero.js';
 import { loadModels } from '../render/models.js';
@@ -24,6 +26,7 @@ import { loadGlowCorals } from '../render/grotto/corals.js';
 import { loadPaintedProps } from '../render/grotto/painted.js';
 
 const params = new URLSearchParams(location.search);
+const trip = peekDungeon();
 const SPEED = 6; // m/s, the game's moveSpeed (data/progression.json)
 const $ = (id) => document.getElementById(id);
 
@@ -50,18 +53,13 @@ sun.shadow.bias = -0.0006;
 sun.shadow.normalBias = 0.03;
 scene.add(sun, sun.target);
 
-// ---------- the two maps: the beach with the shell (preview only) and the grotto inside ----------
-const maps = { inside: createDungeon(GROTTO.inside, GROTTO), outside: createDungeon(GROTTO.outside, GROTTO) };
-// both scenes are built behind the loading card, once the Blender models (models/grotto) have loaded
+// ---------- the grotto (the game outside is the Singing Conch) ----------
+const maps = { inside: createDungeon(GROTTO.inside, GROTTO) };
+// the scene is built behind the loading card, once the Blender models (models/grotto) have loaded
 let views = null;
-const found = new Set(params.get('found') === '1' ? ['shell-mouth'] : []);
 function buildViews(kit, cave, clam, corals, painted) {
-  views = {
-    inside: buildGrottoScene(maps.inside, { motes: 420, kit, cave, clam, corals, painted }),
-    outside: buildGrottoScene(maps.outside, { sea: true, motes: 60, moteColours: ['#ffffff', '#fff1c0'] }),
-  };
+  views = { inside: buildGrottoScene(maps.inside, { motes: 420, kit, cave, clam, corals, painted }) };
   for (const v of Object.values(views)) { v.root.visible = false; scene.add(v.root); }
-  if (found.size) views.outside.shell?.open(true);
 }
 
 // a small warm light that walks with the hero: the cave is dark away from its lamps
@@ -73,7 +71,8 @@ let hero = null, heroAnim = null;
 function buildHero() {
   const action = heroAnim?.action || null, pos = hero?.root.position.clone(), rot = hero?.root.rotation.y ?? 0;
   if (hero) disposeObject(hero.root);
-  hero = buildHumanoid(DEFAULT_LOOK, { weapon: 'staff', armor: 'tunic', helm: null, bases: {} });
+  // the game's hero as it went in (look and gear from the trip); a direct preview uses the default
+  hero = buildHumanoid(trip?.look || DEFAULT_LOOK, trip?.gear || { weapon: 'staff', armor: 'tunic', helm: null, bases: {} });
   heroAnim = new HumanoidAnimator(hero);
   heroAnim.action = action;
   hero.root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
@@ -94,7 +93,7 @@ scene.add(ripple);
 
 // ---------- state ----------
 const state = {
-  where: params.get('at') === 'inside' ? 'inside' : 'outside',
+  where: 'inside',
   pos: { x: 0, z: 0, y: 0 },
   facing: 0,
   zoom: 0.8,
@@ -113,7 +112,7 @@ function enter(where, spawn, facing) {
   scene.background = new THREE.Color(look.background);
   scene.fog = new THREE.Fog(look.fog[0], look.fog[1], look.fog[2]);
   if (post) {
-    // each map grades its own glow: the dark cave lets its emissive corals and pearls bloom, the bright beach does not
+    // the map grades its own glow: the dark cave lets its emissive corals and pearls bloom
     post.setHaze(scene.fog.color);
     const g = { ...RENDERING.post, ...look.post };
     post.compositeMat.uniforms.uGlow.value = g.glow;
@@ -202,27 +201,25 @@ function banner(r) {
   bannerTimer = setTimeout(() => $('banner').classList.remove('show'), 2600);
 }
 
-/** The contextual button: inspect the shell, or go through a door. */
+/** The contextual button: go through a door. */
 function currentAction() {
   const map = maps[state.where];
-  const secret = map.inspectAt(state.pos.x, state.pos.z, found);
-  if (secret) return { label: secret.inspectTh, run: () => discover(secret) };
-  const door = (map.def.links || []).find((l) => (!l.secret || found.has(l.id)) && Math.hypot(state.pos.x - l.at[0], state.pos.z - l.at[1]) <= l.r + 2.2);
+  const door = (map.def.links || []).find((l) => !l.secret && Math.hypot(state.pos.x - l.at[0], state.pos.z - l.at[1]) <= l.r + 2.2);
   if (door) return { label: door.labelTh, run: () => travel(door) };
   return null;
 }
 function doAction() { const a = currentAction(); if (a && !state.busy) a.run(); }
 
-function discover(link, instant = false) {
-  found.add(link.id);
-  views.outside.shell?.open(instant);
-  toast('เปลือกหอยมีเสียงก้อง… คราบเพรียงร่วงหลุด เผยทางลับเข้าไปข้างใน!', 4);
-}
-
 function travel(link) {
   if (state.busy) return;
   state.busy = true;
   $('fade').classList.add('on');
+  if (link.to === 'game') {
+    // back out of the conch: the game reloads the character beside it (or the title for a preview)
+    leaveDungeon();
+    setTimeout(() => location.assign(new URL('./', location.href).href), 380);
+    return;
+  }
   setTimeout(() => {
     enter(link.to, link.spawn, link.facing);
     $('fade').classList.remove('on');
@@ -309,7 +306,7 @@ function step(dt, t) {
   }
 
   // doors: walking into one goes through (once the hero has left the arrival spot)
-  const door = map.linkAt(state.pos.x, state.pos.z, found);
+  const door = map.linkAt(state.pos.x, state.pos.z);
   if (!door) state.armed = true;
   else if (state.armed && !state.busy) travel(door);
   const region = map.regionAt(state.pos.x, state.pos.z);
@@ -361,10 +358,9 @@ Promise.all([
 
 // for the focused capture (tests/browser/grotto.mjs)
 window.__grotto = {
-  state, maps, found, ready: () => modelsReady,
+  state, maps, trip, ready: () => modelsReady,
   get views() { return views; },
   go(where, x, z, facing = 0) { enter(where, [x, z], facing); },
-  open(instant = false) { discover(GROTTO.outside.links[0], instant); },
   overview(on = true) { state.overview = on; overviewBtn.classList.toggle('on', on); snapCamera = true; },
   zoom(z) { state.zoom = z; snapCamera = true; },
   info: () => ({ ...renderer.info.render }),

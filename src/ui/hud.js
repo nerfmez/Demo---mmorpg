@@ -529,15 +529,15 @@ export class Hud {
 
     // interaction prompt
     const near = g.nearby();
-    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.shop ? 'shop' : near.waypoint ? 'waypoint' : near.exit ? 'exit:' + near.exit : null;
+    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.shop ? 'shop' : near.waypoint ? 'waypoint' : near.dungeon ? 'dungeon' : near.exit ? 'exit:' + near.exit : null;
     if (prompt !== this.lastPrompt) {
       this.lastPrompt = prompt;
       this.el.prompt.innerHTML = '';
       this.el.prompt.classList.toggle('on', !!prompt);
       if (prompt) {
         const exit = near.exit && g.world.exits.find((e) => e.id === near.exit);
-        const label = exit ? 'เดินทางไป' + exit.nameTh : { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', shop: 'ร้านค้า · ซื้อยา', waypoint: 'เดินทางผ่านหินวาร์ป' }[prompt];
-        const ic = exit ? 'portal' : { workbench: 'hammer', trainer: 'tree', shop: 'bag', waypoint: 'portal' }[prompt];
+        const label = exit ? 'เดินทางไป' + exit.nameTh : { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', shop: 'ร้านค้า · ซื้อยา', waypoint: 'เดินทางผ่านหินวาร์ป', dungeon: 'เข้าไปในหอยสังข์' }[prompt];
+        const ic = exit ? 'portal' : { workbench: 'hammer', trainer: 'tree', shop: 'bag', waypoint: 'portal', dungeon: 'portal' }[prompt];
         const b = h(`<button class="pbtn">${icon(ic)}<span>${label}</span><kbd>E</kbd></button>`);
         b.addEventListener('click', () => ui.interact());
         this.el.prompt.appendChild(b);

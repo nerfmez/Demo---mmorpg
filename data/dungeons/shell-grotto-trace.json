@@ -29,7 +29,7 @@
   "spawn": [161, 774],
   "spawnFace": [266, 814],
   "links": [
-    { "id": "shell-exit", "at": [96, 752], "r": 1.8, "to": "outside", "spawn": [-3.6, 4.2], "facing": -0.62, "labelTh": "ออกจากเปลือกหอย" }
+    { "id": "shell-exit", "at": [96, 752], "r": 1.8, "to": "game", "labelTh": "ออกจากเปลือกหอย" }
   ],
   "regions": [
     { "id": "entrance", "at": [170, 800], "r": 170, "name": "Pearl Gate Cave", "nameTh": "ถ้ำประตูมุก" },

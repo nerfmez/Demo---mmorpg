@@ -8,9 +8,8 @@ import { caveSourceHash } from '../../scripts/grotto-cave-input.mjs';
 
 const FILE = JSON.parse(readFileSync(new URL('../../data/dungeons/shell-grotto.json', import.meta.url), 'utf8'));
 const inside = createDungeon(FILE.inside, FILE);
-const outside = createDungeon(FILE.outside, FILE);
-const maps = { inside, outside };
-const reach = { inside: reachableFrom(inside, FILE.inside.spawn), outside: reachableFrom(outside, FILE.outside.spawn) };
+const maps = { inside };
+const reach = { inside: reachableFrom(inside, FILE.inside.spawn) };
 
 /** Some reached cell within `r` of (x, z). */
 const reachedNear = (part, [x, z], r) => {
@@ -19,7 +18,7 @@ const reachedNear = (part, [x, z], r) => {
 };
 
 test('the spawns stand on walkable ground and every named area is reached on foot', () => {
-  for (const part of ['inside', 'outside']) {
+  for (const part of ['inside']) {
     const [x, z] = FILE[part].spawn;
     assert.ok(Number.isFinite(maps[part].landY(x, z)), `${part} spawn`);
     for (const r of FILE[part].regions) assert.ok(reachedNear(part, r.at, r.r / 2), `${part}: ${r.id} not reached`);
@@ -58,6 +57,26 @@ test('stairs are gentle and joined to the floors at both ends', () => {
   }
 });
 
+test('every flight is walked straight on and off at both ends: no slit, ledge, strip of water or prop at its head or foot', () => {
+  for (const f of FILE.inside.floors.filter((g) => g.shape === 'stairs')) {
+    const [ax, az] = f.a, [bx, bz] = f.b, L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L;
+    // the middle lane from 2 m before one end to 2 m past the other; the side lanes within the aprons
+    for (const [off, past] of [[0, 2], [-0.3, 1], [0.3, 1]]) for (const dir of [1, -1]) {
+      const o = off * f.w, t0 = dir > 0 ? -past : L + past;
+      const pos = { x: ax + ux * t0 - uz * o, z: az + uz * t0 + ux * o };
+      pos.y = inside.landY(pos.x, pos.z);
+      assert.ok(Number.isFinite(pos.y), `${f.id}: stand ${past} m off its end`);
+      for (let k = 0; k < (L + 2 * past) * 12; k++) {
+        const before = (pos.x - ax) * ux + (pos.z - az) * uz;
+        inside.move(pos, ux * dir * 0.1, uz * dir * 0.1);
+        const t = (pos.x - ax) * ux + (pos.z - az) * uz;
+        if (dir > 0 ? t >= L + past : t <= -past) break;
+        assert.ok((t - before) * dir > 0.02, `${f.id}: walking ${dir > 0 ? 'up' : 'down'} lane ${off} stops at ${t.toFixed(2)} of ${L.toFixed(2)} m`);
+      }
+    }
+  }
+});
+
 test('a ledge is a wall: walking off the corridor toward the coral pool stays on the corridor', () => {
   const [x, z] = px([760, 420]), [, zPool] = px([760, 540]);
   const pos = { x, z, y: inside.landY(x, z) };
@@ -86,7 +105,7 @@ test('props block and the hero slides around them', () => {
 });
 
 test('every prop type is known, sits inside the bounds and on a floor', () => {
-  for (const part of ['inside', 'outside']) {
+  for (const part of ['inside']) {
     const { minX, maxX, minZ, maxZ } = FILE[part].bounds;
     for (const p of FILE[part].props) {
       assert.ok(FILE.propTypes[p.type], `${p.type} unknown`);
@@ -99,23 +118,13 @@ test('every prop type is known, sits inside the bounds and on a floor', () => {
   }
 });
 
-test('the giant shell hides a secret door: it opens only after inspecting it, and both doors land on reached ground', () => {
-  const mouth = FILE.outside.links.find((l) => l.secret);
-  const found = new Set();
-  assert.equal(outside.linkAt(mouth.at[0], mouth.at[1], found), null, 'hidden before it is found');
-  const near = [mouth.at[0] - 3, mouth.at[1] + 2];
-  assert.equal(outside.inspectAt(near[0], near[1], found)?.id, mouth.id);
-  assert.equal(outside.inspectAt(-15, 10, found), null, 'too far to notice');
-  found.add(mouth.id);
-  assert.equal(outside.inspectAt(near[0], near[1], found), null, 'found once');
-  assert.equal(outside.linkAt(mouth.at[0], mouth.at[1], found)?.to, 'inside');
-  for (const part of ['inside', 'outside']) {
-    for (const l of FILE[part].links) {
-      assert.ok(reachedNear(part, l.at, 1.5), `${l.id} cannot be walked to`);
-      assert.ok(reach[l.to](l.spawn[0], l.spawn[1]), `${l.id} lands on unreached ground`);
-      assert.equal(maps[l.to].linkAt(l.spawn[0], l.spawn[1], new Set([mouth.id])), null, `${l.id} lands inside another door`);
-    }
+test('the pearl gate is walked to and leads back to the game, and the spawn is clear of it', () => {
+  for (const l of FILE.inside.links) {
+    assert.equal(l.to, 'game');
+    assert.ok(reachedNear('inside', l.at, 1.5), `${l.id} cannot be walked to`);
   }
+  const [x, z] = FILE.inside.spawn;
+  assert.equal(inside.linkAt(x, z, new Set()), null, 'the spawn is not inside the door');
 });
 
 test('the old stone over the water has broken away: each break is wading water beside the stone, reached, and no walkway was cut in two', () => {

@@ -1,7 +1,7 @@
 // Grotto props from the map's `props` list. Static pieces are merged by material (one draw per
 // material plus its outline hull); the glowing ones (pearls, the rune circle, candle flames)
-// get halos (one instanced glow field; the few that animate are sprites); the creatures and the
-// giant shell come from creatures.js and animate. Corals and crystals also grow along the cave
+// get halos (one instanced glow field; the few that animate are sprites); the creatures come
+// from creatures.js and animate. Corals and crystals also grow along the cave
 // rim (`decor`), as thick as the concept has them.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -9,7 +9,7 @@ import { createRng } from '../../core/rng.js';
 import { turn } from '../../core/dungeon.js';
 import { toonRamp, outlineMaterial } from '../toon.js';
 import { runeTexture, glowTexture, nacreTexture, medallionTexture } from './textures.js';
-import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
+import { buildPearlSnail, buildSmallShell } from './creatures.js';
 import { buildGiantClam } from './clam.js';
 import { GLOW_CORALS, glowCoralInstances, coralPools } from './corals.js';
 import { paintedInstances } from './painted.js';
@@ -111,7 +111,7 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
  * rim.js, kept off `keepClear` [x, z, r] spots). `kit` is the Blender kit, `clam` the painted giant
  * clam (clam.js), `corals` the six painted glowing corals (corals.js), which grow in clumps in every room,
  * `painted` the props from the owner's sheets (painted.js), which take the place of the simple ones.
- * Returns {root, update(dt, t), shell}.
+ * Returns {root, update(dt, t)}.
  */
 export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null, painted = null } = {}) {
   const root = new THREE.Group();
@@ -204,7 +204,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     const s0 = map.surfaceAt(x, z);
     pools.push({ x, y: (s0 ? s0.y : y) + 0.16, z, r: reach + big.height * s * 0.3, color: GLOW_CORALS[main].halo });
   };
-  let shell = null, archKind = 0, chestKind = 0;
+  let archKind = 0, chestKind = 0;
 
   const groundY = (x, z) => map.surfaceAt(x, z)?.y ?? 0;
   for (const p of map.def.props) {
@@ -470,14 +470,6 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         animated.push((t) => { glow.emissiveIntensity = 0.2 + Math.sin(t * 1.3) * 0.06; });
         break;
       }
-      case 'giantShell': {
-        shell = buildGiantShell();
-        shell.root.position.set(x, y, z);
-        shell.root.rotation.y = rot;
-        root.add(shell.root);
-        animated.push((t, dt) => shell.update(dt, t));
-        break;
-      }
       case 'barrel': {
         if (painted) { putPainted('barrel', x, y, z, rng.range(0, 6.28)); break; }
         batch.add(wood, geo.cyl, place(base, 0, 0.5, 0, { sx: 0.85, sy: 1.0, sz: 0.85 }), '#3a2414');
@@ -595,7 +587,6 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   if (glows.length) root.add(glowField(glows));
   return {
     root,
-    shell,
     update(dt, t) {
       for (const a of animated) a(t, dt);
       for (const s of spin) {

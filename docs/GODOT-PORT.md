@@ -666,7 +666,16 @@ and opening a menu clear held actions and movement; they must never cast a skill
 Keep this behaviour in the Godot touch controls. `tests/browser/ux.mjs` exercises the
 menu workflows and these interrupted gestures at desktop, tablet and phone sizes.
 
-## Dungeon maps (Pearlshell Grotto, standalone preview)
+## Dungeon maps (Pearlshell Grotto, entered from the Singing Conch)
+
+The way in is a map landmark with `dungeon: {id, r}` (`giant_conch` in `frontier-wilds.json`): within `r`
+`OpenWorldGame.nearby().dungeon` names it and `enterDungeon(id)` (near, alive, not in combat) emits
+`enterDungeon`. The web build then saves the slot, keeps the trip (slot or unsaved character, look and gear)
+in sessionStorage `frontier.dungeon` (`save.js` `stashDungeon`/`peekDungeon`/`leaveDungeon`) and opens
+`dungeon.html`; the grotto's `to: "game"` link hands the trip back as a map trip (`frontier.travel`) and the
+game reloads the character where it was saved, beside the conch. In Godot change scene to the dungeon with
+the same character and back, restoring the saved position.
+
 
 `src/core/dungeon.js` reads `data/dungeons/*.json`: flat floors at fixed heights (a polygon with
 holes traced from the concept by `scripts/grotto-trace.py`, circle, ellipse, smoothed path, stairs
@@ -675,7 +684,7 @@ when both points are on walkable floors within `maxStep` (0.45 m), so ledges are
 join levels; props block with circles from `propTypes`. In Godot: build each floor as a
 `CollisionPolygon3D`/`StaticBody3D` slab with its side walls, stairs as ramps, props as
 `CylinderShape3D`; or port `surfaceAt`/`move` directly for a CharacterBody3D that ignores physics.
-Links are `Area3D` doors (a secret one is disabled until `inspectAt` finds it). The renderer's
+Links are `Area3D` doors (a secret one is disabled until `inspectAt` finds it; the grotto has none since the beach preview was dropped). Stair joints: each end gets an apron overlapping the flight 0.3 m, bridged over a void to same-level stone and cut out of the water below it, and no rim pillar stands on a flight's line. The renderer's
 pieces map to a `MeshInstance3D` per floor material, `MultiMeshInstance3D` for the rim boulders,
 a water shader with the same uniforms, and `OmniLight3D`s. Rooms with `style: "cave"` are dressed by
 `public/models/grotto/grotto-cave.glb`, a render-only model that `scripts/blender/grotto-cave.py` builds

@@ -2262,6 +2262,7 @@
     {
       "id": "giant_conch",
       "kind": "giant_conch",
+      "dungeon": {"_doc": "the Pearlshell Grotto opens inside it (owner, 30 October 2026): within r metres the hero can go in (dungeon.html); its pearl gate brings them back here", "id": "shell-grotto", "r": 7.5},
       "zone": "coast",
       "at": [162.4, 170.1],
       "rot": 2.15,

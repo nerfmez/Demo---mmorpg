@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0a1424" />
+    <title>Pearlshell Grotto</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/src/dungeon/dungeon.css" />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="hud">
+      <div id="title"><b>ถ้ำมุกในเปลือกหอยยักษ์</b><span id="region"></span></div>
+      <div id="tools">
+        <button id="overview" type="button">ภาพรวม</button>
+        <button id="zoomIn" type="button" aria-label="ซูมเข้า">＋</button>
+        <button id="zoomOut" type="button" aria-label="ซูมออก">－</button>
+      </div>
+      <div id="banner"></div>
+      <div id="toast"></div>
+      <button id="action" type="button"></button>
+      <div id="joy"><i></i></div>
+      <div id="help">ลากนิ้วทางซ้ายเพื่อเดิน · คีย์บอร์ด WASD</div>
+    </div>
+    <div id="fade"></div>
+    <div id="loading">กำลังเตรียมถ้ำ…</div>
+    <script type="module" src="/src/dungeon/main.js"></script>
+  </body>
+</html>

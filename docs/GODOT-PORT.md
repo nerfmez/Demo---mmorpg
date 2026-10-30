@@ -666,6 +666,55 @@ and opening a menu clear held actions and movement; they must never cast a skill
 Keep this behaviour in the Godot touch controls. `tests/browser/ux.mjs` exercises the
 menu workflows and these interrupted gestures at desktop, tablet and phone sizes.
 
+## Dungeon maps (Pearlshell Grotto, standalone preview)
+
+`src/core/dungeon.js` reads `data/dungeons/*.json`: flat floors at fixed heights (a polygon with
+holes traced from the concept by `scripts/grotto-trace.py`, circle, ellipse, smoothed path, stairs
+ramp), the last floor containing a point is the ground. Polygon tests bucket edges in 1 m bands. A step is walkable
+when both points are on walkable floors within `maxStep` (0.45 m), so ledges are walls and stairs
+join levels; props block with circles from `propTypes`. In Godot: build each floor as a
+`CollisionPolygon3D`/`StaticBody3D` slab with its side walls, stairs as ramps, props as
+`CylinderShape3D`; or port `surfaceAt`/`move` directly for a CharacterBody3D that ignores physics.
+Links are `Area3D` doors (a secret one is disabled until `inspectAt` finds it). The renderer's
+pieces map to a `MeshInstance3D` per floor material, `MultiMeshInstance3D` for the rim boulders,
+a water shader with the same uniforms, and `OmniLight3D`s. Rooms with `style: "cave"` are dressed by
+`public/models/grotto/grotto-cave.glb`, a render-only model that `scripts/blender/grotto-cave.py` builds
+in world metres from the floor outlines: per floor `cavefloor_<id>`, `cavewall_<id>` and `caverock_<id>`, with
+ambient occlusion baked into vertex colours. Floors with `walls` (every room but the entrance) also get `cavewall_<id>`/`caverock_<id>`, only along the edges that meet the void, coarser and lower (rock islands at most 2.4 m); their drops keep the generated ledges. Import it as it is (`MeshInstance3D`s with a cel material
+that multiplies vertex colour); collision still comes from the floors, never from this mesh. In every room the
+`coral` props and the corals at the foot of the walls are the painted corals of `public/models/grotto/glow-corals.glb`
+(`scripts/blender/grotto-corals.py`): per coral `coral_<name>_body`, cel-lit with half its own vertex colour added as
+emission, and `coral_<name>_glow`, unshaded vertex colour (tinted #d0d0d0), each standing on its own origin; place them
+with `MultiMeshInstance3D`s. They grow in clumps (`clump()` in props.js: one coral of the asked colour, 2-4 smaller mixed ones at
+0.3-0.65 of its size around its foot, along the wall at the rim, clumps never overlapping), and each clump lights the floor with a flat
+additive pool (`coralPools`), as do crystals, the coral tree, the sealed arch and the pearl altar, instead of a camera-facing halo. A map colour picks the coral (`GLOW_BY_COLOR` in `src/render/grotto/props.js`).
+The other props are `public/models/grotto/grotto-props.glb` (`scripts/blender/grotto-props.py`): per prop `prop_<name>_<kind>`
+meshes standing on their own origin, where kind is how to draw it: `flat` (cel, flat shading) and `smooth` (cel, smooth),
+`shine`/`shinesm` (the same plus half of the vertex colour as emission), `glow` (unshaded vertex colour, both sides). Map
+types to props as `buildProps` does (pillar, pillarBroken → pillar_broken, fallenPillar → pillar_fallen, arch → arch / arch_shell in turn,
+sealedArch → arch_sealed, crystal → crystal_s/m/l by scale, coralTree → coral_tree, bigPearl → pearl_altar, chest → chest / chest_open
+in turn, candles, barrel, crate, post); collision stays the `propTypes` circles. Each `waterfalls` entry has `kind`: `ledge` (pours over the edge at
+`at` toward `facing`, curving out about 0.25 + 0.55·sqrt(fallen m / 3)) or `wall` (runs down the cave wall from `top`); both widen
+to 1.15× at the foot. Stairs are cut out of the floors they cross; the floors in the data are already cut to each flight's sides and squared at its ends (no overlap); draw ~0.15 m steps (at least 0.4 m deep) the game's way: each step a course of cut grey stones about 0.9 m across, square to the flight, its joints offset by half a stone on every other step, its front edge standing proud as a riser, and a 0.45 m cheek stone at each side; no edging stones beside a flight; the collider stays the ramp. A `rubble` prop
+(no collider) marks where the stone over the water broke away along the paving joints (the traced floors already have the
+stepped bite); its `stones` ([x, z, w, d], metres) are the pavers that fell: draw each as a 0.22 m slab, its top textured
+from where it lay (uv = position / `PAVING_TILE` (6 m), as the floor), slid out along `rot`, tipped down toward the water (some leaning on the
+edge, half out of the water), plus a few chips; leave the edging stones out within 1.4·scale + 0.7 m of it. The paving layout
+is `flagstoneCourses()` (`scripts/grotto-paving.mjs` prints it in metres). Edging stones elsewhere age by
+a hash of their index (13% missing, 17% tipped outward, the rest leaning a little); stone floors get worn-paving decals,
+about one per 45 m², off the props and inside the edge. Floors, walls, rocks and steps use the game's
+painted stone (`src/render/grotto/game-paint.js`, the accepted scenes' `paint()`): three tones from the sun
+direction and the shadow map (shade/mid/lit tints in `look.paint`), the surface's vertex colour pulled into the
+game's grey stone (`sat`, `tint`, per-kind `gain`) and fading to `floor` below -2 m; rocks carry a back-face
+outline in `ink`. The cave is dark: the painted light is scaled by `dim`, the point lights add `lamp` x their
+attenuated light (a soft wrap), each surface kind may have its own `tints` (the cave rock is dark), and the glow
+pools on the floor use `look.glowPool` [opacity, size]. In Godot this is one `ShaderMaterial` with those uniforms
+(point lights through `LIGHT` in the light() function).
+The boss stage is `inside.arena` (written by `grotto-trace.py`): the throne room and its dais are one open stage of
+stone (2.0, the dais an exact 13 m circle, a 96-corner polygon) and wading water (floor 1.6), one step apart; `floors` lists them, `floor` is the dais, middle `at`, `r`, `clear` (radius kept free of
+blocking props), `boss` spot and `bossFacing` (toward the `entry` stair), and the `throne` (the pearl altar behind the boss).
+Spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
+
 ## Checklist for the port
 
 1. Copy `data/` and run `npm run export:layout`.

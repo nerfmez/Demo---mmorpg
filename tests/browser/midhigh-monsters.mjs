@@ -73,6 +73,9 @@ try {
       const dist = m.r + p.r + gap;
       Object.assign(m, { x: spot[0], z: spot[1], homeX: spot[0], homeZ: spot[1], hp: attack === 'leap' ? m.maxHp * 0.45 : m.maxHp, dead: false, state: 'idle', stateT: 0, aggro: false, windup: null, charge: null, melee: null, stealth: false, revealT: 0 });
       for (const k in m.cd) m.cd[k] = k === attack ? 0 : 99;
+      // poses, not survival: a Lv30+ monster's blow would kill the test hero in one hit, and a dead hero
+      // ends the fight (the stalker would never circle), so its hits are capped below the hero's HP
+      m.damage = Math.min(m.damage, p.maxHp * 0.1);
       // first an unaware monster (the player out of its aggro range), then the player steps in
       const far = m.def.aggroRange + 3;
       Object.assign(p, { x: spot[0] + far * 0.7071, z: spot[1] + far * 0.7071, facing: -2.36, dead: false });

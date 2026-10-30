@@ -5,7 +5,7 @@ import {spawn} from 'node:child_process';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {enterFullscreenGate} from './fullscreen-entry.mjs';
 import {data} from '../core/helpers.js';
-import {createCharacter} from '../../src/core/character.js';
+import {createCharacter,migrateCharacter} from '../../src/core/character.js';
 import {openingSelection} from '../../scripts/ci-browser-shards.mjs';
 const selection=openingSelection(process.env);
 const engine=process.env.BROWSER==='webkit'?webkit:chromium,port=4251,base=`http://localhost:${port}/`,out=`tests/browser/out/opening/${engine.name()}/`;
@@ -124,7 +124,9 @@ try {
  const ctx=await browser.newContext({viewport:{width:1180,height:820},hasTouch:true,isMobile:true}),p=await ctx.newPage();p.setDefaultTimeout(90000);
  await p.addInitScript(ch=>{if(!localStorage.getItem('frontier.slot.1')){localStorage.setItem('frontier.slot.1',JSON.stringify({version:2,character:ch}));localStorage.setItem('frontier.lastSlot','1');}},old);
  await p.goto(`${base}?quality=low&stream=0`);await enterFullscreenGate(p);await p.locator('[data-act="continue"]').tap();await p.waitForFunction(()=>__frontier.game&&__frontier.modelsReady);
- const migrated=await p.evaluate(()=>__frontier.game.ch);for(const key of ['skills','slots','movementSkills','movement','gold','gear','equipped'])assert.deepEqual(migrated[key],old[key],key);
+ const migrated=await p.evaluate(()=>__frontier.game.ch);for(const key of ['slots','movementSkills','movement','gold','gear','equipped'])assert.deepEqual(migrated[key],old[key],key);
+ // v17 turns each old skill rank into a level (OLD_RANK_LEVELS); Continue keeps exactly what the migration gives
+ assert.deepEqual(migrated.skills,migrateCharacter(structuredClone(old),data).skills,'skills');
  assert.deepEqual(migrated.progress.questJournal.completions,[]);assert.equal(await p.locator('.quest-completion[open]').count(),0);
  await p.screenshot({path:out+'old-save.png'});console.log('PASS v10 real Continue preservation',engine.name());await ctx.close();
  }

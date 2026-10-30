@@ -31,7 +31,7 @@ const perk = (g, id) => g.derived.perks?.[id];
 
 /** The hero's perk timers and counters (kept on the player, made on first use). */
 function state(g) {
-  return (g.player.perk ||= { casts: 0, focusId: null, focusHits: 0, grazeReady: 0, shadowUntil: -1, invUntil: -1, escapeReady: 0, undyingReady: 0, ironReady: 0, refunds: {} });
+  return (g.player.perk ||= { casts: 0, focusId: null, focusHits: 0, grazeReady: 0, shadowUntil: -1, invUntil: -1, escapeReady: 0, undyingReady: 0, ironReady: 0, castSeq: 0, refunds: new Map() });
 }
 
 /**
@@ -78,19 +78,28 @@ export function perkAfterHit(g, m, dmg, opts, crit) {
   const p = g.player, st = state(g);
   const mark = perk(g, 'dex_mark');
   if (mark && crit) m.perkMarks = Math.min(mark.stacks, (m.perkMarks || 0) + 1);
-  const ret = st.refunds[opts.skill];
+  const ret = opts.perkCast && st.refunds.get(opts.perkCast);
   if (ret) {
-    delete st.refunds[opts.skill];
-    p.mp = Math.min(manaLimit(g), p.mp + ret);
+    st.refunds.delete(opts.perkCast);
+    p.mp = Math.min(manaLimit(g), p.mp + ret.mp);
   }
 }
 
-/** A cast was paid for (castSlot): INT readies the mana return and every Nth is free, LUK may reset the cooldown. */
+/**
+ * A cast was paid for (castSlot): INT readies the mana return and every Nth is free, LUK may reset the
+ * cooldown. Returns the cast's id for INT's return (0 when none): castSlot marks the cast skill with it
+ * (`perkCast`), so each cast refunds once on its own first hit even while earlier casts are in flight.
+ */
 export function perkCast(g, s, i, paid) {
-  if (!g.derived.perks) return;
+  if (!g.derived.perks) return 0;
   const p = g.player, st = state(g);
   const ret = perk(g, 'int_return');
-  if (ret && paid > 0) st.refunds[s.id] = paid * ret.share;
+  let id = 0;
+  if (ret && paid > 0) {
+    for (const [k, r] of st.refunds) if (g.time > r.until) st.refunds.delete(k); // casts that never hit
+    id = ++st.castSeq;
+    st.refunds.set(id, { mp: paid * ret.share, until: g.time + ret.window });
+  }
   const free = perk(g, 'int_free');
   if (free && paid > 0 && ++st.casts >= free.every) {
     st.casts = 0;
@@ -102,6 +111,7 @@ export function perkCast(g, s, i, paid) {
     p.cooldowns[i] = 0;
     g.emit({ type: 'perk', id: reset.id, slot: i, x: p.x, z: p.z });
   }
+  return id;
 }
 
 /** A movement skill was used: AGI's quick cast after it (joins a movement skill's own momentum). */

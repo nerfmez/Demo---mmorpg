@@ -245,7 +245,7 @@ and weapon (owner: a stat is used by several styles, so no perk helps only one).
 `rangePct`. `perkHit` runs before crit in `hitMonster` for the hero's own skill hits: STR 150 on a monster's first
 hit (`perkStruck`, set on the monster; a respawn is a new monster), STR 200 below `hpPct`, DEX 150's bonus on hits
 to `player.targetId` (starts again on a new target), and it returns DEX's `penetrate`, applied to defense.
-`perkAfterHit` runs after it (DEX crit marks `perkMarks` on the monster, INT's MP return once per cast), `perkKill`
+`perkAfterHit` runs after it (DEX crit marks `perkMarks` on the monster, INT's MP return once per cast: `perkCast` returns a cast id that `castSlot` puts on the cast skill as `perkCast` and `hitOpts` passes on, so overlapping casts each refund on their own first hit; an unused return expires after `window` seconds), `perkKill`
 in `killMonster` (STR 100 heals `healPct` of max HP, not for a summoned minion), `perkCast(g, s, slot, paid)` in `castSlot`
 (INT's pending return and every 5th paid cast refunded, LUK's cooldown reset), `perkMovement` in
 `useMovement`, `perkDodge` on a dodge, `perkInvulnerable`/`perkTaken`/`perkSteady`/`perkAfterTaken` in

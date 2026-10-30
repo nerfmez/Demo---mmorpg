@@ -190,11 +190,24 @@ test('INT: a skill that lands returns MP once, the shield recharges sooner and f
   g.player.mp = 100;
   g.player.cooldowns[fb] = 0;
   g.castSlot(fb, null);
+  const first = g.player.cast.skill; // the cast carries its own mana return (perkCast) to its projectile
   const after = g.player.mp;
-  g.hitMonster(m, 100, g.hitOpts(s, { crit: false }));
+  g.hitMonster(m, 100, g.hitOpts(first, { crit: false }));
   assert.ok(Math.abs(g.player.mp - after - s.cost * 0.15) < 1e-6);
-  g.hitMonster(m, 100, g.hitOpts(s, { crit: false }));
+  g.hitMonster(m, 100, g.hitOpts(first, { crit: false }));
   assert.ok(Math.abs(g.player.mp - after - s.cost * 0.15) < 1e-6, 'once per cast');
+  // two casts in flight at once each return their own MP (a later cast never takes an earlier one's)
+  const casts = [];
+  for (let i = 0; i < 2; i++) {
+    g.player.cast = null;
+    g.player.cooldowns[fb] = 0;
+    g.player.mp = 100;
+    g.castSlot(fb, null);
+    casts.push(g.player.cast.skill);
+  }
+  const before2 = g.player.mp;
+  for (const c of casts) g.hitMonster(m, 100, g.hitOpts(c, { crit: false }));
+  assert.ok(Math.abs(g.player.mp - before2 - 2 * s.cost * 0.15) < 1e-6, `${g.player.mp - before2}`);
   // MP at 80% or more: every skill +20% (a melee one too)
   const slash = g.skills[0];
   g.player.mp = g.player.maxMp;

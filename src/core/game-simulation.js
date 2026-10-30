@@ -492,7 +492,7 @@ export class Game {
     if (clearOneShotManualAim) this.input.manualAim = false;
     p.mp -= counter ? 0 : s.cost;
     p.cooldowns[i] = s.cooldown;
-    perkCast(this, s, i, counter ? 0 : s.cost);
+    const perkCastId = perkCast(this, s, i, counter ? 0 : s.cost);
     // proficiency (core/skill-growth.js): a cast in a fight counts at the skill's own pace
     const fightRange = this.data.progression.skillGrowth?.combatRange || 0;
     if (!counter && this.monsters.some((m) => !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) < fightRange)) {
@@ -511,7 +511,8 @@ export class Game {
     let castTime = s.castTime;
     if (p.momentum) { if (this.time <= p.momentum.until) castTime /= 1 + p.momentum.speed; p.momentum = null; }
     const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + castTime) : 0;
-    const castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
+    let castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
+    if (perkCastId) castSkill = { ...castSkill, perkCast: perkCastId }; // INT 50: this cast's own mana return
     p.cast = { slot: i, t: 0, total: castTime, aim, skill: castSkill, step };
     p.facing = aim.angle;
     this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step, ...(s.charge ? { charge: Math.max(0, Math.min(1, chargeRatio || 0)) } : {}) });
@@ -1135,7 +1136,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, ...extra, ...(s.noCrit ? NO_CRIT : null) };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */

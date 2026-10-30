@@ -158,6 +158,26 @@ export function chibiFace(id) {
 }
 
 /**
+ * A drawn face's iris mask (public/models/faces/iris/<id>.png, scripts/face-iris-mask.py): grey, white
+ * where the look's eye colour recolours the drawn iris. Loaded with the face (listeners hear
+ * "face_<id>"); null for the painted face or until it has loaded.
+ */
+const irises = new Map();
+export function chibiIris(id) {
+  if (!id || id === 'default' || !useChibi) return null;
+  if (!irises.has(id)) {
+    irises.set(id, null);
+    textureLoader.load(`models/faces/iris/${id}.png`, (t) => {
+      t.colorSpace = THREE.NoColorSpace; // a mask, not a colour
+      t.userData.shared = true;
+      irises.set(id, t);
+      for (const listener of weaponListeners) listener('face_' + id);
+    }, undefined, (err) => console.warn('iris not loaded:', id, err));
+  }
+  return irises.get(id);
+}
+
+/**
  * Only the current hands and worn outfit models (and which hair styles and faces have loaded) affect
  * this readiness key, so stale requests cannot refresh new gear, and a rig (a remote player, a
  * portrait) built while its hair or face was loading is rebuilt once it arrives.
@@ -166,6 +186,7 @@ export function weaponModelKey(bases = {}) {
   const has = (k) => +loaded.has(k);
   let faceCount = 0;
   for (const t of faces.values()) if (t) faceCount++;
+  for (const t of irises.values()) if (t) faceCount++;
   return `${has(`weapons/${bases.weapon}`)}:${has(`weapons/${bases.offhand}`)}:${outfitIds(bases).map((id) => has(`characters/${id}`)).join('')}:${[...hairStyles.values()].map((id) => has(`characters/${id}`)).join('')}:${faceCount}`;
 }
 

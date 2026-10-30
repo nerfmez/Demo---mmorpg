@@ -83,6 +83,12 @@ test('layers merge in order; "$tunic" follows the chosen colour; shoes follow th
   assert.ok(o.parts.includes('chestPlate') && o.parts.includes('belt'));
   assert.equal(o.palette.shoes, OUT.boots.gale_boots.palette.main);
   assert.equal(look({ armor: 'wardenstalker_coat' }).skirt.length, OUT.armor.wardenstalker_coat.skirt.length, 'the item overrides its base skirt');
+  // the starting shirt takes the creation screen's tunic colour (its modelled cloth too: tunicCloth)
+  assert.equal(plain.palette.main, '#123456', 'the travel tunic is the chosen colour');
+  assert.equal(plain.tunic, true);
+  const cloth = data.models.characters.outfit_travel_tunic.tunicCloth;
+  assert.ok(cloth && /^#[0-9a-f]{6}$/i.test(cloth.ref) && cloth.lum[0] < cloth.lum[1] && cloth.sat[0] < cloth.sat[1], 'the travel shirt cloth mask');
+  assert.equal(cloth.ref.toLowerCase(), '#f1e3cc', 'the default tunic draws the shirt as painted');
 });
 
 test('every armour comes with its own trousers design (there is no trousers item)', () => {

@@ -24,7 +24,8 @@ How the hero's hair styles (`data/models.json` `characters.hero_chibi_hair_<styl
    hair's scalp on the chibi head (`CHIBI_HEAD`: the chibi head dumped from the game in head-bone
    space). The shipped fits are that result 0.8 wide, 0.76 deep and 0.14 head heights lower, the
    tightness the owner approved on the ponytail; then adjusted by eye (`tilt` leans the ponytail back;
-   buns and long were made smaller on the owner's review).
+   long was made smaller on the owner's review; buns was too, then put back to the rule so its back
+   wraps the head as on its source head).
 5. **In game.** `chibi-body.js` `fitHairToHead` keeps the head under the hair (`fit.tuck`); check
    that no hair vertex is inside the head (a ray from the head's middle through it meets an odd
    number of head surfaces beyond it) at every style before shipping.
@@ -32,8 +33,12 @@ How the hero's hair styles (`data/models.json` `characters.hero_chibi_hair_<styl
 The hair is painted light grey; `hairColorMaterial` draws it flat in the look's `hair` colour (no
 soft light or gloss: lit, the generated paint reads as plastic), darkened only along its painted
 strand lines and by one hard cel shadow tone.
-`fitHairToHead` also marks the head under the hair (`underHair`), drawn in the hair's shade, so a
-gap left between locks shows dark hair, not the scalp.
+`fitHairToHead` also draws the hair's triangles into a map of the directions it covers from the
+head's middle; the head (`underHair`) is drawn in the hair's shade per pixel where that map says
+hair, so a gap left between locks shows dark hair, not the scalp, and the shade ends just inside the
+hair's edge, not along the head's triangles. Only the head under or close under the hair is shaded,
+never the neck below the head joint. The head's split seam vertices move together, and the head is drawn
+on both sides, so no crack or step under the hair opens a pale hole.
 
 ## A face
 

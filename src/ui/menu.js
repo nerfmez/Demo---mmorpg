@@ -109,8 +109,9 @@ export class Menu {
     this.name = '';
     this.view.mode = 'create';
     this.refreshPreview();
-    const sw = (key) =>
-      `<div class="swatches">${LOOK_OPTIONS[key].map((c) => `<button class="sw ${this.look[key] === c ? 'on' : ''}" style="background:${c}" data-act="look" data-key="${key}" data-val="${c}" aria-label="${c}"></button>`).join('')}</div>`;
+    // `own`: the first swatch keeps the hero's own painted colours (the eyes of the chosen face)
+    const sw = (key, own = null) =>
+      `<div class="swatches">${LOOK_OPTIONS[key].map((c, i) => `<button class="sw ${this.look[key] === c ? 'on' : ''}${own && !i ? ' own' : ''}" style="background:${c}" data-act="look" data-key="${key}" data-val="${c}" aria-label="${own && !i ? own : c}">${own && !i ? own : ''}</button>`).join('')}</div>`;
     this.show(`<div class="create-panel scrolly">
       <h2>สร้างตัวละคร <small>ช่อง ${slot}</small></h2>
       <label class="field">ชื่อ<input id="heroName" maxlength="14" placeholder="นักเดินทาง" value="${esc(this.name)}" autocomplete="off"></label>
@@ -118,8 +119,8 @@ export class Menu {
       <div class="field">หน้าตา<div class="faces">${LOOK_OPTIONS.face.map((f) => `<button class="face-pick ${this.look.face === f ? 'on' : ''}" data-act="look" data-key="face" data-val="${f}" aria-label="${f}">${f === 'default' ? 'เดิม' : `<img src="models/faces/${f}.png" alt="" loading="lazy">`}</button>`).join('')}</div></div>
       <div class="field">สีผม${colorWheelHtml('hairWheel', this.look.hair)}</div>
       <div class="field">สีผิว${sw('skin')}</div>
-      <div class="field">สีตา${sw('eyes')}</div>
-      <div class="field">เสื้อ${sw('tunic')}</div>
+      <div class="field">สีตา${sw('eyes', 'เดิม')}</div>
+      <div class="field">สีเสื้อ${sw('tunic')}</div>
       <div class="row-btns sticky">
         <button class="btn" data-act="random">🎲 สุ่ม</button>
         <button class="btn" data-act="slots-back">← กลับ</button>

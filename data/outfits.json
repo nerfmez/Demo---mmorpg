@@ -142,8 +142,8 @@
     "travel_tunic": {
       "style": "tunic",
       "palette": {
-        "main": "#efe6d2",
-        "sleeve": "#efe6d2",
+        "main": "$tunic",
+        "sleeve": "$tunic",
         "trim": "#4f8f8a",
         "accent": "#4f8f8a",
         "pants": "#4a4a58"

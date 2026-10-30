@@ -76,8 +76,9 @@ export function* animeFoliageSteps(seed=3,shrub=false,palette=null) {
     const along=new THREE.Vector3().crossVectors(normal,across).normalize();
     const x=across.clone().multiplyScalar(Math.cos(roll)).addScaledVector(along,Math.sin(roll));
     const y=along.clone().multiplyScalar(Math.cos(roll)).addScaledVector(across,-Math.sin(roll));
-    // A tessellated arch, not a flat card or a four-triangle pyramid.
-    const segments=4;
+    // A tessellated arch, not a flat card: art.anime.cardSegments per side. 2 (owner's
+    // choice, 29 October 2026) keeps the raised centre at a quarter of 4's triangles.
+    const segments=cfg.cardSegments??4;
     const vertex=(a,b)=>{
       const bulge=size*.14*(1-a*a)*(1-b*b);
       const v=center.clone().addScaledVector(x,a*size*.56).addScaledVector(y,b*size*.56).addScaledVector(normal,bulge);

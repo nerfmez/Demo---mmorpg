@@ -88,7 +88,8 @@ export function prepareChibiOutfit(gltf, m) {
   geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   return { piece: m.chibiOutfit, geometry, bind: bindSpace(mesh), bones: mesh.skeleton.bones.map((b) => b.name), map: mesh.material.map,
-    hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, localInside: !!m.localInside, neckline: m.neckline || null, fitted: null };
+    hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, localInside: !!m.localInside, neckline: m.neckline || null,
+    tunicCloth: m.tunicCloth || null, fitted: null };
 }
 
 /**
@@ -163,6 +164,43 @@ if ( neck < ${n.trim.toFixed(4)} ) diffuseColor.rgb = vec3( ${color.r.toFixed(4)
     shader.fragmentShader = frag;
   };
   material.customProgramCacheKey = () => (key ? key.call(material) : '') + `-neck${trim ? 1 : 0}`;
+  return material;
+}
+
+/**
+ * A modelled outfit's cloth in the look's chosen colour (data: the outfit's `tunicCloth`, used while the
+ * worn armour's main colour is the look's tunic, data/outfits.json "$tunic"): its texels of the cloth
+ * (bright, `lum` linear luminance, and pale, under `sat` saturation; each a smoothstep [from, to]) are
+ * multiplied by the chosen colour over the colour the cloth is painted (`ref`), so its painted shading
+ * and folds stay. The trim, leather and skin keep their paint.
+ */
+function tunicCloth(material, cloth, color) {
+  const prev = material.onBeforeCompile, key = material.customProgramCacheKey;
+  const tint = new THREE.Color(color), ref = new THREE.Color(cloth.ref);
+  const u = { uClothTint: { value: new THREE.Vector3(tint.r / ref.r, tint.g / ref.g, tint.b / ref.b) },
+    uClothMask: { value: new THREE.Vector4(cloth.lum[0], cloth.lum[1], cloth.sat[0], cloth.sat[1]) } };
+  material.onBeforeCompile = (shader, renderer) => {
+    prev?.call(material, shader, renderer);
+    Object.assign(shader.uniforms, u);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+uniform vec3 uClothTint; uniform vec4 uClothMask;
+vec3 clothTint( vec3 c ) {
+  float l = dot( c, vec3( 0.2126, 0.7152, 0.0722 ) ), hi = max( c.r, max( c.g, c.b ) );
+  float s = ( hi - min( c.r, min( c.g, c.b ) ) ) / max( hi, 1e-4 );
+  return mix( vec3( 1.0 ), uClothTint, smoothstep( uClothMask.x, uClothMask.y, l ) * ( 1.0 - smoothstep( uClothMask.z, uClothMask.w, s ) ) );
+}`)
+      .replace('#include <map_fragment>', `#ifdef USE_MAP
+vec4 sampledDiffuseColor = texture2D( map, vMapUv );
+sampledDiffuseColor.rgb *= clothTint( sampledDiffuseColor.rgb );
+diffuseColor *= sampledDiffuseColor;
+#endif`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+#ifdef USE_MAP
+totalEmissiveRadiance *= clothTint( texture2D( map, vMapUv ).rgb );
+#endif`);
+  };
+  material.customProgramCacheKey = () => (key ? key.call(material) : '') + '-tunic-cloth';
   return material;
 }
 
@@ -267,6 +305,7 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
     };
     const part = make(darkInside(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight), T.underCloth?.inside, O.localInside));
     if (O.neckline) necklineCut(part.material, O.neckline, true);
+    if (O.tunicCloth && O.piece === 'armor' && outfit.tunic) tunicCloth(part.material, O.tunicCloth, outfit.palette.main);
     part.name = 'Outfit-' + O.piece;
     part.castShadow = true;
     part.receiveShadow = true; // like the body it covers

@@ -66,6 +66,20 @@ export async function publicationRuns(api, prefix) {
     if (runs.length === total) return runs;
   }
 }
+// A large run's 100-job page times out at GitHub (HTTP 502/504), so jobs are read in pages of 30.
+export async function runJobs(api, path) {
+  const jobs = [];
+  let total;
+  for (let page = 1; ; page++) {
+    const result = await api(`${path}?per_page=30${page === 1 ? '' : `&page=${page}`}`);
+    assert.ok(Number.isSafeInteger(result.total_count) && result.total_count >= 0 && result.total_count <= 1000 && Array.isArray(result.jobs));
+    if (total === undefined) total = result.total_count;
+    assert.equal(result.total_count, total, 'Publication jobs changed during lookup');
+    assert.equal(result.jobs.length, Math.min(30, total - jobs.length), 'Truncated publication jobs');
+    jobs.push(...result.jobs);
+    if (jobs.length === total) return jobs;
+  }
+}
 export function sealSite(directory = 'dist') {
   const release = JSON.parse(readFileSync(join(directory, 'ci-release.json')));
   assert.match(release.releaseTarget.sha, sha);
@@ -136,9 +150,7 @@ export async function restoreSite({ repository, directory, runId, skipId, mode, 
     for (let attempt = 1; attempt <= listed.run_attempt; attempt++) {
       const run = attempt === listed.run_attempt ? listed : await api(`${prefix}/actions/runs/${listed.id}/attempts/${attempt}`);
       assert.equal(run.id, listed.id); assert.equal(run.run_attempt, attempt); assert.equal(run.head_sha, listed.head_sha);
-      const response = await api(`${prefix}/actions/runs/${run.id}/attempts/${attempt}/jobs?per_page=100`);
-      assert.equal(response.total_count, response.jobs.length, 'Truncated publication jobs');
-      attempts.push(run); jobs.set(key(run), response.jobs);
+      attempts.push(run); jobs.set(key(run), await runJobs(api, `${prefix}/actions/runs/${run.id}/attempts/${attempt}/jobs`));
     }
   }
   const run = selectPublishedRun(attempts, r => jobs.get(key(r)), { rollback: ['rollback', 'checkpoint'].includes(mode), skipId });
@@ -176,9 +188,8 @@ export async function restoreSite({ repository, directory, runId, skipId, mode, 
       assert.equal(originalRun.run_attempt, origin.attempt);
       assert.equal(originalRun.repository.id, repo.id);
       assert.equal(originalRun.head_repository.id, repo.id);
-      const originalJobs = await api(`${prefix}/actions/runs/${origin.run}/attempts/${originalRun.run_attempt}/jobs?per_page=100`);
-      assert.equal(originalJobs.total_count, originalJobs.jobs.length);
-      selectPublishedRun([originalRun], () => originalJobs.jobs, { rollback: true });
+      const originalJobs = await runJobs(api, `${prefix}/actions/runs/${origin.run}/attempts/${originalRun.run_attempt}/jobs`);
+      selectPublishedRun([originalRun], () => originalJobs, { rollback: true });
       cpSync(join(unpacked, 'site'), site, { recursive: true });
       assert.deepEqual(payload(site, []), origin.files, 'Previous-site checkpoint bytes differ');
     } else {

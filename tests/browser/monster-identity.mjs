@@ -95,8 +95,9 @@ try{
   console.log(size+': ten material details and six source portraits checked');
   for(const id of ['boar_hide','boar_tusk','wolf_pelt','viper_scale','wisp_core']){
    const recipe=await page.evaluate(id=>{const p=__frontier.panels,r=Object.entries(p.game.data.recipes.recipes).find(([,r])=>r.cost[id]);assertRecipe(r,id);p.sel.craftRecipe=r[0];p.open('craft');return r[0];function assertRecipe(r,id){if(!r)throw Error('no recipe for '+id);}},id);
-   const ingredient=page.locator(`.ws-craft-detail .ws-cost[data-material="${id}"]`); // the workshop's cost rows
-   const details=await ingredient.evaluateAll(async es=>Promise.all(es.map(async e=>{const i=e.querySelector('img');await i.decode();return {text:e.textContent,size:i.getBoundingClientRect().width};})));
+   // the workshop's recipe detail lists each cost as a row: its material art, then its name
+   const ingredient=page.locator(`.ws-craft-detail .ws-cost[data-material="${id}"]`);
+   const details=await ingredient.evaluateAll(async(es,id)=>Promise.all(es.map(async e=>{const i=e.querySelector(`.ws-cost-art [data-art="material/${id}"] img`);await i.decode();return {text:e.querySelector('b').textContent,size:i.getBoundingClientRect().width};})),id);
    assert.ok(details.length>0);
    const expected=await page.evaluate(id=>__frontier.game.data.items.materials[id].nameTh,id);assert.ok(details.every(d=>d.text.startsWith(expected)));
    view.craft.push({id,recipe,ingredients:details});

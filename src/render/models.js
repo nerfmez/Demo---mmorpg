@@ -10,6 +10,7 @@ import { prepareVrmBody, useVrm } from './vrm-body.js';
 import { prepareChibiBody, prepareChibiHair, useChibi } from './chibi-body.js';
 import { prepareChibiOutfit } from './chibi-garments.js';
 import { prepareMonsterModel, prepareMonsterForm } from './monsterSkin.js';
+import { renderConfig } from './settings.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {parts, outline}
 const loading = new Map(); // deduplicate concurrent/repeated registry loads
@@ -19,7 +20,32 @@ const outfits = new Map(); // chibi outfit models (characters with `chibiOutfit`
 const hairStyles = new Map(); // look.hairStyle -> its chibi hair model id (characters with `chibiHairStyle`), loaded when first chosen
 const failedOutfits = new Set();
 const weaponListeners = new Set();
-const loader = new GLTFLoader();
+const gltfLoader = new GLTFLoader();
+// Hero, outfit, weapon and monster maps cover a few hundred screen pixels at most,
+// while a 2048² map costs 22 MB of GPU memory (four of them pushed the iPad into a
+// lost WebGL context). Larger maps are drawn down once, on load
+// (data/rendering.json → modelTextureMax).
+const loader = { loadAsync: (file) => gltfLoader.loadAsync(file).then(capModelTextures) };
+export function capModelTextures(gltf) {
+  const max = renderConfig.modelTextureMax, sources = new Set();
+  gltf.scene.traverse((o) => {
+    for (const m of [o.material].flat()) if (m) for (const v of Object.values(m)) if (v?.isTexture) sources.add(v.source);
+  });
+  for (const source of sources) {
+    const image = source.data;
+    if (!image?.width || Math.max(image.width, image.height) <= max) continue;
+    const k = max / Math.max(image.width, image.height), canvas = document.createElement('canvas');
+    canvas.width = Math.round(image.width * k);
+    canvas.height = Math.round(image.height * k);
+    const g = canvas.getContext('2d');
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(image, 0, 0, canvas.width, canvas.height);
+    source.data = canvas;
+    source.needsUpdate = true;
+    image.close?.();
+  }
+  return gltf;
+}
 
 /** Register lazy weapons; load character/monster templates at boot as before. */
 export function loadModels(registry = {}, { onWeaponReady } = {}) {
@@ -132,6 +158,26 @@ export function chibiFace(id) {
 }
 
 /**
+ * A drawn face's iris mask (public/models/faces/iris/<id>.png, scripts/face-iris-mask.py): grey, white
+ * where the look's eye colour recolours the drawn iris. Loaded with the face (listeners hear
+ * "face_<id>"); null for the painted face or until it has loaded.
+ */
+const irises = new Map();
+export function chibiIris(id) {
+  if (!id || id === 'default' || !useChibi) return null;
+  if (!irises.has(id)) {
+    irises.set(id, null);
+    textureLoader.load(`models/faces/iris/${id}.png`, (t) => {
+      t.colorSpace = THREE.NoColorSpace; // a mask, not a colour
+      t.userData.shared = true;
+      irises.set(id, t);
+      for (const listener of weaponListeners) listener('face_' + id);
+    }, undefined, (err) => console.warn('iris not loaded:', id, err));
+  }
+  return irises.get(id);
+}
+
+/**
  * Only the current hands and worn outfit models (and which hair styles and faces have loaded) affect
  * this readiness key, so stale requests cannot refresh new gear, and a rig (a remote player, a
  * portrait) built while its hair or face was loading is rebuilt once it arrives.
@@ -140,6 +186,7 @@ export function weaponModelKey(bases = {}) {
   const has = (k) => +loaded.has(k);
   let faceCount = 0;
   for (const t of faces.values()) if (t) faceCount++;
+  for (const t of irises.values()) if (t) faceCount++;
   return `${has(`weapons/${bases.weapon}`)}:${has(`weapons/${bases.offhand}`)}:${outfitIds(bases).map((id) => has(`characters/${id}`)).join('')}:${[...hairStyles.values()].map((id) => has(`characters/${id}`)).join('')}:${faceCount}`;
 }
 

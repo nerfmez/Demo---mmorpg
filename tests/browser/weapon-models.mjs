@@ -85,7 +85,9 @@ try {
  const resource=[],gpuCompletionMs=[];
  for(let round=0;round<3;round++){
   // All assets are already warm: exercise real equip plus the same view rebuild synchronously.
-  await page.evaluate(ids=>{const f=window.__frontier,g=f.game;for(const id of ids){g.ch.equipped.offhand=null;const item=g.ch.gear.find(i=>i.base===id);if(!f.equip(g.ch,g.data,item.uid,'weapon').ok)throw Error('switch');g.refresh();f.view.setHeroLook(g.ch.appearance,g.gearLook());f.view.updateHero(0,g.time);f.weaponReviewDraw(f.view.scene,f.view.camera);}},ids);
+  // Each draw shows the hero and lights only: the field is already uploaded, and drawing it once
+  // per weapon in software GL (with the map-wide sea) made one round 80-90 s of GPU work.
+  await page.evaluate(ids=>{const f=window.__frontier,g=f.game,v=f.view,field=v.scene.children.filter(o=>o.visible&&!o.isLight&&o!==v.hero.root&&o!==v.hero.scarf?.mesh);field.forEach(o=>o.visible=false);try{for(const id of ids){g.ch.equipped.offhand=null;const item=g.ch.gear.find(i=>i.base===id);if(!f.equip(g.ch,g.data,item.uid,'weapon').ok)throw Error('switch');g.refresh();v.setHeroLook(g.ch.appearance,g.gearLook());v.updateHero(0,g.time);f.weaponReviewDraw(v.scene,v.camera);}}finally{field.forEach(o=>o.visible=true);}},ids);
   // Renderer.info counts submitted work. Complete the whole batch before
   // sampling or replacing this context during the saved-game navigation.
   gpuCompletionMs.push(await waitForWeaponGpu(page));

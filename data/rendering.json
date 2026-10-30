@@ -21,12 +21,27 @@
       }
     }
   },
-  "nativeAntialias": true,
-  "dynamicResolution": {"enabled": true, "minScale": 0.95, "slowMs": 19.5, "vsyncSlack": 1.12, "stepDown": 0.025, "stepUp": 0.025, "settle": 1.5, "recover": 4},
+  "modelTextureMax": 1024,
+  "budgets": {
+    "_doc": "iPad budgets, checked by tests (tests/core/asset-budget.test.js, tests/browser/open-world.mjs). Measured 29 October 2026 after the size pass: frames up to 1.37M triangles / 348 draw calls, maps 85.5 / 30.7 / 60.6 MB. Raise a number only with the owner's agreement; first shrink the new content (AGENTS.md, iPad budgets).",
+    "plantTriangles": {"shrub": 500, "crown": 1000},
+    "frameTriangles": 1500000,
+    "frameDrawCalls": 400,
+    "mapGeometryMB": 95,
+    "residentGeometryMB": 220
+  },
+  "dynamicResolution": {"enabled": true, "minScale": 0.8, "slowMs": 19.5, "vsyncSlack": 1.12, "stepDown": 0.05, "stepUp": 0.025, "settle": 1.5, "recover": 4},
+  "graphics": {
+    "_doc": "Settings menu choices (src/ui/graphics-settings.js). The custom preset ('ปรับแต่งเอง') picks each quality field from these lists; anti-aliasing is its own setting for every preset (multisampled scene target, 0 = off). pixelRatio is drawn pixels per CSS pixel, capped by the screen's own.",
+    "pixelRatios": [2, 1.75, 1.5, 1.25, 1, 0.85, 0.7],
+    "shadowMapSizes": [0, 1024, 2048],
+    "antialias": [0, 2, 4],
+    "defaultAntialias": 4
+  },
   "quality": {
-    "low": {"pixelRatio": 1, "shadowMapSize": 0, "post": false},
-    "medium": {"pixelRatio": 1.5, "shadowMapSize": 1024, "post": true},
-    "high": {"pixelRatio": 2, "shadowMapSize": 2048, "post": true}
+    "low": {"pixelRatio": 0.85, "shadowMapSize": 0, "post": false, "dynres": true},
+    "medium": {"pixelRatio": 1.25, "shadowMapSize": 1024, "post": true, "dynres": true},
+    "high": {"pixelRatio": 2, "shadowMapSize": 2048, "post": true, "dynres": true}
   },
   "post": {
     "_doc": "Screen grade (src/render/post.js). Tints are display colours; 50% grey is neutral. hazeStart is the screen height (0 bottom, 1 top) where the fog-coloured haze begins.",

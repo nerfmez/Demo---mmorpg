@@ -1,0 +1,176 @@
+/* Pearlshell Grotto preview page: the dungeon on its own, touch first (the owner plays on iPad). */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0a1424;
+  font: 15px/1.3 Mitr, -apple-system, 'Segoe UI', sans-serif;
+  color: #f2f4f8;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#view {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+#title {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(10, 18, 34, 0.66);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#title b {
+  font-weight: 400;
+  font-size: 16px;
+  color: #ffe9c4;
+}
+#region {
+  font-size: 13px;
+  color: #a9e8f2;
+}
+#tools {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+button {
+  font: inherit;
+  color: #f2f4f8;
+  border: 1px solid rgba(160, 230, 255, 0.35);
+  background: rgba(14, 26, 48, 0.78);
+  border-radius: 12px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 14px;
+}
+button:active,
+button.on {
+  background: rgba(60, 120, 170, 0.85);
+}
+#banner {
+  position: absolute;
+  top: 22%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 30px;
+  color: #fff2d6;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8), 0 0 18px rgba(120, 220, 255, 0.5);
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+#banner small {
+  display: block;
+  font-size: 15px;
+  color: #a9e8f2;
+}
+#banner.show {
+  opacity: 1;
+}
+#toast {
+  position: absolute;
+  bottom: calc(150px + env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 18px;
+  color: #ffe3f2;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+#toast.show {
+  opacity: 1;
+}
+#action {
+  position: absolute;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(28px, env(safe-area-inset-bottom));
+  min-width: 132px;
+  min-height: 72px;
+  border-radius: 36px;
+  font-size: 17px;
+  background: rgba(120, 70, 140, 0.88);
+  border-color: rgba(255, 210, 240, 0.6);
+  pointer-events: auto;
+  display: none;
+}
+#action.show {
+  display: block;
+}
+#joy {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  margin: -64px 0 0 -64px;
+  border-radius: 50%;
+  border: 2px solid rgba(200, 240, 255, 0.35);
+  background: rgba(10, 20, 40, 0.25);
+  display: none;
+}
+#joy i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  background: rgba(190, 240, 255, 0.55);
+}
+#joy.show {
+  display: block;
+}
+#help {
+  position: absolute;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  font-size: 13px;
+  color: rgba(220, 240, 255, 0.7);
+}
+#fade {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+#fade.on {
+  opacity: 1;
+}
+#loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a1424;
+  color: #ffe9c4;
+  font-size: 20px;
+}
+#loading.gone {
+  display: none;
+}

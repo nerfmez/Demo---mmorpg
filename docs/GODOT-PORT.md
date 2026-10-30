@@ -559,6 +559,14 @@ by negative `grip`, rotate with Euler XYZ radians, then uniformly scale into tha
 Apply the same fit in Godot before attaching to a `BoneAttachment3D` on either hand;
 bow limbs run along Y and the belly points +Z. Staff grips seat on the shaft midpoint.
 The cached fitted geometry and textures are shared; each rig owns its toon materials.
+Every model loaded through `render/models.js` (hero, outfits, hair, weapons, monsters) has
+maps larger than `rendering.modelTextureMax` (1024) drawn down once on load: a 2048² map
+costs 22 MB of GPU memory and four of them helped push the iPad into a lost WebGL context.
+In Godot, set the import size limit on those textures to the same value.
+The weapon, outfit, hair and chibi hero GLBs themselves are stored at that size by
+`scripts/shrink-model-textures.py` (unused metal/roughness and occlusion maps removed,
+geometry byte-identical), so a weapon downloads about 1 MB instead of 7-11 MB.
+`docs/WEAPON-MODEL-PROVENANCE.json` keeps each weapon's original `sourceSha256`/`sourceBytes`.
 All 38 weapon bases are registered, and only current equipped/portrait weapons load on demand.
 The procedural shape in `equipment.js` remains the pending/failed-load fallback.
 The hero body is `public/models/hero_base.glb` (Meshy, auto-rigged, 24 Mixamo-like bones),
@@ -657,11 +665,30 @@ chosen (`render/models.js` `chibiHair`). Each is fitted to the chibi head once p
 (`chibi-body.js` `fitHairToHead`, with `fit.tuck`, and `fit.tilt` leaning it back): seen from the
 head's middle, a lock inside the face (`hero_chibi.face`) moves out over it, and the rest of the head
 (the ears under a hair that covers them, `hero_chibi.ears`, and the skin just under the head joint)
-moves in under the hair, so the head never shows through any hair. The head under the hair, and the
-head and forehead round a small gap in it, is drawn in the hair's shade (the body's `underHair`
-vertex attribute, `hairShadeMaterial`: 0.3 of the hair colour), so a gap between locks reads as hair
-in shadow, never as scalp. In Godot, run the same fit once when the look is chosen and keep the moved
-hair and body meshes (and that attribute, e.g. in a vertex colour channel). The hair is tinted to the
+moves in under the hair, so the head never shows through any hair. The head's vertices at one place
+(split along its texture seams) move as one, so no seam opens. The head is drawn on both sides (its
+steps inward under the hair would otherwise open holes at the hairline); its shadow keeps the back
+faces. The head under the hair is drawn in the hair's shade (0.3 of the hair colour,
+`hairShadeMaterial`), decided per pixel: the hair's triangles near the head are drawn once into a
+192 x 96 map of the directions they cover from the head's middle (red: closed over gaps up to 6
+cells, so a gap between locks reads as hair in shadow, never as scalp; green: the hair's own
+directions, for the forehead, whose skin shows between the fringe's locks; both with every uncovered patch the hair
+encloses filled (any under a tenth of the face-and-neck patch: a fringe's gaps run into the face and
+stay), then taken in 5 cells from the hair's edge, so the head just under the edge shows skin, as a
+hairline does; blue: how far out the nearest hair lies, so near the hair's edge a pixel is shaded only
+with hair within 0.1 head widths over it and the head seen from below under a side lock standing off
+it is skin, while 10 cells inside the edge it is shaded however far a full style's hair stands), and each pixel of the head looks its
+own direction up in it, so the shade ends where the hair does, not along the head's large triangles.
+The body's `underHair` vertex attribute picks the map (1 red, 0.5 green, 0 none): a part of the head
+may be shaded only if it was taken in under the hair or the hair lies within 0.1 head widths over
+it, and never the neck just under the head joint (`headTuck.neck`), seen between the locks hanging
+past it, nor an ear left out and the skin within 0.15 head widths of it. Both ears fold away when the hair
+covers at least half of either (a style shows both ears or neither), and then each of their points
+goes to the nearest head point that is not ear (by direction, just inside it), so the ear closes to
+nothing: sunk in it left a pit, pressed flat its crumpled triangles turned their backs to the light,
+both drawing a black ear. A style that covers neither ear keeps both. In Godot, run the same
+fit once when the look is chosen and keep the moved hair and body meshes, that attribute (e.g. in a
+vertex colour channel), the direction map (a texture) and the mesh-to-head-middle transform. The hair is tinted to the
 look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`) and drawn flat, as the
 owner's sheet draws it (`hairColorMaterial`): no soft light, gloss or rim, only one hard cel shadow
 tone (0.7 of the colour) where the sun does not reach it. Of the painted texture only its strand lines
@@ -669,7 +696,14 @@ darken the colour: each texel's brightness over a coarser mip's (its surrounding
 paint's broad shading and blotchy light are dropped. The hair casts no shadow (the sun's shadow map laid its locks over the face in dark blotches); the head under it casts the hero's shadow on the ground. The look's
 `face` (`FACES`) draws one of the owner's faces (`public/models/faces/<id>.png`) over the painted one
 (`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
-decal pass or a second texture in the head's shader. Character creation shows the hero alone in a
+decal pass or a second texture in the head's shader. The look's `eyes` recolours the irises
+(`eyeColorMaterial`, `hero_chibi.eyeColor`): its first swatch (`own`) keeps the painted colours; any
+other recolours a drawn face's iris by its mask (`public/models/faces/iris/<id>.png`, made by
+`scripts/face-iris-mask.py`) and the painted face's where its paint is bluer than red on the face's
+front, keeping the iris's painted shading (its brightness over `ref` scales the chosen colour). The
+look's `tunic` colours the starting shirt (`travel_tunic`, palette "$tunic"): on the modelled outfit
+its bright, pale cloth texels (`outfit_travel_tunic.tunicCloth`) are multiplied by the chosen colour
+over `ref` (`chibi-garments.js tunicCloth`), so the trim, leather and painted folds stay. Character creation shows the hero alone in a
 plain studio scene (`view.js` `createStudio`), straight from the front, zooming to the face while hair,
 face or eye colour is chosen (`createFocus`) and shifted clear of the menu panel (`createInset`). There it stands in its own stance (`HumanoidAnimator.stance` = `creation` in `data/weapon-holds.json`, the owner's pick of a reference idle), not the unarmed fighter's. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
@@ -760,6 +794,55 @@ and opening a menu clear held actions and movement; they must never cast a skill
 Keep this behaviour in the Godot touch controls. `tests/browser/ux.mjs` exercises the
 menu workflows and these interrupted gestures at desktop, tablet and phone sizes.
 
+## Dungeon maps (Pearlshell Grotto, standalone preview)
+
+`src/core/dungeon.js` reads `data/dungeons/*.json`: flat floors at fixed heights (a polygon with
+holes traced from the concept by `scripts/grotto-trace.py`, circle, ellipse, smoothed path, stairs
+ramp), the last floor containing a point is the ground. Polygon tests bucket edges in 1 m bands. A step is walkable
+when both points are on walkable floors within `maxStep` (0.45 m), so ledges are walls and stairs
+join levels; props block with circles from `propTypes`. In Godot: build each floor as a
+`CollisionPolygon3D`/`StaticBody3D` slab with its side walls, stairs as ramps, props as
+`CylinderShape3D`; or port `surfaceAt`/`move` directly for a CharacterBody3D that ignores physics.
+Links are `Area3D` doors (a secret one is disabled until `inspectAt` finds it). The renderer's
+pieces map to a `MeshInstance3D` per floor material, `MultiMeshInstance3D` for the rim boulders,
+a water shader with the same uniforms, and `OmniLight3D`s. Rooms with `style: "cave"` are dressed by
+`public/models/grotto/grotto-cave.glb`, a render-only model that `scripts/blender/grotto-cave.py` builds
+in world metres from the floor outlines: per floor `cavefloor_<id>`, `cavewall_<id>` and `caverock_<id>`, with
+ambient occlusion baked into vertex colours. Floors with `walls` (every room but the entrance) also get `cavewall_<id>`/`caverock_<id>`, only along the edges that meet the void, coarser and lower (rock islands at most 2.4 m); their drops keep the generated ledges. Import it as it is (`MeshInstance3D`s with a cel material
+that multiplies vertex colour); collision still comes from the floors, never from this mesh. In every room the
+`coral` props and the corals at the foot of the walls are the painted corals of `public/models/grotto/glow-corals.glb`
+(`scripts/blender/grotto-corals.py`): per coral `coral_<name>_body`, cel-lit with half its own vertex colour added as
+emission, and `coral_<name>_glow`, unshaded vertex colour (tinted #d0d0d0), each standing on its own origin; place them
+with `MultiMeshInstance3D`s. They grow in clumps (`clump()` in props.js: one coral of the asked colour, 2-4 smaller mixed ones at
+0.3-0.65 of its size around its foot, along the wall at the rim, clumps never overlapping), and each clump lights the floor with a flat
+additive pool (`coralPools`), as do crystals, the coral tree, the sealed arch and the pearl altar, instead of a camera-facing halo. A map colour picks the coral (`GLOW_BY_COLOR` in `src/render/grotto/props.js`).
+The other props are `public/models/grotto/grotto-props.glb` (`scripts/blender/grotto-props.py`): per prop `prop_<name>_<kind>`
+meshes standing on their own origin, where kind is how to draw it: `flat` (cel, flat shading) and `smooth` (cel, smooth),
+`shine`/`shinesm` (the same plus half of the vertex colour as emission), `glow` (unshaded vertex colour, both sides). Map
+types to props as `buildProps` does (pillar, pillarBroken → pillar_broken, fallenPillar → pillar_fallen, arch → arch / arch_shell in turn,
+sealedArch → arch_sealed, crystal → crystal_s/m/l by scale, coralTree → coral_tree, bigPearl → pearl_altar, chest → chest / chest_open
+in turn, candles, barrel, crate, post); collision stays the `propTypes` circles. Each `waterfalls` entry has `kind`: `ledge` (pours over the edge at
+`at` toward `facing`, curving out about 0.25 + 0.55·sqrt(fallen m / 3)) or `wall` (runs down the cave wall from `top`); both widen
+to 1.15× at the foot. Stairs are cut out of the floors they cross; the floors in the data are already cut to each flight's sides and squared at its ends (no overlap); draw ~0.15 m steps (at least 0.4 m deep) the game's way: each step a course of cut grey stones about 0.9 m across, square to the flight, its joints offset by half a stone on every other step, its front edge standing proud as a riser, and a 0.45 m cheek stone at each side; no edging stones beside a flight; the collider stays the ramp. A `rubble` prop
+(no collider) marks where the stone over the water broke away along the paving joints (the traced floors already have the
+stepped bite); its `stones` ([x, z, w, d], metres) are the pavers that fell: draw each as a 0.22 m slab, its top textured
+from where it lay (uv = position / `PAVING_TILE` (6 m), as the floor), slid out along `rot`, tipped down toward the water (some leaning on the
+edge, half out of the water), plus a few chips; leave the edging stones out within 1.4·scale + 0.7 m of it. The paving layout
+is `flagstoneCourses()` (`scripts/grotto-paving.mjs` prints it in metres). Edging stones elsewhere age by
+a hash of their index (13% missing, 17% tipped outward, the rest leaning a little); stone floors get worn-paving decals,
+about one per 45 m², off the props and inside the edge. Floors, walls, rocks and steps use the game's
+painted stone (`src/render/grotto/game-paint.js`, the accepted scenes' `paint()`): three tones from the sun
+direction and the shadow map (shade/mid/lit tints in `look.paint`), the surface's vertex colour pulled into the
+game's grey stone (`sat`, `tint`, per-kind `gain`) and fading to `floor` below -2 m; rocks carry a back-face
+outline in `ink`. The cave is dark: the painted light is scaled by `dim`, the point lights add `lamp` x their
+attenuated light (a soft wrap), each surface kind may have its own `tints` (the cave rock is dark), and the glow
+pools on the floor use `look.glowPool` [opacity, size]. In Godot this is one `ShaderMaterial` with those uniforms
+(point lights through `LIGHT` in the light() function).
+The boss stage is `inside.arena` (written by `grotto-trace.py`): the throne room and its dais are one open stage of
+stone (2.0, the dais an exact 13 m circle, a 96-corner polygon) and wading water (floor 1.6), one step apart; `floors` lists them, `floor` is the dais, middle `at`, `r`, `clear` (radius kept free of
+blocking props), `boss` spot and `bossFacing` (toward the `entry` stair), and the `throne` (the pearl altar behind the boss).
+Spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
+
 ## Checklist for the port
 
 1. Copy `data/` and run `npm run export:layout`.
@@ -780,6 +863,15 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   edge across a thin surface following the beach heightfield, then draws it back. Sea tiles
   match the terrain grid and are culled independently. Port the time uniform and shoreline
   distance attribute; there is no per-frame mesh rebuild.
+- Sea water (27 October 2026) is the arrival beach scene's water (`scenes/beach` `buildSea`), lifted
+  whole and worked in the scene's units (0.8 m): `dz` = shore distance / 0.8, `wet` = distance
+  inside the moving edge / 0.8, depth = clamp(dz * .36, 0, 2.7). Colours pale green #93dfbf,
+  turquoise #45d0c4, cyan #2cbfd0, blue #1b97c3 (settling deeper 30-90 m out); the light web
+  (rounded Voronoi cells, one cell size 1.45, since depth-scaled coordinates shear into streaks at
+  map coordinates; thinner past 25-70 m out); twinkling sparkles; fine messy foam (a ragged holed
+  rim at the moving edge, tangled threads seaward, and rings round every water contact: rocks,
+  piles, hulls, walls); cloud shade; the scene's sea grade (saturation 1.2, contrast 1.16 on sqrt
+  colour). The edge's run-up and the harbour's curved crests stay the map's own.
 - `river.depth` and `river.bankWidth` produce an ankle-deep bed with gentle banks. Keep the
   rendered water and movement masks separate when porting. Do not add a blocking river strip.
 - `render/ground.js`: small grouped grass strokes, warm earth, bevelled paving, mossy cracks,
@@ -845,10 +937,15 @@ scene-shadow mask rather than re-lighting individual cards.
 The same wind deformation must be active in both colour and shadow rendering.
 WebGL uses a shared customDepthMaterial per fill material (`render/patch.js`),
 with the fill's alpha texture/test and wind uniforms, but no camera-space dither.
-When changing quality, update and release shadow buffers as well as DPR. WebGL
-native AA is a fixed context policy (including Low), not a switch changed by
-setQuality. Godot can use its own viewport AA controls with equivalent documented
-behaviour. See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
+When changing quality, update and release shadow buffers as well as DPR.
+Graphics settings (owner, 29 October 2026; `rendering.json` -> `graphics`,
+`src/ui/graphics-settings.js`): presets low/medium/high (low 0.85 and medium 1.25
+drawn pixels per screen point, high 2) or `custom`, where resolution, shadow size,
+the screen grade and dynamic resolution are each chosen from listed values.
+Anti-aliasing is a separate setting for every preset (off, x2, x4): the WebGL
+canvas is never multisampled; the scene target's samples are the setting, and with
+the grade off the target is only resolved and copied. In Godot, map this to the
+viewport's `scaling_3d_scale` and `msaa_3d` (disabled/2x/4x). See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
 
 ### Azure Coast local starter (30 September 2026)
 
@@ -1004,6 +1101,15 @@ conservative `custom_aabb` on the static geometry; do not shorten the bounds to 
 grass batch's current visible instance count. Medium keeps its existing shadow
 size, filtering and screen grade.
 
+Once a static resident buffer reaches the GPU, its CPU copy is dropped
+(`releaseResidentArraysOnUpload`, `render/resident-geometry.js`): holding both for
+every map ran the iPad out of memory. Bounds are computed first. Grass, shared
+templates, skinned/morphing, dynamic-usage, interleaved, points/lines, waypoint
+stones, NPCs and animated parts keep their arrays. Because a restored WebGL
+context could not re-upload them, a lost context saves and reloads the page
+straight back into the game (at most once every three minutes). Godot keeps
+imported mesh data on the GPU only by default, so no equivalent step is needed.
+
 ## Finite terrain joins
 
 Finite terrain joins: the two linked maps' decorative heightfields have different
@@ -1021,7 +1127,7 @@ the current aligned one-metre map grids, not arbitrary irregular tessellation.
 
 ## Screen grade (post-process)
 
-`render/post.js` (`PostFX`, settings `rendering.json` → `post`, on per preset with `quality.<name>.post`, off on `low`) draws the scene into a 4x multisampled sRGB target, makes a quarter-size bright pass for a soft glow, then one full-screen composite: glow, display-space saturation and contrast, split toning (cool `shadowTint`, warm `lightTint`; 50% grey is neutral), a haze toward the top of the screen in the zone's fog colour lifted by `hazeLift`, a warm screen-blend sun wash centred at `sunWashPos` (screen UV, top-left, the sun's side), a vignette and a 1/255 dither. Models and materials are unchanged; `?post=0` turns it off for comparisons. In Godot, use a `WorldEnvironment` (glow with the same threshold, adjustments for contrast/saturation) plus a screen-space `ColorRect` shader for the toning, haze, sun wash and vignette.
+`render/post.js` (`PostFX`, settings `rendering.json` → `post`, on per preset with `quality.<name>.post`, off on `low`) draws the scene into a multisampled sRGB target (samples = the anti-aliasing setting), makes a quarter-size bright pass for a soft glow, then one full-screen composite: glow, display-space saturation and contrast, split toning (cool `shadowTint`, warm `lightTint`; 50% grey is neutral), a haze toward the top of the screen in the zone's fog colour lifted by `hazeLift`, a warm screen-blend sun wash centred at `sunWashPos` (screen UV, top-left, the sun's side), a vignette and a 1/255 dither. Models and materials are unchanged; `?post=0` turns it off for comparisons. In Godot, use a `WorldEnvironment` (glow with the same threshold, adjustments for contrast/saturation) plus a screen-space `ColorRect` shader for the toning, haze, sun wash and vignette.
 
 ## Local city cohesion presentation
 
@@ -1364,7 +1470,8 @@ kept clear of trees and drawn on the map) join every scene exit, the Frontier ga
 three Azure seam trails. Zones follow the same woods (`root_warren` west, `fern_rise` north-east,
 `mirror_pond` between) and their encounter habitats (`data/encounters.json`) moved with them. Map
 look: `look.foliage` gives the map its own leaf and shrub [shadow, mid, light] colours (Moonroot's
-teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`); a zone's `soil`
+teal) for its trees and its scenes' crowns (`animeFoliage(seed, shrub, palette)`; each leaf card is a
+raised arch of `art.anime.cardSegments`² quads, 2 since 29 October 2026: a shrub is 416 triangles, a crown 864); a zone's `soil`
 biases the open soil patches (Moonroot's woods have none); `acceptedScenes.bankShade` {strength,
 tone} gives a scene's steep grass banks a darker two-step cel tone in the terrain shader (vertex
 `aBank * (1 - normal.y)`), so the camp's terrace reads from above. `look.ground` [light, dark]

@@ -1,6 +1,7 @@
 // Title screen, save slots and character creation (HTML over the live 3D world).
 import { seekerBrand } from './fieldhud.js';
 import { icon } from './icons.js';
+import { graphicsSettingsHtml, graphicsAction } from './graphics-settings.js';
 import { art } from './art.js';
 import { LOOK_OPTIONS, DEFAULT_LOOK } from '../render/hero.js';
 import { colorWheelHtml, mountColorWheel } from './color-wheel.js';
@@ -18,13 +19,12 @@ function fmtTime(sec) {
 }
 
 export class Menu {
-  constructor(root, view, data, { onStart, onQuality, getQuality }) {
+  constructor(root, view, data, { onStart, graphics }) {
     this.root = root;
     this.view = view;
     this.data = data;
     this.onStart = onStart;
-    this.onQuality = onQuality;
-    this.getQuality = getQuality;
+    this.graphics = graphics;
     this.el = document.createElement('div');
     this.el.className = 'menu-layer';
     root.appendChild(this.el);
@@ -63,11 +63,9 @@ export class Menu {
   }
 
   showSettings() {
-    const q = this.getQuality();
     this.show(`<div class="menu-card">
       <h2>ตั้งค่ากราฟิก</h2>
-      <div class="switch">${['low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ low: 'ต่ำ (ลื่นสุด)', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}</div>
-      <p class="muted">ถ้า iPad กระตุก ให้เลือก "ต่ำ" (ปิดเงา ลดความละเอียด)</p>
+      ${graphicsSettingsHtml(this.graphics)}
       <button class="mbtn" data-act="title">← กลับ</button></div>`);
   }
 
@@ -111,8 +109,9 @@ export class Menu {
     this.name = '';
     this.view.mode = 'create';
     this.refreshPreview();
-    const sw = (key) =>
-      `<div class="swatches">${LOOK_OPTIONS[key].map((c) => `<button class="sw ${this.look[key] === c ? 'on' : ''}" style="background:${c}" data-act="look" data-key="${key}" data-val="${c}" aria-label="${c}"></button>`).join('')}</div>`;
+    // `own`: the first swatch keeps the hero's own painted colours (the eyes of the chosen face)
+    const sw = (key, own = null) =>
+      `<div class="swatches">${LOOK_OPTIONS[key].map((c, i) => `<button class="sw ${this.look[key] === c ? 'on' : ''}${own && !i ? ' own' : ''}" style="background:${c}" data-act="look" data-key="${key}" data-val="${c}" aria-label="${own && !i ? own : c}">${own && !i ? own : ''}</button>`).join('')}</div>`;
     this.show(`<div class="create-panel scrolly">
       <h2>สร้างตัวละคร <small>ช่อง ${slot}</small></h2>
       <label class="field">ชื่อ<input id="heroName" maxlength="14" placeholder="นักเดินทาง" value="${esc(this.name)}" autocomplete="off"></label>
@@ -120,8 +119,8 @@ export class Menu {
       <div class="field">หน้าตา<div class="faces">${LOOK_OPTIONS.face.map((f) => `<button class="face-pick ${this.look.face === f ? 'on' : ''}" data-act="look" data-key="face" data-val="${f}" aria-label="${f}">${f === 'default' ? 'เดิม' : `<img src="models/faces/${f}.png" alt="" loading="lazy">`}</button>`).join('')}</div></div>
       <div class="field">สีผม${colorWheelHtml('hairWheel', this.look.hair)}</div>
       <div class="field">สีผิว${sw('skin')}</div>
-      <div class="field">สีตา${sw('eyes')}</div>
-      <div class="field">เสื้อ${sw('tunic')}</div>
+      <div class="field">สีตา${sw('eyes', 'เดิม')}</div>
+      <div class="field">สีเสื้อ${sw('tunic')}</div>
       <div class="row-btns sticky">
         <button class="btn" data-act="random">🎲 สุ่ม</button>
         <button class="btn" data-act="slots-back">← กลับ</button>
@@ -197,7 +196,9 @@ export class Menu {
       case 'settings':
         return this.showSettings();
       case 'quality':
-        this.onQuality(t.dataset.q);
+      case 'gfx':
+      case 'gfx-aa':
+        graphicsAction(t, this.graphics);
         return this.showSettings();
       case 'title':
         return this.showTitle();

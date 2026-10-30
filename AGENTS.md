@@ -39,6 +39,21 @@ A playable web demo (one fixed-coordinate open world: Azure Coast, Greenhollow F
 - No allocations per particle or per frame in hot paths (reuse scratch vectors/colours); read layout (`getBoundingClientRect`) once per frame.
 - Run `node tests/browser/leak.mjs` only when changing resource ownership, pooling/disposal or a concrete growth symptom. Start with the relevant resource probe; extend the long session only if its samples remain unresolved. Record geometry stabilisation when this check applies.
 
+## iPad budgets (owner, 29 October 2026)
+
+New content must arrive inside the budgets; do not leave a later size pass to catch it.
+The numbers live in `data/rendering.json` (`modelTextureMax`, `budgets`) and are tested.
+
+- Models: maps at most `modelTextureMax` (1024) and only maps the toon materials draw
+  (no metal/roughness or occlusion). Run `python3 scripts/shrink-model-textures.py <files>`
+  on every new or replaced GLB (`tests/core/asset-budget.test.js`).
+- Instanced plants: keep each shape within `budgets.plantTriangles`; leaf cards use
+  `art.anime.cardSegments` (2). Scale density before adding detail per plant.
+- Scenes and maps: `tests/browser/open-world.mjs` (full load) checks every fixed view's
+  frame triangles and draw calls and each map's resident geometry, and the total over all
+  maps. Prefer instancing, shared geometry and simple far shapes. If new content still
+  does not fit, show the owner the numbers and the options before raising a budget.
+
 ## Validation and early review
 
 For all visual, UI and animation work, follow [the visual quality workflow](docs/VISUAL_QUALITY_WORKFLOW.md). Define observable visual criteria, review an unobscured normal-speed prototype, then inspect the exact final runtime artifacts separately from technical tests. Major visible defects block a completion claim. Include a short delivery review record with artifact identity, inspected views/timestamps, faults found/fixed and remaining limits.

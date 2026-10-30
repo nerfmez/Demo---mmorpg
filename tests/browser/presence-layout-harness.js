@@ -15,7 +15,7 @@ game.monsters = [];
 const view = { game, world: game.world, region: { staticReady: true }, hero: {}, zoom: 1, monsterViews: new Map(), screenToGround: () => null, project: () => null };
 const root = document.getElementById('hud');
 const hud = new Hud(root, game, view);
-const panels = new Panels(root, game, { onChange() {}, onQuality() {}, getQuality: () => 'low' });
+const panels = new Panels(root, game, { onChange() {}, graphics: { get: () => ({ quality: 'low', values: { pixelRatio: 1, shadowMapSize: 0, post: false, dynres: true }, antialias: 4, dpr: 1, buffer: [1, 1] }), setQuality() {}, setCustom() {}, setAntialias() {} } });
 let presence;
 const ui = { blocked: () => false, panelOpen: () => panels.isOpen || !!presence?.open, closePanel: () => panels.close(), togglePanel: tab => panels.toggle(tab), interact() {}, configureSkill() {} };
 const input = new Input(root, document.getElementById('game'), game, view, ui);

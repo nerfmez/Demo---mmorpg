@@ -16,7 +16,7 @@ import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms, toonRamp } from './toon.js';
 import { timeUniform } from './patch.js';
-import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
+import { renderConfig, qualitySettings, antialiasSamples, lightingSettings, applyShadowQuality } from './settings.js';
 import { PostFX } from './post.js';
 import { syncPaintedLighting } from './painted.js';
 import { makeDecal, conform } from './decal.js';
@@ -56,19 +56,22 @@ const ZONE_FOG = {
 const NO_MARKS = [];
 
 export class View {
-  constructor(canvas, world, { quality = 'high', worlds = null, resident = worlds } = {}) {
+  constructor(canvas, world, { quality = 'high', custom = null, antialias = null, worlds = null, resident = worlds } = {}) {
     this.unified = !!worlds;
     this.coordinateOrigin = [...(world.data.atlas?.offset || [0, 0])];
     this.worldPrepared = false;
     this.ruleWorlds = worlds; // existing rule worlds also bound finite terrain margins
     this.game = null;
     this.quality = qualitySettings(quality).name;
+    this.customQuality = custom;
+    this.antialias = antialiasSamples(antialias);
     this.mode = 'title';
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: renderConfig.nativeAntialias, powerPreference: 'high-performance' });
+    // The canvas is never multisampled (native AA is fixed for the context and would hold a
+    // second full-size buffer): anti-aliasing is the scene target's samples (setAntialias).
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    // Native AA is fixed for the context lifetime. All tiers use the same request,
-    // so low->high and high->low cannot silently retain different context attributes.
-    this.renderer.shadowMap.enabled = qualitySettings(this.quality).shadowMapSize > 0;
+    this.renderer.shadowMap.enabled = this.qualityValues().shadowMapSize > 0;
+    this.dynres = this.qualityValues().dynres !== false; // the frame loop's resolution governor may act
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.scene = new THREE.Scene();
     this.fogColor = new THREE.Color(ZONE_FOG.settlement);
@@ -87,7 +90,7 @@ export class View {
     this.scene.add(this.hemisphere);
     this.sun = new THREE.DirectionalLight(light.sunColor, light.sunIntensity);
     this.sun.castShadow = true;
-    applyShadowQuality(this.renderer, this.sun, this.quality);
+    applyShadowQuality(this.renderer, this.sun, this.qualityValues());
     const sc = this.sun.shadow.camera;
     sc.left = -28;
     sc.right = 28;
@@ -444,7 +447,7 @@ export class View {
     const w = c.clientWidth || window.innerWidth;
     const h = c.clientHeight || window.innerHeight;
     // dynamic resolution scales the preset's pixel ratio, never below 1 device pixel per CSS pixel
-    const base = Math.min(window.devicePixelRatio || 1, qualitySettings(this.quality).pixelRatio);
+    const base = Math.min(window.devicePixelRatio || 1, this.qualityValues().pixelRatio);
     const dpr = Math.max(Math.min(1, base), base * (this.renderScale ?? 1));
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h, false);
@@ -457,15 +460,19 @@ export class View {
     this.syncPost();
   }
 
-  /** The screen grade follows the preset: created on demand, freed (GPU targets too) when off. */
+  /** The scene target serves the screen grade and anti-aliasing: created on demand, freed
+   *  (GPU targets too) when both are off. */
   syncPost() {
-    const on = qualitySettings(this.quality).post && renderConfig.post && new URLSearchParams(location.search).get('post') !== '0';
+    const grade = this.qualityValues().post;
+    const on = (grade || this.antialias > 0) && renderConfig.post && new URLSearchParams(location.search).get('post') !== '0';
     if (!on) {
       this.post?.dispose();
       this.post = null;
       return;
     }
-    this.post ||= new PostFX(this.renderer, renderConfig.post);
+    this.post ||= new PostFX(this.renderer, renderConfig.post, { samples: this.antialias, grade });
+    this.post.grade = grade;
+    this.post.setSamples(this.antialias);
     const size = this.renderer.getDrawingBufferSize(this._postSize ||= new THREE.Vector2());
     this.post.setSize(size.x, size.y);
   }
@@ -495,13 +502,28 @@ export class View {
     this.post.render(this.scene, this.camera, this.time);
   }
 
-  setQuality(q) {
-    const next = qualitySettings(q);
-    if (next.name === this.quality) return;
+  /** The current preset's values ('custom' reads the player's own choices). */
+  qualityValues() {
+    return qualitySettings(this.quality, this.customQuality);
+  }
+
+  /** Anti-aliasing samples (0 off, 2, 4), independent of the preset. */
+  setAntialias(samples) {
+    const next = antialiasSamples(samples);
+    if (next === this.antialias) return;
+    this.antialias = next;
+    this.resize();
+  }
+
+  setQuality(q, custom = this.customQuality) {
+    const next = qualitySettings(q, custom);
+    if (JSON.stringify(next) === JSON.stringify(this.qualityValues())) return;
     if (this.unified) restoreResidentVisibility(this);
     const wasEnabled = this.renderer.shadowMap.enabled;
     this.quality = next.name;
-    applyShadowQuality(this.renderer, this.sun, this.quality);
+    this.customQuality = custom;
+    applyShadowQuality(this.renderer, this.sun, next);
+    this.dynres = next.dynres !== false;
     if (wasEnabled !== this.renderer.shadowMap.enabled) {
       const materials = new Set();
       this.scene.traverse(o => {
@@ -1237,7 +1259,9 @@ export class View {
       await reading;
       const c = document.createElement('canvas');
       c.width = c.height = size;
-      const ctx = c.getContext('2d');
+      // a CPU-backed canvas: encoding the PNG then never waits for the GPU's queued work
+      // (shader compiles after the opening stood behind it for many seconds on software GL)
+      const ctx = c.getContext('2d', { willReadFrequently: true });
       const img = ctx.createImageData(size, size);
       for (let yy = 0; yy < size; yy++) img.data.set(px.subarray((size - 1 - yy) * size * 4, (size - yy) * size * 4), yy * size * 4);
       ctx.putImageData(img, 0, 0);

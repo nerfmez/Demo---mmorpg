@@ -39,6 +39,8 @@
  },
  "out": {
   "armor": "public/models/outfits/sporeweave_vest.glb",
-  "boots": "public/models/outfits/moonleaf_slippers.glb"
- }
+  "boots": "public/models/outfits/moonleaf_slippers.glb",
+  "gloves": "public/models/outfits/sporeweave_gloves.glb"
+ },
+ "glove": 0.31
 }

@@ -8,7 +8,7 @@
 # surface; take the body's skin weights at the nearest body point; record the body triangles each
 # piece covers (node extras `hideBody`, hidden in game); export the armour and the boots.
 # Blender space: Z up, front is -Y (glTF +Z).
-import bpy, bmesh, json, sys, numpy as np
+import bpy, bmesh, json, os, sys, numpy as np
 from mathutils import Vector, Matrix
 from mathutils.bvhtree import BVHTree
 
@@ -96,6 +96,13 @@ def cut(co, no):
 cut((0, 0, C['neck']), (0, 0, 1))
 cut((C['cuff'], 0, 0), (1, 0, 0))
 cut((-C['cuff'], 0, 0), (1, 0, 0))
+# `glove`: the gloves' tops out along the arm (|x|): past it the hands and forearms are kept as the
+# gloves (their own piece; the sleeve still ends at `cuff`, the bare arm between goes)
+GLOVE = C.get('glove')
+if GLOVE:
+    cut((GLOVE, 0, 0), (1, 0, 0))
+    cut((-GLOVE, 0, 0), (1, 0, 0))
+inglove = lambda c: GLOVE and abs(c.x) > GLOVE and C.get('armpit', 0.66) < c.z < C['neck']  # not a helm's fins out to the sides
 cut((0, 0, C['bootTop']), (0, 0, 1))
 bmesh.ops.triangulate(bm, faces=bm.faces[:])
 collar, skin = set(), set()
@@ -150,6 +157,7 @@ for f in bm.faces:
     # whatever rises above the shoulder line (the head's hood, hair or helm): that line climbs out
     # from the neck (`shoulderRise`), since Meshy's shoulders and pads rise above the neck cut, and a
     # flat cut there took their tops off, leaving holes on every shoulder
+    if inglove(c): continue
     if (abs(c.x) > C['cuff'] and c.z > C.get('armpit', 0.66)) or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.09) and abs(c.y - neckY) < C.get('neckDepth', 0.09)) or c.z > C.get('top', C['neck'] + C.get('shoulderRise', 0.9) * max(abs(c.x) - 0.08, 0) + 0.02):
         drop.append(f)
 # what the cut-away parts covered (a pad's top under the hood's fur) was never seen in the generated
@@ -178,8 +186,10 @@ for f in bm.faces:
     if len(comp) < C.get('minFloat', 60) and min(g.calc_center_median().z for g in comp) > C['neck'] - 0.02:
         _float += comp
 # `dropPieces`: small loose pieces whose middle is in one of these boxes ([|x| from, |x| to, z from,
-# z to]) go too (an earring hanging below the neck cut from the cut-away head)
-if 'dropPieces' in C:
+# z to]) go too (an earring hanging below the neck cut from the cut-away head); `dropBehind`: a loose
+# piece of any size reaching further behind the back than this (y) goes (the leaf-bear model grew a
+# stray limb out of its back that the sheet does not draw)
+if 'dropPieces' in C or 'dropBehind' in C:
     _seen2 = set()
     for f in bm.faces:
         if f in _seen2: continue
@@ -190,7 +200,10 @@ if 'dropPieces' in C:
                 for o in e.link_faces:
                     if o not in _seen2: _seen2.add(o); comp.append(o); todo.append(o)
         c = sum((g.calc_center_median() for g in comp), Vector()) / len(comp)
-        if len(comp) < C.get('ornament', 150) and any(b[0] < abs(c.x) < b[1] and b[2] < c.z < b[3] for b in C['dropPieces']):
+        if len(comp) < C.get('ornament', 150) and any(b[0] < abs(c.x) < b[1] and b[2] < c.z < b[3] for b in C.get('dropPieces', [])):
+            _float += [g for g in comp if g not in _float]
+        elif 'dropBehind' in C and max(v.co.y for g in comp for v in g.verts) > C['dropBehind']:
+            print('dropped a piece behind the back: %d faces' % len(comp))
             _float += [g for g in comp if g not in _float]
 bmesh.ops.delete(bm, geom=_float, context='FACES')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
@@ -418,8 +431,10 @@ if incollar.any():
 # --- keep the garment outside the body: push out along the body's normal, then spread the push
 #     over the neighbours so the cloth moves as a surface (repeat, then a last strict pass)
 nbr = [[e.other_vert(v).index for e in v.link_edges] for v in bm.verts]
-piece = np.array([0 if v.co.z < C['bootTop'] else 1 for v in bm.verts])  # 0 boots, 1 armour
-margin = np.where(piece == 0, C['margin']['boots'], C['margin']['armor'])
+piece = np.array([0 if v.co.z < C['bootTop'] else 2 if inglove(v.co + Vector((np.sign(v.co.x) * 1e-4, 0, 0))) else 1 for v in bm.verts])  # 0 boots, 1 armour, 2 gloves
+# a face's piece: the gloves by its middle (a sleeve can end where the glove begins, sharing the cut's vertices)
+fpiece = lambda ids: 2 if GLOVE and inglove(Vector(P0[ids].mean(0))) else piece[ids[0]] if piece[ids[0]] != 2 else 1
+margin = np.array([C['margin']['boots'], C['margin']['armor'], C['margin'].get('gloves', 0.004)])[piece]
 # the cloth is pushed out of the body only from the chest up (`pushAbove`): lower down the body is
 # hidden under it (HIDE), and pushing the trousers over the chibi's fuller hips and thighs bulged
 # them; there the generated shape is kept as it was made
@@ -524,7 +539,7 @@ W /= W.sum(1, keepdims=True)
 
 # --- the body faces each piece covers (hidden in game, so the skin cannot poke through)
 hidden = {}
-names = {0: 'boots', 1: 'armor'}
+names = {0: 'boots', 1: 'armor', 2: 'gloves'} if GLOVE else {0: 'boots', 1: 'armor'}
 # body faces well inside a piece are hidden outright (the armpits are open in the T-pose, and the
 # trousers are not pushed over the fuller legs): the armour's legs from inside the boot tops, its
 # torso below the arms, and up to below the collar out to just inside the sleeve ends (boxes of
@@ -535,9 +550,12 @@ _arm = np.abs(P[(piece == 1) & (P[:, 2] > B(0.7)), 0])
 sleeveEnd = min(float(armx(np.array(C['cuff']))), float(np.percentile(_arm, 98)) if len(_arm) else 1) - 0.03
 HIDE = {'armor': [[zmapL(C['bootTop']) - 0.04, crotchC, 1], [crotchC - 0.01, B(0.70), 0.22], [B(0.69), B(0.83), sleeveEnd],
                   [B(0.70), B(0.86), sleeveEnd, 0.11]],  # the whole upper arm in a sleeve
-        'boots': [[-1, zmapL(C['bootTop']) + 0.01, 1]]}
+        'boots': [[-1, zmapL(C['bootTop']) + 0.01, 1]],
+        # the gloves: the arm from just past their tops out (the hand wholly inside)
+        'gloves': [[B(0.6), B(0.9), 1, float(armx(np.array(GLOVE or 1))) + 0.01]]}
 for pc, name in names.items():
-    fs = [f for f in bm.faces if piece[f.verts[0].index] == pc]
+    fs = [f for f in bm.faces if fpiece([v.index for v in f.verts]) == pc]
+    if not fs: hidden[name] = []; continue
     vs = sorted({v.index for f in fs for v in f.verts})
     remap = {j: k for k, j in enumerate(vs)}
     tree = BVHTree.FromPolygons([Vector(P[j]) for j in vs], [[remap[v.index] for v in f.verts] for f in fs])
@@ -665,7 +683,7 @@ outs = []
 for pc, name in names.items():
     nb = bm.copy()
     src = nb.verts.layers.int.get('src')
-    bmesh.ops.delete(nb, geom=[f for f in nb.faces if piece[f.verts[0][src]] != pc], context='FACES')
+    bmesh.ops.delete(nb, geom=[f for f in nb.faces if fpiece([v[src] for v in f.verts]) != pc], context='FACES')
     bmesh.ops.delete(nb, geom=[v for v in nb.verts if not v.link_faces], context='VERTS')
     nb.verts.index_update()
     keep = [v[src] for v in nb.verts]
@@ -689,8 +707,10 @@ gen.hide_set(True)
 body.hide_set(True)
 for o in bpy.data.objects: o.select_set(False)
 arm.select_set(True)
-for path, ob in ((C['out']['armor'], outs[1]), (C['out']['boots'], outs[0])):
-    if not path: continue  # a piece the game does not use (another set's is worn)
+# `FIT_ONLY=gloves` (or armor, boots) writes that piece alone, leaving the others' files as they are
+ONLY = os.environ.get('FIT_ONLY')
+for path, ob in ((C['out']['armor'], outs[1]), (C['out']['boots'], outs[0])) + (((C['out']['gloves'], outs[2]),) if GLOVE else ()):
+    if not path or (ONLY and ob.name != C['id'] + '_' + ONLY): continue  # a piece the game does not use (another set's is worn)
     for o in outs: o.select_set(o is ob)
     bpy.ops.export_scene.gltf(filepath=path, use_selection=True, export_format='GLB', export_skins=True, export_animations=False,
                               export_image_format='JPEG', export_jpeg_quality=88, export_extras=True, export_morph=False, export_yup=True)

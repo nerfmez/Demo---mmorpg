@@ -34,6 +34,8 @@
  "coverHits": 2,
  "out": {
   "armor": "public/models/outfits/shell_guard.glb",
-  "boots": "public/models/outfits/tide_boots.glb"
- }
+  "boots": "public/models/outfits/tide_boots.glb",
+  "gloves": "public/models/outfits/shell_mitts.glb"
+ },
+ "glove": 0.31
 }

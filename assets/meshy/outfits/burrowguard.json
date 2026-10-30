@@ -39,6 +39,8 @@
  },
  "out": {
   "armor": "public/models/outfits/burrowguard_armor.glb",
-  "boots": "public/models/outfits/burrowguard_boots.glb"
- }
+  "boots": "public/models/outfits/burrowguard_boots.glb",
+  "gloves": "public/models/outfits/burrowguard_gloves.glb"
+ },
+ "glove": 0.33
 }

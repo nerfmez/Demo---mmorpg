@@ -147,7 +147,7 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
   const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiOutfit);
   assert.ok(entries.length >= 2, 'at least the travel tunic and boots');
   for (const [id, m] of entries) {
-    assert.ok(['armor', 'boots', 'helm'].includes(m.chibiOutfit), id + ' piece');
+    assert.ok(['armor', 'boots', 'gloves', 'helm'].includes(m.chibiOutfit), id + ' piece');
     // its insides take the cloth's colour round each point (darkInside) only when it says so
     if (m.localInside != null) assert.equal(typeof m.localInside, 'boolean', id + ' localInside');
     // a neckline cut clean (necklineCut): a V from below the neck up to a cut round it, a thin trim
@@ -158,7 +158,7 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
       assert.match(n.color, /^#[0-9a-f]{6}$/i, id + ' neckline colour');
     }
     // the game finds the model by the worn item's id (hero.js: outfit_<item>)
-    const table = { armor: 'armor', boots: 'boots', helm: 'helms' }[m.chibiOutfit];
+    const table = { armor: 'armor', boots: 'boots', gloves: 'gloves', helm: 'helms' }[m.chibiOutfit];
     assert.ok(outfits[table][id.replace(/^outfit_/, '')], id + ' names a ' + m.chibiOutfit + ' item');
     const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
     const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
@@ -187,13 +187,18 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
     const pos = view('POSITION', Float32Array, 3), w = view('WEIGHTS_0', Float32Array, 4);
     const ja = j.accessors[prim.attributes.JOINTS_0], jt = ja.componentType === 5121 ? Uint8Array : Uint16Array, jn = view('JOINTS_0', jt, 4);
     const names = j.skins[0].joints.map((i) => j.nodes[i].name);
-    let wrong = 0;
+    // (and every glove vertex its own side's arm or hand; the hands themselves led by the hand bones,
+    // which close them with the fists: chibi-body.js closeGloves)
+    let wrong = 0, hand = 0;
     for (let v = 0; v < pos.length / 3; v++) {
       let best = 0;
       for (let k = 1; k < 4; k++) if (w[v * 4 + k] > w[v * 4 + best]) best = k;
       const name = names[jn[v * 4 + best]], x = pos[v * 3];
       if (pos[v * 3 + 1] < 0.3 && Math.abs(x) > 0.03 && (/^Left/.test(name) && x < 0 || /^Right/.test(name) && x > 0)) wrong++; // the legs and feet
+      if (m.chibiOutfit === 'gloves' && !(/^Left(Fore)?(Arm|Hand)$/.test(name) && x > 0 || /^Right(Fore)?(Arm|Hand)$/.test(name) && x < 0)) wrong++;
+      if (/Hand$/.test(name)) hand++;
     }
     assert.equal(wrong, 0, id + ' vertices following the other side');
+    if (m.chibiOutfit === 'gloves') assert.ok(hand > pos.length / 3 / 4, id + ' hands led by the hand bones');
   }
 });

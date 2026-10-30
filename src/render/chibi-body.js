@@ -46,7 +46,8 @@ export function smoothNormals(geometry) {
  * half-turns). The thumb (vertices from `thumbFrom` to `thumbTo` of the way out to its side, short
  * of `thumbReach` of the hand's length) then turns up to `thumbTurn` degrees about the hand's
  * length, folding under the palm over the curled fingers. Returns the hand's vertex ids, their
- * closed positions (mesh space) and the fist's hole in world space, where a handle goes.
+ * closed positions (mesh space), the fist's hole in world space, where a handle goes, and `close`,
+ * which bends any point of mesh space the same way (a modelled glove round the hand, closeGloves).
  */
 export function curlFist(mesh, hand, { knuckle = 0.55, radius = 0.25, wrap = 1.25, thumbTurn = 100, thumbFrom = 0.35, thumbTo = 0.6, thumbReach = 0.75 } = {}) {
   const geo = mesh.geometry, pos = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
@@ -85,8 +86,8 @@ export function curlFist(mesh, hand, { knuckle = 0.55, radius = 0.25, wrap = 1.2
   const thumbEnd = tMin + (tMax - tMin) * thumbReach, fade = (tMax - tMin) * 0.15;
   const pivot = new THREE.Vector3().addScaledVector(A, side * aMax * thumbFrom).addScaledVector(P, (hMin + hMax) / 2);
   const q = new THREE.Quaternion(), rel = new THREE.Vector3(), at = new THREE.Vector3();
-  const shape = new Float32Array(ids.length * 3);
-  pts.forEach((p, k) => {
+  // a point (relative to the hand bone's origin, in world space) of the open hand, closed
+  const bend = (p) => {
     const t = p.dot(F), s = t - t0;
     rel.copy(p);
     if (s > 0) {
@@ -102,9 +103,42 @@ export function curlFist(mesh, hand, { knuckle = 0.55, radius = 0.25, wrap = 1.2
         rel.sub(at).applyQuaternion(q).add(at);
       }
     }
-    rel.add(origin).applyMatrix4(toLocal).toArray(shape, k * 3);
+    return rel.add(origin).applyMatrix4(toLocal);
+  };
+  const shape = new Float32Array(ids.length * 3);
+  pts.forEach((p, k) => bend(p).toArray(shape, k * 3));
+  const p = new THREE.Vector3();
+  const close = (v, out) => out.copy(bend(p.copy(v).applyMatrix4(toWorld).sub(origin)));
+  return { ids, shape, centre: centre.clone().add(origin), close, index };
+}
+
+/**
+ * A modelled glove (chibi-garments.js, mesh space of the body, its skin indices the body's) closes
+ * with the hand: each vertex led by a hand bone is bent as that hand's fist bends the hand inside it
+ * (curlFist `close`), as the body's own morph targets, in the same order (fistR, fistL), so the glove
+ * shares the body's morph influences. `fists`: [right, left] from prepareChibiBody.
+ */
+export function closeGloves(geo, fists) {
+  const pos = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
+  const v = new THREE.Vector3(), out = new THREE.Vector3();
+  // the outline thinned on the hand as on the body's (addFistMorphs)
+  const outline = new Float32Array(pos.count).fill(1);
+  geo.morphAttributes.position = fists.map((f, n) => {
+    const d = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) {
+      let lead = 0;
+      for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, lead)) lead = k;
+      if (si.getComponent(i, lead) !== f.index) continue;
+      f.close(v.fromBufferAttribute(pos, i), out).sub(v).toArray(d, i * 3);
+      outline[i] = HAND_OUTLINE;
+    }
+    const a = new THREE.BufferAttribute(d, 3);
+    a.name = FIST_NAMES[n];
+    return a;
   });
-  return { ids, shape, centre: centre.add(origin) };
+  geo.morphTargetsRelative = true;
+  geo.setAttribute('outlineScale', new THREE.BufferAttribute(outline, 1));
+  return geo;
 }
 
 /**
@@ -555,7 +589,7 @@ export function prepareChibiBody(gltf, cfg) {
   const headTuck = { verts: Uint32Array.from(fitVerts), neck: Uint32Array.from(neck), ears: Uint32Array.from(ears), face: Uint32Array.from(face), toMesh, bone: hb };
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, faceShadow, faceDecal: cfg.faceDecal || null, eyeColor: cfg.eyeColor || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], relaxedHand: cfg.fist?.relaxed ?? 0, paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, fists: fists.RightHand && fists.LeftHand ? [fists.RightHand, fists.LeftHand] : null, faceShadow, faceDecal: cfg.faceDecal || null, eyeColor: cfg.eyeColor || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], relaxedHand: cfg.fist?.relaxed ?? 0, paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -655,12 +689,13 @@ function hairFrame(T, H, uniform) {
 /**
  * The hair kept inside a modelled helm: each hair point the helm's surface lies in front of, seen
  * from the head's middle, is pulled back to just inside it, so no hair pokes through and none is
- * cut away. Computed once per helm and hair (cached on the helm model).
+ * cut away. Computed once per helm and hair (cached on the helm model). The helm sits in the frame
+ * of the hair it was made on (`base`, the default hair), whatever the hair style.
  */
-function hairInsideHelm(T, H, model) {
+function hairInsideHelm(T, H, model, base) {
   const cache = (model.inside ||= new WeakMap());
   if (cache.has(H)) return cache.get(H);
-  const hf = hairFrame(T, H, false), mf = hairFrame(T, H, true), hb = T.headBox;
+  const hf = hairFrame(T, H, false), mf = hairFrame(T, base, true), hb = T.headBox;
   const helm = new THREE.Mesh(model.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
   helm.position.copy(mf.position); helm.scale.copy(mf.scale); helm.updateMatrixWorld(true);
   const centre = hb.getCenter(new THREE.Vector3());
@@ -1062,12 +1097,15 @@ function fitHairToHead(T, src, H, geometry) {
  * Under a code-built `helm`, the hair drawn is its under-helm cut (`underHelm`), if it has one. A
  * modelled helm (`model`, headwear only) is drawn over the whole hair, kept inside it
  * (hairInsideHelm), or over the hair as it is when it is a band worn on top of it (`withHair`).
+ * Helms are made on the default hair (`base`, characters.hero_chibi_hair) and placed in its frame
+ * whatever the hair style: in another style's frame (a model of its own size) a helm came out a
+ * tenth of its size.
  */
-export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null, geometry: own = null, color = null } = {}) {
+export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null, base = H, geometry: own = null, color = null } = {}) {
   const headBone = rig.skin?.body.getObjectByName('Head');
   if (!headBone || !T.headBox) return;
-  if (model) attachChibiHair(rig, T, H, { outline, darkness, rim, color, geometry: model.withHair ? null : hairInsideHelm(T, H, model) });
-  const { position, scale } = hairFrame(T, H, model && !model.withHair);
+  if (model) attachChibiHair(rig, T, H, { outline, darkness, rim, color, geometry: model.withHair ? null : hairInsideHelm(T, H, model, base) });
+  const { position, scale } = hairFrame(T, model ? base : H, model && !model.withHair);
   const g = new THREE.Group();
   g.position.copy(position); g.scale.copy(scale);
   const s = (scale.x + scale.y + scale.z) / 3;

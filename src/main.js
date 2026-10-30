@@ -114,8 +114,8 @@ if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamB
 view.startupDependencies={};
 trackStartupReadiness({models:loadModels(data.models, { onWeaponReady: (id) => {
   const bases = F.game?.gearLook().bases;
-  // a weapon, or the chibi outfit model (outfit_<item>) of the worn armour, boots or helm
-  const worn = bases && [bases.weapon, bases.offhand, `outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`, `outfit_${bases.helm}`];
+  // a weapon, or the chibi outfit model (outfit_<item>) of the worn armour, boots, gloves or helm
+  const worn = bases && [bases.weapon, bases.offhand, `outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`, `outfit_${bases.gloves}`, `outfit_${bases.helm}`];
   // or the chibi hair model of the chosen hair style (hero_chibi_hair_<style>)
   const hair = id === `hero_chibi_hair_${F.game?.ch.appearance?.hairStyle}` || id === `face_${F.game?.ch.appearance?.face}`;
   if (worn?.includes(id) || hair) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);

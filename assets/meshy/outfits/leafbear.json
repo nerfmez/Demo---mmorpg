@@ -1,0 +1,49 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for the leaf tanuki set (round-eared hood with a leaf): the front view of the owner's turnaround (leafbear_turnaround.png), meshy-t2 image-to-3d in T-pose (task 01a18b3f-34d6-75ff-b7b2-fbf4439a48db) and a Meshy 6 retexture from the same image (task 01a18b40-0ed8-77da-bd86-a74e9eb83f02); sized from its arm axis, cut at the neck, sleeve ends (cuff) and boot tops read off the model. Models only for now: no item uses them yet.",
+ "id": "leafbear",
+ "src": "assets/meshy/outfits/leafbear_meshy.glb",
+ "neck": 0.92,
+ "cuff": 0.33,
+ "bootTop": 0.27,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.5,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/leafbear_coat.glb",
+  "boots": "public/models/outfits/leafbear_boots.glb",
+  "gloves": "public/models/outfits/leafbear_gloves.glb"
+ },
+ "fitHead": 1.0,
+ "dropBehind": 0.3,
+ "glove": 0.31,
+ "keepAbove": 0.15
+}

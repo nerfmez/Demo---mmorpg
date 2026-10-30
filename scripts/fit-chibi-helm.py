@@ -132,7 +132,9 @@ def head(g, neck):
             print('hair colour', np.round(hc), 'faces', len(hair))
             face.update(hair)
     bmesh.ops.delete(bm, geom=list(face), context='FACES')
-    # what is left on the face (eyes, brows, mouth) is small islands: keep the large pieces
+    # what is left on the face (eyes, brows, mouth) is small islands: keep the large pieces, and
+    # any piece well above the eyes (`keepAbove` over them: a leaf on a hood's crown is small pieces)
+    top = (ec[True][2] + ec[False][2]) / 2 + C.get('keepAbove', 1)
     seen, keep = set(), set()
     for f in bm.faces:
         if f in seen: continue
@@ -142,12 +144,27 @@ def head(g, neck):
             for e in t.edges:
                 for o in e.link_faces:
                     if o not in seen: seen.add(o); comp.append(o); todo.append(o)
-        if len(comp) >= C.get('minPiece', 40): keep.update(comp)
+        if len(comp) >= C.get('minPiece', 40) or min(g.calc_center_median().z for g in comp) > top: keep.update(comp)
     bmesh.ops.delete(bm, geom=[f for f in bm.faces if f not in keep], context='FACES')
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
     return bm, eyes, img
 
 
+
+def surface(src):
+    """a model's triangles as a ray-cast tree that outlives the scene (load() clears it)"""
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.ops.import_scene.gltf(filepath=src)
+    vs, fs = [], []
+    for o in bpy.data.objects:
+        if o.type != 'MESH': continue
+        n = len(vs); vs += [tuple(o.matrix_world @ v.co) for v in o.data.vertices]
+        fs += [tuple(n + i for i in p.vertices) for p in o.data.polygons]
+    return BVHTree.FromPolygons(vs, fs), np.array(vs)
+
+
+# the hero's own hair in this frame (the head the helm goes on: the game pulls the hair in under it)
+hair, HV = surface('public/models/hero_chibi_hair.glb') if 'fitHead' in C else (None, None)
 ref = load(REF['src'], REF['scale'], REF['lift'])
 _, reyes, _ = head(ref, REF['neck'])
 g = load(C['src'], C.get('scale'), C.get('lift'))
@@ -162,6 +179,24 @@ k = float(np.clip(np.linalg.norm(reyes[0] - reyes[1]) / np.linalg.norm(eyes[0] -
 off = Vector((reyes[0] + reyes[1]) / 2 - k * (eyes[0] + eyes[1]) / 2)
 bmesh.ops.transform(bm, matrix=Matrix.Translation(off) @ Matrix.Scale(k, 4), verts=bm.verts[:])
 print(HELM, 'tris', len(bm.faces), 'scale %.3f' % k, 'move', np.round(off, 3), 'eyes', np.round(eyes[0], 3), np.round(eyes[1], 3))
+if hair:
+    # the eyes alone size a helm badly when the sheet's head is bigger or its eyes set closer than the
+    # Travel model's: the helm is then scaled about the hair's middle so its inside lies on the hero's
+    # hair (`fitHead`: its inside over the hair's outside, in the median over the crown, the sides
+    # and the back; the face's opening is left out), as the sheet's helm sits on its head
+    lo, hi = HV.min(0), HV.max(0)
+    c = Vector(((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2] + 0.45 * (hi[2] - lo[2])))
+    tree = BVHTree.FromBMesh(bm); r = []
+    for el in range(0, 91, 10):
+        for az in range(0, 360, 15):
+            e, a = np.radians(el), np.radians(az)
+            d = Vector((np.sin(a) * np.cos(e), -np.cos(a) * np.cos(e), np.sin(e)))
+            if d.y < -0.45 and el < 45: continue  # the face's opening
+            out = hair.ray_cast(c + d, -d)[0]; inn = tree.ray_cast(c, d)[0]
+            if out is not None and inn is not None: r.append((inn - c).length / (out - c).length)
+    s = float(np.clip(C['fitHead'] / np.median(r), 0.5, 1.5))
+    bmesh.ops.transform(bm, matrix=Matrix.Translation(c) @ Matrix.Scale(s, 4) @ Matrix.Translation(-c), verts=bm.verts[:])
+    print('fit to the hair: inside/hair %.2f, scaled %.3f' % (np.median(r), s))
 bm.to_mesh(g.data); bm.free()
 for p in g.data.polygons: p.use_smooth = True
 img.scale(C.get('tex', 2048), C.get('tex', 2048))

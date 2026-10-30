@@ -490,12 +490,16 @@ size), its bones converted from the armature's centimetres. Helms use `helmFit`,
 than `headFit`, to sit over the hair. In Godot build the same shells from the chibi mesh. The body
 mesh is closed: `scripts/decimate-chibi.py` welds the glTF's split UV seams before decimating, or every
 seam opens into a crack that shows the background and that the shells copy.
-An armour or boots item with a modelled outfit (`characters.outfit_<item id>`, `chibiOutfit`
-"armor" or "boots"; `scripts/fit-chibi-outfit.py` fits a Meshy-generated dressed chibi onto this body)
-wears that model instead of the shells it replaces (armour: top, trousers, skirt; boots: boots): one
+An armour, boots or gloves item with a modelled outfit (`characters.outfit_<item id>`, `chibiOutfit`
+"armor", "boots" or "gloves"; `scripts/fit-chibi-outfit.py` fits a Meshy-generated dressed chibi onto this body)
+wears that model instead of the shells it replaces (armour: top, trousers, skirt; boots: boots; gloves: gloves): one
 textured skinned mesh on the same armature, its vertices moved into the body's bind space and its
 joints remapped to the body skeleton by name (`prepareChibiOutfit`, `fitOutfit`), with the body's
-toon material and outline. Its node extras `hideBody` list the body triangles it covers; while it is
+toon material and outline. A gloves model closes with the fists: `closeGloves` adds the body's two
+fist morph targets to it (same names and order, so it shares the body's influences), each vertex led by
+a hand bone bent by the same curl as the hand inside it (`curlFist` returns that bend as `close`); its
+outline is thinned on the hands as the body's is. In Godot add the same blend shapes to the glove mesh
+(or use finger bones for both). Its node extras `hideBody` list the body triangles it covers; while it is
 worn those body vertices are tucked `underCloth.inset` inside the cloth along their normals (`coveredBody`;
 a vertex is tucked only when every triangle round it is covered) and drawn at `underCloth.under` of its
 light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view
@@ -517,7 +521,7 @@ neck), edges it with a teal `trim` band, and leaves the body under the opening u
 in Godot pass the bind position to the fragment shader and discard the same way (cloth and outline). The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
-hair is and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn
+default hair (`hero_chibi_hair`, the frame every helm is made in) is, whatever the chosen hair style, and drawn over the hero's whole hair, each hair point the helm's surface lies in front of (seen from the head's middle) pulled back just inside it, so no hair pokes through and none is cut away; one marked `withHair` (the feather circlet) is a band drawn
 over the whole hair, taking the hair's own per-axis scale. In Godot attach
 the mesh to the body's `Skeleton3D` and draw the body with those triangles removed (or a mask). Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
 for a bow) and the socket moves to the fist's hole. In Godot,

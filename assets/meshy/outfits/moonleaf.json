@@ -39,6 +39,8 @@
  },
  "out": {
   "armor": "public/models/outfits/moonleaf_robe.glb",
-  "boots": null
- }
+  "boots": null,
+  "gloves": "public/models/outfits/moonleaf_gloves.glb"
+ },
+ "glove": 0.3
 }

@@ -39,7 +39,8 @@
  },
  "out": {
   "armor": "public/models/outfits/wardenstalker_coat.glb",
-  "boots": "public/models/outfits/gale_boots.glb"
+  "boots": "public/models/outfits/gale_boots.glb",
+  "gloves": "public/models/outfits/wardenstalker_gloves.glb"
  },
  "chinCut": 0.07,
  "chinBack": 0.3,
@@ -50,5 +51,6 @@
  "shoulderRise": 0.15,
  "dropPale": 0.06,
  "proud": 0.015,
- "uncover": 0.12
+ "uncover": 0.12,
+ "glove": 0.31
 }

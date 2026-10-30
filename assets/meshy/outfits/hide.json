@@ -34,6 +34,8 @@
  "coverHits": 2,
  "out": {
   "armor": "public/models/outfits/hide_vest.glb",
-  "boots": "public/models/outfits/trail_boots.glb"
- }
+  "boots": "public/models/outfits/trail_boots.glb",
+  "gloves": "public/models/outfits/hide_gloves.glb"
+ },
+ "glove": 0.3
 }

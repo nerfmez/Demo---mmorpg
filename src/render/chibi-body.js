@@ -38,142 +38,100 @@ export function smoothNormals(geometry) {
   geometry.deleteAttribute('tangent'); // stale after the normals change; no normal map uses it
 }
 
+const FINGERS = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'];
+
 /**
- * The closed shape of an open hand (the Meshy hand has no finger bones), in the bind (T-pose)
- * shape. Every vertex led by the hand bone past the knuckles (`knuckle` of the hand's length) is
- * bent toward the palm around an axis across the fingers, `radius` × the hand's thickness beyond
- * the fingers' palm side, by its distance past the knuckles (the tips reach at most `wrap`
- * half-turns). The thumb (vertices from `thumbFrom` to `thumbTo` of the way out to its side, short
- * of `thumbReach` of the hand's length) then turns up to `thumbTurn` degrees about the hand's
- * length, folding under the palm over the curled fingers. Returns the hand's vertex ids, their
- * closed positions (mesh space), the fist's hole in world space, where a handle goes, and `close`,
- * which bends any point of mesh space the same way (a modelled glove round the hand, closeGloves).
+ * A hand's finger bones (scripts/rig-chibi-hands.py: three per finger, chained, their rest
+ * rotations those of the hand) and its frame in the hand bone's space: F out along the hand (to the
+ * middle knuckle), A across it toward the thumb's side (pinky knuckle to index knuckle, square to F),
+ * P = F x A. Each bone's rest direction is the way to the next joint (the last one carries on).
+ * Null for a body without finger bones.
  */
-export function curlFist(mesh, hand, { knuckle = 0.55, radius = 0.25, wrap = 1.25, thumbTurn = 100, thumbFrom = 0.35, thumbTo = 0.6, thumbReach = 0.75 } = {}) {
-  const geo = mesh.geometry, pos = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
-  const index = mesh.skeleton.bones.indexOf(hand);
-  // bind position -> world: the hand bone's skinning matrix, which every bone shares at bind
-  hand.updateWorldMatrix(true, false);
-  const toWorld = new THREE.Matrix4().copy(mesh.matrixWorld).multiply(mesh.bindMatrixInverse)
-    .multiply(new THREE.Matrix4().multiplyMatrices(hand.matrixWorld, mesh.skeleton.boneInverses[index])).multiply(mesh.bindMatrix);
-  const toLocal = toWorld.clone().invert();
-  const ids = [], pts = [], v = new THREE.Vector3(), origin = hand.getWorldPosition(new THREE.Vector3());
-  for (let i = 0; i < pos.count; i++) {
-    let lead = 0;
-    for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, lead)) lead = k;
-    if (si.getComponent(i, lead) !== index) continue;
-    ids.push(i);
-    pts.push(v.fromBufferAttribute(pos, i).applyMatrix4(toWorld).sub(origin).clone());
+function handRig(bones, side) {
+  const fingers = {};
+  for (const f of FINGERS) {
+    const chain = [1, 2, 3].map((k) => bones[`${side}Hand${f}${k}`]);
+    if (chain.some((b) => !b)) return null;
+    const rest = [chain[1].position, chain[2].position, chain[2].position].map((v) => v.clone().normalize());
+    fingers[f] = { chain, rest, lengths: [chain[1].position.length(), chain[2].position.length(), chain[2].position.length() * 0.9] };
   }
-  if (!ids.length) return null;
-  // axes: fingers out along the arm, palm down (the bind pose is palms down), across = fingers × palm;
-  // the model faces +Z, so the thumb is on the +Z side of `across`
-  const F = pts.reduce((a, p) => a.add(p), new THREE.Vector3()).normalize();
-  const P = new THREE.Vector3(0, -1, 0).addScaledVector(F, F.y).normalize();
-  const A = new THREE.Vector3().crossVectors(F, P);
-  const side = Math.sign(A.z) || 1;
-  let tMin = Infinity, tMax = -Infinity, hMin = Infinity, hMax = -Infinity, aMax = 0;
-  for (const p of pts) {
-    const t = p.dot(F), h = p.dot(P);
-    tMin = Math.min(tMin, t); tMax = Math.max(tMax, t); hMin = Math.min(hMin, h); hMax = Math.max(hMax, h);
-    aMax = Math.max(aMax, p.dot(A) * side);
-  }
-  // the bend radius grows if needed so the fingertips end inside the turn (not through the palm)
-  const t0 = tMin + (tMax - tMin) * knuckle, r = Math.max((hMax - hMin) * radius, (tMax - t0) / (wrap * Math.PI));
-  let palmSide = -Infinity, aSum = 0, aN = 0;
-  for (const p of pts) if (p.dot(F) > t0) { palmSide = Math.max(palmSide, p.dot(P)); aSum += p.dot(A); aN++; }
-  const centre = new THREE.Vector3().addScaledVector(F, t0).addScaledVector(P, palmSide + r).addScaledVector(A, aN ? aSum / aN : 0);
-  const thumbEnd = tMin + (tMax - tMin) * thumbReach, fade = (tMax - tMin) * 0.15;
-  const pivot = new THREE.Vector3().addScaledVector(A, side * aMax * thumbFrom).addScaledVector(P, (hMin + hMax) / 2);
-  const q = new THREE.Quaternion(), rel = new THREE.Vector3(), at = new THREE.Vector3();
-  // a point (relative to the hand bone's origin, in world space) of the open hand, closed
-  const bend = (p) => {
-    const t = p.dot(F), s = t - t0;
-    rel.copy(p);
-    if (s > 0) {
-      // the point at the knuckle line with this height and width, turned about the centre
-      q.setFromAxisAngle(A, s / r);
-      rel.addScaledVector(F, -s).sub(centre).applyQuaternion(q).add(centre);
-    } else {
-      const w = THREE.MathUtils.clamp(((p.dot(A) * side) / aMax - thumbFrom) / (thumbTo - thumbFrom), 0, 1)
-        * THREE.MathUtils.clamp(1 - (t - thumbEnd) / fade, 0, 1);
-      if (w > 0) {
-        at.copy(pivot).addScaledVector(F, t);
-        q.setFromAxisAngle(F, -side * THREE.MathUtils.degToRad(thumbTurn) * w);
-        rel.sub(at).applyQuaternion(q).add(at);
-      }
-    }
-    return rel.add(origin).applyMatrix4(toLocal);
-  };
-  const shape = new Float32Array(ids.length * 3);
-  pts.forEach((p, k) => bend(p).toArray(shape, k * 3));
-  const p = new THREE.Vector3();
-  const close = (v, out) => out.copy(bend(p.copy(v).applyMatrix4(toWorld).sub(origin)));
-  return { ids, shape, centre: centre.clone().add(origin), close, index };
+  const F = fingers.Middle.chain[0].position.clone().normalize();
+  const A = fingers.Index.chain[0].position.clone().sub(fingers.Pinky.chain[0].position);
+  A.addScaledVector(F, -A.dot(F)).normalize();
+  return { fingers, F, A, P: new THREE.Vector3().crossVectors(F, A) };
 }
 
 /**
- * A modelled glove (chibi-garments.js, mesh space of the body, its skin indices the body's) closes
- * with the hand: each vertex led by a hand bone is bent as that hand's fist bends the hand inside it
- * (curlFist `close`), as the body's own morph targets, in the same order (fistR, fistL), so the glove
- * shares the body's morph influences. `fists`: [right, left] from prepareChibiBody.
+ * Each finger bone's rotation for a hand pose (data: hands.poses, scripts/hand-poses.py: every
+ * bone's direction in the hand's frame), turning it the least way onto that direction from where its
+ * parent bone has turned it: {finger: [q1, q2, q3]}. `k` takes that much of each turn (a grip opened
+ * round a thicker handle).
  */
-export function closeGloves(geo, fists) {
-  const pos = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
-  const v = new THREE.Vector3(), out = new THREE.Vector3();
-  // the outline thinned on the hand as on the body's (addFistMorphs)
-  const outline = new Float32Array(pos.count).fill(1);
-  geo.morphAttributes.position = fists.map((f, n) => {
-    const d = new Float32Array(pos.count * 3);
-    for (let i = 0; i < pos.count; i++) {
-      let lead = 0;
-      for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, lead)) lead = k;
-      if (si.getComponent(i, lead) !== f.index) continue;
-      f.close(v.fromBufferAttribute(pos, i), out).sub(v).toArray(d, i * 3);
-      outline[i] = HAND_OUTLINE;
-    }
-    const a = new THREE.BufferAttribute(d, 3);
-    a.name = FIST_NAMES[n];
-    return a;
-  });
-  geo.morphTargetsRelative = true;
-  geo.setAttribute('outlineScale', new THREE.BufferAttribute(outline, 1));
-  return geo;
+function handPoseQuats(H, pose, k = 1) {
+  const out = {}, t = new THREE.Vector3(), acc = new THREE.Quaternion(), inv = new THREE.Quaternion();
+  for (const f of FINGERS) {
+    const { rest } = H.fingers[f];
+    acc.identity();
+    out[f] = pose[f].map(([a, b, c], i) => {
+      t.set(0, 0, 0).addScaledVector(H.F, a).addScaledVector(H.A, b).addScaledVector(H.P, c).normalize();
+      t.applyQuaternion(inv.copy(acc).invert());
+      const q = new THREE.Quaternion().setFromUnitVectors(rest[i], t);
+      acc.multiply(q);
+      return q;
+    });
+    if (k !== 1) out[f] = out[f].map((q) => new THREE.Quaternion().slerp(q, k));
+  }
+  return out;
 }
 
 /**
- * Add each hand's fist as a morph target (positions and smoothed normals, relative) so a hand can
- * close only while it holds something; and an `outlineScale` attribute that thins the outline
- * on the hands, whose small folded shapes a full-width hull turns into black jags.
+ * The hole a closed hand holds a handle in (the hand bone's space): the middle of the circle through
+ * each long finger's knuckle, middle and tip as the pose curls them round the handle, averaged over
+ * the index, middle and ring fingers, and its radius.
  */
-function addFistMorphs(geo, fists) {
-  const pos = geo.attributes.position, nrm = geo.attributes.normal;
-  const outline = new Float32Array(pos.count).fill(1);
-  const open = pos.array.slice(), openN = nrm.array.slice();
-  for (const f of fists) for (let k = 0; k < f.ids.length; k++) {
-    pos.setXYZ(f.ids[k], f.shape[k * 3], f.shape[k * 3 + 1], f.shape[k * 3 + 2]);
-    outline[f.ids[k]] = HAND_OUTLINE;
-  }
-  smoothNormals(geo);
-  const closedN = geo.attributes.normal.array;
-  const targets = fists.map((f, n) => {
-    const dp = new Float32Array(pos.count * 3), dn = new Float32Array(pos.count * 3);
-    for (const i of f.ids) for (let c = 0; c < 3; c++) {
-      dp[i * 3 + c] = pos.array[i * 3 + c] - open[i * 3 + c];
-      dn[i * 3 + c] = closedN[i * 3 + c] - openN[i * 3 + c];
+function gripHole(H, quats) {
+  const centre = new THREE.Vector3(), q = new THREE.Quaternion(), p = new THREE.Vector3(), d = new THREE.Vector3();
+  let radius = 0;
+  for (const f of ['Index', 'Middle', 'Ring']) {
+    const { chain, rest, lengths } = H.fingers[f];
+    const pts = [chain[0].position.clone()];
+    q.identity(); p.copy(pts[0]);
+    for (let k = 0; k < 3; k++) {
+      q.multiply(quats[f][k]);
+      p.add(d.copy(rest[k]).multiplyScalar(lengths[k]).applyQuaternion(q));
+      pts.push(p.clone());
     }
-    const a = new THREE.BufferAttribute(dp, 3), b = new THREE.BufferAttribute(dn, 3);
-    a.name = b.name = FIST_NAMES[n];
-    return [a, b];
-  });
-  pos.array.set(open);
-  pos.needsUpdate = true;
-  geo.setAttribute('normal', new THREE.BufferAttribute(openN, 3));
-  geo.morphAttributes.position = targets.map(([a]) => a);
-  geo.morphAttributes.normal = targets.map(([, b]) => b);
-  geo.morphTargetsRelative = true;
-  geo.setAttribute('outlineScale', new THREE.BufferAttribute(outline, 1));
-  geo.computeBoundingSphere();
+    // the circle through the knuckle, the middle joint and the tip
+    const [a, , , c] = pts, b = pts[1].clone().add(pts[2]).multiplyScalar(0.5);
+    const ab = b.clone().sub(a), ac = c.clone().sub(a), n = new THREE.Vector3().crossVectors(ab, ac);
+    const o = new THREE.Vector3().crossVectors(n, ab).multiplyScalar(ac.lengthSq())
+      .add(new THREE.Vector3().crossVectors(ac, n).multiplyScalar(ab.lengthSq())).divideScalar(2 * n.lengthSq());
+    radius += o.length() / 3;
+    centre.add(o.add(a));
+  }
+  return { centre: centre.divideScalar(3), radius };
+}
+
+/**
+ * The share of a holding pose's turns that wraps the hand round a handle of `radius` (m): the
+ * reference curls its long fingers round a thin grip, and the chibi's short fingers, curled as far,
+ * left a hole the weapons' handles swallowed the fingers in.
+ */
+function gripShare(H, pose, radius, unit) {
+  let lo = 0.2, hi = 1;
+  for (let i = 0; i < 20; i++) {
+    const k = (lo + hi) / 2;
+    if (gripHole(H, handPoseQuats(H, pose, k)).radius * unit > radius) lo = k; else hi = k;
+  }
+  return (lo + hi) / 2;
+}
+
+/** Set a rig's finger bones to a hand pose (before bindSkinSync takes them as their rest). */
+function poseHand(body, T, side, name) {
+  const H = T.hands?.[side], pose = name && T.handPoses?.[name]?.[side];
+  if (!H || !pose) return;
+  const quats = handPoseQuats(H, pose, name === T.handHolding ? T.gripShare[side] : 1);
+  for (const f of FINGERS) H.fingers[f].chain.forEach((b, k) => body.getObjectByName(b.name)?.quaternion.copy(quats[f][k]));
 }
 
 /**
@@ -460,8 +418,20 @@ function softHeadNormals(geo, { centre, w }, soft) {
   nrm.needsUpdate = true;
 }
 
-const FIST_NAMES = ['fistR', 'fistL'];
 const HAND_OUTLINE = 0.35;
+
+/** An `outlineScale` attribute that thins the outline on the hands (their bone or a finger's), whose
+ *  small folded shapes a full-width hull turns into black jags. */
+function thinHandOutline(mesh) {
+  const geo = mesh.geometry, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
+  const outline = new Float32Array(si.count).fill(1);
+  for (let i = 0; i < si.count; i++) {
+    let lead = 0;
+    for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, lead)) lead = k;
+    if (/Hand/.test(mesh.skeleton.bones[si.getComponent(i, lead)].name)) outline[i] = HAND_OUTLINE;
+  }
+  geo.setAttribute('outlineScale', new THREE.BufferAttribute(outline, 1));
+}
 
 /** Smooth the mesh, pose the loaded model once (arms down) and measure its joints. */
 export function prepareChibiBody(gltf, cfg) {
@@ -476,13 +446,15 @@ export function prepareChibiBody(gltf, cfg) {
   if (!mesh || !bones.Hips) throw new Error('hero_chibi: no skinned mesh or Hips bone');
   const head0 = cfg.headShape ? reshapeHead(mesh, cfg.headShape) : null;
   if (cfg.flatten) flattenBody(mesh, cfg.flatten);
-  const fists = cfg.fist ? { RightHand: curlFist(mesh, bones.RightHand, cfg.fist), LeftHand: curlFist(mesh, bones.LeftHand, cfg.fist) } : {};
+  // the finger bones and the poses they take (a hand holding something closes round it)
+  const hands = { Left: handRig(bones, 'Left'), Right: handRig(bones, 'Right') };
+  const handPoses = cfg.hands?.poses || null;
   smoothNormals(mesh.geometry);
   // 1 where a worn outfit tucks the body under its cloth (chibi-garments.js coveredBody), else 0
   mesh.geometry.setAttribute('tucked', new THREE.BufferAttribute(new Float32Array(mesh.geometry.attributes.position.count), 1));
   // 1 where the head lies under the fitted hair (fitHairToHead), drawn in the hair's shade, else 0
   mesh.geometry.setAttribute('underHair', new THREE.BufferAttribute(new Float32Array(mesh.geometry.attributes.position.count), 1));
-  if (fists.RightHand && fists.LeftHand) addFistMorphs(mesh.geometry, [fists.RightHand, fists.LeftHand]);
+  thinHandOutline(mesh);
   if (head0) softHeadNormals(mesh.geometry, head0, cfg.headShape.soft);
   if (head0 && cfg.faceShadow) addFaceCoords(mesh, head0.w, cfg.faceShadow);
   mesh.geometry.userData.shared = true;
@@ -508,9 +480,14 @@ export function prepareChibiBody(gltf, cfg) {
   }
   // each hand's thumb direction in its own space: the model faces +Z, so in the bind pose both
   // thumbs point +Z (palms down, fingers out along the arms)
-  const grip = {}, thumb = {};
+  const grip = {}, thumb = {}, gripK = {};
   for (const [n, [sum, count]] of Object.entries(palm)) {
-    grip[n] = fists[n] ? bones[n].worldToLocal(fists[n].centre) : count ? sum.divideScalar(count) : new THREE.Vector3();
+    const side = n.replace('Hand', ''), H = hands[side], held = handPoses?.[cfg.hands.holding]?.[side];
+    if (H && held) {
+      // the holding pose opened round the weapons' handles (data: hands.gripRadius, m)
+      gripK[side] = gripShare(H, held, cfg.hands.gripRadius ?? 0.017, bones[n].getWorldScale(v).x);
+      grip[n] = gripHole(H, handPoseQuats(H, held, gripK[side])).centre;
+    } else grip[n] = count ? sum.divideScalar(count) : new THREE.Vector3();
     thumb[n] = new THREE.Vector3(0, 0, 1).applyQuaternion(bones[n].getWorldQuaternion(new THREE.Quaternion()).invert());
   }
 
@@ -589,7 +566,7 @@ export function prepareChibiBody(gltf, cfg) {
   const headTuck = { verts: Uint32Array.from(fitVerts), neck: Uint32Array.from(neck), ears: Uint32Array.from(ears), face: Uint32Array.from(face), toMesh, bone: hb };
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, fists: fists.RightHand && fists.LeftHand ? [fists.RightHand, fists.LeftHand] : null, faceShadow, faceDecal: cfg.faceDecal || null, eyeColor: cfg.eyeColor || null, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], relaxedHand: cfg.fist?.relaxed ?? 0, paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, hands, handPoses, handHolding: cfg.hands?.holding, handEmpty: cfg.hands?.empty, gripShare: gripK, faceShadow, faceDecal: cfg.faceDecal || null, eyeColor: cfg.eyeColor || null, chibi: true, grip, thumb, leftFistWith: cfg.hands?.leftGripWith || [], paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -1280,11 +1257,11 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
   body.traverse((o) => {
     if (o.isSkinnedMesh) meshes.push(o);
   });
-  // a hand closes into its fist only while it holds something: the right with any weapon, the
-  // left with an off-hand item or a weapon it also grips (data: fist.leftFistWith); an empty hand
-  // is curled part way (fist.relaxed), not held out with its fingers straight
-  const open = T.relaxedHand;
-  const closed = [weapon ? 1 : open, offhand || T.leftFistWith.includes(weapon) ? 1 : open];
+  // a hand closes round what it holds (data: hands.holding): the right with any weapon, the left
+  // with an off-hand item or a weapon it also grips (hands.leftGripWith); an empty hand takes
+  // hands.empty, curled a little, not held out with its fingers straight
+  poseHand(body, T, 'Right', weapon ? T.handHolding : T.handEmpty);
+  poseHand(body, T, 'Left', offhand || T.leftFistWith.includes(weapon) ? T.handHolding : T.handEmpty);
   for (const mesh of meshes) {
     const src = mesh.material;
     mesh.material = paintedLight(toonCopy(src, flash, rim, false), T.paintedLight);
@@ -1307,13 +1284,9 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;
-    mesh.updateMorphTargets();
-    if (mesh.morphTargetInfluences) mesh.morphTargetInfluences.splice(0, 2, ...closed);
     const hull = new THREE.SkinnedMesh(mesh.geometry, tuckedShade(outlineHull(src, outline, darkness), 1, T.underCloth?.depth ?? 0.05));
     hull.bind(mesh.skeleton, mesh.bindMatrix);
     hull.frustumCulled = false;
-    hull.morphTargetInfluences = mesh.morphTargetInfluences; // the outline closes with the hand
-    hull.morphTargetDictionary = mesh.morphTargetDictionary;
     mesh.parent.add(hull);
   }
   rig.root.add(body);

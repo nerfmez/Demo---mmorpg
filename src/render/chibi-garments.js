@@ -1,6 +1,6 @@
 // The outfit base (docs/OUTFIT-BASE.md) on the chibi hero: the same garments the HairSample hero
 // wears, built from the chibi body itself. A top shell (torso and arms), trousers (the legs), a
-// skirt from the waist, boot shafts with the feet, and glove shells (with the fists' morph targets)
+// skirt from the waist, boot shafts with the feet, and glove shells (skinned to the finger bones)
 // are body regions pushed out along the normals, so they move and close with the body; garments.js
 // cuts and paints them from the resolved outfit. Its cuts are in metres of the HairSample body, so
 // the chibi's shaders read their bind position and landmarks times SCALE.
@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { garmentFrame, garmentUniforms, pieceUniforms, garmentMaterial, garmentHull } from './garments.js';
 import { regionShell, skirt } from './base-garments.js';
 import { toonCopy } from './vrm-body.js';
-import { chibiOutline, paintedLight, darkInside, closeGloves } from './chibi-body.js';
+import { chibiOutline, paintedLight, darkInside } from './chibi-body.js';
 
 const BONES = { arm: 'LeftArm', elbow: 'LeftForeArm', hand: 'LeftHand', foot: 'LeftFoot', toe: 'LeftToeBase', neck: 'neck', chest: 'Spine', hips: 'Hips', leg: 'LeftUpLeg', knee: 'LeftLeg' };
 /** HairSample metres per chibi metre (hips to ankle 0.89 m against 0.53 m). */
@@ -75,7 +75,8 @@ function pieces(T, outfit, skip = new Set()) {
 /**
  * A modelled outfit piece (data/models.json characters with `chibiOutfit`: "armor", "boots" or
  * "gloves"): one skinned mesh on the chibi's armature, with the body triangles it covers (node extras
- * `hideBody`; they are tucked under it, coveredBody). Gloves close with the fists (closeGloves).
+ * `hideBody`; they are tucked under it, coveredBody). Gloves take the finger bones' weights from the
+ * body, so they close with the hand inside.
  */
 export function prepareChibiOutfit(gltf, m) {
   gltf.scene.updateMatrixWorld(true);
@@ -114,18 +115,14 @@ function bindSpace(mesh) {
   return mesh.matrixWorld.clone().multiply(mesh.bindMatrixInverse).multiply(bone).multiply(mesh.bindMatrix);
 }
 
-/**
- * The outfit geometry in the body's own bind space, its bones the body skeleton's (cached on the
- * outfit); a glove's with the fists' morph targets (`fists`: the template's, closeGloves).
- */
-function fitOutfit(O, body, fists = null) {
+/** The outfit geometry in the body's own bind space, its bones the body skeleton's (cached on the outfit). */
+function fitOutfit(O, body) {
   if (O.fitted) return O.fitted;
   const g = O.geometry.clone();
   g.applyMatrix4(bindSpace(body).invert().multiply(O.bind));
   const names = body.skeleton.bones.map((b) => b.name), si = g.attributes.skinIndex;
   const to = O.bones.map((n) => Math.max(0, names.indexOf(n)));
   for (let i = 0; i < si.count; i++) for (let k = 0; k < 4; k++) si.setComponent(i, k, to[si.getComponent(i, k)]);
-  if (O.piece === 'gloves' && fists) closeGloves(g, fists);
   g.userData.shared = true;
   O.fitted = g;
   return g;
@@ -275,7 +272,7 @@ function coveredBody(T, src, models, worn, cuffs = null) {
     g.morphAttributes = src.morphAttributes;
     g.morphTargetsRelative = src.morphTargetsRelative;
     // the hand inside a modelled glove is not drawn at all: the chibi's mitten hand showed between
-    // the glove's separate fingers (and its tips below them) when the fists closed
+    // the glove's separate fingers (and its tips below them) when the hand closed
     const gone = new Set(models.filter((O) => O.piece === 'gloves').flatMap((O) => O.hide));
     if (gone.size) {
       const kept = [];
@@ -305,14 +302,13 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
     rig.skin.body.traverse((o) => { if (o.isSkinnedMesh && o.geometry === src) o.geometry = body; });
   }
   for (const O of worn) {
-    const geometry = fitOutfit(O, mesh, T.fists);
+    const geometry = fitOutfit(O, mesh);
     const make = (material) => {
       const m = new THREE.SkinnedMesh(geometry, material);
       m.position.copy(mesh.position); m.quaternion.copy(mesh.quaternion); m.scale.copy(mesh.scale);
       m.bind(mesh.skeleton, mesh.bindMatrix);
       m.frustumCulled = false;
       m.userData.garment = O.piece;
-      if (geometry.morphAttributes.position) { m.updateMorphTargets(); m.morphTargetInfluences = mesh.morphTargetInfluences; } // gloves close with the fists
       return m;
     };
     const part = make(darkInside(paintedLight(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false), T.paintedLight), T.underCloth?.inside, O.localInside));
@@ -337,7 +333,6 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
       m.bind(mesh.skeleton, mesh.bindMatrix);
       m.frustumCulled = false;
       m.userData.garment = kind;
-      if (geometry.morphAttributes.position) { m.updateMorphTargets(); m.morphTargetInfluences = mesh.morphTargetInfluences; } // gloves close with the fists
       return m;
     };
     const part = make(garmentMaterial(kind, FS, uniforms, flash));

@@ -469,12 +469,18 @@ blade's flat (weapon +Y) to the side so the edge stands upright with the cutting
 weapon model's `edge: -1` marks a blade or axe head that cuts on its -X side, which flips it), and a weapon in `gripMiddle` (the
 staff) is held at the middle of its length. On a two-handed haft the left hand also turns its thumb
 along the haft, and the animator reaches the left arm so its fist hole (not its wrist) lands on the
-haft after the right fist is seated (`rig.support`). The hand has no finger
-bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
-load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
-holds something (the left also for the weapons in `fist.leftFistWith`); an empty hand is curled
-part way (`fist.relaxed` of the fist, not held out with straight fingers), and the outline is
-thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
+haft after the right fist is seated (`rig.support`). Each hand has finger bones (a thumb and four
+fingers of three bones each, `Left|RightHand{Thumb,Index,Middle,Ring,Pinky}{1,2,3}`, added by
+`scripts/rig-chibi-hands.py` from the hand's own shape, the hand's skin weight shared out along each
+finger). Their poses (`hands.poses`: open, relaxed, fist, grip) come from Quaternius UAL1 clips
+(`scripts/hand-poses.py`) as each bone's direction in the hand's frame (F out to the middle knuckle,
+A across toward the thumb, P = F x A; a pose taken from the other hand turns P over); `handPoseQuats`
+turns each bone the least way onto its direction. A hand holding something takes `hands.holding`
+(the left also for the weapons in `hands.leftGripWith`), opened (`gripShare`: a share of each turn)
+until the circle its long fingers curl round is `hands.gripRadius` (the weapons' handles at the gear
+scale), and its hole (`gripHole`) is where the handle goes; an empty hand takes `hands.empty`. The
+pose is set on the finger bones before `bindSkinSync`, which keeps undriven bones at that rotation.
+In Godot set the same bone rotations. The outline is thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
 bind pose). The head is reshaped once at load toward the sheet's rounder head
 (`headShape`: wider, shorter below the eye line, fuller cheeks, the whole head scaled by `scale`
 about its base on the neck) and its normals are bent toward the
@@ -484,7 +490,7 @@ head instead of the mesh normal (`faceShadow`: a per-vertex face mask and coordi
 bone's axes passed in each frame), so one shadow edge sweeps across the face as the light turns,
 as in anime games' face shadow maps; the hair is flat (see the hair styles below). In Godot do both in the toon shader with the same inputs. The Meshy textures of the body, hair and outfits carry their own painted shading, so each also glows at `paintedLight` × its texture (emission = albedo texture) and the toon light only shapes it instead of darkening it twice. The chibi wears the same outfit base as the HairSample hero
 (`render/chibi-garments.js`): top, trousers, skirt, boots (with the feet) and glove shells cut from
-its own body (`regionShell`, morph targets kept so gloves close with the fists), painted by
+its own body (`regionShell`, the skin weights kept so gloves close with the fingers), painted by
 `garments.js` reading its bind position and landmarks times `SCALE` (1.7, the HairSample body's
 size), its bones converted from the armature's centimetres. Helms use `helmFit`, larger and higher
 than `headFit`, to sit over the hair. In Godot build the same shells from the chibi mesh. The body
@@ -495,13 +501,10 @@ An armour, boots or gloves item with a modelled outfit (`characters.outfit_<item
 wears that model instead of the shells it replaces (armour: top, trousers, skirt; boots: boots; gloves: gloves): one
 textured skinned mesh on the same armature, its vertices moved into the body's bind space and its
 joints remapped to the body skeleton by name (`prepareChibiOutfit`, `fitOutfit`), with the body's
-toon material and outline. A gloves model closes with the fists: `closeGloves` adds the body's two
-fist morph targets to it (same names and order, so it shares the body's influences), each vertex led by
-a hand bone bent by the same curl as the hand inside it (`curlFist` returns that bend as `close`); its
-outline is thinned on the hands as the body's is. The body triangles a gloves model covers are left
+toon material and outline. A gloves model is skinned to the finger bones (its weights taken from
+the body's nearest point), so it closes with the hand inside it. The body triangles a gloves model covers are left
 out of the body's index while it is worn (not tucked: the chibi's mitten hand showed between the
-glove's separate fingers). In Godot add the same blend shapes to the glove mesh (or use finger bones
-for both) and draw the body with those triangles removed. Its node extras `hideBody` list the body triangles it covers; while it is
+glove's separate fingers). In Godot draw the body with those triangles removed. Its node extras `hideBody` list the body triangles it covers; while it is
 worn those body vertices are tucked `underCloth.inset` inside the cloth along their normals (`coveredBody`;
 a vertex is tucked only when every triangle round it is covered) and drawn at `underCloth.under` of its
 light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view
@@ -529,7 +532,7 @@ the mesh to the body's `Skeleton3D` and draw the body with those triangles remov
 for a bow) and the socket moves to the fist's hole. In Godot,
 import the GLB with its `Skeleton3D`, recompute smooth normals on import, apply the same torso
 flatten, head reshape and normal bend, scale the hand
-attachments, add the same fists as blend shapes (or finger bones) and apply the same hand turn
+attachments, pose the same finger bones and apply the same hand turn
 and seat after the retarget.
 Its hair (`characters.hero_chibi_hair`, cut from the Travel Tunic's dressed chibi by
 `scripts/fit-chibi-hair.py`, its own painted texture) is parented to the head bone and fitted per

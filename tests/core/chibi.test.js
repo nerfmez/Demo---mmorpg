@@ -56,9 +56,33 @@ test('the chibi torso flatten bands are bounded', () => {
   }
 });
 
-test('an empty chibi hand is curled part way, short of the fist whose inside would show', () => {
-  const r = data.models.characters.hero_chibi.fist.relaxed;
-  assert.ok(r > 0 && r <= 0.45, 'fist.relaxed');
+test('the chibi hands have finger bones and poses from the reference for every finger bone', () => {
+  const hero = data.models.characters.hero_chibi, hands = hero.hands;
+  // scripts/rig-chibi-hands.py: a thumb and four fingers of three bones each, chained under each hand
+  const b = readFileSync(new URL('../../public/' + hero.file, import.meta.url));
+  const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
+  const node = Object.fromEntries(j.nodes.map((n, i) => [n.name, i])), joints = new Set(j.skins[0].joints);
+  for (const side of ['Left', 'Right']) for (const f of ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']) {
+    let parent = node[side + 'Hand'];
+    for (const k of [1, 2, 3]) {
+      const i = node[`${side}Hand${f}${k}`];
+      assert.ok(i !== undefined && joints.has(i), `${side}Hand${f}${k} is a skin joint`);
+      assert.ok(j.nodes[parent].children.includes(i), `${side}Hand${f}${k} hangs from the bone before it`);
+      parent = i;
+    }
+  }
+  // scripts/hand-poses.py: each pose a unit direction per finger bone for both hands
+  for (const name of [hands.holding, hands.empty]) assert.ok(hands.poses[name], name + ' is a pose');
+  for (const [name, pose] of Object.entries(hands.poses)) {
+    assert.match(pose.clip, /^UAL1 /, name + ' names its reference clip');
+    for (const side of ['Left', 'Right']) for (const f of ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']) {
+      assert.equal(pose[side][f].length, 3, `${name} ${side} ${f}`);
+      for (const d of pose[side][f]) assert.ok(Math.abs(Math.hypot(...d) - 1) < 0.01, `${name} ${side} ${f} unit directions`);
+    }
+  }
+  // a holding hand wraps a handle as thick as the weapons' at the chibi's gear scale
+  assert.ok(hands.gripRadius > 0.015 && hands.gripRadius < 0.04, 'gripRadius');
+  assert.ok(hands.leftGripWith.includes('bow'), 'the left hand grips a bow');
 });
 
 test('the chibi face shadow settings are bounded', () => {
@@ -187,16 +211,16 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
     const pos = view('POSITION', Float32Array, 3), w = view('WEIGHTS_0', Float32Array, 4);
     const ja = j.accessors[prim.attributes.JOINTS_0], jt = ja.componentType === 5121 ? Uint8Array : Uint16Array, jn = view('JOINTS_0', jt, 4);
     const names = j.skins[0].joints.map((i) => j.nodes[i].name);
-    // (and every glove vertex its own side's arm or hand; the hands themselves led by the hand bones,
-    // which close them with the fists: chibi-body.js closeGloves)
+    // (and every glove vertex its own side's arm, hand or fingers; the hands themselves led by the hand
+    // and finger bones, which close them with the hand inside)
     let wrong = 0, hand = 0;
     for (let v = 0; v < pos.length / 3; v++) {
       let best = 0;
       for (let k = 1; k < 4; k++) if (w[v * 4 + k] > w[v * 4 + best]) best = k;
       const name = names[jn[v * 4 + best]], x = pos[v * 3];
       if (pos[v * 3 + 1] < 0.3 && Math.abs(x) > 0.03 && (/^Left/.test(name) && x < 0 || /^Right/.test(name) && x > 0)) wrong++; // the legs and feet
-      if (m.chibiOutfit === 'gloves' && !(/^Left(Fore)?(Arm|Hand)$/.test(name) && x > 0 || /^Right(Fore)?(Arm|Hand)$/.test(name) && x < 0)) wrong++;
-      if (/Hand$/.test(name)) hand++;
+      if (m.chibiOutfit === 'gloves' && !(/^Left(ForeArm|Arm|Hand\w*)$/.test(name) && x > 0 || /^Right(ForeArm|Arm|Hand\w*)$/.test(name) && x < 0)) wrong++;
+      if (/Hand/.test(name)) hand++;
     }
     assert.equal(wrong, 0, id + ' vertices following the other side');
     if (m.chibiOutfit === 'gloves') assert.ok(hand > pos.length / 3 / 4, id + ' hands led by the hand bones');

@@ -34,7 +34,7 @@ function bodySkin(T) {
 /**
  * The body's triangles whose three corners pass `keep(x, y, z)` (bind space; `any`: at least one
  * corner, for a shell its shader cuts clean at the region's line), pushed out `off` along the
- * normals, keeping the skin weights and any morph targets (the chibi's fists), so the shell moves and
+ * normals, keeping the skin weights and any morph targets, so the shell moves and
  * closes exactly with the body.
  */
 export function regionShell(T, key, keep, off, any = false) {

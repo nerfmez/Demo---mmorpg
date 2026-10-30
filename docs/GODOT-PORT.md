@@ -466,7 +466,8 @@ Firebolt: gold light cut out of Firebolt's warped noise (`V5_FIELD`) on nested s
 one tapered slab along the wall, drawn solid with `uSolid`, its frame from a per-vertex distance to the outline `aEdge`); contacts use the ragged `flashMaterial` flash,
 bouncing sparks, rising embers, dust puffs (a ring of them where a boss stops the charge), a point light and a light pool
 decal under the wall. In Godot: the same noise in a spatial shader on those meshes, GPUParticles for the
-rest. The hero still borrows the shield shove and the riposte guard until their own reference-clip actions.
+rest. The hero plays `gsRush`, `gsFortress` and `gsWall` (`data/action-clips.json`, the owner's picks: Quaternius
+Shield_Dash, Push_Loop and Sword_GroundPound on the body, the arms kept on the shield by the carry and `reach`).
 
 **Signature and basic mods (owner, 2026-10-27).** A damage skill whose base cooldown is at least
 `mods.json signatureCooldown` (12 s) carries the `Signature` tag, and every mod that multiplies a

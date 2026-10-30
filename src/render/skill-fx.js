@@ -56,7 +56,7 @@ const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
 // a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
 const stormSpan = (s) => (s.repeats || 0) * ((s.repeatDelay || 0) + 0.1);
-const POST = { draw_cut: 0.95, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
+const POST = { shield_rush: 0.6, faith_wall: 0.5, draw_cut: 0.95, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**

@@ -4,8 +4,9 @@ shapes and Meshy's textures, made like the grotto's monsters (grotto-monsters.py
 Run headless:  blender -b --python scripts/blender/forest-monsters.py
 Each monster of the sheet was cut out as it is (docs/reference/forest-stone-pangolin.png,
 forest-leaf-fox.png: the fox as redrawn standing side-on, forest-leaf-tanuki.png) and sent to Meshy
-alone: image-to-3D, smart topology (meshy-t2), no texture (assets/meshy/forest/*_meshy.glb), then retextured with Meshy 6 from the same
-picture (2K, original UVs kept, lighting removed: assets/meshy/forest/*_textured_meshy.glb).
+alone: image-to-3D, smart topology (meshy-t2), no texture (assets/meshy/forest/*_meshy.glb), then
+retextured with Meshy 6 from the same picture (2K, original UVs kept, lighting removed:
+assets/meshy/forest/*_textured_meshy.glb).
 Writes public/models/forest/forest-monsters.glb with objects mon_<monster>_<part>, each standing on
 its own origin, in metres, facing -Y here (+Z in the game):
   pangolin  the stone pangolin: body (one piece: its plates, claws and tail)

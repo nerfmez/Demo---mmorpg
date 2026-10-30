@@ -685,7 +685,7 @@ attenuated light (a soft wrap), each surface kind may have its own `tints` (the 
 pools on the floor use `look.glowPool` [opacity, size]. In Godot this is one `ShaderMaterial` with those uniforms
 (point lights through `LIGHT` in the light() function).
 The boss stage is `inside.arena` (written by `grotto-trace.py`): the throne room and its dais are one open stage of
-stone (2.0) and wading water (floor 1.6), one step apart; `floors` lists them, `floor` is the dais, middle `at`, `r`, `clear` (radius kept free of
+stone (2.0, the dais an exact 13 m circle, a 96-corner polygon) and wading water (floor 1.6), one step apart; `floors` lists them, `floor` is the dais, middle `at`, `r`, `clear` (radius kept free of
 blocking props), `boss` spot and `bossFacing` (toward the `entry` stair), and the `throne` (the pearl altar behind the boss).
 The `bossSnail` prop (the boss's model, solid) is placed on that spot facing `bossFacing`; spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
 

@@ -168,7 +168,8 @@ test('the boss stage is one open room of stone and wading water: nothing blocks 
   assert.ok(facing[0] * toEntry[0] + facing[1] * toEntry[1] > 0, 'the boss faces the entry');
   // the boss's own body is solid: its spot is reached at its side
   const boss = FILE.inside.props.find((p) => p.type === 'bossSnail'), reachBoss = boss ? body * (boss.scale ?? 1) + 1 : 1;
-  assert.ok(reachedNear('inside', a.at, 1) && reachedNear('inside', a.boss, reachBoss), 'the stage is reached on foot');
+  const within = (q) => (Math.hypot(q[0] - a.boss[0], q[1] - a.boss[1]) < reachBoss ? reachBoss : 1);
+  assert.ok(reachedNear('inside', a.at, within(a.at)) && reachedNear('inside', a.boss, reachBoss), 'the stage is reached on foot');
 });
 
 test('paths are smoothed but keep their ends', () => {

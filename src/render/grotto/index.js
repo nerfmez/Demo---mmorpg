@@ -67,10 +67,10 @@ function buildMotes(map, count, colours, seed) {
 
 /**
  * @param {object} map createDungeon(...) result
- * @param {object} o {sea: true for the beach (the deep floor is open sea), motes: count, tall: rim wall height factor,
+ * @param {object} o {motes: count, tall: rim wall height factor,
  *   kit: the Blender kit (kit.js), which replaces the simple props; cave: the modelled cave rooms (cave.js);
  *   clam: the painted giant clam (clam.js); corals: the six painted glowing corals (corals.js);
- *   painted: the props from the owner's sheets (painted.js)}
+ *   painted: the props from the owner's sheets (painted.js); monsters: the monsters (monsters.js)}
  */
 export function buildGrottoScene(map, o = {}) {
   const look = map.def.look;
@@ -78,18 +78,18 @@ export function buildGrottoScene(map, o = {}) {
   root.name = `dungeon-${map.def.id}`;
   const floors = buildFloors(map, look);
   root.add(floors.root);
-  const water = buildWater(map, { sea: o.sea });
+  const water = buildWater(map);
   root.add(water.root);
   const keepClear = [
     ...(map.def.waterfalls || []).map((w) => [w.at[0], w.at[1], w.w / 2 + 0.8]),
     ...(map.def.links || []).map((l) => [l.at[0], l.at[1], 2.5]),
   ];
-  const edge = o.sea ? [] : rimPoints(map, 1.25);
+  const edge = rimPoints(map, 1.25);
   // the floors whose walls the cave model carries (the rest keep the generated rim)
   const modelled = new Set(o.cave ? map.floors.filter((f) => o.cave.parts.has(`cavewall_${f.id}`)).map((f) => f.id) : []);
-  if (!o.sea) root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1, points: edge, modelled }).root);
+  root.add(buildRim(map, look, { seed: map.def.seed, keepClear, tall: o.tall ?? 1, points: edge, modelled }).root);
   if (o.cave) root.add(buildCave(map, o.cave).root);
-  const props = buildProps(map, { decor: edge, keepClear, kit: o.kit, clam: o.clam, corals: o.corals, painted: o.painted });
+  const props = buildProps(map, { decor: edge, keepClear, kit: o.kit, clam: o.clam, corals: o.corals, painted: o.painted, monsters: o.monsters });
   root.add(props.root);
   // lights, each with a soft pool of its colour on the floor below
   const pools = [];
@@ -111,7 +111,8 @@ export function buildGrottoScene(map, o = {}) {
   if (motes) root.add(motes);
   return {
     root,
-    shell: props.shell,
+    boss: props.boss,
+    walkers: props.walkers,
     update(dt, t) {
       water.update(t);
       props.update(dt, t);

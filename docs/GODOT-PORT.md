@@ -800,7 +800,16 @@ and opening a menu clear held actions and movement; they must never cast a skill
 Keep this behaviour in the Godot touch controls. `tests/browser/ux.mjs` exercises the
 menu workflows and these interrupted gestures at desktop, tablet and phone sizes.
 
-## Dungeon maps (Pearlshell Grotto, standalone preview)
+## Dungeon maps (Pearlshell Grotto, entered from the Singing Conch)
+
+The way in is a map landmark with `dungeon: {id, r}` (`giant_conch` in `frontier-wilds.json`): within `r`
+`OpenWorldGame.nearby().dungeon` names it and `enterDungeon(id)` (near, alive, not in combat) emits
+`enterDungeon`. The web build then saves the slot, keeps the trip (slot or unsaved character, look and gear)
+in sessionStorage `frontier.dungeon` (`save.js` `stashDungeon`/`peekDungeon`/`leaveDungeon`) and opens
+`dungeon.html`; the grotto's `to: "game"` link hands the trip back as a map trip (`frontier.travel`) and the
+game reloads the character where it was saved, beside the conch. In Godot change scene to the dungeon with
+the same character and back, restoring the saved position.
+
 
 `src/core/dungeon.js` reads `data/dungeons/*.json`: flat floors at fixed heights (a polygon with
 holes traced from the concept by `scripts/grotto-trace.py`, circle, ellipse, smoothed path, stairs
@@ -809,7 +818,7 @@ when both points are on walkable floors within `maxStep` (0.45 m), so ledges are
 join levels; props block with circles from `propTypes`. In Godot: build each floor as a
 `CollisionPolygon3D`/`StaticBody3D` slab with its side walls, stairs as ramps, props as
 `CylinderShape3D`; or port `surfaceAt`/`move` directly for a CharacterBody3D that ignores physics.
-Links are `Area3D` doors (a secret one is disabled until `inspectAt` finds it). The renderer's
+Links are `Area3D` doors (a secret one is disabled until `inspectAt` finds it; the grotto has none since the beach preview was dropped). Stair joints: each end gets an apron overlapping the flight 0.3 m, bridged over a void to same-level stone and cut out of the water below it, and no rim pillar stands on a flight's line. The renderer's
 pieces map to a `MeshInstance3D` per floor material, `MultiMeshInstance3D` for the rim boulders,
 a water shader with the same uniforms, and `OmniLight3D`s. Rooms with `style: "cave"` are dressed by
 `public/models/grotto/grotto-cave.glb`, a render-only model that `scripts/blender/grotto-cave.py` builds
@@ -847,7 +856,26 @@ pools on the floor use `look.glowPool` [opacity, size]. In Godot this is one `Sh
 The boss stage is `inside.arena` (written by `grotto-trace.py`): the throne room and its dais are one open stage of
 stone (2.0, the dais an exact 13 m circle, a 96-corner polygon) and wading water (floor 1.6), one step apart; `floors` lists them, `floor` is the dais, middle `at`, `r`, `clear` (radius kept free of
 blocking props), `boss` spot and `bossFacing` (toward the `entry` stair), and the `throne` (the pearl altar behind the boss).
-Spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
+The `bossSnail` prop (the boss's model, solid) is placed on that spot facing `bossFacing`; spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
+
+The grotto's monsters are `public/models/grotto/grotto-monsters.glb` (`scripts/blender/grotto-monsters.py`, Meshy shapes with Meshy 6 textures):
+`mon_<monster>_<part>` for fish (body, tail, finl, finr), slug (body, cerata, pearls), clam (shell, eye, pearls) and the boss, out of its shell
+(boss: body, eyel, eyer, pearl) and hidden in it (bossshell: shell, pearl), each on its own origin facing +Z with its monster's texture. Draw them
+cel-shaded over the texture with a little self-light (0.2, pearls 0.45, boss 0.06, its pearl 0.3) and hang the moving parts from pivots as
+`monsters.js` does. `pearlFish` props lie stranded on their left side in the shallows, flopping (`strandedFish`: a hop every 1.7 s, the tail
+slapping, a small turn per flop); `pearlSlug`/`eyeClam` idle. The `bossSnail` sleeps in its shell until a prop with `talk: {r, labelTh, lineTh,
+wakes}` is used: `dungeon.talkAt(x, z, woken)` offers the throne's pearl within `r` until what it wakes is in `woken`; then the shell trembles
+1.1 s and the king pushes out (0.8 s) and stays out (`sleepingBoss`). In Godot keep `woken` with the dungeon run and swap the two scenes the same way.
+
+Monsters with `propTypes.<type>.walk` wander about their homes (`src/core/dungeon-monsters.js`, seeded): rest `rest` s, pick a
+spot within `wander` m (or inside the arena for `arena: true`) where their body (the largest of their collision circles) fits
+(`standY` with that radius), turn toward it at `turn` rad/s (a turn over 0.6 rad is made on the spot), then go. Gaits: `crawl`
+at `speed` m/s; `hop` moves only while airborne, `length` m per hop of `air` s, one hop every `every` s (`air` 0..1 is exposed
+for the animation). `stay` keeps them on one floor kind. They never step into another prop's circle or onto the hero, and
+their own circles (`propBlockers` keeps `src` and the unturned `local` offset) move and turn with them, so the hero collides
+with the moving monster. A sleeping walker (`asleep`) does not move until `wake(type)`, then rests `wakeRest` s. The renderer
+reads x, z, y, facing, moving, air, gaitT and travelled: the fish flops along (one arch per hop, alternating sides), the slug's
+body ripples with distance, the clam crouches, leaps, tips forward and squashes on landing, the boss surges with distance.
 
 ## Checklist for the port
 

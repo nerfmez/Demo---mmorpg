@@ -4,7 +4,7 @@
 // aperture, lined inside with glowing nacre.
 import * as THREE from 'three';
 import { toon, toonRamp, outlineMaterial } from '../toon.js';
-import { nacreTexture, glowTexture } from './textures.js';
+import { nacreTexture } from './textures.js';
 
 /**
  * A coiled shell. Options: turns, r0 (radius at the apex), grow (radius gain per turn, as a
@@ -99,65 +99,6 @@ function orient(group, aperture, { roll = 0, sink = 0.3, tilt = 0 } = {}) {
   holder.add(group);
   holder.userData.aperture = { y: a.y - box.min.y - sink, radius: aperture.radius * group.scale.x };
   return holder;
-}
-
-/**
- * The giant beach shell (about 13 m long) whose sealed mouth is the secret way in. The seal is
- * a crust of barnacles and sand; open(t) dissolves it and lights the nacre inside.
- */
-export function buildGiantShell() {
-  const { group, aperture } = shellMesh({ turns: 5, r0: 0.07, grow: 1.7, coil: 1.0, drop: 3.4, ribs: 9, rib: 0.1, spikes: 9, spikeLen: 0.5, a: '#f3e3c6', b: '#c4673f', inner: '#ffe4ec', bands: 5.2, lip: 0.18, aspect: 1.1 }, { nacreGlow: 0.05, outline: '#5a3426', innerColor: '#d6aabd' });
-  group.scale.setScalar(2.4);
-  const holder = orient(group, aperture, { roll: 0.5, sink: 0.6 });
-  const ap = holder.userData.aperture;
-  // the crust sealing the mouth: a domed disc of sand-coloured barnacles
-  const seal = new THREE.Group();
-  const disc = new THREE.Mesh(new THREE.SphereGeometry(ap.radius * 0.92, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2.4), toon('#c9b48e'));
-  disc.rotation.x = Math.PI / 2;
-  disc.scale.set(1, 0.35, 1);
-  seal.add(disc);
-  const bump = new THREE.SphereGeometry(0.22, 6, 4);
-  for (let i = 0; i < 26; i++) {
-    const a = i * 2.39996, r = Math.sqrt((i + 0.5) / 26) * ap.radius * 0.8;
-    const b = new THREE.Mesh(bump, toon(i % 3 ? '#b8a27c' : '#e9dcc0'));
-    b.position.set(Math.cos(a) * r, Math.sin(a) * r, 0.18 + (1 - r / ap.radius) * 0.25);
-    b.scale.set(1, 1, 0.6 + (i % 4) * 0.2);
-    seal.add(b);
-  }
-  seal.position.set(0, ap.y, 0.1);
-  holder.add(seal);
-  // a soft glint that hints at the secret before it is found
-  const glint = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: '#fff2c4', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-  glint.scale.setScalar(1.2);
-  glint.position.set(ap.radius * 0.4, ap.y + ap.radius * 0.5, 0.6);
-  holder.add(glint);
-  const halo = new THREE.Mesh(new THREE.CircleGeometry(ap.radius * 1.05, 28), new THREE.MeshBasicMaterial({ map: glowTexture(), color: '#ffd9ef', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
-  halo.position.set(0, ap.y, -0.4);
-  holder.add(halo);
-  // once open, the mouth reads as a deep passage: a dark core fading out to the lit nacre
-  const depth = new THREE.Mesh(new THREE.CircleGeometry(ap.radius * 0.95, 28), new THREE.MeshBasicMaterial({ map: glowTexture(), color: '#2a0f30', transparent: true, opacity: 0, depthWrite: false }));
-  depth.position.set(0, ap.y - ap.radius * 0.1, -0.2);
-  holder.add(depth);
-  let openT = 0, opening = false;
-  const nacre = group.userData.inside;
-  return {
-    root: holder,
-    open(instant = false) { opening = true; if (instant) openT = 1; },
-    get opened() { return openT >= 1; },
-    update(dt, t) {
-      if (opening && openT < 1) openT = Math.min(1, openT + dt / 1.4);
-      const k = openT * openT * (3 - 2 * openT);
-      seal.visible = k < 1;
-      seal.scale.setScalar(1 - k * 0.9);
-      seal.position.z = 0.1 - k * 0.8;
-      nacre.emissiveIntensity = 0.05 + k * 0.12;
-      halo.material.opacity = k * (0.35 + Math.sin(t * 2.2) * 0.08);
-      depth.material.opacity = k;
-      glint.visible = !opening;
-      glint.material.opacity = 0.35 + 0.65 * Math.max(0, Math.sin(t * 1.7)) ** 6;
-      glint.scale.setScalar(0.6 + glint.material.opacity * 0.9);
-    },
-  };
 }
 
 /** A small decorative shell (beach, treasure). */

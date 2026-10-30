@@ -29,8 +29,9 @@ test('every combat skill costs MP; only an aura, which reserves MP instead, is f
     if (s.aura) assert.ok(s.aura.reserve > 0, `${id} reserves MP`);
     else assert.ok(s.cost > 0, `${id} costs MP`);
   }
-  // the quick main attacks are the cheap ones; physical ones are cheaper than the spell
-  for (const id of ['slash', 'weakpoint', 'hunter_shot', 'venom_mire', 'cross_cut']) assert.ok(C[id].cost <= 24 && C[id].cost < C.arcane_bolt.cost * 1.6, id);
+  // the quick main attacks are the cheap ones; physical ones are cheaper than the spell (costs per cast
+  // grew 1.6x with the base cooldowns on 2026-10-27, MP per second unchanged)
+  for (const id of ['slash', 'weakpoint', 'hunter_shot', 'venom_mire', 'cross_cut']) assert.ok(C[id].cost <= 39 && C[id].cost < C.arcane_bolt.cost * 1.6, id);
   assert.ok(C.slash.cost < C.arcane_bolt.cost);
 });
 
@@ -49,8 +50,8 @@ test('every combat mod multiplies the cost, and the multipliers stack; movement 
   const bare = skillWith('slash'), two = skillWith('slash', ['multistrike', 'wide_arc']);
   assert.ok(two.mods.every((m) => m.active));
   assert.ok(Math.abs(two.cost - bare.cost * M.multistrike.effect.costMult * M.wide_arc.effect.costMult) < 1e-9);
-  // a channel's drain follows the same rank and mod multipliers
-  const ch1 = skillWith('flame_stream', [], 1), ch5 = skillWith('flame_stream', [], 5);
+  // a channel's drain follows the same skill level and mod multipliers
+  const ch1 = skillWith('flame_stream', [], 1), ch5 = skillWith('flame_stream', [], 25);
   assert.ok(ch5.channel.manaPerSecond / ch1.channel.manaPerSecond > 1.4);
   assert.equal(C.flame_stream.channel.manaPerSecond, 80, 'the data itself is never changed');
 });
@@ -92,9 +93,9 @@ test('MP on hit options roll small, on attack gear only; spell gear rolls MP reg
   assert.equal(o.mp_on_hit.stat, 'mpOnHit');
   assert.ok(optionRange(data, 'mp_on_hit', 'S', 21).max <= 8, 'a top roll stays small next to skill costs');
   for (const [id, b] of Object.entries(data.items.gearBases)) {
-    const t = b.weaponType;
-    if (['staff', 'wand'].includes(t)) assert.ok(!b.optionPool.includes('mp_on_hit') && b.optionPool.includes('mp_regen_pct'), id);
-    if (['sword', 'dagger', 'axe', 'mace', 'greatblade', 'bow'].includes(t)) assert.ok(b.optionPool.includes('mp_on_hit') && !b.optionPool.includes('mana_cost_pct'), id);
+    const t = b.weaponType, caster = ['staff', 'wand'].includes(t) || (b.slot === 'weapon' && b.requirementStat === 'INT'); // a priest's mace is a caster's
+    if (caster) assert.ok(!b.optionPool.includes('mp_on_hit') && b.optionPool.includes('mp_regen_pct'), id);
+    else if (['sword', 'dagger', 'axe', 'mace', 'greatblade', 'bow'].includes(t)) assert.ok(b.optionPool.includes('mp_on_hit') && !b.optionPool.includes('mana_cost_pct'), id);
   }
 });
 

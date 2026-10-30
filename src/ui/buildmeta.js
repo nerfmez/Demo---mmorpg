@@ -12,7 +12,7 @@ export const TAG_GROUPS = {
   shape: {Arc:'ฟันโค้ง',Line:'แนวตรง',Cone:'กรวย',Nova:'รอบตัว',Rain:'ยิงระลอก',Ground:'เล็งพื้น',Zone:'ค้างบนพื้น',Construct:'สิ่งสร้าง',Target:'เป้าหมาย'},
   element: {Physical:'กายภาพ',Fire:'ไฟ',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',Earth:'ดิน',Arcane:'อาร์เคน'},
   effect: {Damage:'ทำดาเมจ',DoT:'ดาเมจต่อเนื่อง',Control:'ควบคุม',Debuff:'ดีบัฟ',Buff:'บัฟ',Heal:'ฟื้นฟู',Barrier:'โล่เกราะ',Guard:'ตั้งรับ',Counter:'สวนกลับ',Cleanse:'ล้างสถานะ',Leech:'ดูดเลือด'},
-  mechanic: {Duration:'มีระยะเวลา',Charge:'ชาร์จ',Persistent:'พื้นที่คงอยู่',Trigger:'ทริกเกอร์'},
+  mechanic: {Signature:'ไม้ตาย',Haste:'เร่งความเร็ว',Duration:'มีระยะเวลา',Charge:'ชาร์จ',Persistent:'พื้นที่คงอยู่',Trigger:'ทริกเกอร์'},
 };
 export const TAGS = Object.assign({}, ...Object.values(TAG_GROUPS));
 export const ELEMENTS = {physical:'กายภาพ',fire:'ไฟ',cold:'น้ำแข็ง',lightning:'สายฟ้า',poison:'พิษ',arcane:'อาร์เคน',none:'ไม่มีดาเมจธาตุ'};
@@ -24,7 +24,7 @@ export function requirementsHtml(def) {
   const req=Object.entries(def.requires||{});
   return `<p class="seeker-requires">ค่าสถานะที่ต้องมี: <b>${req.length?req.map(([s,v])=>`${esc(s)} ${v}`).join(' · '):'ไม่มีเงื่อนไข'}</b></p>`;
 }
-const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางยิง',displace:'ย้ายตำแหน่งศัตรู'};
+const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางยิง',displace:'ย้ายตำแหน่งศัตรู',status:'สถานะธาตุ',spread:'พื้นที่ร่ายต่อเนื่อง'};
 const tagList = (tags, join) => tags.map(t=>TAGS[t]||t).join(join);
 export function modRules(mod) {
   const rules=[];
@@ -54,11 +54,11 @@ export function modStatus(ch,data,index,inst) {
   const companionInsts=(slot?.mods||[]).map(u=>ch.mods.find(m=>m.uid===u)).filter(m=>m&&data.mods.mods[m.id]);
   const companions=companionInsts.map(m=>data.mods.mods[m.id]);
   // Higher ranks ask for more stats (modRequires).
-  const fit=modFits(data.skills.combat[slot?.skill],md,companions), req=meetsRequires(ch,modRequires(data,md,inst.level||1)), where=modSlotOf(ch,inst.uid);
+  const fit=modFits(data.skills.combat[slot?.skill],md,companions), req=meetsRequires(ch,modRequires(data,md,1),data), where=modSlotOf(ch,inst.uid);
   const duplicate=!!slot?.mods.some(u=>u!==inst.uid&&ch.mods.find(m=>m.uid===u)?.id===inst.id);
   const full=(slot?.mods.length||0)>=slotCapacity(ch,data,index);
   const own=where===index;
-  const activeCompanions=companionInsts.filter(m=>meetsRequires(ch,modRequires(data,data.mods.mods[m.id],m.level||1)).ok).map(m=>data.mods.mods[m.id]);
+  const activeCompanions=companionInsts.filter(m=>meetsRequires(ch,modRequires(data,data.mods.mods[m.id],1),data).ok).map(m=>data.mods.mods[m.id]);
   const activeFit=modFits(data.skills.combat[slot?.skill],md,activeCompanions);
   const reason=!slot?.skill?'เลือกสกิลในช่องนี้ก่อน':!fit.ok?fitReason(fit):own?'ใส่ในช่องนี้แล้ว':duplicate?'มีม็อดชนิดนี้อยู่แล้ว':full?'ช่องม็อดเต็ม · ถอดหนึ่งชิ้นก่อน':'พร้อมใส่';
   return {fit,req,where,own,reason,active:req.ok&&activeFit.ok,can:!!slot?.skill&&fit.ok&&!own&&!duplicate&&!full};

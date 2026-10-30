@@ -10,7 +10,8 @@ test('new and v11 saves default both automatic potions OFF without changing owne
  const ch=createCharacter(data);assert.equal(ch.autoPotions.hp.enabled,false);assert.equal(ch.autoPotions.mp.enabled,false);
  ch.version=11;ch.autoPotions.hp.enabled=true;ch.gold=777;ch.skills.firebolt=3;ch.consumables.hp_potion_l=2;
  const keep=structuredClone(ch),m=migrateCharacter(ch,data);
- for(const key of ['gold','skills','consumables','quickItems','gear','arrows'])assert.deepEqual(m[key],keep[key]);
+ for(const key of ['gold','consumables','quickItems','gear','arrows'])assert.deepEqual(m[key],keep[key]);
+ assert.deepEqual(m.skills,{...keep.skills,firebolt:10}); // v17: old rank 3 is skill level 10
  assert.equal(m.autoPotions.hp.enabled,false);enable({ch:m},'hp',42,'hp_potion_l');enable({ch:m},'mp',18);
  const reloaded=migrateCharacter(JSON.parse(JSON.stringify(m)),data);assert.deepEqual(reloaded.autoPotions,m.autoPotions);
 });
@@ -28,7 +29,8 @@ test('HP and MP each spend one eligible potion per frame, respect group cooldown
  g.useAutomaticPotions();assert.equal(g.ch.consumables.hp_potion_s,4,'no second same-frame use');
  p.hp=1;p.mp=0;g.update(.01);assert.equal(g.ch.consumables.hp_potion_s,4);assert.equal(g.useQuickItem(0).reason,'cooldown');
  for(let i=0;i<101;i++)g.update(.05);
- assert.equal(g.ch.consumables.hp_potion_s,3);assert.equal(g.ch.consumables.mp_potion_s,1);
+ assert.equal(g.ch.consumables.hp_potion_s,3);assert.equal(g.ch.consumables.mp_potion_s,2,'MP potions wait their own, longer cooldown');
+ p.itemCooldowns.mp=0;p.mp=0;g.update(.01);assert.equal(g.ch.consumables.mp_potion_s,1);
  g.ch.autoPotions.hp.enabled=false;p.itemCooldowns.hp=0;p.hp=1;assert.ok(g.useQuickItem(0).ok,'manual remains usable');
  g.ch.autoPotions.hp.enabled=true;p.hp=1;g.update(.01);assert.equal(g.ch.consumables.hp_potion_s,2,'automatic cannot duplicate a manual use');
 });

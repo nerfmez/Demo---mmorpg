@@ -1,7 +1,7 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 
-export const EXTRA_FIELDS = ['guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -9,6 +9,21 @@ export function compileFrontier(s, def, activeMods) {
     s.modEffects[key] = Array.isArray(value) ? value[Math.min(level, value.length) - 1] : value;
   const e = s.modEffects;
   if (e.arcMult) s.arc *= e.arcMult;
+  // reach, a lane's width, a chain's jumps (Wide Spread, Far Reach, Long Rend, Conductive Arc); a
+  // channel's spread is whatever its shape has: a cone's angle, a beam's width, or a circle's radius
+  if (e.spreadMult) { if (s.arc) s.arc *= e.spreadMult; else if (s.width) s.width *= e.spreadMult; else if (s.radius) s.radius *= e.spreadMult; }
+  if (e.rangeMult) s.range *= e.rangeMult;
+  // Stagger (a control mod): every hit stuns; a skill's own stun keeps the longer of the two
+  if (e.hitStun) s.stun = { duration: Math.max(s.stun?.duration || 0, e.hitStun), bossDuration: Math.max(s.stun?.bossDuration || 0, e.hitStunBoss) };
+  // Lasting Control: stuns, chills, curses and walls of this skill last longer
+  if (e.controlMult) {
+    if (s.stun) s.stun = { ...s.stun, duration: s.stun.duration * e.controlMult, bossDuration: (s.stun.bossDuration || 0) * e.controlMult };
+    if (s.chill) s.chill.duration *= e.controlMult;
+    if (s.kind === 'curse_zone' || s.kind === 'wall') s.duration *= e.controlMult;
+  }
+  if (e.widthMult && s.width) s.width *= e.widthMult;
+  if (e.chainFalloffSet) s.chainFalloff = e.chainFalloffSet;
+  if (e.chainRangeMult) s.chainRange *= e.chainRangeMult;
   if(e.returnMult)s.pierce=Infinity;
   if (e.healMult && s.heal) s.heal *= e.healMult;
   if (e.barrierMult && s.barrier) s.barrier *= e.barrierMult;
@@ -34,6 +49,9 @@ export function cancelChannel(g) {
   if (!c) return;
   g.player.cooldowns[c.slot]=Math.max(g.player.cooldowns[c.slot],c.skill.cooldown);
   g.player.channeling=null;
+  // Release Burst: letting go after a held channel bursts ahead in the skill's element, stronger the longer it was held
+  const s=c.skill,e=s.modEffects||{},p=g.player,held=c.t-s.castTime;
+  if(e.releaseMult&&held>=e.releaseMin&&!p.dead){const r=s.range*.6;secondaryBurst(g,p.x+Math.sin(p.facing)*r,p.z+Math.cos(p.facing)*r,e.releaseRadius,s.damage*e.releaseMult*Math.min(held,e.releaseCap)*g.playerDamageMult(),s.element,s.id,'release_burst');}
   g.emit({type:'channelEnd'});
 }
 export function startChannel(g,s) {
@@ -96,14 +114,14 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     }
     return true;
   }
-  if(s.kind==='melee_line'){
-    for(const m of g.monsters){
-      if(m.dead)continue;const dx=m.x-p.x,dz=m.z-p.z;
-      const forward=dx*Math.sin(aim.angle)+dz*Math.cos(aim.angle),side=dx*Math.cos(aim.angle)-dz*Math.sin(aim.angle);
-      if(forward < -m.r || forward>s.range+m.r || Math.abs(side)>s.width/2+m.r)continue;
-      g.hitMonster(m,s.damage*mult,g.hitOpts(s,{crit:g.rollCrit()}));
-    }
-    g.emit({type:'lineStrike',skill:s.id,x:p.x,z:p.z,angle:aim.angle,range:s.range,width:s.width,element:s.element});return true;
+  if(s.kind==='melee_line'){strikeLane(g,s,p.x,p.z,aim.angle,s.range,mult);return true;}
+  // Blink Draw (dash_line): the hero dashes along the aim (walls and cliffs stop it, no
+  // invulnerability); the lane it crossed is cut when it arrives (Game.updatePlayer, strikeLane)
+  if(s.kind==='dash_line'){
+    const v=s.range/s.dashTime;
+    p.dash={t:0,dur:s.dashTime,vx:Math.sin(aim.angle)*v,vz:Math.cos(aim.angle)*v,inv:false,kind:'draw_cut',skill:s,mult,fromX:p.x,fromZ:p.z,angle:aim.angle};
+    g.emit({type:'dashStrike',skill:s.id,x:p.x,z:p.z,angle:aim.angle,range:s.range,time:s.dashTime,element:s.element});
+    return true;
   }
   if(s.kind==='wall'){
     const axis=aim.angle+Math.PI/2,half=s.wall.length/2,walls=[];
@@ -126,6 +144,20 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     }return true;
   }
   return false;
+}
+
+/** A straight lane from (x, z) along angle, range long and s.width wide: every monster in it is hit once. */
+export function strikeLane(g,s,x,z,angle,range,mult) {
+  const e=s.modEffects||{};
+  // Far End: the far end of the lane hits harder
+  const tip=e.tipMult?range*(1-e.tipShare):Infinity;
+  for(const m of g.monsters){
+    if(m.dead)continue;const dx=m.x-x,dz=m.z-z;
+    const forward=dx*Math.sin(angle)+dz*Math.cos(angle),side=dx*Math.cos(angle)-dz*Math.sin(angle);
+    if(forward < -m.r || forward>range+m.r || Math.abs(side)>s.width/2+m.r)continue;
+    g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,{crit:g.rollCrit(),fromX:x,fromZ:z}));
+  }
+  g.emit({type:'lineStrike',skill:s.id,x,z,angle,range,width:s.width,element:s.element});
 }
 
 export function adjustFrontierHit(g,m,amount,opts) {
@@ -164,9 +196,9 @@ export function adjustFrontierHit(g,m,amount,opts) {
   return amount;
 }
 function cancelWindup(g,m){g.areas=g.areas.filter(a=>{const remove=a.owner==='monster'&&a.sourceId===m.id&&a.t<a.delay;if(remove)g.emit({type:'areaEnd',id:a.id});return !remove;});}
-function secondaryBurst(g,x,z,radius,damage,element,skill){
+function secondaryBurst(g,x,z,radius,damage,element,skill,kind='mod_burst'){
   for(const q of g.monsters)if(!q.dead&&dist(x,z,q.x,q.z)<=radius+q.r)g.hitMonster(q,damage,{element,secondary:true,skill});
-  g.emit({type:'burst',kind:'mod_burst',element,x,z,radius});
+  g.emit({type:'burst',kind,element,x,z,radius});
 }
 /** Spreading Hex: a dying target passes each spreadable debuff (Hex, armor exposure) with its remaining time to the nearest clean monster. */
 export function spreadCurse(g,m){

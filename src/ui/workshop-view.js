@@ -4,7 +4,7 @@ import { icon } from './icons.js';
 import { esc, tagsHtml, rulesHtml } from './buildmeta.js';
 import { gradeBadge, optionList, wearRequirements, wearRequirementRange, craftGoal, gearUpgradeTrack } from './progressionview.js';
 import { gearStats, gearRequirements, gearEquipState, wornSlot } from '../core/character.js';
-import { recipeBlocker } from '../core/crafting.js';
+import { recipeBlocker, pieceLevel } from '../core/crafting.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
 import { CRAFT_STAGES, compareCraftRecipes, recipeDefinition, recipeEquipmentLevel, skillCraftGuide, craftDescription, recipeSearchText, craftQueryMatches } from '../core/craft-order.js';
 import { forgePreview, forgeItems, workshopCostRows, workshopReason } from './workshop-model.js';
@@ -138,9 +138,12 @@ function recipeDetail(ui, helpers, id, recipe) {
   const history=(ui.sel.craftHistory?.[id]||[]).map(uid=>ch.gear.find(it=>it.uid===uid)).filter(Boolean);
   const recent=current?.items?.[0]||history[0];
   const title=gear&&recent?'ชิ้นล่าสุด '+stepLabel(recent):gear?'สุ่มเกรด C / B / A / S':recipe.type==='arrow'?`ได้สูงสุด ${recipe.qty} ลูก`:'สร้าง / เรียนรู้';
-  const workStage=stage({graphic:picture(kind,recipe.result),name:def.nameTh,meta:gear?'Lv.'+recipeEquipmentLevel(data,recipe):def.name,from:busy?'กำลังสร้าง':title,to:'',busy,kind:'craft',grade:recent?.grade});
-  const desc=gear?Object.entries(def.stats).map(([k,v])=>helpers.effectText(k,v)).join(' · '):craftDescription(data,recipe);
-  const requirement=gear?wearRequirements(ch,gearRequirements({base:recipe.result,itemLevel:recipe.itemLevel,grade:'C',upgrade:0,options:[]},data),'เงื่อนไขพื้นฐานตอนสวม'):def.requires?wearRequirements(ch,def.requires,'เงื่อนไขใช้งาน'):'';
+  // a crafted piece takes the crafter's level inside the base's range (items.gearLevels)
+  const made=gear?{base:recipe.result,itemLevel:pieceLevel(data,recipe.result,ch.level),grade:'C',upgrade:0,options:[]}:null;
+  const range=gear?`Lv.${made.itemLevel} · ช่วง ${def.itemLevel}–${def.maxItemLevel??def.itemLevel}`:'';
+  const workStage=stage({graphic:picture(kind,recipe.result),name:def.nameTh,meta:gear?range:def.name,from:busy?'กำลังสร้าง':title,to:'',busy,kind:'craft',grade:recent?.grade});
+  const desc=gear?Object.entries(gearStats(made,data)).map(([k,v])=>helpers.effectText(k,v)).join(' · '):craftDescription(data,recipe);
+  const requirement=gear?wearRequirements(ch,gearRequirements(made,data),'เงื่อนไขพื้นฐานตอนสวม'):def.requires?wearRequirements(ch,def.requires,'เงื่อนไขใช้งาน'):'';
   const gweights=data.items.grades, total=Object.values(gweights.weights).reduce((a,b)=>a+b,0);
   const gradeGuide=gear?`<section class="ws-grade-guide"><h3>เกรดที่มีโอกาสได้</h3><div>${gweights.order.map(gr=>`<span>${gradeBadge(data,gr)}<b>${Math.round(gweights.weights[gr]/total*100)}%</b></span>`).join('')}</div><small>ทุกครั้งสุ่มใหม่ · ไม่การันตีเกรดสูงจากการคราฟต์ซ้ำ</small></section>`:'';
   const results=history.length?`<section class="ws-results"><h3>ชิ้นที่สร้างล่าสุด <small>${history.length} ชิ้น</small></h3><div>${history.map(item=>`<article class="ws-result-card" data-crafted-uid="${item.uid}"><span>${art('gear',item.base)}</span><div><b>${esc(data.items.gearBases[item.base].nameTh)}</b>${gradeBadge(data,item.grade,item.options.length)}<small>#${item.uid} · ทุกชิ้นอยู่ในกระเป๋า</small></div><button class="ws-chip" data-act="inspect-crafted" data-uid="${item.uid}">ดู / เทียบ</button>${wornSlot(ch,data,item)?'<span class="ws-equipped">สวมใส่อยู่</span>':`<button class="ws-chip" data-act="equip-gear" data-uid="${item.uid}" ${gearEquipState(ch,data,item).ok?'':'disabled'}>${gearEquipState(ch,data,item).ok?'สวมใส่':gearEquipState(ch,data,item).reason==='level'?'เลเวลยังไม่ถึง':'สเตตัสยังไม่ถึง'}</button>`}<button class="ws-chip" data-act="forge-open" data-mode="upgrade" data-uid="${item.uid}">ไปตีบวก</button></article>`).join('')}</div></section>`:'';

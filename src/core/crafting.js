@@ -1,7 +1,7 @@
 // Crafting, upgrades and drops: the Monster -> Material -> Craft/Upgrade/Trade loop.
-import { gearStats, gearRequirements, gearPower, enforceEquipment, inactiveEquipment, meetsRequires, arrowTotal, wornSlot } from './character.js';
+import { gearStats, gearRequirements, gearPower, enforceEquipment, inactiveEquipment, meetsRequires, meetsStats, statTotals, arrowTotal, wornSlot } from './character.js';
 import { equipmentItemLevel, validModGrade } from './item-metadata.js';
-import { modRequires } from './skills.js';
+import { modRequires, skillRequires } from './skills.js';
 
 export function canAfford(ch, cost) {
   for (const k in cost) {
@@ -47,11 +47,18 @@ export function optionRange(data, id, grade, itemLevel = 1) {
 }
 const rollOption = (data, id, grade, itemLevel, rng) => { const r = optionRange(data, id, grade, itemLevel); return { id, value: rng.int(r.min, r.max) }; };
 
-export function rollGear(data, recipe, rng) {
+/** The item level a piece of `baseId` gets when made or found at `level`: inside the base's range (items.gearLevels). */
+export function pieceLevel(data, baseId, level) {
+  const b = data.items.gearBases[baseId], lo = b.itemLevel || 1;
+  return Math.max(lo, Math.min(b.maxItemLevel ?? lo, Math.round(level || lo)));
+}
+
+/** A crafted piece: its grade and options; `level` (the crafter's) sets its item level inside the base's range. */
+export function rollGear(data, recipe, rng, level = null) {
   const g = data.items.grades;
   const grade = rng.weighted(g.weights);
   const pool = [...recipe.optionPool];
-  const options = [], itemLevel = equipmentItemLevel(data, {base:recipe.result, itemLevel:recipe.itemLevel});
+  const options = [], itemLevel = level === null ? equipmentItemLevel(data, {base:recipe.result, itemLevel:recipe.itemLevel}) : pieceLevel(data, recipe.result, level);
   for (let i = 0; i < g.optionCount[grade] && pool.length; i++) {
     const idx = Math.floor(rng.next() * pool.length);
     options.push(rollOption(data, pool.splice(idx, 1)[0], grade, itemLevel, rng));
@@ -66,7 +73,7 @@ export function craft(ch, data, recipeId, rng) {
   const r = data.recipes.recipes[recipeId];
   pay(ch, r.cost);
   if (r.type === 'gear') {
-    const item = { uid: ch.nextUid++, ...rollGear(data, r, rng) };
+    const item = { uid: ch.nextUid++, ...rollGear(data, r, rng, ch.level) };
     ch.gear.push(item);
     return { ok: true, kind: 'gear', item };
   }
@@ -100,7 +107,7 @@ export function gearUpgradeCost(data, item) {
 }
 
 function materialCost(step) {
-  const { balanceLevel, requiresStat, ...cost } = step;
+  const { requiresStat, ...cost } = step;
   return cost;
 }
 
@@ -127,33 +134,65 @@ export function upgradeGear(ch, data, uid) {
   return { ok: true, item, unequipped:enforceEquipment(ch,data), inactive:inactiveEquipment(ch,data) };
 }
 
-export function skillUpgradeCost(data, skillId, level) {
-  const su = data.progression.skillUpgrade;
-  if (level >= su.maxLevel) return null;
-  const def = data.skills.combat[skillId];
-  if (!def || !su.steps[level - 1]) return null;
-  return materialCost(su.steps[level - 1]);
+// Skill level (data.progression.skillUpgrade; owner, 2026-10-27/29): a skill levels from 1 up to the
+// character's level. Crystals fed to it give skill EXP and cost gold per EXP; a level needs EXP that
+// grows with it, and each level's stat requirement (skills.js skillRequires) must be met to reach it.
+
+/** The highest level a skill can reach now: the character's level, within maxLevel. */
+export const skillLevelCap = (ch, data) => Math.max(1, Math.min(data.progression.skillUpgrade.maxLevel, ch.level));
+
+/** EXP for a skill at `level` to reach the next level. */
+export function skillExpNeed(data, level) {
+  const [a, b] = data.progression.skillUpgrade.expPerLevel;
+  return Math.max(1, Math.round(a + b * level));
 }
 
+
+/** A skill's level state: { ok (crystals can go in now), reason, level, cap, exp, need, gate: { stat,
+ * need, ok }, room (EXP still useful before the next level is out of reach) }. */
 export function skillUpgradeState(ch, data, skillId) {
   const level = ch.skills[skillId];
   if (!level) return { ok: false, reason: 'not_learned' };
-  const cost = skillUpgradeCost(data, skillId, level);
-  if (!cost) return { ok: false, reason: 'max' };
-  const step = data.progression.skillUpgrade.steps[level - 1], stat = data.skills.combat[skillId].upgradeStat;
-  const req = meetsRequires(ch, { [stat]: step.requiresStat });
-  if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
-  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
+  const su = data.progression.skillUpgrade, cap = skillLevelCap(ch, data), exp = ch.skillExp?.[skillId] || 0, need = skillExpNeed(data, level);
+  const def = data.skills.combat[skillId], stats = statTotals(ch, data).stats, meets = (L) => meetsStats(stats, skillRequires(data, def, L)).ok;
+  const next = skillRequires(data, def, level + 1), stat = def.upgradeStat in next ? def.upgradeStat : Object.keys(next)[0];
+  const gate = { stat, need: next[stat], have: stats[stat] || 0, requires: next, ok: meets(level + 1) };
+  // EXP banked from a big crystal past the last reachable level turns into levels once the cap or the
+  // stat allows them: feeding then settles them for free
+  const pending = level < cap && exp >= need && gate.ok;
+  const base = { level, cap, exp, need, gate, pending };
+  if (level >= su.maxLevel) return { ok: false, reason: 'max', ...base, room: 0 };
+  if (level >= cap) return { ok: false, reason: 'cap', ...base, room: 0 };
+  // useful EXP: through every level the stat already allows, up to the cap (a gated level can still fill)
+  let room = -exp;
+  for (let L = level; L < cap; L++) { room += skillExpNeed(data, L); if (!meets(L + 1)) break; }
+  room = Math.max(0, room);
+  if (!room && pending) return { ok: true, reason: null, ...base, room };
+  if (!room) return { ok: false, reason: gate.ok ? 'cap' : 'requires', missing: meetsStats(stats, next).missing, ...base, room };
+  const crystals = Object.keys(su.crystals).some((k) => (ch.materials[k] || 0) > 0);
+  return { ok: crystals, reason: crystals ? null : 'materials', ...base, room };
 }
 
-export function upgradeSkill(ch, data, skillId) {
-  const level = ch.skills[skillId];
-  if (!level) return { ok: false, reason: 'not_learned' };
-  const state = skillUpgradeState(ch, data, skillId);
-  if (!state.ok) return state;
-  pay(ch, state.cost);
-  ch.skills[skillId] = level + 1;
-  return { ok: true, level: level + 1 };
+/** Feed up to `count` crystals of one kind to a skill (at a workbench or trainer; the caller checks the
+ * place). Only as many as the reachable levels can use go in; each EXP costs goldPerExp. Levels follow
+ * at once. Returns { ok, reason?, used, gold, level, levels }. */
+export function feedSkill(ch, data, skillId, crystal, count) {
+  const su = data.progression.skillUpgrade, per = su.crystals[crystal];
+  if (!per) return { ok: false, reason: 'crystal' };
+  const st = skillUpgradeState(ch, data, skillId);
+  if (['not_learned', 'max', 'cap'].includes(st.reason) || (!st.room && !st.pending)) return { ok: false, reason: st.reason || 'cap' };
+  const n = Math.min(count, ch.materials[crystal] || 0, Math.ceil(st.room / per), Math.floor(ch.gold / (per * su.goldPerExp)));
+  if (n <= 0 && !st.pending) return { ok: false, reason: (ch.materials[crystal] || 0) ? 'gold' : 'materials' };
+  const used = Math.max(0, n), gold = used * per * su.goldPerExp;
+  ch.materials[crystal] -= used; ch.gold -= gold;
+  ch.skillExp = { ...(ch.skillExp || {}), [skillId]: st.exp + used * per };
+  let level = st.level, levels = 0;
+  const cap = skillLevelCap(ch, data), def = data.skills.combat[skillId], stats = statTotals(ch, data).stats;
+  while (level < cap && ch.skillExp[skillId] >= skillExpNeed(data, level) && meetsStats(stats, skillRequires(data, def, level + 1)).ok) {
+    ch.skillExp[skillId] -= skillExpNeed(data, level); level++; levels++;
+  }
+  ch.skills[skillId] = level;
+  return { ok: true, used, gold, level, levels };
 }
 
 // Movement skills rank up the same way, gated by their upgradeStat (AGI): data.progression.movementUpgrade.
@@ -162,7 +201,7 @@ export function movementUpgradeState(ch, data, id) {
   const mu = data.progression.movementUpgrade, level = ch.movementRanks?.[id] || 1, step = mu.steps[level - 1];
   if (level >= mu.maxLevel || !step) return { ok: false, reason: 'max' };
   const cost = materialCost(step);
-  const req = meetsRequires(ch, { [data.skills.movement[id].upgradeStat]: step.requiresStat });
+  const req = meetsRequires(ch, { [data.skills.movement[id].upgradeStat]: step.requiresStat }, data);
   if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
   return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
 }
@@ -186,7 +225,7 @@ export function modUpgradeState(ch, data, inst) {
   const cost = modUpgradeCost(data, inst);
   if (!cost) return { ok: false, reason: 'max' };
   // The next rank must be wearable: its stat requirement rises (modRequires).
-  const req = meetsRequires(ch, modRequires(data, data.mods.mods[inst.id], inst.level + 1));
+  const req = meetsRequires(ch, modRequires(data, data.mods.mods[inst.id], inst.level + 1), data);
   if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
   return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
 }
@@ -371,16 +410,17 @@ export function toggleGearLock(ch, uid) {
 
 // ---------- Gear drops ----------
 
-/** Bases a monster can drop at `level`: made from its parts, at the tier for that level. */
+/** Bases a monster can drop at `level`: made from its parts, whose item-level range holds `level`; a line
+ * with no such base gives its newest one below (the piece tops out at that base's last level). */
 export function gearDropCandidates(data, monsterId, level) {
   const parts = new Set(data.monsters.monsters[monsterId].drops.map((d) => d.item).filter((i) => i !== 'gold'));
-  const made = new Set(Object.values(data.recipes.recipes).filter((r) => r.type === 'gear' && Object.keys(r.cost).some((k) => parts.has(k))).map((r) => r.result));
-  const tiers = data.progression.balance.gearTiers.filter((t) => t <= level);
-  for (const tier of tiers.reverse()) {
-    const list = [...made].filter((id) => !data.items.gearBases[id].starter && data.items.gearBases[id].itemLevel === tier);
-    if (list.length) return list;
-  }
-  return [];
+  const made = [...new Set(Object.values(data.recipes.recipes).filter((r) => r.type === 'gear' && Object.keys(r.cost).some((k) => parts.has(k))).map((r) => r.result))]
+    .filter((id) => !data.items.gearBases[id].starter);
+  const B = data.items.gearBases, inRange = made.filter((id) => B[id].itemLevel <= level && level <= (B[id].maxItemLevel ?? B[id].itemLevel));
+  if (inRange.length) return inRange;
+  const below = made.filter((id) => B[id].itemLevel <= level);
+  const top = Math.max(...below.map((id) => B[id].itemLevel));
+  return below.filter((id) => B[id].itemLevel === top);
 }
 
 /** One kill's gear drop (or null). Rolls a grade, then a base and options like a craft. */
@@ -400,8 +440,9 @@ export function rollGearDrop(data, monsterId, level, boss, rng, gearFindPct = 0)
   if (!grade) return null;
   const base = list[Math.floor(rng.next() * list.length)], def = data.items.gearBases[base];
   const pool = [...def.optionPool], options = [];
+  const itemLevel = pieceLevel(data, base, level);
   for (let i = 0; i < data.items.grades.optionCount[grade] && pool.length; i++) {
-    options.push(rollOption(data, pool.splice(Math.floor(rng.next() * pool.length), 1)[0], grade, def.itemLevel, rng));
+    options.push(rollOption(data, pool.splice(Math.floor(rng.next() * pool.length), 1)[0], grade, itemLevel, rng));
   }
-  return { base, itemLevel: def.itemLevel, grade, upgrade: 0, options };
+  return { base, itemLevel, grade, upgrade: 0, options };
 }

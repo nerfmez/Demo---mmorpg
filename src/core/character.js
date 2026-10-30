@@ -3,16 +3,23 @@
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 import { enterMap } from './maps.js';
 import { migrateQuestJournal } from './quests.js';
+import { normalizeSkillGrowth } from './skill-growth.js';
 
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
+import { activePerks } from './stat-perks.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX', 'LUK']; // LUK: crit chance (DEX: crit damage)
-export const CHARACTER_VERSION = 15;
+export const CHARACTER_VERSION = 18;
+// v17: a skill's rank 1-5 became a level up to the character's; each old rank becomes the level the old
+// balance model gave it (the same mod sockets). It is kept even above the character's level: that skill
+// only waits to grow until the character catches up.
+const OLD_RANK_LEVELS = [1, 4, 10, 17, 24];
 /** Share of a hit armour lets through: 1 - defense / (defense + progression.combat.defenseConstant). */
 export const defenseFactor = (defense, data) => 1 - defense / (defense + data.progression.combat.defenseConstant);
 // v14: raw numbers (HP, attack, magic, defense, MP, regen) grew tenfold; rolled flat options of saved gear follow
 const RAW_SCALE_V14 = 10, RAW_OPTIONS_V14 = ['attack_flat', 'magic_flat', 'hp_flat', 'mp_flat', 'defense_flat', 'regen_flat'];
+const SPEED_SCALE = 3;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -52,6 +59,9 @@ export function createCharacter(data, opts = {}) {
     skills: opening ? {} : { [kit.basic]: 1 },
     movementSkills: [],
     movementRanks: {}, // movement skill id -> rank above 1 (AGI upgrades, crafting.js upgradeMovement)
+    skillGrowth: {}, // skill id -> { grade, bars, earned, prof } (core/skill-growth.js)
+    skillExp: {}, // skill id -> EXP fed toward its next level (core/crafting.js feedSkill)
+    freeStatRespec: false, // one stat respec costs nothing (v18: the stat wheel changed what skills ask for)
     movement: null,
     movementMods: [],
     mods: [],
@@ -201,6 +211,10 @@ export function migrateCharacter(ch, data) {
   if ((ch.version || 1) >= 3 && (ch.version || 1) < 14)
     for (const item of ch.gear) for (const o of item.options || [])
       if (RAW_OPTIONS_V14.includes(o.id) && o.value < data.items.gearOptions[o.id].min) o.value *= RAW_SCALE_V14;
+  // speed (owner, 2026-10-27): cooldown and cast-speed bonuses became one speed stat worth three times
+  // the old cooldown percent; an old cooldown roll (2-5) sits below today's minimum (6), so only it moves
+  for (const item of ch.gear || []) for (const o of item.options || [])
+    if (o.id === 'cdr_pct' && o.value < data.items.gearOptions.cdr_pct.min) o.value *= SPEED_SCALE;
   if ((ch.version || 1) < 3) {
     for (const item of ch.gear) {
       item.options = item.options || [];
@@ -278,6 +292,15 @@ export function migrateCharacter(ch, data) {
   ch.movementRanks = Object.fromEntries(Object.entries(ch.movementRanks || {})
     .filter(([id, n]) => data.skills.movement[id] && Number.isInteger(n) && n > 1).map(([id, n]) => [id, Math.min(n, maxMove)]));
   migrateQuestJournal(ch, data, { legacy: (ch.version || 1) < 8 || !hadQuestJournal });
+  // v16: skill bars start empty at grade C with no proficiency; skill ranks and mods are kept as they were
+  normalizeSkillGrowth(ch, data);
+  if ((ch.version || 1) < 17) for (const id of Object.keys(ch.skills)) ch.skills[id] = OLD_RANK_LEVELS[Math.min(5, Math.max(1, ch.skills[id] | 0)) - 1];
+  for (const id of Object.keys(ch.skills)) ch.skills[id] = Math.max(1, Math.min(data.progression.skillUpgrade.maxLevel, ch.skills[id] | 0));
+  ch.skillExp = Object.fromEntries(Object.entries(ch.skillExp || {}).filter(([id, n]) => ch.skills[id] && Number.isFinite(n) && n > 0));
+  // v18: requirements moved to the stat wheel (docs/STATS-TH.md); a hero who trained stats under the old
+  // rules gets one stat respec free (respecCost)
+  if ((ch.version || 1) < 18) ch.freeStatRespec = STATS.some((s) => ch.stats[s] > data.progression.character.startingStats[s]);
+  ch.freeStatRespec = ch.freeStatRespec === true;
   ch.version = CHARACTER_VERSION;
   return ch;
 }
@@ -327,11 +350,48 @@ export function allocateStat(ch, stat, n = 1) {
   return true;
 }
 
-export function meetsRequires(ch, requires = {}) {
+/** Whether `stats` meets `requires` ({ stat: need }): { ok, missing: ['STR 12', ...] }. */
+export function meetsStats(stats, requires = {}) {
   const missing = [];
-  for (const k in requires) if ((ch.stats[k] || 0) < requires[k]) missing.push(`${k} ${requires[k]}`);
+  for (const k in requires) if ((stats[k] || 0) < requires[k]) missing.push(`${k} ${requires[k]}`);
   return { ok: missing.length === 0, missing };
 }
+
+/** Whether the character meets `requires`: with data, every stat it has (statTotals); without, trained points. */
+export const meetsRequires = (ch, requires = {}, data = null) => meetsStats(data ? statTotals(ch, data).stats : ch.stats, requires);
+
+/** The six stats an item or Job Tree node adds ({ STR: 4 }; gear options with a stat of STATS). */
+function statPart(values) {
+  const out = {};
+  for (const s of STATS) if (values?.[s]) out[s] = values[s];
+  return out;
+}
+
+/** Every stat the character has (owner, 2026-10-29, docs/STATS-TH.md): trained points, Job Tree nodes and the
+ * stat options of worn gear that is itself in use. An item's own bonus never meets its own requirement: gear
+ * turns on from below, one item at a time once the rest already meet it, so two items cannot hold each other
+ * up. skipUid leaves one item out (its own check). Returns { stats, active: Set of active worn uids }. */
+export function statTotals(ch, data, equipped = ch.equipped, skipUid = null) {
+  const stats = Object.fromEntries(STATS.map((s) => [s, ch.stats?.[s] || 0]));
+  for (const n of ch.jobNodes || []) for (const [k, v] of Object.entries(statPart(data.jobtree.nodes[n]?.effects))) stats[k] += v;
+  const worn = [], active = new Set();
+  for (const slot of data.items.slots || ['weapon', 'armor']) {
+    const item = gearItem(ch, equipped[slot]);
+    if (item && item.uid !== skipUid && !worn.some((w) => w.item.uid === item.uid)) worn.push({ slot, item, bonus: statPart(gearStats(item, data)) });
+  }
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const w of worn) {
+      if (active.has(w.item.uid) || !wearMet(ch, data, w.item, w.slot, equipped, stats)) continue;
+      active.add(w.item.uid); changed = true;
+      for (const [k, v] of Object.entries(w.bonus)) stats[k] += v;
+    }
+  }
+  return { stats, active };
+}
+
+const wearMet = (ch, data, item, slot, equipped, stats) => Object.entries(wearRequirements(ch, data, item, slot, equipped))
+  .every(([k, need]) => (k === 'level' ? ch.level : stats[k] || 0) >= need);
 
 // ---------- Job Tree ----------
 
@@ -463,7 +523,7 @@ export function currentJob(ch, data) {
 
 export function respecCost(ch, data) {
   const r = data.progression.respec;
-  return { stats: r.statsGoldPerLevel * ch.level, job: r.jobGoldPerLevel * ch.jobLevel };
+  return { stats: ch.freeStatRespec ? 0 : r.statsGoldPerLevel * ch.level, job: r.jobGoldPerLevel * ch.jobLevel };
 }
 
 export function respecStats(ch, data) {
@@ -475,6 +535,7 @@ export function respecStats(ch, data) {
   ch.stats = { ...start };
   ch.statPoints += spent;
   ch.gold -= cost;
+  ch.freeStatRespec = false;
   enforceEquipment(ch, data);
   return true;
 }
@@ -495,12 +556,25 @@ export function gearItem(ch, uid) {
 }
 
 /** Stats of one item: base stats x grade x upgrade, plus rolled options. */
+// Power stats a piece's own item level grows (items.gearLevels): a base's stats are those at its first level
+const LEVEL_POWER = ['attack', 'magic', 'defense', 'maxHp', 'maxMp', 'maxShield'];
+/** How much a power stat of `base` grows at `itemLevel` against its first level: weapons and shields follow
+ * items.handRules.reference, armour and charms the balance model's set (progression.balance.gear). */
+export function gearLevelScale(data, base, stat, itemLevel) {
+  const lo = base.itemLevel || 1, L = Math.max(lo, Math.min(itemLevel, base.maxItemLevel ?? lo));
+  if (L === lo || !LEVEL_POWER.includes(stat)) return 1;
+  const ref = data.items.handRules.reference, g = data.progression.balance.gear;
+  const curve = base.slot === 'weapon' || base.slot === 'offhand' ? [ref.base, ref.perItemLevel] : stat === 'maxHp' ? g.maxHp : g.defense;
+  return (curve[0] + curve[1] * (L - 1)) / (curve[0] + curve[1] * (lo - 1));
+}
+
 export function gearStats(item, data) {
   const base = data.items.gearBases[item.base];
   const g = data.items.grades;
   const mult = g.statMult[item.grade] * (1 + item.upgrade * data.items.upgrade.statPerLevel);
+  const il = equipmentItemLevel(data, item);
   const out = {};
-  for (const k in base.stats) out[k] = Math.round(base.stats[k] * mult * 10) / 10;
+  for (const k in base.stats) out[k] = Math.round(base.stats[k] * mult * gearLevelScale(data, base, k, il) * 10) / 10;
   for (const o of item.options) {
     const stat = data.items.gearOptions[o.id].stat;
     out[stat] = (out[stat] || 0) + o.value;
@@ -531,12 +605,20 @@ export function gearPower(stats, data) {
 
 export function gearRequirements(item, data) {
   const base = data.items.gearBases[item.base], rules = data.items.requirements;
-  if (['armor', 'helm', 'gloves', 'boots', 'charm'].includes(base.slot))
-    return { level: equipmentItemLevel(data, item) };
+  // a charm asks for a level only; armour asks for its level and, like a weapon, its stats (owner, 2026-10-29)
+  if (base.slot === 'charm') return { level: equipmentItemLevel(data, item) };
+  const level = ['armor', 'helm', 'gloves', 'boots'].includes(base.slot) ? { level: equipmentItemLevel(data, item) } : {};
   const baseline = gearPower(gearStats({ ...item, grade:'C', upgrade:0, options:[] },data),data);
   const extra = Math.ceil(Math.max(0,gearPower(gearStats(item,data),data) - baseline - rules.affixAllowance) * rules.extraPowerFactor - 1e-9);
   const initial = Object.keys(base.requires || {}).length ? base.requires : { [base.requirementStat]: base.starter ? rules.minimumStat : Math.max(rules.minimumStat,Math.ceil(baseline * rules.basePowerFactor)) };
-  return Object.fromEntries(Object.entries(initial).map(([stat,value]) => [stat,value + extra]));
+  const out = Object.fromEntries(Object.entries(initial).map(([stat,value]) => [stat,value + extra]));
+  // a main-and-secondary weapon (docs/STATS-TH.md) hands secondaryShare of its requirement to the neighbour stat
+  const main = base.requirementStat, sec = base.secondaryStat;
+  if (sec && out[main] && !out[sec]) {
+    const total = out[main], part = Math.round(total * rules.secondaryShare);
+    out[main] = Math.max(rules.minimumStat, total - part); out[sec] = Math.max(rules.minimumStat, part);
+  }
+  return { ...level, ...out };
 }
 
 const OTHER_HAND = { weapon: 'offhand', offhand: 'weapon' };
@@ -562,16 +644,17 @@ export function wearRequirements(ch, data, item, slot = null, equipped = ch.equi
 
 export function gearEquipState(ch, data, item, slot = null, equipped = ch.equipped) {
   if (!item) return { ok:false, reason:'unknown', requires:{}, missing:[] };
-  const requires = wearRequirements(ch,data,item,slot,equipped);
+  const requires = wearRequirements(ch,data,item,slot,equipped), have = statTotals(ch, data, equipped, item.uid).stats;
   const rows = Object.entries(requires).map(([stat, need]) => {
-    const current = stat === 'level' ? ch.level : (ch.stats[stat] || 0);
+    const current = stat === 'level' ? ch.level : (have[stat] || 0);
     return { stat, need, current, deficit: Math.max(0, need - current) };
   });
   const missing = rows.filter(r => r.deficit > 0).map(r =>
     r.stat === 'level' ? `Lv. มี ${r.current} / ต้องใช้ ${r.need} · ขาด ${r.deficit} เลเวล`
       : `${r.stat} มี ${r.current} / ต้องใช้ ${r.need} · ขาด ${r.deficit}`);
   const ok = missing.length === 0;
-  return { ok, reason: ok ? null : requires.level !== undefined ? 'level' : 'requires', requires, rows, missing,
+  const short = rows.find((r) => r.stat === 'level' && r.deficit > 0);
+  return { ok, reason: ok ? null : short ? 'level' : 'requires', requires, rows, missing,
     ...(requires.level !== undefined ? { need: requires.level, current: ch.level } : {}) };
 }
 
@@ -728,6 +811,12 @@ export function toggleHelm(ch) {
 // ---------- Derived stats ----------
 
 /** Everything combat needs, folded from stats, gear and job nodes. */
+/** MP per second: the base (growing a little with level) times 1 + mpRegenPct/100, plus INT's share. */
+export function mpRegenOf(data, level, mpRegenPct, int) {
+  const b = data.progression.character.base;
+  return (b.mpRegen + (b.mpRegenPerLevel || 0) * (level - 1)) * (1 + mpRegenPct / 100) + int * b.mpRegenPerInt;
+}
+
 export function derive(ch, data) {
   const pc = data.progression.character;
   const d = {
@@ -751,10 +840,12 @@ export function derive(ch, data) {
     maxShieldPct: 0,
     healPct: 0,
     moveSpeedPct: 0,
-    cooldownPct: 0,
+    hastePct: 0,
     critChancePct: pc.baseCritChancePct,
     damageTakenPct: 0,
-    hpRegen: pc.base.hpRegen,
+    hpRegen: pc.base.hpRegen || 0,
+    hpRegenPct: 0, // of max HP per second (base, VIT, nodes); flat hpRegen adds to it
+    potionHealPct: 0, // more or less HP from health potions (a tank key node takes it down)
     mpRegenPct: 0,
     projectileSpeedPct: 0,
     areaRadiusPct: 0,
@@ -772,7 +863,6 @@ export function derive(ch, data) {
     critMultPct: 0,
     damagePct: 0,
     attackDamagePct: 0,
-    castSpeedPct: 0,
     elementalDamagePct: 0,
     penetrationPct: 0,
     movementRechargePct: 0,
@@ -783,26 +873,40 @@ export function derive(ch, data) {
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
   };
+  // stats from every source (statTotals); the gear in use is the gear that meets its requirement
+  const { stats, active } = statTotals(ch, data);
+  d.stats = stats;
+  // finesse (a Job Tree key node, owner 2026-10-29): melee attack comes from DEX instead of STR. STR's
+  // attack and melee damage are counted from DEX, DEX's own attack is dropped and STR keeps only its HP,
+  // so a fast crit melee build can live on DEX and nothing is added on top
+  const finesse = Math.min(1, (ch.jobNodes || []).reduce((a, n) => a + (data.jobtree.nodes[n]?.effects?.finesse || 0), 0));
   for (const s of STATS) {
     const per = pc.perStat[s] || {};
-    for (const k in per) add(k, per[k] * ch.stats[s]);
+    for (const k in per) {
+      let points = stats[s];
+      if (finesse && s === 'STR' && (k === 'attack' || k === 'meleeDamagePct')) points = stats.STR * (1 - finesse) + stats.DEX * finesse;
+      else if (finesse && s === 'DEX' && k === 'attack') points = stats.DEX * (1 - finesse);
+      add(k, per[k] * points);
+    }
   }
+  const counted = new Set();
   for (const slot of data.items.slots || ['weapon', 'armor']) {
     const item = gearItem(ch, ch.equipped[slot]);
-    if (!item || !gearEquipState(ch,data,item,slot).ok) continue;
+    if (!item || !active.has(item.uid) || counted.has(item.uid)) continue;
+    counted.add(item.uid);
     const gs = gearStats(item, data);
-    for (const k in gs) add(k, gs[k]);
+    for (const k in gs) if (!STATS.includes(k)) add(k, gs[k]);
     const imp = weaponImplicit(item, data);
     for (const k in imp) add(k, imp[k]);
   }
   // A bow's left hand holds the arrows in use: their stats count while any are left.
   const main = gearItem(ch, ch.equipped.weapon);
-  const bow = main && gearEquipState(ch,data,main,'weapon').ok && data.items.weaponTypes[data.items.gearBases[main.base].weaponType]?.ammo;
+  const bow = main && active.has(main.uid) && data.items.weaponTypes[data.items.gearBases[main.base].weaponType]?.ammo;
   const arrow = bow ? arrowInUse(ch, data) : null;
   if (arrow) for (const [k, v] of Object.entries(data.items.arrows.types[arrow].stats)) add(k, v);
   for (const n of ch.jobNodes) {
     const eff = data.jobtree.nodes[n]?.effects || {};
-    for (const k in eff) add(k, eff[k]);
+    for (const k in eff) if (!STATS.includes(k) && k !== 'finesse') add(k, eff[k]);
   }
   const base = pc.base;
   const soft = pc.softCaps;
@@ -810,11 +914,18 @@ export function derive(ch, data) {
     d[stat] = soft.threshold + (d[stat] - soft.threshold) * soft.overflowFactor;
   for (const [stat, limit] of Object.entries(pc.caps || {}))
     d[stat] = limit < 0 ? Math.max(d[stat], limit) : Math.min(d[stat], limit);
-  d.maxHp = Math.round((base.hp + base.hpPerLevel * (ch.level - 1) + base.hpPerVit * ch.stats.VIT + d.maxHp) * (1 + d.maxHpPct / 100));
-  d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * ch.stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
+  d.maxHp = Math.round((base.hp + base.hpPerLevel * (ch.level - 1) + base.hpPerVit * stats.VIT + d.maxHp) * (1 + d.maxHpPct / 100));
+  d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
   d.maxShield = Math.round(d.maxShield * (1 + d.maxShieldPct / 100)); // spell shield: INT and gear only
-  d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
+  d.mpRegen = mpRegenOf(data, ch.level, d.mpRegenPct, stats.INT);
+  // HP regeneration (owner, 2026-10-29): a share of max HP per second (base, VIT, nodes) plus flat regen
+  // from gear, capped at hpRegenCapPct of max HP, so it keeps its worth as HP grows
+  d.hpRegen = Math.min(d.maxHp * base.hpRegenCapPct / 100, d.hpRegen + d.maxHp * (base.hpRegenPct + d.hpRegenPct) / 100);
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
+  // stat thresholds (core/stat-perks.js): the perks the totals unlock, null when none
+  const perks = activePerks(data, stats);
+  d.perks = Object.keys(perks).length ? perks : null;
+  if (perks.agi_extra) d.extraMovementCharges += perks.agi_extra.charges; // after the caps: the perk is the reward
   d.critChance = Math.min(1, d.critChancePct / 100); // no design cap on crit chance (owner, 2026-10-25); 100% means every hit crits
   // crit chance past 100% turns into crit damage at a reduced rate, outside the crit damage caps (owner)
   d.critOverflowPct = Math.max(0, d.critChancePct - 100) * (pc.critOverflowToMultPct || 0);
@@ -822,8 +933,8 @@ export function derive(ch, data) {
   d.attack = Math.round(d.attack * 10) / 10;
   d.magic = Math.round(d.magic * 10) / 10;
   d.defense = Math.round(d.defense);
-  d.weaponType = main && gearEquipState(ch,data,main,'weapon').ok ? data.items.gearBases[main.base].weaponType : 'none';
-  const off = gearItem(ch, ch.equipped.offhand), offOk = off && gearEquipState(ch,data,off,'offhand').ok;
+  d.weaponType = main && active.has(main.uid) ? data.items.gearBases[main.base].weaponType : 'none';
+  const off = gearItem(ch, ch.equipped.offhand), offOk = off && active.has(off.uid);
   // a greatshield (weapon type with `shield`) is held in both hands: it blocks and counts as the shield
   const greatshield = data.items.weaponTypes[d.weaponType]?.shield;
   d.offhand = offOk ? (handsOf(data, off) === 'off' ? 'shield' : 'weapon') : greatshield ? 'shield' : arrow ? 'arrows' : 'none';

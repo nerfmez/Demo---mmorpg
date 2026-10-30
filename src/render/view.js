@@ -621,7 +621,7 @@ export class View {
         v.summon(e);
         break;
       case 'buff':
-        v.warcry(e); // every buff skill uses the roar ring until it has its own look
+        if (!drawn) v.warcry(e); // a buff skill without its own look (skill-fx.js) uses the roar ring
         break;
       case 'curse':
         v.curse(e);
@@ -1034,8 +1034,8 @@ export class View {
         c.rotation.y = on ? time : 0;
       }
       for(const region of this.regions.values())for(const a of region.acceptedAnimations||[])a.update(dt,time,false);
-      // target ring
-      const t = g.target;
+      // target ring (while a drag on Backstab picks its target, the one it points at)
+      const lock = ui.aim?.lock, t = lock !== undefined ? (lock === null ? null : g.monsterById(lock)) : g.target;
       this.targetRing.visible = !!t && !t.dead;
       if (t) {
         this.targetRing.position.set(t.x, 0, t.z);

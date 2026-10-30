@@ -363,6 +363,11 @@ export class Hud {
       case 'dodge':
         this.float(e.x, 2.2, e.z, 'หลบ!', 'dodge');
         break;
+      case 'perk': { // a stat threshold perk went off (core/stat-perks.js): its name over the hero or target
+        const p = Object.values(d.progression.statPerks || {}).flat().find((q) => q.id === e.id);
+        if (p) this.float(e.x, 2.6, e.z, `${p.nameTh}!`, 'crit');
+        break;
+      }
       case 'heal':
         this.float(e.x, 2.2, e.z, `+${e.amount}`, 'heal');
         break;
@@ -387,6 +392,9 @@ export class Hud {
         break;
       case 'levelup':
         this.banner(`เลเวล ${e.level}!`, `ได้ Stat Point +${d.progression.character.statPointsPerLevel} · กด C (ตัวละคร) เพื่อลงแต้ม`);
+        break;
+      case 'skillPoint':
+        this.toast(`${d.skills.combat[e.skill]?.nameTh || e.skill} · ได้แต้มหลอด +${e.points} · ลงได้ที่หน้าอัปสกิล › หลอดสกิล`, '#2a8f9a');
         break;
       case 'joblevelup':
         this.toast(`Job Level ${e.level} · ได้ Job Point +1`, '#c59bff');
@@ -422,6 +430,7 @@ export class Hud {
         if (e.reason === 'potion_none') this.toast((d.items.consumables.types[e.item]?.nameTh || 'ยา') + 'หมดแล้ว · ซื้อได้ที่ร้านค้าในเมือง', '#ff9a6a');
         if (e.reason === 'potion_cooldown') this.toast('ยังดื่มยาชนิดนี้ซ้ำไม่ได้ รอสักครู่', '#c8b8a0');
         if (e.reason === 'potion_full') this.toast((d.items.consumables.types[e.item]?.group === 'mp' ? 'MP' : 'HP') + ' เต็มอยู่แล้ว', '#c8b8a0');
+        if (e.reason === 'target') this.toast('ไม่มีเป้าหมายในระยะ', '#c8b8a0');
         if (e.reason === 'arrows') this.toast('ลูกธนูหมด · คราฟต์ได้ทุกที่นอกการต่อสู้ (กระเป๋า → มือซ้าย)', '#e08a3a');
         break;
       case 'playerDeath':

@@ -38,13 +38,13 @@
       "count": 5,
       "reward": {
         "gold": 130,
-        "exp": 691,
+        "exp": 590,
         "jobExp": 394,
         "items": {
           "boar_hide": 2
         }
       },
-      "level": 9,
+      "level": 14,
       "requires": [
         "f_road"
       ],
@@ -88,11 +88,11 @@
       "count": 1,
       "reward": {
         "gold": 210,
-        "exp": 1220,
+        "exp": 1075,
         "jobExp": 637
       },
       "world": "frontier-wilds-v1",
-      "level": 10,
+      "level": 16,
       "requires": [
         "f_road"
       ],
@@ -119,10 +119,10 @@
       "count": 1,
       "reward": {
         "gold": 280,
-        "exp": 2559,
+        "exp": 2035,
         "jobExp": 1145
       },
-      "level": 14,
+      "level": 22,
       "requires": [
         "m_forest"
       ],
@@ -157,11 +157,11 @@
       "count": 1,
       "reward": {
         "gold": 320,
-        "exp": 3432,
+        "exp": 2625,
         "jobExp": 1511
       },
       "world": "frontier-wilds-v1",
-      "level": 16,
+      "level": 25,
       "requires": [
         "s_coast"
       ],
@@ -188,14 +188,14 @@
       "count": 1,
       "reward": {
         "gold": 370,
-        "exp": 5009,
+        "exp": 3780,
         "jobExp": 2069,
         "items": {
           "ruin_shard": 1
         }
       },
       "world": "frontier-wilds-v1",
-      "level": 19,
+      "level": 30,
       "requires": [
         "m_wetland"
       ],
@@ -222,10 +222,10 @@
       "count": 1,
       "reward": {
         "gold": 480,
-        "exp": 9161,
+        "exp": 6720,
         "jobExp": 3409
       },
-      "level": 25,
+      "level": 40,
       "requires": [
         "m_highlands"
       ],
@@ -260,12 +260,12 @@
       "count": 8,
       "reward": {
         "gold": 140,
-        "exp": 872,
+        "exp": 770,
         "items": {
           "spore_sac": 2
         }
       },
-      "level": 10,
+      "level": 16,
       "requires": [
         "f_road"
       ],
@@ -295,12 +295,12 @@
       "count": 10,
       "reward": {
         "gold": 165,
-        "exp": 1302,
+        "exp": 1085,
         "items": {
           "wolf_fang": 2
         }
       },
-      "level": 12,
+      "level": 19,
       "requires": [
         "m_forest"
       ],
@@ -330,12 +330,12 @@
       "count": 5,
       "reward": {
         "gold": 250,
-        "exp": 3578,
+        "exp": 3265,
         "items": {
           "golem_heart": 1
         }
       },
-      "level": 19,
+      "level": 33,
       "requires": [
         "m_wetland"
       ],
@@ -362,9 +362,9 @@
       "count": 6,
       "reward": {
         "gold": 235,
-        "exp": 3177
+        "exp": 2525
       },
-      "level": 18,
+      "level": 29,
       "requires": [
         "s_coast"
       ],
@@ -391,12 +391,12 @@
       "count": 8,
       "reward": {
         "gold": 260,
-        "exp": 4005,
+        "exp": 3070,
         "items": {
           "ruin_shard": 1
         }
       },
-      "level": 20,
+      "level": 32,
       "requires": [
         "m_wetland"
       ],
@@ -422,9 +422,9 @@
       "count": 2,
       "reward": {
         "gold": 90,
-        "exp": 283
+        "exp": 245
       },
-      "level": 6,
+      "level": 9,
       "requires": [
         "h_craft"
       ],
@@ -449,9 +449,9 @@
       "count": 1,
       "reward": {
         "gold": 90,
-        "exp": 283
+        "exp": 245
       },
-      "level": 6,
+      "level": 9,
       "requires": [
         "h_craft"
       ],
@@ -477,11 +477,11 @@
       "count": 1,
       "reward": {
         "gold": 200,
-        "exp": 2127,
+        "exp": 1730,
         "jobExp": 989
       },
       "world": "frontier-wilds-v1",
-      "level": 15,
+      "level": 24,
       "requires": [
         "m_greyfang"
       ],
@@ -523,7 +523,7 @@
       "count": 1,
       "reward": {
         "gold": 50,
-        "exp": 8,
+        "exp": 5,
         "jobExp": 6
       },
       "world": "azure-harbor-v1",
@@ -554,7 +554,7 @@
       "count": 3,
       "reward": {
         "gold": 50,
-        "exp": 8,
+        "exp": 5,
         "jobExp": 6,
         "skills": [
           "firebolt"
@@ -595,7 +595,7 @@
           "ward"
         ]
       },
-      "level": 2,
+      "level": 3,
       "requires": [
         "h_slimes"
       ],
@@ -624,7 +624,7 @@
         "exp": 35,
         "jobExp": 46
       },
-      "level": 2,
+      "level": 3,
       "requires": [
         "h_arrival"
       ],
@@ -650,11 +650,11 @@
       "count": 1,
       "reward": {
         "gold": 85,
-        "exp": 86,
+        "exp": 65,
         "jobExp": 76
       },
       "world": "azure-harbor-v1",
-      "level": 3,
+      "level": 4,
       "requires": [
         "h_craft"
       ],
@@ -681,11 +681,11 @@
       "count": 1,
       "reward": {
         "gold": 120,
-        "exp": 266,
+        "exp": 230,
         "jobExp": 209
       },
       "world": "azure-harbor-v1",
-      "level": 6,
+      "level": 9,
       "requires": [
         "h_fields"
       ],
@@ -712,11 +712,11 @@
       "count": 1,
       "reward": {
         "gold": 155,
-        "exp": 557,
+        "exp": 510,
         "jobExp": 329
       },
       "world": "azure-harbor-v1",
-      "level": 7,
+      "level": 11,
       "requires": [
         "h_fields"
       ],
@@ -748,7 +748,7 @@
           "shore_feather": 2
         }
       },
-      "level": 2,
+      "level": 3,
       "requires": [
         "h_slimes"
       ],
@@ -775,12 +775,12 @@
       "count": 4,
       "reward": {
         "gold": 105,
-        "exp": 398,
+        "exp": 365,
         "items": {
           "hermit_fragment": 2
         }
       },
-      "level": 7,
+      "level": 11,
       "requires": [
         "h_grove"
       ],
@@ -808,10 +808,10 @@
       "count": 1,
       "reward": {
         "gold": 175,
-        "exp": 747,
+        "exp": 605,
         "jobExp": 398
       },
-      "level": 8,
+      "level": 12,
       "requires": [
         "h_grove"
       ],

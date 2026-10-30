@@ -111,7 +111,7 @@ test('retired Burning Ground becomes Fire Shift without two element shifts shari
 test('v15: an older look keeps the painted face, a chosen face and any hair colour survive a reload', async () => {
   const { CHARACTER_VERSION } = await import('../../src/core/character.js');
   const { FACES, HAIR_STYLES } = await import('../../src/network/protocol.js');
-  assert.equal(CHARACTER_VERSION, 15);
+  assert.ok(CHARACTER_VERSION >= 15);
   const old = createCharacter(data, { name: 'Old', appearance: { hairStyle: 'ponytail', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' } });
   old.version = 14; delete old.appearance.face;
   migrateCharacter(old, data);

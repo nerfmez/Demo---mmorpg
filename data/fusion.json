@@ -1,17 +1,18 @@
 {
-  "_doc": "PROTOTYPE skill fusion, used only by the FX bench (fx-test.html) until approved. A physical carrier skill can link one fast spell (payload) into one of its mod sockets. The carrier keeps its own shape; when it connects, the payload fires from the first struck target with its full behaviour and only its main damage reduced. The fused skill uses the longer cooldown of the two and the sum of their MP costs. maxCooldown stands in for the planned Core skill type. recipes: authored fusions for a specific pair; they replace the generic rule for that pair (charge, then the carrier's strike plus the recipe's own payload delivery). type wave (default): the carrier's strike and a piercing wave (Flame Wave Slash). type arrow_chain: the carrier's own arrows (no charge: that is Power Draw's role) that, on their first hit, burst the payload's chain lightning from the struck target (the target and up to the payload's chain count more, chainDamageMult of the payload's damage with its falloff). type arrow_poison: the carrier's own arrows (no charge) turned into the payload's poison arrows: poison element and the payload's stacking poison (stackDps scaled by poisonMult, it multiplies the hit), drawn with the old Venom Arrow look (look). skills: bench-only prototype spells added to the skill list on the bench (fusion.js benchData) until they get the game's content (icon, acquisition).",
+  "_doc": "PROTOTYPE skill fusion, used only by the FX bench (fx-test.html) until approved. A physical carrier skill can link one fast spell (payload) into one of its mod sockets; an attack already made of magic (Arcane, e.g. Spell Wave) cannot carry a spell. The carrier keeps its own shape; when it connects, the payload fires from the first struck target with its full behaviour and only its main damage reduced. The fused skill uses the longer cooldown of the two and the sum of their MP costs. maxCooldown stands in for the planned Core skill type. recipes: authored fusions for a specific pair; they replace the generic rule for that pair (charge, then the carrier's strike plus the recipe's own payload delivery). type wave (default): the carrier's strike and a piercing wave (Flame Wave Slash). type arrow_chain: the carrier's own arrows (no charge: that is Power Draw's role) that, on their first hit, burst the payload's chain lightning from the struck target (the target and up to the payload's chain count more, chainDamageMult of the payload's damage with its falloff). type arrow_poison: the carrier's own arrows (no charge) turned into the payload's poison arrows: poison element and the payload's stacking poison (stackDps scaled by poisonMult, it multiplies the hit), drawn with the old Venom Arrow look (look). skills: bench-only prototype spells added to the skill list on the bench (fusion.js benchData) until they get the game's content (icon, acquisition).",
   "carrier": {
     "requiresAll": [
       "Attack"
     ],
     "excludes": [
       "Spell",
+      "Arcane",
       "Summon",
       "Guard",
       "Charge",
       "Channel"
     ],
-    "maxCooldown": 2.5
+    "maxCooldown": 4.0
   },
   "payload": {
     "requiresAll": [
@@ -25,7 +26,7 @@
       "Guard",
       "Buff"
     ],
-    "maxCooldown": 2.5,
+    "maxCooldown": 4.0,
     "kinds": [
       "projectile",
       "chain"
@@ -42,7 +43,7 @@
       "nameTh": "ฟันคลื่นเพลิง",
       "desc": "ตั้งท่ารวมไฟเข้าดาบ 1 วิ แล้วฟันปล่อยคลื่นไฟรูปจันทร์เสี้ยวพุ่งไปข้างหน้า ทะลุทุกตัว โดนตัวละครั้งเดียว ติดไฟได้",
       "chargeTime": 1.0,
-      "cooldown": 1.6,
+      "cooldown": 2.56,
       "slashDamageMult": 1.0,
       "wave": {
         "speed": 11,
@@ -59,7 +60,7 @@
       "name": "Thunder Arrow",
       "nameTh": "ศรอัสนี",
       "desc": "ยิงลูกธนูพรานได้เร็วเท่าเดิม ลูกธนูห่อสายฟ้า ปักเป้าแรกแล้วฟ้าแลบระเบิดจากตัวเป้า เด้งต่อไปหาศัตรูใกล้ ๆ อีก 3 ตัว (ไม่ต้องชาร์จ: การชาร์จเป็นของชาร์จยิงรุนแรง)",
-      "cooldown": 0.95,
+      "cooldown": 1.52,
       "chainDamageMult": 0.6
     },
     {
@@ -70,7 +71,7 @@
       "name": "Venom Arrow",
       "nameTh": "ธนูพิษ",
       "desc": "ยิงลูกธนูพรานได้เร็วเท่าเดิม ลูกธนูอาบพิษ โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง (ไม่ต้องชาร์จ)",
-      "cooldown": 0.6,
+      "cooldown": 0.96,
       "poisonMult": 0.5,
       "look": "venom_mire"
     }
@@ -90,15 +91,15 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 70,
-        "scale": 0.8
+        "base": 112,
+        "scale": 1.28
       },
       "range": 12,
       "speed": 11,
       "projectileRadius": 0.32,
-      "cooldown": 0.8,
+      "cooldown": 1.28,
       "castTime": 0.22,
-      "cost": 60,
+      "cost": 96,
       "element": "poison",
       "requires": {},
       "upgradeMaterial": "spore_sac",

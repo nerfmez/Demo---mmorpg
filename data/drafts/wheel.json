@@ -1,0 +1,289 @@
+{
+  "_doc": "DRAFT for design by simulation (owner, 2026-10-27), not loaded by the game: the wheel Job Tree of docs/SKILL-TREE-WHEEL-DRAFT-TH.md as numbers, simulated by scripts/wheel-sim.mjs with core/build-rules.js. Inner ring: Job Lv 1-39 (39 points) over a centre and six sectors, each a ladder bought from the centre outward. Jobs: Job Lv 40-70 (31 points) = entry (free) + trunk (4) + one branch (18: three tiers of 3 pass nodes at 1 point and a key at 2, then a capstone at 3) + spare points. A node's effects use the character sheet's stats or the scenario stats of build-rules (singleDamagePct, packDamagePct, perTargetDamagePct + perTargetCap, selfTakenPct, teamBuffPct, teamTakenPct, teamDamagePct). uptime: the share of a fight a conditional effect holds (an assumption to check in play); the simulator multiplies the effects by it. forks: a key a player picks one of, same price.",
+  "level": 30,
+  "planned": {
+    "_doc": "Temporary caps for design (owner, 2026-10-27): the game will grow past today's caps (character 30, monsters 25). Simulate at the job checkpoints; a job level maps to the character level a player usually has then (characterPerJob). Change these when the real caps are set and run the simulator again.",
+    "characterLevel": 60, "jobLevel": 70, "monsterLevel": 60,
+    "checkpoints": [40, 55, 70], "characterPerJob": 0.857
+  },
+  "points": { "inner": 39, "job": 31 },
+  "inner": {
+    "center": [
+      { "id": "c1", "name": "ดาเมจรวม", "effects": { "damagePct": 3 } },
+      { "id": "c2", "name": "HP", "effects": { "maxHpPct": 3 } },
+      { "id": "c3", "name": "MP", "effects": { "maxMpPct": 4 } },
+      { "id": "c4", "name": "ฟื้นพลัง", "effects": { "hpRegen": 6, "mpRegenPct": 5 } },
+      { "id": "c5", "name": "ดาเมจรวม", "effects": { "damagePct": 3 } },
+      { "id": "c6", "name": "HP", "effects": { "maxHpPct": 3 } }
+    ],
+    "str": [
+      { "id": "s1", "name": "ดาเมจประชิด", "effects": { "meleeDamagePct": 3 } },
+      { "id": "s2", "name": "HP", "effects": { "maxHpPct": 3 } },
+      { "id": "s3", "name": "ป้องกัน", "effects": { "defense": 60 } },
+      { "id": "s4", "name": "ดาเมจประชิด (เด่น)", "effects": { "meleeDamagePct": 6 } },
+      { "id": "s5", "name": "บล็อก", "effects": { "blockChancePct": 4 } },
+      { "id": "s6", "name": "HP", "effects": { "maxHpPct": 3 } },
+      { "id": "s7", "name": "ดาเมจประชิด", "effects": { "meleeDamagePct": 3 } },
+      { "id": "s8", "name": "ป้องกัน (เด่น)", "effects": { "defense": 120 } },
+      { "id": "s9", "name": "มุมฟัน", "effects": { "meleeArcAdd": 10 } },
+      { "id": "s10", "name": "HP", "effects": { "maxHpPct": 3 } },
+      { "id": "s11", "name": "ดาเมจประชิด", "effects": { "meleeDamagePct": 3 } },
+      { "id": "s12", "name": "HP (เด่น)", "effects": { "maxHpPct": 6 } }
+    ],
+    "strdex": [
+      { "id": "sd1", "name": "โอกาสคริ", "effects": { "critChancePct": 1.5 } },
+      { "id": "sd2", "name": "แรงคริ", "effects": { "critMultPct": 5 } },
+      { "id": "sd3", "name": "ดาเมจโจมตี", "effects": { "attackDamagePct": 3 } },
+      { "id": "sd4", "name": "คริ (เด่น)", "effects": { "critChancePct": 3 } },
+      { "id": "sd5", "name": "ดูดเลือด", "effects": { "leechPct": 0.5 } },
+      { "id": "sd6", "name": "แรงคริ", "effects": { "critMultPct": 5 } },
+      { "id": "sd7", "name": "ดาเมจโจมตี", "effects": { "attackDamagePct": 3 } },
+      { "id": "sd8", "name": "แรงคริ (เด่น)", "effects": { "critMultPct": 10 } },
+      { "id": "sd9", "name": "โอกาสคริ", "effects": { "critChancePct": 1.5 } },
+      { "id": "sd10", "name": "ดูดเลือด", "effects": { "leechPct": 0.5 } },
+      { "id": "sd11", "name": "ดาเมจโจมตี", "effects": { "attackDamagePct": 3 } },
+      { "id": "sd12", "name": "คริ (เด่น)", "effects": { "critChancePct": 3 } }
+    ],
+    "dex": [
+      { "id": "d1", "name": "ดาเมจยิง", "effects": { "projectileDamagePct": 3 } },
+      { "id": "d2", "name": "เจาะเกราะ", "effects": { "penetrationPct": 3 } },
+      { "id": "d3", "name": "ความเร็ววิ่ง", "effects": { "moveSpeedPct": 2 } },
+      { "id": "d4", "name": "ดาเมจยิง (เด่น)", "effects": { "projectileDamagePct": 6 } },
+      { "id": "d5", "name": "ความเร็วลูกที่ยิง", "effects": { "projectileSpeedPct": 6 } },
+      { "id": "d6", "name": "เจาะเกราะ", "effects": { "penetrationPct": 3 } },
+      { "id": "d7", "name": "ดาเมจยิง", "effects": { "projectileDamagePct": 3 } },
+      { "id": "d8", "name": "เจาะเกราะ (เด่น)", "effects": { "penetrationPct": 6 } },
+      { "id": "d9", "name": "ความเร็ววิ่ง", "effects": { "moveSpeedPct": 2 } },
+      { "id": "d10", "name": "ดาเมจยิง", "effects": { "projectileDamagePct": 3 } },
+      { "id": "d11", "name": "เจาะเกราะ", "effects": { "penetrationPct": 3 } },
+      { "id": "d12", "name": "ความเร็ววิ่ง (เด่น)", "effects": { "moveSpeedPct": 4 } }
+    ],
+    "dexint": [
+      { "id": "di1", "name": "ดาเมจธาตุ", "effects": { "elementalDamagePct": 3 } },
+      { "id": "di2", "name": "โอกาสพิษ", "effects": { "poisonChancePct": 3 } },
+      { "id": "di3", "name": "ดาเมจต่อเนื่อง", "effects": { "dotDamagePct": 3 } },
+      { "id": "di4", "name": "ดาเมจธาตุ (เด่น)", "effects": { "elementalDamagePct": 6 } },
+      { "id": "di5", "name": "ดาเมจต่อเนื่อง", "effects": { "dotDamagePct": 3 } },
+      { "id": "di6", "name": "ดาเมจธาตุ", "effects": { "elementalDamagePct": 3 } },
+      { "id": "di7", "name": "โอกาสพิษ", "effects": { "poisonChancePct": 3 } },
+      { "id": "di8", "name": "ชาร์จหลบ (เด่น)", "effects": { "extraMovementCharges": 1 } },
+      { "id": "di9", "name": "ดาเมจธาตุ", "effects": { "elementalDamagePct": 3 } },
+      { "id": "di10", "name": "ดาเมจต่อเนื่อง", "effects": { "dotDamagePct": 3 } },
+      { "id": "di11", "name": "ดาเมจธาตุ", "effects": { "elementalDamagePct": 3 } },
+      { "id": "di12", "name": "ดาเมจธาตุ (เด่น)", "effects": { "elementalDamagePct": 6 } }
+    ],
+    "int": [
+      { "id": "i1", "name": "ดาเมจเวท", "effects": { "spellDamagePct": 3 } },
+      { "id": "i2", "name": "ความเร็ว", "effects": { "hastePct": 4, "mpRegenPct": 3 } },
+      { "id": "i3", "name": "รัศมี", "effects": { "areaRadiusPct": 3 } },
+      { "id": "i4", "name": "ดาเมจเวท (เด่น)", "effects": { "spellDamagePct": 6 } },
+      { "id": "i5", "name": "MP", "effects": { "maxMpPct": 4 } },
+      { "id": "i6", "name": "ดาเมจอัญเชิญ", "effects": { "summonDamagePct": 4 } },
+      { "id": "i7", "name": "ดาเมจเวท", "effects": { "spellDamagePct": 3 } },
+      { "id": "i8", "name": "ความเร็ว (เด่น)", "effects": { "hastePct": 8, "mpRegenPct": 6 } },
+      { "id": "i9", "name": "รัศมี", "effects": { "areaRadiusPct": 3 } },
+      { "id": "i10", "name": "MP", "effects": { "maxMpPct": 4 } },
+      { "id": "i11", "name": "ดาเมจเวท", "effects": { "spellDamagePct": 3 } },
+      { "id": "i12", "name": "ดาเมจเวท (เด่น)", "effects": { "spellDamagePct": 6 } }
+    ],
+    "intstr": [
+      { "id": "is1", "name": "ฮีล", "effects": { "healPct": 4 } },
+      { "id": "is2", "name": "บาเรีย", "effects": { "barrierPct": 4 } },
+      { "id": "is3", "name": "ฟื้น HP", "effects": { "hpRegen": 8 } },
+      { "id": "is4", "name": "ฮีล (เด่น)", "effects": { "healPct": 8 } },
+      { "id": "is5", "name": "ระยะควบคุม", "effects": { "controlDurationPct": 5 } },
+      { "id": "is6", "name": "ความเร็ว", "effects": { "hastePct": 4, "mpRegenPct": 3 } },
+      { "id": "is7", "name": "บาเรีย", "effects": { "barrierPct": 4 } },
+      { "id": "is8", "name": "บาเรีย (เด่น)", "effects": { "barrierPct": 8 } },
+      { "id": "is9", "name": "ฟื้น HP", "effects": { "hpRegen": 8 } },
+      { "id": "is10", "name": "ฮีล", "effects": { "healPct": 4 } },
+      { "id": "is11", "name": "ระยะควบคุม", "effects": { "controlDurationPct": 5 } },
+      { "id": "is12", "name": "ฟื้น HP (เด่น)", "effects": { "hpRegen": 16 } }
+    ]
+  },
+  "jobs": {
+    "heavy": {
+      "name": "นักรบอาวุธหนัก",
+      "build": { "weaponType": "greatblade", "weaponFactor": 2.2, "weaponSplit": { "attack": 0.95, "magic": 0.05 }, "stats": { "STR": 0.6 } },
+      "loadout": ["slash", "frontline_split", "earth_rend", "sky_shatter"],
+      "support": [],
+      "inner": { "own": ["center", "str", "strdex"], "tank": ["center", "str", "intstr"], "crit": ["center", "strdex", "str"] },
+      "entry": { "name": "ดาเมจอาวุธสองมือ", "effects": { "meleeDamagePct": 10 } },
+      "trunk": [
+        { "name": "ดาเมจประชิด", "effects": { "meleeDamagePct": 4 } },
+        { "name": "HP", "effects": { "maxHpPct": 4 } },
+        { "name": "ลำต้น (เด่น)", "cost": 2, "effects": { "meleeDamagePct": 6, "maxHpPct": 6 } }
+      ],
+      "branches": {
+        "sweeper": {
+          "name": "ผู้กวาดล้าง", "role": "pack",
+          "pass": [{ "areaDamagePct": 4 }, { "areaRadiusPct": 4 }, { "areaDamagePct": 4 }],
+          "keys": [
+            { "name": "ดาเมจต่อศัตรูที่โดน", "effects": { "perTargetDamagePct": 5, "perTargetCap": 25 } },
+            { "name": "ดูดเลือดหมู่", "effects": { "leechPct": 3 } },
+            { "name": "กวาดแรงขึ้น", "effects": { "packDamagePct": 12 } }
+          ],
+          "cap": { "name": "แรงส่ง", "effects": { "packDamagePct": 40 }, "uptime": 0.5 }
+        },
+        "crusher": {
+          "name": "ผู้บดขยี้", "role": "single",
+          "pass": [{ "meleeDamagePct": 4 }, { "critMultPct": 6 }, { "meleeDamagePct": 4 }],
+          "keys": [
+            { "forks": {
+              "charge": { "name": "ชาร์จ", "effects": { "singleDamagePct": 20 } },
+              "debuff": { "name": "ดีบัฟ", "effects": { "singleDamagePct": 12, "teamDamagePct": 6 } },
+              "heavy": { "name": "แรงสุด", "effects": { "meleeDamagePct": 30, "hastePct": -15 } }
+            } },
+            { "name": "ทุบเกราะ", "effects": { "singleDamagePct": 15 }, "uptime": 0.9 },
+            { "name": "คริหนัก", "effects": { "critChancePct": 6 } }
+          ],
+          "cap": { "name": "ดาเมจใส่บอสและเป้าเดียว", "effects": { "singleDamagePct": 30 } }
+        }
+      }
+    },
+    "power": {
+      "name": "จอมธนู",
+      "build": { "weaponType": "bow", "weaponFactor": 2.2, "weaponSplit": { "attack": 0.88, "magic": 0.12 }, "stats": { "DEX": 0.6, "LUK": 0.15 } },
+      "loadout": ["hunter_shot", "charged_shot", "rapid_volley", "killing_arrow"],
+      "support": [],
+      "inner": { "own": ["center", "dex", "strdex"], "tank": ["center", "dex", "str"], "crit": ["center", "strdex", "dex"] },
+      "entry": { "name": "ยิงเป้าเดิมต่อเนื่อง", "effects": { "singleDamagePct": 10 } },
+      "trunk": [
+        { "name": "ดาเมจยิง", "effects": { "projectileDamagePct": 4 } },
+        { "name": "ความเร็วลูกที่ยิง", "effects": { "projectileSpeedPct": 6 } },
+        { "name": "ลำต้น (เด่น)", "cost": 2, "effects": { "projectileDamagePct": 8 } }
+      ],
+      "branches": {
+        "dps": {
+          "name": "สาย DPS", "role": "single",
+          "pass": [{ "projectileDamagePct": 4 }, { "hastePct": 4, "mpOnHit": 1 }, { "projectileDamagePct": 4 }],
+          "keys": [
+            { "forks": {
+              "power": { "name": "แรง", "effects": { "projectileDamagePct": 18 } },
+              "speed": { "name": "เร็ว", "effects": { "hastePct": 16, "mpOnHit": 4 } },
+              "crit": { "name": "คริ", "effects": { "critChancePct": 7, "critMultPct": 15 } },
+              "pierce": { "name": "เจาะเกราะ", "effects": { "penetrationPct": 20 } }
+            } },
+            { "name": "ยืนนิ่ง", "effects": { "projectileDamagePct": 15 }, "uptime": 0.6 },
+            { "name": "ยิงแม่น", "effects": { "critChancePct": 4 } }
+          ],
+          "cap": { "forks": {
+            "power": { "name": "ลูกตัดสิน", "effects": { "singleDamagePct": 17 } },
+            "speed": { "name": "ไม่ยั้งมือ", "effects": { "hastePct": 20, "mpOnHit": 3 }, "uptime": 0.7 },
+            "crit": { "name": "ตาเหยี่ยว", "effects": { "hastePct": 14 } },
+            "pierce": { "name": "ทะลวงจุดอ่อน", "effects": { "singleDamagePct": 20 } }
+          } }
+        }
+      }
+    },
+    "elemage": {
+      "name": "จอมเวทธาตุ",
+      "build": { "weaponType": "staff", "weaponFactor": 2.2, "weaponSplit": { "attack": 0.15, "magic": 0.85 }, "stats": { "INT": 0.65 } },
+      "loadout": ["firebolt", "meteor", "blizzard", "thunderstorm"],
+      "support": [],
+      "inner": { "own": ["center", "int", "dexint"], "tank": ["center", "int", "intstr"], "crit": ["center", "int", "strdex"] },
+      "entry": { "name": "ดาเมจเวทใส่ศัตรูที่ติดสถานะ", "effects": { "spellDamagePct": 10 }, "uptime": 0.7 },
+      "trunk": [
+        { "name": "ดาเมจเวท", "effects": { "spellDamagePct": 4 } },
+        { "name": "ความเร็วหลังฆ่า", "effects": { "hastePct": 8 }, "uptime": 0.5 },
+        { "name": "ลำต้น (เด่น)", "cost": 2, "effects": { "spellDamagePct": 8 } }
+      ],
+      "branches": {
+        "fire": {
+          "name": "ไฟ", "role": "pack",
+          "pass": [{ "elementalDamagePct": 4 }, { "areaDamagePct": 4 }, { "elementalDamagePct": 4 }],
+          "keys": [
+            { "name": "ติดไฟและไหม้แรงขึ้น", "effects": { "packDamagePct": 12, "singleDamagePct": 6 } },
+            { "name": "รัศมีเวทไฟ", "effects": { "areaRadiusPct": 15 } },
+            { "name": "ไฟแรง", "effects": { "elementalDamagePct": 10 } }
+          ],
+          "cap": { "name": "ไฟลาม", "effects": { "packDamagePct": 30 }, "uptime": 0.6 }
+        },
+        "ice": {
+          "name": "น้ำแข็ง", "role": "survival",
+          "stats": { "INT": 0.5, "VIT": 0.15 },
+          "pass": [{ "elementalDamagePct": 4 }, { "controlDurationPct": 6 }, { "maxHpPct": 3 }],
+          "keys": [
+            { "name": "ชะลอแรงขึ้น", "effects": { "selfTakenPct": 10 } },
+            { "name": "โอกาสแข็ง", "effects": { "selfTakenPct": 8, "singleDamagePct": 5 } },
+            { "name": "เวทต่อเนื่องนานขึ้น", "effects": { "dotDamagePct": 20 } }
+          ],
+          "cap": { "name": "แตกเป็นเสี่ยง", "effects": { "singleDamagePct": 25, "packDamagePct": 25 }, "uptime": 0.5 }
+        },
+        "lightning": {
+          "name": "สายฟ้า", "role": "single",
+          "stats": { "INT": 0.55, "AGI": 0.1 },
+          "loadout": ["chain_spark", "thunderstorm", "meteor", "blizzard"],
+          "pass": [{ "elementalDamagePct": 4 }, { "hastePct": 5 }, { "manaCostReductionPct": 3 }],
+          "keys": [
+            { "name": "คริเวทสายฟ้า", "effects": { "critChancePct": 10 } },
+            { "name": "เด้งแรงขึ้น", "effects": { "packDamagePct": 10 } },
+            { "name": "MP สายฟ้าลดลง", "effects": { "manaCostReductionPct": 15 } }
+          ],
+          "cap": { "name": "ช็อต", "effects": { "singleDamagePct": 15, "teamDamagePct": 10 }, "uptime": 0.6 }
+        },
+        "fusion": {
+          "name": "ผสานธาตุ", "role": "single",
+          "stats": { "INT": 0.55, "AGI": 0.1 },
+          "pass": [{ "elementalDamagePct": 4 }, { "hastePct": 4 }, { "manaCostReductionPct": 3 }],
+          "keys": [
+            { "name": "จังหวะธาตุ", "effects": { "spellDamagePct": 30 }, "uptime": 0.6 },
+            { "name": "ปฏิกิริยาธาตุ", "effects": { "packDamagePct": 15, "teamDamagePct": 8 }, "uptime": 0.6 },
+            { "name": "ธาตุคล่อง", "effects": { "manaCostReductionPct": 10 } }
+          ],
+          "cap": { "name": "ธาตุประลัย", "effects": { "singleDamagePct": 25, "packDamagePct": 25 }, "uptime": 0.5 }
+        }
+      }
+    },
+    "priest": {
+      "name": "นักบวช",
+      "build": { "weaponType": "staff", "weaponFactor": 2.2, "weaponSplit": { "attack": 0.15, "magic": 0.85 }, "stats": { "INT": 0.55, "VIT": 0.2 } },
+      "loadout": ["arcane_bolt"],
+      "support": ["healing_spring", "blessing", "ward"],
+      "inner": { "own": ["center", "intstr", "int"], "tank": ["center", "intstr", "str"], "crit": ["center", "int", "dexint"] },
+      "entry": { "name": "ฮีลเกินเป็นบาเรีย", "effects": { "healPct": 10 } },
+      "trunk": [
+        { "name": "ความแรงฮีล", "effects": { "healPct": 5 } },
+        { "name": "MP", "effects": { "maxMpPct": 5 } },
+        { "name": "ลำต้น (เด่น)", "cost": 2, "effects": { "teamBuffPct": 10 } }
+      ],
+      "branches": {
+        "healer": {
+          "name": "ผู้เยียวยา", "role": "team",
+          "pass": [{ "healPct": 5 }, { "mpRegenPct": 6 }, { "teamBuffPct": 4 }],
+          "keys": [
+            { "name": "ฮีลคน HP ต่ำ", "effects": { "healPct": 15 } },
+            { "name": "บัฟแรงขึ้น", "effects": { "teamBuffPct": 15 } },
+            { "name": "ชุบเร็ว", "effects": { "teamTakenPct": 4 } }
+          ],
+          "cap": { "name": "ปาฏิหาริย์", "effects": { "teamTakenPct": 10 } }
+        },
+        "judge": {
+          "name": "ผู้พิพากษา", "role": "team",
+          "stats": { "INT": 0.55, "AGI": 0.1 },
+          "loadout": ["arcane_bolt", "holy_bell", "light_chain"],
+          "support": ["hex"],
+          "pass": [{ "controlDurationPct": 5 }, { "spellDamagePct": 3 }, { "teamDamagePct": 2 }],
+          "keys": [
+            { "name": "ศัตรูติดดีบัฟรับดาเมจ", "effects": { "teamDamagePct": 10 } },
+            { "name": "ตราบาป", "effects": { "teamTakenPct": 5 } },
+            { "name": "ดีบัฟนานขึ้น", "effects": { "controlDurationPct": 20 } }
+          ],
+          "cap": { "name": "คำพิพากษา", "effects": { "teamDamagePct": 15, "singleDamagePct": 15 }, "uptime": 0.5 }
+        },
+        "protector": {
+          "name": "ผู้ปกป้อง", "role": "survival",
+          "stats": { "INT": 0.5, "VIT": 0.25 },
+          "support": ["ward", "healing_spring", "blessing"],
+          "pass": [{ "maxShieldPct": 8 }, { "maxShield": 120 }, { "barrierPct": 5 }],
+          "keys": [
+            { "name": "แบ่งเกราะ", "effects": { "teamTakenPct": 8 } },
+            { "name": "เกราะทันเวลา", "effects": { "selfTakenPct": 10 } },
+            { "name": "ฟื้นไม่หยุด", "effects": { "selfTakenPct": 8 } }
+          ],
+          "cap": { "name": "เกราะระเบิด", "effects": { "packDamagePct": 20, "teamTakenPct": 4 } }
+        }
+      }
+    }
+  }
+}

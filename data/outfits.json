@@ -397,6 +397,73 @@
       "trousers": {
         "pattern": 1
       }
+    },
+    "leafbear_coat": {
+      "style": "coat",
+      "palette": {
+        "main": "#8a6648",
+        "sleeve": "#8a6648",
+        "trim": "#efe2c8",
+        "accent": "#e8742a",
+        "cuff": "#efe2c8",
+        "fur": "#efe2c8",
+        "pants": "#6a4a34"
+      },
+      "cut": {
+        "cuff": 0.82,
+        "neck": 0.08
+      },
+      "skirt": {
+        "length": 0.42,
+        "flare": 0.12,
+        "opening": 0.3
+      },
+      "trousers": {
+        "pattern": 1
+      }
+    },
+    "snailshell_plate": {
+      "style": "plate",
+      "palette": {
+        "main": "#b98a3e",
+        "sleeve": "#6e7a5a",
+        "trim": "#7a5a2a",
+        "accent": "#c49be0",
+        "metal": "#c89a4a",
+        "gem": "#f2ead8",
+        "pants": "#5a3e2a"
+      },
+      "cut": {
+        "sleeve": 0.5
+      },
+      "trousers": {
+        "pattern": 3
+      }
+    },
+    "pearlscale_armor": {
+      "style": "coat",
+      "palette": {
+        "main": "#2f4a5e",
+        "sleeve": "#2f4a5e",
+        "trim": "#cfe0f0",
+        "accent": "#d8c8f0",
+        "cuff": "#cfe0f0",
+        "fur": "#cfe0f0",
+        "leather": "#24384a",
+        "metal": "#cfe0f0",
+        "pants": "#24384a"
+      },
+      "cut": {
+        "cuff": 0.8
+      },
+      "skirt": {
+        "length": 0.5,
+        "flare": 0.15,
+        "opening": 0.34
+      },
+      "trousers": {
+        "pattern": 2
+      }
     }
   },
   "boots": {
@@ -604,6 +671,43 @@
         "furCuffs",
         "bootStraps"
       ]
+    },
+    "leafbear_boots": {
+      "len": 0.55,
+      "pattern": 1,
+      "palette": {
+        "main": "#7a5638",
+        "trim": "#efe2c8",
+        "accent": "#8fae6a",
+        "sole": "#d8c8a4"
+      },
+      "parts": [
+        "furCuffs"
+      ]
+    },
+    "snailshell_greaves": {
+      "len": 0.8,
+      "pattern": 3,
+      "palette": {
+        "main": "#b98a3e",
+        "trim": "#7a5a2a",
+        "accent": "#c49be0",
+        "sole": "#5a3e2a"
+      },
+      "parts": [
+        "shinGuards"
+      ]
+    },
+    "pearlscale_boots": {
+      "len": 0.7,
+      "pattern": 1,
+      "palette": {
+        "main": "#2f4a5e",
+        "trim": "#cfe0f0",
+        "accent": "#d8c8f0",
+        "sole": "#24384a"
+      },
+      "parts": []
     }
   },
   "gloves": {
@@ -768,6 +872,40 @@
       "parts": [
         "gloveGem"
       ]
+    },
+    "leafbear_gloves": {
+      "len": 0.5,
+      "palette": {
+        "main": "#6a4a34",
+        "trim": "#efe2c8",
+        "accent": "#8fae6a"
+      },
+      "parts": [
+        "gloveFur"
+      ]
+    },
+    "snailshell_gloves": {
+      "len": 0.55,
+      "pattern": 3,
+      "palette": {
+        "main": "#b98a3e",
+        "trim": "#7a5a2a",
+        "accent": "#c49be0"
+      },
+      "parts": [
+        "gloveGem"
+      ]
+    },
+    "pearlscale_gloves": {
+      "len": 0.55,
+      "palette": {
+        "main": "#2f4a5e",
+        "trim": "#cfe0f0",
+        "accent": "#d8c8f0"
+      },
+      "parts": [
+        "studs"
+      ]
     }
   },
   "helms": {
@@ -887,6 +1025,30 @@
         "main": "#efe8d8",
         "trim": "#4fb8b0",
         "accent": "#2f8f8a"
+      }
+    },
+    "leafbear_hood": {
+      "kind": "furHood",
+      "palette": {
+        "main": "#8a6648",
+        "trim": "#efe2c8",
+        "accent": "#6aa04a"
+      }
+    },
+    "snailshell_helm": {
+      "kind": "shell",
+      "palette": {
+        "main": "#c89a4a",
+        "trim": "#7a5a2a",
+        "accent": "#c49be0"
+      }
+    },
+    "pearlscale_crest": {
+      "kind": "circlet",
+      "palette": {
+        "main": "#2f4a5e",
+        "trim": "#cfe0f0",
+        "accent": "#d8c8f0"
       }
     }
   }

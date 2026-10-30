@@ -30,18 +30,32 @@ import { ThunderFx } from './skillfx/thunder-fx.js';
 import { BlizzardFx } from './skillfx/blizzard-fx.js';
 import { ShatterFx } from './skillfx/shatter-fx.js';
 import { RendFx } from './skillfx/rend-fx.js';
+import { StormFx } from './skillfx/storm-fx.js';
+import { ShadowFx } from './skillfx/shadow-fx.js';
+import { IronFx } from './skillfx/iron-fx.js';
+import { BuffFx, LOOKS as BUFF_LOOKS } from './skillfx/buff-fx.js';
+import { BlessFx } from './skillfx/bless-fx.js';
+import { VolleyFx } from './skillfx/volley-fx.js';
+import { KillFx } from './skillfx/kill-fx.js';
+import { BellFx } from './skillfx/bell-fx.js';
+import { LightChainFx } from './skillfx/lightchain-fx.js';
+import { WaveFx, wavePalette } from './skillfx/wave-fx.js';
+import { DrawFx } from './skillfx/draw-fx.js';
+const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut']);
 // projectiles drawn here instead of by the old renderer
-export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot']);
+export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
-const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam', 'shield_bash', 'sky_shatter']);
+const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter']);
 const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
-const POST = { sky_shatter: 0.6, earth_rend: 0.5 };
+// a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
+const stormSpan = (s) => (s.repeats || 0) * ((s.repeatDelay || 0) + 0.1);
+const POST = { draw_cut: 0.95, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**
@@ -80,12 +94,25 @@ export class SkillFx {
     this.blizzard = new BlizzardFx(scene, camera);
     this.shatter = new ShatterFx(scene, camera);
     this.rend = new RendFx(scene, camera);
+    this.storm = new StormFx(scene, camera);
+    this.shadow = new ShadowFx(scene, camera);
+    this.iron = new IronFx(scene, camera);
+    this.buff = new BuffFx(scene, camera); this.buffBodies = [];
+    this.bless = new BlessFx(scene, camera);
+    this.volley = new VolleyFx(scene, camera);
+    this.kill = new KillFx(scene, camera);
+    this.bell = new BellFx(scene, camera);
+    this.lchain = new LightChainFx(scene, camera);
+    this.wave = new WaveFx(scene, camera);
+    this.draw = new DrawFx(scene, camera);
+    this.lchain.locate = (id) => { for (const m of this.game.monsters) if (m.id === id) return m; return null; };
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend]) fx.onShake = shake;
-    this.timers = []; this.time = 0; this.crossI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell]) fx.onShake = shake;
+    this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
     this.center = new THREE.Vector3(); this.head = new THREE.Vector3(); this.from = new THREE.Vector3(); this.to = new THREE.Vector3(); this.mouth = new THREE.Vector3();
+    this.echoSpots = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
     this.markBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, facing: 0 })); this.marks = [];
     this.exposedBuf = Array.from({ length: 12 }, () => ({ x: 0, z: 0, t: 0, full: 5 })); this.exposed = [];
     this.headOf = (id) => { const b = host.body(id); return b ? this.head.set(b.x, b.h + 0.4, b.z) : null; };
@@ -158,6 +185,14 @@ export class SkillFx {
         if (e.charge !== undefined) this.release(e.charge); // a charged shot looses: its arrow and impact grow with the charge
         this.play(e.skill, e.total + (POST[e.skill] ?? 0.28), e.kind === 'melee_arc' ? this.nextSwingStep() : e.step, e.total, e.kind);
         if (e.skill === 'cross_cut') this.crossI = 0;
+        if (e.skill === 'iron_body') this.iron.gather(g.player.x, g.player.z, e.total);
+        if (BUFF_LOOKS[e.skill]) this.buff.rouse(e.skill, g.player.x, g.player.z, e.total);
+        if (e.skill === 'blessing') this.bless.gather(g.player.x, g.player.z, e.total);
+        if (e.skill === 'killing_arrow') { // the aim: the sight line, and the reticle on a target locked in reach
+          const t = g.target, inReach = t && !t.dead && Math.hypot(t.x - g.player.x, t.z - g.player.z) - (t.r || 0) <= s.range + 0.5;
+          this.kill.aim(g.player.x, g.player.z, e.angle, e.total, s.range, inReach ? t : null);
+        }
+        if (e.skill === 'blade_storm') { this.stormI = 0; this.storm.start(g.player.x, g.player.z, s.radius, e.total + stormSpan(s) + 0.3); }
         if (e.kind === 'melee_arc') { this.primarySwing = true; if (!this.ownStrike(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
         if (e.kind === 'projectile' && !OWN_PROJECTILES.has(e.skill)) {
           host.vfx.beginCast(e, s.element);
@@ -165,8 +200,14 @@ export class SkillFx {
         }
         if (e.kind === 'chain') this.chain.beginCharge(e.total, s.element);
         if (e.kind === 'melee_line') this.split.windup(e.total, s.range, s.width, s.element);
+        if (e.kind === 'dash_line') this.draw.windup(e.total, s.element);
         if (e.skill === 'sky_shatter') this.shatter.charge(g.player.x, g.player.z, e.total);
-        if (e.kind === 'nova') { this.frost.setElement(s.element); this.frost.beginCharge(g.player.x, g.player.z, e.total, s.radius); }
+        if (e.skill === 'light_chain') this.lchain.gather(this.staffTip(), e.total);
+        if (e.skill === 'spell_wave') { // the downward chop sends the wave: the cut crescent stood on its edge, in the wave's colours (its element's)
+          this.slash.swing(e.total, { ...this.slashOpts(s, wavePalette(s.element)), range: 1.7, arc: 120, arcDeg: 120, tilt: 1.5, reach: 1.0, y: 0.15 });
+        }
+        if (e.skill === 'holy_bell') this.bell.descend(g.player.x, g.player.z, e.total);
+        else if (e.kind === 'nova') { this.frost.setElement(s.element); this.frost.beginCharge(g.player.x, g.player.z, e.total, s.radius); }
         return true;
       }
       case 'channelStart': {
@@ -192,7 +233,18 @@ export class SkillFx {
         else this.chain.play(e.points, e.element, this.staffTip(), miss);
         return true;
       }
+      case 'whirl': {
+        if (e.skill !== 'blade_storm') return false;
+        // Blade Storm (a dagger main skill): each quick spin is a crescent round the whole circle in the
+        // blade job's violet, the second a little higher than the first; the last one bursts
+        const s = this.skillOf(e.skill), i = this.stormI++, p = g.player;
+        this.storm.follow(e.x, e.z);
+        this.slash.swing(0, { palette: CROSS_PALETTE, range: e.radius, arc: 340, reach: 1, inner: 0.45, tilt: (i % 2 ? -1 : 1) * 0.1, y: -0.2 + 0.2 * i, dir: -1, hold: 0.04, where: () => ({ x: p.x, z: p.z, angle: p.facing }) });
+        if (s && i >= s.repeats) this.storm.burst(e.x, e.z);
+        return true;
+      }
       case 'nova': {
+        if (e.skill === 'holy_bell') { this.bell.toll(e.x, e.z, e.radius); return true; } // skillfx/bell-fx.js
         if (e.element === 'arcane') return false; // a ward breaking: the old renderer's ring
         const targets = g.monsters.filter((m) => !m.dead && Math.hypot(m.x - e.x, m.z - e.z) - m.r <= e.radius).map((m) => ({ x: m.x, z: m.z }));
         const echo = this.time - this.lastNovaAt < 1.2 && !this.frost.pendingCharge;
@@ -202,9 +254,29 @@ export class SkillFx {
         if (echo) host.banner('สะท้อนซ้ำ!');
         return true;
       }
+      // Blink Draw: the dash's streaks, then the lane cut on arrival (skillfx/draw-fx.js)
+      case 'dashStrike': {
+        if (e.skill !== 'draw_cut') return false;
+        this.draw.dash(e); this.drawEchoes = 0;
+        host.shake(0.05, 0.08);
+        return true;
+      }
+      case 'dashArrive': if (e.skill !== 'draw_cut') return false; this.draw.arrive(e.x, e.z, e.angle); return true;
       case 'lineStrike':
+        if (e.skill === 'draw_cut') { this.draw.strike(e); host.shake(0.22, 0.2); return true; }
         if (e.skill === 'earth_rend') { this.split.clear(); this.rend.strike(e); return true; }
         this.split.strike(e); return true;
+      // Iron Body: the steel shell, glint and ring, then the sheen while it lasts (skillfx/iron-fx.js)
+      case 'buff': {
+        if (e.kind === 'iron_body') { this.iron.harden(e.x, e.z, this.skillOf(e.kind)?.duration ?? 6); return true; }
+        if (e.kind === 'blessing') { this.bless.bestow(e.x, e.z, e.radius); return true; }
+        if (!BUFF_LOOKS[e.kind]) return false;
+        // party shouts (Rally): the ring to the true radius, and a mark over every body the buff reached
+        const bodies = this.buffBodies; bodies.length = 0; bodies.push(g.player);
+        for (const a of g.allies || []) if (!a.dead && Math.hypot(a.x - e.x, a.z - e.z) < e.radius) bodies.push(a);
+        this.buff.shout(e.kind, e.x, e.z, e.radius, bodies);
+        return true;
+      }
       case 'guardStance': { const s = this.skillOf('riposte') || g.player.riposte?.skill; this.riposte.guard(e.duration, s?.guard?.arc || 110); return true; }
       case 'playerHit': {
         const r = g.player.riposte;
@@ -227,6 +299,19 @@ export class SkillFx {
       }
       // dodges: the blink's gather and jump, the leap's landing (skillfx/move-fx.js)
       case 'movement': if (e.kind === 'blink' && g.player.dash?.kind === 'blink') this.move.gather(g.player.x, g.player.z, g.player.dash.delay || 0.08); return false;
+      // Backstab: the hero leaves in shards and appears behind its target (skillfx/shadow-fx.js)
+      case 'shadowStep': {
+        const t = g.monsters.find((m) => m.id === e.id), sh = this.shadow;
+        sh.step(e.fromX, e.fromZ, e.x, e.z, t?.x, t?.z, t?.r);
+        // dark afterimages: one where the body stood, two along the curve, each facing the way it runs
+        const spots = this.echoSpots; let k = 0;
+        for (const q of [0, 0.38, 0.72]) {
+          const a = sh.bez(q, this.from), b = sh.bez(q + 0.05, this.to);
+          const o = spots[k++]; o[0] = a.x; o[1] = a.z; o[2] = Math.atan2(b.x - a.x, b.z - a.z); o[3] = q * 0.1;
+        }
+        host.vfx?.shadowEchoes?.(spots, host.rig?.());
+        return true;
+      }
       case 'blinkPlayer': this.move.jump(e.fromX, e.fromZ, e.x, e.z); host.vfx.blinkEcho(e.fromX, e.fromZ, host.rig()); return true;
       case 'area': {
         if (e.owner !== 'player') return false;
@@ -242,6 +327,8 @@ export class SkillFx {
         if (e.kind === 'meteor') { this.meteor.impact(e); host.shake(0.4, 0.3); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.strike(e, g.monsters.filter((m) => !m.dead && Math.hypot(m.x - e.x, m.z - e.z) <= (e.radius || 3) + (m.r || 0)).map((m) => [m.x, m.z])); host.shake(0.14, 0.12); return true; }
         if (e.kind === 'leap') { this.move.land(e.x, e.z, e.radius); host.shake(0.2, 0.18); return true; }
+        // Release Burst (a stream mod): the held fire bursts ahead - Firebolt's impact, sized to the circle
+        if (e.kind === 'release_burst') { if (e.element === 'fire') this.fire.impact(e.x, 0.8, e.z, false, e.radius / 1.4); else this.mod.burst(e); host.shake(0.16, 0.16); return true; }
         if (e.kind === 'mod_burst') { this.mod.burst(e); host.banner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); return true; }
         return false;
       case 'slash': {
@@ -250,6 +337,7 @@ export class SkillFx {
         if (!s) return true;
         if (e.skill === 'shield_bash' || this.shove(e.skill)) this.bash.bash(p.x, p.z, e.angle, e.range, e.arc);
         if (e.skill === 'weakpoint') this.thrust.thrust(p.x, 1.15, p.z, e.angle, e.range);
+        if (e.skill === 'backstab') this.thrust.thrust(p.x, 1.15, p.z, e.angle, e.range + 0.6, true);
         if (e.skill === 'interrupt_slam') this.mace.slam(p.x, p.z, p.facing, s.range, s.arc);
         if (e.skill === 'sky_shatter') { this.shatter.slam(p.x, p.z, p.facing, s.range, s.arc); host.shake(0.3, 0.25); }
         const primary = this.primarySwing; this.primarySwing = false;
@@ -273,15 +361,25 @@ export class SkillFx {
         if (e.dot || !SKILL_FX.has(e.skill)) return false;
         const c = this.centerOf(e.id); if (!c) return true;
         if (e.skill === 'flame_stream') this.flame.lick(c);
+        if (e.skill === 'rapid_volley') this.volley.hit(c, c.x - e.fromX, c.z - e.fromZ);
+        if (e.skill === 'killing_arrow') this.kill.hit(c, c.x - e.fromX, c.z - e.fromZ);
+        if (e.skill === 'holy_bell') this.bell.hit(c);
+        if (e.skill === 'spell_wave') this.wave.hit(c);
+        if (e.skill === 'draw_cut') this.draw.hit(c);
+        if (e.skill === 'light_chain') this.lchain.hit(e.id, c, g.monsters.find((q) => q.id === e.id)?.r);
         if (e.skill === 'frontline_split') this.split.cut(c);
         if (e.skill === 'interrupt_slam' || e.skill === 'sky_shatter') this.mace.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'riposte') this.riposte.hit(c, e.fromX, e.fromZ);
         if (e.skill === 'shield_bash') this.bash.hit(e.id, c, e.fromX, e.fromZ, this.skillOf('shield_bash')?.taunt?.duration || 3);
         if (this.shove(e.skill)) this.bash.strike(c, e.fromX, e.fromZ);
         if (e.skill === 'armor_cleave') { this.sunder.hit(c, e.fromX, e.fromZ); host.shake(0.06, 0.14); }
+        // struck from the side or behind the way it faces: the rules' positional bonus
+        const m = g.monsters.find((q) => q.id === e.id), weak = !!m && (e.fromX - m.x) * Math.sin(m.facing) + (e.fromZ - m.z) * Math.cos(m.facing) < 0;
+        if (e.skill === 'backstab') {
+          this.thrust.hit(c, Math.atan2(c.x - e.fromX, c.z - e.fromZ), true, true);
+          if (weak) { const b = host.body(e.id); host.float(b.x, b.h + 0.95, b.z, 'แทงหลัง!', '#c99bff', true); }
+        }
         if (e.skill === 'weakpoint') {
-          // struck from the side or behind the way it faces: the rules' positional bonus
-          const m = g.monsters.find((q) => q.id === e.id), weak = !!m && (e.fromX - m.x) * Math.sin(m.facing) + (e.fromZ - m.z) * Math.cos(m.facing) < 0;
           this.thrust.hit(c, Math.atan2(c.x - e.fromX, c.z - e.fromZ), weak);
           if (weak) { const b = host.body(e.id); host.float(b.x, b.h + 0.5, b.z, 'จุดอ่อน!', '#ffd45a', true); }
         }
@@ -319,6 +417,17 @@ export class SkillFx {
     setPowerFacing(p.facing);
     const ch = p.charging;
     this.power.syncProjectiles(g.projectiles, 'charged_shot', dt);
+    this.volley.syncProjectiles(g.projectiles, 'rapid_volley');
+    this.volley.update(dt);
+    this.kill.syncProjectiles(g.projectiles, 'killing_arrow');
+    this.kill.update(dt);
+    this.bell.follow(p.x, p.z);
+    this.bell.update(dt);
+    this.lchain.follow(tip);
+    this.lchain.syncProjectiles(g.projectiles, 'light_chain');
+    this.lchain.update(dt);
+    this.wave.syncProjectiles(g.projectiles, 'spell_wave');
+    this.wave.update(dt);
     this.power.update(dt, tip, ch ? Math.min(1, ch.t / ch.skill.charge.duration) : 0);
     for (const t of this.timers) if (this.time >= t.at && !t.done) { t.done = true; t.fn(); }
     let w = 0; for (const t of this.timers) if (this.timerDone(t)) this.timers[w++] = t; this.timers.length = w;
@@ -326,6 +435,9 @@ export class SkillFx {
     this.fire.update(dt, this.castTip());
     this.bladePoints();
     this.split.update(dt, p, p.facing, this.bladeBase, this.bladeTip);
+    this.draw.update(dt, p, this.bladeBase, this.bladeTip);
+    // Blink Draw: afterimages of the body along the dash (the game's posed echoes, in its violet)
+    if (p.dash?.kind === 'draw_cut' && this.drawEchoes < 3 && p.dash.t >= p.dash.dur * (0.15 + 0.3 * this.drawEchoes)) { host.vfx?.drawCutEcho?.(host.rig?.()); this.drawEchoes++; }
     // Sunder Cut's open armour on what it struck
     this.exposed.length = 0;
     for (const m of g.monsters) {
@@ -349,13 +461,32 @@ export class SkillFx {
     this.blizzard.update(dt);
     this.shatter.update(dt);
     this.rend.update(dt);
+    this.storm.update(dt);
+    if (this.iron.busy) { this.iron.follow(p.x, p.z); if (!p.buffs?.iron_body) this.iron.stop(); }
+    this.iron.update(dt);
+    // party shouts: follow the hero through the shout, then a glow off every body still buffed
+    this.buff.follow(p.x, p.z);
+    for (const k of BUFF_KEYS) {
+      const bodies = this.buffBodies; bodies.length = 0;
+      if (p.buffs?.[k] && !p.dead) bodies.push(p);
+      for (const a of g.allies || []) if (!a.dead && a.buffs?.[k]) bodies.push(a);
+      if (bodies.length) this.buff.linger(k, dt, bodies);
+    }
+    this.buff.update(dt);
+    // Blessing of Light: a halo over every body holding it (skillfx/bless-fx.js)
+    const blessed = this.bless.halos; blessed.length = 0;
+    if (p.buffs?.blessing && !p.dead) blessed.push(p);
+    for (const a of g.allies || []) if (!a.dead && a.buffs?.blessing) blessed.push(a);
+    this.bless.follow(p.x, p.z);
+    this.bless.update(dt);
+    this.shadow.update(dt);
   }
   // the offscreen flame passes, right before the main render
   prerender() { this.flame.prerender(); }
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw]) fx.clear();
     this.timers.length = 0;
   }
 }

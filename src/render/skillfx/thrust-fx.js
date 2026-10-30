@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
-const EDGE = [0.9, 0.96, 1.0], GLOW = [0.45, 0.65, 1.0], GOLD = [1.0, 0.85, 0.35], GOLD_GLOW = [1.0, 0.55, 0.12], MARK = [1.0, 0.7, 0.3];
+const EDGE = [0.9, 0.96, 1.0], GLOW = [0.45, 0.65, 1.0], VIOLET = [0.8, 0.58, 1.0], VIOLET_GLOW = [0.6, 0.18, 1.0], GOLD = [1.0, 0.85, 0.35], GOLD_GLOW = [1.0, 0.55, 0.12], MARK = [1.0, 0.7, 0.3];
 const BURSTS = 6, RAYS = 10, MARK_PTS = 5, DASHES = 7, LIFE = 0.16;
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.9) discard;
@@ -49,18 +49,21 @@ export class ThrustFx {
     this.alive = (x) => x.t < LIFE; this.onShake = null;
   }
   // the rules' contact: from the hand along angle, out to the reach
-  thrust(x, y, z, angle, range) { this.thrusts.push({ x, y, z, dx: Math.sin(angle), dz: Math.cos(angle), range, t: 0 }); }
-  // a struck target; weak: hit from the side or behind (the rules' positional bonus)
-  hit(center, angle, weak) {
+  // violet: Backstab's stab in the blade job's colour
+  thrust(x, y, z, angle, range, violet = false) { this.thrusts.push({ x, y, z, dx: Math.sin(angle), dz: Math.cos(angle), range, t: 0, edge: violet ? VIOLET : EDGE, glow: violet ? VIOLET_GLOW : GLOW }); }
+  // a struck target; weak: hit from the side or behind (the rules' positional bonus); violet: a hard
+  // burst in the blade job's colour without the gold diamond (Backstab's stab from behind)
+  hit(center, angle, weak, violet = false) {
     const b = this.bursts[this.burstI++ % BURSTS], r = this.rnd, dx = Math.sin(angle), dz = Math.cos(angle);
     b.t = 0; b.weak = weak; b.size = weak ? 1.3 : 0.6; b.life = weak ? 0.34 : 0.22; b.pos.copy(center);
-    b.edge = weak ? GOLD : EDGE; b.glow = weak ? GOLD_GLOW : GLOW;
-    b.sp.material.color.setRGB(...(weak ? [1, 0.9, 0.6] : [0.85, 0.92, 1]));
+    b.edge = violet ? VIOLET : weak ? GOLD : EDGE; b.glow = violet ? VIOLET_GLOW : weak ? GOLD_GLOW : GLOW;
+    b.sp.material.color.setRGB(...(violet ? [0.65, 0.4, 1] : weak ? [1, 0.9, 0.6] : [0.85, 0.92, 1]));
+    if (violet) { b.weak = false; b.size = 1.5; b.life = 0.4; }
     b.rays.forEach((ray, k) => {
       if (k < 4) { ray.d.set(dx + (r() - 0.5) * 0.4, (r() - 0.4) * 0.4, dz + (r() - 0.5) * 0.4).normalize(); ray.len = b.size * (1.2 + r() * 0.6); }
       else { const a = r() * 6.283, el = (r() - 0.3) * 1.4; ray.d.set(Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el)); ray.len = b.size * (0.4 + r() * 0.35); }
     });
-    if (weak) this.onShake?.(0.05, 0.12);
+    if (weak || violet) this.onShake?.(violet ? 0.09 : 0.05, violet ? 0.16 : 0.12);
   }
   // marks: [{x, z, facing}] dummies whose weak side to show (empty when not this skill)
   update(dt, marks) {
@@ -74,13 +77,13 @@ export class ThrustFx {
       three[2].set(s.x + s.dx * (0.2 + s.range * out), s.y, s.z + s.dz * (0.2 + s.range * out));
       three[1].copy(three[0]).lerp(three[2], 0.12);
       stripW = 0.2 * (1 - u * 0.6);
-      this.glow.strip(three, spearGlowW, 0.9 * fade, GLOW); this.core.strip(three, spearW, fade, EDGE);
+      this.glow.strip(three, spearGlowW, 0.9 * fade, s.glow); this.core.strip(three, spearW, fade, s.edge);
       for (const side of [-1, 1]) { // speed lines beside the spear
         const ox = s.dz * side * 0.16, oz = -s.dx * side * 0.16, back = 0.4 + u * 0.5;
         three[0].set(s.x + s.dx * back + ox, s.y + side * 0.05, s.z + s.dz * back + oz);
         three[2].set(s.x + s.dx * (back + s.range * 0.55 * out) + ox, s.y + side * 0.05, s.z + s.dz * (back + s.range * 0.55 * out) + oz);
         three[1].copy(three[0]).lerp(three[2], 0.5);
-        stripW = 0.025; this.glow.strip(three, taperGlowW, 0.6 * fade, GLOW); this.core.strip(three, taperW, 0.8 * fade, EDGE);
+        stripW = 0.025; this.glow.strip(three, taperGlowW, 0.6 * fade, s.glow); this.core.strip(three, taperW, 0.8 * fade, s.edge);
       }
     }
     compact(this.thrusts, this.alive);

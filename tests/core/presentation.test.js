@@ -67,6 +67,8 @@ test('imported models name real gear bases and respect measured asset budgets',a
   }
   const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
   assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');
+  // a placeholder reuses an approved weapon under its new id until its own model is wired in (models.json placeholderOf)
+  if(group==='weapons'&&m.placeholderOf){assert.equal(m.file,data.models.weapons[m.placeholderOf].file,id+' placeholder file');continue;}
   const original=group==='weapons' && approved[id];
   if(original){
    assert.equal(m.file,original.file);

@@ -1,13 +1,17 @@
 {
   "_doc": "Character Level gives Stat Points. Job Level (separate EXP) gives Job Points for the Job Tree. Skill/Mod levels are raised with materials + gold. Respec costs in-game gold only.",
   "character": {
-    "maxLevel": 30,
+    "maxLevel": 70,
     "expCurve": {
-      "base": 22,
-      "exponent": 2.2
+      "base": 12,
+      "exponent": 2
     },
     "statPointsPerLevel": 3,
     "startingStatPoints": 4,
+    "statWheel": ["STR", "AGI", "DEX", "LUK", "INT", "VIT"],
+    "crossPairs": [["STR", "DEX"], ["INT", "DEX"]],
+    "_crossPairsDoc": "The two pairs that skip a stat on the wheel (owner, 2026-10-29): STR/DEX daggers, and INT/DEX, the marksman caster of Ragnarok Online's INT/DEX wizard (DEX's projectile damage already counts for projectile spells, as in Path of Exile). Weapons and skills may ask for these as well as for neighbours.",
+    "_statWheelDoc": "Owner, 2026-10-29 (docs/STATS-TH.md): the six stats sit on a wheel in this order (VIT next to STR). A weapon asks for its type's stat (sword, greatblade, axe, mace STR; bow DEX; staff, wand INT; shields VIT), or a main and secondary pair (items.json secondaryStat; daggers are always a pair, STR/DEX or DEX/AGI; staves and wands never ask for VIT, a priest's VIT comes from an INT/VIT mace or a VIT/INT shield); a skill asks for one stat or two neighbours on the wheel (main first), a mod for one. Every stat named must be met on its own: none stands in for another. Stats come from trained points, Job Tree nodes and gear options (core/character.js statTotals).",
     "startingStats": {
       "STR": 3,
       "AGI": 3,
@@ -24,7 +28,10 @@
       "mpPerLevel": 12,
       "mpPerInt": 25,
       "mpRegen": 25,
-      "hpRegen": 6,
+      "mpRegenPerLevel": 0.0615,
+      "hpRegen": 0,
+      "hpRegenPct": 0.5,
+      "hpRegenCapPct": 3,
       "moveSpeed": 6,
       "attack": 16.5,
       "magic": 22.5,
@@ -42,11 +49,12 @@
       },
       "VIT": {
         "defense": 2.5,
-        "barrierPct": 0.6
+        "barrierPct": 0.6,
+        "hpRegenPct": 0.01
       },
       "AGI": {
         "moveSpeedPct": 0.35,
-        "cooldownPct": 0.2
+        "hastePct": 0.6
       },
       "DEX": {
         "critMultPct": 0.5,
@@ -66,11 +74,10 @@
     "_critOverflowDoc": "Crit chance past 100% (no cap, owner 2026-10-25) turns into crit damage: each point over adds critOverflowToMultPct to critMultPct, outside the critMultPct soft cap and cap (core/character.js derive).",
     "baseCritChancePct": 5,
     "caps": {
-      "cooldownPct": 25,
       "dodgeChancePct": 15,
       "moveSpeedPct": 30,
       "damageTakenPct": -25,
-      "hpRegen": 50,
+      
       "leechPct": 8,
       "extraMovementCharges": 1,
       "blockChancePct": 50,
@@ -78,10 +85,10 @@
       "materialFindPct": 50,
       "gearFindPct": 40,
       "critMultPct": 100,
-      "castSpeedPct": 40,
       "penetrationPct": 50,
       "movementRechargePct": 40,
-      "manaCostReductionPct": 40
+      "manaCostReductionPct": 40,
+      "hastePct": 200
     },
     "softCaps": {
       "threshold": 50,
@@ -100,7 +107,8 @@
         "elementalDamagePct",
         "critMultPct",
         "damagePct",
-        "attackDamagePct"
+        "attackDamagePct",
+        "hastePct"
       ]
     },
     "_farmDoc": "goldFindPct/materialFindPct/gearFindPct (Ranger farming line, hunter arrows) raise gold, material chances and gear drop chances on kills, up to caps; they add nothing to the power score."
@@ -120,48 +128,53 @@
     "jobGoldPerLevel": 12
   },
   "movementUpgrade": {
-    "_doc": "AGI raises movement skill ranks (owner, 2026-10-25), at the same workbench or trainer and with the same skill crystals and gold as a combat skill. Each rank above the first shortens the recharge by rechargePerLevel and lengthens the move by distancePerLevel (core/skills.js movementSkill). The skill's upgradeStat (AGI) must reach the step's requiresStat.",
+    "_doc": "Movement skill ranks (owner, 2026-10-25) are raised at the same workbench or trainer and with the same skill crystals and gold as a combat skill. Each rank above the first shortens the recharge by rechargePerLevel and lengthens the move by distancePerLevel (core/skills.js movementSkill). The skill's upgradeStat (a main stat: DEX for dash and roll, INT for blink, STR for leap; docs/STATS-TH.md) must reach the step's requiresStat.",
     "maxLevel": 5,
     "rechargePerLevel": 0.06,
     "distancePerLevel": 0.04,
     "steps": [
-      { "requiresStat": 5, "gold": 35, "skill_crystal": 1 },
-      { "requiresStat": 7, "gold": 90, "skill_crystal": 2 },
-      { "requiresStat": 9, "gold": 180, "skill_crystal": 3 },
-      { "requiresStat": 11, "gold": 320, "skill_crystal": 4 }
+      { "requiresStat": 8, "gold": 35, "skill_crystal": 1 },
+      { "requiresStat": 20, "gold": 90, "skill_crystal": 2 },
+      { "requiresStat": 40, "gold": 180, "skill_crystal": 3 },
+      { "requiresStat": 65, "gold": 320, "skill_crystal": 4 }
     ]
   },
+  "skillGrowth": {
+    "_doc": "Skill bars (owner, 2026-10-27/28, docs/SKILL-GROWTH-TH.md): each skill of a growth type has that type's bars (2 or 3). Bar points come from proficiency: casting a skill with an enemy within combatRange adds its own pace (the longer of its cooldown, cast time and 0.35 s), and every secondsPerPoint of that earns one point, up to totalPoints. A grade (C..S) caps how many points one bar takes (grades) and how many points the skill holds in all (gradeTotals: owner, 2026-10-29, so a long-used skill is not strong at its first grade); at that total proficiency stays full and waits for the next grade; it is raised at a workbench or trainer with gold, the skill's own gradeMaterial and a boss part. Each bar gains on one thing (gains add up) and pays on others (costs multiply); a cost on a stat the skill has no bar for is paid in MP at missingCostToMana of its strength. Speed (rate) joins the skill's haste under the central cap. count adds one projectile every countEvery points, fanned countSpread degrees apart, each projectile dealing (1/n)^countDamageExp of the hit. Taking points out (respec) costs respec.gold + respec.goldPerLevel x level per point; putting them in is free. core/skill-growth.js.",
+    "totalPoints": 12,
+    "grades": { "C": 2, "B": 4, "A": 6, "S": 8 },
+    "gradeTotals": { "C": 3, "B": 6, "A": 9, "S": 12 },
+    "secondsPerPoint": 300,
+    "combatRange": 14,
+    "missingCostToMana": 0.5,
+    "respec": { "gold": 25, "goldPerLevel": 2 },
+    "gradeUpgrade": {
+      "B": { "gold": 150, "material": 4 },
+      "A": { "gold": 400, "material": 8, "greyfang_mane": 1 },
+      "S": { "gold": 900, "material": 12, "ancient_core": 1 }
+    },
+    "bars": {
+      "power": { "nameTh": "แรง", "hint": "แรงขึ้น · ช้าลง · เปลืองมานา", "gain": { "damage": 0.07, "size": 0.02 }, "cost": { "cooldown": 1.07, "mana": 1.08 } },
+      "rate": { "nameTh": "ถี่", "hint": "ใช้บ่อยขึ้น · เบาลง", "gain": { "haste": 7 }, "cost": { "damage": 0.97, "size": 0.97, "range": 0.97 } },
+      "size": { "nameTh": "ขนาด", "hint": "วงใหญ่ขึ้น · เบาลง · ช้าลง", "gain": { "size": 0.08 }, "cost": { "damage": 0.96, "cooldown": 1.03, "mana": 1.05 } },
+      "range": { "nameTh": "ไกล", "hint": "ไกลขึ้น · เบาลงนิด", "gain": { "range": 0.08 }, "cost": { "damage": 0.98, "mana": 1.03 } },
+      "duration": { "nameTh": "นาน", "hint": "อยู่นานขึ้น · เบาลง · ช้าลง", "gain": { "duration": 0.08 }, "cost": { "damage": 0.97, "cooldown": 1.03 } },
+      "count": { "nameTh": "จำนวน", "hint": "เพิ่ม 1 ลูกทุก 2 แต้ม · ลูกละเบาลง", "gain": { "countEvery": 2, "countSpread": 10, "countDamageExp": 0.5 }, "cost": { "mana": 1.05 } }
+    },
+    "types": {
+      "projectile": { "nameTh": "ยิงลูก", "bars": ["power", "rate", "count"] },
+      "area": { "nameTh": "วงกว้าง", "bars": ["power", "rate", "size"] }
+    }
+  },
   "skillUpgrade": {
-    "_doc": "Skill crystals + gold raise skill rank at a workbench or trainer (including town.skillUpgradeStations), at any character level (only the stat requirement and the materials gate a rank). balanceLevel is not a gate: it is the level the balance model assumes a hero reaches each rank. Mods remain the source of behaviour changes. No failure or destruction.",
-    "maxLevel": 5,
-    "perLevel": 0.06,
-    "manaPerLevel": 0.12,
-    "steps": [
-      {
-        "balanceLevel": 4,
-        "requiresStat": 5,
-        "gold": 35,
-        "skill_crystal": 1
-      },
-      {
-        "balanceLevel": 10,
-        "requiresStat": 7,
-        "gold": 90,
-        "skill_crystal": 2
-      },
-      {
-        "balanceLevel": 17,
-        "requiresStat": 9,
-        "gold": 180,
-        "skill_crystal": 3
-      },
-      {
-        "balanceLevel": 24,
-        "requiresStat": 11,
-        "gold": 320,
-        "skill_crystal": 4
-      }
-    ]
+    "_doc": "Skill level (owner, 2026-10-27/29, docs/SKILL-GROWTH-TH.md): a skill levels from 1 up to the character's level (and maxLevel). Crystals fed to it at a workbench or trainer (including town.skillUpgradeStations) give skill EXP (crystals: EXP per crystal), and every EXP fed costs goldPerExp gold. Level L needs expPerLevel[0] + expPerLevel[1] x L EXP, rounded. Each level asks for stats (owner, 2026-10-29, docs/STATS-TH.md; core/skills.js skillRequires): the skill's requires (or require.base of its upgradeStat) plus require.perLevel per level above 1, shared by its stats in proportion; feeding reaches only levels the stats meet, and a skill above what the stats allow works at the highest level they meet. Feeding stops where the next level is out of reach (the character's level or the stat), so crystals are never wasted. perLevel/manaPerLevel: damage and MP cost per level above 1 (MP grows faster). Mod sockets follow the level (mods.slotLevels). Mods remain the source of behaviour changes. No failure or destruction.",
+    "maxLevel": 70,
+    "perLevel": 0.01,
+    "manaPerLevel": 0.02,
+    "crystals": { "skill_crystal": 1, "skill_crystal_m": 5, "skill_crystal_l": 25 },
+    "goldPerExp": 10,
+    "expPerLevel": [1, 0.15],
+    "require": { "base": 3, "perLevel": 1.7 }
   },
   "modUpgrade": {
     "maxLevel": 3,
@@ -175,7 +188,7 @@
         "gold": 80
       }
     ],
-    "requiresStatPerLevel": 2,
+    "requiresStatPerLevel": 25,
     "_doc": "Each rank above the first raises the mod stat requirement by requiresStatPerLevel (core/skills.js modRequires); an upgrade is refused until the next rank can be met."
   },
   "openWorldSimulation": {
@@ -265,11 +278,14 @@
   },
   "slotCount": 4,
   "combat": {
-    "_doc": "defenseConstant: armour takes defense / (defense + defenseConstant) of a hit (core/character.js defenseFactor; it grows with the raw numbers: 2026-10-25 every raw HP/attack/defense/damage/MP value was multiplied by 10). reflectFlat: the flat part of a guard reflect. Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
+    "_doc": "defenseConstant: armour takes defense / (defense + defenseConstant) of a hit (core/character.js defenseFactor; it grows with the raw numbers: 2026-10-25 every raw HP/attack/defense/damage/MP value was multiplied by 10). reflectFlat: the flat part of a guard reflect. Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled; a plain hit flinches a monster at most once per flinchLock seconds (owner, 2026-10-28: rapid light hits must not hold it in place), while a heavy hit's own stagger always applies.",
     "defenseConstant": 600,
     "reflectFlat": 40,
     "comboWindow": 1.1,
     "stagger": 0.14,
+    "flinchLock": 0.6,
+    "_inputBufferDoc": "A skill pressed while its cooldown has at most inputBuffer seconds left is remembered and cast the moment the cooldown ends (one press, the latest wins; not for charged or channelled skills), so a press a little early never feels dropped. core/game-simulation.js castSlot.",
+    "inputBuffer": 0.25,
     "block": {
       "_doc": "A shield block lets through only `taken` of a hit from within arcDeg in front of the hero. Ground hazards and hits from behind are never blocked.",
       "arcDeg": 120,
@@ -288,14 +304,7 @@
   },
   "balance": {
     "_doc": "Balance model (core/balance.js, tests/core/balance-model.test.js): a reference hero per kit fights the average normal monster of its level wearing the expected gear tier. Targets are what the tuning must keep. weaponFactor follows items.handRules (sword kit dual-wields two light weapons).",
-    "monsterCap": 25,
-    "gearTiers": [
-      1,
-      6,
-      11,
-      16,
-      21
-    ],
+    "monsterCap": 40,
     "secondsPerKill": 6,
     "monster": {
       "hitMult": 1.1,
@@ -305,11 +314,11 @@
       "gradeMult": 1.08,
       "defense": [
         70,
-        55
+        33.8
       ],
       "maxHp": [
         180,
-        100
+        61.5
       ]
     },
     "builds": {
@@ -323,7 +332,7 @@
         },
         "stats": {
           "STR": 0.6,
-          "DEX": 0.1
+          "AGI": 0.2
         }
       },
       "bow": {
@@ -336,7 +345,7 @@
         },
         "stats": {
           "DEX": 0.6,
-          "AGI": 0.1
+          "AGI": 0.25
         }
       },
       "staff": {
@@ -368,6 +377,79 @@
       "_doc": "ttk: seconds to kill a same-level normal monster (the first levels are quick on purpose); ttd: seconds a hero survives standing in its hits without dodging; hoursToCap: playtime to the monster cap fighting same-level monsters (quests add more)."
     },
     "uptime": 0.55,
+    "budgets": {
+      "_doc": "Content budgets (owner, 2026-10-27; core/content-budget.js, tests/core/content-budget.test.js): a skill's score is what it adds to a reference hero of its weapon (budget score of rules.budgetWeights: log ratio per axis, team absolute); a main attack is scored against its weapon's reference main. A score outside its class band fails the test unless the item is in known, which lists today's items awaiting a decision with the reason; fixing one means removing it from known. support: buffs, heals, barriers, curses, summons, walls and counters (their party value is only partly measured, so the band is wide). mod: the best score a mod reaches on a skill it fits.",
+      "skill": { "main": [-0.35, 0.35], "burst": [-0.1, 0.6], "support": [-0.6, 0.6] },
+      "mod": [0.05, 1.5],
+      "known": {
+        "skills": {
+          "chain_spark": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "whirl_blade": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "thunderstorm": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
+          "stone_guardian": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
+          "meteor": "over its class band: awaiting a decision on its numbers",
+          "healing_spring": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
+          "venom_mire": "weaker than its weapon's reference main attack",
+          "charged_shot": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "interrupt_slam": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "frontline_split": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "shield_bash": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
+          "flame_stream": "weaker than its weapon's reference main attack",
+          "cross_cut": "over its class band: awaiting a decision on its numbers",
+          "blade_storm": "over its class band: awaiting a decision on its numbers",
+          "blizzard": "over its class band: awaiting a decision on its numbers",
+          "spell_wave": "weaker than its weapon's reference main attack"
+        },
+        "mods": {
+          "fork_chain": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "conductive": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "release_burst": "its MP cost outweighs the measured gain on a Flame Stream that already drains its supply; awaiting the skill growth rebalance",
+          "split": "over the mod band on venom_mire: awaiting a decision",
+          "chain_return": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "mana_siphon": "its stat sits off the side of the wheel of the skills it fits: the points the measured hero moves into it cost more than it adds; awaiting the mod review (phase 5)",
+          "advancing_edge": "adds less than it costs on every skill it fits once its top-rank stat (AGI) is paid for; awaiting the mod review (phase 5)",
+          "ramp_cast": "its stat (INT) sits off the side of the wheel of the skills it fits: the points the measured hero moves into it cost more than it adds; awaiting the mod review (phase 5)",
+          "gathering_cut": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "laceration": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "status_burst": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "following_field": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "healing_chain": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "healing_barrier": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "breaking_ward": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "spreading_hex": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "focused_pack": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "guardian_bond": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "cast_on_guard": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "poison_shift": "adds less than it costs on every skill it fits, or its effect is not measured yet",
+          "stun_arc": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured"
+        }
+      }
+    },
+    "rules": {
+      "_doc": "Build balance rules (owner, 2026-10-27; core/build-rules.js, tests/core/build-rules.test.js). A build is a kit, Job Tree nodes, a gear set and support skills; its profile has one number per axis (higher is better): single (boss DPS over fightSeconds, MP counted), pack (DPS into a pack of pack.size monsters within pack.radius m, from the main skill's shape), survival (seconds standing in the reference monster's hits, healing counted), sustain (seconds of the rotation before MP runs dry, up to fightSeconds), mobility (m/s of walking plus the movement skill), team (help per second the support skills give), income (gold-equivalent per hour). Standing out in a build's role is intended; overpowered means a build at equal cost dominates a build of another role (at least (1 - tolerance) of it on every axis and better by tolerance on one), or has no weakness (no axis below weakness x the field's best). Dominance within one role only marks the loser as a poor choice. Builds of one role compare on its axis within sameRoleGap. budgetWeights/budgetBand: a plan's weighted profile (each axis as a share of the field's best) may sit at most budgetBand above or below the median plan (too much or too little for the same points). recover: seconds a cooldown skill holds the hero after its cast (the rotation model fills the rest with the main attack). gearSets: the option ids a player stacks for that aim, spread over every slot (optionsPerItem each, mid rolls); a damage option a skill cannot use is skipped. growthSingleCap: no allocation of a skill's bars may lift its single-target damage past this share of the unspent skill, and none may be better at single, pack and MP at once (tests/core/skill-growth.test.js).",
+      "fightSeconds": 90,
+      "growthSingleCap": 1.3,
+      "pack": { "size": 5, "radius": 2.5 },
+      "tolerance": 0.03,
+      "weakness": 0.85,
+      "sameRoleGap": 0.1,
+      "survivalCap": 600,
+      "recover": 0.28,
+      "control": {
+        "_doc": "Assumptions the profile uses for things it cannot see directly (check them in play): slowShare, how much of a slow keeps a monster from hitting (a chill only slows walking); tauntShare, how much of the pack a taunting summon draws; dodgeUse, how often a dodge is used against its recharge (on-dodge triggers); monsterSpeed, average walking m/s (knockback); burn/poison, the share of a hit a burn (15% x 3 s) or poison (12% x 4 s) adds; cap, the most control can take away; teamShare, how much of our control counts as help for the team; fanSingleShare, how much of each projectile past the first in a fan reaches one lone target (the rest fly past it; a pack takes one projectile per monster).",
+        "slowShare": 0.4, "tauntShare": 0.5, "dodgeUse": 0.5, "monsterSpeed": 3.2, "burn": 0.45, "poison": 0.48, "cap": 0.8, "teamShare": 0.5, "fanSingleShare": 0.35
+      },
+      "budgetBand": 0.25,
+      "budgetWeights": { "single": 1, "pack": 1, "survival": 1, "sustain": 0.25, "mobility": 0.25, "team": 1, "income": 0.25 },
+      "optionsPerItem": 3,
+      "gearSets": {
+        "offense": ["attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "crit_pct"],
+        "defense": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "shield_flat"],
+        "speed": ["cdr_pct", "mp_on_hit", "mp_regen_pct", "mana_cost_pct"],
+        "mixed": ["attack_flat", "magic_flat", "crit_pct", "hp_flat", "defense_flat", "cdr_pct", "mp_regen_pct"],
+        "support": ["heal_pct", "barrier_pct", "shield_pct", "mp_regen_pct", "mana_cost_pct", "hp_flat"]
+      }
+    },
     "farming": {
       "_doc": "A Ranger who takes the whole farming line and shoots hunter arrows must out-earn a same-level sword hero after paying for the arrows, but the arrows must cost a noticeable share (tests/core/balance-model.test.js).",
       "find": {
@@ -386,5 +468,44 @@
         0.25
       ]
     }
+  },
+  "statPerks": {
+    "_doc": "Stat thresholds (owner, 2026-10-29): reaching 50/100/150/200 total points (trained + Job Tree + gear) in a stat unlocks a perk that changes behaviour, not just numbers. Rules in src/core/stat-perks.js; nameTh/descTh show on the stats page.",
+    "STR": [
+      {"id":"str_wide","at":50,"nameTh":"ฟันกว้าง","descTh":"วงโจมตีของสกิลประชิดกว้างขึ้น 15% (มุมฟัน และรัศมีท่าหมุนรอบตัว)","widthPct":15},
+      {"id":"str_rally","at":100,"nameTh":"ฮึดสู้","descTh":"ฆ่าศัตรูได้ ฟื้น HP 3% ของ HP สูงสุด","healPct":3},
+      {"id":"str_opener","at":150,"nameTh":"เปิดฉาก","descTh":"ตีโดนศัตรูที่ยังไม่เคยโดนตี แรงขึ้น 40%","mult":1.4},
+      {"id":"str_crush","at":200,"nameTh":"บดขยี้","descTh":"ตีศัตรูที่ HP เหลือต่ำกว่า 30% แรงขึ้น 30%","hpPct":30,"mult":1.3}
+    ],
+    "AGI": [
+      {"id":"agi_rush","at":50,"nameTh":"ก้าวเร่ง","descTh":"หลังใช้สกิลเคลื่อนที่ สกิลถัดไปภายใน 2 วินาทีร่ายเร็วขึ้น 30%","window":2,"speed":0.3},
+      {"id":"agi_graze","at":100,"nameTh":"หลบเฉียด","descTh":"หลบการโจมตีด้วยสกิลเคลื่อนที่ได้ คืนจำนวนครั้งสกิลเคลื่อนที่ 1 ครั้ง (ทุก 4 วินาที)","cooldown":4},
+      {"id":"agi_extra","at":150,"nameTh":"ฝีเท้าเบา","descTh":"สกิลเคลื่อนที่ใช้ได้เพิ่ม 1 ครั้ง","charges":1},
+      {"id":"agi_shadow","at":200,"nameTh":"เงาตามติด","descTh":"หลบการโจมตีได้แล้ว การโจมตีครั้งถัดไปภายใน 2 วินาทีแรงเป็น 2 เท่า","window":2,"mult":2}
+    ],
+    "DEX": [
+      {"id":"dex_armor","at":50,"nameTh":"แม่นยำ","descTh":"ทุกการโจมตีไม่สนเกราะศัตรู 15%","penetrate":0.15},
+      {"id":"dex_reach","at":100,"nameTh":"ระยะเอื้อม","descTh":"ระยะโจมตีทุกสกิล +10% (มีดฟันถึงไกลขึ้น ลูกธนูไปไกลขึ้น)","rangePct":10},
+      {"id":"dex_focus","at":150,"nameTh":"ไล่จุดอ่อน","descTh":"ตีเป้าเดิมต่อเนื่อง แรงขึ้นครั้งละ 3% สูงสุด 15% เปลี่ยนเป้าแล้วเริ่มนับใหม่","perHit":0.03,"max":0.15},
+      {"id":"dex_mark","at":200,"nameTh":"จุดตาย","descTh":"คริติคอลแต่ละครั้งใส่เป้าเดิมเพิ่มแรงคริ 6% ซ้อนได้ 5 ชั้น","perStack":0.06,"stacks":5}
+    ],
+    "LUK": [
+      {"id":"luk_find","at":50,"nameTh":"โชคช่วย","descTh":"ศัตรูมีโอกาส 4% ดรอปคริสตัลสกิลเพิ่ม","chance":0.04,"item":"skill_crystal"},
+      {"id":"luk_escape","at":100,"nameTh":"รอดหวุดหวิด","descTh":"โดนตีจนตาย รอดด้วย HP 1 และอมตะ 1 วินาที (ทุก 90 วินาที)","invulnerable":1,"cooldown":90},
+      {"id":"luk_reset","at":150,"nameTh":"จังหวะดี","descTh":"ใช้สกิลแล้วมีโอกาส 8% คูลดาวน์รีเซ็ตทันที","chance":0.08},
+      {"id":"luk_jackpot","at":200,"nameTh":"แจ็กพอต","descTh":"คริติคอล 10% กลายเป็นแจ็กพอต แรงอีก 2 เท่า","chance":0.1,"mult":2}
+    ],
+    "INT": [
+      {"id":"int_return","at":50,"nameTh":"มานาคืน","descTh":"สกิลที่โดนศัตรูคืน MP 15% ของค่าร่าย (ครั้งเดียวต่อการใช้)","share":0.15,"window":10},
+      {"id":"int_flow","at":100,"nameTh":"เกราะไหลเวียน","descTh":"เกราะเวทฟื้นเร็วขึ้น 2 เท่า และเริ่มฟื้นเร็วขึ้นครึ่งหนึ่ง","rate":2,"delay":0.5},
+      {"id":"int_free","at":150,"nameTh":"สมาธิ","descTh":"ใช้สกิลทุกครั้งที่ 5 ไม่เสีย MP","every":5},
+      {"id":"int_focus","at":200,"nameTh":"จิตแน่วแน่","descTh":"ขณะ MP ตั้งแต่ 80% ขึ้นไป ทุกสกิลแรงขึ้น 20%","mpPct":80,"mult":1.2}
+    ],
+    "VIT": [
+      {"id":"vit_second","at":50,"nameTh":"ลมหายใจที่สอง","descTh":"HP ต่ำกว่า 35% ฟื้น HP เร็วขึ้น 3 เท่า","hpPct":35,"mult":3},
+      {"id":"vit_iron","at":100,"nameTh":"ผิวเหล็ก","descTh":"ไม่โดนกระเด็น และโดนตีได้บาเรีย 3% ของ HP สูงสุด (ทุก 2 วินาที)","barrierPct":3,"cooldown":2,"duration":3},
+      {"id":"vit_bulwark","at":150,"nameTh":"กำแพงเนื้อ","descTh":"ขณะ HP มากกว่า 70% รับดาเมจลดลง 10%","hpPct":70,"taken":0.9},
+      {"id":"vit_undying","at":200,"nameTh":"ไม่ล้ม","descTh":"โดนตีจนตาย ฟื้น HP เป็น 30% แทน (ทุก 120 วินาที)","healPct":30,"cooldown":120}
+    ]
   }
 }

@@ -367,7 +367,7 @@ export class Input {
         else {
           this.game.setAimAngle(a.angle, true);
           this.game.player.facing = a.angle;
-          this.game.player.targetId = this.targetInDirection(a.angle, a.length);
+          this.game.player.targetId = a.lock !== undefined ? a.lock : this.targetInDirection(a.angle, a.length);
           this.game.castSlot(i);
         }
         this.pressFx(b);
@@ -411,6 +411,11 @@ export class Input {
       const r = Math.min(1, len / maxDrag) * s.range;
       return { x: p.x + Math.sin(angle) * r, z: p.z + Math.cos(angle) * r, radius: s.wall?.length/2 || s.radius };
     }
+    if (s.shadowStep) {
+      // Backstab: the drag picks the target to step behind, anywhere within the step's reach
+      const lock = this.targetInDirection(angle, s.shadowStep.range), m = lock !== null && this.game.monsters.find((q) => q.id === lock);
+      return { angle: m ? Math.atan2(m.x - p.x, m.z - p.z) : angle, length: m ? Math.hypot(m.x - p.x, m.z - p.z) : s.shadowStep.range, lock };
+    }
     return { angle, length: s.range };
   }
 
@@ -419,7 +424,7 @@ export class Input {
     let best = null;
     let bestOff = 0.6;
     for (const m of this.game.monsters) {
-      if (m.dead) continue;
+      if (m.dead || m.targetable === false) continue;
       const d = Math.hypot(m.x - p.x, m.z - p.z) - m.r;
       if (d > range) continue;
       let off = Math.atan2(m.x - p.x, m.z - p.z) - angle;

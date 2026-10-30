@@ -23,10 +23,11 @@ try{
   const open=async tab=>page.evaluate(tab=>window.__frontier.panels.open(tab),tab);
   const jump=async id=>{await page.locator('#node-search').fill(data.jobtree.nodes[id].nameTh);await click('.seeker-node-search button');await click(`.seeker-search-result[data-id="${id}"]`);};
   const overflow=async()=>assert.ok(await page.locator('.pbody').evaluate(el=>el.scrollWidth<=el.clientWidth+2),size+' content overflow');
-  assert.ok(await page.locator('[data-act="skill-up"][data-skill="slash"]').isDisabled(),'rank cannot be rushed at Lv1 even with materials');
-  await page.evaluate(()=>{window.__frontier.game.ch.level=5;window.__frontier.panels.render();});
-  await click('[data-act="skill-up"][data-skill="slash"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.skills.slash),2);
-  assert.ok(await page.locator('[data-act="skill-up"][data-skill="slash"]').isDisabled(),'next rank needs character Lv12');
+  const feed='[data-act="skill-feed"][data-skill="slash"][data-crystal="skill_crystal"][data-n="1"]';
+  assert.ok(await page.locator(feed).isDisabled(),'a skill never levels past the character, even with crystals');
+  await page.evaluate(()=>{window.__frontier.game.ch.level=2;window.__frontier.panels.render();});
+  await click(feed);assert.equal(await page.evaluate(()=>window.__frontier.game.ch.skills.slash),2);
+  assert.ok(await page.locator(feed).isDisabled(),'the next level waits for the character');
   assert.doesNotMatch(await page.locator('.pbody').innerText(),/\d+\.\d{5,}/,'growth previews format fractional stats readably');
   await overflow();await shot('growth');
   // Equipment can reach +5/S at Lv1; only wearing is gated by trained stats.

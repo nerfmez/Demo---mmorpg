@@ -2,7 +2,7 @@ import { createLearnedCharacter as createCharacter } from './helpers.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
-import { craft, rollDrops, upgradeGear, upgradeSkill, sellMaterial, craftBatch, promoteGear, gearUpgradeCost, skillUpgradeCost, gearGradeState } from '../../src/core/crafting.js';
+import { craft, rollDrops, upgradeGear, feedSkill, sellMaterial, craftBatch, promoteGear, gearUpgradeCost, gearGradeState } from '../../src/core/crafting.js';
 import { createRng } from '../../src/core/rng.js';
 
 test('crafting gear rolls a grade with the right number of options from the recipe pool', () => {
@@ -46,7 +46,7 @@ test('skills level up with skill crystals', () => {
   ch.gold = 999;
   ch.level = 5; ch.stats.STR = 5;
   ch.materials = { skill_crystal: 1 };
-  assert.ok(upgradeSkill(ch, data, 'slash').ok);
+  assert.ok(feedSkill(ch, data, 'slash', 'skill_crystal', 1).ok);
   assert.equal(ch.skills.slash, 2);
   assert.equal(ch.materials.skill_crystal, 0);
 });
@@ -94,11 +94,13 @@ test('promotion adds an affix without rerolling good options, changing +N or rep
  assert.ok(promoteGear(ch,data,uid,createRng(5)).ok);assert.deepEqual(item.options[0],first);assert.equal(item.options.length,4);assert.equal(item.upgrade,3);assert.equal(item.uid,uid);
  assert.ok(promoteGear(ch,data,uid,createRng(6)).ok);assert.equal(item.options.length,5);assert.equal(gearGradeState(ch,data,item).reason,'max');
 });
-test('upgrades never require character level; the skill stat gate stays atomic',()=>{
+test('gear upgrades never require character level; a skill levels up to the character and keeps its stat gate',()=>{
  const ch=funded();ch.level=1;const item=ch.gear[0];item.upgrade=1;
  assert.ok(upgradeGear(ch,data,item.uid).ok);assert.ok(promoteGear(ch,data,item.uid,createRng(1)).ok);
- let before=JSON.stringify(ch);assert.equal(upgradeSkill(ch,data,'slash').reason,'requires','Lv1 is not refused for its level, only for the stat');assert.equal(JSON.stringify(ch),before);
- ch.stats.STR=5;const cost=skillUpgradeCost(data,'slash',1);assert.ok(upgradeSkill(ch,data,'slash').ok);assert.equal(ch.skills.slash,2);assert.equal(cost.skill_crystal,1);
+ ch.materials.skill_crystal=5;let before=JSON.stringify(ch);assert.equal(feedSkill(ch,data,'slash','skill_crystal',1).reason,'cap','a skill never passes the character');assert.equal(JSON.stringify(ch),before);
+ ch.level=5;ch.stats.STR=0;const fill=feedSkill(ch,data,'slash','skill_crystal',3);assert.deepEqual([fill.ok,fill.used,fill.levels,ch.skills.slash],[true,1,0,1],'a gated level still fills, and no more goes in');
+ before=JSON.stringify(ch);assert.equal(feedSkill(ch,data,'slash','skill_crystal',1).reason,'requires','the stat gates the next level');assert.equal(JSON.stringify(ch),before);
+ ch.stats.STR=6;assert.ok(feedSkill(ch,data,'slash','skill_crystal',1).ok);assert.equal(ch.skills.slash,3,'the waiting level and the new EXP both count');
  assert.equal(gearUpgradeCost(data,item).enhancement_stone,3);
 });
 

@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data} from './helpers.js';
 import {createCharacter,migrateCharacter,CHARACTER_VERSION} from '../../src/core/character.js';
-import {upgradeGear,upgradeSkill,upgradeMod,gearUpgradeCost,skillUpgradeCost,modUpgradeCost,salvageReturn,salvageGear,salvageMany,rollDrops,addItem,craft} from '../../src/core/crafting.js';
+import {upgradeGear,feedSkill,skillUpgradeState,upgradeMod,gearUpgradeCost,modUpgradeCost,salvageReturn,salvageGear,salvageMany,rollDrops,addItem,craft} from '../../src/core/crafting.js';
 import {writeSlot,loadSlot} from '../../src/save.js';
 import {createRng} from '../../src/core/rng.js';
 const funded=()=>{const ch=createCharacter(data);ch.gold=10000;ch.level=30;for(const k in ch.stats)ch.stats[k]=100;return ch;};
@@ -11,35 +11,57 @@ test('equipment, skills and mods spend only their dedicated material and gold at
  const ch=funded(),g=ch.gear[0],m=mod(ch);ch.materials={enhancement_stone:16,skill_crystal:15,boar_hide:9,boar_tusk:7,glow_dust:6,ruin_shard:5,ancient_core:2};
  const parts={...ch.materials};const grade=g.grade,options=structuredClone(g.options),gold=ch.gold;
  for(const n of [1,2,3,4,6]){assert.equal(gearUpgradeCost(data,g).enhancement_stone,n);assert.ok(upgradeGear(ch,data,g.uid).ok);}
- for(const n of [1,2,3,4]){assert.equal(skillUpgradeCost(data,'slash',ch.skills.slash).skill_crystal,n);assert.ok(upgradeSkill(ch,data,'slash').ok);}
+ assert.deepEqual(feedSkill(ch,data,'slash','skill_crystal',10),{ok:true,used:10,gold:100,level:7,levels:6});
  for(const n of [2,3]){assert.equal(modUpgradeCost(data,m).skill_crystal,n);assert.ok(upgradeMod(ch,data,m.uid).ok);}
  assert.equal(ch.materials.enhancement_stone,0);assert.equal(ch.materials.skill_crystal,0);assert.equal(g.grade,grade);assert.deepEqual(g.options,options);assert.equal(m.grade,'B');
  for(const k of Object.keys(parts).filter(k=>!['enhancement_stone','skill_crystal'].includes(k)))assert.equal(ch.materials[k],parts[k],k);
- assert.equal(ch.gold,gold-870-625-120);
- const before=JSON.stringify(ch);for(const r of [upgradeGear(ch,data,g.uid),upgradeSkill(ch,data,'slash'),upgradeMod(ch,data,m.uid)])assert.equal(r.reason,'max');assert.equal(JSON.stringify(ch),before);
+ assert.equal(ch.gold,gold-870-100-120);
+ const before=JSON.stringify(ch);for(const r of [upgradeGear(ch,data,g.uid),upgradeMod(ch,data,m.uid)])assert.equal(r.reason,'max');assert.equal(JSON.stringify(ch),before);
 });
 test('missing keys, wrong material, too few crystals and insufficient gold reject atomically',()=>{
  for(const kind of ['gear','skill','mod'])for(const failure of ['absent','wrong','short','gold']){
+  if(kind==='skill'&&failure==='short')continue; // one crystal is a valid feed
   const ch=funded(),g=ch.gear[0],m=mod(ch);g.upgrade=1;ch.skills.slash=2;
   const key=kind==='gear'?'enhancement_stone':'skill_crystal';
   ch.materials={boar_hide:999,boar_tusk:999,glow_dust:999,ruin_shard:999};
   if(failure==='wrong')ch.materials[key==='skill_crystal'?'enhancement_stone':'skill_crystal']=999;
   if(failure==='short')ch.materials[key]=1;
   if(failure==='gold'){ch.materials[key]=100;ch.gold=0;}
-  const before=JSON.stringify(ch),result=kind==='gear'?upgradeGear(ch,data,g.uid):kind==='skill'?upgradeSkill(ch,data,'slash'):upgradeMod(ch,data,m.uid);
-  assert.equal(result.reason,'materials',kind+'/'+failure);assert.equal(JSON.stringify(ch),before);
+  const before=JSON.stringify(ch),result=kind==='gear'?upgradeGear(ch,data,g.uid):kind==='skill'?feedSkill(ch,data,'slash','skill_crystal',5):upgradeMod(ch,data,m.uid);
+  assert.equal(result.reason,kind==='skill'&&failure==='gold'?'gold':'materials',kind+'/'+failure);assert.equal(JSON.stringify(ch),before);
  }
 });
-test('skill/mod ranks keep their stat gate but no character level gate',()=>{
+test('a skill levels up to the character; skill and mod ranks keep their stat gate',()=>{
  const ch=funded(),m=mod(ch);ch.materials={skill_crystal:100};
  for(const kind of ['skill','mod']){
-  ch.level=1;for(const k in ch.stats)ch.stats[k]=0;
-  const before=JSON.stringify(ch),r=kind==='skill'?upgradeSkill(ch,data,'slash'):upgradeMod(ch,data,m.uid);
+  ch.level=kind==='skill'?30:1;for(const k in ch.stats)ch.stats[k]=0;ch.skillExp={slash:1}; // the level's EXP is in; only the stat holds it back
+  const before=JSON.stringify(ch),r=kind==='skill'?feedSkill(ch,data,'slash','skill_crystal',5):upgradeMod(ch,data,m.uid);
   assert.equal(r.reason,'requires',kind);assert.equal(JSON.stringify(ch),before);
   for(const k in ch.stats)ch.stats[k]=100;
-  const up=kind==='skill'?upgradeSkill(ch,data,'slash'):upgradeMod(ch,data,m.uid);
-  assert.ok(up.ok,kind+' upgrades at character Lv1 with materials and stats');
+  const up=kind==='skill'?feedSkill(ch,data,'slash','skill_crystal',5):upgradeMod(ch,data,m.uid);
+  assert.ok(up.ok,kind+' upgrades with materials and stats');
+  if(kind==='skill'){ch.level=1;ch.skills.slash=1;assert.equal(feedSkill(ch,data,'slash','skill_crystal',1).reason,'cap','never past the character');}
  }
+});
+test('bigger crystals give more EXP at the same gold per EXP; banked EXP becomes levels once the character catches up',()=>{
+ const su=data.progression.skillUpgrade,ch=funded();ch.level=3;ch.materials={skill_crystal_m:5};
+ assert.deepEqual(Object.keys(su.crystals),['skill_crystal','skill_crystal_m','skill_crystal_l']);
+ // Lv.1->2 and 2->3 need 1 EXP each: one medium crystal (5 EXP) is all that goes in; 3 EXP wait in the skill
+ const r=feedSkill(ch,data,'slash','skill_crystal_m',5);
+ assert.deepEqual(r,{ok:true,used:1,gold:5*su.goldPerExp,level:3,levels:2});assert.equal(ch.materials.skill_crystal_m,4);assert.equal(ch.skillExp.slash,3);
+ assert.equal(feedSkill(ch,data,'slash','skill_crystal_m',1).reason,'cap','never past the character');
+ ch.level=5;const st=skillUpgradeState(ch,data,'slash');assert.ok(st.pending&&st.ok);
+ const gold=ch.gold,settled=feedSkill(ch,data,'slash','skill_crystal',0);
+ assert.deepEqual(settled,{ok:true,used:0,gold:0,level:5,levels:2});assert.equal(ch.gold,gold);assert.equal(ch.skillExp.slash,0);
+ assert.equal(feedSkill(ch,data,'slash','unknown',1).reason,'crystal');
+});
+test('v17 turns old skill ranks into levels once, keeps them above the character level and cleans skill EXP',()=>{
+ const ch=createCharacter(data);ch.version=16;ch.level=5;ch.skills={slash:3,hunter_shot:1,firebolt:5};ch.skillExp={slash:4,firebolt:-2,ghost:9};
+ const m=migrateCharacter(ch,data);
+ assert.deepEqual(m.skills,{slash:10,hunter_shot:1,firebolt:24});assert.deepEqual(m.skillExp,{slash:4});assert.equal(m.version,CHARACTER_VERSION);
+ const once=JSON.stringify(m);migrateCharacter(m,data);assert.equal(JSON.stringify(m),once,'idempotent');
+ assert.equal(skillUpgradeState(m,data,'slash').reason,'cap','a migrated level above the character waits');
+ const fresh=createCharacter(data);assert.deepEqual(fresh.skillExp,{});
 });
 test('old sparse saves preserve parts, gold, existing +N, grades, skill/mod ranks and new drops on round trip',()=>{
  const store=new Map();globalThis.localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
@@ -48,7 +70,7 @@ test('old sparse saves preserve parts, gold, existing +N, grades, skill/mod rank
  const old=serializeCharacter(ch),saved=structuredClone(old),loaded=migrateCharacter(structuredClone(old),data);
  assert.equal(loaded.version,CHARACTER_VERSION);assert.deepEqual(loaded.materials,saved.materials);assert.deepEqual(loaded.gear,saved.gear);assert.deepEqual(loaded.mods,saved.mods);assert.deepEqual(loaded.skills,saved.skills);assert.equal(loaded.gold,saved.gold);
  addItem(loaded,'enhancement_stone',4);addItem(loaded,'skill_crystal',4);const copy=migrateCharacter(serializeCharacter(loaded),data);
- assert.equal(copy.materials.enhancement_stone,4);assert.equal(copy.materials.skill_crystal,4);assert.ok(upgradeGear(copy,data,copy.gear[0].uid).ok);assert.ok(upgradeSkill(copy,data,'slash').ok);assert.deepEqual(Object.fromEntries(Object.keys(saved.materials).map(k=>[k,copy.materials[k]])),saved.materials);
+ assert.equal(copy.materials.enhancement_stone,4);assert.equal(copy.materials.skill_crystal,4);assert.ok(upgradeGear(copy,data,copy.gear[0].uid).ok);assert.ok(feedSkill(copy,data,'slash','skill_crystal',4).ok);assert.deepEqual(Object.fromEntries(Object.keys(saved.materials).map(k=>[k,copy.materials[k]])),saved.materials);
 });
 test('salvage retains recipe parts, refunds investment only and protects worn/locked gear',()=>{
  const ch=funded();const starter=ch.gear[0];assert.equal(salvageReturn(data,starter).skill_crystal,undefined);assert.equal(salvageReturn(data,starter).enhancement_stone,undefined);
@@ -63,10 +85,11 @@ test('shared drops append without replacing monster/zone loot and obey material-
  for(const [id,m] of Object.entries(data.monsters.monsters)){
   const probabilities=[],r={chance:p=>{probabilities.push(p);return true;},int:(a)=>a};const drops=rollDrops(data,id,'highlands',r,{materialFindPct:50,goldFindPct:20});
   assert.deepEqual(drops.map(d=>d.item),[...m.drops,...data.world.zoneDrops.highlands,...data.items.upgradeMaterialDrops].map(d=>d.item));
-  assert.ok(Math.abs(probabilities.at(-2)-.045)<1e-9);assert.ok(Math.abs(probabilities.at(-1)-.03)<1e-9);assert.equal(drops.at(-2).qty,1);assert.equal(drops.at(-1).qty,1);
+  // material-find +50% scales the shared drops: stones 3%, small crystals 6%, greater crystals 1.5%
+  assert.ok(Math.abs(probabilities.at(-3)-.045)<1e-9);assert.ok(Math.abs(probabilities.at(-2)-.09)<1e-9);assert.ok(Math.abs(probabilities.at(-1)-.0225)<1e-9);for(const d of drops.slice(-3))assert.equal(d.qty,1);
  }
  const tally={enhancement_stone:0,skill_crystal:0},rng=createRng(912);for(let i=0;i<10000;i++)for(const d of rollDrops(data,'tusk_boar','meadow',rng))if(d.item in tally)tally[d.item]+=d.qty;
- assert.ok(tally.enhancement_stone>230&&tally.enhancement_stone<370);assert.ok(tally.skill_crystal>140&&tally.skill_crystal<260);
+ assert.ok(tally.enhancement_stone>230&&tally.enhancement_stone<370);assert.ok(tally.skill_crystal>500&&tally.skill_crystal<700);
 });
 test('base crafting still uses monster parts and never requires the two upgrade materials',()=>{
  for(const recipe of Object.values(data.recipes.recipes)){assert.equal(recipe.cost.enhancement_stone,undefined);assert.equal(recipe.cost.skill_crystal,undefined);}

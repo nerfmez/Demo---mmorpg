@@ -23,6 +23,9 @@ export function encounterCraftAudit(data, worlds) {
     }
     if (layout?.failures.length) areas.push({ map: mapId, failures: layout.failures });
   }
+  // a monster defined but not yet placed (monsters.json awaiting) counts as a source at its fixed levels
+  const awaiting = Object.entries(data.monsters.monsters).filter(([, m]) => m.awaiting && m.levels);
+  for (const [id, m] of awaiting) for (const drop of m.drops) add(drop, { map: null, zone: null, monster: id, level: [...m.levels], kind: m.boss ? 'boss' : 'normal', points: 0, origin: 'awaiting' });
   for (const values of Object.values(sources)) values.sort((a, b) => a.level[0] - b.level[0] || a.monster.localeCompare(b.monster));
   const recipes = Object.entries(data.recipes.recipes).map(([id, recipe]) => {
     const level = recipe.type === 'gear' ? recipeEquipmentLevel(data, recipe) : null;
@@ -39,6 +42,6 @@ export function encounterCraftAudit(data, worlds) {
     monsters, areas, sources, consumers, recipes,
     summary: { monsterTypes: Object.keys(data.monsters.monsters).length, spawnGroups: monsters.length,
       recipes: recipes.length, equipment: recipes.filter(r => r.type === 'gear').length,
-      reviewRecipes: recipes.filter(r => r.review).length,
+      reviewRecipes: recipes.filter(r => r.review).length, awaitingPlacement: awaiting.map(([id]) => id),
       missingMaterials: [...new Set(recipes.flatMap(r => r.materials.filter(m => m.noMonsterSource).map(m => m.material)))] } };
 }

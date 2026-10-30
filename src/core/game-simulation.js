@@ -7,8 +7,10 @@ import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
+import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
-import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
+import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
@@ -16,6 +18,7 @@ import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
 import { buyConsumable, restoreAmount, consumableCount, automaticPotion } from './consumables.js';
 
+const NO_CRIT = Object.freeze({ crit: false, noCrit: true }); // Controlled Power (a mod): this skill never crits
 const PLAYER_RADIUS = 0.45;
 const POTION_GROUPS = ['hp', 'mp'];
 const PICKUP_RADIUS = 1.4;
@@ -48,6 +51,7 @@ export class Game {
     this.rng = createRng(seed);
     // LUK's lucky dodge rolls on its own stream, so adding it changes no other seeded roll
     this.luckRng = createRng((seed ^ 0x9e3779b9) >>> 0);
+    this.perkRng = createRng((seed ^ 0x2545f491) >>> 0); // stat perks (core/stat-perks.js), likewise apart
     this.time = 0;
     this.events = [];
     this.nextId = 1;
@@ -191,7 +195,7 @@ export class Game {
   /** Compile loadout changes without re-entering quest rewards or restoring resources. */
   refreshSkills() {
     this.skills = this.ch.slots.map((_, i) => computeSkill(this.ch, this.data, this.derived, i));
-    const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain'].includes(s.kind)).map((s) => s.range);
+    const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain', 'dash_line'].includes(s.kind)).map((s) => s.shadowStep ? Math.max(s.range, s.shadowStep.range) : s.range);
     const ground = this.skills.filter((s) => s && ['ground_area', 'dot_zone', 'curse_zone'].includes(s.kind)).map((s) => s.range);
     this.acquireRange = ranges.length ? Math.max(...ranges) : ground.length ? Math.max(...ground) : 6;
   }
@@ -443,7 +447,13 @@ export class Game {
       return false;
     }
     const counter = s.kind === 'counter_stance' && p.riposte?.skill.id === s.id && p.riposte.readyUntil > this.time;
-    if (p.cooldowns[i] > 0 && !counter) return false;
+    if (p.cooldowns[i] > 0 && !counter) {
+      // pressed just before the cooldown ends: remember it and cast it the moment it is ready
+      if (p.cooldowns[i] <= (this.data.progression.combat.inputBuffer || 0) && !s.charge && !s.channel && chargeRatio === null) {
+        p.queued = { slot: i, point, t: p.cooldowns[i] + 0.05, manualAngle: this.input.manualAim && !this.input.aimFromPointer ? this.input.aimAngle : null };
+      }
+      return false;
+    }
     if (p.mp < (counter ? 0 : s.cost)) {
       this.emit({ type: 'fail', reason: 'mp', slot: i });
       return false;
@@ -460,10 +470,18 @@ export class Game {
       this.emit({ type: 'chargeStart', slot: i, skill: s.id, weapon: this.derived.weaponType, total: s.charge.duration });
       return true;
     }
-    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'channel_cone', 'counter_stance'].includes(s.kind);
+    // Backstab (s.shadowStep): the hero steps through the shadows to behind its target, then strikes.
+    // It needs a target within shadowStep.range (the locked one, else on a tap the nearest); with none it
+    // fails before anything is spent.
+    if (s.shadowStep && !this.shadowStep(s)) {
+      if (!this.input.aimFromPointer) this.input.manualAim = false; // a drag's aim lasts one press
+      this.emit({ type: 'fail', reason: 'target', slot: i });
+      return false;
+    }
+    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance'].includes(s.kind);
     // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
     // Pointer aim and touch drag are explicit overrides.
-    if (!point && directional && !this.input.manualAim) {
+    if (!point && directional && !this.input.manualAim && !s.shadowStep) { // a shadow step already chose its target
       const nearest = nearestTarget(p, this.monsters, s.range);
       const prevTarget = p.targetId;
       p.targetId = nearest ? nearest.id : null;
@@ -474,6 +492,13 @@ export class Game {
     if (clearOneShotManualAim) this.input.manualAim = false;
     p.mp -= counter ? 0 : s.cost;
     p.cooldowns[i] = s.cooldown;
+    const perkCastId = perkCast(this, s, i, counter ? 0 : s.cost);
+    // proficiency (core/skill-growth.js): a cast in a fight counts at the skill's own pace
+    const fightRange = this.data.progression.skillGrowth?.combatRange || 0;
+    if (!counter && this.monsters.some((m) => !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) < fightRange)) {
+      const got = gainProficiency(this.ch, this.data, s.id, Math.max(s.cooldown, s.castTime, 0.35));
+      if (got) this.emit({ type: 'skillPoint', skill: s.id, points: got });
+    }
     if (arrows) {
       const before = arrowInUse(this.ch, this.data);
       spendArrows(this.ch, this.data, arrows);
@@ -486,18 +511,40 @@ export class Game {
     let castTime = s.castTime;
     if (p.momentum) { if (this.time <= p.momentum.until) castTime /= 1 + p.momentum.speed; p.momentum = null; }
     const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + castTime) : 0;
-    const castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
+    let castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
+    if (perkCastId) castSkill = { ...castSkill, perkCast: perkCastId }; // INT 50: this cast's own mana return
     p.cast = { slot: i, t: 0, total: castTime, aim, skill: castSkill, step };
     p.facing = aim.angle;
     this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step, ...(s.charge ? { charge: Math.max(0, Math.min(1, chargeRatio || 0)) } : {}) });
     return true;
   }
 
+  /** Backstab: move the player behind its target (else beside, else in front); false without one. */
+  shadowStep(s) {
+    const p = this.player, r = s.shadowStep.range;
+    const locked = this.monsters.find((m) => m.id === p.targetId && !m.dead && m.targetable !== false && dist(p.x, p.z, m.x, m.z) - m.r <= r);
+    // an aimed press (a drag on the button, the mouse) takes only the target it picked; a tap falls back to the nearest
+    const t = locked || (this.input.manualAim ? null : nearestTarget(p, this.monsters, r));
+    if (!t) return false;
+    const gap = t.r + (s.shadowStep.gap ?? 0.7), f = t.facing || 0, from = angleTo(t.x, t.z, p.x, p.z);
+    // behind the way it faces, then either side, then the side the hero came from
+    for (const a of [f + Math.PI, f + Math.PI / 2, f - Math.PI / 2, from]) {
+      const x = t.x + Math.sin(a) * gap, z = t.z + Math.cos(a) * gap;
+      if (!this.world.isFree(x, z, p.r) || this.isSafe(x, z)) continue;
+      this.emit({ type: 'shadowStep', skill: s.id, fromX: p.x, fromZ: p.z, x, z, id: t.id });
+      p.x = x; p.z = z;
+      p.facing = angleTo(x, z, t.x, t.z);
+      if (p.targetId !== t.id) { p.targetId = t.id; this.emit({ type: 'target', id: t.id }); }
+      return true;
+    }
+    return false;
+  }
+
   resolveAim(s, point) {
     const p = this.player;
     const t = this.target;
     let angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'channel_cone', 'counter_stance'].includes(s.kind)) {
+    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance'].includes(s.kind)) {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
@@ -573,6 +620,7 @@ export class Game {
     }
     // Momentum: the next cast soon after moving is quicker.
     if (mv.momentum) p.momentum = { until: this.time + mv.duration + mv.momentum.window, speed: mv.momentum.speed };
+    perkMovement(this, mv);
     this.emit({ type: 'movement', kind: mv.id, angle });
     return true;
   }
@@ -637,7 +685,7 @@ export class Game {
     if (p.dead) return fail('dead');
     if (consumableCount(this.ch, id) < 1) return fail('none');
     if ((p.itemCooldowns[def.group] || 0) > 0) return fail('cooldown');
-    const amount = restoreAmount(this.data, id, p.maxHp, p.maxMp);
+    const amount = restoreAmount(this.data, id, p.maxHp, p.maxMp, this.derived.potionHealPct);
     const hp = Math.min(amount.hp, p.maxHp - p.hp), mp = Math.min(amount.mp, p.maxMp - p.mp);
     if (hp < 1 && mp < 1) return fail('full');
     p.hp += Math.max(0, hp);
@@ -865,10 +913,14 @@ export class Game {
     const hpBefore = Math.max(0, m.hp);
     let dmg = adjustFrontierHit(this,m,amount,opts);
     if(m.dead)return 0;
-    const crit = opts.crit ?? false;
-    if (crit) dmg *= this.derived.critMult;
+    let crit = opts.crit ?? false;
+    // stat perks (core/stat-perks.js) on the hero's own skill hits
+    const perk = this.derived.perks && opts.skill && !opts.dot && !opts.byAlly ? perkHit(this, m, opts, crit) : null;
+    if (perk) { dmg *= perk.mult; crit = perk.crit; }
+    if (crit) dmg *= this.derived.critMult * (perk ? perk.critMult : 1);
+    const stagger = opts.stagger || 0;
     // Penetration ignores a share of the monster's defense.
-    const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100);
+    const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100) * (1 - (opts.modEffects?.penetrate || 0) / 100) * (1 - (perk?.penetrate || 0)); // Piercing Line: a mod's own share
     if (!opts.dot) dmg *= defenseFactor(def, this.data);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
     if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
@@ -877,9 +929,15 @@ export class Game {
     m.hp -= dmg;
     m.hurtT = 0.18;
     // flinch: regular monsters stop for a moment (a started wind-up still goes off)
-    if (!opts.dot && !m.boss) m.staggerT = Math.max(m.staggerT || 0, opts.stagger ?? this.data.progression.combat?.stagger ?? 0.14);
+    // a plain hit flinches a monster at most once per flinchLock (a heavy hit's own stagger always does),
+    // so rapid light hits cannot hold it in place
+    const combat = this.data.progression.combat;
+    if (!opts.dot && !m.boss && (stagger || this.time >= (m.flinchReady || 0))) {
+      m.staggerT = Math.max(m.staggerT || 0, stagger || (combat?.stagger ?? 0.14));
+      if (!stagger) m.flinchReady = this.time + (combat?.flinchLock || 0);
+    }
     this.stats.damageDealt += dmg;
-    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!opts.stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
+    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
       if(!opts.byAlly&&!opts.secondary)this.player.lastHitTarget=m.id;
@@ -898,6 +956,7 @@ export class Game {
       if (opts.leech && !opts.byAlly) this.healPlayer((Math.min(dmg, hpBefore) * opts.leech) / 100, true);
       // an attack gains MP for each enemy it hits (s.mpOnHit: gear, the MP line, a mod)
       if (opts.mpOnHit && !opts.byAlly) this.player.mp = Math.min(manaLimit(this), this.player.mp + opts.mpOnHit);
+      if (perk) perkAfterHit(this, m, dmg, opts, crit);
     } else setAggro(this, m, this.player);
     if (m.hp <= 0) this.killMonster(m);
     return dmg;
@@ -927,6 +986,10 @@ export class Game {
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
     const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng, {}, m.worldId).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId);
+    if (this.derived.perks) {
+      perkKill(this, m);
+      drops.push(...perkDrops(this, m));
+    }
     drops.forEach((d, i) => {
       const a = (i / Math.max(1, drops.length)) * Math.PI * 2 + this.rng.range(0, 1);
       const r = this.rng.range(0.6, 1.4);
@@ -983,15 +1046,18 @@ export class Game {
     if (p.dead) return 0;
     if (p.dash && p.dash.inv) {
       this.emit({ type: 'dodge', x: p.x, z: p.z });
+      perkDodge(this, true);
       return 0;
     }
+    if (perkInvulnerable(this)) return 0; // LUK's narrow escape
     // LUK: a lucky dodge, a monster hit that misses entirely (never damage over time)
     if (!opts.dot && this.derived.dodgeChancePct > 0 && this.luckRng.chance(this.derived.dodgeChancePct / 100)) {
       this.emit({ type: 'dodge', x: p.x, z: p.z, lucky: true });
+      perkDodge(this, false);
       return 0;
     }
     const guard=applyGuard(this,amount,source,opts);
-    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100) * buffTaken(p.buffs);
+    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100) * buffTaken(p.buffs) * perkTaken(this);
     let blocked = guard.guarded;
     // A shield blocks hits from in front only; ground hazards (no source) are never blocked.
     if (this.derived.blockChance > 0 && source && source.x !== undefined && !opts.unblockable) {
@@ -1014,11 +1080,12 @@ export class Game {
     const shielded = this.drainShield(dmg);
     dmg -= shielded;
     p.hp -= dmg;
+    perkAfterTaken(this, dmg); // VIT's barrier; a lethal hit may be survived
     if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;
     this.emit({ type: 'playerHit', amount: dmg, absorbed, shielded, blocked, x: p.x, z: p.z });
     if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
-    if (opts.knock && dmg > 0 && !Object.values(p.buffs).some((b) => b.steady)) {
+    if (opts.knock && dmg > 0 && !perkSteady(this) && !Object.values(p.buffs).some((b) => b.steady)) {
       this.cancelCharge();
       this.cancelChannel();
       const d = dirFromAngle(opts.knock.angle);
@@ -1069,7 +1136,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1080,7 +1147,11 @@ export class Game {
   }
 
   /** Execute a computed skill. mult scales damage (triggers, echoes, repeats). */
-  executeSkill(s, aim, { mult = 1, triggered = false, repeat = 0, step = null } = {}) {
+  executeSkill(s, aim, opts = {}) {
+    this.runSkill(s, aim, opts);
+  }
+
+  runSkill(s, aim, { mult = 1, triggered = false, repeat = 0, step = null } = {}) {
     const p = this.player;
     mult *= this.playerDamageMult();
     const crit = () => this.rollCrit();
@@ -1186,18 +1257,27 @@ export class Game {
           points.push([cur.x, cur.z]);
           hit.add(cur.id);
           const target = cur;
-          this.hitMonster(target, dmg, this.hitOpts(s, { crit: crit() }));
-          dmg *= s.chainFalloff;
-          let next = null;
-          let nd = s.chainRange || 6;
+          // the nearest unhit monster jumps next; Forking Arc also strikes the second nearest
+          let next = null, fork = null;
+          let nd = s.chainRange || 6, fd = nd;
           for (const m of this.monsters) {
             if (m.dead || hit.has(m.id)) continue;
             const d = dist(target.x, target.z, m.x, m.z);
             if (d < nd) {
+              fork = next; fd = nd;
               nd = d;
               next = m;
-            }
+            } else if (d < fd) { fd = d; fork = m; }
           }
+          // Arresting Arc: the last monster the chain reaches is stunned
+          const last = i === s.chain || !next;
+          this.hitMonster(target, dmg, this.hitOpts(s, last && effects.chainStun ? { crit: crit(), stun: { duration: effects.chainStun, bossDuration: effects.chainStunBoss } } : { crit: crit() }));
+          if (effects.forkMult && fork) {
+            hit.add(fork.id);
+            this.hitMonster(fork, dmg * effects.forkMult, this.hitOpts(s, { crit: crit() }));
+            this.emit({ type: 'chain', from: true, points: [[target.x, target.z], [fork.x, fork.z]], element: s.element });
+          }
+          dmg *= s.chainFalloff;
           cur = next;
         }
         if(effects.chainReturn && first && !first.dead){this.hitMonster(first,s.damage*mult*effects.chainReturn,this.hitOpts(s,{crit:crit()}));points.push([first.x,first.z]);}
@@ -1215,7 +1295,7 @@ export class Game {
             if (m.dead || dist(p.x, p.z, m.x, m.z) - m.r > s.radius) continue;
             this.hitMonster(m, s.damage * mult * k, this.hitOpts(s, { crit: crit(), fromX: p.x, fromZ: p.z }));
           }
-          this.emit({ type: 'nova', x: p.x, z: p.z, radius: s.radius, element: s.element });
+          this.emit({ type: 'nova', skill: s.id, x: p.x, z: p.z, radius: s.radius, element: s.element });
         };
         blast(1);
         if (s.echo) this.later(s.echo.delay, () => !p.dead && blast(s.echo.mult));
@@ -1387,11 +1467,12 @@ export class Game {
     }
     p.hurtT = Math.max(0, p.hurtT - dt);
     const inTown = this.isSafe(p.x, p.z);
-    p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen + (inTown ? p.maxHp * 0.08 : 0)) * dt);
+    p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen * perkRegen(this) + (inTown ? p.maxHp * 0.08 : 0)) * dt);
     p.mp = Math.min(manaLimit(this), p.mp + (this.derived.mpRegen + (inTown ? p.maxMp * 0.08 : 0)) * dt);
     const ss = this.data.progression.combat.spellShield;
     p.shieldIdle += dt;
-    if (p.shield < p.maxShield && p.shieldIdle >= ss.rechargeDelay) p.shield = Math.min(p.maxShield, p.shield + (p.maxShield * ss.rechargePctPerSecond / 100) * dt);
+    const flow = perkShield(this); // INT 100: sooner and faster
+    if (p.shield < p.maxShield && p.shieldIdle >= ss.rechargeDelay * (flow?.delay ?? 1)) p.shield = Math.min(p.maxShield, p.shield + (p.maxShield * ss.rechargePctPerSecond / 100) * (flow?.rate ?? 1) * dt);
     for (const k in p.itemCooldowns) p.itemCooldowns[k] = Math.max(0, p.itemCooldowns[k] - dt);
     for (let i = 0; i < p.cooldowns.length; i++) {
       p.cooldowns[i] = Math.max(0, p.cooldowns[i] - dt);
@@ -1426,7 +1507,10 @@ export class Game {
         const k = Math.min(1, p.dash.t / p.dash.dur);
         p.x = p.dash.fromX + (p.dash.toX - p.dash.fromX) * k;
         p.z = p.dash.fromZ + (p.dash.toZ - p.dash.fromZ) * k;
-      } else if (p.dash.vx || p.dash.vz) this.moveEntity(p, p.dash.vx * dt, p.dash.vz * dt);
+      } else if (p.dash.vx || p.dash.vz) {
+        const step = Math.min(dt, p.dash.dur - (p.dash.t - dt)); // the last frame moves only what is left: a dash goes its distance exactly
+        this.moveEntity(p, p.dash.vx * step, p.dash.vz * step);
+      }
       if (p.dash.t >= p.dash.dur) {
         const d = p.dash;
         p.dash = null;
@@ -1435,7 +1519,15 @@ export class Game {
           for (const m of this.monsters) if (!m.dead && dist(p.x, p.z, m.x, m.z) - m.r <= L.radius) this.hitMonster(m, L.damage * this.playerDamageMult(), { element: 'physical', crit: this.rollCrit(), knock: 1.2, fromX: p.x, fromZ: p.z });
           this.emit({ type: 'burst', kind: 'leap', element: 'physical', x: p.x, z: p.z, radius: L.radius });
         }
-        this.fireTriggers('on_movement');
+        // Blink Draw: the lane the hero just crossed is cut on arrival; a skill's dash is no dodge
+        if (d.kind === 'draw_cut') {
+          // the anime beat: the hero arrives, a breath, then the lane falls apart (cutDelay)
+          const len = dist(d.fromX, d.fromZ, p.x, p.z);
+          this.emit({ type: 'dashArrive', skill: d.skill.id, x: p.x, z: p.z, angle: d.angle, delay: d.skill.cutDelay || 0 });
+          if (d.skill.cutDelay) this.later(d.skill.cutDelay, () => strikeLane(this, d.skill, d.fromX, d.fromZ, d.angle, len, d.mult));
+          else strikeLane(this, d.skill, d.fromX, d.fromZ, d.angle, len, d.mult);
+        }
+        else this.fireTriggers('on_movement');
       }
       return;
     }

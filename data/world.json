@@ -8551,7 +8551,7 @@
           -72
         ]
       ],
-      "level": 6,
+      "level": 10,
       "hillAmp": 0.55,
       "treeDensity": 0.1,
       "trees": [
@@ -8622,7 +8622,7 @@
           -45
         ]
       ],
-      "level": 6,
+      "level": 9,
       "hillAmp": 1.4,
       "treeDensity": 0.4,
       "trees": [
@@ -8656,7 +8656,7 @@
           36
         ]
       ],
-      "level": 3,
+      "level": 5,
       "hillAmp": 0.8,
       "treeDensity": 0.2,
       "trees": [
@@ -8684,7 +8684,7 @@
           36
         ]
       ],
-      "level": 4,
+      "level": 6,
       "hillAmp": 1.6,
       "treeDensity": 0.2,
       "trees": [
@@ -8712,7 +8712,7 @@
           36
         ]
       ],
-      "level": 2,
+      "level": 3,
       "hillAmp": 0.9,
       "treeDensity": 0.13,
       "trees": [
@@ -8743,7 +8743,7 @@
       "count": 12,
       "level": [
         1,
-        1
+        2
       ]
     },
     {
@@ -8752,7 +8752,7 @@
       "count": 10,
       "level": [
         1,
-        2
+        3
       ]
     },
     {
@@ -8761,7 +8761,7 @@
       "count": 6,
       "level": [
         2,
-        2
+        3
       ]
     },
     {
@@ -8769,8 +8769,8 @@
       "zone": "headland",
       "count": 5,
       "level": [
-        7,
-        8
+        10,
+        12
       ]
     },
     {
@@ -8778,17 +8778,18 @@
       "zone": "headland",
       "count": 4,
       "level": [
-        6,
-        7
-      ]
+        10,
+        11
+      ],
+      "temporary": true
     },
     {
       "monster": "tusk_boar",
       "zone": "meadow",
       "count": 14,
       "level": [
-        2,
-        3
+        3,
+        5
       ]
     },
     {
@@ -8796,7 +8797,7 @@
       "zone": "meadow",
       "count": 5,
       "level": [
-        2,
+        3,
         3
       ]
     },
@@ -8805,8 +8806,8 @@
       "zone": "glade",
       "count": 8,
       "level": [
-        3,
-        4
+        5,
+        8
       ]
     },
     {
@@ -8814,8 +8815,8 @@
       "zone": "glade",
       "count": 6,
       "level": [
-        3,
-        4
+        5,
+        6
       ]
     },
     {
@@ -8823,8 +8824,8 @@
       "zone": "forest",
       "count": 7,
       "level": [
-        6,
-        7
+        9,
+        11
       ]
     },
     {
@@ -8832,8 +8833,8 @@
       "zone": "forest",
       "count": 6,
       "level": [
-        6,
-        7
+        9,
+        11
       ]
     },
     {
@@ -8841,8 +8842,8 @@
       "zone": "forest",
       "count": 5,
       "level": [
-        6,
-        6
+        9,
+        9
       ]
     },
     {
@@ -8850,8 +8851,8 @@
       "zone": "highlands",
       "count": 5,
       "level": [
-        4,
-        5
+        6,
+        7
       ]
     }
   ],

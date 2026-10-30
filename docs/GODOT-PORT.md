@@ -537,11 +537,30 @@ chosen (`render/models.js` `chibiHair`). Each is fitted to the chibi head once p
 (`chibi-body.js` `fitHairToHead`, with `fit.tuck`, and `fit.tilt` leaning it back): seen from the
 head's middle, a lock inside the face (`hero_chibi.face`) moves out over it, and the rest of the head
 (the ears under a hair that covers them, `hero_chibi.ears`, and the skin just under the head joint)
-moves in under the hair, so the head never shows through any hair. The head under the hair, and the
-head and forehead round a small gap in it, is drawn in the hair's shade (the body's `underHair`
-vertex attribute, `hairShadeMaterial`: 0.3 of the hair colour), so a gap between locks reads as hair
-in shadow, never as scalp. In Godot, run the same fit once when the look is chosen and keep the moved
-hair and body meshes (and that attribute, e.g. in a vertex colour channel). The hair is tinted to the
+moves in under the hair, so the head never shows through any hair. The head's vertices at one place
+(split along its texture seams) move as one, so no seam opens. The head is drawn on both sides (its
+steps inward under the hair would otherwise open holes at the hairline); its shadow keeps the back
+faces. The head under the hair is drawn in the hair's shade (0.3 of the hair colour,
+`hairShadeMaterial`), decided per pixel: the hair's triangles near the head are drawn once into a
+192 x 96 map of the directions they cover from the head's middle (red: closed over gaps up to 6
+cells, so a gap between locks reads as hair in shadow, never as scalp; green: the hair's own
+directions, for the forehead, whose skin shows between the fringe's locks; both with every uncovered patch the hair
+encloses filled (any under a tenth of the face-and-neck patch: a fringe's gaps run into the face and
+stay), then taken in 5 cells from the hair's edge, so the head just under the edge shows skin, as a
+hairline does; blue: how far out the nearest hair lies, so near the hair's edge a pixel is shaded only
+with hair within 0.1 head widths over it and the head seen from below under a side lock standing off
+it is skin, while 10 cells inside the edge it is shaded however far a full style's hair stands), and each pixel of the head looks its
+own direction up in it, so the shade ends where the hair does, not along the head's large triangles.
+The body's `underHair` vertex attribute picks the map (1 red, 0.5 green, 0 none): a part of the head
+may be shaded only if it was taken in under the hair or the hair lies within 0.1 head widths over
+it, and never the neck just under the head joint (`headTuck.neck`), seen between the locks hanging
+past it, nor an ear left out and the skin within 0.15 head widths of it. Both ears fold away when the hair
+covers at least half of either (a style shows both ears or neither), and then each of their points
+goes to the nearest head point that is not ear (by direction, just inside it), so the ear closes to
+nothing: sunk in it left a pit, pressed flat its crumpled triangles turned their backs to the light,
+both drawing a black ear. A style that covers neither ear keeps both. In Godot, run the same
+fit once when the look is chosen and keep the moved hair and body meshes, that attribute (e.g. in a
+vertex colour channel), the direction map (a texture) and the mesh-to-head-middle transform. The hair is tinted to the
 look's `hair` colour (any hex, picked on a colour wheel, `ui/color-wheel.js`) and drawn flat, as the
 owner's sheet draws it (`hairColorMaterial`): no soft light, gloss or rim, only one hard cel shadow
 tone (0.7 of the colour) where the sun does not reach it. Of the painted texture only its strand lines
@@ -549,7 +568,14 @@ darken the colour: each texel's brightness over a coarser mip's (its surrounding
 paint's broad shading and blotchy light are dropped. The hair casts no shadow (the sun's shadow map laid its locks over the face in dark blotches); the head under it casts the hero's shadow on the ground. The look's
 `face` (`FACES`) draws one of the owner's faces (`public/models/faces/<id>.png`) over the painted one
 (`faceDecalMaterial`, by the face-shadow coordinates and `hero_chibi.faceDecal`); in Godot draw it as a
-decal pass or a second texture in the head's shader. Character creation shows the hero alone in a
+decal pass or a second texture in the head's shader. The look's `eyes` recolours the irises
+(`eyeColorMaterial`, `hero_chibi.eyeColor`): its first swatch (`own`) keeps the painted colours; any
+other recolours a drawn face's iris by its mask (`public/models/faces/iris/<id>.png`, made by
+`scripts/face-iris-mask.py`) and the painted face's where its paint is bluer than red on the face's
+front, keeping the iris's painted shading (its brightness over `ref` scales the chosen colour). The
+look's `tunic` colours the starting shirt (`travel_tunic`, palette "$tunic"): on the modelled outfit
+its bright, pale cloth texels (`outfit_travel_tunic.tunicCloth`) are multiplied by the chosen colour
+over `ref` (`chibi-garments.js tunicCloth`), so the trim, leather and painted folds stay. Character creation shows the hero alone in a
 plain studio scene (`view.js` `createStudio`), straight from the front, zooming to the face while hair,
 face or eye colour is chosen (`createFocus`) and shifted clear of the menu panel (`createInset`). There it stands in its own stance (`HumanoidAnimator.stance` = `creation` in `data/weapon-holds.json`, the owner's pick of a reference idle), not the unarmed fighter's. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative

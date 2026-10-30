@@ -18,7 +18,7 @@ import { buildOutfit } from './outfit.js';
 import { buildHeadwear, HAIR_WHOLE } from './headwear.js';
 import OUTFITS from '../../data/outfits.json';
 import { resolveOutfit } from '../core/outfit-look.js';
-import { modelInstance, characterBase, chibiOutfit, chibiHair, chibiFace } from './models.js';
+import { modelInstance, characterBase, chibiOutfit, chibiHair, chibiFace, chibiIris } from './models.js';
 import { HAIR_STYLES, FACES } from '../network/protocol.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
@@ -225,7 +225,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       fitParts(rig.bones.chest, { pos: [0, 0, 0], scale: V.gearScale });
       rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
-      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null, face: chibiFace(L.face) });
+      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null, face: chibiFace(L.face), iris: chibiIris(L.face), eyes: L.eyes });
       // the outfit's top, trousers, skirt, boots and gloves; a modelled armour or boots replaces its shells
       attachChibiGarments(rig, V, wear, { armor: chibiOutfit('outfit_' + wear.armor), boots: chibiOutfit('outfit_' + wear.boots.id) });
       const hair = chibiHair(L.hairStyle);

@@ -750,6 +750,13 @@
         "to": 0.45,
         "curve": 0.3
       },
+      "eyeColor": {
+        "_doc": "The look's eye colour (chibi-body.js eyeColorMaterial): `own` (the first eye swatch) draws the eyes as painted; any other recolours the iris, of a drawn face by its iris mask (public/models/faces/iris, scripts/face-iris-mask.py), of the painted face where blue minus red (linear) passes smoothstep `painted` on the face's front (forward mask smoothstep `front`). `ref`: the painted and drawn irises' mean linear luminance, against which the iris keeps its painted shading.",
+        "own": "#2b2e44",
+        "painted": [0.02, 0.06],
+        "front": [0.3, 0.5],
+        "ref": [0.1, 0.26]
+      },
       "faceDecal": {
         "_doc": "The drawn faces (chibi-body.js faceDecalMaterial, public/models/faces/<id>.png, cut from the owner's face sheets): the picture spans `width` either side of the head's middle in the face coordinates (half widths; the head's skull width at the top), and from `v0` of the way down from `top` to `chin` (face heights 0..1) to the chin. On the front of the face the painted features give way to `skin` (the painted skin, sRGB) under it.",
         "width": 0.84,
@@ -1444,10 +1451,10 @@
     "hero_chibi_hair_buns": {
       "file": "models/hair/buns.glb",
       "chibiHairStyle": "buns",
-      "tris": 3999,
+      "tris": 3583,
       "fit": {
-        "width": 0.62,
-        "depth": 0.59,
+        "width": 0.736,
+        "depth": 0.699,
         "height": 1,
         "lift": -0.16,
         "back": 0,
@@ -1459,7 +1466,7 @@
         [-0.5925, -0.4, -0.6673],
         [0.5918, 0.7792, 0.6836]
       ],
-      "source": "Meshy meshy-t2 smart-topology image-to-3d of the buns style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-9157-77d1-b56f-57ab5f59e52f), Meshy 6 retexture from the same picture (task 01a17920-b0cb-70b8-b0a8-2da632d14b21); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead)."
+      "source": "Meshy meshy-t2 smart-topology image-to-3d of the buns style from the owner's ten-style hair sheet (2026-10-26) (task 01a17920-9157-77d1-b56f-57ab5f59e52f), Meshy 6 retexture from the same picture (task 01a17920-b0cb-70b8-b0a8-2da632d14b21); the hair cut along its painted hairline, the face, ears and neck removed, black blots repainted and brought to the character budget by scripts/cut-chibi-hair.py (docs/CHIBI-HAIR.md). Fitted by its skull box, tucked over the chibi head (chibi-body.js fitHairToHead). Its fit is the auto-fit (scripts/fit-chibi-hair-auto.py: 0.92 x 0.92) made 0.8 wide and 0.76 deep like the others, so its back wraps the head as on the source head; the source head's collar left after the cut is removed (416 triangles below the hair)."
     },
     "hero_chibi_hair_long": {
       "file": "models/hair/long.glb",
@@ -1545,6 +1552,12 @@
       "file": "models/outfits/travel_tunic.glb",
       "chibiOutfit": "armor",
       "localInside": true,
+      "tunicCloth": {
+        "_doc": "The shirt's cloth takes the look's tunic colour (chibi-garments.js tunicCloth): texels bright (linear luminance smoothstep `lum`) and pale (saturation under smoothstep `sat`) are multiplied by the chosen colour over `ref` (the default tunic colour, so it draws as painted).",
+        "ref": "#f1e3cc",
+        "lum": [0.18, 0.3],
+        "sat": [0.36, 0.46]
+      },
       "neckline": {
         "_doc": "The collar cut clean per pixel (chibi-garments.js necklineCut), body bind space in chibi metres: a V in front of depth `z` from `tip` (height) at `x`, widening by `slope` per metre up; the neck's round above `cut` within `ring` of its axis; a `trim` band (m) in `color` on the edge.",
         "tip": 0.7675,

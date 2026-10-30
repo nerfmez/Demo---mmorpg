@@ -122,6 +122,15 @@ test('every hair style but the default has one chibi hair model, fitted over the
     const b = readFileSync(new URL('../../public/models/faces/' + id + '.png', import.meta.url));
     assert.equal(b.toString('latin1', 1, 4), 'PNG', id);
   }
+  // the look's eye colour: each drawn face has its iris mask, the same size as the face picture
+  for (const id of FACES.filter((f) => f !== 'default')) {
+    const b = readFileSync(new URL('../../public/models/faces/iris/' + id + '.png', import.meta.url));
+    const f = readFileSync(new URL('../../public/models/faces/' + id + '.png', import.meta.url));
+    assert.equal(b.toString('latin1', 1, 4), 'PNG', id + ' iris mask');
+    assert.deepEqual([b.readUInt32BE(16), b.readUInt32BE(20)], [f.readUInt32BE(16), f.readUInt32BE(20)], id + ' iris mask size');
+  }
+  const eye = data.models.characters.hero_chibi.eyeColor;
+  assert.ok(eye && /^#[0-9a-f]{6}$/i.test(eye.own) && eye.painted[0] < eye.painted[1] && eye.front[0] < eye.front[1] && eye.ref.every((r) => r > 0 && r < 1), 'the eye colour settings');
   const d = data.models.characters.hero_chibi.faceDecal;
   assert.ok(d && d.width > 0.5 && d.width <= 1 && d.top > d.chin && d.v0 > 0 && d.v0 < 1 && d.skin.length === 3, 'the face decal frame');
   const f = data.models.characters.hero_chibi.face, e = data.models.characters.hero_chibi.ears;

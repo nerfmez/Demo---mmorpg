@@ -24,6 +24,7 @@ export function clothGeometry(fitted, skeleton, bindMatrix, cfg) {
   const n = cfg.panels, base = skeleton.bones.length, pos = g.attributes.position, si = g.attributes.skinIndex, sw = g.attributes.skinWeight;
   const u = new THREE.Vector3(), drop = new Float32Array(n), ring = new Float32Array(n), ringN = new Float32Array(n);
   const ids = [0, 0, 0, 0, 0, 0], ws = [0, 0, 0, 0, 0, 0];
+  const hanging = hangsFromWaist(g, hips, bindMatrix, cfg.pivot);
   for (let i = 0; i < pos.count; i++) {
     u.fromBufferAttribute(pos, i).applyMatrix4(bindMatrix);
     const s = ((Math.atan2(u.x - centre.x, u.z - centre.z) / TAU) * n + n) % n, a = Math.floor(s) % n, f = s - Math.floor(s), b = (a + 1) % n;
@@ -31,7 +32,7 @@ export function clothGeometry(fitted, skeleton, bindMatrix, cfg) {
     if (Math.abs(d) < 0.02) { const k = f < 0.5 ? a : b; ring[k] += Math.hypot(u.x - centre.x, u.z - centre.z); ringN[k]++; }
     let h = 0, hk = -1;
     for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === hips && sw.getComponent(i, k) > h) { h = sw.getComponent(i, k); hk = k; } // (an empty slot may name it too)
-    if (d <= 0 || h <= 0) continue;
+    if (d <= 0 || h <= 0 || !hanging[i]) continue;
     const m = h * smooth(d / cfg.ramp);
     if (m < 1e-3) continue;
     let c = 0;
@@ -62,6 +63,39 @@ export function clothGeometry(fitted, skeleton, bindMatrix, cfg) {
     panels.push({ local: hipsInv.clone().multiply(bind), inverse: bind.clone().invert(), drop: drop[k] });
   }
   return { geometry: g, panels, base };
+}
+
+/**
+ * The vertices that hang from the waist: those with a Hips weight joined to the waist band
+ * (within 3 cm under `pivot`) through others with one, across UV seams (welded by position). A wide
+ * trouser cuff the fitter also gave a little Hips weight, below a stretch of trouser with none, is
+ * not cloth and stays on the legs.
+ */
+function hangsFromWaist(g, hips, bindMatrix, pivot) {
+  const pos = g.attributes.position, si = g.attributes.skinIndex, sw = g.attributes.skinWeight, n = pos.count;
+  const weld = new Int32Array(n), keys = new Map(), u = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    const k = `${pos.getX(i).toFixed(4)},${pos.getY(i).toFixed(4)},${pos.getZ(i).toFixed(4)}`;
+    if (!keys.has(k)) keys.set(k, i);
+    weld[i] = keys.get(k);
+  }
+  const onHips = (i) => { for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === hips && sw.getComponent(i, k) > 0) return true; return false; };
+  const next = Array.from({ length: n }, () => []);
+  const idx = g.index ? g.index.array : Array.from({ length: n }, (_, i) => i);
+  for (let t = 0; t < idx.length; t += 3) for (let e = 0; e < 3; e++) {
+    const a = weld[idx[t + e]], b = weld[idx[t + (e + 1) % 3]];
+    next[a].push(b); next[b].push(a);
+  }
+  const seen = new Uint8Array(n), queue = [];
+  for (let i = 0; i < n; i++) {
+    if (weld[i] !== i || !onHips(i)) continue;
+    const y = u.fromBufferAttribute(pos, i).applyMatrix4(bindMatrix).y;
+    if (y <= pivot && y > pivot - 0.03) { seen[i] = 1; queue.push(i); }
+  }
+  while (queue.length) for (const j of next[queue.pop()]) if (!seen[j] && onHips(j)) { seen[j] = 1; queue.push(j); }
+  // above the waist band nothing swings anyway; every copy of a welded vertex takes its answer
+  for (let i = 0; i < n; i++) seen[i] = seen[weld[i]];
+  return seen;
 }
 
 function smooth(x) {

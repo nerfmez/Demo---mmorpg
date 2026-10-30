@@ -18,13 +18,20 @@ function body() {
   const skeleton = new THREE.Skeleton([hips, leg]);
   // a skirt: rings of vertices round the hips from the waist down, half on the Hips (fit `skirt`) and
   // half on the leg below the pivot, wholly on the Hips above it
-  const p = [], si = [], sw = [];
-  for (const y of [0.62, 0.58, 0.54, 0.5, 0.46, 0.42]) for (let k = 0; k < 16; k++) {
-    const a = (k / 16) * Math.PI * 2, r = 0.15 + (0.6 - y) * 0.3;
-    p.push(Math.sin(a) * r, y, Math.cos(a) * r);
-    si.push(0, 1, 0, 0); sw.push(...(y > CFG.pivot ? [1, 0, 0, 0] : [0.5, 0.5, 0, 0]));
+  // half on the leg below the pivot, wholly on the Hips above it; and apart from it, a trouser cuff
+  // round the shin with a little Hips weight (the fitter gives a wide cuff some)
+  const p = [], si = [], sw = [], index = [], RINGS = [0.62, 0.58, 0.54, 0.5, 0.46, 0.42];
+  for (const y of [...RINGS, 0.3, 0.26]) for (let k = 0; k < 16; k++) {
+    const a = (k / 16) * Math.PI * 2, r = y > 0.4 ? 0.15 + (0.6 - y) * 0.3 : 0.05;
+    p.push(Math.sin(a) * r + (y > 0.4 ? 0 : 0.065), y, Math.cos(a) * r);
+    si.push(0, 1, 0, 0); sw.push(...(y > CFG.pivot ? [1, 0, 0, 0] : y > 0.4 ? [0.5, 0.5, 0, 0] : [0.2, 0.8, 0, 0]));
+  }
+  for (let r = 0; r < RINGS.length + 1; r++) if (r !== RINGS.length - 1) for (let k = 0; k < 16; k++) {
+    const a = r * 16 + k, b = r * 16 + ((k + 1) % 16);
+    index.push(a, b, a + 16, b, b + 16, a + 16);
   }
   const g = new THREE.BufferGeometry();
+  g.setIndex(index);
   g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
   g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
@@ -49,6 +56,7 @@ test('the skirt below the waist takes its Hips weight onto the cloth panels, the
     assert.ok(Math.abs(sum - 1) < 1e-5, 'weights sum to 1');
     const y = pos.getY(i);
     if (y > CFG.pivot) assert.equal(panel, 0, 'nothing above the waist swings');
+    else if (y < 0.4) assert.equal(panel, 0, 'a cuff not hanging from the waist stays on the legs');
     else {
       assert.ok(Math.abs(leg - 0.5) < 1e-5, 'the legs keep their share, so the hem still follows them');
       assert.ok(Math.abs(panel + hips - 0.5) < 1e-5, 'the panels take over the Hips share');

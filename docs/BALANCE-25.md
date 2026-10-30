@@ -178,7 +178,7 @@ and survival and hunting (guardian, agility, treasure).
 |---|---|
 | ดาเมจล้วน (damage) | attack, magic, `damagePct` |
 | คริติคอล (crit) | `critChancePct`, `critMultPct` |
-| ตีเร็ว (speed) | `castSpeedPct` (cast time and cooldown), `cooldownPct` |
+| ตีเร็ว (speed) | `hastePct` (one speed stat: cast time and cooldown / (1 + speed/100), soft cap like damage %, cap 200; 2026-10-27) |
 | ธาตุ (element) | `elementalDamagePct`, poison chance |
 | กายภาพ (physical) | `attackDamagePct`, `penetrationPct` (ignores monster defence) |
 | ป้องกันและโจมตี (guardian) | max HP, defence, block, melee damage |

@@ -170,7 +170,7 @@ const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_P
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
   if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
-  game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement });
+  game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, haste: state.haste ?? null });
   game.aimAt(aimAngle);
   const off = data.skills.combat[state.skill]?.requiresOffhand || state.offhand || null; // Shield Bash holds a shield; setOffhand a second weapon
   const weapon = state.weapon || BENCH_WEAPON[state.skill]; // setWeapon: another weapon in the right hand
@@ -372,6 +372,20 @@ function renderPanel() {
   pick('หลบ', [['dash', 'พุ่ง'], ['roll', 'กลิ้ง'], ['blink', 'วาร์ป'], ['leap', 'กระโดด']], state.movement || 'dash', (id) => { state.movement = id; });
   panel.append(wb);
 
+  // speed trial: the one speed value, up to its cap
+  const tb = h('section', 'mods');
+  tb.append(h('h2', '', 'ทดลองความเร็ว'));
+  const tpick = (label, list, cur, set) => {
+    const row = h('div', 'lv wpick');
+    row.append(h('span', '', label));
+    for (const [v, th] of list) { const b = h('button', v === cur ? 'on' : '', th); b.addEventListener('click', () => { set(v); rebuild(); }); row.append(b); }
+    tb.append(row);
+  };
+  tpick('ความเร็ว', [[null, 'ตามตัวละคร'], [0, '0'], [50, '50'], [100, '100'], [200, '200 (สูงสุด)']], state.haste ?? null, (v) => { state.haste = v; });
+  const sk = game.skills[0];
+  tb.append(h('p', 'desc', `คูลจริง ${sk.cooldown.toFixed(2)} วิ · ร่าย ${sk.castTime.toFixed(2)} วิ · ${(1 / Math.max(sk.cooldown, sk.castTime)).toFixed(1)} ครั้ง/วิ`));
+  panel.append(tb);
+
   const modBox = h('section', 'mods');
   modBox.append(h('h2', '', `ม็อด (ใส่ได้ ${MAX_MODS})`));
   const sockets = MAX_MODS - (state.fusion ? FUSION.socketsUsed : 0);
@@ -463,8 +477,9 @@ function renderStats() {
 }
 
 const castBtn = document.getElementById('cast');
-castBtn.addEventListener('pointerdown', (ev) => { ev.preventDefault(); castBtn.setPointerCapture?.(ev.pointerId); castDown(); });
-castBtn.addEventListener('pointerup', castUp);
+castBtn.addEventListener('pointerdown', (ev) => { ev.preventDefault(); castBtn.setPointerCapture?.(ev.pointerId); state.pressHeld = true; castDown(); });
+castBtn.addEventListener('pointerup', () => { state.pressHeld = false; castUp(); });
+castBtn.addEventListener('lostpointercapture', () => { state.pressHeld = false; });
 castBtn.addEventListener('pointercancel', castUp);
 castBtn.addEventListener('lostpointercapture', castUp);
 document.getElementById('dodge').addEventListener('pointerdown', (ev) => { ev.preventDefault(); dodge(); });
@@ -522,6 +537,8 @@ function tick(real, draw = true) {
     if (autoT <= 0 && !(game.player.cooldowns[0] > 0)) { castDown(); autoT = skillDef().kind === 'channel_cone' ? 2.4 : skillDef().charge ? 2.8 : 1.2; }
     if (state.holding && autoT < 1.0 && !castBtn.matches(':active')) castUp();
   }
+  // held like the game's attack button: a plain skill repeats whenever it is ready
+  if (state.pressHeld && !state.holding && !skillDef().charge && skillDef().kind !== 'channel_cone' && !game.player.cast && !(game.player.cooldowns[0] > 0)) castDown();
   game.benchStep(dt);
   drain();
   const p = game.player;

@@ -111,7 +111,6 @@ const waterMaterial = (u) => new THREE.ShaderMaterial({
 const WATER = {
   shallow: { color: '#5ee6dc', deep: '#1c8fa4', foam: '#eafffb', opacity: 0.2, bands: 1.0, caustic: 0.55 },
   deep: { color: '#2fc4d8', deep: '#0b5378', foam: '#d6fbff', opacity: 0.7, bands: 0.8, caustic: 0.4 },
-  sea: { color: '#3fb8cf', deep: '#1a6f9a', foam: '#ffffff', opacity: 0.84, bands: 0.9, caustic: 0.22 },
 };
 
 /** How far out from its lip a ledge fall has carried at fraction `t` of its drop (0 lip, 1 foot). */
@@ -143,13 +142,13 @@ function fallSheet(w, material) {
 }
 
 /** Water surfaces over every floor with a waterY, plus the waterfalls. Returns {root, update(t), dispose()}. */
-export function buildWater(map, { sea = false } = {}) {
+export function buildWater(map) {
   const root = new THREE.Group();
   root.name = 'grotto-water';
   const mats = [];
   for (const f of map.floors) {
     if (f.waterY == null) continue;
-    const style = sea && f.kind === 'deep' ? WATER.sea : WATER[f.kind] || WATER.deep;
+    const style = WATER[f.kind] || WATER.deep;
     const rings = floorRings(f, 1.2);
     const shape = new THREE.Shape(rings[0].pts.map(([x, z]) => new THREE.Vector2(x, -z)));
     for (const r of rings.slice(1)) shape.holes.push(new THREE.Path(r.pts.map(([x, z]) => new THREE.Vector2(x, -z))));

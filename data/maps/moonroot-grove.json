@@ -8606,7 +8606,7 @@
         ]
       ],
       "safe": true,
-      "level": 7,
+      "level": 10,
       "hillAmp": 0.15,
       "treeDensity": 0,
       "palette": [
@@ -8627,7 +8627,7 @@
           14.6
         ]
       ],
-      "level": 7,
+      "level": 10,
       "hillAmp": 0.3,
       "treeDensity": 0.12,
       "trees": [
@@ -8670,7 +8670,7 @@
           -8
         ]
       ],
-      "level": 6,
+      "level": 9,
       "hillAmp": 1.1,
       "treeDensity": 0.95,
       "trees": [
@@ -8722,7 +8722,7 @@
           58.5
         ]
       ],
-      "level": 8,
+      "level": 11,
       "hillAmp": 0.6,
       "treeDensity": 0.8,
       "trees": [
@@ -8768,7 +8768,7 @@
           58.5
         ]
       ],
-      "level": 9,
+      "level": 14,
       "hillAmp": 1.3,
       "treeDensity": 1.0,
       "trees": [
@@ -8809,8 +8809,8 @@
       "zone": "fern_rise",
       "count": 48,
       "level": [
-        6,
-        7
+        9,
+        10
       ],
       "pack": {
         "size": 8,
@@ -8823,8 +8823,8 @@
       "zone": "stone_ring",
       "count": 16,
       "level": [
-        7,
-        8
+        10,
+        11
       ],
       "pack": {
         "size": 8,
@@ -8837,8 +8837,8 @@
       "zone": "mirror_pond",
       "count": 16,
       "level": [
-        8,
-        8
+        11,
+        12
       ],
       "pack": {
         "size": 8,
@@ -8851,8 +8851,8 @@
       "zone": "mirror_pond",
       "count": 12,
       "level": [
-        8,
-        9
+        12,
+        13
       ]
     },
     {
@@ -8860,8 +8860,8 @@
       "zone": "stone_ring",
       "count": 3,
       "level": [
-        8,
-        8
+        12,
+        12
       ]
     },
     {
@@ -8869,8 +8869,8 @@
       "zone": "root_warren",
       "count": 12,
       "level": [
-        9,
-        10
+        14,
+        16
       ]
     },
     {
@@ -8878,8 +8878,8 @@
       "zone": "root_warren",
       "count": 4,
       "level": [
-        9,
-        9
+        14,
+        14
       ]
     }
   ],

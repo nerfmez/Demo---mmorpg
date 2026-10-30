@@ -4,7 +4,8 @@
 // contains a point is the ground there. A step between two points is walkable when both are on a
 // walkable floor and their heights differ by at most `maxStep`, so a ledge between two levels is
 // a wall and only stairs join them. Props block with circles (`propTypes.*.block`). Links are
-// doors to another map; a secret link works only after it has been found (inspectAt).
+// doors to another map; a secret link works only after it has been found (inspectAt). A prop with
+// `talk` answers the hero beside it (talkAt): the throne's pearl wakes the boss.
 // Pure rules: no three, no DOM. The renderer reads the same floors to draw them.
 
 const WALK = { stone: true, sand: true, nacre: true, shallow: true, deep: false };
@@ -106,10 +107,11 @@ export function propBlockers(props, types) {
     const t = types[p.type];
     if (!t) throw new Error(`dungeon prop type ${p.type} is not in propTypes`);
     const s = p.scale ?? 1, a = p.rot ?? 0;
-    if (typeof t.block === 'number') { if (t.block > 0) out.push({ x: p.at[0], z: p.at[1], r: t.block * s, prop: p.type }); continue; }
+    // src and local (the offset before turning) let a walking monster carry its circles (dungeon-monsters.js)
+    if (typeof t.block === 'number') { if (t.block > 0) out.push({ x: p.at[0], z: p.at[1], r: t.block * s, prop: p.type, src: p, local: [0, 0] }); continue; }
     for (const [dx, dz, r] of t.block) {
       const [ox, oz] = turn(dx * s, dz * s, a);
-      out.push({ x: p.at[0] + ox, z: p.at[1] + oz, r: r * s, prop: p.type });
+      out.push({ x: p.at[0] + ox, z: p.at[1] + oz, r: r * s, prop: p.type, src: p, local: [dx * s, dz * s] });
     }
   }
   return out;
@@ -198,13 +200,19 @@ export function createDungeon(def, rules) {
     return (def.links || []).find((l) => l.secret && !found?.has(l.id) && Math.hypot(x - l.at[0], z - l.at[1]) <= l.inspectR) || null;
   }
 
+  /** A prop that talks from (x, z) (`talk: {r, labelTh, lineTh, wakes}`, the throne's pearl wakes the
+   *  boss), unless what it wakes is already in `woken` (a Set of prop types). */
+  function talkAt(x, z, woken) {
+    return (def.props || []).find((p) => p.talk && !woken?.has(p.talk.wakes) && Math.hypot(x - p.at[0], z - p.at[1]) <= p.talk.r) || null;
+  }
+
   /** Where (x, z) can stand at all, ignoring where it came from (spawns and arrivals). */
   function landY(x, z) {
     const s = surfaceAt(x, z);
     return s ? standY(x, z, s.y) : NaN;
   }
 
-  return { def, rules, floors, blockers, bounds: def.bounds, surfaceAt, standY, landY, blockedAt, pushOut, move, regionAt, linkAt, inspectAt };
+  return { def, rules, floors, blockers, bounds: def.bounds, surfaceAt, standY, landY, blockedAt, pushOut, move, regionAt, linkAt, inspectAt, talkAt };
 }
 
 /**

@@ -140,7 +140,20 @@ export class OpenWorldGame extends Game {
     const workbench = near(t.workbench), trainer = near(t.trainer);
     const wp = this.world.waypoints.find(w => dist(p.x, p.z, w.x, w.z) < 3.8 && this.isWaypointUnlocked(w.id, w.worldId));
     const exit = this.world.exits.find(e => e.worldId === this.data.world.id && dist(p.x, p.z, e.x, e.z) < e.r);
-    return { workbench, trainer, skillUpgrade: workbench || trainer || (t.skillUpgradeStations || []).some(point => near(point)), shop: near(t.shop), waypoint: wp?.id || null, exit: exit?.id || null, inTown: this.isSafe(p.x, p.z) };
+    // a landmark that holds a dungeon (the Singing Conch: the Pearlshell Grotto) is entered from beside it
+    const door = (this.world.landmarks || []).find(l => l.dungeon && dist(p.x, p.z, l.x, l.z) < l.dungeon.r);
+    return { workbench, trainer, skillUpgrade: workbench || trainer || (t.skillUpgradeStations || []).some(point => near(point)), shop: near(t.shop), waypoint: wp?.id || null, exit: exit?.id || null, dungeon: door?.dungeon.id || null, inTown: this.isSafe(p.x, p.z) };
+  }
+
+  /** Go into the dungeon beside the hero (nearby().dungeon): refused in a fight or when dead. The
+   *  page change itself belongs to the shell (main.js), which saves first; this only says yes. */
+  enterDungeon(id) {
+    const p = this.player;
+    if (this.nearby().dungeon !== id) return { ok: false, reason: 'far' };
+    if (p.dead) return { ok: false, reason: 'dead' };
+    if (this.inCombat()) return { ok: false, reason: 'combat' };
+    this.emit({ type: 'enterDungeon', id });
+    return { ok: true };
   }
 
   teleportTo(id, mapId = this.data.world.id) {

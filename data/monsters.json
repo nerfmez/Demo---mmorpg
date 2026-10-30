@@ -1,5 +1,5 @@
 {
-  "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up.",
+  "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up. levels: each kind's one fixed level range (owner, 2026-10-29: no kind returns at other levels); a map spawn stays inside it unless marked temporary (a placeholder until a new monster fills that zone).",
   "monsters": {
     "tusk_boar": {
       "name": "Boarbull",
@@ -52,6 +52,10 @@
           "min": 3,
           "max": 7
         }
+      ],
+      "levels": [
+        3,
+        7
       ]
     },
     "moss_beetle": {
@@ -105,6 +109,10 @@
           "min": 4,
           "max": 9
         }
+      ],
+      "levels": [
+        9,
+        11
       ]
     },
     "reef_crab": {
@@ -152,7 +160,11 @@
           "max": 8
         }
       ],
-      "primaryAttack": "pinch"
+      "primaryAttack": "pinch",
+      "levels": [
+        1,
+        3
+      ]
     },
     "marsh_wisp": {
       "name": "Lostlight Wisp",
@@ -206,6 +218,10 @@
           "min": 4,
           "max": 10
         }
+      ],
+      "levels": [
+        25,
+        28
       ]
     },
     "thornback_wolf": {
@@ -282,6 +298,10 @@
           "min": 4,
           "max": 9
         }
+      ],
+      "levels": [
+        9,
+        11
       ]
     },
     "sporecap": {
@@ -333,6 +353,10 @@
           "min": 3,
           "max": 7
         }
+      ],
+      "levels": [
+        5,
+        9
       ]
     },
     "crag_golem": {
@@ -387,6 +411,10 @@
           "min": 8,
           "max": 16
         }
+      ],
+      "levels": [
+        33,
+        37
       ]
     },
     "gale_hawk": {
@@ -438,7 +466,11 @@
           "max": 10
         }
       ],
-      "flyer": true
+      "flyer": true,
+      "levels": [
+        28,
+        31
+      ]
     },
     "greyfang": {
       "name": "Greyfang Alpha",
@@ -511,6 +543,12 @@
       "enrageAt": 0.4,
       "drops": [
         {
+          "item": "skill_crystal_l",
+          "chance": 1,
+          "min": 1,
+          "max": 1
+        },
+        {
           "item": "greyfang_mane",
           "chance": 1,
           "min": 1,
@@ -534,6 +572,10 @@
           "min": 60,
           "max": 90
         }
+      ],
+      "levels": [
+        22,
+        22
       ]
     },
     "horned_warden": {
@@ -599,6 +641,12 @@
       "enrageAt": 0.5,
       "drops": [
         {
+          "item": "skill_crystal_l",
+          "chance": 1,
+          "min": 1,
+          "max": 1
+        },
+        {
           "item": "warden_horn",
           "chance": 1,
           "min": 1,
@@ -622,6 +670,10 @@
           "min": 80,
           "max": 120
         }
+      ],
+      "levels": [
+        40,
+        40
       ]
     },
     "salt_slime": {
@@ -679,7 +731,11 @@
           "max": 5
         }
       ],
-      "primaryAttack": "slap"
+      "primaryAttack": "slap",
+      "levels": [
+        1,
+        3
+      ]
     },
     "shore_gull": {
       "name": "นกชายฝั่ง",
@@ -731,7 +787,11 @@
         "distance": 2.6,
         "duration": 1.2,
         "pause": 0.4
-      }
+      },
+      "levels": [
+        2,
+        4
+      ]
     },
     "hermit_crab": {
       "name": "เสฉวนหินปะการัง",
@@ -794,7 +854,11 @@
           "max": 5
         }
       ],
-      "primaryAttack": "pinch"
+      "primaryAttack": "pinch",
+      "levels": [
+        10,
+        12
+      ]
     },
     "thicket_mantis": {
       "name": "Thicket Mantis",
@@ -855,6 +919,10 @@
           "min": 4,
           "max": 9
         }
+      ],
+      "levels": [
+        17,
+        21
       ]
     },
     "reed_viper": {
@@ -918,6 +986,10 @@
           "min": 3,
           "max": 8
         }
+      ],
+      "levels": [
+        22,
+        25
       ]
     },
     "ironhorn_ram": {
@@ -931,7 +1003,7 @@
       "radius": 0.95,
       "aggroRange": 10,
       "leashRange": 22,
-      "exp": 30,
+      "exp": 40,
       "jobExp": 20,
       "attacks": {
         "stomp": {
@@ -971,6 +1043,10 @@
           "min": 6,
           "max": 12
         }
+      ],
+      "levels": [
+        29,
+        32
       ]
     },
     "duskmane_stalker": {
@@ -984,7 +1060,7 @@
       "radius": 0.8,
       "aggroRange": 10,
       "leashRange": 22,
-      "exp": 24,
+      "exp": 27,
       "jobExp": 16,
       "circle": [
         4.5,
@@ -1029,6 +1105,10 @@
           "min": 5,
           "max": 11
         }
+      ],
+      "levels": [
+        31,
+        34
       ]
     },
     "rune_sentinel": {
@@ -1042,7 +1122,7 @@
       "radius": 0.9,
       "aggroRange": 11,
       "leashRange": 12,
-      "exp": 32,
+      "exp": 30,
       "jobExp": 21,
       "attacks": {
         "beam": {
@@ -1081,6 +1161,10 @@
           "min": 6,
           "max": 12
         }
+      ],
+      "levels": [
+        35,
+        40
       ]
     },
     "fern_ear_hare": {
@@ -1142,6 +1226,10 @@
           "min": 1,
           "max": 3
         }
+      ],
+      "levels": [
+        9,
+        12
       ]
     },
     "mirrorwing_moth": {
@@ -1204,6 +1292,10 @@
           "min": 4,
           "max": 8
         }
+      ],
+      "levels": [
+        12,
+        14
       ]
     },
     "rootdigger_mole": {
@@ -1258,7 +1350,458 @@
           "min": 5,
           "max": 9
         }
+      ],
+      "levels": [
+        14,
+        16
       ]
+    },
+    "leaf_fox": {
+      "name": "Leaf Fox",
+      "nameTh": "จิ้งจอกใบไม้",
+      "behavior": "stalker",
+      "hp": 650,
+      "damage": 100,
+      "defense": 40,
+      "speed": 4.8,
+      "radius": 0.65,
+      "aggroRange": 9,
+      "leashRange": 20,
+      "exp": 18,
+      "jobExp": 12,
+      "attacks": {
+        "pounce": {
+          "minRange": 3,
+          "range": 9,
+          "windup": 0.75,
+          "radius": 1.6,
+          "recover": 0.4,
+          "cooldown": 5,
+          "damageMult": 1.4
+        },
+        "claw": {
+          "range": 1.6,
+          "arc": 120,
+          "windup": 0.4,
+          "hitTime": 0.1,
+          "duration": 0.32,
+          "recover": 0.5,
+          "cooldown": 1.6,
+          "damageMult": 1
+        }
+      },
+      "drops": [
+        {
+          "item": "foxleaf_tail",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "boar_hide",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 2,
+          "max": 6
+        }
+      ],
+      "levels": [
+        12,
+        14
+      ],
+      "awaiting": "placement"
+    },
+    "leaf_tanuki": {
+      "name": "Leaf Tanuki",
+      "nameTh": "ทานุกิใบไม้",
+      "behavior": "spore",
+      "hp": 700,
+      "damage": 85,
+      "defense": 60,
+      "speed": 2.4,
+      "radius": 0.65,
+      "aggroRange": 7,
+      "leashRange": 18,
+      "exp": 18,
+      "jobExp": 12,
+      "attacks": {
+        "puff": {
+          "range": 4.5,
+          "windup": 0.8,
+          "recover": 0.6,
+          "cooldown": 5,
+          "radius": 3.2,
+          "duration": 4,
+          "dps": 60,
+          "damageMult": 1
+        },
+        "hop": {
+          "distance": 4.5,
+          "duration": 0.5,
+          "cooldown": 3
+        }
+      },
+      "drops": [
+        {
+          "item": "tanuki_fur",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "spore_sac",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 2,
+          "max": 6
+        }
+      ],
+      "levels": [
+        14,
+        16
+      ],
+      "awaiting": "placement"
+    },
+    "stone_pangolin": {
+      "name": "Stone Pangolin",
+      "nameTh": "ตัวนิ่มหิน",
+      "behavior": "charger",
+      "hp": 1100,
+      "damage": 100,
+      "defense": 100,
+      "speed": 3.2,
+      "radius": 0.8,
+      "aggroRange": 8,
+      "leashRange": 18,
+      "exp": 24,
+      "jobExp": 16,
+      "attacks": {
+        "bite": {
+          "range": 1.7,
+          "windup": 0.4,
+          "recover": 0.6,
+          "cooldown": 1.4,
+          "damageMult": 1
+        },
+        "charge": {
+          "minRange": 3,
+          "maxRange": 8,
+          "windup": 0.75,
+          "speed": 13,
+          "duration": 0.65,
+          "recover": 0.9,
+          "cooldown": 5,
+          "damageMult": 1.6
+        }
+      },
+      "drops": [
+        {
+          "item": "pangolin_plate",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "boar_tusk",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 7
+        }
+      ],
+      "levels": [
+        16,
+        19
+      ],
+      "awaiting": "placement"
+    },
+    "pearl_fish": {
+      "name": "Pearl Fish",
+      "nameTh": "ปลามุก",
+      "behavior": "kiter",
+      "hp": 480,
+      "damage": 110,
+      "defense": 25,
+      "speed": 3.4,
+      "radius": 0.6,
+      "aggroRange": 9,
+      "leashRange": 20,
+      "exp": 20,
+      "jobExp": 14,
+      "attacks": {
+        "orb": {
+          "range": 10,
+          "windup": 0.45,
+          "recover": 0.4,
+          "cooldown": 2.2,
+          "speed": 8,
+          "damageMult": 1
+        },
+        "blink": {
+          "triggerRange": 3.2,
+          "distance": 5.5,
+          "cooldown": 5
+        }
+      },
+      "drops": [
+        {
+          "item": "pearl_scale",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "sea_pearl",
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 8
+        }
+      ],
+      "levels": [
+        22,
+        24
+      ],
+      "awaiting": "placement"
+    },
+    "pearl_slug": {
+      "name": "Pearl Sea Slug",
+      "nameTh": "ทากทะเลมุก",
+      "behavior": "viper",
+      "hp": 700,
+      "damage": 95,
+      "defense": 50,
+      "speed": 1.8,
+      "radius": 0.7,
+      "aggroRange": 8,
+      "leashRange": 18,
+      "exp": 20,
+      "jobExp": 14,
+      "keepDistance": [
+        3,
+        6
+      ],
+      "attacks": {
+        "venom": {
+          "minRange": 2.5,
+          "range": 9,
+          "windup": 0.8,
+          "flight": 0.6,
+          "radius": 1.8,
+          "duration": 3,
+          "tick": 0.5,
+          "dps": 40,
+          "cooldown": 6,
+          "recover": 0.6,
+          "damageMult": 0.4
+        },
+        "lash": {
+          "minRange": 0,
+          "maxRange": 5.5,
+          "range": 5.5,
+          "width": 0.9,
+          "windup": 0.5,
+          "recover": 0.8,
+          "cooldown": 3,
+          "damageMult": 1.25
+        }
+      },
+      "drops": [
+        {
+          "item": "sea_slime",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "glow_dust",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 8
+        }
+      ],
+      "levels": [
+        24,
+        26
+      ],
+      "awaiting": "placement"
+    },
+    "eye_clam": {
+      "name": "One-eyed Clam",
+      "nameTh": "หอยตาเดียว",
+      "behavior": "shell_spitter",
+      "hp": 950,
+      "damage": 90,
+      "defense": 100,
+      "speed": 1.2,
+      "radius": 0.9,
+      "aggroRange": 8,
+      "leashRange": 16,
+      "exp": 26,
+      "jobExp": 17,
+      "attacks": {
+        "spit": {
+          "range": 8,
+          "windup": 0.55,
+          "recover": 0.5,
+          "cooldown": 2.6,
+          "speed": 9,
+          "damageMult": 1,
+          "poisonDps": 30,
+          "poisonDuration": 3
+        },
+        "shell": {
+          "hitsToTrigger": 3,
+          "window": 2,
+          "duration": 2.2,
+          "damageTaken": 0.25,
+          "cooldown": 6
+        }
+      },
+      "drops": [
+        {
+          "item": "clam_shell",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "sea_pearl",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 8
+        }
+      ],
+      "levels": [
+        26,
+        28
+      ],
+      "awaiting": "placement"
+    },
+    "pearl_snail_king": {
+      "name": "Pearl Snail King",
+      "nameTh": "ราชาหอยทากมุก",
+      "behavior": "warden_boss",
+      "dormant": {
+        "wake": 1.8
+      },
+      "boss": true,
+      "hp": 9500,
+      "damage": 150,
+      "defense": 160,
+      "speed": 2.6,
+      "radius": 1.6,
+      "aggroRange": 12,
+      "leashRange": 26,
+      "exp": 240,
+      "jobExp": 150,
+      "attacks": {
+        "sweep": {
+          "range": 3.4,
+          "arc": 150,
+          "windup": 0.65,
+          "recover": 0.7,
+          "cooldown": 2.2,
+          "damageMult": 1
+        },
+        "slam": {
+          "radius": 4.8,
+          "windup": 1.1,
+          "recover": 1,
+          "cooldown": 9,
+          "damageMult": 2,
+          "shockwaveSpeed": 7,
+          "shockwaveMax": 11
+        },
+        "quake": {
+          "minRange": 3,
+          "maxRange": 13,
+          "length": 10,
+          "width": 2.4,
+          "steps": 4,
+          "stepDelay": 0.14,
+          "windup": 0.95,
+          "recover": 1.2,
+          "cooldown": 7.5,
+          "damageMult": 1.5
+        },
+        "roll": {
+          "kind": "charge",
+          "minRange": 5,
+          "maxRange": 16,
+          "windup": 1.5,
+          "speed": 12,
+          "duration": 1.2,
+          "recover": 1.1,
+          "cooldown": 12,
+          "damageMult": 1.8,
+          "missStun": 1.5
+        }
+      },
+      "enrageAt": 0.5,
+      "drops": [
+        {
+          "item": "skill_crystal_l",
+          "chance": 1,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "snail_shell_shard",
+          "chance": 1,
+          "min": 2,
+          "max": 4
+        },
+        {
+          "item": "golden_pearl",
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 80,
+          "max": 120
+        }
+      ],
+      "levels": [
+        30,
+        30
+      ],
+      "awaiting": "placement"
     }
   }
 }

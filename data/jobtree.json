@@ -124,7 +124,7 @@
         "v9"
       ],
       "effects": {
-        "defense": 78,
+        "defense": 94,
         "damageTakenPct": -5
       },
       "group": "vanguard",
@@ -287,7 +287,7 @@
       ],
       "effects": {
         "mpRegenPct": 50,
-        "cooldownPct": 6
+        "hastePct": 8.0
       },
       "group": "arcanist",
       "requiresJob": "arcanist",
@@ -423,7 +423,7 @@
       ],
       "effects": {
         "projectileDamagePct": 7.8,
-        "cooldownPct": 5.2
+        "hastePct": 6.93
       },
       "group": "ranger",
       "requiresJob": "ranger",
@@ -557,7 +557,7 @@
         "w10"
       ],
       "effects": {
-        "hpRegen": 25
+        "hpRegen": 30
       },
       "group": "warden",
       "requiresJob": "warden",
@@ -604,7 +604,7 @@
         "va4"
       ],
       "effects": {
-        "hpRegen": 5,
+        "hpRegen": 6,
         "healPct": 5
       },
       "pos": [
@@ -630,7 +630,7 @@
       ],
       "effects": {
         "barrierPct": 9.8,
-        "defense": 60
+        "defense": 72
       },
       "pos": [
         8.88,
@@ -860,7 +860,7 @@
       ],
       "effects": {
         "maxMpPct": 9.8,
-        "cooldownPct": 4
+        "hastePct": 5.33
       },
       "pos": [
         92.28,
@@ -938,7 +938,7 @@
       ],
       "effects": {
         "healPct": 7.8,
-        "hpRegen": 6
+        "hpRegen": 7
       },
       "pos": [
         91.12,
@@ -1014,7 +1014,7 @@
         "w4"
       ],
       "effects": {
-        "hpRegen": 12,
+        "hpRegen": 14,
         "maxHpPct": 6.5
       },
       "pos": [
@@ -1117,7 +1117,7 @@
         "r10"
       ],
       "effects": {
-        "cooldownPct": 4
+        "hastePct": 5.33
       },
       "pos": [
         8.88,
@@ -1226,7 +1226,7 @@
       ],
       "effects": {
         "spellDamagePct": 4,
-        "defense": 30
+        "defense": 36
       },
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
@@ -1277,8 +1277,8 @@
         "a5"
       ],
       "effects": {
-        "cooldownPct": 3,
-        "mpRegenPct": 12
+        "mpRegenPct": 12,
+        "hastePct": 4.0
       },
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
@@ -1587,8 +1587,8 @@
         "v5"
       ],
       "effects": {
-        "hpRegen": 6,
-        "cooldownPct": 3
+        "hpRegen": 7,
+        "hastePct": 4.0
       },
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
@@ -1605,7 +1605,7 @@
       "group": "hybrid",
       "category": "foundation",
       "effects": {
-        "maxHp": 120
+        "maxHp": 144
       },
       "links": [
         "origin",
@@ -1629,7 +1629,7 @@
       "group": "hybrid",
       "category": "foundation",
       "effects": {
-        "maxMp": 80
+        "maxMp": 96
       },
       "links": [
         "f_hp",
@@ -1652,7 +1652,7 @@
       "group": "hybrid",
       "category": "foundation",
       "effects": {
-        "defense": 20
+        "defense": 24
       },
       "links": [
         "f_hp",
@@ -1675,7 +1675,7 @@
       "group": "hybrid",
       "category": "foundation",
       "effects": {
-        "attack": 20
+        "attack": 24
       },
       "links": [
         "f_def"
@@ -1697,7 +1697,7 @@
       "group": "hybrid",
       "category": "foundation",
       "effects": {
-        "magic": 20
+        "magic": 24
       },
       "links": [
         "f_mp"
@@ -1719,7 +1719,7 @@
       "group": "hybrid",
       "category": "melee",
       "effects": {
-        "attack": 20
+        "attack": 24
       },
       "links": [
         "v1",
@@ -2068,7 +2068,7 @@
       "group": "hybrid",
       "category": "support",
       "effects": {
-        "maxHp": 120
+        "maxHp": 144
       },
       "links": [
         "w1",
@@ -2113,7 +2113,7 @@
       "group": "hybrid",
       "category": "support",
       "effects": {
-        "maxMp": 80
+        "maxMp": 96
       },
       "links": [
         "w5",
@@ -2181,7 +2181,7 @@
       "group": "hybrid",
       "category": "projectile",
       "effects": {
-        "cooldownPct": 2
+        "hastePct": 2.67
       },
       "links": [
         "mov_speed"
@@ -2253,7 +2253,7 @@
       "requiresJob": "vanguard",
       "section": "vanguard-2",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "vanguard_t2_1",
@@ -2399,7 +2399,7 @@
       "requiresJob": "vanguard",
       "section": "vanguard-3",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "vanguard_t3_1",
@@ -2545,7 +2545,7 @@
       "requiresJob": "vanguard",
       "section": "vanguard-4",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "vanguard_t4_1",
@@ -2691,7 +2691,7 @@
       "requiresJob": "vanguard",
       "section": "vanguard-5",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "vanguard_t5_1",
@@ -2837,7 +2837,7 @@
       "requiresJob": "vanguard",
       "section": "vanguard-6",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "vanguard_t6_1",
@@ -3054,7 +3054,7 @@
       "requiresJob": "arcanist",
       "section": "arcanist-2",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "arcanist_t2_5",
@@ -3200,7 +3200,7 @@
       "requiresJob": "arcanist",
       "section": "arcanist-3",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "arcanist_t3_5",
@@ -3346,7 +3346,7 @@
       "requiresJob": "arcanist",
       "section": "arcanist-4",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "arcanist_t4_5",
@@ -3492,7 +3492,7 @@
       "requiresJob": "arcanist",
       "section": "arcanist-5",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "arcanist_t5_5",
@@ -3638,7 +3638,7 @@
       "requiresJob": "arcanist",
       "section": "arcanist-6",
       "effects": {
-        "defense": 10
+        "defense": 12
       },
       "links": [
         "arcanist_t6_5"
@@ -5116,7 +5116,7 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 120
+        "maxHp": 144
       },
       "note": "ต่อจาก นักเดินทาง ภายในกลุ่มนี้",
       "nameTh": "เตรียมพร้อม",
@@ -5220,7 +5220,7 @@
       ],
       "cost": 1,
       "effects": {
-        "defense": 20
+        "defense": 24
       },
       "note": "ต่อจาก เตรียมพร้อม ภายในกลุ่มนี้",
       "nameTh": "ตั้งหลัก",
@@ -5243,7 +5243,7 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2
+        "hastePct": 2.0
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "nameTh": "จังหวะพร้อมใช้",
@@ -5319,7 +5319,7 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "maxHp": 120
+        "maxHp": 144
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "nameTh": "ต่อการดูแล",
@@ -5396,7 +5396,7 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.5
+        "hastePct": 2.5
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "nameTh": "จังหวะต่อยอด",
@@ -5472,7 +5472,7 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "maxHp": 120
+        "maxHp": 144
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "nameTh": "ตั้งหลักมั่นคง",
@@ -5524,7 +5524,7 @@
       ],
       "cost": 1,
       "effects": {
-        "defense": 20
+        "defense": 24
       },
       "note": "ต่อจาก ตั้งหลักมั่นคง ภายในกลุ่มนี้",
       "nameTh": "ยืนระยะ",
@@ -5728,7 +5728,7 @@
       ],
       "cost": 1,
       "effects": {
-        "defense": 20
+        "defense": 24
       },
       "note": "ต่อจาก ต่อการดูแล ภายในกลุ่มนี้",
       "nameTh": "ตั้งหลักมั่นคง",
@@ -5904,7 +5904,7 @@
       ],
       "cost": 1,
       "effects": {
-        "defense": 20
+        "defense": 24
       },
       "note": "ต่อจาก ยืนระยะ ภายในกลุ่มนี้",
       "nameTh": "อยู่ร่วมทาง",
@@ -6008,7 +6008,7 @@
       "line": "line.physical",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.2
+        "hastePct": 1.2
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -6171,7 +6171,7 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.2
+        "hastePct": 1.2
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -6196,8 +6196,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 9,
-        "magic": 5.5
+        "attack": 11,
+        "magic": 6.6
       },
       "note": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
       "descTh": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
@@ -6224,8 +6224,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 9,
-        "magic": 5.5
+        "attack": 11,
+        "magic": 6.6
       },
       "note": "ต่อจาก ฝีมือ 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ฝีมือ 1 ภายในกลุ่มนี้",
@@ -6665,7 +6665,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 80,
+        "maxMp": 96,
         "mpRegenPct": 4
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -6691,7 +6691,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 80,
+        "maxMp": 96,
         "mpRegenPct": 4
       },
       "note": "ต่อจาก ลมหายใจ ภายในกลุ่มนี้",
@@ -6719,7 +6719,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 80,
+        "maxMp": 96,
         "mpRegenPct": 4
       },
       "note": "ต่อจาก คลังพลัง 1 ภายในกลุ่มนี้",
@@ -6832,8 +6832,8 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.6,
-        "movementRechargePct": 0.5
+        "movementRechargePct": 0.5,
+        "hastePct": 3.2
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -6858,7 +6858,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.6
+        "hastePct": 3.2
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -6885,7 +6885,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.6
+        "hastePct": 3.2
       },
       "note": "ต่อจาก ร่ายไว 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ร่ายไว 1 ภายในกลุ่มนี้",
@@ -6906,13 +6906,13 @@
       "allocationGroup": "view.speed.2"
     },
     "line.speed.2.b1": {
-      "name": "ฟื้นคูลดาวน์ 1",
-      "nameTh": "ฟื้นคูลดาวน์ 1",
+      "name": "เร่งจังหวะ 1",
+      "nameTh": "เร่งจังหวะ 1",
       "stage": 2,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1
+        "hastePct": 2.0
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -6933,16 +6933,16 @@
       "allocationGroup": "view.speed.2"
     },
     "line.speed.2.b2": {
-      "name": "ฟื้นคูลดาวน์ 2",
-      "nameTh": "ฟื้นคูลดาวน์ 2",
+      "name": "เร่งจังหวะ 2",
+      "nameTh": "เร่งจังหวะ 2",
       "stage": 2,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1
+        "hastePct": 2.0
       },
-      "note": "ต่อจาก ฟื้นคูลดาวน์ 1 ภายในกลุ่มนี้",
-      "descTh": "ต่อจาก ฟื้นคูลดาวน์ 1 ภายในกลุ่มนี้",
+      "note": "ต่อจาก เร่งจังหวะ 1 ภายในกลุ่มนี้",
+      "descTh": "ต่อจาก เร่งจังหวะ 1 ภายในกลุ่มนี้",
       "type": "minor",
       "section": "stage-2",
       "category": "mobility",
@@ -6966,10 +6966,10 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1
+        "hastePct": 2.0
       },
-      "note": "เลือกต่อจาก ร่ายไว 2 หรือ ฟื้นคูลดาวน์ 2 ภายในกลุ่มนี้",
-      "descTh": "เลือกต่อจาก ร่ายไว 2 หรือ ฟื้นคูลดาวน์ 2 ภายในกลุ่มนี้",
+      "note": "เลือกต่อจาก ร่ายไว 2 หรือ เร่งจังหวะ 2 ภายในกลุ่มนี้",
+      "descTh": "เลือกต่อจาก ร่ายไว 2 หรือ เร่งจังหวะ 2 ภายในกลุ่มนี้",
       "type": "notable",
       "section": "stage-2",
       "category": "mobility",
@@ -6996,8 +6996,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 100,
-        "defense": 15
+        "maxHp": 120,
+        "defense": 18
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -7022,8 +7022,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 100,
-        "defense": 15
+        "maxHp": 120,
+        "defense": 18
       },
       "note": "ต่อจาก ยืนหยัด ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ยืนหยัด ภายในกลุ่มนี้",
@@ -7050,8 +7050,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 100,
-        "defense": 15
+        "maxHp": 120,
+        "defense": 18
       },
       "note": "ต่อจาก เกราะหนา 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก เกราะหนา 1 ภายในกลุ่มนี้",
@@ -7501,8 +7501,8 @@
       "cost": 1,
       "effects": {
         "attackDamagePct": 1.5,
-        "attack": 4.5,
-        "magic": 2.8
+        "attack": 5.4,
+        "magic": 3.4
       },
       "note": "เชื่อมกายภาพกับดาเมจล้วน",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -7536,8 +7536,8 @@
       ],
       "cost": 1,
       "effects": {
-        "attack": 4.5,
-        "magic": 2.8,
+        "attack": 5.4,
+        "magic": 3.4,
         "critChancePct": 0.7
       },
       "note": "เชื่อมดาเมจล้วนกับคริติคอล",
@@ -7573,7 +7573,7 @@
       "cost": 1,
       "effects": {
         "elementalDamagePct": 1.8,
-        "maxMp": 40,
+        "maxMp": 48,
         "mpRegenPct": 2
       },
       "note": "เชื่อมธาตุกับMP",
@@ -7608,9 +7608,9 @@
       ],
       "cost": 1,
       "effects": {
-        "maxMp": 40,
+        "maxMp": 48,
         "mpRegenPct": 2,
-        "castSpeedPct": 0.8
+        "hastePct": 0.8
       },
       "note": "เชื่อมMPกับตีเร็ว",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -7644,8 +7644,8 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 50,
-        "defense": 7.5,
+        "maxHp": 60,
+        "defense": 9.0,
         "moveSpeedPct": 0.6
       },
       "note": "เชื่อมป้องกันและโจมตีกับคล่องตัว",
@@ -7713,7 +7713,7 @@
       "line": "line.physical",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.5
+        "hastePct": 1.5
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -7930,7 +7930,7 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.5
+        "hastePct": 1.5
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -7955,8 +7955,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 11.3,
-        "magic": 6.9
+        "attack": 14,
+        "magic": 8.3
       },
       "note": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
       "descTh": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
@@ -7983,8 +7983,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 11.3,
-        "magic": 6.9
+        "attack": 14,
+        "magic": 8.3
       },
       "note": "ต่อจาก ฝีมือ 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ฝีมือ 1 ภายในกลุ่มนี้",
@@ -8011,8 +8011,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 11.3,
-        "magic": 6.9
+        "attack": 14,
+        "magic": 8.3
       },
       "note": "ต่อจาก ฝีมือ 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ฝีมือ 2 ภายในกลุ่มนี้",
@@ -8588,7 +8588,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 100,
+        "maxMp": 120,
         "mpRegenPct": 5
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -8614,7 +8614,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 100,
+        "maxMp": 120,
         "mpRegenPct": 5
       },
       "note": "ต่อจาก ธารพลัง ภายในกลุ่มนี้",
@@ -8642,7 +8642,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 100,
+        "maxMp": 120,
         "mpRegenPct": 5
       },
       "note": "ต่อจาก คลังพลัง 1 ภายในกลุ่มนี้",
@@ -8670,7 +8670,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 100,
+        "maxMp": 120,
         "mpRegenPct": 5
       },
       "note": "ต่อจาก คลังพลัง 2 ภายในกลุ่มนี้",
@@ -8810,8 +8810,8 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2,
-        "movementRechargePct": 0.63
+        "movementRechargePct": 0.63,
+        "hastePct": 4.0
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -8836,7 +8836,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2
+        "hastePct": 4.0
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -8863,7 +8863,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2
+        "hastePct": 4.0
       },
       "note": "ต่อจาก ร่ายไว 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ร่ายไว 1 ภายในกลุ่มนี้",
@@ -8890,7 +8890,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2
+        "hastePct": 4.0
       },
       "note": "ต่อจาก ร่ายไว 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ร่ายไว 2 ภายในกลุ่มนี้",
@@ -8911,13 +8911,13 @@
       "allocationGroup": "view.speed.3"
     },
     "line.speed.3.b1": {
-      "name": "ฟื้นคูลดาวน์ 1",
-      "nameTh": "ฟื้นคูลดาวน์ 1",
+      "name": "เร่งจังหวะ 1",
+      "nameTh": "เร่งจังหวะ 1",
       "stage": 3,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.25
+        "hastePct": 2.5
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -8938,16 +8938,16 @@
       "allocationGroup": "view.speed.3"
     },
     "line.speed.3.b2": {
-      "name": "ฟื้นคูลดาวน์ 2",
-      "nameTh": "ฟื้นคูลดาวน์ 2",
+      "name": "เร่งจังหวะ 2",
+      "nameTh": "เร่งจังหวะ 2",
       "stage": 3,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.25
+        "hastePct": 2.5
       },
-      "note": "ต่อจาก ฟื้นคูลดาวน์ 1 ภายในกลุ่มนี้",
-      "descTh": "ต่อจาก ฟื้นคูลดาวน์ 1 ภายในกลุ่มนี้",
+      "note": "ต่อจาก เร่งจังหวะ 1 ภายในกลุ่มนี้",
+      "descTh": "ต่อจาก เร่งจังหวะ 1 ภายในกลุ่มนี้",
       "type": "minor",
       "section": "stage-3",
       "category": "mobility",
@@ -8965,16 +8965,16 @@
       "allocationGroup": "view.speed.3"
     },
     "line.speed.3.b3": {
-      "name": "ฟื้นคูลดาวน์ 3",
-      "nameTh": "ฟื้นคูลดาวน์ 3",
+      "name": "เร่งจังหวะ 3",
+      "nameTh": "เร่งจังหวะ 3",
       "stage": 3,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.25
+        "hastePct": 2.5
       },
-      "note": "ต่อจาก ฟื้นคูลดาวน์ 2 ภายในกลุ่มนี้",
-      "descTh": "ต่อจาก ฟื้นคูลดาวน์ 2 ภายในกลุ่มนี้",
+      "note": "ต่อจาก เร่งจังหวะ 2 ภายในกลุ่มนี้",
+      "descTh": "ต่อจาก เร่งจังหวะ 2 ภายในกลุ่มนี้",
       "type": "minor",
       "section": "stage-3",
       "category": "mobility",
@@ -8998,10 +8998,10 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.25
+        "hastePct": 2.5
       },
-      "note": "เลือกต่อจาก ร่ายไว 3 หรือ ฟื้นคูลดาวน์ 3 ภายในกลุ่มนี้",
-      "descTh": "เลือกต่อจาก ร่ายไว 3 หรือ ฟื้นคูลดาวน์ 3 ภายในกลุ่มนี้",
+      "note": "เลือกต่อจาก ร่ายไว 3 หรือ เร่งจังหวะ 3 ภายในกลุ่มนี้",
+      "descTh": "เลือกต่อจาก ร่ายไว 3 หรือ เร่งจังหวะ 3 ภายในกลุ่มนี้",
       "type": "notable",
       "section": "stage-3",
       "category": "mobility",
@@ -9028,8 +9028,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 125,
-        "defense": 18.8
+        "maxHp": 150,
+        "defense": 23
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -9054,8 +9054,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 125,
-        "defense": 18.8
+        "maxHp": 150,
+        "defense": 23
       },
       "note": "ต่อจาก โล่และดาบ ภายในกลุ่มนี้",
       "descTh": "ต่อจาก โล่และดาบ ภายในกลุ่มนี้",
@@ -9082,8 +9082,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 125,
-        "defense": 18.8
+        "maxHp": 150,
+        "defense": 23
       },
       "note": "ต่อจาก เกราะหนา 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก เกราะหนา 1 ภายในกลุ่มนี้",
@@ -9110,8 +9110,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 125,
-        "defense": 18.8
+        "maxHp": 150,
+        "defense": 23
       },
       "note": "ต่อจาก เกราะหนา 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก เกราะหนา 2 ภายในกลุ่มนี้",
@@ -9360,7 +9360,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2,
-        "hpRegen": 1.3
+        "hpRegen": 1.6
       },
       "note": "ต่อจาก ลมใต้เท้า ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ลมใต้เท้า ภายในกลุ่มนี้",
@@ -9388,7 +9388,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2,
-        "hpRegen": 1.3
+        "hpRegen": 1.6
       },
       "note": "ต่อจาก หลบไว 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก หลบไว 1 ภายในกลุ่มนี้",
@@ -9416,7 +9416,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2,
-        "hpRegen": 1.3
+        "hpRegen": 1.6
       },
       "note": "ต่อจาก หลบไว 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก หลบไว 2 ภายในกลุ่มนี้",
@@ -9444,7 +9444,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2,
-        "hpRegen": 1.3
+        "hpRegen": 1.6
       },
       "note": "เลือกต่อจาก ฝีเท้า 3 หรือ หลบไว 3 ภายในกลุ่มนี้",
       "descTh": "เลือกต่อจาก ฝีเท้า 3 หรือ หลบไว 3 ภายในกลุ่มนี้",
@@ -9699,8 +9699,8 @@
       "cost": 1,
       "effects": {
         "attackDamagePct": 1.88,
-        "attack": 5.6,
-        "magic": 3.4
+        "attack": 6.7,
+        "magic": 4.1
       },
       "note": "เชื่อมกายภาพกับดาเมจล้วน",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -9734,8 +9734,8 @@
       ],
       "cost": 1,
       "effects": {
-        "attack": 5.6,
-        "magic": 3.4,
+        "attack": 6.7,
+        "magic": 4.1,
         "critChancePct": 0.88
       },
       "note": "เชื่อมดาเมจล้วนกับคริติคอล",
@@ -9771,7 +9771,7 @@
       "cost": 1,
       "effects": {
         "elementalDamagePct": 2.25,
-        "maxMp": 50,
+        "maxMp": 60,
         "mpRegenPct": 2.5
       },
       "note": "เชื่อมธาตุกับMP",
@@ -9806,9 +9806,9 @@
       ],
       "cost": 1,
       "effects": {
-        "maxMp": 50,
+        "maxMp": 60,
         "mpRegenPct": 2.5,
-        "castSpeedPct": 1
+        "hastePct": 1.0
       },
       "note": "เชื่อมMPกับตีเร็ว",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -9842,8 +9842,8 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 62.5,
-        "defense": 9.4,
+        "maxHp": 75,
+        "defense": 11,
         "moveSpeedPct": 0.75
       },
       "note": "เชื่อมป้องกันและโจมตีกับคล่องตัว",
@@ -9951,8 +9951,8 @@
       ],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1,
-        "moveSpeedPct": 0.75
+        "moveSpeedPct": 0.75,
+        "hastePct": 1.0
       },
       "note": "เชื่อมตีเร็วกับคล่องตัว",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -9988,8 +9988,8 @@
       "cost": 1,
       "effects": {
         "attackDamagePct": 1.88,
-        "maxHp": 62.5,
-        "defense": 9.4
+        "maxHp": 75,
+        "defense": 11
       },
       "note": "เชื่อมกายภาพกับป้องกันและโจมตี",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -10021,7 +10021,7 @@
       "line": "line.physical",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.8
+        "hastePct": 1.8
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -10238,7 +10238,7 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.8
+        "hastePct": 1.8
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -10263,8 +10263,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 13.5,
-        "magic": 8.3
+        "attack": 16,
+        "magic": 10.0
       },
       "note": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
       "descTh": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
@@ -10291,8 +10291,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 13.5,
-        "magic": 8.3
+        "attack": 16,
+        "magic": 10.0
       },
       "note": "ต่อจาก ฝีมือ 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ฝีมือ 1 ภายในกลุ่มนี้",
@@ -10319,8 +10319,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 13.5,
-        "magic": 8.3
+        "attack": 16,
+        "magic": 10.0
       },
       "note": "ต่อจาก ฝีมือ 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ฝีมือ 2 ภายในกลุ่มนี้",
@@ -10896,7 +10896,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 120,
+        "maxMp": 144,
         "mpRegenPct": 6
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -10922,7 +10922,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 120,
+        "maxMp": 144,
         "mpRegenPct": 6
       },
       "note": "ต่อจาก บ่อพลัง ภายในกลุ่มนี้",
@@ -10950,7 +10950,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 120,
+        "maxMp": 144,
         "mpRegenPct": 6
       },
       "note": "ต่อจาก คลังพลัง 1 ภายในกลุ่มนี้",
@@ -10978,7 +10978,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 120,
+        "maxMp": 144,
         "mpRegenPct": 6
       },
       "note": "ต่อจาก คลังพลัง 2 ภายในกลุ่มนี้",
@@ -11118,8 +11118,8 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.4,
-        "movementRechargePct": 0.75
+        "movementRechargePct": 0.75,
+        "hastePct": 4.8
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -11144,7 +11144,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.4
+        "hastePct": 4.8
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -11171,7 +11171,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.4
+        "hastePct": 4.8
       },
       "note": "ต่อจาก ร่ายไว 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ร่ายไว 1 ภายในกลุ่มนี้",
@@ -11198,7 +11198,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.4
+        "hastePct": 4.8
       },
       "note": "ต่อจาก ร่ายไว 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ร่ายไว 2 ภายในกลุ่มนี้",
@@ -11219,13 +11219,13 @@
       "allocationGroup": "view.speed.4"
     },
     "line.speed.4.b1": {
-      "name": "ฟื้นคูลดาวน์ 1",
-      "nameTh": "ฟื้นคูลดาวน์ 1",
+      "name": "เร่งจังหวะ 1",
+      "nameTh": "เร่งจังหวะ 1",
       "stage": 4,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.5
+        "hastePct": 3.0
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -11246,16 +11246,16 @@
       "allocationGroup": "view.speed.4"
     },
     "line.speed.4.b2": {
-      "name": "ฟื้นคูลดาวน์ 2",
-      "nameTh": "ฟื้นคูลดาวน์ 2",
+      "name": "เร่งจังหวะ 2",
+      "nameTh": "เร่งจังหวะ 2",
       "stage": 4,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.5
+        "hastePct": 3.0
       },
-      "note": "ต่อจาก ฟื้นคูลดาวน์ 1 ภายในกลุ่มนี้",
-      "descTh": "ต่อจาก ฟื้นคูลดาวน์ 1 ภายในกลุ่มนี้",
+      "note": "ต่อจาก เร่งจังหวะ 1 ภายในกลุ่มนี้",
+      "descTh": "ต่อจาก เร่งจังหวะ 1 ภายในกลุ่มนี้",
       "type": "minor",
       "section": "stage-4",
       "category": "mobility",
@@ -11273,16 +11273,16 @@
       "allocationGroup": "view.speed.4"
     },
     "line.speed.4.b3": {
-      "name": "ฟื้นคูลดาวน์ 3",
-      "nameTh": "ฟื้นคูลดาวน์ 3",
+      "name": "เร่งจังหวะ 3",
+      "nameTh": "เร่งจังหวะ 3",
       "stage": 4,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.5
+        "hastePct": 3.0
       },
-      "note": "ต่อจาก ฟื้นคูลดาวน์ 2 ภายในกลุ่มนี้",
-      "descTh": "ต่อจาก ฟื้นคูลดาวน์ 2 ภายในกลุ่มนี้",
+      "note": "ต่อจาก เร่งจังหวะ 2 ภายในกลุ่มนี้",
+      "descTh": "ต่อจาก เร่งจังหวะ 2 ภายในกลุ่มนี้",
       "type": "minor",
       "section": "stage-4",
       "category": "mobility",
@@ -11306,10 +11306,10 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.5
+        "hastePct": 3.0
       },
-      "note": "เลือกต่อจาก ร่ายไว 3 หรือ ฟื้นคูลดาวน์ 3 ภายในกลุ่มนี้",
-      "descTh": "เลือกต่อจาก ร่ายไว 3 หรือ ฟื้นคูลดาวน์ 3 ภายในกลุ่มนี้",
+      "note": "เลือกต่อจาก ร่ายไว 3 หรือ เร่งจังหวะ 3 ภายในกลุ่มนี้",
+      "descTh": "เลือกต่อจาก ร่ายไว 3 หรือ เร่งจังหวะ 3 ภายในกลุ่มนี้",
       "type": "notable",
       "section": "stage-4",
       "category": "mobility",
@@ -11336,8 +11336,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 150,
-        "defense": 22.5
+        "maxHp": 180,
+        "defense": 27
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -11362,8 +11362,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 150,
-        "defense": 22.5
+        "maxHp": 180,
+        "defense": 27
       },
       "note": "ต่อจาก ป้อมเคลื่อนที่ ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ป้อมเคลื่อนที่ ภายในกลุ่มนี้",
@@ -11390,8 +11390,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 150,
-        "defense": 22.5
+        "maxHp": 180,
+        "defense": 27
       },
       "note": "ต่อจาก เกราะหนา 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก เกราะหนา 1 ภายในกลุ่มนี้",
@@ -11418,8 +11418,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 150,
-        "defense": 22.5
+        "maxHp": 180,
+        "defense": 27
       },
       "note": "ต่อจาก เกราะหนา 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก เกราะหนา 2 ภายในกลุ่มนี้",
@@ -11668,7 +11668,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2.4,
-        "hpRegen": 1.5
+        "hpRegen": 1.8
       },
       "note": "ต่อจาก เงาว่องไว ภายในกลุ่มนี้",
       "descTh": "ต่อจาก เงาว่องไว ภายในกลุ่มนี้",
@@ -11696,7 +11696,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2.4,
-        "hpRegen": 1.5
+        "hpRegen": 1.8
       },
       "note": "ต่อจาก หลบไว 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก หลบไว 1 ภายในกลุ่มนี้",
@@ -11724,7 +11724,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2.4,
-        "hpRegen": 1.5
+        "hpRegen": 1.8
       },
       "note": "ต่อจาก หลบไว 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก หลบไว 2 ภายในกลุ่มนี้",
@@ -11752,7 +11752,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2.4,
-        "hpRegen": 1.5
+        "hpRegen": 1.8
       },
       "note": "เลือกต่อจาก ฝีเท้า 3 หรือ หลบไว 3 ภายในกลุ่มนี้",
       "descTh": "เลือกต่อจาก ฝีเท้า 3 หรือ หลบไว 3 ภายในกลุ่มนี้",
@@ -12007,8 +12007,8 @@
       "cost": 1,
       "effects": {
         "attackDamagePct": 2.25,
-        "attack": 6.8,
-        "magic": 4.1
+        "attack": 8.2,
+        "magic": 4.9
       },
       "note": "เชื่อมกายภาพกับดาเมจล้วน",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -12042,8 +12042,8 @@
       ],
       "cost": 1,
       "effects": {
-        "attack": 6.8,
-        "magic": 4.1,
+        "attack": 8.2,
+        "magic": 4.9,
         "critChancePct": 1.05
       },
       "note": "เชื่อมดาเมจล้วนกับคริติคอล",
@@ -12079,7 +12079,7 @@
       "cost": 1,
       "effects": {
         "elementalDamagePct": 2.7,
-        "maxMp": 60,
+        "maxMp": 72,
         "mpRegenPct": 3
       },
       "note": "เชื่อมธาตุกับMP",
@@ -12114,9 +12114,9 @@
       ],
       "cost": 1,
       "effects": {
-        "maxMp": 60,
+        "maxMp": 72,
         "mpRegenPct": 3,
-        "castSpeedPct": 1.2
+        "hastePct": 1.2
       },
       "note": "เชื่อมMPกับตีเร็ว",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -12150,8 +12150,8 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 75,
-        "defense": 11.3,
+        "maxHp": 90,
+        "defense": 14,
         "moveSpeedPct": 0.9
       },
       "note": "เชื่อมป้องกันและโจมตีกับคล่องตัว",
@@ -12259,8 +12259,8 @@
       ],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.2,
-        "moveSpeedPct": 0.9
+        "moveSpeedPct": 0.9,
+        "hastePct": 1.2
       },
       "note": "เชื่อมตีเร็วกับคล่องตัว",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -12296,8 +12296,8 @@
       "cost": 1,
       "effects": {
         "attackDamagePct": 2.25,
-        "maxHp": 75,
-        "defense": 11.3
+        "maxHp": 90,
+        "defense": 14
       },
       "note": "เชื่อมกายภาพกับป้องกันและโจมตี",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -12329,7 +12329,7 @@
       "line": "line.physical",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.1
+        "hastePct": 2.1
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -12492,7 +12492,7 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.1
+        "hastePct": 2.1
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -12517,8 +12517,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 15.8,
-        "magic": 9.6
+        "attack": 19,
+        "magic": 12
       },
       "note": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
       "descTh": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
@@ -12545,8 +12545,8 @@
       "line": "line.damage",
       "cost": 1,
       "effects": {
-        "attack": 15.8,
-        "magic": 9.6
+        "attack": 19,
+        "magic": 12
       },
       "note": "ต่อจาก ฝีมือ 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ฝีมือ 1 ภายในกลุ่มนี้",
@@ -12986,7 +12986,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 140,
+        "maxMp": 168,
         "mpRegenPct": 7
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -13012,7 +13012,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 140,
+        "maxMp": 168,
         "mpRegenPct": 7
       },
       "note": "ต่อจาก มหาสมุทรพลัง ภายในกลุ่มนี้",
@@ -13040,7 +13040,7 @@
       "line": "line.mana",
       "cost": 1,
       "effects": {
-        "maxMp": 140,
+        "maxMp": 168,
         "mpRegenPct": 7
       },
       "note": "ต่อจาก คลังพลัง 1 ภายในกลุ่มนี้",
@@ -13153,8 +13153,8 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.8,
-        "movementRechargePct": 0.88
+        "movementRechargePct": 0.88,
+        "hastePct": 5.6
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -13179,7 +13179,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.8
+        "hastePct": 5.6
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -13206,7 +13206,7 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "castSpeedPct": 2.8
+        "hastePct": 5.6
       },
       "note": "ต่อจาก ร่ายไว 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ร่ายไว 1 ภายในกลุ่มนี้",
@@ -13227,13 +13227,13 @@
       "allocationGroup": "view.speed.5"
     },
     "line.speed.5.b1": {
-      "name": "ฟื้นคูลดาวน์ 1",
-      "nameTh": "ฟื้นคูลดาวน์ 1",
+      "name": "เร่งจังหวะ 1",
+      "nameTh": "เร่งจังหวะ 1",
       "stage": 5,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.75
+        "hastePct": 3.5
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -13254,16 +13254,16 @@
       "allocationGroup": "view.speed.5"
     },
     "line.speed.5.b2": {
-      "name": "ฟื้นคูลดาวน์ 2",
-      "nameTh": "ฟื้นคูลดาวน์ 2",
+      "name": "เร่งจังหวะ 2",
+      "nameTh": "เร่งจังหวะ 2",
       "stage": 5,
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.75
+        "hastePct": 3.5
       },
-      "note": "ต่อจาก ฟื้นคูลดาวน์ 1 ภายในกลุ่มนี้",
-      "descTh": "ต่อจาก ฟื้นคูลดาวน์ 1 ภายในกลุ่มนี้",
+      "note": "ต่อจาก เร่งจังหวะ 1 ภายในกลุ่มนี้",
+      "descTh": "ต่อจาก เร่งจังหวะ 1 ภายในกลุ่มนี้",
       "type": "minor",
       "section": "stage-5",
       "category": "mobility",
@@ -13287,10 +13287,10 @@
       "line": "line.speed",
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.75
+        "hastePct": 3.5
       },
-      "note": "เลือกต่อจาก ร่ายไว 2 หรือ ฟื้นคูลดาวน์ 2 ภายในกลุ่มนี้",
-      "descTh": "เลือกต่อจาก ร่ายไว 2 หรือ ฟื้นคูลดาวน์ 2 ภายในกลุ่มนี้",
+      "note": "เลือกต่อจาก ร่ายไว 2 หรือ เร่งจังหวะ 2 ภายในกลุ่มนี้",
+      "descTh": "เลือกต่อจาก ร่ายไว 2 หรือ เร่งจังหวะ 2 ภายในกลุ่มนี้",
       "type": "notable",
       "section": "stage-5",
       "category": "mobility",
@@ -13317,8 +13317,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 175,
-        "defense": 26.3
+        "maxHp": 210,
+        "defense": 32
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -13343,8 +13343,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 175,
-        "defense": 26.3
+        "maxHp": 210,
+        "defense": 32
       },
       "note": "ต่อจาก กำแพงเหล็ก ภายในกลุ่มนี้",
       "descTh": "ต่อจาก กำแพงเหล็ก ภายในกลุ่มนี้",
@@ -13371,8 +13371,8 @@
       "line": "line.guardian",
       "cost": 1,
       "effects": {
-        "maxHp": 175,
-        "defense": 26.3
+        "maxHp": 210,
+        "defense": 32
       },
       "note": "ต่อจาก เกราะหนา 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก เกราะหนา 1 ภายในกลุ่มนี้",
@@ -13566,7 +13566,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2.8,
-        "hpRegen": 1.8
+        "hpRegen": 2.2
       },
       "note": "ต่อจาก ไร้ร่องรอย ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ไร้ร่องรอย ภายในกลุ่มนี้",
@@ -13594,7 +13594,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2.8,
-        "hpRegen": 1.8
+        "hpRegen": 2.2
       },
       "note": "ต่อจาก หลบไว 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก หลบไว 1 ภายในกลุ่มนี้",
@@ -13622,7 +13622,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 2.8,
-        "hpRegen": 1.8
+        "hpRegen": 2.2
       },
       "note": "เลือกต่อจาก ฝีเท้า 2 หรือ หลบไว 2 ภายในกลุ่มนี้",
       "descTh": "เลือกต่อจาก ฝีเท้า 2 หรือ หลบไว 2 ภายในกลุ่มนี้",
@@ -13822,8 +13822,8 @@
       "cost": 1,
       "effects": {
         "attackDamagePct": 2.63,
-        "attack": 7.9,
-        "magic": 4.8
+        "attack": 9.5,
+        "magic": 5.8
       },
       "note": "เชื่อมกายภาพกับดาเมจล้วน",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -13857,8 +13857,8 @@
       ],
       "cost": 1,
       "effects": {
-        "attack": 7.9,
-        "magic": 4.8,
+        "attack": 9.5,
+        "magic": 5.8,
         "critChancePct": 1.22
       },
       "note": "เชื่อมดาเมจล้วนกับคริติคอล",
@@ -13894,7 +13894,7 @@
       "cost": 1,
       "effects": {
         "elementalDamagePct": 3.15,
-        "maxMp": 70,
+        "maxMp": 84,
         "mpRegenPct": 3.5
       },
       "note": "เชื่อมธาตุกับMP",
@@ -13929,9 +13929,9 @@
       ],
       "cost": 1,
       "effects": {
-        "maxMp": 70,
+        "maxMp": 84,
         "mpRegenPct": 3.5,
-        "castSpeedPct": 1.4
+        "hastePct": 1.4
       },
       "note": "เชื่อมMPกับตีเร็ว",
       "descTh": "ลงจากสายใดก็ได้ แล้วไปต่ออีกสายได้",
@@ -13965,8 +13965,8 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 87.5,
-        "defense": 13.1,
+        "maxHp": 105,
+        "defense": 16,
         "moveSpeedPct": 1.05
       },
       "note": "เชื่อมป้องกันและโจมตีกับคล่องตัว",
@@ -14035,7 +14035,7 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.26
+        "hastePct": 1.26
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -14301,7 +14301,7 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.26
+        "hastePct": 1.26
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -14355,8 +14355,8 @@
       ],
       "cost": 1,
       "effects": {
-        "attack": 9.5,
-        "magic": 5.8
+        "attack": 11,
+        "magic": 7.0
       },
       "note": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
       "descTh": "ต่อจาก จังหวะพลัง ภายในกลุ่มนี้",
@@ -14410,8 +14410,8 @@
       ],
       "cost": 1,
       "effects": {
-        "attack": 9.5,
-        "magic": 5.8
+        "attack": 11,
+        "magic": 7.0
       },
       "note": "ต่อจาก ชำนาญดาเมจ 3 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญดาเมจ 3 ภายในกลุ่มนี้",
@@ -14465,8 +14465,8 @@
       ],
       "cost": 1,
       "effects": {
-        "attack": 9.5,
-        "magic": 5.8
+        "attack": 11,
+        "magic": 7.0
       },
       "note": "ต่อจาก ชำนาญดาเมจ 5 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญดาเมจ 5 ภายในกลุ่มนี้",
@@ -14520,8 +14520,8 @@
       ],
       "cost": 1,
       "effects": {
-        "attack": 9.5,
-        "magic": 5.8
+        "attack": 11,
+        "magic": 7.0
       },
       "note": "ต่อจาก ชำนาญดาเมจ 7 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญดาเมจ 7 ภายในกลุ่มนี้",
@@ -15108,7 +15108,7 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "maxMp": 84,
+        "maxMp": 101,
         "mpRegenPct": 4.2
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -15163,7 +15163,7 @@
       ],
       "cost": 1,
       "effects": {
-        "maxMp": 84,
+        "maxMp": 101,
         "mpRegenPct": 4.2
       },
       "note": "ต่อจาก ชำนาญ MP 1 ภายในกลุ่มนี้",
@@ -15218,7 +15218,7 @@
       ],
       "cost": 1,
       "effects": {
-        "maxMp": 84,
+        "maxMp": 101,
         "mpRegenPct": 4.2
       },
       "note": "ต่อจาก ชำนาญ MP 3 ภายในกลุ่มนี้",
@@ -15273,7 +15273,7 @@
       ],
       "cost": 1,
       "effects": {
-        "maxMp": 84,
+        "maxMp": 101,
         "mpRegenPct": 4.2
       },
       "note": "ต่อจาก ชำนาญ MP 5 ภายในกลุ่มนี้",
@@ -15328,7 +15328,7 @@
       ],
       "cost": 1,
       "effects": {
-        "maxMp": 84,
+        "maxMp": 101,
         "mpRegenPct": 4.2
       },
       "note": "ต่อจาก ชำนาญ MP 7 ภายในกลุ่มนี้",
@@ -15380,8 +15380,8 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.68,
-        "movementRechargePct": 0.53
+        "movementRechargePct": 0.53,
+        "hastePct": 3.36
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -15408,7 +15408,7 @@
       ],
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.05
+        "hastePct": 2.1
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -15435,7 +15435,7 @@
       ],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.68
+        "hastePct": 3.36
       },
       "note": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
       "descTh": "ต่อจาก พร้อมรอบถัดไป ภายในกลุ่มนี้",
@@ -15462,7 +15462,7 @@
       ],
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.05
+        "hastePct": 2.1
       },
       "note": "ต่อจาก ชำนาญจังหวะ 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญจังหวะ 2 ภายในกลุ่มนี้",
@@ -15489,7 +15489,7 @@
       ],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.68
+        "hastePct": 3.36
       },
       "note": "ต่อจาก ชำนาญจังหวะ 3 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญจังหวะ 3 ภายในกลุ่มนี้",
@@ -15516,7 +15516,7 @@
       ],
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.05
+        "hastePct": 2.1
       },
       "note": "ต่อจาก ชำนาญจังหวะ 4 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญจังหวะ 4 ภายในกลุ่มนี้",
@@ -15543,7 +15543,7 @@
       ],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.68
+        "hastePct": 3.36
       },
       "note": "ต่อจาก ชำนาญจังหวะ 5 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญจังหวะ 5 ภายในกลุ่มนี้",
@@ -15570,7 +15570,7 @@
       ],
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.05
+        "hastePct": 2.1
       },
       "note": "ต่อจาก ชำนาญจังหวะ 6 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญจังหวะ 6 ภายในกลุ่มนี้",
@@ -15597,7 +15597,7 @@
       ],
       "cost": 1,
       "effects": {
-        "castSpeedPct": 1.68
+        "hastePct": 3.36
       },
       "note": "ต่อจาก ชำนาญจังหวะ 7 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญจังหวะ 7 ภายในกลุ่มนี้",
@@ -15623,7 +15623,7 @@
       ],
       "cost": 1,
       "effects": {
-        "cooldownPct": 1.05
+        "hastePct": 2.1
       },
       "note": "ต่อจาก ชำนาญจังหวะ 8 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญจังหวะ 8 ภายในกลุ่มนี้",
@@ -15647,8 +15647,8 @@
       "requires": [],
       "cost": 1,
       "effects": {
-        "maxHp": 105,
-        "defense": 15.8
+        "maxHp": 126,
+        "defense": 19
       },
       "note": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
       "descTh": "พื้นฐานร่วมของกลุ่ม · เริ่มได้ทันทีเมื่อมีแต้ม โดยไม่ต้องลงทุนในกลุ่มอื่น",
@@ -15703,8 +15703,8 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 105,
-        "defense": 15.8
+        "maxHp": 126,
+        "defense": 19
       },
       "note": "ต่อจาก ชำนาญป้องกัน 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญป้องกัน 1 ภายในกลุ่มนี้",
@@ -15759,8 +15759,8 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 105,
-        "defense": 15.8
+        "maxHp": 126,
+        "defense": 19
       },
       "note": "ต่อจาก ชำนาญป้องกัน 3 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญป้องกัน 3 ภายในกลุ่มนี้",
@@ -15815,8 +15815,8 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 105,
-        "defense": 15.8
+        "maxHp": 126,
+        "defense": 19
       },
       "note": "ต่อจาก ชำนาญป้องกัน 5 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญป้องกัน 5 ภายในกลุ่มนี้",
@@ -15871,8 +15871,8 @@
       ],
       "cost": 1,
       "effects": {
-        "maxHp": 105,
-        "defense": 15.8
+        "maxHp": 126,
+        "defense": 19
       },
       "note": "ต่อจาก ชำนาญป้องกัน 7 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญป้องกัน 7 ภายในกลุ่มนี้",
@@ -15951,7 +15951,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 1.68,
-        "hpRegen": 1.1
+        "hpRegen": 1.3
       },
       "note": "ต่อจาก ชำนาญความคล่องตัว 1 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญความคล่องตัว 1 ภายในกลุ่มนี้",
@@ -16006,7 +16006,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 1.68,
-        "hpRegen": 1.1
+        "hpRegen": 1.3
       },
       "note": "ต่อจาก ชำนาญความคล่องตัว 2 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญความคล่องตัว 2 ภายในกลุ่มนี้",
@@ -16061,7 +16061,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 1.68,
-        "hpRegen": 1.1
+        "hpRegen": 1.3
       },
       "note": "ต่อจาก ชำนาญความคล่องตัว 4 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญความคล่องตัว 4 ภายในกลุ่มนี้",
@@ -16116,7 +16116,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 1.68,
-        "hpRegen": 1.1
+        "hpRegen": 1.3
       },
       "note": "ต่อจาก ชำนาญความคล่องตัว 6 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญความคล่องตัว 6 ภายในกลุ่มนี้",
@@ -16170,7 +16170,7 @@
       "cost": 1,
       "effects": {
         "movementRechargePct": 1.68,
-        "hpRegen": 1.1
+        "hpRegen": 1.3
       },
       "note": "ต่อจาก ชำนาญความคล่องตัว 8 ภายในกลุ่มนี้",
       "descTh": "ต่อจาก ชำนาญความคล่องตัว 8 ภายในกลุ่มนี้",
@@ -17240,7 +17240,7 @@
             "id": "view.speed.2",
             "line": true,
             "name": "ตีเร็ว",
-            "note": "ร่ายไว · ฟื้นคูลดาวน์",
+            "note": "ร่ายไว · เร่งจังหวะ",
             "icon": "wind",
             "nodes": [
               "line.speed.2.entry",
@@ -17721,7 +17721,7 @@
             "id": "view.speed.3",
             "line": true,
             "name": "ตีเร็ว",
-            "note": "ร่ายไว · ฟื้นคูลดาวน์",
+            "note": "ร่ายไว · เร่งจังหวะ",
             "icon": "wind",
             "nodes": [
               "line.speed.3.entry",
@@ -18197,7 +18197,7 @@
             "id": "view.speed.4",
             "line": true,
             "name": "ตีเร็ว",
-            "note": "ร่ายไว · ฟื้นคูลดาวน์",
+            "note": "ร่ายไว · เร่งจังหวะ",
             "icon": "wind",
             "nodes": [
               "line.speed.4.entry",
@@ -18623,7 +18623,7 @@
             "id": "view.speed.5",
             "line": true,
             "name": "ตีเร็ว",
-            "note": "ร่ายไว · ฟื้นคูลดาวน์",
+            "note": "ร่ายไว · เร่งจังหวะ",
             "icon": "wind",
             "nodes": [
               "line.speed.5.entry",
@@ -19101,7 +19101,7 @@
             "id": "view.speed.mastery",
             "line": true,
             "name": "ตีเร็ว · ความชำนาญ",
-            "note": "ร่ายไว · ฟื้นคูลดาวน์",
+            "note": "ร่ายไว · เร่งจังหวะ",
             "icon": "wind",
             "nodes": [
               "line.speed.mastery.1",
@@ -19593,7 +19593,7 @@
         "id": "view.speed.2",
         "line": true,
         "name": "ตีเร็ว",
-        "note": "ร่ายไว · ฟื้นคูลดาวน์",
+        "note": "ร่ายไว · เร่งจังหวะ",
         "icon": "wind",
         "nodes": [
           "line.speed.2.entry",
@@ -20066,7 +20066,7 @@
         "id": "view.speed.3",
         "line": true,
         "name": "ตีเร็ว",
-        "note": "ร่ายไว · ฟื้นคูลดาวน์",
+        "note": "ร่ายไว · เร่งจังหวะ",
         "icon": "wind",
         "nodes": [
           "line.speed.3.entry",
@@ -20534,7 +20534,7 @@
         "id": "view.speed.4",
         "line": true,
         "name": "ตีเร็ว",
-        "note": "ร่ายไว · ฟื้นคูลดาวน์",
+        "note": "ร่ายไว · เร่งจังหวะ",
         "icon": "wind",
         "nodes": [
           "line.speed.4.entry",
@@ -20952,7 +20952,7 @@
         "id": "view.speed.5",
         "line": true,
         "name": "ตีเร็ว",
-        "note": "ร่ายไว · ฟื้นคูลดาวน์",
+        "note": "ร่ายไว · เร่งจังหวะ",
         "icon": "wind",
         "nodes": [
           "line.speed.5.entry",
@@ -21430,7 +21430,7 @@
         "id": "view.speed.mastery",
         "line": true,
         "name": "ตีเร็ว · ความชำนาญ",
-        "note": "ร่ายไว · ฟื้นคูลดาวน์",
+        "note": "ร่ายไว · เร่งจังหวะ",
         "icon": "wind",
         "nodes": [
           "line.speed.mastery.1",
@@ -21675,5 +21675,6 @@
         "color": "#4f7a5a"
       }
     ]
-  }
+  },
+  "_flatDoc": "Flat node values (defense, maxHp, maxMp, attack, magic, hpRegen) were raised 20% when the content cap moved from Lv25 to Lv40 (owner, 2026-10-29), so a full line still counts at the new cap (tests/core/balance-model.test.js)."
 }

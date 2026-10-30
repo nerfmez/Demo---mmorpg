@@ -8,6 +8,8 @@ import { icon } from './icons.js';
 import { graphicsSettingsHtml, graphicsAction } from './graphics-settings.js';
 import { art, arrowArt } from './art.js';
 import { skillsView, modsWorkspace, movementWorkspace, growthWorkspace } from './skillview.js';
+import { patchBars, stepBar } from './skill-bars.js';
+import { allocateBars, upgradeGrade } from '../core/skill-growth.js';
 import { tagsHtml, rulesHtml, TAGS as TAG_TH } from './buildmeta.js';
 import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
@@ -15,8 +17,9 @@ import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse } from '../core/character.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
+import { perkList } from '../core/stat-perks.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
-import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, upgradeMovement, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
+import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, feedSkill, upgradeMovement, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
 import { inventoryView } from './inventory.js';
 import { potionArt } from './potionart.js';
@@ -27,7 +30,7 @@ import { MENU_GROUPS, MENU_PAGES, groupOf } from './menu-map.js';
 
 const LOADOUT_TABS = new Set(['bag', 'skills', 'mods', 'movement']);
 
-const STAT_TH = { STR: 'พลังกาย · พลังโจมตี/HP/ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/บาเรีย', INT: 'สติปัญญา · พลังเวท/MP/เกราะเวท', DEX: 'ความแม่น · แรงคริ/ยิง', LUK: 'โชค · คริ/หลบ/ดรอปเล็กน้อย' };
+const STAT_TH = { STR: 'พลังกาย · พลังโจมตี/HP/ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว (ร่าย+คูลดาวน์)/ความเร็วเดิน', VIT: 'ความอึด · HP/ป้องกัน/บาเรีย', INT: 'สติปัญญา · พลังเวท/MP/เกราะเวท', DEX: 'ความแม่น · แรงคริ/ยิง', LUK: 'โชค · คริ/หลบ/ดรอปเล็กน้อย' };
 const REASON_TH = { level: 'เลเวลตัวละครยังไม่ถึงขั้นที่กำหนด', invalid: 'การตั้งค่าคราฟต์ไม่ถูกต้อง', materials: 'วัตถุดิบไม่พอ', learned: 'เรียนแล้ว', max: 'สูงสุดแล้ว', full: 'ช่อง Mod เต็ม', duplicate: 'ใส่ Mod ซ้ำไม่ได้', requires: 'Stat ไม่ถึง', not_learned: 'ยังไม่ได้เรียน' };
 const TELEPORT_TH = { combat: 'กำลังต่อสู้อยู่ — ออกจากการต่อสู้ก่อนแล้วค่อยวาร์ป', locked: 'ยังไม่ได้ปลดล็อก — เดินไปแตะหินวาร์ปนั้นก่อน', dead: 'หมดสติอยู่', unknown: 'ไม่พบจุดวาร์ป' };
 const CRAFT_FILTERS = [
@@ -283,6 +286,7 @@ export class Panels {
     if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal')){this.jobJournal.refresh();return;}
     this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
+    if (this.tab === 'growth') patchBars(this);
     if(this.lastResult && ['skills','mods','movement','growth','job'].includes(this.tab)) this.body.insertAdjacentHTML('afterbegin', `<div class="result-pop" role="status">${this.lastResult}</div>`);
     this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this) : null;
     this.body.scrollTop = scroll;
@@ -332,10 +336,18 @@ export class Panels {
     const face = document.querySelector('#hud .pframe .portrait')?.style.backgroundImage || '';
     const level = (label, now, need, cls) => `<div class="pg-level ${cls}"><div><span>${label}</span><b>${ch[cls === 'job' ? 'jobLevel' : 'level']}</b></div>
       <i class="pg-bar"><i style="width:${Math.max(0, Math.min(100, now / Math.max(1, need) * 100))}%"></i></i><small>${now} / ${need}${cls === 'job' ? ' Job EXP' : ' EXP'}</small></div>`;
+    // stat thresholds (core/stat-perks.js): four chips per stat, tap one to read what they do
+    const perks = Object.fromEntries(perkList(data, d.stats || ch.stats).map((r) => [r.stat, r.perks]));
     const rows = STATS.map((s) => {
       const [name, eff] = STAT_TH[s].split(' · ');
-      return `<div class="pg-stat"><span class="pg-ab">${s}</span><span class="pg-nm"><b>${name}</b><small>${eff}</small></span><b class="pg-v">${ch.stats[s]}</b>
-      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button></div>`;
+      // the value counts gear and the Job Tree too (the bonus in brackets)
+      const total = d.stats?.[s] ?? ch.stats[s], extra = total - ch.stats[s];
+      const open = this.sel.perkStat === s;
+      const chips = (perks[s] || []).map((p) => `<span class="pg-perk${p.active ? ' on' : ''}"><i>${p.at}</i>${esc(p.nameTh)}</span>`).join('');
+      const text = open ? `<div class="pg-perk-text">${(perks[s] || []).map((p) => `<p class="${p.active ? 'on' : ''}"><b>${p.at} · ${esc(p.nameTh)}</b> ${esc(p.descTh)}</p>`).join('')}</div>` : '';
+      return `<div class="pg-stat"><span class="pg-ab">${s}</span><span class="pg-nm"><b>${name}</b><small>${eff}</small></span><b class="pg-v">${total}${extra ? `<small> (+${extra})</small>` : ''}</b>
+      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button>
+      <button class="pg-perks${open ? ' open' : ''}" data-act="stat-perks" data-stat="${s}" aria-expanded="${open}" aria-label="ความสามารถพิเศษ ${s}">${chips}</button>${text}</div>`;
     }).join('');
     const kv = (rows) => `<div class="pg-kv">${rows.filter(Boolean).map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
     const pct = (label, v) => (v ? [label, `+${v.toFixed(0)}%`] : null);
@@ -352,12 +364,12 @@ export class Panels {
         <div class="muted">ได้เลเวลละ ${data.progression.character.statPointsPerLevel} แต้ม · ใช้เป็นเงื่อนไขของอาวุธ สกิล และม็อด</div>
         <div class="pg-list">${rows}</div>
         <div class="pg-foot"><span class="muted">รีแต้มด้วยเงินในเกม · ในนิคมเท่านั้น</span>
-          <button class="btn" data-act="respec-stats" ${!near.inTown || ch.gold < cost.stats ? 'disabled' : ''}>รีแต้ม · ${cost.stats} G</button></div>
+          <button class="btn" data-act="respec-stats" ${!near.inTown || ch.gold < cost.stats ? 'disabled' : ''}>รีแต้ม · ${cost.stats ? `${cost.stats} G` : 'ฟรี 1 ครั้ง (กฎค่าสถานะใหม่)'}</button></div>
       </section>
       <section class="pg-col">
         <h4>การโจมตี</h4>${kv([['พลังโจมตี', d.attack], ['พลังเวท', d.magic], ['โอกาสคริ', `${Math.round(d.critChance * 100)}%`], ['แรงคริ', `×${d.critMult.toFixed(2)}`], d.dodgeChancePct ? ['โอกาสหลบ', `${d.dodgeChancePct.toFixed(1)}%`] : null, pct('ดาเมจประชิด', d.meleeDamagePct), pct('ดาเมจยิง', d.projectileDamagePct), pct('ดาเมจเวท', d.spellDamagePct), pct('ดาเมจวงกว้าง', d.areaDamagePct), pct('ดาเมจอัญเชิญ', d.summonDamagePct), d.poisonChancePct ? ['โอกาสติดพิษ', `${d.poisonChancePct.toFixed(0)}%`] : null])}
         <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], d.maxShield ? ['เกราะเวท', d.maxShield] : null, pct('บาเรีย', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null])}
-        <h4>อื่น ๆ</h4>${kv([['ความเร็วเดิน', `${d.moveSpeed.toFixed(1)} m/s`], ['คูลดาวน์เร็วขึ้น', `${d.cooldownPct.toFixed(0)}%`], ['Gold', ch.gold.toLocaleString()]])}
+        <h4>อื่น ๆ</h4>${kv([['ความเร็วเดิน', `${d.moveSpeed.toFixed(1)} m/s`], ['ความเร็ว', `${Math.round(d.hastePct)}% / ${g.data.progression.character.caps.hastePct}%`], ['Gold', ch.gold.toLocaleString()]])}
       </section></div>`;
   }
 
@@ -389,7 +401,7 @@ export class Panels {
       ${wt ? `<div class="gear-implicit">${wt.nameTh} · ${Object.entries(imp)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>` : ''}
-      ${optionList(data,it.options,it.grade,equipmentItemLevel(data,it))}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires)}`;
+      ${optionList(data,it.options,it.grade,equipmentItemLevel(data,it))}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires,undefined,this.game.derived.stats)}`;
   }
 
   render_bag() {
@@ -430,7 +442,7 @@ export class Panels {
       : `<div class="muted">โหมดทดสอบ · ไม่บันทึก</div><div class="pg-actions"><button class="btn primary" data-act="title">กลับหน้าแรก</button></div>`;
     const keys = (...k) => `<span class="pg-keys">${k.map((x) => `<kbd>${x}</kbd>`).join('')}</span>`;
     const touch = [['◎', 'จอยซ้าย เดิน · สองนิ้ว ซูม'], ['●', 'แตะปุ่มสกิล ใช้กับเป้าที่ล็อกอัตโนมัติ'], ['↗', 'ลากปุ่มสกิลเพื่อเล็ง ปล่อยเพื่อใช้ · ปล่อยที่ ✕ เพื่อยกเลิก'], ['»', 'ปุ่มเคลื่อนที่แยกจากสกิลต่อสู้ (ปัดเพื่อเลือกทิศ)']];
-    const pc = [[keys('W', 'A', 'S', 'D'), 'เดิน · เมาส์เล็ง'], [keys('คลิกซ้าย', 'คลิกขวา'), 'สกิลช่อง 1 / 2'], [keys('Q', 'R'), 'สกิลช่อง 3 / 4 (กด 1–4 ก็ได้)'], [keys('Space'), 'หลบ / พุ่ง'], [keys('5', '6', '7', '8'), 'ใช้ยา'], [keys('I', 'K', 'J', 'C', 'L', 'M'), 'กระเป๋า · สกิล · อาชีพ · ตัวละคร · ภารกิจ · แผนที่'], [keys('E'), 'โต๊ะคราฟต์ / หินวาร์ป']];
+    const pc = [[keys('W', 'A', 'S', 'D'), 'เดิน · เมาส์เล็ง'], [keys('คลิกซ้าย', 'คลิกขวา'), 'สกิลช่อง 1 / 2'], [keys('Q', 'R'), 'สกิลช่อง 3 / 4 (กด 1–4 ก็ได้)'], [keys('Space'), 'หลบ / พุ่ง'], [keys('5', '6', '7', '8'), 'ใช้ยา'], [keys('I', 'K', 'J', 'C', 'L', 'M'), 'กระเป๋า · สกิล · อาชีพ · ตัวละคร · ภารกิจ · แผนที่'], [keys('E'), 'โต๊ะคราฟต์ / หินวาร์ป / หอยสังข์']];
     return `<div class="pg pg-settings">
       <section class="pg-col">
         ${this.lastResult ? `<div class="result-pop">${this.lastResult}</div>` : ''}
@@ -458,7 +470,7 @@ export class Panels {
       return `<button class="quick-slot ${i === pick ? 'on' : ''} ${def ? '' : 'empty'}" data-act="quick-select" data-slot="${i}" aria-pressed="${i === pick}" aria-label="ช่องไอเทม ${i + 1}${def ? ' · ' + def.nameTh : ' · ว่าง'}">${def ? potionArt(def) : icon('plus')}<b>${def ? ch.consumables[id] || 0 : ''}</b><small>ช่อง ${i + 1} · ปุ่ม ${i + 5}</small></button>`;
     }).join('');
     const rows = data.items.shop.stock.map((id) => {
-      const def = cons.types[id], own = ch.consumables[id] || 0, amt = restoreAmount(data, id, p.maxHp, p.maxMp), r = def.restore;
+      const def = cons.types[id], own = ch.consumables[id] || 0, amt = restoreAmount(data, id, p.maxHp, p.maxMp, this.game.derived.potionHealPct), r = def.restore;
       const gives = def.group === 'hp' ? `ฟื้น HP ${r.hp} + ${r.hpPct}% (≈${amt.hp})` : `ฟื้น MP ${r.mp} + ${r.mpPct}% (≈${amt.mp})`;
       const buys = data.items.shop.buyAmounts.map((n) => {
         const st = buyState(ch, data, id, n);
@@ -472,7 +484,7 @@ export class Panels {
       <section class="pg-col">
         <p class="pg-banner ${near ? 'ok' : ''}">${near ? 'คุยกับพ่อค้าอยู่ · ซื้อยาได้เลย' : 'ซื้อได้เมื่อยืนอยู่ที่ร้านค้าในเมือง (จุดสีชมพูบนแผนที่) · จัดช่องยาได้ทุกที่'}</p>
         <div class="pg-list">${rows}</div>
-        <p class="muted">ดื่มยาแล้ว ยาชนิดเดียวกันใช้ซ้ำได้อีกใน ${cons.groupCooldown.hp} วินาที</p>
+        <p class="muted">ดื่มยาแล้ว ยาเลือดใช้ซ้ำได้อีกใน ${cons.groupCooldown.hp} วินาที · ยามานาใช้ซ้ำได้อีกใน ${cons.groupCooldown.mp} วินาที</p>
       </section>
       <section class="pg-col shop-head">
         <h3>ช่องยากดใช้</h3><p class="muted">ตรงกับแถวยาเหนือปุ่มสกิล · เลือกช่อง แล้วแตะ "ใส่ช่อง" ที่ยาทางซ้าย</p>
@@ -542,6 +554,7 @@ export class Panels {
         return this.render(true);
       case 'growth-pick':
         this.sel.growthPick = t.dataset.id;
+        this.sel.barDraft = null;
         return this.render();
       case 'close-journal': return this.close();
       case 'dismiss-node': this.sel.node = null; return this.render();
@@ -593,6 +606,9 @@ export class Panels {
       case 'stat':
         allocateStat(ch, t.dataset.stat);
         return this.changed();
+      case 'stat-perks':
+        this.sel.perkStat = this.sel.perkStat === t.dataset.stat ? null : t.dataset.stat;
+        return this.render();
       case 'respec-stats':
         if (respecStats(ch, data)) {
           const inactive=inactiveEquipment(ch,data);
@@ -627,10 +643,30 @@ export class Panels {
         r = upgradeMovement(ch, data, t.dataset.id);
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
         return this.changed();
-      case 'skill-up':
-        if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');
-        r = upgradeSkill(ch, data, t.dataset.skill);
-        if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
+      case 'bar-step':
+        stepBar(this, t.dataset.id, t.dataset.bar, Number(t.dataset.d));
+        return patchBars(this);
+      case 'bar-reset':
+        this.sel.barDraft = null;
+        return patchBars(this);
+      case 'bar-apply':
+        if (!this.sel.barDraft) return;
+        r = allocateBars(ch, data, t.dataset.id, this.sel.barDraft.bars, true);
+        if (!r.ok) return this.flash({ gold: 'Gold ไม่พอสำหรับถอนแต้ม', points: 'แต้มไม่พอ', cap: 'เกินความยาวหลอดของเกรดนี้' }[r.reason] || r.reason);
+        this.sel.barDraft = null;
+        this.lastResult = r.removed ? `ถอนแต้ม ${r.removed} แต้ม · ใช้ ${r.gold.toLocaleString()} G` : 'บันทึกหลอดแล้ว';
+        return this.changed();
+      case 'bar-grade':
+        if (!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด');
+        r = upgradeGrade(ch, data, t.dataset.id, true);
+        if (!r.ok) return this.flash(r.reason === 'materials' ? 'วัตถุดิบหรือ Gold ไม่พอ' : 'เกรดสูงสุดแล้ว');
+        this.lastResult = `อัปเป็นเกรด ${r.to} แล้ว · หลอดยาวขึ้น`;
+        return this.changed();
+      case 'skill-feed':
+        if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่อป้อนผลึก');
+        r = feedSkill(ch, data, t.dataset.skill, t.dataset.crystal, Number(t.dataset.n));
+        if (!r.ok) return this.flash({ cap: 'สกิลเท่าเลเวลตัวละครแล้ว', gold: 'Gold ไม่พอ', materials: 'ผลึกไม่พอ', requires: 'ค่าสถานะยังไม่ถึง' }[r.reason] || REASON_TH[r.reason] || r.reason);
+        this.lastResult = !r.used ? `${data.skills.combat[t.dataset.skill].nameTh} Lv.${r.level} จาก EXP ที่สะสมไว้` : `ป้อนผลึก ${r.used} เม็ด · ใช้ ${r.gold.toLocaleString()} G${r.levels ? ` · ${data.skills.combat[t.dataset.skill].nameTh} Lv.${r.level}` : ''}`;
         return this.changed();
       case 'node':
         this.sel.node = t.dataset.id;
@@ -797,7 +833,6 @@ const EFFECT_TH = {
   damagePct: 'ดาเมจทุกแบบ %',
   attackDamagePct: 'ดาเมจสกิลโจมตี %',
   critMultPct: 'ความแรงคริ %',
-  castSpeedPct: 'ความเร็วร่าย/โจมตี %',
   elementalDamagePct: 'ดาเมจธาตุ %',
   penetrationPct: 'เจาะเกราะ %',
   movementRechargePct: 'สกิลเคลื่อนที่ฟื้นไว %',
@@ -822,7 +857,7 @@ const EFFECT_TH = {
   maxShieldPct: 'เกราะเวท %',
   healPct: 'การฟื้นฟู %',
   moveSpeedPct: 'ความเร็วเดิน %',
-  cooldownPct: 'คูลดาวน์เร็วขึ้น %',
+  hastePct: 'ความเร็ว %',
   critChancePct: 'โอกาสคริ %',
   damageTakenPct: 'ดาเมจที่ได้รับ %',
   hpRegen: 'ฟื้น HP/วิ',

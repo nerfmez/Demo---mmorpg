@@ -203,10 +203,10 @@ export const ACTIONS = {
 
 // skill id -> action (or a family resolved by weapon / combo step)
 const BY_SKILL = {
-  slash: 'combo', whirl_blade: 'whirlSpin', hunter_shot: 'shoot', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
+  slash: 'combo', whirl_blade: 'whirlSpin', hunter_shot: 'shoot', rapid_volley: 'volleyKneel', killing_arrow: 'killShot', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
   stone_burst: 'boltCast', frost_nova: 'nova', venom_mire: 'shoot', venom_bolt: 'boltCast', hex: 'boltCast', ward: 'nova',
-  arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', armor_cleave: 'sunderChop', interrupt_slam: 'breakbeatSlam', sky_shatter: 'skyPry', earth_rend: 'rendLeap', cross_cut: 'crossCut', weakpoint: 'flankStab', shield_bash: 'shieldShove', riposte: 'riposteGuard',
-  war_cry: 'warCryRoar', healing_spring: 'nova', spirit_wolf: 'zap',
+  arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', spell_wave: 'splitChop', draw_cut: 'drawDash', armor_cleave: 'sunderChop', interrupt_slam: 'breakbeatSlam', sky_shatter: 'skyPry', earth_rend: 'rendLeap', cross_cut: 'crossCut', blade_storm: 'bladeStorm', weakpoint: 'flankStab', backstab: 'flankStab', shield_bash: 'shieldShove', riposte: 'riposteGuard',
+  war_cry: 'warCryRoar', healing_spring: 'nova', blessing: 'nova', spirit_wolf: 'zap',
   // the owner's approved spells are the base of the alike ones: Firebolt's push (boltCast, staffCast with
   // a staff) for spells aimed at a spot, Chain Spark's flick (zap) for calling a summon, Frost Nova's
   // burst (nova) for spells around the hero

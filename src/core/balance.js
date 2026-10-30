@@ -3,20 +3,20 @@
 // time-to-kill, time-to-die (standing still, no dodging) and minutes per level, so the
 // numbers in data/ can be checked against data.progression.balance.targets by a test.
 // Pure: it never touches a live game. Reproduce with `node scripts/balance-report.mjs`.
-import { createCharacter, derive, expToNext, defenseFactor } from './character.js';
+import { createCharacter, derive, expToNext, defenseFactor, mpRegenOf } from './character.js';
 import { computeSkill } from './skills.js';
 import { gearDropCandidates, gearRecipe } from './crafting.js';
 
-/** The expected gear item level at character level `level`: the highest tier reached. */
+/** The expected gear item level at character level `level`: pieces found or made at the hero's own level
+ * (each piece has its own item level inside its base's range, items.gearLevels). */
 export function gearTierAt(data, level) {
-  const tiers = data.progression.balance.gearTiers;
-  return tiers.filter((t) => t <= level).pop() || tiers[0];
+  return Math.max(1, level);
 }
 
-/** Skill rank the reference hero has at `level` (ranks are not level-gated; balanceLevel is when it typically affords each). */
+/** Skill level the reference hero has at character `level`: kept up with the character (a skill levels
+ * up to the character's level, progression.skillUpgrade). */
 export function skillRankAt(data, level) {
-  const steps = data.progression.skillUpgrade.steps;
-  return 1 + steps.filter((s) => s.balanceLevel <= level).length;
+  return Math.max(1, Math.min(level, data.progression.skillUpgrade.maxLevel));
 }
 
 /** The average normal (non-boss) monster at `level`. */
@@ -115,9 +115,10 @@ function recipeValue(data, r) {
 /**
  * Gold-equivalent income per hour at `level` for `kit`, with farming bonuses `find`
  * (goldFindPct/materialFindPct/gearFindPct) and the arrows a bow spends (`arrowRecipe`).
+ * `ttk` replaces the reference hero's kill time (a build's own, core/build-rules.js).
  */
-export function farmingIncome(data, kit, level, find = {}, arrowRecipe = null) {
-  const b = data.progression.balance, r = balanceAt(data, kit, level), m = referenceMonster(data, level);
+export function farmingIncome(data, kit, level, find = {}, arrowRecipe = null, ttk = null) {
+  const b = data.progression.balance, r = ttk === null ? balanceAt(data, kit, level) : { ttk };
   const normals = Object.values(data.monsters.monsters).filter((x) => !x.boss);
   const avg = (f) => normals.reduce((a, x) => a + f(x), 0) / normals.length;
   const gold = avg((x) => x.drops.filter((d) => d.item === 'gold').reduce((a, d) => a + d.chance * (d.min + d.max) / 2, 0)) * (1 + (find.goldFindPct || 0) / 100);
@@ -158,7 +159,7 @@ export function longFightDps(data, kit, level, jobNodes = null, seconds = 90, mo
   const b = data.progression.balance, base = data.progression.character.base;
   const { ch, d } = referenceHero(data, kit, level, jobNodes, mods);
   for (const [k, v] of Object.entries(gear)) d[k] = (d[k] || 0) + v;
-  if (gear.mpRegenPct) d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
+  if (gear.mpRegenPct) d.mpRegen = mpRegenOf(data, ch.level, d.mpRegenPct, ch.stats.INT);
   const s = computeSkill(ch, data, d, 0), m = referenceMonster(data, level);
   const crit = 1 + d.critChance * (d.critMult - 1);
   const mdef = m.defense * (1 - (d.penetrationPct || 0) / 100);
@@ -203,7 +204,9 @@ export function bossOnlyMaterials(data) {
  */
 export function recipeFarming(data, recipe, kit = 'sword') {
   const b = data.progression.balance, boss = bossOnlyMaterials(data), M = data.monsters.monsters;
-  const spawns = Object.values(data.maps || { w: data.world }).flatMap((m) => m.spawns);
+  // a monster awaiting placement (monsters.json awaiting) counts at its fixed levels
+  const spawns = [...Object.values(data.maps || { w: data.world }).flatMap((m) => m.spawns),
+    ...Object.entries(M).filter(([, m]) => m.awaiting && !m.boss && m.levels).map(([id, m]) => ({ monster: id, level: m.levels }))];
   const gearRate = Object.values(data.items.gearDrops.normal).reduce((a, c) => a + c, 0);
   const share = data.items.salvage.returnByGrade.C;
   const out = { minutes: 0, bossKills: 0, parts: {} };

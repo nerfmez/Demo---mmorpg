@@ -7,6 +7,7 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   earth_rend: 'แผ่นดินแยก',
   iron_body: 'กายเหล็ก',
   cross_cut: 'ฟันไขว้',
+  backstab: 'แทงหลัง',
   blade_storm: 'พายุมีด',
   rally: 'ปลุกใจ',
   frenzy_roar: 'คำรามคลั่ง',
@@ -21,6 +22,7 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   holy_bell: 'ระฆังศักดิ์สิทธิ์',
   light_chain: 'โซ่แสง',
   spell_wave: 'คลื่นดาบเวท',
+  draw_cut: 'ชักดาบพริบตา',
 });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

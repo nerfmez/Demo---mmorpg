@@ -60,7 +60,7 @@ for (const [id, world] of Object.entries(worlds)) {
 test('hermits occupy existing rocky coast, keep their loot zone and all five spawns', () => {
   const world=worlds['azure-harbor-v1'],hermits=encounterLayout(world,data).points.filter(p=>p.monster==='hermit_crab');
   assert.equal(hermits.length,5);
-  for(const p of hermits){const c=world.coastAt(p.x,p.z);assert.equal(c.kind,'rock');assert.ok(c.distance>=0&&c.distance<=10);assert.equal(p.zone,'headland');assert.deepEqual(p.level,[7,8]);}
+  for(const p of hermits){const c=world.coastAt(p.x,p.z);assert.equal(c.kind,'rock');assert.ok(c.distance>=0&&c.distance<=10);assert.equal(p.zone,'headland');assert.deepEqual(p.level,[10,12]);}
   const spawn=world.data.spawns.find(s=>s.monster==='hermit_crab'),p=hermits[0];
   assert.equal(encounterPointAllowed({...world,coastAt:()=>({distance:-1,kind:'rock'})},data,spawn,p.x,p.z),false,'negative signed coast distance is water, not coastal habitat');
   assert.equal(encounterPointAllowed({...world,coastAt:()=>({distance:1,kind:'quay'})},data,spawn,p.x,p.z),false,'city quay is not the authored rocky habitat');

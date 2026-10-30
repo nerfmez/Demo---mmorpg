@@ -25,10 +25,10 @@ export function consumableCount(ch, id) {
 }
 
 /** HP/MP a potion gives a hero with these maxima (before capping at the missing amount). */
-export function restoreAmount(data, id, maxHp, maxMp) {
+export function restoreAmount(data, id, maxHp, maxMp, potionHealPct = 0) {
   const r = rules(data).types[id]?.restore || {};
   return {
-    hp: Math.round((r.hp || 0) + ((r.hpPct || 0) * maxHp) / 100),
+    hp: Math.round(((r.hp || 0) + ((r.hpPct || 0) * maxHp) / 100) * Math.max(0, 1 + potionHealPct / 100)),
     mp: Math.round((r.mp || 0) + ((r.mpPct || 0) * maxMp) / 100),
   };
 }

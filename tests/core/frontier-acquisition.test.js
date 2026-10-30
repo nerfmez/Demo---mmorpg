@@ -39,7 +39,7 @@ test('complete catalogue socket/UI/compiled compatibility agrees and every new m
  for(const [mid,md]of Object.entries(data.mods.mods)){
   let consumers=0;
   for(const[sid,sd]of Object.entries(data.skills.combat)){
-   const ch=createCharacter(data);ch.stats={STR:99,DEX:99,INT:99,AGI:99,VIT:99};ch.skills[sid]=1;ch.slots[0]={skill:sid,mods:[]};ch.mods=[{id:mid,uid:100,level:1,grade:'C'}];
+   const ch=createCharacter(data);ch.stats={STR:99,DEX:99,INT:99,AGI:99,VIT:99,LUK:99};ch.skills[sid]=1;ch.slots[0]={skill:sid,mods:[]};ch.mods=[{id:mid,uid:100,level:1,grade:'C'}];
    const fit=modFits(sd,md).ok;assert.equal(modStatus(ch,data,0,ch.mods[0]).fit.ok,fit,mid+'/'+sid);
    assert.equal(socketMod(ch,data,0,100).ok,fit,mid+'/'+sid);
    if(fit){const s=computeSkill(ch,data,derive(ch,data),0);assert(s.mods[0].active,mid+'/'+sid);consumers++;}
@@ -55,7 +55,8 @@ test('v9 prototype and v12 main saves retain IDs, loadouts and auto-potion setti
   const ch=createCharacter(data);ch.version=version;ch.skills.charged_shot=2;ch.slots[1]={skill:'charged_shot',mods:[800]};ch.mods=[{id:'returning_shot',uid:800,level:2,grade:'B'},{id:'short_stride',uid:801,level:1,grade:'C'}];ch.nextUid=802;ch.movementSkills=['roll'];ch.movement='roll';ch.movementMods=[801];
   ch.autoPotions.hp.enabled=true;ch.autoPotions.hp.threshold=37;
   assert(writeSlot(1,ch));const restored=migrateCharacter(loadSlot(1).character,data);
-  for(const key of ['skills','slots','mods','movementMods','movementSkills','movement','nextUid','gear','equipped'])assert.deepEqual(restored[key],ch[key],version+'/'+key);
+  for(const key of ['slots','mods','movementMods','movementSkills','movement','nextUid','gear','equipped'])assert.deepEqual(restored[key],ch[key],version+'/'+key);
+  assert.deepEqual(restored.skills,{...ch.skills,charged_shot:version<17?4:2},version+'/skills'); // v17: old rank 2 is skill level 4
   if(version>=12)assert.deepEqual(restored.autoPotions,ch.autoPotions);
   assert.equal(restored.version,CHARACTER_VERSION);const again=structuredClone(restored);migrateCharacter(again,data);assert.deepEqual(again,restored);
  }
@@ -71,7 +72,8 @@ test('tree revision 3 selective refund and v13 movement migration coexist exactl
   ch.autoPotions.hp={enabled:true,threshold:37,potion:'hp_potion_s'};
   const before=structuredClone(ch),m=migrateCharacter(ch,data);
   assert.equal(m.version,CHARACTER_VERSION);assert.equal(m.treeRevision,3);assert.equal(m.jobPoints,9);assert.deepEqual(m.jobNodes,before.jobNodes.slice(0,6));assert.deepEqual(m.movementMods,hasSocket?[801]:[]);
-  for(const key of ['skills','slots','mods','nextUid','movementSkills','movement','gear','equipped','gold','materials'])assert.deepEqual(m[key],before[key],version+'/'+key);
+  for(const key of ['slots','mods','nextUid','movementSkills','movement','gear','equipped','gold','materials'])assert.deepEqual(m[key],before[key],version+'/'+key);
+  assert.deepEqual(m.skills,{...before.skills,charged_shot:4},version+'/skills');
   if(version>=12)assert.deepEqual(m.autoPotions,before.autoPotions);
   const once=structuredClone(m);assert.deepEqual(migrateCharacter(JSON.parse(JSON.stringify(m)),data),once);
  }

@@ -2,10 +2,11 @@
 import { art } from './art.js';
 import { icon } from './icons.js';
 import { meetsRequires } from '../core/character.js';
-import { modFits, modRequires, movementRank } from '../core/skills.js';
-import { skillUpgradeCost, modUpgradeCost, skillUpgradeState, modUpgradeState, movementUpgradeState } from '../core/crafting.js';
+import { modFits, modRequires, movementRank, skillRequires, levelInUse } from '../core/skills.js';
+import { modUpgradeCost, skillUpgradeState, modUpgradeState, movementUpgradeState } from '../core/crafting.js';
 import { skillGrowthPreview, modGrowthPreview, upgradeTrack, stateText } from './progressionview.js';
 import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus, slotCapacity } from './buildmeta.js';
+import { barsWorkspace } from './skill-bars.js';
 
 function loadout(ui, modMode=false) {
   const {ch,data}=ui.game, selected=ui.sel.skill??0;
@@ -21,7 +22,7 @@ export function skillsView(ui, {describeSkill}) {
   const {game:g,sel}=ui,{ch,data}=g, index=sel.skill??0,slot=ch.slots[index],def=data.skills.combat[slot.skill],s=g.skills[index];
   const filter=sel.skillFilter||'all';
   const choices=Object.entries(data.skills.combat).filter(([,d])=>filter==='all'||d.tags.includes(filter)).map(([id,d])=>{
-    const learned=!!ch.skills[id],req=meetsRequires(ch,d.requires);
+    const learned=!!ch.skills[id],req=meetsRequires(ch,skillRequires(data,d,1),data);
     return `<article class="seeker-library-item ${slot.skill===id?'selected':''}">${art('skill',id)}<div><b>${d.nameTh}</b>${tagsHtml(d.tags)}<small>${learned?'Lv.'+ch.skills[id]:'ยังไม่เรียน'}${req.ok?'':' · ต้อง '+req.missing.join(', ')}</small></div><button class="btn small" data-act="choose-skill" data-slot="${index}" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${slot.skill===id?'ใส่อยู่':'ใส่ช่อง '+(index+1)}</button></article>`;
   }).join('');
   return heading('จัดชุดสกิล','เลือกช่องก่อน แล้วเลือกสกิล · การดูรายละเอียดไม่ใช้วัตถุดิบ')+loadout(ui)+`<div class="seeker-build-grid"><section class="card seeker-focus">
@@ -49,7 +50,7 @@ export function modsWorkspace(ui,{describeSkill}) {
 export function movementWorkspace(ui) {
  const {ch,data}=ui.game;
  return heading('สกิลเคลื่อนที่','หนึ่งช่องแยก · ไม่แย่งช่องต่อสู้ · ม็อดต่อสู้ใช้กับช่องนี้ไม่ได้')+`<div class="seeker-movement-grid">${Object.entries(data.skills.movement).map(([id,d])=>{
-  const learned=ch.movementSkills.includes(id), req=meetsRequires(ch,d.requires);
+  const learned=ch.movementSkills.includes(id), req=meetsRequires(ch,d.requires,data);
   return `<section class="card"><div class="seeker-hero">${art('skill',id)}<div><h3>${d.nameTh}</h3><small>${d.name}${learned?' · Lv.'+movementRank(ch,id):''}</small></div></div><p>${d.desc}</p>${skillMeta(d)}<p>ระยะ ${d.distance} ม. · ${d.charges} ชาร์จพื้นฐาน · คืนชาร์จ ${d.recharge} วิ</p><p>หลบดาเมจระหว่างใช้: ${d.invulnerable?'ได้':'ไม่ได้'}</p><button class="btn ${ch.movement===id?'on':'primary'}" data-act="movement" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${ch.movement===id?'ใช้อยู่':learned?'เลือกใช้':'ยังไม่เรียน'}</button></section>`;
  }).join('')}</div><div class="seeker-result">สกิลที่ใช้อยู่: ${ui.game.move.def.nameTh} · ชาร์จสูงสุด ${ui.game.move.charges} · คืนชาร์จจริง ${ui.game.move.recharge.toFixed(1)} วิ</div>`;
 }
@@ -58,31 +59,52 @@ export function growthWorkspace(ui,{costHtml,describeSkill}) {
  // List of skills or mods on the left; the picked one's level track, preview, cost and button on the right.
  const {game:g,sel}=ui,{ch,data}=g,kind=sel.growthKind||'skill',isSkill=kind==='skill',isMove=kind==='move',atService=g.nearby().skillUpgrade;
  const mu=data.progression.movementUpgrade;
+ if(kind==='bars') return barsWorkspace(ui,{costHtml,frame:(list,note,detail)=>`<div class="pg pg-growth"><section class="pg-col"><div class="pg-seg2"><button class="btn" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn" data-act="growth-filter" data-id="mod">ม็อด</button></div>
+  ${moveTab(kind)}${barsTab(kind)}${note}<div class="pg-list">${list}</div></section><section class="pg-col seeker-growth-grid">${detail}</section></div>`});
  if(isMove) return growthFrame(ui,kind,atService,ch.movementSkills.map(id=>({id,level:movementRank(ch,id),def:data.skills.movement[id],state:movementUpgradeState(ch,data,id)})),e=>moveDetail(ch,data,e,atService,costHtml,mu));
  const entries=isSkill?Object.entries(ch.skills).filter(([id])=>data.skills.combat[id]).map(([id,level])=>({id,level,def:data.skills.combat[id],state:skillUpgradeState(ch,data,id)})):ch.mods.map(inst=>({...inst,def:data.mods.mods[inst.id],state:modUpgradeState(ch,data,inst)}));
  const key=e=>String(isSkill?e.id:e.uid);
  const cur=entries.find(e=>key(e)===String(sel.growthPick))||entries[0];
- const list=entries.map(e=>`<button class="pg-row ${e===cur?'on':''}" data-act="growth-pick" data-id="${key(e)}" aria-pressed="${e===cur}"><span class="pg-ic">${art(isSkill?'skill':'mod',e.id)}</span><span class="pg-tx"><b>${e.def.nameTh}</b><small>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</small></span>${atService&&e.state.ok?'<i class="pg-dot" aria-label="อัปได้"></i>':''}</button>`).join('');
+ const sub=e=>isSkill?`Lv.${e.level} / ${e.state.cap??e.level}${e.state.reason==='cap'?' · เต็มตามเลเวลตัวละคร':e.state.reason==='max'?' · สูงสุด':` · EXP ${e.state.exp}/${e.state.need}`}`:`Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}`;
+ const list=entries.map(e=>`<button class="pg-row ${e===cur?'on':''}" data-act="growth-pick" data-id="${key(e)}" aria-pressed="${e===cur}"><span class="pg-ic">${art(isSkill?'skill':'mod',e.id)}</span><span class="pg-tx"><b>${e.def.nameTh}</b><small>${sub(e)}</small></span>${atService&&e.state.ok?'<i class="pg-dot" aria-label="อัปได้"></i>':''}</button>`).join('');
  const detail=e=>{
+  if(isSkill) return skillLevelDetail(ui,e,atService,describeSkill);
   const ready=atService&&e.state.ok;
   const status=e.state.ok&&!atService?'ต้องอยู่ใกล้จุดคราฟต์หรือครูฝึก':stateText(e.state);
   const reqText=r=>Object.entries(r).map(([k,v])=>k+' '+v).join(', ')||'ไม่มีเงื่อนไข';
-  const levels=isSkill?data.progression.skillUpgrade.steps.map(s=>e.def.upgradeStat+' '+s.requiresStat):data.progression.modUpgrade.cost.map((_,i)=>reqText(modRequires(data,e.def,i+2)));
-  return `<section class="card"><div class="seeker-hero">${art(isSkill?'skill':'mod',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</span></div></div>${isSkill?tagsHtml(e.def.tags):rulesHtml(e.def)}${upgradeTrack(levels,e.level-1,'Lv.',2)}${e.state.cost?`${isSkill?skillGrowthPreview(ch,data,e.id,describeSkill):modGrowthPreview(e.def,e.level)}<div class="cost">${costHtml(ch,data,e.state.cost)}</div><div class="pg-foot"><span><p class="${ready?'ok':'no'}" data-growth-status>${status}</p><small>สำเร็จแน่นอน · ใช้ผลึกทักษะและทอง ไม่ใช้แต้มต้นไม้</small></span><button class="btn primary" data-act="${isSkill?'skill-up':'mod-up'}" ${isSkill?`data-skill="${e.id}"`:`data-uid="${e.uid}"`} ${ready?'':'disabled'}>อัปเป็น Lv.${e.level+1}</button></div>`:''}</section>`;
+  const levels=data.progression.modUpgrade.cost.map((_,i)=>reqText(modRequires(data,e.def,i+2)));
+  return `<section class="card"><div class="seeker-hero">${art('mod',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</span></div></div>${rulesHtml(e.def)}${upgradeTrack(levels,e.level-1,'Lv.',2)}${e.state.cost?`${modGrowthPreview(e.def,e.level)}<div class="cost">${costHtml(ch,data,e.state.cost)}</div><div class="pg-foot"><span><p class="${ready?'ok':'no'}" data-growth-status>${status}</p><small>สำเร็จแน่นอน · ใช้ผลึกทักษะและทอง ไม่ใช้แต้มต้นไม้</small></span><button class="btn primary" data-act="mod-up" data-uid="${e.uid}" ${ready?'':'disabled'}>อัปเป็น Lv.${e.level+1}</button></div>`:''}</section>`;
  };
  return `<div class="pg pg-growth"><section class="pg-col"><div class="pg-seg2"><button class="btn ${isSkill?'on':''}" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn ${!isSkill?'on':''}" data-act="growth-filter" data-id="mod">ม็อด</button></div>
-  ${moveTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
+  ${moveTab(kind)}${barsTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
   <div class="pg-list">${list||'<p class="muted">ยังไม่มีรายการในหมวดนี้</p>'}</div></section>
   <section class="pg-col seeker-growth-grid">${cur?detail(cur):''}</section></div>`;
 }
 
-// Movement skills rank up with AGI (data.progression.movementUpgrade): the same list-and-detail page.
-const moveTab=kind=>`<button class="btn ${kind==='move'?'on':''}" data-act="growth-filter" data-id="move" aria-pressed="${kind==='move'}">สกิลเคลื่อนที่ (AGI)</button>`;
+// A skill's level (core/crafting.js feedSkill): up to the character's level; crystals fed give skill EXP,
+// gold per EXP; the skill's stat gates each band of levels. One row per crystal size.
+function skillLevelDetail(ui,e,atService,describeSkill){
+ const {ch,data}=ui.game,inUse=levelInUse(ui.game.derived.stats,e.level,L=>skillRequires(data,e.def,L)),st=e.state,su=data.progression.skillUpgrade,open=!['cap','max','not_learned'].includes(st.reason)&&st.room>0;
+ const status=st.reason==='max'?'เลเวลสูงสุดของสกิลแล้ว':st.reason==='cap'?`เท่าเลเวลตัวละครแล้ว (Lv.${st.cap}) · เลเวลตัวละครขึ้นแล้วอัปต่อได้`:!st.gate.ok&&st.exp>=st.need?`EXP ครบแล้ว · ต้องมี ${st.gate.stat} ${st.gate.need} เพื่อไป Lv.${st.level+1}`:!atService?'ป้อนผลึกได้ที่จุดคราฟต์หรือครูฝึก':'ป้อนผลึกเพื่อรับ EXP สกิล';
+ const rows=Object.entries(su.crystals).map(([id,per])=>{
+  const have=ch.materials[id]||0,useful=open?Math.min(have,Math.ceil(st.room/per),Math.floor(ch.gold/(per*su.goldPerExp))):0,can=atService&&useful>0;
+  return `<div class="sl-crystal"><span class="pg-ic">${art('material',id)}</span><span class="pg-tx"><b>${data.items.materials[id].nameTh}</b><small>มี ${have} · ${per} EXP ต่อเม็ด · ${(per*su.goldPerExp).toLocaleString()} G ต่อเม็ด</small></span><span class="sl-feed"><button class="btn" data-act="skill-feed" data-skill="${e.id}" data-crystal="${id}" data-n="1" ${can?'':'disabled'}>ป้อน 1</button>${useful>1?`<button class="btn primary" data-act="skill-feed" data-skill="${e.id}" data-crystal="${id}" data-n="${useful}" ${can?'':'disabled'}>ป้อน ${useful}</button>`:''}</span></div>`;
+ }).join('');
+ const preview=st.reason==='cap'||st.reason==='max'?'':skillGrowthPreview(ch,data,e.id,describeSkill);
+ return `<section class="card"><div class="seeker-hero">${art('skill',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level} / ${st.cap} · สกิลขึ้นได้ไม่เกินเลเวลตัวละคร</span>${inUse<e.level?`<span class="no" data-skill-in-use>ตอนนี้ทำงานที่ Lv.${inUse||0} · ต้องมี ${Object.entries(skillRequires(data,e.def,e.level)).map(([k,v])=>`${k} ${v}`).join(', ')} จึงใช้ Lv.${e.level} เต็ม</span>`:''}</div></div>${tagsHtml(e.def.tags)}
+  <div class="sl-exp"><span style="width:${Math.min(100,Math.round(st.exp/st.need*100))}%"></span></div><small class="muted">EXP สกิล ${st.exp} / ${st.need} → Lv.${st.level+1} · ต้องมี ${Object.entries(st.gate.requires).map(([k,v])=>{const have=ui.game.derived.stats?.[k]??ch.stats[k];return `${k} ${v} <span class="${have>=v?'ok':'no'}">(มี ${have})</span>`;}).join(' · ')}</small>
+  ${preview}<div class="sl-crystals">${rows}</div><div class="pg-foot"><span><p class="${(open||st.pending)&&atService?'ok':'no'}" data-growth-status>${st.pending?'EXP ที่สะสมไว้พอขึ้นเลเวลแล้ว':status}</p><small>สำเร็จแน่นอน · ป้อนเฉพาะที่ใช้ได้ EXP ที่เกินเก็บไว้ · ไม่ใช้แต้มต้นไม้</small></span>${st.pending?`<button class="btn primary" data-act="skill-feed" data-skill="${e.id}" data-crystal="skill_crystal" data-n="0" ${atService?'':'disabled'}>ขึ้นเป็น Lv.${st.level+1}</button>`:''}</div></section>`;
+}
+
+// Movement skills rank up with their main stat (data.progression.movementUpgrade): the same list-and-detail page.
+const moveTab=kind=>`<button class="btn ${kind==='move'?'on':''}" data-act="growth-filter" data-id="move" aria-pressed="${kind==='move'}">สกิลเคลื่อนที่</button>`;
+// Skill bars (core/skill-growth.js, ui/skill-bars.js): points from use, shaped bar by bar.
+const barsTab=kind=>`<button class="btn ${kind==='bars'?'on':''}" data-act="growth-filter" data-id="bars" aria-pressed="${kind==='bars'}">หลอดสกิล</button>`;
 function growthFrame(ui,kind,atService,entries,detail){
  const cur=entries.find(e=>e.id===String(ui.sel.growthPick))||entries[0];
  const list=entries.map(e=>`<button class="pg-row ${e===cur?'on':''}" data-act="growth-pick" data-id="${e.id}" aria-pressed="${e===cur}"><span class="pg-ic">${art('skill',e.id)}</span><span class="pg-tx"><b>${e.def.nameTh}</b><small>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</small></span>${atService&&e.state.ok?'<i class="pg-dot" aria-label="อัปได้"></i>':''}</button>`).join('');
  return `<div class="pg pg-growth"><section class="pg-col"><div class="pg-seg2"><button class="btn" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn" data-act="growth-filter" data-id="mod">ม็อด</button></div>
-  ${moveTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
+  ${moveTab(kind)}${barsTab(kind)}<small class="muted">${atService?'อยู่ใกล้จุดคราฟต์หรือครูฝึก · อัปเกรดได้':'กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเกรด'}</small>
   <div class="pg-list">${list||'<p class="muted">ยังไม่มีสกิลเคลื่อนที่</p>'}</div></section>
   <section class="pg-col seeker-growth-grid">${cur?detail(cur):''}</section></div>`;
 }

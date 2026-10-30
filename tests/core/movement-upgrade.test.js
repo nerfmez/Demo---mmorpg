@@ -1,4 +1,5 @@
-// Movement skills rank up with AGI (owner, 2026-10-25): data.progression.movementUpgrade.
+// Movement skills rank up with their own stat (owner, 2026-10-25; dash and roll AGI, blink INT, leap STR):
+// data.progression.movementUpgrade.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
@@ -14,12 +15,12 @@ function hero(agi = 3) {
   return ch;
 }
 
-test('every movement skill upgrades with AGI', () => {
-  for (const [id, d] of Object.entries(data.skills.movement)) assert.equal(d.upgradeStat, 'AGI', id);
+test('every movement skill upgrades with its own stat (dash and roll with AGI)', () => {
+  for (const id of ['dash', 'roll']) assert.equal(data.skills.movement[id].upgradeStat, 'AGI', id);
   assert.equal(mu.steps.length, mu.maxLevel - 1);
 });
 
-test('a rank needs the step\'s AGI and its materials, pays them once, and stops at the cap', () => {
+test('a rank needs the step\'s stat and its materials, pays them once, and stops at the cap', () => {
   const ch = hero(mu.steps[0].requiresStat - 1);
   const short = movementUpgradeState(ch, data, 'dash');
   assert.equal(short.reason, 'requires');

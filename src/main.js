@@ -24,7 +24,7 @@ import { QuestCompletion } from './ui/quest-completion.js';
 import { QuestRoute } from './render/quest-route.js';
 import { Supplies } from './ui/supplies.js';
 import { createFullscreen } from './ui/fullscreen.js';
-import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel } from './save.js';
+import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel, stashDungeon } from './save.js';
 import { characterMap, selectMap } from './core/maps.js';
 import '@fontsource/mitr/thai-400.css';
 import '@fontsource/mitr/thai-500.css';
@@ -180,6 +180,18 @@ function travelTo(character, slot, name) {
   requestAnimationFrame(() => setTimeout(() => location.replace(url.href), 30));
 }
 
+/** Open the Pearlshell Grotto page (dungeon.html) from the Singing Conch; its pearl gate comes back here. */
+function enterDungeon(game, slot) {
+  const character = game.snapshot();
+  if (slot) writeSlot(slot, character);
+  stashDungeon({ ...(slot ? { slot } : { character }), look: character.appearance || null, gear: game.gearLook() });
+  const loading = document.getElementById('loading');
+  loading.querySelector('.load-title').textContent = 'ถ้ำมุกในเปลือกหอยยักษ์';
+  loading.querySelector('.load-sub').textContent = 'กำลังเข้าไปในหอยสังข์…';
+  loading.classList.remove('done');
+  requestAnimationFrame(() => setTimeout(() => location.assign(new URL('dungeon.html', location.href).href), 30));
+}
+
 function startGame(character, slot) {
   if (characterMap(data, character) !== data.world.id) return travelTo(character, slot, data.maps[characterMap(data, character)]?.nameTh);
   if(fresh&&params.has('skillSandbox')){
@@ -241,7 +253,10 @@ function startGame(character, slot) {
       else if (n.trainer) panels.open('job');
       else if (n.shop) panels.open('shop');
       else if (n.waypoint) panels.open('map');
-      else if (n.exit) {
+      else if (n.dungeon) {
+        const result = game.enterDungeon(n.dungeon); // success arrives as an 'enterDungeon' event
+        if (!result.ok) hud.toast(result.reason === 'combat' ? 'เข้าถ้ำระหว่างต่อสู้ไม่ได้' : 'ยังเข้าไปไม่ได้', '#ffb36b');
+      } else if (n.exit) {
         const result = game.travel(n.exit); // success arrives as a 'travel' event
         if (!result.ok) hud.toast(result.reason === 'combat' ? 'ออกเดินทางระหว่างต่อสู้ไม่ได้' : 'ยังเดินทางไม่ได้', '#ffb36b');
       }
@@ -425,6 +440,13 @@ function frameBody(now) {
         s.presence.dispose();
         session = null;
         travelTo(s.game.ch, s.slot, e.name);
+        break;
+      }
+      if (e.type === 'enterDungeon') {
+        s.questRoute.dispose();
+        s.presence?.dispose();
+        session = null;
+        enterDungeon(s.game, s.slot);
         break;
       }
       if (e.type === 'travelRefused') s.hud.toast(e.reason === 'combat' ? 'ข้ามเขตแดนระหว่างต่อสู้ไม่ได้' : e.reason === 'loading' ? 'กำลังเตรียมพื้นที่ข้างหน้า' : 'ยังข้ามเขตแดนไม่ได้', '#ffb36b');

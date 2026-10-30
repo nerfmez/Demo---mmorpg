@@ -54,11 +54,11 @@ test('crafted and dropped options stay in their item\'s grade and level range; S
   }
 });
 
-test('drop-find options roll on charms and boots; hunter arrows give a small find', () => {
+test('drop-find options roll on charms only (items.optionPools); hunter arrows give a small find', () => {
   for (const id of ['gear_find', 'material_find', 'gold_find']) assert.ok(data.items.gearOptions[id], id);
   for (const [id, b] of Object.entries(data.items.gearBases)) {
-    if (b.slot === 'charm') assert.ok(b.optionPool.includes('gear_find') && b.optionPool.includes('gold_find'), id);
-    if (b.slot === 'boots') assert.ok(b.optionPool.includes('material_find'), id);
+    const finds = ['gear_find', 'gold_find', 'material_find'].filter((o) => b.optionPool.includes(o)).length;
+    assert.equal(finds, b.slot === 'charm' ? 3 : 0, id);
   }
   const arrow = data.items.arrows.types.hunter_arrow.stats;
   assert.ok(arrow.gearFindPct <= 5 && arrow.materialFindPct <= 5, 'the owner found 10% too much');

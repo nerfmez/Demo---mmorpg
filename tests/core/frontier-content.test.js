@@ -5,10 +5,10 @@ const data=withField(legacyData);
 import {Game} from '../../src/core/game.js';
 import {createCharacter,migrateCharacter,derive,CHARACTER_VERSION,arrowsPerCast,arrowTotal} from '../../src/core/character.js';
 import {computeSkill,movementSkill,socketMod,socketMovementMod,unsocketMod,modSlotOf,modFits} from '../../src/core/skills.js';
-import {tickFrontier,manaLimit,executeFrontier,wallBlocked} from '../../src/core/frontier-content.js';
+import {tickFrontier,manaLimit,executeFrontier,wallBlocked,compileFrontier} from '../../src/core/frontier-content.js';
 import {modUpgradeState} from '../../src/core/crafting.js';
 const fixture=(id='charged_shot',mods=[])=>{
- const ch=createCharacter(data,{kit:'bow'});ch.movementSkills=Object.keys(data.skills.movement);ch.movement='roll';ch.stats={STR:50,DEX:50,INT:50,AGI:50,VIT:50};ch.skills[id]=1;ch.slots=[{skill:id,mods:[]},...ch.slots.slice(1).map(()=>({skill:null,mods:[]}))];
+ const ch=createCharacter(data,{kit:'bow'});ch.movementSkills=Object.keys(data.skills.movement);ch.movement='roll';ch.stats={STR:50,DEX:50,INT:50,AGI:50,VIT:50,LUK:50};ch.skills[id]=1;ch.slots=[{skill:id,mods:[]},...ch.slots.slice(1).map(()=>({skill:null,mods:[]}))];
  ch.mods=mods.map((id,i)=>({id,uid:900+i,level:1,grade:'C'}));ch.slots[0].mods=ch.mods.map(m=>m.uid);
  const g=new Game(data,{seed:71,character:ch});g.player.x=0;g.player.z=0;g.player.facing=Math.PI/2;g.derived.weaponType=data.skills.combat[id].requiresWeapon?.[0]||'sword';g.derived.offhand='shield';g.skills=ch.slots.map((_,i)=>computeSkill(ch,data,g.derived,i));
  const m=g.monsters[0];m.x=2;m.z=0;m.hp=m.maxHp=100000;m.defense=0;m.facing=Math.PI;m.boss=false;m.state='chase';m.aggro=true;m.statuses={};g.monsters=[m];
@@ -18,7 +18,7 @@ const fixture=(id='charged_shot',mods=[])=>{
 const advance=(g,t)=>{while(t>0){const dt=Math.min(.02,t);g.time+=dt;tickFrontier(g,dt);g.updatePlayer(dt);g.updateAreas(dt);t-=dt;}};
 const aim={angle:Math.PI/2,x:2,z:0};
 test('charged shot pays only on release, scales to cap and fires once after contact',()=>{
- for(const time of [0,.6,1.2,3]){const {g,ch,s}=fixture();const mp=g.player.mp,ammo=arrowTotal(ch);assert(g.castSlot(0));advance(g,time);assert.equal(g.player.mp,mp);assert.equal(arrowTotal(ch),ammo);assert.equal(g.projectiles.length,0);assert(g.releaseCharge(0));assert.equal(arrowTotal(ch),ammo-arrowsPerCast(data,s));assert.equal(g.player.mp,mp-s.cost);const expected=s.damage*(1+1.5*Math.min(time,1.2)/1.2);assert(Math.abs(g.player.cast.skill.damage-expected)<1e-6);advance(g,.19);assert.equal(g.projectiles.length,0);advance(g,.03);assert.equal(g.projectiles.length,1);advance(g,.3);assert.equal(g.projectiles.length,1);assert.equal(g.releaseCharge(0),false);}
+ for(const time of [0,.6,1.2,3]){const {g,ch,s}=fixture();const mp=g.player.mp,ammo=arrowTotal(ch);assert(g.castSlot(0));advance(g,time);assert.equal(g.player.mp,mp);assert.equal(arrowTotal(ch),ammo);assert.equal(g.projectiles.length,0);assert(g.releaseCharge(0));assert.equal(arrowTotal(ch),ammo-arrowsPerCast(data,s));assert.equal(g.player.mp,mp-s.cost);const expected=s.damage*(1+1.5*Math.min(time,1.2)/1.2);assert(Math.abs(g.player.cast.skill.damage-expected)<1e-6);advance(g,g.player.cast.total-.01);assert.equal(g.projectiles.length,0);advance(g,.03);assert.equal(g.projectiles.length,1);advance(g,.3);assert.equal(g.projectiles.length,1);assert.equal(g.releaseCharge(0),false);}
 });
 test('cancel, movement, death, refresh and missing release resources never shoot a stale charge',()=>{
  for(const mode of ['cancel','movement','death','refresh','ammo','mp','weapon']){const {g,ch,s}=fixture();assert(g.castSlot(0));const ammo=arrowTotal(ch),mp=g.player.mp;advance(g,.5);
@@ -58,7 +58,7 @@ test('line strike respects width/range and rain pays all three authored waves',(
  const {g,ch,s}=fixture('arrow_rain');assert.equal(arrowsPerCast(data,s),3);const ammo=arrowTotal(ch);g.castSlot(0,{x:2,z:0});advance(g,.3);assert.equal(arrowTotal(ch),ammo-3);assert.equal(g.areas.length,3);
 });
 test('channel requires windup, drains mana and stops on release or depleted MP',()=>{
- const {g,m,s}=fixture('flame_stream');const hp=m.hp;assert(g.castSlot(0));advance(g,.18);assert.equal(m.hp,hp);advance(g,.05);assert(m.hp<hp);const after=m.hp;g.cancelChannel();advance(g,.4);assert.equal(m.hp,after);assert.equal(g.player.channeling,null);
+ const {g,m,s}=fixture('flame_stream');const hp=m.hp;assert(g.castSlot(0));advance(g,s.castTime-.02);assert.equal(m.hp,hp);advance(g,.05);assert(m.hp<hp);const after=m.hp;g.cancelChannel();advance(g,.4);assert.equal(m.hp,after);assert.equal(g.player.channeling,null);
  const b=fixture('flame_stream');b.g.castSlot(0);b.g.player.mp=0;advance(b.g,.25);assert.equal(b.g.player.channeling,null);
 });
 test('cleanse heals and removes one allowed status, chain never loops and barrier is capped',()=>{
@@ -153,7 +153,8 @@ test('phase 2c mods: poison shift, wide field, building power and momentum chang
   const pulse=(mods,held)=>{const {g,m,s}=fixture('flame_stream',mods);g.executeSkill(s,aim);const c=g.player.channeling;c.t=held;c.next=held;const hp=m.hp;tickFrontier(g,0);return hp-m.hp;};
   const early=pulse(['ramp_cast'],0),late=pulse(['ramp_cast'],3),plainHit=pulse([],0);assert.ok(early<plainHit,'starts weaker');assert.ok(late>plainHit,'grows past the plain channel');}
  // Momentum: the next cast within the window is quicker, once.
- {const {g,ch}=fixture('slash');ch.mods.push({id:'momentum',uid:950,level:1,grade:'C'});ch.movementMods=[950];g.refresh();g.player.movement.charges=2;
+ {const {g,ch}=fixture('slash');ch.mods.push({id:'momentum',uid:950,level:1,grade:'C'});ch.movementMods=[950];g.refresh();g.derived.perks=null;g.player.movement.charges=2; // AGI 50's own quick cast: stat-perks.test
+ 
   assert.ok(g.move.momentum);const normal=g.skills[0].castTime;assert.ok(g.useMovement());g.player.dash=null;
   assert.ok(g.castSlot(0));assert.ok(Math.abs(g.player.cast.total-normal/1.2)<1e-9);g.player.cast=null;g.player.cooldowns[0]=0;
   assert.ok(g.castSlot(0));assert.equal(g.player.cast.total,normal,'only the next cast');}
@@ -167,4 +168,45 @@ test('the slam stun knocks a shelled monster out of its shell; passive poison ne
 test('a released charged shot announces its charge on castStart',()=>{
  const {g}=fixture();assert(g.castSlot(0));advance(g,.6);g.drainEvents();assert(g.releaseCharge(0));
  const start=g.drainEvents().find(e=>e.type==='castStart');assert(Math.abs(start.charge-.5)<.02,String(start.charge));
+});
+
+// Specialist mods for the stream, the lane and the chain (owner, 2026-10-27: at least three per skill type).
+const more=(g,m,list)=>list.map(([x,z],i)=>{const o=structuredClone(m);o.id=m.id+'_'+i;o.x=x;o.z=z;o.statuses={};g.monsters.push(o);return o;});
+const hits=(g)=>g.drainEvents().filter(e=>e.type==='hit');
+test('channel mods fit any channel by its type tag, reshape whatever shape it has, and Release Burst pays for a held channel only',()=>{
+ const beam={tags:['Spell','Channel','Lightning','Damage']};
+ for(const id of ['wide_stream','long_stream','release_burst'])assert(modFits(beam,data.mods.mods[id]).ok,'a beam channel takes '+id);
+ const lane={width:2,range:6};compileFrontier(lane,{},[{mod:data.mods.mods.wide_stream,level:1}]);assert.equal(lane.width,3);assert.equal(lane.range,6*.85);
+ const base=fixture('flame_stream').s,wide=fixture('flame_stream',['wide_stream']).s,long=fixture('flame_stream',['long_stream']).s;
+ assert(wide.arc>base.arc&&wide.range<base.range&&long.arc<base.arc&&long.range>base.range&&long.damage>base.damage);
+ assert.equal(modFits(data.skills.combat.flame_stream,data.mods.mods.wide_stream,[data.mods.mods.long_stream]).reason,'family');
+ for(const [held,bursts] of [[1.2,1],[0.3,0]]){
+  const {g,s}=fixture('flame_stream',['release_burst']);g.castSlot(0);advance(g,s.castTime+held);g.drainEvents();g.cancelChannel();
+  assert.equal(g.drainEvents().filter(e=>e.type==='burst'&&e.kind==='release_burst').length,bursts,'held '+held);
+ }
+});
+test('lane mods: Long Rend reaches farther, Far End hits hardest at the end, Piercing Line ignores armour',()=>{
+ {const a=fixture('frontline_split'),b=fixture('frontline_split',['long_rend']);for(const f of [a,b]){f.m.x=6;f.g.executeSkill(f.s,aim);}
+  assert.equal(a.m.hp,a.m.maxHp);assert(b.m.hp<b.m.maxHp);assert(b.s.width<a.s.width);}
+ {const {g,m,s}=fixture('frontline_split',['tip_strike']);m.x=1.5;const far=more(g,m,[[4.5,0]])[0];g.executeSkill(s,aim);const h=hits(g);
+  const near=h.find(e=>e.id===m.id).amount,end=h.find(e=>e.id===far.id).amount;assert(Math.abs(end/near-data.mods.mods.tip_strike.effect.tipMult[0])<0.01,'hits are rounded');}
+ {const a=fixture('frontline_split'),b=fixture('frontline_split',['pierce_line']);for(const f of [a,b]){f.m.defense=400;f.g.executeSkill(f.s,aim);}assert(b.m.maxHp-b.m.hp>a.m.maxHp-a.m.hp,'Piercing Line ignores part of the armour');}
+ assert(!modFits(data.skills.combat.frontline_split,data.mods.mods.quake_line).ok,'a lane is not a control skill: the stun is a control mod');
+});
+test('chain mods: Conductive Arc keeps its strength over shorter jumps, Forking Arc branches once per hop, Arresting Arc stuns the last',()=>{
+ {const {g,m,s}=fixture('chain_spark',['conductive']);g.player.targetId=m.id;more(g,m,[[4,0],[6,0],[10,0]]);g.executeSkill(s,aim);const h=hits(g);
+  assert.equal(h.length,3,'the 4 m gap is too far for a conductive jump');assert(h.every(e=>Math.abs(e.amount-h[0].amount)<1e-6));}
+ {const {g,m,s}=fixture('chain_spark',['fork_chain']);g.player.targetId=m.id;more(g,m,[[3,0],[2,2]]);g.executeSkill(s,aim);const ev=g.drainEvents();
+  assert.equal(ev.filter(e=>e.type==='hit').length,3);assert.equal(ev.filter(e=>e.type==='chain'&&e.from).length,1);}
+ {const {g,m,s}=fixture('chain_spark',['stun_arc']);g.player.targetId=m.id;const [b]=more(g,m,[[4,0]]);g.executeSkill(s,aim);assert.notEqual(m.state,'stunned');assert.equal(b.state,'stunned');}
+ {const {g,m,s}=fixture('chain_spark',['stun_arc']);g.player.targetId=m.id;g.executeSkill(s,aim);assert.equal(m.state,'stunned','a lone target is the last one');}
+});
+test('control mods: Stagger stuns on every hit of a control skill, Lasting Control stretches its control',()=>{
+ const st=data.mods.mods.quake_line.effect;
+ for(const boss of [false,true]){const {g,m,s}=fixture('frost_nova',['quake_line']);m.boss=boss;m.x=1;g.executeSkill(s,{angle:Math.PI/2,x:g.player.x,z:g.player.z});assert.equal(m.state,'stunned');assert.equal(m.stateDur,boss?st.hitStunBoss[0]:st.hitStun[0]);}
+ assert(!modFits(data.skills.combat.slash,data.mods.mods.quake_line).ok&&!modFits(data.skills.combat.slash,data.mods.mods.control_duration).ok,'no control, no control mod');
+ const k=data.mods.mods.control_duration.effect.controlMult[0];
+ assert(Math.abs(fixture('frost_nova',['control_duration']).s.chill.duration/fixture('frost_nova').s.chill.duration-k)<1e-9);
+ assert(Math.abs(fixture('interrupt_slam',['control_duration']).s.stun.duration/fixture('interrupt_slam').s.stun.duration-k)<1e-9);
+ assert(Math.abs(fixture('hex',['control_duration']).s.duration/fixture('hex').s.duration-k)<1e-9);
 });

@@ -911,7 +911,7 @@
           -102.4
         ]
       ],
-      "level": 12,
+      "level": 19,
       "hillAmp": 1.4,
       "treeDensity": 0.3,
       "trees": [
@@ -942,7 +942,7 @@
           70.4
         ]
       ],
-      "level": 21,
+      "level": 33,
       "hillAmp": 0.3,
       "treeDensity": 0.1,
       "trees": [
@@ -966,7 +966,7 @@
           -44.8
         ]
       ],
-      "level": 18,
+      "level": 28,
       "hillAmp": 2.2,
       "treeDensity": 0.15,
       "trees": [
@@ -992,7 +992,7 @@
           -48
         ]
       ],
-      "level": 10,
+      "level": 16,
       "hillAmp": 1.8,
       "treeDensity": 0.4,
       "trees": [
@@ -1025,7 +1025,7 @@
           67.2
         ]
       ],
-      "level": 9,
+      "level": 14,
       "hillAmp": 1.1,
       "treeDensity": 0.2,
       "trees": [
@@ -1056,7 +1056,7 @@
           144
         ]
       ],
-      "level": 16,
+      "level": 25,
       "hillAmp": 0.35,
       "treeDensity": 0.14,
       "trees": [
@@ -1081,7 +1081,7 @@
           208
         ]
       ],
-      "level": 14,
+      "level": 22,
       "hillAmp": 0.35,
       "treeDensity": 0.12,
       "trees": [
@@ -1119,7 +1119,7 @@
           -51.2
         ]
       ],
-      "level": 8,
+      "level": 12,
       "hillAmp": 1.3,
       "treeDensity": 0.14,
       "trees": [
@@ -1146,98 +1146,108 @@
       "zone": "meadow",
       "count": 29,
       "level": [
-        8,
-        9
-      ]
+        12,
+        14
+      ],
+      "temporary": true
     },
     {
       "monster": "tusk_boar",
       "zone": "glade",
       "count": 12,
       "level": [
-        9,
-        10
-      ]
+        14,
+        16
+      ],
+      "temporary": true
     },
     {
       "monster": "sporecap",
       "zone": "glade",
       "count": 14,
       "level": [
-        9,
-        10
-      ]
+        14,
+        16
+      ],
+      "temporary": true
     },
     {
       "monster": "moss_beetle",
       "zone": "glade",
       "count": 5,
       "level": [
-        9,
-        10
-      ]
+        14,
+        16
+      ],
+      "temporary": true
     },
     {
       "monster": "tusk_boar",
       "zone": "forest",
       "count": 7,
       "level": [
-        10,
-        12
-      ]
+        16,
+        18
+      ],
+      "temporary": true
     },
     {
       "monster": "moss_beetle",
       "zone": "forest",
-      "count": 17,
+      "count": 18,
       "level": [
-        10,
-        12
-      ]
+        16,
+        18
+      ],
+      "temporary": true
     },
     {
       "monster": "thornback_wolf",
       "zone": "forest",
       "count": 13,
       "level": [
-        10,
-        12
-      ]
+        16,
+        18
+      ],
+      "temporary": true
     },
     {
       "monster": "sporecap",
       "zone": "forest",
-      "count": 10,
+      "count": 9,
       "level": [
-        10,
-        12
-      ]
+        16,
+        18
+      ],
+      "temporary": true
     },
     {
       "monster": "thornback_wolf",
       "zone": "wolf_den",
       "count": 10,
       "level": [
-        12,
-        14
-      ]
+        19,
+        22
+      ],
+      "temporary": true
     },
     {
       "monster": "moss_beetle",
       "zone": "wetland",
       "count": 10,
       "level": [
-        16,
-        18
-      ]
+        25,
+        28
+      ],
+      "temporary": true
     },
     {
       "monster": "marsh_wisp",
       "zone": "wetland",
       "count": 14,
       "level": [
-        16,
-        18
+        25,
+        28
       ]
     },
     {
@@ -1245,80 +1255,27 @@
       "zone": "wetland",
       "count": 12,
       "level": [
-        16,
-        18
-      ]
-    },
-    {
-      "monster": "crag_golem",
-      "zone": "highlands",
-      "count": 14,
-      "level": [
-        18,
-        21
-      ]
+        25,
+        28
+      ],
+      "temporary": true
     },
     {
       "monster": "gale_hawk",
       "zone": "highlands",
-      "count": 12,
+      "count": 24,
       "level": [
-        18,
-        21
-      ]
-    },
-    {
-      "monster": "thornback_wolf",
-      "zone": "highlands",
-      "count": 3,
-      "level": [
-        18,
-        21
-      ]
-    },
-    {
-      "monster": "marsh_wisp",
-      "zone": "highlands",
-      "count": 7,
-      "level": [
-        18,
-        21
-      ]
-    },
-    {
-      "monster": "marsh_wisp",
-      "zone": "ruins",
-      "count": 7,
-      "level": [
-        21,
-        24
+        28,
+        31
       ]
     },
     {
       "monster": "crag_golem",
       "zone": "ruins",
-      "count": 10,
+      "count": 21,
       "level": [
-        21,
-        24
-      ]
-    },
-    {
-      "monster": "gale_hawk",
-      "zone": "ruins",
-      "count": 5,
-      "level": [
-        21,
-        24
-      ]
-    },
-    {
-      "monster": "moss_beetle",
-      "zone": "ruins",
-      "count": 2,
-      "level": [
-        21,
-        24
+        33,
+        37
       ]
     },
     {
@@ -1326,35 +1283,38 @@
       "zone": "coast",
       "count": 14,
       "level": [
-        14,
-        16
-      ]
+        22,
+        25
+      ],
+      "temporary": true
     },
     {
       "monster": "gale_hawk",
       "zone": "coast",
       "count": 6,
       "level": [
-        15,
-        16
-      ]
+        22,
+        25
+      ],
+      "temporary": true
     },
     {
       "monster": "tusk_boar",
       "zone": "coast",
       "count": 6,
       "level": [
-        14,
-        15
-      ]
+        22,
+        24
+      ],
+      "temporary": true
     },
     {
       "monster": "thicket_mantis",
       "zone": "forest",
       "count": 8,
       "level": [
-        11,
-        12
+        17,
+        19
       ]
     },
     {
@@ -1362,8 +1322,8 @@
       "zone": "wolf_den",
       "count": 5,
       "level": [
-        12,
-        14
+        19,
+        21
       ]
     },
     {
@@ -1371,8 +1331,8 @@
       "zone": "coast",
       "count": 8,
       "level": [
-        14,
-        16
+        22,
+        25
       ]
     },
     {
@@ -1380,44 +1340,35 @@
       "zone": "wetland",
       "count": 12,
       "level": [
-        16,
-        18
+        25,
+        25
       ]
     },
     {
       "monster": "ironhorn_ram",
       "zone": "highlands",
-      "count": 10,
+      "count": 13,
       "level": [
-        18,
-        21
+        29,
+        32
       ]
     },
     {
       "monster": "duskmane_stalker",
       "zone": "highlands",
-      "count": 5,
+      "count": 14,
       "level": [
-        20,
-        21
-      ]
-    },
-    {
-      "monster": "duskmane_stalker",
-      "zone": "ruins",
-      "count": 4,
-      "level": [
-        21,
-        23
+        31,
+        32
       ]
     },
     {
       "monster": "rune_sentinel",
       "zone": "ruins",
-      "count": 9,
+      "count": 16,
       "level": [
-        21,
-        24
+        35,
+        40
       ]
     }
   ],
@@ -1473,7 +1424,7 @@
         99.2,
         -124.8
       ],
-      "level": 14,
+      "level": 22,
       "respawnSeconds": 90,
       "arena": {
         "x": 99.2,
@@ -1488,7 +1439,7 @@
         -195.2,
         9.6
       ],
-      "level": 25,
+      "level": 40,
       "respawnSeconds": 120,
       "arena": {
         "x": -195.2,
@@ -2262,6 +2213,7 @@
     {
       "id": "giant_conch",
       "kind": "giant_conch",
+      "dungeon": {"_doc": "the Pearlshell Grotto opens inside it (owner, 30 October 2026): within r metres the hero can go in (dungeon.html); its pearl gate brings them back here", "id": "shell-grotto", "r": 7.5},
       "zone": "coast",
       "at": [162.4, 170.1],
       "rot": 2.15,

@@ -9,14 +9,16 @@ const bases=Object.entries(data.items.gearBases).filter(([,b])=>slots.includes(b
 const item=(ch,base,extra={})=>{const it={uid:ch.nextUid++,base,grade:'C',upgrade:0,options:[],...extra};ch.gear.push(it);return it;};
 const fund=ch=>{ch.gold=100000;for(const id in data.items.materials)ch.materials[id]=10000;return ch;};
 
-test('all 74 wearable bases block below level and allow exact/above level without trained stats',()=>{
- assert.equal(bases.length,74);
+test('all 88 wearable bases block below level; armour also asks for its stats, a charm for its level only',()=>{
+ assert.equal(bases.length,88);
  for(const [id,b] of bases){
   const ch=createCharacter(data),it=item(ch,id,{itemLevel:b.itemLevel});
-  assert.deepEqual(gearRequirements(it,data),{level:b.itemLevel},id);
+  const req=gearRequirements(it,data);assert.equal(req.level,b.itemLevel,id);
+  assert.deepEqual(Object.keys(req).slice(1),b.slot==='charm'?[]:[b.requirementStat,...(b.secondaryStat?[b.secondaryStat]:[])],id);
   ch.level=b.itemLevel-1;for(const stat in ch.stats)ch.stats[stat]=999;
   const before=JSON.stringify(ch);assert.equal(equip(ch,data,it.uid).reason,'level',id);assert.equal(JSON.stringify(ch),before,'blocked equip is atomic');
-  for(const level of [b.itemLevel,b.itemLevel+1]){ch.level=level;for(const stat in ch.stats)ch.stats[stat]=0;assert.ok(equip(ch,data,it.uid).ok,id);}
+  for(const level of [b.itemLevel,b.itemLevel+1]){ch.level=level;assert.ok(equip(ch,data,it.uid).ok,id);}
+  if(b.slot==='charm'){for(const stat in ch.stats)ch.stats[stat]=0;assert.ok(equip(ch,data,it.uid).ok,id);}
  }
 });
 
@@ -30,19 +32,20 @@ test('level gate uses character level only; invalid worn item contributes no pow
 
 test('underlevel crafting, upgrading and grading keep costs/rolls and fixed wearable level',()=>{
  const ch=fund(createCharacter(data)),r=data.recipes.recipes.sporeweave_vest,before=structuredClone(ch);
+ for(const stat in ch.stats)ch.stats[stat]=999;
  const made=craft(ch,data,'sporeweave_vest',createRng(17));assert.ok(made.ok);const it=made.item;
  assert.equal(ch.gold,before.gold-r.cost.gold);for(const [k,v]of Object.entries(r.cost))if(k!=='gold')assert.equal(ch.materials[k],before.materials[k]-v);
  assert.equal(equip(ch,data,it.uid).reason,'level');const level=it.itemLevel,options=structuredClone(it.options);
  for(let i=0;i<data.items.upgrade.max;i++)assert.ok(upgradeGear(ch,data,it.uid).ok);
- while(it.grade!=='S'){const p=gearGradePreview(data,it);assert.deepEqual(p.minRequires,{level});assert.deepEqual(p.maxRequires,{level});assert.ok(promoteGear(ch,data,it.uid,createRng(29)).ok);}
- assert.deepEqual(it.options.slice(0,options.length),options);assert.equal(it.itemLevel,level);assert.deepEqual(gearRequirements(it,data),{level});
+ while(it.grade!=='S'){const p=gearGradePreview(data,it);assert.equal(p.minRequires.level,level);assert.equal(p.maxRequires.level,level);assert.ok(promoteGear(ch,data,it.uid,createRng(29)).ok);}
+ assert.deepEqual(it.options.slice(0,options.length),options);assert.equal(it.itemLevel,level);assert.equal(gearRequirements(it,data).level,level);
  ch.level=level;assert.ok(equip(ch,data,it.uid).ok);assert.ok(respecStats(ch,data));assert.ok(respecJob(ch,data));assert.equal(ch.equipped.armor,it.uid);
  const saved=JSON.parse(JSON.stringify(ch));migrateCharacter(saved,data);assert.equal(saved.equipped.armor,it.uid);assert.deepEqual(saved.gear,ch.gear);
 });
 
 test('legacy load retains inactive underlevel wearables without loss or duplicates',()=>{
  const ch=fund(createCharacter(data));ch.level=1;ch.version=5;
- const affected=[];for(const slot of slots){const [id]=bases.find(([,b])=>b.slot===slot&&b.itemLevel===21);const it=item(ch,id);ch.equipped[slot]=it.uid;affected.push(it.uid);}
+ const affected=[];for(const slot of slots){const [id]=bases.find(([,b])=>b.slot===slot&&b.itemLevel>=35);const it=item(ch,id);ch.equipped[slot]=it.uid;affected.push(it.uid);}
  for(let n=0;n<300;n++)item(ch,'tide_boots',{itemLevel:1});
  const ownership=ch.gear.map(i=>({uid:i.uid,base:i.base,grade:i.grade,upgrade:i.upgrade,options:i.options})),next=ch.nextUid;
  migrateCharacter(ch,data);for(const [n,slot] of slots.entries()){assert.equal(ch.equipped[slot],affected[n]);assert.equal(gearEquipState(ch,data,ch.gear.find(i=>i.uid===affected[n])).ok,false);}
@@ -52,17 +55,19 @@ test('legacy load retains inactive underlevel wearables without loss or duplicat
 });
 
 test('missing metadata uses existing base fallback; valid custom level remains authoritative and cap migration enforces last',()=>{
- const ch=createCharacter(data),it=item(ch,'sporeweave_vest');assert.deepEqual(gearRequirements(it,data),{level:6});
+ const ch=createCharacter(data),it=item(ch,'sporeweave_vest');assert.equal(gearRequirements(it,data).level,5);for(const stat in ch.stats)ch.stats[stat]=999;
  it.itemLevel=21;ch.level=20;assert.equal(gearEquipState(ch,data,it).ok,false);ch.level=21;assert.ok(gearEquipState(ch,data,it).ok);
- const original=gearStats(it,data);it.itemLevel=31;assert.deepEqual(gearStats(it,data),original);ch.level=40;ch.statPoints=100;ch.equipped.armor=it.uid;
- migrateCharacter(ch,data);assert.equal(ch.level,30);assert.equal(ch.equipped.armor,it.uid);assert.equal(it.itemLevel,31);assert.ok(ch.gear.includes(it));assert.match(ch.progress.equipmentNotice,/สถานะไม่ได้ใช้/);
+ // power stops at the top of the base's range (items.gearLevels): a custom level past it adds nothing
+ const original=gearStats(it,data);it.itemLevel=71;assert.deepEqual(gearStats(it,data),original);ch.level=80;ch.statPoints=100;ch.equipped.armor=it.uid;
+ migrateCharacter(ch,data);assert.equal(ch.level,70);assert.equal(ch.equipped.armor,it.uid);assert.equal(it.itemLevel,71);assert.ok(ch.gear.includes(it));assert.match(ch.progress.equipmentNotice,/สถานะไม่ได้ใช้/);
 });
 
-test('all 41 weapons and 5 shields retain stat gates, grade/upgrade scaling and ignore level metadata',()=>{
- const held=Object.entries(data.items.gearBases).filter(([,b])=>['weapon','offhand'].includes(b.slot));assert.equal(held.length,46);
+test('all 44 weapons and 5 shields retain stat gates and grade/upgrade scaling; their gate follows the piece level inside its range',()=>{
+ const held=Object.entries(data.items.gearBases).filter(([,b])=>['weapon','offhand'].includes(b.slot));assert.equal(held.length,49);
  for(const [id]of held){const ch=createCharacter(data),it=item(ch,id,{itemLevel:999});ch.level=1;const req=gearRequirements(it,data);assert.equal(req.level,undefined,id);
   for(const stat in req)ch.stats[stat]=req[stat];assert.ok(gearEquipState(ch,data,it).ok,id);
   ch.level=99;for(const stat in req)ch.stats[stat]=0;assert.equal(gearEquipState(ch,data,it).ok,false,id);
-  assert.deepEqual(gearRequirements({...it,itemLevel:1},data),req);const raised=gearRequirements({...it,grade:'S',upgrade:5},data);for(const stat in req)assert.ok(raised[stat]>=req[stat],id);
+  const b=data.items.gearBases[id];assert.deepEqual(gearRequirements({...it,itemLevel:b.maxItemLevel},data),req,'past the range: the top of it');
+  const first=gearRequirements({...it,itemLevel:1},data);for(const stat in req)assert.ok(first[stat]<=req[stat],id);const raised=gearRequirements({...it,grade:'S',upgrade:5},data);for(const stat in req)assert.ok(raised[stat]>=req[stat],id);
  }
 });

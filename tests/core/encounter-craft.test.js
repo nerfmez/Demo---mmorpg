@@ -121,11 +121,13 @@ test('all recipe materials have an actual monster source; later sources are repo
   const audit = encounterCraftAudit(data, worlds);
   assert.equal(audit.recipes.length, Object.keys(data.recipes.recipes).length);
   assert.deepEqual(audit.summary.missingMaterials, []);
-  const gale = audit.recipes.find(r => r.id === 'gale_boots');
-  assert.equal(gale.equipmentLevel, 16);
-  assert.equal(gale.materials.find(m => m.material === 'dusk_pelt').firstMonsterLevel, 20);
-  assert.equal(gale.review, true);
-  assert.equal(encounterLevelLabel(zoneEncounters(worlds['frontier-wilds-v1'], data, 'ruins')), 'Lv.21–25');
+  // monster levels stretched to 1-40 and gear bases cover ranges (owner, 2026-10-29): the Feather Charm
+  // starts at 25 and its ram horn first drops at 29, so it is reported for review
+  const late = audit.recipes.find(r => r.id === 'feather_charm');
+  assert.equal(late.equipmentLevel, 25);
+  assert.equal(late.materials.find(m => m.material === 'ram_horn').firstMonsterLevel, 29);
+  assert.equal(late.review, true);
+  assert.equal(encounterLevelLabel(zoneEncounters(worlds['frontier-wilds-v1'], data, 'ruins')), 'Lv.33–40');
 });
 
 test('placement, listing and audit never mutate content, wear requirements or progression', () => {

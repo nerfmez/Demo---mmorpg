@@ -20,13 +20,18 @@ export function optionList(data, options, grade, itemLevel = 1) {
 export function upgradeTrack(notes, completed, prefix='Lv.',first=1) {
  return `<ol class="upgrade-track">${notes.map((note,i)=>`<li class="${i<completed?'done':i===completed?'next':''}"><b>${prefix}${i+first}</b><small>${esc(note)}</small></li>`).join('')}</ol>`;
 }
-export function wearRequirements(ch, requires, label='เงื่อนไขสวมใส่') {
- if(requires.level!==undefined){const gap=Math.max(0,requires.level-ch.level);return `<div class="gear-requires"><b>${label}</b><span class="${gap?'no':'ok'}" data-required-level="${requires.level}">ต้อง Lv.${requires.level} · ปัจจุบัน Lv.${ch.level}${gap?` · ขาด ${gap} เลเวล`:''}</span></div>`;}
- return `<div class="gear-requires"><b>${label}</b>${Object.entries(requires).map(([stat,need])=>{const current=ch.stats[stat]||0,gap=Math.max(0,need-current);return `<span class="${gap?'no':'ok'}" data-required-stat="${stat}" data-need="${need}">${stat} มี <strong>${current}</strong> / ต้องใช้ <strong>${need}</strong>${gap?` · ขาด <strong>${gap}</strong>`:''}</span>`;}).join('')}</div>`;
+export function wearRequirements(ch, requires, label='เงื่อนไขสวมใส่', have=ch.stats) {
+ // armour asks for its level and its stats; a weapon for its stats; a charm for its level (owner, 2026-10-29)
+ const rows=Object.entries(requires).map(([stat,need])=>{
+  if(stat==='level'){const gap=Math.max(0,need-ch.level);return `<span class="${gap?'no':'ok'}" data-required-level="${need}">ต้อง Lv.${need} · ปัจจุบัน Lv.${ch.level}${gap?` · ขาด ${gap} เลเวล`:''}</span>`;}
+  const current=have?.[stat]||0,gap=Math.max(0,need-current);
+  return `<span class="${gap?'no':'ok'}" data-required-stat="${stat}" data-need="${need}">${stat} มี <strong>${current}</strong> / ต้องใช้ <strong>${need}</strong>${gap?` · ขาด <strong>${gap}</strong>`:''}</span>`;
+ });
+ return `<div class="gear-requires"><b>${label}</b>${rows.join('')}</div>`;
 }
 export function wearRequirementRange(ch, preview) {
- if(preview.maxRequires.level!==undefined)return wearRequirements(ch,preview.maxRequires,'หลังเลื่อนเกรด')+'<small>เลเวลที่ต้องการคงเดิม · เกรด ตีบวก และออฟชั่นไม่เพิ่มเลเวลสวมใส่</small>';
- return `<div class="gear-requires"><b>รีเควสหลังเลื่อนเกรด</b>${Object.entries(preview.maxRequires).map(([stat,max])=>`<span class="${ch.stats[stat]>=max?'ok':'no'}">${stat} ${preview.minRequires[stat]===max?max:preview.minRequires[stat]+'–'+max} · มี ${ch.stats[stat]}</span>`).join('')}</div><small>รีเควสจริงขึ้นกับออฟชั่นใหม่ที่สุ่มได้</small>`;
+ if(preview.maxRequires.level!==undefined&&Object.keys(preview.maxRequires).length===1)return wearRequirements(ch,preview.maxRequires,'หลังเลื่อนเกรด')+'<small>เลเวลที่ต้องการคงเดิม · เกรด ตีบวก และออฟชั่นไม่เพิ่มเลเวลสวมใส่</small>';
+ return `<div class="gear-requires"><b>รีเควสหลังเลื่อนเกรด</b>${Object.entries(preview.maxRequires).filter(([stat])=>stat!=='level').map(([stat,max])=>`<span class="${ch.stats[stat]>=max?'ok':'no'}">${stat} ${preview.minRequires[stat]===max?max:preview.minRequires[stat]+'–'+max} · มี ${ch.stats[stat]}</span>`).join('')}</div><small>รีเควสจริงขึ้นกับออฟชั่นใหม่ที่สุ่มได้</small>`;
 }
 export function gearUpgradeTrack(data, item) {
  return `<ol class="upgrade-track">${Array.from({length:data.items.upgrade.max},(_,i)=>`<li class="${i<item.upgrade?'done':i===item.upgrade?'next':''}"><b>+${i+1}</b><small>${Object.entries(gearRequirements({...item,upgrade:i+1},data)).map(([stat,n])=>(stat==='level'?'Lv.':stat+' ')+n).join(', ')}</small></li>`).join('')}</ol>`;
@@ -41,7 +46,7 @@ export function skillGrowthPreview(ch,data,id,describe) {
  const before=computeSkill(view,data,derived,slot),after=computeSkill({...view,skills:{...view.skills,[id]:ch.skills[id]+1}},data,derived,slot);
  return `<div class="growth-preview"><div><small>ตอนนี้</small><p>${describe(before)}</p></div><span>→</span><div><small>หลังอัป</small><p>${describe(after)}</p></div></div><p class="muted">MP ${before.cost.toFixed(1)} → ${after.cost.toFixed(1)} · คูลดาวน์ ${before.cooldown.toFixed(2)} วิ</p>`;
 }
-const MOD_EFFECTS={extraProjectiles:'ยิงเพิ่ม (ลูก)',pierce:'ทะลุเป้า',chain:'เด้งเพิ่ม',damageMult:'ตัวคูณดาเมจ',burnChance:'โอกาสติดเผา',echoMult:'พลังร่ายซ้ำ',arcAdd:'มุมฟันเพิ่ม',rangeAdd:'ระยะเพิ่ม',repeatMult:'พลังฟันซ้ำ',chillSlow:'ชะลอ',knock:'ระยะกระเด็น',durationMult:'ตัวคูณเวลาพื้นที่',leechPct:'ดูดเลือด %',mpOnHit:'ได้ MP เมื่อตีโดน',costMult:'ตัวคูณ MP ที่ใช้',reflect:'สะท้อน',summonDamage:'พลังอัญเชิญเพิ่ม',internalCooldown:'คูลดาวน์ทริกเกอร์',poisonFraction:'แปลงเป็นพิษ',rampMax:'แรงสุดเมื่อค้าง',chargeMaxAdd:'แรงชาร์จเต็มเพิ่ม',momentumCastSpeed:'ร่ายเร็วขึ้นหลังเคลื่อนที่'};
+const MOD_EFFECTS={spreadMult:'ตัวคูณพื้นที่',arcMult:'ตัวคูณมุมฟัน',rangeMult:'ตัวคูณระยะ',releaseMult:'พลังระเบิดปลดเพลิง',tipMult:'พลังปลายแนว',hitStun:'มึน (วิ)',hitStunBoss:'มึนบอส (วิ)',controlMult:'ตัวคูณเวลาควบคุม',penetrate:'เมินเกราะ %',chainStun:'มึนตัวสุดท้าย (วิ)',forkMult:'พลังแขนง',hasteAdd:'ความเร็วสกิลนี้ %',effectDurationMult:'ตัวคูณเวลาบัฟ/คำสาป',extraProjectiles:'ยิงเพิ่ม (ลูก)',pierce:'ทะลุเป้า',chain:'เด้งเพิ่ม',damageMult:'ตัวคูณดาเมจ',burnChance:'โอกาสติดเผา',echoMult:'พลังร่ายซ้ำ',arcAdd:'มุมฟันเพิ่ม',rangeAdd:'ระยะเพิ่ม',repeatMult:'พลังฟันซ้ำ',chillSlow:'ชะลอ',knock:'ระยะกระเด็น',durationMult:'ตัวคูณเวลาพื้นที่',leechPct:'ดูดเลือด %',mpOnHit:'ได้ MP เมื่อตีโดน',costMult:'ตัวคูณ MP ที่ใช้',reflect:'สะท้อน',summonDamage:'พลังอัญเชิญเพิ่ม',internalCooldown:'คูลดาวน์ทริกเกอร์',poisonFraction:'แปลงเป็นพิษ',rampMax:'แรงสุดเมื่อค้าง',chargeMaxAdd:'แรงชาร์จเต็มเพิ่ม',momentumCastSpeed:'ร่ายเร็วขึ้นหลังเคลื่อนที่'};
 export function modGrowthPreview(def,level) {
  return `<div class="mod-growth-preview">${Object.entries(def.effect).filter(([,v])=>Array.isArray(v)&&v[level]!==v[level-1]).map(([k,v])=>`<p>${MOD_EFFECTS[k]||'พลังม็อด'} <b>${v[level-1]} → ${v[level]}</b></p>`).join('')}</div>`;
 }

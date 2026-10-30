@@ -1,7 +1,7 @@
 // Grotto props from the map's `props` list. Static pieces are merged by material (one draw per
 // material plus its outline hull); the glowing ones (pearls, the rune circle, candle flames)
-// get halos (one instanced glow field; the few that animate are sprites); the creatures and the
-// giant shell come from creatures.js and animate. Corals and crystals also grow along the cave
+// get halos (one instanced glow field; the few that animate are sprites); the creatures come
+// from creatures.js and animate. Corals and crystals also grow along the cave
 // rim (`decor`), as thick as the concept has them.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -9,11 +9,11 @@ import { createRng } from '../../core/rng.js';
 import { turn } from '../../core/dungeon.js';
 import { toonRamp, outlineMaterial } from '../toon.js';
 import { runeTexture, glowTexture, nacreTexture, medallionTexture } from './textures.js';
-import { buildGiantShell, buildPearlSnail, buildSmallShell } from './creatures.js';
+import { buildPearlSnail, buildSmallShell } from './creatures.js';
 import { buildGiantClam } from './clam.js';
 import { GLOW_CORALS, glowCoralInstances, coralPools } from './corals.js';
 import { paintedInstances } from './painted.js';
-import { buildMonster, idleMonster } from './monsters.js';
+import { buildMonster, idleMonster, walkMonster, strandedFish, sleepingBoss } from './monsters.js';
 import { glowField } from './glow.js';
 import { kitInstances } from './kit.js';
 
@@ -111,8 +111,10 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
  * Build every prop of one map, plus rim decor at `decor` edge points ({x, z, nx, nz, y} from
  * rim.js, kept off `keepClear` [x, z, r] spots). `kit` is the Blender kit, `clam` the painted giant
  * clam (clam.js), `corals` the six painted glowing corals (corals.js), which grow in clumps in every room,
- * `painted` the props from the owner's sheets (painted.js), which take the place of the simple ones.
- * Returns {root, update(dt, t), shell}.
+ * `painted` the props from the owner's sheets (painted.js), which take the place of the simple ones,
+ * `monsters` the monsters from the owner's sheets (monsters.js).
+ * Returns {root, update(dt, t), boss, walkers} (boss: sleepingBoss's wake() and awake, or null; walkers:
+ * [{prop, state}] for each monster, whose state the page sets to its walker from src/core/dungeon-monsters.js).
  */
 export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null, painted = null, monsters = null } = {}) {
   const root = new THREE.Group();
@@ -205,7 +207,8 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     const s0 = map.surfaceAt(x, z);
     pools.push({ x, y: (s0 ? s0.y : y) + 0.16, z, r: reach + big.height * s * 0.3, color: GLOW_CORALS[main].halo });
   };
-  let shell = null, archKind = 0, chestKind = 0;
+  let archKind = 0, chestKind = 0, boss = null;
+  const walkers = []; // the monsters' views; each follows its walker (state) once the page gives it one
 
   const groundY = (x, z) => map.surfaceAt(x, z)?.y ?? 0;
   for (const p of map.def.props) {
@@ -447,26 +450,22 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
       }
       case 'bossSnail': {
         if (monsters?.has('boss')) {
-          // the Pearl Snail King (monsters.js), from the owner's two pictures: out of its shell most of
-          // the time, now and then pulling into it (the hidden model), then out again (until it gets
-          // its rules, this only shows both)
-          const out = buildMonster(monsters, 'boss'), hid = buildMonster(monsters, 'bossshell'), phase = rng.range(0, 10);
+          // the Pearl Snail King (monsters.js), from the owner's two pictures: asleep in its shell
+          // until the hero talks to the pearl on the throne (the page calls boss.wake())
+          const out = buildMonster(monsters, 'boss'), hid = buildMonster(monsters, 'bossshell');
           for (const g of [out, hid]) {
             g.position.set(x, y, z);
             g.rotation.y = rot;
             g.scale.setScalar(s);
             root.add(g);
           }
-          const CYCLE = 12, HIDE = 9; // seconds: out for 9, hidden for 3
-          animated.push((t) => {
-            const c = (t + phase) % CYCLE, hidden = c > HIDE;
-            out.visible = !hidden;
-            hid.visible = hidden;
-            // a quick squash as it goes in or comes out
-            const pop = Math.min(c, Math.abs(c - HIDE), CYCLE - c) < 0.25 ? 0.94 : 1;
-            out.scale.set(s, s * pop, s);
-            hid.scale.set(s, s * pop, s);
-            idleMonster(hidden ? hid : out, hidden ? 'bossshell' : 'boss', t, phase);
+          boss = sleepingBoss(out, hid, s, rng.range(0, 10));
+          const view = { prop: p, state: null };
+          walkers.push(view);
+          animated.push((t, dt) => {
+            const m = view.state;
+            if (m) for (const g of [out, hid]) { g.position.set(m.x, m.y, m.z); g.rotation.y = m.facing; }
+            boss.update(t, dt, m);
           });
           break;
         }
@@ -481,25 +480,30 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
       case 'pearlFish':
       case 'pearlSlug':
       case 'eyeClam': {
-        // the monsters from the owner's sheet (monsters.js), idling where they are put until they
-        // get their rules: the fish swims a slow loop above the water, the slug and the clam stay put
+        // the monsters from the owner's sheet (monsters.js), walked about by their rules
+        // (src/core/dungeon-monsters.js): the fish lie stranded on their sides in the shallows and flop
+        // along, the slug crawls, the clam hops; at rest they idle where they are
         if (!monsters) break; // the model did not load: the page still works without it
         const name = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam' }[p.type], g = buildMonster(monsters, name), phase = rng.range(0, 10);
-        g.scale.setScalar(s);
-        g.rotation.y = rot;
-        root.add(g);
-        const ground = map.surfaceAt(x, z);
+        const holder = new THREE.Group();
+        holder.position.set(x, groundY(x, z), z);
+        holder.rotation.y = rot;
+        holder.scale.setScalar(s);
+        root.add(holder);
+        const view = { prop: p, state: null };
+        walkers.push(view);
+        const follow = () => {
+          const m = view.state;
+          if (m) { holder.position.set(m.x, m.y, m.z); holder.rotation.y = m.facing; }
+          return m;
+        };
         if (name === 'fish') {
-          const water = ground ? ground.waterY ?? ground.y : y, r = 2.2 * s;
-          animated.push((t) => {
-            const a = t * 0.32 + phase;
-            g.position.set(x + Math.cos(a) * r, water + 0.9 * s + Math.sin(t * 1.4 + phase) * 0.12, z + Math.sin(a) * r);
-            g.rotation.y = -a; // along its loop
-            idleMonster(g, name, t, phase);
-          });
+          const fish = strandedFish(g, phase);
+          holder.add(fish.root);
+          animated.push((t) => { const m = follow(); fish.update(t, m?.moving ? m.air : null); });
         } else {
-          g.position.set(x, ground ? ground.y : y, z);
-          animated.push((t) => idleMonster(g, name, t, phase));
+          holder.add(g);
+          animated.push((t) => { const m = follow(); if (!(m?.moving && walkMonster(g, name, m, t, phase))) idleMonster(g, name, t, phase); });
         }
         break;
       }
@@ -518,14 +522,6 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         halo(at.x, at.y, at.z, 0.75 * s, '#efe4ff', 0.3); // around the pearl only, not over the shell
         const glow = pearl.material;
         animated.push((t) => { glow.emissiveIntensity = 0.2 + Math.sin(t * 1.3) * 0.06; });
-        break;
-      }
-      case 'giantShell': {
-        shell = buildGiantShell();
-        shell.root.position.set(x, y, z);
-        shell.root.rotation.y = rot;
-        root.add(shell.root);
-        animated.push((t, dt) => shell.update(dt, t));
         break;
       }
       case 'barrel': {
@@ -645,7 +641,8 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   if (glows.length) root.add(glowField(glows));
   return {
     root,
-    shell,
+    boss,
+    walkers,
     update(dt, t) {
       for (const a of animated) a(t, dt);
       for (const s of spin) {

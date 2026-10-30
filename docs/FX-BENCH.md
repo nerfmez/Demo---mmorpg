@@ -32,6 +32,10 @@ prototype skill fusion. It is not the Skill Lab and not part of the game.
 that they change the events the effects draw. Review hooks: `__fxtest.freeze()` then
 `__fxtest.advance(seconds)` renders deterministic 60 Hz steps for screenshots.
 
+Speed trial (owner, 2026-10-27): the panel's ทดลองความเร็ว sets the one speed value (0, 50, 100,
+200 = the cap: cooldown and cast time divided by 1 + speed/100) in place of the character's own.
+Holding the cast button repeats a plain skill like the game's attack button.
+
 ## Skill fusion (prototype)
 
 Only a skill with an authored recipe offers a fusion (the owner's rule). Pick the main skill first;
@@ -42,7 +46,8 @@ panel (`fusion.js` keeps it for the rules tests).
 Rules live in `data/fusion.json`; `src/fxtest/fusion.js` applies them on top of the real
 rules without changing `src/core`. A physical attack with a short cooldown (the carrier,
 e.g. Slash, Hunter's Shot) can link one fast damage spell (the payload: projectile spells such as
-Firebolt and Arcane Bolt, and Chain Spark) into one of its mod sockets. When the carrier connects,
+Firebolt and Arcane Bolt, and Chain Spark) into one of its mod sockets. An attack that is already
+magic (tagged Arcane, e.g. Spell Wave) cannot carry a spell. When the carrier connects,
 the payload fires once from the first struck target, flying on away from the caster and
 skipping that target, with its full behaviour and only its main damage scaled by
 `payloadDamageMult`. The fused skill uses the longer cooldown and the summed MP cost. A miss

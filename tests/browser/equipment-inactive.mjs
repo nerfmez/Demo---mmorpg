@@ -17,7 +17,8 @@ try{
   const context=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,reducedMotion:'reduce'}),page=await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   if(process.env.OFFLINE_UI)await page.route('**/?fresh=*',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><head>${['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','loadout-workspace','skill-journal/journal','compact'].map(n=>`<link rel="stylesheet" href="/src/ui/${n}.css">`).join('')}<style>@font-face{font-family:Mitr;src:url('/node_modules/@fontsource/mitr/files/mitr-thai-400-normal.woff2')}</style></head><body><div id="hud"></div><script type="module" src="/tests/browser/workspace-harness.js"></script></body></html>`}));
-  await page.goto(`${base}/?fresh=1&quality=low&stream=0`,{waitUntil:'domcontentloaded'});
+  // development load (AGENTS.md): only the start map is prepared, so the cold dev server stays inside the readiness budget on WebKit
+  await page.goto(`${base}/?fresh=1&quality=low&stream=0&load=dev`,{waitUntil:'domcontentloaded'});
   try{await page.waitForFunction(()=>window.__frontier?.game?.time>=.3&&(!document.getElementById('loading')||document.getElementById('loading').classList.contains('done')),null,{timeout:90000});}
   catch(error){console.error(name,'game readiness',errors,await page.evaluate(()=>({time:window.__frontier?.game?.time,modelsReady:window.__frontier?.modelsReady,loading:document.getElementById('loading')?.className,notice:document.querySelector('.banner')?.textContent})));throw error;}
   await freezeScene(page);

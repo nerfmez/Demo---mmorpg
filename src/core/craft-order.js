@@ -40,6 +40,8 @@ export function skillCraftGuide(data, recipe) {
       stage = 2; role = 'guard'; condition = 'หันรับการโจมตีด้านหน้า แล้วกดซ้ำเพื่อสวนกลับ'; break;
     case 'melee_line':
       stage = 2; condition = 'เตรียมฟันแนวตรง · เล็งแนวศัตรูก่อนปล่อย'; break;
+    case 'dash_line':
+      stage = 2; condition = 'เล็งแนวที่จะพุ่งผ่าน · ฟันทุกตัวในแนว ใช้พุ่งเข้าหรือออกจากวงมอนได้'; break;
     case 'channel_cone':
       stage = 2; condition = 'กดค้างร่ายกรวยไฟ · ใช้ MP ต่อเนื่อง ปล่อยเพื่อหยุด'; break;
     case 'wall':

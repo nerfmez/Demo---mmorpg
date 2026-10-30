@@ -37,7 +37,7 @@ export function installFusion(g, rules, carrierSlot = 0, payloadSlot = 1) {
   carrier.fusion = payload.id;
   const run = g.executeSkill;
   g.executeSkill = function (s, aim, opts = {}) {
-    if (s !== carrier || opts.triggered || opts.repeat) return run.call(this, s, aim, opts);
+    if (s.id !== carrier.id || opts.triggered || opts.repeat) return run.call(this, s, aim, opts); // by id: a cast may run a marked copy (INT perkCast)
     let first = null;
     const own = Object.hasOwn(this, 'hitMonster'), hit = this.hitMonster;
     this.hitMonster = function (m, ...rest) { if (!first && !rest[1]?.secondary) first = m; return hit.call(this, m, ...rest); };
@@ -127,7 +127,7 @@ function installArrowChain(g, recipe, slot, carrier, payload) {
   const arrows = [];
   const run = g.executeSkill;
   g.executeSkill = function (s, aim, opts = {}) {
-    if (s !== carrier) return run.call(this, s, aim, opts);
+    if (s.id !== carrier.id) return run.call(this, s, aim, opts);
     const before = new Set(this.projectiles);
     run.call(this, s, aim, opts);
     const struck = opts.struck || new Set(); // shared by the cast's arrows (split, repeats)
@@ -176,7 +176,7 @@ function installArrowPoison(g, recipe, carrier, payload) {
   const skill = { ...carrier, element: payload.element, poison };
   const run = g.executeSkill;
   g.executeSkill = function (s, aim, opts = {}) {
-    if (s !== carrier) return run.call(this, s, aim, opts);
+    if (s.id !== carrier.id) return run.call(this, s, aim, opts);
     const before = new Set(this.projectiles);
     run.call(this, s, aim, opts);
     for (const pr of this.projectiles) {

@@ -8,6 +8,8 @@
       "name": "Slash",
       "nameTh": "ฟันกวาด",
       "desc": "ฟันเป็นวงโค้งด้านหน้า สลับซ้าย-ขวาเป็นคอมโบ การโจมตีธรรมดาที่ถอดออกได้เหมือนสกิลอื่น",
+      "growth": "area",
+      "gradeMaterial": "wolf_fang",
       "tags": [
         "Attack",
         "Melee",
@@ -19,16 +21,16 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 80,
-        "scale": 1.0
+        "base": 128,
+        "scale": 1.6
       },
       "range": 2.4,
       "arc": 120,
-      "cooldown": 0.5,
+      "cooldown": 0.8,
       "castTime": 0.18,
-      "cost": 14,
+      "cost": 22,
       "element": "physical",
-      "requires": {},
+      "requires": { "STR": 3, "AGI": 2 },
       "upgradeMaterial": "boar_tusk",
       "icon": "slash",
       "upgradeStat": "STR"
@@ -49,18 +51,16 @@
       "kind": "melee_nova",
       "power": "attack",
       "damage": {
-        "base": 70,
-        "scale": 0.85
+        "base": 112,
+        "scale": 1.36
       },
       "range": 2.8,
       "radius": 2.8,
-      "cooldown": 1.2,
+      "cooldown": 1.92,
       "castTime": 0.24,
-      "cost": 60,
+      "cost": 96,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "AGI": 2 },
       "upgradeMaterial": "wolf_fang",
       "icon": "whirl",
       "upgradeStat": "STR",
@@ -76,7 +76,9 @@
     "hunter_shot": {
       "name": "Hunter's Shot",
       "nameTh": "ลูกธนูพราน",
-      "desc": "ยิงลูกธนูเร็วตรงไปข้างหน้า การโจมตีระยะไกลสายกายภาพ",
+      "desc": "ยิงลูกธนูเร็วตรงไปข้างหน้า ระยะ 10 ม. การโจมตีระยะไกลสายกายภาพ",
+      "growth": "projectile",
+      "gradeMaterial": "hawk_feather",
       "tags": [
         "Attack",
         "Projectile",
@@ -86,17 +88,17 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 90,
-        "scale": 0.95
+        "base": 144,
+        "scale": 1.52
       },
-      "range": 15,
+      "range": 10,
       "speed": 24,
       "projectileRadius": 0.3,
-      "cooldown": 0.55,
+      "cooldown": 0.88,
       "castTime": 0.2,
-      "cost": 14,
+      "cost": 22,
       "element": "physical",
-      "requires": {},
+      "requires": { "DEX": 3, "AGI": 2 },
       "upgradeMaterial": "boar_tusk",
       "icon": "arrow",
       "upgradeStat": "DEX",
@@ -117,17 +119,17 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 80,
-        "scale": 0.9
+        "base": 128,
+        "scale": 1.44
       },
       "range": 13,
       "speed": 16,
       "projectileRadius": 0.3,
-      "cooldown": 0.5,
+      "cooldown": 0.8,
       "castTime": 0.2,
-      "cost": 16,
+      "cost": 26,
       "element": "arcane",
-      "requires": {},
+      "requires": { "INT": 3, "DEX": 2 },
       "upgradeMaterial": "glow_dust",
       "icon": "fire",
       "upgradeStat": "INT",
@@ -140,6 +142,8 @@
       "name": "Firebolt",
       "nameTh": "ลูกไฟ",
       "desc": "ยิงลูกไฟตรงไปข้างหน้า มีโอกาสทำให้ติดไฟ",
+      "growth": "projectile",
+      "gradeMaterial": "wisp_core",
       "tags": [
         "Spell",
         "Projectile",
@@ -149,18 +153,18 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 100,
-        "scale": 1.1
+        "base": 160,
+        "scale": 1.76
       },
       "range": 13,
       "speed": 9,
       "projectileRadius": 0.35,
-      "cooldown": 0.7,
+      "cooldown": 1.12,
       "castTime": 0.22,
       "cost": 56,
       "element": "fire",
       "burnChance": 0.25,
-      "requires": {},
+      "requires": { "INT": 3 },
       "upgradeMaterial": "glow_dust",
       "icon": "fire",
       "upgradeStat": "INT"
@@ -178,20 +182,18 @@
       "kind": "chain",
       "power": "spell",
       "damage": {
-        "base": 110,
-        "scale": 1.0
+        "base": 176,
+        "scale": 1.6
       },
       "range": 11,
       "chain": 3,
       "chainRange": 6,
       "chainFalloff": 0.85,
-      "cooldown": 1.3,
+      "cooldown": 2.08,
       "castTime": 0.24,
-      "cost": 100,
+      "cost": 160,
       "element": "lightning",
-      "requires": {
-        "INT": 6
-      },
+      "requires": { "INT": 4, "LUK": 2 },
       "upgradeMaterial": "wisp_core",
       "icon": "spark",
       "upgradeStat": "INT"
@@ -211,19 +213,17 @@
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 180,
-        "scale": 1.5
+        "base": 288,
+        "scale": 2.4
       },
       "range": 10,
       "radius": 2.3,
       "delay": 0.55,
-      "cooldown": 2.4,
+      "cooldown": 3.84,
       "castTime": 0.3,
-      "cost": 140,
+      "cost": 224,
       "element": "physical",
-      "requires": {
-        "INT": 6
-      },
+      "requires": { "INT": 4, "VIT": 2 },
       "upgradeMaterial": "beetle_shell",
       "icon": "stone",
       "upgradeStat": "INT"
@@ -243,21 +243,19 @@
       "kind": "nova",
       "power": "spell",
       "damage": {
-        "base": 120,
-        "scale": 1.0
+        "base": 192,
+        "scale": 1.6
       },
       "radius": 4.2,
-      "cooldown": 6,
+      "cooldown": 9.6,
       "castTime": 0.25,
-      "cost": 160,
+      "cost": 256,
       "element": "cold",
       "chill": {
         "slow": 0.55,
         "duration": 3
       },
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "INT": 3, "VIT": 2 },
       "upgradeMaterial": "glow_dust",
       "icon": "frost",
       "upgradeStat": "INT"
@@ -265,7 +263,7 @@
     "venom_mire": {
       "name": "Venom Arrow",
       "nameTh": "ธนูพิษ",
-      "desc": "ยิงลูกธนูพิษเส้นบางเร็ว ไม่ทะลุ โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง",
+      "desc": "ยิงลูกธนูพิษเส้นบางเร็ว ระยะ 10 ม. ไม่ทะลุ โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง",
       "tags": [
         "Attack",
         "Projectile",
@@ -276,19 +274,17 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 40,
-        "scale": 0.4
+        "base": 64,
+        "scale": 0.64
       },
-      "range": 14,
+      "range": 10,
       "speed": 26,
       "projectileRadius": 0.2,
-      "cooldown": 0.6,
+      "cooldown": 0.96,
       "castTime": 0.2,
-      "cost": 12,
+      "cost": 19,
       "element": "poison",
-      "requires": {
-        "DEX": 6
-      },
+      "requires": { "DEX": 4, "LUK": 2 },
       "upgradeMaterial": "spore_sac",
       "icon": "mire",
       "upgradeStat": "DEX",
@@ -304,7 +300,7 @@
     "hex": {
       "name": "Weakening Hex",
       "nameTh": "คำสาปอ่อนแรง",
-      "desc": "สาปศัตรูในวง ให้รับดาเมจเพิ่ม 25% และตีเบาลง 20% เป็นเวลา 8 วินาที เหมาะกับปาร์ตี้",
+      "desc": "สาปศัตรูในวง ให้รับดาเมจเพิ่ม 23% และตีเบาลง 20% เป็นเวลา 6 วินาที เหมาะกับปาร์ตี้",
       "tags": [
         "Spell",
         "Area",
@@ -316,19 +312,17 @@
       "power": "spell",
       "range": 11,
       "radius": 3.5,
-      "duration": 8,
-      "takenMult": 1.25,
+      "duration": 6,
+      "takenMult": 1.23,
       "dealtMult": 0.8,
-      "cooldown": 9,
+      "cooldown": 20,
       "castTime": 0.3,
-      "cost": 120,
+      "cost": 192,
       "element": "arcane",
-      "requires": {
-        "INT": 7
-      },
+      "requires": { "LUK": 4, "INT": 3 },
       "upgradeMaterial": "spore_sac",
       "icon": "hex",
-      "upgradeStat": "INT"
+      "upgradeStat": "LUK"
     },
     "ward": {
       "name": "Ward",
@@ -345,16 +339,16 @@
       "kind": "self_barrier",
       "power": "vit",
       "barrier": {
-        "base": 300,
-        "scale": 18
+        "base": 480,
+        "scale": 28.8
       },
       "duration": 6,
       "radius": 4,
-      "cooldown": 9,
+      "cooldown": 20,
       "castTime": 0.25,
-      "cost": 120,
+      "cost": 192,
       "element": "none",
-      "requires": {},
+      "requires": { "VIT": 3, "INT": 2 },
       "upgradeMaterial": "beetle_shell",
       "icon": "ward",
       "upgradeStat": "VIT"
@@ -362,7 +356,7 @@
     "war_cry": {
       "name": "War Cry",
       "nameTh": "เสียงคำรามศึก",
-      "desc": "คำรามปลุกใจ ตัวเองและพวกพ้องรอบตัว (รวมสัตว์อัญเชิญ) ดาเมจ +18% (เพิ่มตามระดับสกิล) และเร็วขึ้น 10% นาน 8 วินาที",
+      "desc": "คำรามปลุกใจ ตัวเองและพวกพ้องรอบตัว (รวมสัตว์อัญเชิญ) ดาเมจ +18% (เพิ่มตามระดับสกิล) และเร็วขึ้น 10% นาน 6.5 วินาที",
       "tags": [
         "Buff",
         "Area",
@@ -372,16 +366,14 @@
       "kind": "buff",
       "power": "attack",
       "radius": 8,
-      "duration": 8,
+      "duration": 6.5,
       "damageBuff": 0.18,
       "speedBuff": 0.1,
-      "cooldown": 14,
+      "cooldown": 22.4,
       "castTime": 0.3,
-      "cost": 120,
+      "cost": 192,
       "element": "none",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "VIT": 2 },
       "upgradeMaterial": "wolf_pelt",
       "icon": "warcry",
       "upgradeStat": "STR"
@@ -401,23 +393,21 @@
       "kind": "heal_zone",
       "power": "spell",
       "heal": {
-        "base": 60,
-        "scale": 0.45
+        "base": 96,
+        "scale": 0.72
       },
       "tick": 0.5,
       "duration": 4,
       "range": 9,
       "radius": 2.8,
-      "cooldown": 10,
+      "cooldown": 16.0,
       "castTime": 0.3,
-      "cost": 180,
+      "cost": 288,
       "element": "none",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "VIT": 3, "INT": 2 },
       "upgradeMaterial": "glow_dust",
       "icon": "heal",
-      "upgradeStat": "INT"
+      "upgradeStat": "VIT"
     },
     "spirit_wolf": {
       "name": "Spirit Wolf",
@@ -447,21 +437,19 @@
         "range": 1.8,
         "attackCooldown": 1.0
       },
-      "cooldown": 12,
+      "cooldown": 19.2,
       "castTime": 0.4,
-      "cost": 200,
+      "cost": 320,
       "element": "physical",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "VIT": 3, "INT": 2 },
       "upgradeMaterial": "wolf_pelt",
       "icon": "wolf",
-      "upgradeStat": "INT"
+      "upgradeStat": "VIT"
     },
     "charged_shot": {
       "name": "Power Draw",
       "nameTh": "ชาร์จยิงรุนแรง",
-      "desc": "กดค้างเพื่อชาร์จจนเต็มใน 1.2 วินาที ปล่อยเพื่อยิง ความแรง 100–250% ระหว่างชาร์จเดินได้ 40% ใช้ 8 MP และลูกธนูเมื่อปล่อยยิง ยกเลิกได้โดยไม่เสียทรัพยากร",
+      "desc": "กดค้างเพื่อชาร์จจนเต็มใน 1.2 วินาที ปล่อยเพื่อยิง ระยะ 14 ม. ความแรง 100–250% ระหว่างชาร์จเดินได้ 40% ใช้ 8 MP และลูกธนูเมื่อปล่อยยิง ยกเลิกได้โดยไม่เสียทรัพยากร",
       "tags": [
         "Attack",
         "Projectile",
@@ -472,19 +460,17 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 140,
-        "scale": 1.1
+        "base": 224,
+        "scale": 1.76
       },
-      "range": 17,
+      "range": 14,
       "speed": 30,
       "projectileRadius": 0.3,
-      "cooldown": 2.4,
+      "cooldown": 3.84,
       "castTime": 0.2,
-      "cost": 80,
+      "cost": 128,
       "element": "physical",
-      "requires": {
-        "DEX": 5
-      },
+      "requires": { "DEX": 3, "LUK": 2 },
       "requiresWeapon": [
         "bow"
       ],
@@ -514,22 +500,20 @@
       "kind": "counter_stance",
       "power": "attack",
       "range": 3,
-      "cooldown": 6,
+      "cooldown": 9.6,
       "castTime": 0.15,
-      "cost": 80,
+      "cost": 128,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
-      "upgradeStat": "STR",
+      "requires": { "VIT": 3, "STR": 2 },
+      "upgradeStat": "VIT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "requiresWeapon": [
         "sword"
       ],
       "damage": {
-        "base": 120,
-        "scale": 1.15
+        "base": 192,
+        "scale": 1.84
       },
       "arc": 100,
       "guard": {
@@ -554,22 +538,20 @@
       "kind": "melee_arc",
       "power": "attack",
       "range": 2.5,
-      "cooldown": 0.5,
+      "cooldown": 0.8,
       "castTime": 0.18,
-      "cost": 12,
+      "cost": 19,
       "element": "physical",
-      "requires": {
-        "DEX": 5
-      },
-      "upgradeStat": "DEX",
+      "requires": { "AGI": 3, "DEX": 2 },
+      "upgradeStat": "AGI",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "requiresWeapon": [
         "dagger"
       ],
       "damage": {
-        "base": 60,
-        "scale": 0.6
+        "base": 96,
+        "scale": 0.96
       },
       "arc": 45,
       "positionalMult": 1.6,
@@ -592,13 +574,11 @@
       "kind": "melee_arc",
       "power": "attack",
       "range": 2.8,
-      "cooldown": 5,
+      "cooldown": 8.0,
       "castTime": 0.5,
-      "cost": 80,
+      "cost": 128,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "VIT": 2 },
       "upgradeStat": "STR",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -606,8 +586,8 @@
         "axe"
       ],
       "damage": {
-        "base": 140,
-        "scale": 1.2
+        "base": 381,
+        "scale": 3.26
       },
       "arc": 80,
       "exposure": {
@@ -631,13 +611,11 @@
       "kind": "melee_arc",
       "power": "attack",
       "range": 2.7,
-      "cooldown": 7,
+      "cooldown": 11.2,
       "castTime": 0.4,
-      "cost": 80,
+      "cost": 128,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "VIT": 2 },
       "upgradeStat": "STR",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -645,8 +623,8 @@
         "mace"
       ],
       "damage": {
-        "base": 120,
-        "scale": 1.1
+        "base": 192,
+        "scale": 1.76
       },
       "arc": 65,
       "stun": {
@@ -669,13 +647,11 @@
       "kind": "melee_line",
       "power": "attack",
       "range": 5,
-      "cooldown": 4,
+      "cooldown": 6.4,
       "castTime": 0.65,
-      "cost": 120,
+      "cost": 192,
       "element": "physical",
-      "requires": {
-        "STR": 5
-      },
+      "requires": { "STR": 3, "VIT": 2 },
       "upgradeStat": "STR",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -683,8 +659,8 @@
         "greatblade"
       ],
       "damage": {
-        "base": 200,
-        "scale": 1.7
+        "base": 320,
+        "scale": 2.72
       },
       "width": 1.4,
       "aimDuringCast": true
@@ -706,19 +682,17 @@
       "kind": "melee_arc",
       "power": "vit",
       "range": 2.2,
-      "cooldown": 5,
+      "cooldown": 8.0,
       "castTime": 0.2,
-      "cost": 80,
+      "cost": 128,
       "element": "physical",
-      "requires": {
-        "VIT": 5
-      },
+      "requires": { "VIT": 3, "STR": 2 },
       "upgradeStat": "VIT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "damage": {
-        "base": 80,
-        "scale": 8
+        "base": 128,
+        "scale": 12.8
       },
       "arc": 90,
       "requiresOffhand": "shield",
@@ -742,13 +716,11 @@
       "kind": "ground_area",
       "power": "attack",
       "range": 14,
-      "cooldown": 6,
+      "cooldown": 9.6,
       "castTime": 0.3,
-      "cost": 120,
+      "cost": 192,
       "element": "physical",
-      "requires": {
-        "DEX": 5
-      },
+      "requires": { "DEX": 3, "AGI": 2 },
       "upgradeStat": "DEX",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -756,8 +728,8 @@
         "bow"
       ],
       "damage": {
-        "base": 60,
-        "scale": 0.45
+        "base": 96,
+        "scale": 0.72
       },
       "radius": 3,
       "delay": 0.45,
@@ -778,13 +750,11 @@
       "kind": "channel_cone",
       "power": "spell",
       "range": 5,
-      "cooldown": 1,
+      "cooldown": 1.6,
       "castTime": 0.2,
       "cost": 20,
       "element": "fire",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "INT": 5 },
       "upgradeStat": "INT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -816,13 +786,11 @@
       "kind": "wall",
       "power": "spell",
       "range": 9,
-      "cooldown": 10,
+      "cooldown": 17,
       "castTime": 0.3,
-      "cost": 160,
+      "cost": 256,
       "element": "cold",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "INT": 3, "VIT": 2 },
       "upgradeStat": "INT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -852,19 +820,17 @@
       "kind": "heal_target",
       "power": "spell",
       "range": 8,
-      "cooldown": 7,
+      "cooldown": 11.2,
       "castTime": 0.3,
-      "cost": 120,
+      "cost": 192,
       "element": "none",
-      "requires": {
-        "INT": 5
-      },
-      "upgradeStat": "INT",
+      "requires": { "VIT": 3, "INT": 2 },
+      "upgradeStat": "VIT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "heal": {
-        "base": 120,
-        "scale": 0.65
+        "base": 192,
+        "scale": 1.04
       },
       "cleanse": [
         "poison",
@@ -888,10 +854,8 @@
       "castTime": 0.3,
       "cost": 0,
       "element": "none",
-      "requires": {
-        "INT": 5
-      },
-      "upgradeStat": "INT",
+      "requires": { "VIT": 3, "INT": 2 },
+      "upgradeStat": "VIT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
       "radius": 5,
@@ -914,13 +878,11 @@
       "kind": "summon",
       "power": "spell",
       "range": 0,
-      "cooldown": 14,
+      "cooldown": 22.4,
       "castTime": 0.4,
-      "cost": 200,
+      "cost": 320,
       "element": "physical",
-      "requires": {
-        "INT": 5
-      },
+      "requires": { "INT": 3, "VIT": 2 },
       "upgradeStat": "INT",
       "upgradeMaterial": "boar_tusk",
       "prototype": true,
@@ -957,27 +919,26 @@
         "Damage",
         "Physical",
         "Control",
-        "Arc"
+        "Arc",
+        "Signature"
       ],
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 420,
-        "scale": 3.2
+        "base": 874,
+        "scale": 6.66
       },
       "range": 3.2,
       "arc": 140,
-      "cooldown": 9,
+      "cooldown": 14.4,
       "castTime": 0.7,
-      "cost": 160,
+      "cost": 256,
       "element": "physical",
       "stun": {
         "duration": 1,
         "bossDuration": 0.3
       },
-      "requires": {
-        "STR": 12
-      },
+      "requires": { "STR": 7, "VIT": 5 },
       "requiresWeapon": [
         "greatblade",
         "axe",
@@ -999,24 +960,23 @@
         "Line",
         "Area",
         "Damage",
-        "Physical"
+        "Physical",
+        "Signature"
       ],
       "kind": "melee_line",
       "power": "attack",
       "damage": {
-        "base": 340,
-        "scale": 2.8
+        "base": 734,
+        "scale": 6.05
       },
       "range": 8,
       "width": 1.8,
       "aimDuringCast": true,
-      "cooldown": 8,
+      "cooldown": 12.8,
       "castTime": 0.8,
-      "cost": 160,
+      "cost": 256,
       "element": "physical",
-      "requires": {
-        "STR": 12
-      },
+      "requires": { "STR": 7, "VIT": 5 },
       "requiresWeapon": [
         "greatblade",
         "axe",
@@ -1043,19 +1003,15 @@
       "duration": 6,
       "takenMult": 0.85,
       "steady": true,
-      "cooldown": 18,
+      "cooldown": 28.8,
       "castTime": 0.2,
-      "cost": 100,
+      "cost": 160,
       "element": "none",
-      "requires": {
-        "STR": 10,
-        "VIT": 6
-      },
+      "requires": { "VIT": 7, "STR": 5 },
       "upgradeMaterial": "golem_heart",
       "upgradeStat": "VIT",
       "job": "heavy",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "cross_cut": {
       "name": "Cross Cut",
@@ -1072,33 +1028,31 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 60,
-        "scale": 0.7
+        "base": 96,
+        "scale": 1.12
       },
       "range": 2.2,
       "arc": 100,
       "repeats": 1,
       "repeatMult": 1,
       "repeatDelay": 0.14,
-      "cooldown": 0.75,
+      "cooldown": 1.2,
       "castTime": 0.22,
-      "cost": 24,
+      "cost": 38,
       "element": "physical",
-      "requires": {
-        "DEX": 8
-      },
+      "requires": { "STR": 5, "AGI": 3 },
       "requiresWeapon": [
         "dagger"
       ],
       "upgradeMaterial": "mantis_scythe",
-      "upgradeStat": "DEX",
+      "upgradeStat": "STR",
       "job": "blade",
       "iconPending": true
     },
     "blade_storm": {
       "name": "Blade Storm",
       "nameTh": "พายุมีด",
-      "desc": "หมุนตัวฟันรอบทิศ 4 รอบติดกัน ใช้กับมีดสั้น",
+      "desc": "ท่าหลักมีดสั้น หมุนตัวฟันรอบตัวเร็วๆ 2 รอบ ระยะสั้น 1.8 ม. โดนทุกตัวที่ประชิดรอบตัว",
       "tags": [
         "Attack",
         "Melee",
@@ -1112,33 +1066,69 @@
       "power": "attack",
       "damage": {
         "base": 80,
-        "scale": 0.75
+        "scale": 0.88
       },
-      "range": 3,
-      "radius": 3,
-      "repeats": 3,
+      "range": 1.8,
+      "radius": 1.8,
+      "repeats": 1,
       "repeatMult": 1,
-      "repeatDelay": 0.2,
-      "cooldown": 7,
-      "castTime": 0.3,
-      "cost": 140,
+      "repeatDelay": 0.05,
+      "cooldown": 1.44,
+      "castTime": 0.15,
+      "cost": 35,
       "element": "physical",
-      "requires": {
-        "DEX": 12
-      },
+      "requires": { "STR": 5, "AGI": 3 },
       "requiresWeapon": [
         "dagger"
       ],
       "upgradeMaterial": "dusk_pelt",
-      "upgradeStat": "DEX",
+      "upgradeStat": "STR",
       "job": "blade",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
+    },
+    "backstab": {
+      "name": "Backstab",
+      "nameTh": "แทงหลัง",
+      "desc": "วาร์ปไปด้านหลังเป้าหมายในระยะ 7 ม. แล้วแทงแรง โดนจากด้านหลังแรงขึ้น 50% ต้องมีเป้าหมายในระยะ ใช้กับมีดสั้น",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Damage",
+        "Physical",
+        "Arc",
+        "Signature"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "damage": {
+        "base": 352,
+        "scale": 2.88
+      },
+      "positionalMult": 1.5,
+      "range": 1.8,
+      "arc": 70,
+      "shadowStep": {
+        "range": 7,
+        "gap": 0.7
+      },
+      "cooldown": 12.8,
+      "castTime": 0.25,
+      "cost": 144,
+      "element": "physical",
+      "requires": { "AGI": 8, "DEX": 6 },
+      "requiresWeapon": [
+        "dagger"
+      ],
+      "upgradeMaterial": "dusk_pelt",
+      "upgradeStat": "AGI",
+      "job": "blade",
+      "iconPending": true
     },
     "rally": {
       "name": "Rally",
       "nameTh": "ปลุกใจ",
-      "desc": "ปลุกใจตัวเองและพวกรอบตัว 8 ม. ดาเมจ +12% (เพิ่มตามระดับสกิล) นาน 15 วินาที",
+      "desc": "ปลุกใจตัวเองและพวกรอบตัว 8 ม. ดาเมจ +12% (เพิ่มตามระดับสกิล) นาน 7 วินาที",
       "tags": [
         "Buff",
         "Area",
@@ -1148,20 +1138,17 @@
       "kind": "buff",
       "power": "attack",
       "radius": 8,
-      "duration": 15,
+      "duration": 7,
       "damageBuff": 0.12,
-      "cooldown": 15,
+      "cooldown": 24,
       "castTime": 0.3,
-      "cost": 100,
+      "cost": 160,
       "element": "none",
-      "requires": {
-        "STR": 8
-      },
+      "requires": { "STR": 5, "VIT": 3 },
       "upgradeMaterial": "wolf_pelt",
       "upgradeStat": "STR",
       "job": "duelist",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "frenzy_roar": {
       "name": "Frenzy Roar",
@@ -1178,19 +1165,15 @@
       "radius": 8,
       "duration": 8,
       "speedBuff": 0.2,
-      "cooldown": 16,
+      "cooldown": 27,
       "castTime": 0.3,
-      "cost": 100,
+      "cost": 160,
       "element": "none",
-      "requires": {
-        "STR": 6,
-        "AGI": 6
-      },
+      "requires": { "STR": 6, "AGI": 4 },
       "upgradeMaterial": "greyfang_mane",
-      "upgradeStat": "AGI",
+      "upgradeStat": "STR",
       "job": "duelist",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "stand_firm": {
       "name": "Stand Firm",
@@ -1208,18 +1191,15 @@
       "radius": 8,
       "duration": 8,
       "takenMult": 0.85,
-      "cooldown": 20,
+      "cooldown": 32.0,
       "castTime": 0.3,
-      "cost": 120,
+      "cost": 192,
       "element": "none",
-      "requires": {
-        "VIT": 8
-      },
+      "requires": { "VIT": 5, "STR": 3 },
       "upgradeMaterial": "ram_horn",
       "upgradeStat": "VIT",
       "job": "duelist",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "team_stand": {
       "name": "Hold the Line",
@@ -1238,18 +1218,15 @@
       "duration": 8,
       "takenMult": 0.8,
       "steady": true,
-      "cooldown": 22,
+      "cooldown": 35.2,
       "castTime": 0.3,
-      "cost": 140,
+      "cost": 224,
       "element": "none",
-      "requires": {
-        "VIT": 12
-      },
+      "requires": { "VIT": 7, "STR": 5 },
       "upgradeMaterial": "warden_horn",
       "upgradeStat": "VIT",
       "job": "guardian",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "blessing": {
       "name": "Blessing of Light",
@@ -1267,23 +1244,20 @@
       "duration": 12,
       "damageBuff": 0.1,
       "takenMult": 0.9,
-      "cooldown": 24,
+      "cooldown": 40,
       "castTime": 0.4,
-      "cost": 180,
+      "cost": 288,
       "element": "none",
-      "requires": {
-        "INT": 10
-      },
+      "requires": { "VIT": 6, "INT": 4 },
       "upgradeMaterial": "sea_pearl",
-      "upgradeStat": "INT",
+      "upgradeStat": "VIT",
       "job": "priest",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "rapid_volley": {
       "name": "Rapid Volley",
       "nameTh": "ยิงรัว",
-      "desc": "ยิงลูกธนูรัว 5 ลูกติดกันตามทิศที่หัน ใช้ลูกธนูครั้งเดียว ต้องใช้ธนู",
+      "desc": "ย่อเข่ายิงลูกธนูรัว 5 ลูกติดกันตามทิศที่หัน ระยะ 12 ม. ใช้ลูกธนูครั้งเดียว ต้องใช้ธนู",
       "tags": [
         "Attack",
         "Projectile",
@@ -1293,65 +1267,60 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 80,
-        "scale": 0.7
+        "base": 128,
+        "scale": 1.12
       },
-      "range": 15,
+      "range": 12,
       "speed": 26,
       "projectileRadius": 0.3,
       "repeats": 4,
       "repeatMult": 1,
       "repeatDelay": 0.12,
-      "cooldown": 5,
+      "cooldown": 8.0,
       "castTime": 0.2,
-      "cost": 100,
+      "cost": 160,
       "element": "physical",
-      "requires": {
-        "DEX": 10
-      },
+      "requires": { "DEX": 6, "AGI": 4 },
       "requiresWeapon": [
         "bow"
       ],
       "upgradeMaterial": "storm_quill",
       "upgradeStat": "DEX",
       "job": "power",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "killing_arrow": {
       "name": "Killing Arrow",
       "nameTh": "ศรสังหาร",
-      "desc": "เล็ง 0.55 วิ แล้วยิงลูกธนูหนักลูกเดียว ดาเมจสูงมาก ระยะไกล 20 ม. ต้องใช้ธนู",
+      "desc": "เล็ง 0.55 วิ แล้วยิงลูกธนูหนักลูกเดียว ดาเมจสูงมาก ระยะไกล 16 ม. ต้องใช้ธนู",
       "tags": [
         "Attack",
         "Projectile",
         "Damage",
-        "Physical"
+        "Physical",
+        "Signature"
       ],
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 520,
-        "scale": 4.2
+        "base": 832,
+        "scale": 6.72
       },
-      "range": 20,
+      "range": 16,
       "speed": 34,
       "projectileRadius": 0.3,
-      "cooldown": 10,
+      "cooldown": 16.0,
       "castTime": 0.55,
-      "cost": 160,
+      "cost": 256,
       "element": "physical",
-      "requires": {
-        "DEX": 14
-      },
+      "requires": { "DEX": 8, "LUK": 6 },
       "requiresWeapon": [
         "bow"
       ],
       "upgradeMaterial": "hawk_feather",
       "upgradeStat": "DEX",
       "job": "power",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "meteor": {
       "name": "Meteor",
@@ -1362,25 +1331,24 @@
         "Area",
         "Fire",
         "Damage",
-        "Ground"
+        "Ground",
+        "Signature"
       ],
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 520,
-        "scale": 4.2
+        "base": 832,
+        "scale": 6.72
       },
       "range": 12,
       "radius": 3.5,
       "delay": 1.1,
       "burnChance": 0.5,
-      "cooldown": 10,
+      "cooldown": 16.0,
       "castTime": 0.5,
-      "cost": 260,
+      "cost": 416,
       "element": "fire",
-      "requires": {
-        "INT": 14
-      },
+      "requires": { "INT": 14 },
       "upgradeMaterial": "rune_core",
       "upgradeStat": "INT",
       "job": "elemage",
@@ -1400,26 +1368,25 @@
         "Persistent",
         "Zone",
         "Ground",
-        "Duration"
+        "Duration",
+        "Signature"
       ],
       "kind": "dot_zone",
       "power": "spell",
       "damage": {
-        "base": 90,
-        "scale": 0.8
+        "base": 144,
+        "scale": 1.28
       },
       "range": 11,
       "radius": 3.8,
       "duration": 5,
       "tick": 0.5,
       "slow": 0.45,
-      "cooldown": 12,
+      "cooldown": 19.2,
       "castTime": 0.4,
-      "cost": 240,
+      "cost": 384,
       "element": "cold",
-      "requires": {
-        "INT": 14
-      },
+      "requires": { "INT": 8, "VIT": 6 },
       "upgradeMaterial": "sea_pearl",
       "upgradeStat": "INT",
       "job": "elemage",
@@ -1434,26 +1401,25 @@
         "Area",
         "Lightning",
         "Damage",
-        "Ground"
+        "Ground",
+        "Signature"
       ],
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 130,
-        "scale": 1
+        "base": 208,
+        "scale": 1.6
       },
       "range": 12,
       "radius": 3.2,
       "delay": 0.4,
       "waves": 4,
       "waveInterval": 0.5,
-      "cooldown": 11,
+      "cooldown": 17.6,
       "castTime": 0.4,
-      "cost": 240,
+      "cost": 384,
       "element": "lightning",
-      "requires": {
-        "INT": 14
-      },
+      "requires": { "INT": 8, "LUK": 6 },
       "upgradeMaterial": "storm_quill",
       "upgradeStat": "INT",
       "job": "elemage",
@@ -1469,31 +1435,29 @@
         "Damage",
         "Arcane",
         "Control",
-        "Nova"
+        "Nova",
+        "Signature"
       ],
       "kind": "nova",
       "power": "spell",
       "damage": {
-        "base": 90,
-        "scale": 0.7
+        "base": 144,
+        "scale": 1.12
       },
       "radius": 4.5,
       "stun": {
         "duration": 0.8,
         "bossDuration": 0.25
       },
-      "cooldown": 14,
+      "cooldown": 22.4,
       "castTime": 0.35,
-      "cost": 180,
+      "cost": 288,
       "element": "arcane",
-      "requires": {
-        "INT": 10
-      },
+      "requires": { "VIT": 6, "INT": 4 },
       "upgradeMaterial": "warden_horn",
-      "upgradeStat": "INT",
+      "upgradeStat": "VIT",
       "job": "priest",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "light_chain": {
       "name": "Chain of Light",
@@ -1504,13 +1468,14 @@
         "Projectile",
         "Damage",
         "Arcane",
-        "Control"
+        "Control",
+        "Signature"
       ],
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 80,
-        "scale": 0.7
+        "base": 128,
+        "scale": 1.12
       },
       "range": 12,
       "speed": 18,
@@ -1519,23 +1484,20 @@
         "slow": 0.85,
         "duration": 2
       },
-      "cooldown": 8,
+      "cooldown": 12.8,
       "castTime": 0.3,
-      "cost": 120,
+      "cost": 192,
       "element": "arcane",
-      "requires": {
-        "INT": 8
-      },
+      "requires": { "LUK": 5, "INT": 3 },
       "upgradeMaterial": "mirror_scale",
-      "upgradeStat": "INT",
+      "upgradeStat": "LUK",
       "job": "priest",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
     },
     "spell_wave": {
       "name": "Spell Wave",
       "nameTh": "คลื่นดาบเวท",
-      "desc": "ฟันส่งคลื่นดาบเวทกว้างพุ่งไปข้างหน้า 10 ม. ใช้เป็นฐานสกิลผสานได้ ต้องถือดาบ",
+      "desc": "ท่าหลักนักดาบเวท ฟันผ่าลงส่งคลื่นดาบเวทตั้งตรงแนวแคบพุ่งไปข้างหน้า 10 ม. ใส่ม็อดทะลุเพื่อเฉือนผ่านหลายตัวในแนวได้ ต้องถือดาบ",
       "tags": [
         "Attack",
         "Projectile",
@@ -1545,29 +1507,61 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 160,
-        "scale": 1.3
+        "base": 144,
+        "scale": 1.44
       },
       "range": 10,
       "speed": 16,
-      "projectileRadius": 0.9,
-      "cooldown": 3,
-      "castTime": 0.3,
-      "cost": 100,
+      "projectileRadius": 0.5,
+      "cooldown": 1.28,
+      "castTime": 0.24,
+      "cost": 38,
       "element": "arcane",
-      "requires": {
-        "STR": 8,
-        "INT": 8
-      },
+      "requires": { "STR": 10, "AGI": 6 },
       "requiresWeapon": [
         "sword",
         "greatblade"
       ],
       "upgradeMaterial": "rune_core",
-      "upgradeStat": "INT",
+      "upgradeStat": "STR",
       "job": "spellblade",
-      "iconPending": true,
-      "fxPending": true
+      "iconPending": true
+    },
+    "draw_cut": {
+      "name": "Blink Draw",
+      "nameTh": "ชักดาบพริบตา",
+      "desc": "เก็บดาบเข้าฝักแสงเวทตั้งท่า 0.35 วิ แล้วพุ่งไปตามทิศเล็ง 7 ม. ชักดาบผ่าน แล้วอีก 0.18 วิ ศัตรูทุกตัวในแนวที่พุ่งผ่าน (กว้าง 1.4 ม.) ถูกฟันขาด ตัวละครั้งเดียว หยุดเมื่อชนกำแพงหรือหน้าผา ระหว่างพุ่งไม่อมตะ ใช้พุ่งเข้าหรือออกจากวงมอนได้ ต้องถือดาบ",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Line",
+        "Damage",
+        "Arcane"
+      ],
+      "kind": "dash_line",
+      "power": "attack",
+      "damage": {
+        "base": 448,
+        "scale": 3.84
+      },
+      "range": 7,
+      "width": 1.4,
+      "dashTime": 0.16,
+      "cutDelay": 0.18,
+      "aimDuringCast": true,
+      "cooldown": 6.4,
+      "castTime": 0.35,
+      "cost": 112,
+      "element": "arcane",
+      "requires": { "STR": 10, "AGI": 6 },
+      "requiresWeapon": [
+        "sword"
+      ],
+      "upgradeMaterial": "rune_core",
+      "upgradeStat": "STR",
+      "job": "spellblade",
+      "iconPending": true
     }
   },
   "movement": {
@@ -1582,7 +1576,7 @@
       "distance": 6,
       "duration": 0.18,
       "charges": 2,
-      "recharge": 3.2,
+      "recharge": 5.12,
       "invulnerable": false,
       "icon": "dash",
       "upgradeStat": "AGI"
@@ -1598,7 +1592,7 @@
       "distance": 4.2,
       "duration": 0.36,
       "charges": 1,
-      "recharge": 1.3,
+      "recharge": 2.08,
       "invulnerable": true,
       "icon": "roll",
       "upgradeStat": "AGI"
@@ -1613,15 +1607,16 @@
       ],
       "kind": "blink",
       "distance": 8,
-      "duration": 0.08, "delay": 0.14,
+      "duration": 0.08,
+      "delay": 0.14,
       "charges": 1,
-      "recharge": 4.5,
+      "recharge": 7.2,
       "invulnerable": true,
       "requires": {
         "INT": 7
       },
       "icon": "blink",
-      "upgradeStat": "AGI"
+      "upgradeStat": "INT"
     },
     "leap": {
       "name": "Leap Slam",
@@ -1636,7 +1631,7 @@
       "distance": 7,
       "duration": 0.45,
       "charges": 1,
-      "recharge": 3.5,
+      "recharge": 5.6,
       "invulnerable": true,
       "landing": {
         "radius": 2.2,
@@ -1649,7 +1644,7 @@
         "STR": 6
       },
       "icon": "leap",
-      "upgradeStat": "AGI"
+      "upgradeStat": "STR"
     }
   }
 }

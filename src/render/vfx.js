@@ -191,6 +191,9 @@ function discGeometry(segs = 40, rings = 6) {
 }
 
 let arrowGeo = null;
+// bow skills whose projectile is drawn as a real arrow (and nocked through the cast)
+const BOW_SHOTS = new Set(['hunter_shot', 'charged_shot', 'rapid_volley', 'killing_arrow']);
+
 /** One shared set of arrow meshes for every arrow in flight. */
 function arrowGeometry() {
   if (!arrowGeo) {
@@ -335,7 +338,7 @@ export class Vfx {
       const mesh=frostMesh(4.2,true);mesh.visible=false;this.scene.add(mesh);
       this.castFrost={mesh,t:0,dur:e.total};return;
     }
-    if ((e.skill === 'hunter_shot' || e.skill === 'charged_shot')) {
+    if (BOW_SHOTS.has(e.skill)) {
       const cfg = this.config.skills.hunter_shot, f = cfg.cast, mesh = arrowStreak(cfg);
       mesh.material.uniforms.uLength.value = f.length; mesh.material.uniforms.uWidth.value = f.width;
       mesh.material.uniforms.uOpacity.value = f.opacity; mesh.visible = false; this.scene.add(mesh);
@@ -1177,6 +1180,24 @@ export class Vfx {
     this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
   }
 
+  // Blink Draw's afterimages: the posed body left behind along the dash, in its violet
+  drawCutEcho(rig) {
+    if(!rig)return;
+    const {ghost,release}=this.movementEchoAt(rig,0x9a8cff);
+    this.spawn(ghost,.34,t=>echoOpacity(ghost,.38*(1-t)),release);
+  }
+
+  // Backstab's dark afterimages: where the body left, then along the shadow step's curve (skillfx/shadow-fx.js)
+  // spots: [[x, z, facing, delay], ...] (at most the echo pool's 3)
+  shadowEchoes(spots, rig) {
+    if(!rig)return;
+    for(const [x,z,a,delay] of spots){
+      const {ghost,release}=this.movementEchoAt(rig,0x240a3c);ghost.position.set(x,this.gy(x,z),z);ghost.rotation.set(0,a,0);
+      const life=delay+.32;
+      this.spawn(ghost,life,t=>{const age=t*life-delay;ghost.visible=age>=0;echoOpacity(ghost,age<0?0:.62*(1-age/.32));},release);
+    }
+  }
+
   syncMovement(player,y,dt,rig) {
     const d=player.dash;
     if(!d){this.movementSource=null;return;}
@@ -1244,7 +1265,7 @@ export class Vfx {
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
-      const arrow = (pr.kind === 'hunter_shot' || pr.kind === 'charged_shot' || pr.arrow); // pr.arrow: a fused arrow (bench)
+      const arrow = BOW_SHOTS.has(pr.kind) || pr.arrow; // pr.arrow: a fused arrow (bench)
       const fire = pr.kind === 'firebolt' && element === 'fire';
       const look = this.genericLook(pr.kind).projectile;
       if (!v) {

@@ -209,6 +209,141 @@ now ordinary cuts around the hero, bulging forward with the bright sharp edge le
 way about the facing so they make an upright X from the hero's view, and they fly on forward as a wave.
 From the high camera they read as forward-flying crescents in every facing.
 
+Blade Storm (พายุมีด, daggers, four spins 0.3 s apart over a 3 m circle), `skillfx/storm-fx.js`: each spin is a
+slash crescent round the whole circle in the blade job's violet (Cross Cut's), each a little higher
+than the last so the four stack like a whirlwind of blades; wind streaks spiral up round the hero
+through the spins; the last spin flings sparks outward with a flash and a short shake. The hero
+spins with Whirl Blade's approved `whirlSpin` run four turns (`bladeStorm`).
+Owner: daggers should not reach that far; make it quick short spins round the body and a main skill. Now
+two quick spins 0.15 s apart within 1.8 m (0.9 s, 22 MP), two small rings, a light burst; `bladeStorm`
+is two quick turns.
+
+Backstab (แทงหลัง, daggers, the blade job's 8 s cooldown that replaced Blade Storm's slot), `skillfx/shadow-fx.js`:
+on the rules' `shadowStep` the hero vanishes in a spray of violet shards with a closing ground ring, a
+violet streak arcs low from there to behind the target, shards gather in where the hero appears and a
+violet light flashes. The stab is Flank Thrust's spear and hard burst (`ThrustFx`, `violet`) in the
+blade job's colour with a shake, and "แทงหลัง!" when it lands from behind (the rules' 1.5x positional
+bonus); the hero plays `flankStab`.
+Owner: "เอฟเฟคตอนวาปยังธรรมดาไป". The gallery host was blocked again (403), so no clip was inspected.
+The step is now drawn as shadow, not light: a dark ink body with a violet rim reads on any ground. A
+noise-edged shadow pool opens under each end, ink tendrils whip up and sink, a thick ink streak with a
+bright thread swings out round the target's side to its back (a curve, never through the body), dark
+afterimages of the hero's pose are left where it stood and along the curve, and a tall violet slit
+flashes where it appears. Also asked: target skills should lock by dragging the button, so a drag on
+Backstab picks the monster it points at within 7 m (target ring) and steps behind that one.
+Owner: no effect on the ground, and the Thai name is แทงหลัง. The shadow pools are gone; the ink wisps
+now leave the body (0.45-1.35 m up) and curl outward instead of rising from the ground.
+
+Earth Heave (งัดพสุธา), owner: the pit should follow the cone. The round crater is now a fan-shaped pit
+(`craterFan`) over the true 140° arc and 3.2 m reach, its point at the hero's feet; Meteor's stays round.
+Owner: not as dark as Meteor's, nothing burns. It is freshly dug soil (`uBurn` 0): lighter browns, no
+scorched floor, loose soil instead of soot round it.
+
+Rally (ปลุกใจ, a duelist party buff: +12% damage for 15 s to the hero and allies within 8 m),
+`skillfx/buff-fx.js` (`LOOKS` holds each party shout's colours and mark; the other warcry buffs will
+join it), warm orange-red: embers spiral up through the cast; on the shout a ring and its echo race
+out at waist height to the true 8 m radius (nothing on the ground), shout lines burst out like a manga
+roar, spirit streaks shoot up with a star glint, and up-chevrons (the anime "power up" mark) rise over
+every body the buff reached; while it lasts small ember streaks drift up off each buffed body. The
+first try (thin gold lines, a pale ring) vanished on grass: an orange rim and a red glow read better.
+
+Frenzy Roar (คำรามคลั่ง, a duelist speed buff: +20% speed for 8 s within 8 m), the same `BuffFx` in
+blood red: a jagged roar ring (a roar's teeth) and its echo, the shout lines, chevrons ">>>" over each
+body pointing the way it faces and sliding forward, and speed trails streaming back off each buffed
+body while it lasts. A first pink tint read as cute, not frenzied; it is a deeper red.
+Owner: it should look like a roar, as its name says. The shout marks (jagged ring, shout lines,
+chevrons) are gone: air is drawn in to the mouth through the cast, then sound waves (wavy rings) pulse out
+one after another at head height to the true radius, a blast of arcs ")))" bursts ahead of the mouth
+and the camera rumbles; the speed trails stay while it lasts. Owner: no wavy lines; the rings are smooth.
+
+Stand Firm (ยืนหยัด, a duelist guard buff: 15% less damage taken for 8 s within 8 m), the same
+`BuffFx` in guard blue: the shout (ring and echo to the true radius, shout lines, spirit streaks, a cold
+glint), a shield emblem that pops up over each body the buff reached and holds, and small streaks
+circling each buffed body while it lasts.
+
+Hold the Line (ยืนหยัดทีม, a guardian guard buff: 20% less damage taken and no knockback for 8 s
+within 9 m), the same `BuffFx` in guardian gold: Stand Firm's shout and emblem (drawn twice, one inside
+the other) plus a shield wall, eight shields snapping up one after another round the hero, held, then
+fading; small streaks circle each buffed body while it lasts.
+
+Blessing of Light (พรแห่งแสง, a priest spell: +10% damage and 10% less damage taken for 12 s within
+9 m), first in the same `BuffFx` as holy light rather than a shout: motes of light drift down onto the hero through
+the cast (Frost Nova's cast pose), a column of light falls on it as the soft ring goes out to the true
+radius, a halo lights over each body the buff reached, and motes drift down round each buffed body while
+it lasts. The column's additive glow tinted green on grass, so its core is wider and its glow softer.
+Owner: make it prettier. Rebuilt in its own `skillfx/bless-fx.js` with the reference skills' techniques:
+the column is a real see-through shaft of light (a cylinder whose streaks are noise carried down it, bright
+at the rim, drawn over the scene so it stays white-gold), crisp four-point stars pop and twinkle as they
+drift down, a glint flares where the light lands, and the halo stays over each blessed body, breathing
+softly, for the whole buff.
+
+Rapid Volley (ยิงรัว, bows: five arrows 0.12 s apart), `skillfx/volley-fx.js` in a cool wind tint: each
+arrow is a real arrow (it was drawn as a generic orb before; `BOW_SHOTS` in vfx.js), a flick at the bow
+(speed lines and a ring of air) marks each loose and the hero replays a quick shot for each, a wind streak
+follows each arrow, and each hit bursts on the target, so the five shots read as a rhythm.
+Owner: a cooldown skill must be grander than a main skill; kneel to shoot, and each arrow should fly like
+a ball of wind splitting the air. The hero now drops to one knee for the five looses (`volleyKneel`); each
+arrow carries a cone of split air on its head (a see-through shell with spiral wind bands) and two spirals
+of wind round its path, a ring of air stands across the shot at each loose, and each hit bursts a gust.
+The gallery host was blocked (403); no clip was inspected.
+
+Killing Arrow (ศรสังหาร, bows: a 0.55 s aim, one heavy arrow out to 16 m, 10 s cooldown),
+`skillfx/kill-fx.js`, crimson and gold, every beat of a cooldown skill: the hero sinks into a braced crouch
+holding the deepest draw (`killShot`), a sight line runs out to the target while light gathers at the
+arrow's tip and a reticle closes onto the target; the loose bursts two rings of air across the shot,
+throws recoil streaks back and kicks the camera; a thick blazing streak follows the arrow and the line it
+cut hangs in the air a moment; the hit bursts long rays along the shot, two rings and sparks with a hard
+shake. The gallery host was blocked (403); no clip was inspected.
+Owner: more effects. Added a sigil of turning rings standing across the shot in front of the bow through
+the aim (the arrow bursts through it and it flies apart), a spinning ring round the charging tip, two
+crimson spirals wound round the arrow shedding sparks in flight, and on the hit a beam piercing out the
+far side of the target with a ring of air further on.
+
+Holy Bell (ระฆังศักดิ์สิทธิ์, a priest cooldown spell: a toll of light 4.5 m round the caster that stuns),
+`skillfx/bell-fx.js` in Blessing's holy white-gold: a see-through bell of light comes down over the priest
+through the cast; on the toll it flashes and swells with a wobble, three rings of sound race out to the
+true radius, stars burst outward and the camera shakes, and the stunned monsters get the stun stars;
+then the bell lifts and fades. The first frames showed a vertical seam down the bell (its noise did not
+wrap round the lathe); the shell noise is now taken round a circle, also on Blessing's column and Rapid
+Volley's cone.
+Owner: could be better. The bell is richer (gold bands at its lip, waist and shoulder, a light glowing
+inside) and the toll a real event: a dome of sound races out with the rings, rays of light shoot up from
+the crown, a smaller echo toll follows, and each struck target rings with a ring round it and a star.
+
+Chain of Light (โซ่แสง, a priest cooldown spell: a chain thrown straight ahead; the struck target is 85%
+slower for 2 s), `skillfx/lightchain-fx.js` in the holy white-gold: a real chain of light links pays out
+from the staff to a star-headed tip, catches the target with a flash, pulls taut and dissolves from the
+hand, and three loops of chain wind round the target, tighten and turn for as long as it is slowed, then
+fall away; a miss draws the chain back. The game's generic orb is no longer drawn for it.
+Owner: could be better. A sheen runs down the thrown chain, the head is a bigger star with a turning
+cross of rays, the catch bursts stars, and the bound target is held in a web: four chains shoot out from
+it to rings of light hanging in the air round it, and a seal turns over its head while it is slowed.
+
+Spell Wave (คลื่นดาบเวท, a spellblade sword skill: a cut that sends a wide wave of arcane blade out 10 m),
+`skillfx/wave-fx.js` in arcane blue-violet: the hero cuts with the sword (the bench's slash crescent in the
+wave's colours), and a wide crescent of light bulging forward flies out with two fading afterimages,
+speed lines off its tips and rune sparks; each hit slashes a crossing cut mark across the target; at the
+end of its reach the wave thins and flies apart. The game's generic orb is no longer drawn for it.
+Owner: it repeated Flame Wave Slash (Slash fused with Firebolt: a wide horizontal crescent of fire). Spell
+Wave now cuts down (`splitChop`) and sends a tall upright crescent along a narrow line (`projectileRadius`
+0.5), the line it cut hanging in the air behind it and an upright cut mark on each one struck. Owner: it
+should not pierce on its own, since the pierce mod does that; it stops at the first monster unless the
+pierce mod carries it through more. Owner: it should be a main skill. It is now the spellblade's main attack
+(0.8 s cooldown, 24 MP, 90 + 0.9x, cast 0.24 s), and lighter to match: one afterimage, a shorter hanging
+line, fewer sparks; several waves can be in the air at once (pooled by projectile id). Owner: a skill that is
+already magic cannot fuse with a spell: Spell Wave (Arcane) is no longer a fusion carrier (`data/fusion.json`
+carrier excludes Arcane). Element shift mods go only on attacks with no element; owner: Arcane has no
+special effect, so it does not count, and a fire, frost or poison shift on Spell Wave recolours the cut
+and the wave (`wavePalette`, per-wave colours from the projectile's element).
+
+Iron Body (กายเหล็ก, a heavy-weapon self buff: 6 s of no knockback and 15% less damage taken),
+`skillfx/iron-fx.js`, in the bench's light-and-ribbon language with a steel tint (the gallery host was
+blocked, 403): steel speed lines rush into the chest through the cast; on the buff a shell of hexagon
+plates sweeps up round the body, holds and shrinks into it, with a steel glint at the chest, a ring
+snapping out at the waist (in the air, nothing on the ground) and sparks; while it lasts a sheen ring
+slides up the body every 1.2 s so the state stays readable. The shell is drawn over the scene, not
+added to it: an additive version turned green on grass. The hero plays the War Cry roar.
+
 ### Meteor, Thunderstorm and Blizzard — 2026-10-26
 
 Reference (owner): **the effects already made on the FX bench** (`fx-test.html`, published bench),
@@ -237,3 +372,40 @@ read as cel frames), thin cream speed lines streaking back from its silhouette i
 soft dust streak on the ground and a slight stretch of the ball along its path. Original procedural
 shapes (`src/render/roll-fx.js`, numbers in `data/combat-fx.json` `roll`); nothing copied. Re-check
 against relevant gallery dash/rush/speed-line clips when the host is reachable.
+
+### Blink Draw — 2026-10-27
+
+The spellblade's dash cut (`draw_cut`, `skillfx/draw-fx.js`), first round. The owner picked the hero's
+motion from Quaternius `Sword_Dash` (pick A) over searching for a hand-on-hilt reference, so the
+"magic sheath" is drawn as light: a sheath ribbon closing along the blade through the 0.35 s wind-up with
+rune motes drifting into the hilt. The dash leaves three speed streaks (thick at the hero); on arrival
+the whole lane is cut at once: one white-hot line that holds a beat, then parts in two and fades, a trace
+on the ground so it reads from the high camera, the sheath breaking into shards at the hero, and a long
+diagonal cut mark on each monster in the lane. Principles kept from the gallery's sword trails and hit
+sparks (above): narrow taper, a fast leading edge, the cut shorter-lived than the trail, directional
+shards. Spell Wave's arcane blue-violet; an element shift recolours it. One ribbon pair, pooled sparks.
+
+Round 2 (owner: "stiff and plain"). The motion keeps the clip but follows the anime beat: the crouch
+loads early and is held coiled, the draw snaps to the hit in 0.035 s, the lunge overshoots, settles with
+the blade swept back and holds through a new rules beat, `cutDelay` 0.18 s (the hero arrives, a breath,
+then the lane falls apart). The effect gained a layer per beat: focus lines rushing in on the ground and
+a glint on the blade before the draw; the draw's flat crescent and a ring with kicked sparks where the
+hero leaves; three violet posed afterimages along the dash; a small flash on arrival while the streaks
+hang; then the cut: the white-hot lane line, two slanted cut lines across it one after the other, a
+ground trace, sheath shards, and an X of cuts with a flash on each monster, with a stronger shake.
+
+Round 3 (owner: no draw crescent like that; the white line along the path is stiff; the hits are weak).
+The draw's crescent is gone. No ruler line: the dash leaves a short wavering comet tail on the body that
+collapses into it on arrival, and a slipstream of thin speed dashes at many heights, each drifting back
+and fading on its own. The cut runs down the lane from where the dash began (0.016 s per metre): quick
+curved cuts in the air, and on each monster a big curved slash drawn by a fast leading edge with a
+thinner slide beside it, a ragged arcane flash (Firebolt's `flashMaterial`, violet) and shards sprayed
+along the cut. The arrival glow and the lane's straight line and ground trace were removed.
+
+Round 4 (owner: "I did not ask to change the style, only that it was not good enough; I do not like the
+new hit at all"; and a new name, Blink Draw / ชักดาบพริบตา). Round 3 is reverted to round 2's look, without
+the draw's crescent. Every line is now a blade: many points, sharp at both ends and fullest just behind
+its leading end, with a faint shimmer; each is drawn by a fast leading edge and gives way from its tail
+(the dash streaks from where the hero left, the lane line after it parts) instead of popping in or out as
+a flat bar. The X on each monster is two such blades, the second a hair after the first, and the glow
+blobs became short spinning star glints.

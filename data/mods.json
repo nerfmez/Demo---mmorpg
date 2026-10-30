@@ -1,5 +1,5 @@
 {
-  "_doc": "Skill Mods change how a skill behaves. One fit rule (core/skills.js modFits): the skill's visible tags, plus the grants of companion mods that fit the bare skill, must contain ALL of needs, ANY of on (when listed) and NONE of not. Two mods of the same family never share a skill. Each mod has levels 1-3; values are per level. slotsByRank: mod sockets a combat skill has at rank 1..5. effect.costMult multiplies the skill's MP cost (and a channel's drain) while the mod is active; every combat mod has one (owner, after PoE support gems), mods for movement skills do not.",
+  "_doc": "Skill Mods change how a skill behaves. One fit rule (core/skills.js modFits): the skill's visible tags, plus the grants of companion mods that fit the bare skill, must contain ALL of needs, ANY of on (when listed) and NONE of not. Two mods of the same family never share a skill. Each mod has levels 1-3; values are per level. slotsByRank: mod sockets a combat skill has from each skill level in slotLevels on (a skill levels up to the character's level, progression.skillUpgrade). effect.costMult multiplies the skill's MP cost (and a channel's drain) while the mod is active; every combat mod has one (owner, after PoE support gems), mods for movement skills do not. Signature (owner, 2026-10-27): every damage skill with a base cooldown of signatureCooldown s or more is tagged Signature, and a mod that multiplies a cast's hits (more projectiles, repeats, echoes, triggers, a returning shot) lists Signature under not, so the strongest hits are never multiplied.",
   "renamed": {
     "ash_detonation": "status_burst",
     "burning_ground": "fire_shift",
@@ -15,6 +15,9 @@
       ],
       "needs": [
         "Projectile"
+      ],
+      "not": [
+        "Signature"
       ],
       "effect": {
         "extraProjectiles": [
@@ -90,7 +93,7 @@
     "fire_shift": {
       "name": "Fire Shift",
       "nameTh": "เปลี่ยนเป็นไฟ",
-      "desc": "เปลี่ยนธาตุของสกิลโจมตีเป็นไฟ (ใส่สกิลเวทไม่ได้) ศัตรูที่โดนมีโอกาส 25/30/35% ติดเผาไหม้ที่ตัว 3 วิ ไม่ทิ้งอะไรไว้บนพื้น",
+      "desc": "เปลี่ยนธาตุของสกิลโจมตีเป็นไฟ (ใส่ได้เฉพาะสกิลโจมตีที่ไม่มีธาตุหรือเป็นธาตุเวท) ศัตรูที่โดนมีโอกาส 25/30/35% ติดเผาไหม้ที่ตัว 3 วิ ไม่ทิ้งอะไรไว้บนพื้น",
       "tags": [
         "Fire"
       ],
@@ -99,7 +102,12 @@
       ],
       "not": [
         "DoT",
-        "Spell"
+        "Spell",
+        "Fire",
+        "Cold",
+        "Lightning",
+        "Poison",
+        "Earth"
       ],
       "family": "element",
       "grants": [
@@ -129,6 +137,9 @@
         "Ground",
         "Zone",
         "Curse"
+      ],
+      "not": [
+        "Signature"
       ],
       "effect": {
         "echoDelay": 0.6,
@@ -190,6 +201,9 @@
       "needs": [
         "Melee"
       ],
+      "not": [
+        "Signature"
+      ],
       "effect": {
         "repeats": [
           1,
@@ -210,14 +224,14 @@
         "costMult": 1.4
       },
       "requires": {
-        "DEX": 6
+        "AGI": 6
       },
       "id": "multistrike"
     },
     "frost_shift": {
       "name": "Frost Shift",
       "nameTh": "เปลี่ยนเป็นน้ำแข็ง",
-      "desc": "เปลี่ยนธาตุของสกิลโจมตีเป็นน้ำแข็ง (ใส่สกิลเวทไม่ได้) ศัตรูที่โดนจะช้าลง",
+      "desc": "เปลี่ยนธาตุของสกิลโจมตีเป็นน้ำแข็ง (ใส่ได้เฉพาะสกิลโจมตีที่ไม่มีธาตุหรือเป็นธาตุเวท) ศัตรูที่โดนจะช้าลง",
       "tags": [
         "Cold"
       ],
@@ -226,7 +240,12 @@
       ],
       "not": [
         "DoT",
-        "Spell"
+        "Spell",
+        "Fire",
+        "Cold",
+        "Lightning",
+        "Poison",
+        "Earth"
       ],
       "family": "element",
       "grants": [
@@ -448,6 +467,9 @@
         "Spell"
       ],
       "family": "trigger",
+      "not": [
+        "Signature"
+      ],
       "effect": {
         "trigger": "on_movement",
         "internalCooldown": [
@@ -500,6 +522,9 @@
         "Damage"
       ],
       "family": "trajectory",
+      "not": [
+        "Signature"
+      ],
       "effect": {
         "returnMult": [
           0.4,
@@ -652,7 +677,7 @@
         "costMult": 1.2
       },
       "requires": {
-        "DEX": 5
+        "LUK": 5
       },
       "prototype": true,
       "id": "laceration"
@@ -697,6 +722,7 @@
         "INT": 6
       },
       "prototype": true,
+      "family": "status",
       "id": "status_burst"
     },
     "following_field": {
@@ -864,7 +890,7 @@
         "costMult": 1.25
       },
       "requires": {
-        "INT": 6
+        "LUK": 6
       },
       "prototype": true,
       "id": "spreading_hex"
@@ -889,7 +915,7 @@
         "costMult": 1.15
       },
       "requires": {
-        "DEX": 5
+        "VIT": 5
       },
       "prototype": true,
       "id": "focused_pack"
@@ -923,7 +949,7 @@
     "following_aura": {
       "name": "Following Aura",
       "nameTh": "บัฟเป็นวงติดตาม",
-      "desc": "เปลี่ยนบัฟเป็น Aura สำรอง MP 25% ให้ผล 50/55/60% ของเดิม พันธมิตรต้องอยู่ในระยะ",
+      "desc": "เปลี่ยนบัฟเป็น Aura สำรอง MP 25% ให้ผล 55/60/65% ของเดิม พันธมิตรต้องอยู่ในระยะ",
       "tags": [
         "Buff"
       ],
@@ -932,9 +958,9 @@
       ],
       "effect": {
         "buffAura": [
-          0.5,
           0.55,
-          0.6
+          0.6,
+          0.65
         ],
         "auraReserve": 0.25,
         "costMult": 1.2
@@ -962,6 +988,9 @@
         "Spell"
       ],
       "family": "trigger",
+      "not": [
+        "Signature"
+      ],
       "effect": {
         "trigger": "on_guard",
         "internalCooldown": [
@@ -986,7 +1015,7 @@
     "poison_shift": {
       "name": "Poison Shift",
       "nameTh": "เปลี่ยนเป็นพิษ",
-      "desc": "เปลี่ยนธาตุของสกิลโจมตีเป็นพิษ (ใส่สกิลเวทไม่ได้) แปลงดาเมจตรง 20/25/30% เป็นพิษที่ตัวศัตรู 3 วิ รวมดาเมจเท่าเดิม ไม่ทิ้งอะไรไว้บนพื้น",
+      "desc": "เปลี่ยนธาตุของสกิลโจมตีเป็นพิษ (ใส่ได้เฉพาะสกิลโจมตีที่ไม่มีธาตุหรือเป็นธาตุเวท) แปลงดาเมจตรง 20/25/30% เป็นพิษที่ตัวศัตรู 3 วิ รวมดาเมจเท่าเดิม ไม่ทิ้งอะไรไว้บนพื้น",
       "tags": [
         "Poison"
       ],
@@ -995,7 +1024,12 @@
       ],
       "not": [
         "DoT",
-        "Spell"
+        "Spell",
+        "Fire",
+        "Cold",
+        "Lightning",
+        "Poison",
+        "Earth"
       ],
       "family": "element",
       "grants": [
@@ -1017,7 +1051,7 @@
         "costMult": 1.15
       },
       "requires": {
-        "DEX": 5
+        "LUK": 5
       },
       "id": "poison_shift"
     },
@@ -1103,6 +1137,468 @@
         "AGI": 5
       },
       "id": "momentum"
+    },
+    "heavy_blow": {
+      "name": "Heavy Blow",
+      "nameTh": "ฟันหนัก",
+      "desc": "สกิลประชิดแรงขึ้น 25/30/35% แต่เงื้อช้าลง 15%",
+      "tags": [
+        "Melee"
+      ],
+      "needs": [
+        "Melee",
+        "Damage"
+      ],
+      "effect": {
+        "damageMult": [
+          1.25,
+          1.3,
+          1.35
+        ],
+        "castTimeMult": 1.15,
+        "costMult": 1.3
+      },
+      "requires": {
+        "STR": 6
+      },
+      "id": "heavy_blow"
+    },
+    "vicious_shot": {
+      "name": "Vicious Shot",
+      "nameTh": "ยิงหนัก",
+      "desc": "ลูกที่ยิงแรงขึ้น 20/25/30% แต่บินช้าลง 20%",
+      "tags": [
+        "Projectile"
+      ],
+      "needs": [
+        "Projectile",
+        "Damage"
+      ],
+      "effect": {
+        "damageMult": [
+          1.2,
+          1.25,
+          1.3
+        ],
+        "projectileSpeedMult": 0.8,
+        "costMult": 1.3
+      },
+      "requires": {
+        "DEX": 6
+      },
+      "id": "vicious_shot"
+    },
+    "focused_spell": {
+      "name": "Controlled Power",
+      "nameTh": "เวทคุมพลัง",
+      "desc": "เวทดาเมจแรงขึ้น 25/30/35% แต่ติดคริไม่ได้",
+      "tags": [
+        "Spell"
+      ],
+      "needs": [
+        "Spell",
+        "Damage"
+      ],
+      "effect": {
+        "damageMult": [
+          1.25,
+          1.3,
+          1.35
+        ],
+        "noCrit": true,
+        "costMult": 1.3
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "focused_spell"
+    },
+    "elemental_focus": {
+      "name": "Elemental Focus",
+      "nameTh": "ธาตุเข้มข้น",
+      "desc": "สกิลไฟ น้ำแข็ง หรือสายฟ้าแรงขึ้น 25/30/35% แต่ไม่ทำให้ติดสถานะ (เผาไหม้ เย็น) ใช้ร่วมกับระเบิดสถานะไม่ได้",
+      "tags": [
+        "Damage"
+      ],
+      "needs": [
+        "Damage"
+      ],
+      "on": [
+        "Fire",
+        "Cold",
+        "Lightning"
+      ],
+      "not": [
+        "DoT"
+      ],
+      "family": "status",
+      "effect": {
+        "damageMult": [
+          1.25,
+          1.3,
+          1.35
+        ],
+        "noStatus": true,
+        "costMult": 1.25
+      },
+      "requires": {
+        "INT": 5
+      },
+      "id": "elemental_focus"
+    },
+    "quicken": {
+      "name": "Quicken",
+      "nameTh": "เร่งสกิล",
+      "desc": "สกิลนี้ได้ความเร็ว +15/20/25% เฉพาะตัว (คูลดาวน์และเวลาร่ายสั้นลง) รวมกับความเร็วของตัวละครแล้วไม่เกินเพดาน 200%",
+      "tags": [
+        "Haste"
+      ],
+      "not": [
+        "Movement"
+      ],
+      "effect": {
+        "hasteAdd": [
+          15,
+          20,
+          25
+        ],
+        "costMult": 1.3
+      },
+      "requires": {
+        "AGI": 6
+      },
+      "id": "quicken"
+    },
+    "prolong": {
+      "name": "Prolong",
+      "nameTh": "ยืดเวลา",
+      "desc": "บัฟ คำสาป เกราะ หรือกำแพงอยู่นานขึ้น 30/40/50% (พื้นที่คงอยู่ใช้ค้างนานแทน)",
+      "tags": [
+        "Duration"
+      ],
+      "needs": [
+        "Duration"
+      ],
+      "not": [
+        "Persistent"
+      ],
+      "effect": {
+        "effectDurationMult": [
+          1.3,
+          1.4,
+          1.5
+        ],
+        "costMult": 1.3
+      },
+      "requires": {
+        "VIT": 5
+      },
+      "id": "prolong"
+    },
+    "wide_stream": {
+      "name": "Wide Spread",
+      "nameTh": "แผ่กว้าง",
+      "desc": "พื้นที่ของสกิลร่ายต่อเนื่องกว้างขึ้น 50/60/70% (มุมกรวย ความกว้างลำ หรือรัศมีวง) แต่ระยะสั้นลง 15% ใช้ร่วมกับพุ่งไกลไม่ได้",
+      "tags": [
+        "Channel"
+      ],
+      "needs": [
+        "Channel"
+      ],
+      "family": "spread",
+      "effect": {
+        "spreadMult": [
+          1.5,
+          1.6,
+          1.7
+        ],
+        "rangeMult": 0.85,
+        "costMult": 1.2
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "wide_stream"
+    },
+    "long_stream": {
+      "name": "Far Reach",
+      "nameTh": "พุ่งไกล",
+      "desc": "สกิลร่ายต่อเนื่องไปได้ไกลขึ้น 40/50/60% แรงขึ้น 10% แต่พื้นที่แคบลงเกือบครึ่ง ใช้ร่วมกับแผ่กว้างไม่ได้",
+      "tags": [
+        "Channel"
+      ],
+      "needs": [
+        "Channel"
+      ],
+      "family": "spread",
+      "effect": {
+        "spreadMult": 0.55,
+        "rangeMult": [
+          1.4,
+          1.5,
+          1.6
+        ],
+        "damageMult": 1.1,
+        "costMult": 1.2
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "long_stream"
+    },
+    "release_burst": {
+      "name": "Release Burst",
+      "nameTh": "ปลดพลังค้าง",
+      "desc": "หยุดร่ายต่อเนื่องหลังค้างอย่างน้อย 0.5 วิ จะระเบิดวง 2.2 ม. ตรงหน้าเป็นธาตุของสกิล แรงตามเวลาที่ค้าง (สูงสุด 2 วิ) 60/70/80% ของดาเมจต่อวินาที",
+      "tags": [
+        "Channel"
+      ],
+      "needs": [
+        "Channel",
+        "Damage"
+      ],
+      "effect": {
+        "releaseMult": [
+          0.6,
+          0.7,
+          0.8
+        ],
+        "releaseMin": 0.5,
+        "releaseCap": 2,
+        "releaseRadius": 2.2,
+        "costMult": 1.25
+      },
+      "requires": {
+        "INT": 7
+      },
+      "id": "release_burst"
+    },
+    "long_rend": {
+      "name": "Long Rend",
+      "nameTh": "แนวยาว",
+      "desc": "ม็อดโจมตีแนวตรง: แนวฟันยาวขึ้น 30/40/50% แต่แคบลง 15%",
+      "tags": [
+        "Line"
+      ],
+      "needs": [
+        "Line"
+      ],
+      "effect": {
+        "rangeMult": [
+          1.3,
+          1.4,
+          1.5
+        ],
+        "widthMult": 0.85,
+        "costMult": 1.2
+      },
+      "requires": {
+        "STR": 6
+      },
+      "id": "long_rend"
+    },
+    "tip_strike": {
+      "name": "Far End",
+      "nameTh": "ปลายแนวแรง",
+      "desc": "ม็อดโจมตีแนวตรง: ศัตรูในช่วงปลาย 35% ของแนวโดนแรงขึ้น 40/50/60% แต่ทั้งแนวลดลง 10% ต้องยืนให้ได้ระยะ",
+      "tags": [
+        "Line"
+      ],
+      "needs": [
+        "Line",
+        "Damage"
+      ],
+      "effect": {
+        "tipShare": 0.35,
+        "tipMult": [
+          1.4,
+          1.5,
+          1.6
+        ],
+        "damageMult": 0.9,
+        "costMult": 1.2
+      },
+      "requires": {
+        "STR": 6
+      },
+      "id": "tip_strike"
+    },
+    "quake_line": {
+      "name": "Stagger",
+      "nameTh": "สะกดมึน",
+      "desc": "ม็อดสายควบคุม: ศัตรูที่โดนมึน 0.3/0.4/0.5 วิ (บอส 0.1/0.1/0.15 วิ) ท่าที่กำลังเงื้อถูกยกเลิก ดาเมจ 90/92/95% ถ้าสกิลทำให้มึนอยู่แล้วใช้ค่าที่นานกว่า",
+      "tags": [
+        "Control"
+      ],
+      "needs": [
+        "Control",
+        "Damage"
+      ],
+      "effect": {
+        "hitStun": [
+          0.3,
+          0.4,
+          0.5
+        ],
+        "hitStunBoss": [
+          0.1,
+          0.1,
+          0.15
+        ],
+        "damageMult": [
+          0.9,
+          0.92,
+          0.95
+        ],
+        "costMult": 1.25
+      },
+      "requires": {
+        "STR": 7
+      },
+      "id": "quake_line"
+    },
+    "conductive": {
+      "name": "Conductive Arc",
+      "nameTh": "นำไฟฟ้า",
+      "desc": "ม็อดสายสายฟ้า: ทุกการกระโดดแรงเท่าครั้งแรก แต่ระยะกระโดดเหลือ 60/65/70% และดาเมจ 90/95/100%",
+      "tags": [
+        "Lightning"
+      ],
+      "needs": [
+        "Chain",
+        "Lightning",
+        "Damage"
+      ],
+      "effect": {
+        "chainFalloffSet": 1,
+        "chainRangeMult": [
+          0.6,
+          0.65,
+          0.7
+        ],
+        "damageMult": [
+          0.9,
+          0.95,
+          1
+        ],
+        "costMult": 1.2
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "conductive"
+    },
+    "fork_chain": {
+      "name": "Forking Arc",
+      "nameTh": "แตกแขนง",
+      "desc": "ม็อดสายสายฟ้า: ทุกตัวที่โดน สายฟ้าแตกแขนงไปฟาดศัตรูใกล้อีกหนึ่งตัว แรง 50/60/70% แขนงไม่กระโดดต่อ ใส่ไม้ตายไม่ได้",
+      "tags": [
+        "Lightning"
+      ],
+      "needs": [
+        "Chain",
+        "Lightning",
+        "Damage"
+      ],
+      "not": [
+        "Signature"
+      ],
+      "effect": {
+        "forkMult": [
+          0.5,
+          0.6,
+          0.7
+        ],
+        "costMult": 1.2
+      },
+      "requires": {
+        "INT": 7
+      },
+      "id": "fork_chain"
+    },
+    "stun_arc": {
+      "name": "Arresting Arc",
+      "nameTh": "ช็อตชะงัก",
+      "desc": "ม็อดสายสายฟ้า: ตัวสุดท้ายที่สายฟ้าไปถึงมึน 0.5/0.6/0.7 วิ (บอส 0.1/0.15/0.2 วิ) ท่าที่กำลังเงื้อถูกยกเลิก ดาเมจ 90/93/96%",
+      "tags": [
+        "Lightning",
+        "Control"
+      ],
+      "needs": [
+        "Chain",
+        "Lightning",
+        "Damage"
+      ],
+      "effect": {
+        "chainStun": [
+          0.5,
+          0.6,
+          0.7
+        ],
+        "chainStunBoss": [
+          0.1,
+          0.15,
+          0.2
+        ],
+        "damageMult": [
+          0.9,
+          0.93,
+          0.96
+        ],
+        "costMult": 1.25
+      },
+      "requires": {
+        "INT": 6
+      },
+      "id": "stun_arc"
+    },
+    "pierce_line": {
+      "name": "Piercing Line",
+      "nameTh": "แนวทะลวงเกราะ",
+      "desc": "ม็อดโจมตีแนวตรง: ทุกตัวที่โดนแนวถูกเมินเกราะ 20/30/40%",
+      "tags": [
+        "Line"
+      ],
+      "needs": [
+        "Line",
+        "Damage"
+      ],
+      "effect": {
+        "penetrate": [
+          20,
+          30,
+          40
+        ],
+        "costMult": 1.2
+      },
+      "requires": {
+        "STR": 6
+      },
+      "id": "pierce_line"
+    },
+    "control_duration": {
+      "name": "Lasting Control",
+      "nameTh": "ควบคุมนาน",
+      "desc": "ม็อดสายควบคุม: มึน เย็น คำสาป และกำแพงของสกิลนี้อยู่นานขึ้น 30/40/50% ใส่ได้กับสกิลควบคุมหรือคำสาป",
+      "tags": [
+        "Control"
+      ],
+      "on": [
+        "Control",
+        "Curse"
+      ],
+      "effect": {
+        "controlMult": [
+          1.3,
+          1.4,
+          1.5
+        ],
+        "costMult": 1.2
+      },
+      "requires": {
+        "VIT": 6
+      },
+      "id": "control_duration"
     }
   },
   "slotsByRank": [
@@ -1112,5 +1608,7 @@
     3,
     4
   ],
-  "maxMovementMods": 1
+  "slotLevels": [1, 6, 16, 27, 38],
+  "maxMovementMods": 1,
+  "signatureCooldown": 12
 }

@@ -902,6 +902,10 @@ if A:
     throne = [round(cx + dx * t, 2), round(cz + dz * t, 2)]
     boss = [round(throne[0] - dx * A['bossAhead'], 2), round(throne[1] - dz * A['bossAhead'], 2)]
     for q in props:
+        if q['type'] == 'bossSnail':  # the boss takes its spot in front of the throne, facing the entry
+            q['at'] = boss
+            q['rot'] = round(math.atan2(-dx, -dz), 3)
+            continue
         if q['type'] in ('rubble', 'runeCircle') or not on_stage(q['at']) or math.hypot(q['at'][0] - cx, q['at'][1] - cz) > R - 0.35:
             continue
         if q['type'] == 'bigPearl':

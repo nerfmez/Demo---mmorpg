@@ -13,6 +13,7 @@ import { buildPearlSnail, buildSmallShell } from './creatures.js';
 import { buildGiantClam } from './clam.js';
 import { GLOW_CORALS, glowCoralInstances, coralPools } from './corals.js';
 import { paintedInstances } from './painted.js';
+import { buildMonster, idleMonster, strandedFish, sleepingBoss } from './monsters.js';
 import { glowField } from './glow.js';
 import { kitInstances } from './kit.js';
 
@@ -110,10 +111,11 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
  * Build every prop of one map, plus rim decor at `decor` edge points ({x, z, nx, nz, y} from
  * rim.js, kept off `keepClear` [x, z, r] spots). `kit` is the Blender kit, `clam` the painted giant
  * clam (clam.js), `corals` the six painted glowing corals (corals.js), which grow in clumps in every room,
- * `painted` the props from the owner's sheets (painted.js), which take the place of the simple ones.
- * Returns {root, update(dt, t)}.
+ * `painted` the props from the owner's sheets (painted.js), which take the place of the simple ones,
+ * `monsters` the monsters from the owner's sheets (monsters.js).
+ * Returns {root, update(dt, t), boss} (boss: sleepingBoss's wake() and awake, or null).
  */
-export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null, painted = null } = {}) {
+export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null, painted = null, monsters = null } = {}) {
   const root = new THREE.Group();
   root.name = 'grotto-props';
   const batch = new Batch();
@@ -204,7 +206,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     const s0 = map.surfaceAt(x, z);
     pools.push({ x, y: (s0 ? s0.y : y) + 0.16, z, r: reach + big.height * s * 0.3, color: GLOW_CORALS[main].halo });
   };
-  let archKind = 0, chestKind = 0;
+  let archKind = 0, chestKind = 0, boss = null;
 
   const groundY = (x, z) => map.surfaceAt(x, z)?.y ?? 0;
   for (const p of map.def.props) {
@@ -445,12 +447,48 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         break;
       }
       case 'bossSnail': {
+        if (monsters?.has('boss')) {
+          // the Pearl Snail King (monsters.js), from the owner's two pictures: asleep in its shell
+          // until the hero talks to the pearl on the throne (the page calls boss.wake())
+          const out = buildMonster(monsters, 'boss'), hid = buildMonster(monsters, 'bossshell');
+          for (const g of [out, hid]) {
+            g.position.set(x, y, z);
+            g.rotation.y = rot;
+            g.scale.setScalar(s);
+            root.add(g);
+          }
+          boss = sleepingBoss(out, hid, s, rng.range(0, 10));
+          animated.push((t, dt) => boss.update(t, dt));
+          break;
+        }
         const snail = buildPearlSnail();
         snail.root.position.set(x, y, z);
         snail.root.rotation.y = rot;
         snail.root.scale.setScalar(s);
         root.add(snail.root);
         animated.push((t, dt) => snail.update(dt, t));
+        break;
+      }
+      case 'pearlFish':
+      case 'pearlSlug':
+      case 'eyeClam': {
+        // the monsters from the owner's sheet (monsters.js), until they get their rules: the fish lie
+        // stranded on their sides in the shallows, flopping; the slug and the clam idle where they are
+        if (!monsters) break; // the model did not load: the page still works without it
+        const name = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam' }[p.type], g = buildMonster(monsters, name), phase = rng.range(0, 10);
+        const holder = new THREE.Group();
+        holder.position.set(x, groundY(x, z), z);
+        holder.rotation.y = rot;
+        holder.scale.setScalar(s);
+        root.add(holder);
+        if (name === 'fish') {
+          const fish = strandedFish(g, phase);
+          holder.add(fish.root);
+          animated.push((t) => fish.update(t));
+        } else {
+          holder.add(g);
+          animated.push((t) => idleMonster(g, name, t, phase));
+        }
         break;
       }
       case 'giantClam': {
@@ -587,6 +625,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   if (glows.length) root.add(glowField(glows));
   return {
     root,
+    boss,
     update(dt, t) {
       for (const a of animated) a(t, dt);
       for (const s of spin) {

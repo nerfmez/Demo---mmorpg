@@ -98,6 +98,52 @@ try {
     await settle();
     await shot(name);
   }
+  // the monsters: the fish flop on their sides in the shallows, the slug and the clam idle
+  const props = await page.evaluate(() => window.__grotto.maps.inside.def.props.filter((p) => ['pearlFish', 'pearlSlug', 'eyeClam', 'bossSnail'].includes(p.type) || p.talk));
+  const first = (type) => props.find((p) => p.type === type);
+  for (const [type, dist] of [['pearlFish', 7], ['pearlSlug', 8], ['eyeClam', 8]]) {
+    const [x, z] = first(type).at;
+    // the hero stands off to one side (go() finds standing room); the camera looks at the monster's own floor
+    await page.evaluate(([x, z, d]) => { const g = window.__grotto; g.go('inside', x + 2.5, z + 2.5, 0); g.frame(x, g.maps.inside.surfaceAt(x, z)?.y ?? 0, z, d, 42); }, [x, z, dist]);
+    await settle(1200);
+    await shot(`monster-${type}`);
+  }
+  // the boss sleeps in its shell until the hero talks to the pearl on the throne behind it
+  const boss = first('bossSnail'), pearl = props.find((p) => p.talk);
+  // the game camera, pulled back: the review camera from this far sees the cave's dark shell, not the room
+  await page.evaluate(() => { window.__grotto.frame(); window.__grotto.zoom(1.5); });
+  await page.evaluate(([x, z]) => window.__grotto.go('inside', x, z, Math.PI), [boss.at[0], boss.at[1] + 8.5]);
+  await settle(1200);
+  await shot('boss-asleep');
+  assert.equal(await page.evaluate(() => window.__grotto.views.inside.boss?.awake), false, 'the boss sleeps');
+  const spot = await page.evaluate((p) => {
+    const m = window.__grotto.maps.inside;
+    for (let k = 0; k < 48; k++) {
+      const t = (k / 48) * Math.PI * 2, x = p.at[0] + Math.cos(t) * (p.talk.r - 0.4), z = p.at[1] + Math.sin(t) * (p.talk.r - 0.4);
+      if (Number.isFinite(m.landY(x, z)) && !m.blockedAt(x, z)) return [x, z, Math.atan2(p.at[0] - x, p.at[1] - z)];
+    }
+    return null;
+  }, pearl);
+  assert.ok(spot, 'a spot beside the pearl');
+  await page.evaluate(([x, z, f]) => window.__grotto.go('inside', x, z, f), spot);
+  await page.waitForFunction((l) => document.getElementById('action').textContent === l, pearl.talk.labelTh, { timeout: 30000 }).catch(() => {});
+  await settle(300);
+  const label = await page.evaluate(() => document.getElementById('action').textContent);
+  assert.equal(label, pearl.talk.labelTh, 'the pearl offers to talk');
+  await shot('pearl-talk');
+  await page.tap('#action');
+  await settle(700);
+  await shot('boss-waking');
+  await page.waitForFunction(() => window.__grotto.views.inside.boss.awake, null, { timeout: 5000 });
+  await settle(2600);
+  await shot('boss-awake');
+  const still = await page.evaluate((l) => { const b = document.getElementById('action'); return b.classList.contains('show') && b.textContent === l; }, pearl.talk.labelTh);
+  assert.ok(!still, 'the pearl has said its piece');
+  await page.evaluate(([x, z]) => window.__grotto.go('inside', x, z, Math.PI), [boss.at[0], boss.at[1] + 8.5]);
+  await settle(1200);
+  await shot('boss-awake-front');
+  await page.evaluate(() => window.__grotto.zoom(0.8));
+
   await page.evaluate(() => window.__grotto.overview(true));
   await settle(1200);
   await shot('overview');

@@ -1,7 +1,8 @@
 // Pearlshell Grotto (dungeon.html): the dungeon inside the game's Singing Conch, on its own page.
 // The game opens it from the conch (save.js stashDungeon: slot or unsaved character, the hero's
 // look and gear); the hero starts at the spawn and the pearl gate goes back to the game beside the
-// conch. Opened directly (no trip) it is a preview and the gate leads to the title. The rules are
+// conch. Opened directly (no trip) it is a preview and the gate leads to the title. The monsters only
+// idle for now; the boss sleeps in its shell until the hero talks to the pearl on the throne. The rules are
 // src/core/dungeon.js; this page only reads them, draws and takes input. ?view=overview starts in
 // the whole-map view, ?post=0 turns the screen grade off.
 import * as THREE from 'three';
@@ -24,6 +25,7 @@ import { loadGrottoCave } from '../render/grotto/cave.js';
 import { loadGiantClam } from '../render/grotto/clam.js';
 import { loadGlowCorals } from '../render/grotto/corals.js';
 import { loadPaintedProps } from '../render/grotto/painted.js';
+import { loadGrottoMonsters } from '../render/grotto/monsters.js';
 
 const params = new URLSearchParams(location.search);
 const trip = peekDungeon();
@@ -57,8 +59,9 @@ scene.add(sun, sun.target);
 const maps = { inside: createDungeon(GROTTO.inside, GROTTO) };
 // the scene is built behind the loading card, once the Blender models (models/grotto) have loaded
 let views = null;
-function buildViews(kit, cave, clam, corals, painted) {
-  views = { inside: buildGrottoScene(maps.inside, { motes: 420, kit, cave, clam, corals, painted }) };
+const woken = new Set(); // what the talking props have woken (the boss)
+function buildViews(kit, cave, clam, corals, painted, monsters) {
+  views = { inside: buildGrottoScene(maps.inside, { motes: 420, kit, cave, clam, corals, painted, monsters }) };
   for (const v of Object.values(views)) { v.root.visible = false; scene.add(v.root); }
 }
 
@@ -201,14 +204,22 @@ function banner(r) {
   bannerTimer = setTimeout(() => $('banner').classList.remove('show'), 2600);
 }
 
-/** The contextual button: go through a door. */
+/** The contextual button: talk to the pearl, or go through a door. */
 function currentAction() {
   const map = maps[state.where];
+  const talker = map.talkAt(state.pos.x, state.pos.z, woken);
+  if (talker) return { label: talker.talk.labelTh, run: () => talk(talker) };
   const door = (map.def.links || []).find((l) => !l.secret && Math.hypot(state.pos.x - l.at[0], state.pos.z - l.at[1]) <= l.r + 2.2);
   if (door) return { label: door.labelTh, run: () => travel(door) };
   return null;
 }
 function doAction() { const a = currentAction(); if (a && !state.busy) a.run(); }
+
+function talk(prop) {
+  woken.add(prop.talk.wakes);
+  if (prop.talk.wakes === 'bossSnail') views[state.where].boss?.wake();
+  toast(prop.talk.lineTh, 4.5);
+}
 
 function travel(link) {
   if (state.busy) return;
@@ -348,9 +359,10 @@ Promise.all([
   loadGiantClam().catch((e) => { console.warn('giant clam', e); return null; }),
   loadGlowCorals().catch((e) => { console.warn('glow corals', e); return null; }),
   loadPaintedProps().catch((e) => { console.warn('grotto props', e); return null; }),
+  loadGrottoMonsters().catch((e) => { console.warn('grotto monsters', e); return null; }),
 ])
-  .then(([kit, cave, clam, corals, painted]) => {
-    buildViews(kit, cave, clam, corals, painted);
+  .then(([kit, cave, clam, corals, painted, monsters]) => {
+    buildViews(kit, cave, clam, corals, painted, monsters);
     enter(state.where);
     last = performance.now();
     requestAnimationFrame(frame);
@@ -358,7 +370,7 @@ Promise.all([
 
 // for the focused capture (tests/browser/grotto.mjs)
 window.__grotto = {
-  state, maps, trip, ready: () => modelsReady,
+  state, maps, trip, woken, ready: () => modelsReady,
   get views() { return views; },
   go(where, x, z, facing = 0) { enter(where, [x, z], facing); },
   overview(on = true) { state.overview = on; overviewBtn.classList.toggle('on', on); snapCamera = true; },

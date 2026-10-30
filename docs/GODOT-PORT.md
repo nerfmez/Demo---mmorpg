@@ -722,7 +722,16 @@ pools on the floor use `look.glowPool` [opacity, size]. In Godot this is one `Sh
 The boss stage is `inside.arena` (written by `grotto-trace.py`): the throne room and its dais are one open stage of
 stone (2.0, the dais an exact 13 m circle, a 96-corner polygon) and wading water (floor 1.6), one step apart; `floors` lists them, `floor` is the dais, middle `at`, `r`, `clear` (radius kept free of
 blocking props), `boss` spot and `bossFacing` (toward the `entry` stair), and the `throne` (the pearl altar behind the boss).
-Spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
+The `bossSnail` prop (the boss's model, solid) is placed on that spot facing `bossFacing`; spawn the boss there and keep its fight inside `clear`. See `docs/SHELL-GROTTO.md`.
+
+The grotto's monsters are `public/models/grotto/grotto-monsters.glb` (`scripts/blender/grotto-monsters.py`, Meshy shapes with Meshy 6 textures):
+`mon_<monster>_<part>` for fish (body, tail, finl, finr), slug (body, cerata, pearls), clam (shell, eye, pearls) and the boss, out of its shell
+(boss: body, eyel, eyer, pearl) and hidden in it (bossshell: shell, pearl), each on its own origin facing +Z with its monster's texture. Draw them
+cel-shaded over the texture with a little self-light (0.2, pearls 0.45, boss 0.06, its pearl 0.3) and hang the moving parts from pivots as
+`monsters.js` does. `pearlFish` props lie stranded on their left side in the shallows, flopping (`strandedFish`: a hop every 1.7 s, the tail
+slapping, a small turn per flop); `pearlSlug`/`eyeClam` idle. The `bossSnail` sleeps in its shell until a prop with `talk: {r, labelTh, lineTh,
+wakes}` is used: `dungeon.talkAt(x, z, woken)` offers the throne's pearl within `r` until what it wakes is in `woken`; then the shell trembles
+1.1 s and the king pushes out (0.8 s) and stays out (`sleepingBoss`). In Godot keep `woken` with the dungeon run and swap the two scenes the same way.
 
 ## Checklist for the port
 

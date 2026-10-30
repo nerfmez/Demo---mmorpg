@@ -112,6 +112,7 @@ export function buildGrottoScene(map, o = {}) {
   return {
     root,
     boss: props.boss,
+    walkers: props.walkers,
     update(dt, t) {
       water.update(t);
       props.update(dt, t);

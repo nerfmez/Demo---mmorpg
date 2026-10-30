@@ -1,8 +1,9 @@
 // Pearlshell Grotto (dungeon.html): the dungeon inside the game's Singing Conch, on its own page.
 // The game opens it from the conch (save.js stashDungeon: slot or unsaved character, the hero's
 // look and gear); the hero starts at the spawn and the pearl gate goes back to the game beside the
-// conch. Opened directly (no trip) it is a preview and the gate leads to the title. The monsters only
-// idle for now; the boss sleeps in its shell until the hero talks to the pearl on the throne. The rules are
+// conch. Opened directly (no trip) it is a preview and the gate leads to the title. The monsters walk
+// about their homes (src/core/dungeon-monsters.js; no fight yet); the boss sleeps in its shell until
+// the hero talks to the pearl on the throne. The rules are
 // src/core/dungeon.js; this page only reads them, draws and takes input. ?view=overview starts in
 // the whole-map view, ?post=0 turns the screen grade off.
 import * as THREE from 'three';
@@ -12,6 +13,7 @@ import GROTTO from '../../data/dungeons/shell-grotto.json';
 import RENDERING from '../../data/rendering.json';
 import MODELS from '../../data/models.json';
 import { createDungeon } from '../core/dungeon.js';
+import { createDungeonMonsters } from '../core/dungeon-monsters.js';
 import { peekDungeon, leaveDungeon } from '../save.js';
 import { buildGrottoScene } from '../render/grotto/index.js';
 import { buildHumanoid, HumanoidAnimator, DEFAULT_LOOK } from '../render/hero.js';
@@ -57,11 +59,13 @@ scene.add(sun, sun.target);
 
 // ---------- the grotto (the game outside is the Singing Conch) ----------
 const maps = { inside: createDungeon(GROTTO.inside, GROTTO) };
+const walkers = createDungeonMonsters(maps.inside, GROTTO, GROTTO.inside.seed || 1); // the monsters' rules: they walk about
 // the scene is built behind the loading card, once the Blender models (models/grotto) have loaded
 let views = null;
 const woken = new Set(); // what the talking props have woken (the boss)
 function buildViews(kit, cave, clam, corals, painted, monsters) {
   views = { inside: buildGrottoScene(maps.inside, { motes: 420, kit, cave, clam, corals, painted, monsters }) };
+  for (const w of views.inside.walkers || []) w.state = walkers.byProp(w.prop);
   for (const v of Object.values(views)) { v.root.visible = false; scene.add(v.root); }
 }
 
@@ -217,6 +221,7 @@ function doAction() { const a = currentAction(); if (a && !state.busy) a.run(); 
 
 function talk(prop) {
   woken.add(prop.talk.wakes);
+  walkers.wake(prop.talk.wakes);
   if (prop.talk.wakes === 'bossSnail') views[state.where].boss?.wake();
   toast(prop.talk.lineTh, 4.5);
 }
@@ -298,6 +303,7 @@ function step(dt, t) {
     map.move(state.pos, mx * SPEED * dt, mz * SPEED * dt);
   }
   state.speed = dt > 0 ? Math.hypot(state.pos.x - before.x, state.pos.z - before.z) / dt : 0;
+  walkers.update(dt, state.pos);
   hero.root.position.set(state.pos.x, state.pos.y, state.pos.z);
   heroLight.position.set(state.pos.x, state.pos.y + 2.4, state.pos.z + 0.6);
   let d = state.facing - hero.root.rotation.y;
@@ -373,7 +379,7 @@ Promise.all([
 
 // for the focused capture (tests/browser/grotto.mjs)
 window.__grotto = {
-  state, maps, trip, woken, ready: () => modelsReady,
+  state, maps, trip, woken, walkers, ready: () => modelsReady,
   get views() { return views; },
   go(where, x, z, facing = 0) { enter(where, [x, z], facing); },
   overview(on = true) { state.overview = on; overviewBtn.classList.toggle('on', on); snapCamera = true; },

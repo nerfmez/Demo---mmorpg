@@ -733,6 +733,16 @@ slapping, a small turn per flop); `pearlSlug`/`eyeClam` idle. The `bossSnail` sl
 wakes}` is used: `dungeon.talkAt(x, z, woken)` offers the throne's pearl within `r` until what it wakes is in `woken`; then the shell trembles
 1.1 s and the king pushes out (0.8 s) and stays out (`sleepingBoss`). In Godot keep `woken` with the dungeon run and swap the two scenes the same way.
 
+Monsters with `propTypes.<type>.walk` wander about their homes (`src/core/dungeon-monsters.js`, seeded): rest `rest` s, pick a
+spot within `wander` m (or inside the arena for `arena: true`) where their body (the largest of their collision circles) fits
+(`standY` with that radius), turn toward it at `turn` rad/s (a turn over 0.6 rad is made on the spot), then go. Gaits: `crawl`
+at `speed` m/s; `hop` moves only while airborne, `length` m per hop of `air` s, one hop every `every` s (`air` 0..1 is exposed
+for the animation). `stay` keeps them on one floor kind. They never step into another prop's circle or onto the hero, and
+their own circles (`propBlockers` keeps `src` and the unturned `local` offset) move and turn with them, so the hero collides
+with the moving monster. A sleeping walker (`asleep`) does not move until `wake(type)`, then rests `wakeRest` s. The renderer
+reads x, z, y, facing, moving, air, gaitT and travelled: the fish flops along (one arch per hop, alternating sides), the slug's
+body ripples with distance, the clam crouches, leaps, tips forward and squashes on landing, the boss surges with distance.
+
 ## Checklist for the port
 
 1. Copy `data/` and run `npm run export:layout`.

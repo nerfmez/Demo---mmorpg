@@ -13,7 +13,7 @@ import { buildPearlSnail, buildSmallShell } from './creatures.js';
 import { buildGiantClam } from './clam.js';
 import { GLOW_CORALS, glowCoralInstances, coralPools } from './corals.js';
 import { paintedInstances } from './painted.js';
-import { buildMonster, idleMonster, strandedFish, sleepingBoss } from './monsters.js';
+import { buildMonster, idleMonster, walkMonster, strandedFish, sleepingBoss } from './monsters.js';
 import { glowField } from './glow.js';
 import { kitInstances } from './kit.js';
 
@@ -113,7 +113,8 @@ const glowMat = (color, opacity = 1) => new THREE.SpriteMaterial({ map: glowText
  * clam (clam.js), `corals` the six painted glowing corals (corals.js), which grow in clumps in every room,
  * `painted` the props from the owner's sheets (painted.js), which take the place of the simple ones,
  * `monsters` the monsters from the owner's sheets (monsters.js).
- * Returns {root, update(dt, t), boss} (boss: sleepingBoss's wake() and awake, or null).
+ * Returns {root, update(dt, t), boss, walkers} (boss: sleepingBoss's wake() and awake, or null; walkers:
+ * [{prop, state}] for each monster, whose state the page sets to its walker from src/core/dungeon-monsters.js).
  */
 export function buildProps(map, { decor = [], keepClear = [], kit = null, clam = null, corals = null, painted = null, monsters = null } = {}) {
   const root = new THREE.Group();
@@ -207,6 +208,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
     pools.push({ x, y: (s0 ? s0.y : y) + 0.16, z, r: reach + big.height * s * 0.3, color: GLOW_CORALS[main].halo });
   };
   let archKind = 0, chestKind = 0, boss = null;
+  const walkers = []; // the monsters' views; each follows its walker (state) once the page gives it one
 
   const groundY = (x, z) => map.surfaceAt(x, z)?.y ?? 0;
   for (const p of map.def.props) {
@@ -458,7 +460,13 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
             root.add(g);
           }
           boss = sleepingBoss(out, hid, s, rng.range(0, 10));
-          animated.push((t, dt) => boss.update(t, dt));
+          const view = { prop: p, state: null };
+          walkers.push(view);
+          animated.push((t, dt) => {
+            const m = view.state;
+            if (m) for (const g of [out, hid]) { g.position.set(m.x, m.y, m.z); g.rotation.y = m.facing; }
+            boss.update(t, dt, m);
+          });
           break;
         }
         const snail = buildPearlSnail();
@@ -472,8 +480,9 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
       case 'pearlFish':
       case 'pearlSlug':
       case 'eyeClam': {
-        // the monsters from the owner's sheet (monsters.js), until they get their rules: the fish lie
-        // stranded on their sides in the shallows, flopping; the slug and the clam idle where they are
+        // the monsters from the owner's sheet (monsters.js), walked about by their rules
+        // (src/core/dungeon-monsters.js): the fish lie stranded on their sides in the shallows and flop
+        // along, the slug crawls, the clam hops; at rest they idle where they are
         if (!monsters) break; // the model did not load: the page still works without it
         const name = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam' }[p.type], g = buildMonster(monsters, name), phase = rng.range(0, 10);
         const holder = new THREE.Group();
@@ -481,13 +490,20 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
         holder.rotation.y = rot;
         holder.scale.setScalar(s);
         root.add(holder);
+        const view = { prop: p, state: null };
+        walkers.push(view);
+        const follow = () => {
+          const m = view.state;
+          if (m) { holder.position.set(m.x, m.y, m.z); holder.rotation.y = m.facing; }
+          return m;
+        };
         if (name === 'fish') {
           const fish = strandedFish(g, phase);
           holder.add(fish.root);
-          animated.push((t) => fish.update(t));
+          animated.push((t) => { const m = follow(); fish.update(t, m?.moving ? m.air : null); });
         } else {
           holder.add(g);
-          animated.push((t) => idleMonster(g, name, t, phase));
+          animated.push((t) => { const m = follow(); if (!(m?.moving && walkMonster(g, name, m, t, phase))) idleMonster(g, name, t, phase); });
         }
         break;
       }
@@ -626,6 +642,7 @@ export function buildProps(map, { decor = [], keepClear = [], kit = null, clam =
   return {
     root,
     boss,
+    walkers,
     update(dt, t) {
       for (const a of animated) a(t, dt);
       for (const s of spin) {

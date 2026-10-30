@@ -107,10 +107,11 @@ export function propBlockers(props, types) {
     const t = types[p.type];
     if (!t) throw new Error(`dungeon prop type ${p.type} is not in propTypes`);
     const s = p.scale ?? 1, a = p.rot ?? 0;
-    if (typeof t.block === 'number') { if (t.block > 0) out.push({ x: p.at[0], z: p.at[1], r: t.block * s, prop: p.type }); continue; }
+    // src and local (the offset before turning) let a walking monster carry its circles (dungeon-monsters.js)
+    if (typeof t.block === 'number') { if (t.block > 0) out.push({ x: p.at[0], z: p.at[1], r: t.block * s, prop: p.type, src: p, local: [0, 0] }); continue; }
     for (const [dx, dz, r] of t.block) {
       const [ox, oz] = turn(dx * s, dz * s, a);
-      out.push({ x: p.at[0] + ox, z: p.at[1] + oz, r: r * s, prop: p.type });
+      out.push({ x: p.at[0] + ox, z: p.at[1] + oz, r: r * s, prop: p.type, src: p, local: [dx * s, dz * s] });
     }
   }
   return out;

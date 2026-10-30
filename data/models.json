@@ -785,6 +785,308 @@
       "source": "HairSample_Male-beta from approved live Character Studio V6; original SHA256 4af2194f90ba846f3b13c00b50b14262419062d2171d17de922bcce2f89979c7. Complete base skin/scalp; separate gear-controlled garments. VRoid source metadata CC0. See docs/HAIRSAMPLE-INTEGRATION.md."
     },
     "hero_chibi": {
+      "hands": {
+        "_doc": "Finger bones (scripts/rig-chibi-hands.py) posed by `poses` (scripts/hand-poses.py, from Quaternius UAL1): a hand holding something takes `holding`, opened to wrap a handle of `gripRadius` (m: the weapons' handles at the chibi's gear scale), an empty one `empty`; the left hand also grips the weapons in `leftGripWith`.",
+        "holding": "grip",
+        "gripRadius": 0.027,
+        "roundFingers": 0.7,
+        "empty": "rest",
+        "leftGripWith": [
+          "axe",
+          "mace",
+          "greatblade",
+          "greatshield",
+          "staff",
+          "bow"
+        ],
+        "poses": {
+          "open": {
+            "clip": "UAL1 Idle_Paper at 0.70",
+            "Left": {
+              "Thumb": [
+                [0.7869, 0.6122, 0.0774],
+                [0.7868, 0.6124, 0.0772],
+                [0.7875, 0.6115, 0.077]
+              ],
+              "Index": [
+                [0.9999, 0.0119, 0.0038],
+                [0.9999, 0.0119, 0.0038],
+                [0.9999, 0.0119, 0.0038]
+              ],
+              "Middle": [
+                [0.9849, -0.1715, 0.0217],
+                [0.9855, -0.1685, 0.0216],
+                [0.9851, -0.1708, 0.0217]
+              ],
+              "Ring": [
+                [0.9601, -0.2793, -0.0132],
+                [0.9601, -0.2793, -0.0132],
+                [0.9595, -0.2814, -0.0131]
+              ],
+              "Pinky": [
+                [0.9422, -0.3349, -0.0096],
+                [0.9416, -0.3365, -0.0095],
+                [0.942, -0.3354, -0.0096]
+              ]
+            },
+            "Right": {
+              "Thumb": [
+                [0.7869, 0.6122, -0.0774],
+                [0.7868, 0.6124, -0.0772],
+                [0.7875, 0.6115, -0.077]
+              ],
+              "Index": [
+                [0.9999, 0.0119, -0.0038],
+                [0.9999, 0.0119, -0.0038],
+                [0.9999, 0.0119, -0.0038]
+              ],
+              "Middle": [
+                [0.9849, -0.1715, -0.0217],
+                [0.9855, -0.1685, -0.0216],
+                [0.9851, -0.1708, -0.0217]
+              ],
+              "Ring": [
+                [0.9601, -0.2793, 0.0132],
+                [0.9601, -0.2793, 0.0132],
+                [0.9595, -0.2814, 0.0131]
+              ],
+              "Pinky": [
+                [0.9422, -0.3349, 0.0096],
+                [0.9416, -0.3365, 0.0095],
+                [0.942, -0.3354, 0.0096]
+              ]
+            }
+          },
+          "relaxed": {
+            "clip": "UAL1 Sword_Idle at 0.50",
+            "Left": {
+              "Thumb": [
+                [0.8102, 0.3798, 0.4465],
+                [0.8352, 0.2963, 0.4633],
+                [0.8543, 0.2096, 0.4756]
+              ],
+              "Index": [
+                [0.9932, -0.0418, 0.1091],
+                [0.9217, -0.037, 0.3861],
+                [0.7749, -0.0292, 0.6314]
+              ],
+              "Middle": [
+                [0.9506, -0.084, 0.2989],
+                [0.8207, -0.0677, 0.5673],
+                [0.6173, -0.0506, 0.7851]
+              ],
+              "Ring": [
+                [0.87, -0.0653, 0.4888],
+                [0.5242, -0.036, 0.8508],
+                [0.0464, 0.0006, 0.9989]
+              ],
+              "Pinky": [
+                [0.7969, -0.0843, 0.5981],
+                [0.287, -0.0273, 0.9575],
+                [-0.3353, 0.0431, 0.9411]
+              ]
+            },
+            "Right": {
+              "Thumb": [
+                [0.8102, 0.3798, -0.4465],
+                [0.8352, 0.2963, -0.4633],
+                [0.8543, 0.2096, -0.4756]
+              ],
+              "Index": [
+                [0.9932, -0.0418, -0.1091],
+                [0.9217, -0.037, -0.3861],
+                [0.7749, -0.0292, -0.6314]
+              ],
+              "Middle": [
+                [0.9506, -0.084, -0.2989],
+                [0.8207, -0.0677, -0.5673],
+                [0.6173, -0.0506, -0.7851]
+              ],
+              "Ring": [
+                [0.87, -0.0653, -0.4888],
+                [0.5242, -0.036, -0.8508],
+                [0.0464, 0.0006, -0.9989]
+              ],
+              "Pinky": [
+                [0.7969, -0.0843, -0.5981],
+                [0.287, -0.0273, -0.9575],
+                [-0.3353, 0.0431, -0.9411]
+              ]
+            }
+          },
+          "fist": {
+            "clip": "UAL1 Idle_Rock at 0.70",
+            "Left": {
+              "Thumb": [
+                [0.8119, 0.1989, 0.549],
+                [0.8151, -0.2395, 0.5275],
+                [-0.1304, -0.9815, -0.1399]
+              ],
+              "Index": [
+                [0.2038, -0.0027, 0.979],
+                [-0.908, 0.0414, 0.4168],
+                [-0.6086, 0.0211, -0.7932]
+              ],
+              "Middle": [
+                [0.2032, -0.0124, 0.9791],
+                [-0.9051, 0.0849, 0.4166],
+                [-0.607, 0.0467, -0.7933]
+              ],
+              "Ring": [
+                [0.2034, -0.01, 0.9791],
+                [-0.9061, 0.0737, 0.4166],
+                [-0.6073, 0.0424, -0.7933]
+              ],
+              "Pinky": [
+                [0.1142, 0.1036, 0.988],
+                [-0.9418, 0.0825, 0.3258],
+                [-0.5339, -0.0649, -0.843]
+              ]
+            },
+            "Right": {
+              "Thumb": [
+                [0.8119, 0.1989, -0.549],
+                [0.8151, -0.2395, -0.5275],
+                [-0.1304, -0.9815, 0.1399]
+              ],
+              "Index": [
+                [0.2038, -0.0027, -0.979],
+                [-0.908, 0.0414, -0.4168],
+                [-0.6086, 0.0211, 0.7932]
+              ],
+              "Middle": [
+                [0.2032, -0.0124, -0.9791],
+                [-0.9051, 0.0849, -0.4166],
+                [-0.607, 0.0467, 0.7933]
+              ],
+              "Ring": [
+                [0.2034, -0.01, -0.9791],
+                [-0.9061, 0.0737, -0.4166],
+                [-0.6073, 0.0424, 0.7933]
+              ],
+              "Pinky": [
+                [0.1142, 0.1036, -0.988],
+                [-0.9418, 0.0825, -0.3258],
+                [-0.5339, -0.0649, 0.843]
+              ]
+            }
+          },
+          "grip": {
+            "clip": "UAL1 Sword_Idle at 0.25",
+            "Left": {
+              "Thumb": [
+                [0.8119, 0.1989, 0.549],
+                [0.8151, -0.2395, 0.5275],
+                [-0.1304, -0.9815, -0.1399]
+              ],
+              "Index": [
+                [0.2038, -0.0027, 0.979],
+                [-0.908, 0.0414, 0.4168],
+                [-0.6086, 0.0211, -0.7932]
+              ],
+              "Middle": [
+                [0.2032, -0.0124, 0.9791],
+                [-0.9051, 0.0849, 0.4166],
+                [-0.607, 0.0467, -0.7933]
+              ],
+              "Ring": [
+                [0.2034, -0.01, 0.9791],
+                [-0.9061, 0.0737, 0.4166],
+                [-0.6073, 0.0424, -0.7933]
+              ],
+              "Pinky": [
+                [0.1142, 0.1036, 0.988],
+                [-0.9418, 0.0825, 0.3258],
+                [-0.5339, -0.0649, -0.843]
+              ]
+            },
+            "Right": {
+              "Thumb": [
+                [0.8119, 0.1989, -0.549],
+                [0.8151, -0.2395, -0.5275],
+                [-0.1304, -0.9815, 0.1399]
+              ],
+              "Index": [
+                [0.2038, -0.0027, -0.979],
+                [-0.908, 0.0414, -0.4168],
+                [-0.6086, 0.0211, 0.7932]
+              ],
+              "Middle": [
+                [0.2032, -0.0124, -0.9791],
+                [-0.9051, 0.0849, -0.4166],
+                [-0.607, 0.0467, 0.7933]
+              ],
+              "Ring": [
+                [0.2034, -0.01, -0.9791],
+                [-0.9061, 0.0737, -0.4166],
+                [-0.6073, 0.0424, 0.7933]
+              ],
+              "Pinky": [
+                [0.1142, 0.1036, -0.988],
+                [-0.9418, 0.0825, -0.3258],
+                [-0.5339, -0.0649, 0.843]
+              ]
+            }
+          },
+          "rest": {
+            "clip": "UAL1 Idle_Paper at 0.70 and Idle_Rock at 0.70, between (scripts/hand-poses.py REST)",
+            "Left": {
+              "Thumb": [
+                [0.8242, 0.5288, 0.2029],
+                [0.8736, 0.4395, 0.2088],
+                [0.9334, 0.3567, 0.0381]
+              ],
+              "Index": [
+                [0.9319, 0.0016, 0.3628],
+                [0.9577, 0.0325, 0.286],
+                [0.9102, 0.0148, -0.4139]
+              ],
+              "Middle": [
+                [0.8885, -0.0403, 0.4572],
+                [0.886, 0.0092, 0.4636],
+                [0.84, -0.0218, -0.5421]
+              ],
+              "Ring": [
+                [0.8531, -0.0595, 0.5183],
+                [0.7634, -0.0429, 0.6445],
+                [0.687, -0.0523, -0.7248]
+              ],
+              "Pinky": [
+                [0.7737, 0.005, 0.6335],
+                [0.399, -0.0404, 0.916],
+                [0.5314, -0.1569, -0.8325]
+              ]
+            },
+            "Right": {
+              "Thumb": [
+                [0.8242, 0.5288, -0.2029],
+                [0.8736, 0.4395, -0.2088],
+                [0.9334, 0.3567, -0.0381]
+              ],
+              "Index": [
+                [0.9319, 0.0016, -0.3628],
+                [0.9577, 0.0325, -0.286],
+                [0.9102, 0.0148, 0.4139]
+              ],
+              "Middle": [
+                [0.8885, -0.0403, -0.4572],
+                [0.886, 0.0092, -0.4636],
+                [0.84, -0.0218, 0.5421]
+              ],
+              "Ring": [
+                [0.8531, -0.0595, -0.5183],
+                [0.7634, -0.0429, -0.6445],
+                [0.687, -0.0523, 0.7248]
+              ],
+              "Pinky": [
+                [0.7737, 0.005, -0.6335],
+                [0.399, -0.0404, -0.916],
+                [0.5314, -0.1569, 0.8325]
+              ]
+            }
+          }
+        }
+      },
       "paintedLight": 0.2,
       "tint": [1, 0.9, 0.8],
       "underCloth": {
@@ -1413,24 +1715,6 @@
       "gripMiddle": [
         "staff"
       ],
-      "fist": {
-        "relaxed": 0.4,
-        "knuckle": 0.55,
-        "radius": 0.25,
-        "wrap": 1.25,
-        "thumbTurn": 100,
-        "thumbFrom": 0.35,
-        "thumbTo": 0.6,
-        "thumbReach": 0.75,
-        "leftFistWith": [
-          "axe",
-          "mace",
-          "greatblade",
-          "greatshield",
-          "staff",
-          "bow"
-        ]
-      },
       "source": "Meshy meshy-t2 smart-topology image-to-3d, T-pose, untextured (task 01a162c5-0125-7289-8cd7-59e93e89c4c4); Meshy 6 retexture from the concept image only (task 01a162e0-e0b9-7089-aa90-af14b6525dc7); auto-rig at 1.2 m (task 01a162e3-50ba-704c-8317-01e2a3b889f2). The game's hero (?hero=classic keeps the HairSample one); see assets/meshy/hero_chibi"
     },
     "hero_chibi_hair": {
@@ -1653,11 +1937,23 @@
       "tris": 2405,
       "source": "The chibi in the ranger_coat set (the owner's reference sheet 01 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-0d22-7308-94f7-d6b344cc84e1), Meshy 6 retexture (task 01a16f6d-835c-76fd-bed2-acab3d0763c5); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/ranger.json)."
     },
+    "outfit_brigand_gloves": {
+      "file": "models/outfits/brigand_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 945,
+      "source": "The gloves of the same model as outfit_ranger_coat (assets/meshy/outfits/ranger_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/ranger.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
+    },
     "outfit_hide_vest": {
       "file": "models/outfits/hide_vest.glb",
       "chibiOutfit": "armor",
       "tris": 2002,
       "source": "The chibi in the hide_vest set (the owner's reference sheet 04 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-112b-71f4-b745-65eba656da4c), Meshy 6 retexture (task 01a16f6d-e3b5-71cf-9cdc-74dc1a1ae59d); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/hide.json)."
+    },
+    "outfit_hide_gloves": {
+      "file": "models/outfits/hide_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 646,
+      "source": "The gloves of the same model as outfit_hide_vest (assets/meshy/outfits/hide_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/hide.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
     },
     "outfit_trail_boots": {
       "file": "models/outfits/trail_boots.glb",
@@ -1683,6 +1979,12 @@
       "tris": 1786,
       "source": "The chibi in the shell_guard set (the owner's reference sheet 07 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-18c6-7520-9ac0-04afd470c2e0), Meshy 6 retexture (task 01a16f6d-ef38-76e5-8732-7ca23f451f39); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/shell.json)."
     },
+    "outfit_shell_mitts": {
+      "file": "models/outfits/shell_mitts.glb",
+      "chibiOutfit": "gloves",
+      "tris": 1132,
+      "source": "The gloves of the same model as outfit_shell_guard (assets/meshy/outfits/shell_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/shell.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
+    },
     "outfit_tide_boots": {
       "file": "models/outfits/tide_boots.glb",
       "chibiOutfit": "boots",
@@ -1694,6 +1996,12 @@
       "chibiOutfit": "armor",
       "tris": 2002,
       "source": "The chibi in the wardenstalker_coat set (the owner's reference sheet 08 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-1d1d-7353-83b5-c18abb750df5), Meshy 6 retexture (task 01a16f6d-f4f3-73a5-a285-555646842a15); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden.json)."
+    },
+    "outfit_wardenstalker_gloves": {
+      "file": "models/outfits/wardenstalker_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 956,
+      "source": "The gloves of the same model as outfit_wardenstalker_coat (assets/meshy/outfits/warden_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/warden.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
     },
     "outfit_gale_boots": {
       "file": "models/outfits/gale_boots.glb",
@@ -1713,11 +2021,23 @@
       "tris": 743,
       "source": "The boots of the same model as outfit_crag_plate, cut below the boot tops by scripts/fit-chibi-outfit.py."
     },
+    "outfit_crag_gauntlets": {
+      "file": "models/outfits/crag_gauntlets.glb",
+      "chibiOutfit": "gloves",
+      "tris": 913,
+      "source": "The gauntlets of the same model as outfit_crag_plate: its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/crag.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
+    },
     "outfit_wolfpelt_coat": {
       "file": "models/outfits/wolfpelt_coat.glb",
       "chibiOutfit": "armor",
       "tris": 2254,
       "source": "The chibi in the wolfpelt_coat set (the owner's reference sheet 14 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-24b3-77a0-bb19-94cb3b5ec658), Meshy 6 retexture (task 01a16f6d-ff8a-7663-a641-2f02902bf714); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wolf.json)."
+    },
+    "outfit_wolf_grips": {
+      "file": "models/outfits/wolf_grips.glb",
+      "chibiOutfit": "gloves",
+      "tris": 950,
+      "source": "The gloves of the same model as outfit_wolfpelt_coat (assets/meshy/outfits/wolf_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/wolf.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
     },
     "outfit_wolf_boots": {
       "file": "models/outfits/wolf_boots.glb",
@@ -1743,11 +2063,23 @@
       "tris": 2040,
       "source": "The moonleaf set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-228c-7160-ab2c-d1855129fee8), Meshy 6 retexture (task 01a17807-cb2d-73c9-bd62-b2b218c6c609); assets/meshy/outfits/moonleaf_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/moonleaf.json)."
     },
+    "outfit_moonleaf_gloves": {
+      "file": "models/outfits/moonleaf_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 971,
+      "source": "The gloves of the same model as outfit_moonleaf_robe (assets/meshy/outfits/moonleaf_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/moonleaf.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
+    },
     "outfit_burrowguard_armor": {
       "file": "models/outfits/burrowguard_armor.glb",
       "chibiOutfit": "armor",
       "tris": 1470,
       "source": "The burrowguard set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7), Meshy 6 retexture (task 01a17807-cfb8-748b-83eb-5d1f87e06040); assets/meshy/outfits/burrowguard_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/burrowguard.json)."
+    },
+    "outfit_burrowguard_gloves": {
+      "file": "models/outfits/burrowguard_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 774,
+      "source": "The gloves of the same model as outfit_burrowguard_armor (assets/meshy/outfits/burrowguard_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/burrowguard.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
     },
     "outfit_burrowguard_boots": {
       "file": "models/outfits/burrowguard_boots.glb",
@@ -1767,6 +2099,12 @@
       "tris": 1926,
       "source": "The wisp set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-29ef-77c6-8c8d-8e46b8f5e9c6), Meshy 6 retexture (task 01a17807-d4bd-76f4-8e3b-3f5fedb17824); assets/meshy/outfits/wisp_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wisp.json)."
     },
+    "outfit_wisp_wraps": {
+      "file": "models/outfits/wisp_wraps.glb",
+      "chibiOutfit": "gloves",
+      "tris": 904,
+      "source": "The gloves of the same model as outfit_wisp_robe (assets/meshy/outfits/wisp_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/wisp.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
+    },
     "outfit_wisp_boots": {
       "file": "models/outfits/wisp_boots.glb",
       "chibiOutfit": "boots",
@@ -1785,6 +2123,12 @@
       "tris": 1883,
       "source": "The mirrorwing set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1), Meshy 6 retexture (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); assets/meshy/outfits/mirrorwing_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/mirrorwing.json)."
     },
+    "outfit_mirrorwing_gloves": {
+      "file": "models/outfits/mirrorwing_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 865,
+      "source": "The gloves of the same model as outfit_mirrorwing_robe (assets/meshy/outfits/mirrorwing_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/mirrorwing.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
+    },
     "outfit_mirrorwing_boots": {
       "file": "models/outfits/mirrorwing_boots.glb",
       "chibiOutfit": "boots",
@@ -1802,6 +2146,12 @@
       "chibiOutfit": "armor",
       "tris": 2134,
       "source": "The fernstep set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5), Meshy 6 retexture (task 01a17807-e0b0-7681-85a7-5108deaaba6e); assets/meshy/outfits/fernstep_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/fernstep.json)."
+    },
+    "outfit_fernstep_gloves": {
+      "file": "models/outfits/fernstep_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 969,
+      "source": "The gloves of the same model as outfit_fernstep_coat (assets/meshy/outfits/fernstep_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/fernstep.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
     },
     "outfit_fernstep_boots": {
       "file": "models/outfits/fernstep_boots.glb",
@@ -1826,6 +2176,12 @@
       "chibiOutfit": "boots",
       "tris": 770,
       "source": "The beetle set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-3bd4-713c-893e-5c94cd4e4740), Meshy 6 retexture (task 01a17808-3b2a-758f-b556-598e7376f5a0); assets/meshy/outfits/beetle_meshy.glb. Its boots, cut below the boot tops by scripts/fit-chibi-outfit.py (assets/meshy/outfits/beetle.json)."
+    },
+    "outfit_beetle_gloves": {
+      "file": "models/outfits/beetle_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 834,
+      "source": "The gloves of the same model as outfit_beetle_boots (assets/meshy/outfits/beetle_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/beetle.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
     },
     "outfit_sporeweave_boots": {
       "file": "models/outfits/sporeweave_boots.glb",
@@ -1856,6 +2212,12 @@
       "chibiOutfit": "armor",
       "tris": 1539,
       "source": "The chibi in the sporeweave_vest set (the owner's reference sheet 16 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-2873-7686-b2d4-e6540f6a59b2), Meshy 6 retexture (task 01a16f6d-8d67-7600-a805-fdaca7e554fc); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/spore.json)."
+    },
+    "outfit_sporeweave_gloves": {
+      "file": "models/outfits/sporeweave_gloves.glb",
+      "chibiOutfit": "gloves",
+      "tris": 1022,
+      "source": "The gloves of the same model as outfit_sporeweave_vest (assets/meshy/outfits/spore_meshy.glb): its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/spore.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
     },
     "outfit_moonleaf_slippers": {
       "file": "models/outfits/moonleaf_slippers.glb",

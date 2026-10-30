@@ -39,7 +39,8 @@
  },
  "out": {
   "armor": "public/models/outfits/wisp_robe.glb",
-  "boots": "public/models/outfits/wisp_boots.glb"
+  "boots": "public/models/outfits/wisp_boots.glb",
+  "gloves": "public/models/outfits/wisp_wraps.glb"
  },
  "dropPieces": [
   [
@@ -48,5 +49,7 @@
    0.84,
    1.0
   ]
- ]
+ ],
+ "glove": 0.265,
+ "wrist": 0.4
 }

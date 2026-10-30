@@ -39,7 +39,8 @@
  },
  "out": {
   "armor": "public/models/outfits/ranger_coat.glb",
-  "boots": null
+  "boots": null,
+  "gloves": "public/models/outfits/brigand_gloves.glb"
  },
  "chinCut": 0.07,
  "chinBack": 0.19,
@@ -55,5 +56,7 @@
  "drape": 0.1,
  "drapeY": -0.04,
  "weightSmooth": 6,
- "shoulderRise": 0.45
+ "shoulderRise": 0.45,
+ "glove": 0.31,
+ "wrist": 0.405
 }

@@ -1,10 +1,10 @@
 // The outfit base (docs/OUTFIT-BASE.md) on the chibi hero: the same garments the HairSample hero
 // wears, built from the chibi body itself. A top shell (torso and arms), trousers (the legs), a
-// skirt from the waist, boot shafts with the feet, and glove shells (with the fists' morph targets)
+// skirt from the waist, boot shafts with the feet, and glove shells (skinned to the finger bones)
 // are body regions pushed out along the normals, so they move and close with the body; garments.js
 // cuts and paints them from the resolved outfit. Its cuts are in metres of the HairSample body, so
 // the chibi's shaders read their bind position and landmarks times SCALE.
-// An armour or boots item with its own modelled outfit (data/models.json `chibiOutfit`, made by
+// An armour, boots or gloves item with its own modelled outfit (data/models.json `chibiOutfit`, made by
 // scripts/fit-chibi-outfit.py) wears that model instead of the shells it replaces. The body faces
 // a model or a glove or boot shell covers are tucked under it (coveredBody), so no skin pokes through.
 import * as THREE from 'three';
@@ -73,9 +73,10 @@ function pieces(T, outfit, skip = new Set()) {
 }
 
 /**
- * A modelled outfit piece (data/models.json characters with `chibiOutfit`: "armor" or "boots"): one
- * skinned mesh on the chibi's armature, with the body triangles it covers (node extras `hideBody`;
- * they are tucked under it, coveredBody).
+ * A modelled outfit piece (data/models.json characters with `chibiOutfit`: "armor", "boots" or
+ * "gloves"): one skinned mesh on the chibi's armature, with the body triangles it covers (node extras
+ * `hideBody`; they are tucked under it, coveredBody). Gloves take the finger bones' weights from the
+ * body, so they close with the hand inside.
  */
 export function prepareChibiOutfit(gltf, m) {
   gltf.scene.updateMatrixWorld(true);
@@ -270,7 +271,14 @@ function coveredBody(T, src, models, worn, cuffs = null) {
     g.setAttribute('tucked', new THREE.BufferAttribute(tucked, 1));
     g.morphAttributes = src.morphAttributes;
     g.morphTargetsRelative = src.morphTargetsRelative;
-    g.setIndex(src.index);
+    // the hand inside a modelled glove is not drawn at all: the chibi's mitten hand showed between
+    // the glove's separate fingers (and its tips below them) when the hand closed
+    const gone = new Set(models.filter((O) => O.piece === 'gloves').flatMap((O) => O.hide));
+    if (gone.size) {
+      const kept = [];
+      for (let t = 0; t < ix.length / 3; t++) if (!gone.has(t)) kept.push(ix[3 * t], ix[3 * t + 1], ix[3 * t + 2]);
+      g.setIndex(kept);
+    } else g.setIndex(src.index);
     g.boundingSphere = src.boundingSphere;
     g.userData.shared = true;
     T.covered.set(key, g);
@@ -280,14 +288,14 @@ function coveredBody(T, src, models, worn, cuffs = null) {
 
 /**
  * Dress a rig's chibi body (attachChibiBody) in a resolved outfit (core/outfit-look.js).
- * `models` holds the loaded outfit models of the worn armour and boots ({armor, boots}, either null).
+ * `models` holds the loaded outfit models of the worn armour, boots and gloves ({armor, boots, gloves}, any null).
  */
 export function attachChibiGarments(rig, T, outfit, models = {}) {
   let mesh = null;
   rig.skin.body.traverse((o) => { if (o.isSkinnedMesh && !mesh && !o.userData.garment) mesh = o; });
   if (!mesh || !outfit) return;
-  const worn = [models.armor, models.boots].filter(Boolean);
-  const skip = new Set([...(models.armor ? ['top', 'pants', 'skirt'] : []), ...(models.boots ? ['boots'] : [])]);
+  const worn = [models.armor, models.boots, models.gloves].filter(Boolean);
+  const skip = new Set([...(models.armor ? ['top', 'pants', 'skirt'] : []), ...(models.boots ? ['boots'] : []), ...(models.gloves ? ['gloves'] : [])]);
   const shellsWorn = shells(T, outfit, skip);
   if (worn.length || shellsWorn.length) {
     const src = mesh.geometry, body = coveredBody(T, src, worn, shellsWorn, models.armor ? sleeveEnds(T, fitOutfit(models.armor, mesh)) : null);
@@ -325,7 +333,6 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
       m.bind(mesh.skeleton, mesh.bindMatrix);
       m.frustumCulled = false;
       m.userData.garment = kind;
-      if (geometry.morphAttributes.position) { m.updateMorphTargets(); m.morphTargetInfluences = mesh.morphTargetInfluences; } // gloves close with the fists
       return m;
     };
     const part = make(garmentMaterial(kind, FS, uniforms, flash));

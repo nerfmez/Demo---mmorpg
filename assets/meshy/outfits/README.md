@@ -57,3 +57,38 @@ same image with the lighting removed (15 credits each; task ids in each `<id>.js
 - `boarhide_boots` use the hide set's modelled boots (`trail_boots.glb`): the boarhide turnaround
   draws the same fur-topped boots, so no model was generated for them.
 - Gloves stay the code-built shells, like every other glove.
+
+## Gloves from the same models (2026-10-30)
+
+The owner asked for 3D gloves on every set. `glove` in a set's settings is where its gloves begin
+out along the arm (|x| in the fit frame, read off a front render of the model's arm; it may be
+inside the sleeve's `cuff`, so a fur cuff over the sleeve's end stays with the glove), and
+`out.gloves` names the file. `FIT_ONLY=gloves` writes the gloves alone, leaving the armour and boots
+files as they were. `wrist` is the model's wrist (read off front and top renders of its hand):
+Meshy draws short hands (7-23 cm from the wrist; the chibi's are 15 cm), so the glove's hand is
+mapped wrist to wrist and fingertip to fingertip onto the chibi's, and then drawn onto the hand
+inside it (`hugKeep` of its distance beyond the margin kept, 0.15, the same for every set so all gloves sit as close on the hand): their fingers stood 2-3 cm off
+the hand and read as long fingers sticking out of the fist. Gloves: crag (`crag_gauntlets`), hide (`hide_gloves`), shell (`shell_mitts`),
+wolf (`wolf_grips`), wisp (`wisp_wraps`), ranger (`brigand_gloves`), spore (`sporeweave_gloves`),
+warden (`wardenstalker_gloves`), beetle (`beetle_gloves`), burrowguard, mirrorwing, fernstep and
+moonleaf (`<set>_gloves`). The travel and storm models draw bare or wrapped hands, not
+`travel_gloves` or `storm_gloves`, so those two keep the built shells.
+
+## Pearl-scale, snail-shell and leaf-bear sets (2026-10-30, from PR #170)
+
+The owner's turnarounds (`<set>_turnaround.png`, the front view `<set>_reference.png`), meshy-t2
+T-pose models with Meshy 6 retextures (task ids in each `<set>.json`). Armour, boots, helm and
+gloves: `pearlscale_{armor,boots,crest,gloves}`, `snailshell_{plate,greaves,helm,gloves}`,
+`leafbear_{coat,boots,hood,gloves}`. Models only: no items use them yet.
+
+- Helms: `fit-chibi-helm.py` sizes a helm by the eyes, and these sheets draw bigger heads (or, for
+  pearl-scale, scales on the forehead the eye search took for eyes: `eyes` gives them), so the helms
+  came out up to twice the head's size. `fitHead` (1.0) then scales each about the hero's hair's
+  middle so its inside lies on that hair (the median over the crown, sides and back).
+  `keepAbove` keeps the small pieces of the leaf-bear hood's crown leaf.
+- `fillHoles` (leaf-bear: 8) closes small holes the cuts leave in a helm above the cheeks (the hero's
+  dark hair showed through them as dark wedges by the hood's ears), each patch wound as the faces
+  round it and painted from its corners' own texture. `tipAt` (warden: 0.505) sets where a glove's
+  fingertips land: its ivory claws past the fingertips read as long fingers.
+- The leaf-bear model grew a limb out of its back that the sheet does not draw: `dropBehind` drops
+  any loose piece reaching further behind than that.

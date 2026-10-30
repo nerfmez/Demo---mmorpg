@@ -193,7 +193,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc || gear.unarmed ? null : 'sword'), gear.bases?.weapon); // unarmed: before the opening's weapon is chosen
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
   const offhandModel = gear.offhand && !['shield', 'quiver'].includes(gear.offhand) ? buildWeapon(rb, gear.offhand, gear.bases?.offhand, 'offhand', 'handL') : buildOffhand(rb, gear.offhand, gear.bases?.offhand);
-  if (!X) buildGloves(rb, gear.gloves); // the HairSample hero wears glove shells (hairsample.js)
+  if (!X && !V?.chibi) buildGloves(rb, gear.gloves); // the HairSample hero wears glove shells (hairsample.js), the chibi its own (chibi-garments.js)
   // accessories (charms, pendants, rings) are not drawn on the character
 
   const rig = rb.build();
@@ -227,9 +227,9 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
       attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null, face: chibiFace(L.face), iris: chibiIris(L.face), eyes: L.eyes });
       // the outfit's top, trousers, skirt, boots and gloves; a modelled armour or boots replaces its shells
-      attachChibiGarments(rig, V, wear, { armor: chibiOutfit('outfit_' + wear.armor), boots: chibiOutfit('outfit_' + wear.boots.id) });
+      attachChibiGarments(rig, V, wear, { armor: chibiOutfit('outfit_' + wear.armor), boots: chibiOutfit('outfit_' + wear.boots.id), gloves: wear.gloves ? chibiOutfit('outfit_' + wear.gloves.id) : null });
       const hair = chibiHair(L.hairStyle);
-      if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && !HAIR_WHOLE.includes(wear.helm.kind), model: helmModel, color: L.hair }); // a circlet or cowl leaves the hair whole
+      if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && !HAIR_WHOLE.includes(wear.helm.kind), model: helmModel, base: characterBase('hero_chibi_hair') || hair, color: L.hair }); // a circlet or cowl leaves the hair whole
     } else attachVrmBody(rig, V);
   }
   rig.look = L;

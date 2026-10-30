@@ -34,6 +34,9 @@
  "coverHits": 2,
  "out": {
   "armor": null,
-  "boots": "public/models/outfits/beetle_boots.glb"
- }
+  "boots": "public/models/outfits/beetle_boots.glb",
+  "gloves": "public/models/outfits/beetle_gloves.glb"
+ },
+ "glove": 0.3,
+ "wrist": 0.4
 }

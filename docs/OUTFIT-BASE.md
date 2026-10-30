@@ -142,11 +142,19 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    not removed: the covered vertices are tucked inside the cloth, shaded as its inside and pushed back
    in depth (`characters.hero_chibi.underCloth`), so nothing pokes through, no gap ever shows the
    background, and no per-pose adjustment is needed; garment insides are shaded too.
-   Gloves (and boots without a model) still use the code-built shells; the body inside them is
-   tucked the same way, and each shell is cut clean at its length in the shader.
+   Gloves come from the same model: past `glove` (the gloves' tops, read off the model, out along
+   the arm) the hands and forearms are kept as a third piece, fitted and skinned like the sleeves,
+   the hand mapped from the model's `wrist` onto the chibi's and drawn onto the hand inside
+   (`hugKeep`); they take the body's finger-bone weights, so they close with the hand inside,
+   and the hand inside them is not drawn (the mitten hand showed between their fingers). The
+   Travel and Storm sets' models draw bare or wrapped hands, not their gloves' icons, so
+   `travel_gloves` and `storm_gloves` (and boots without a model) still use the code-built shells;
+   the body inside them is tucked the same way, and each shell is cut clean at its length in the shader.
 4. Helms: `scripts/fit-chibi-helm.py` cuts the same model's headwear only (its generated hair and
    the face cut away) and moves it onto the Travel model's head by the eyes, the frame the hero's
-   hair is fitted in. Worn, it is drawn over the hero's own hair (`outfit_<helm id>`, `chibiOutfit`
+   hair is fitted in; `fitHead` then scales it about the hair's middle so its inside lies on the
+   hero's hair (the eyes alone left helms from sheets with bigger heads twice too large). Worn, it is
+   drawn over the hero's own hair, in the default hair's frame whatever the hair style (`outfit_<helm id>`, `chibiOutfit`
    "helm"), the hair pulled just inside it, so none pokes through and none is cut away; the
    crabshell helm, which has no sheet, keeps the built one. The feather
    circlet is its own Meshy model (`scripts/fit-feather-circlet.py`) drawn over the hero's hair

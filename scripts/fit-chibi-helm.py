@@ -132,7 +132,9 @@ def head(g, neck):
             print('hair colour', np.round(hc), 'faces', len(hair))
             face.update(hair)
     bmesh.ops.delete(bm, geom=list(face), context='FACES')
-    # what is left on the face (eyes, brows, mouth) is small islands: keep the large pieces
+    # what is left on the face (eyes, brows, mouth) is small islands: keep the large pieces, and
+    # any piece well above the eyes (`keepAbove` over them: a leaf on a hood's crown is small pieces)
+    top = (ec[True][2] + ec[False][2]) / 2 + C.get('keepAbove', 1)
     seen, keep = set(), set()
     for f in bm.faces:
         if f in seen: continue
@@ -142,12 +144,65 @@ def head(g, neck):
             for e in t.edges:
                 for o in e.link_faces:
                     if o not in seen: seen.add(o); comp.append(o); todo.append(o)
-        if len(comp) >= C.get('minPiece', 40): keep.update(comp)
+        if len(comp) >= C.get('minPiece', 40) or min(g.calc_center_median().z for g in comp) > top: keep.update(comp)
     bmesh.ops.delete(bm, geom=[f for f in bm.faces if f not in keep], context='FACES')
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    if C.get('fillHoles') and g is not ref:
+        # small holes the cuts above left in the helm above the cheeks (`fillHoles`: at most this many
+        # edges round; the face's opening and the neck are far larger): the hero's dark hair showed
+        # through them. Each patch takes the texture of the faces round it (its corners' own UVs).
+        bound = [e for e in bm.edges if e.is_boundary]
+        par = {}
+        def find(a):
+            while par.setdefault(a, a) != a: a = par[a]
+            return a
+        for e in bound: par[find(e.verts[0])] = find(e.verts[1])
+        loops = {}
+        for e in bound: loops.setdefault(find(e.verts[0]), []).append(e)
+        for es in loops.values():
+            vs = {v for e in es for v in e.verts}
+            if len(es) > C['fillHoles'] or np.mean([v.co.z for v in vs]) < mid[2] - 0.08: continue
+            uv0 = {v: next(l[uvl].uv.copy() for l in v.link_loops) for v in vs}
+            # the loop's corners in order round it, fanned from the first (holes_fill leaves some
+            # small loops open)
+            ring, prev = [es[0].verts[0]], None
+            while len(ring) < len(es):
+                nxt = [e.other_vert(ring[-1]) for e in es if ring[-1] in e.verts and e.other_vert(ring[-1]) is not prev and e.other_vert(ring[-1]) not in ring]
+                if not nxt: break
+                prev = ring[-1]; ring.append(nxt[0])
+            if len(ring) != len(es): continue
+            tris = []
+            for k in range(1, len(ring) - 1):
+                try: tris.append(bm.faces.new((ring[0], ring[k], ring[k + 1])))
+                except ValueError: pass
+            for f in tris: f.normal_update()
+            for f in tris:
+                for l in f.loops: l[uvl].uv = uv0[l.vert]
+            # wound as the faces round them (holes_fill picks either way; a patch facing in is
+            # drawn as the helm's inside, a dark wedge)
+            for f in tris:
+                nb = [o for e in f.edges for o in e.link_faces if o not in tris]
+                if nb and sum(o.normal.dot(f.normal) for o in nb) < 0: f.normal_flip()
+            print('filled a hole of', len(es), 'edges at', np.round(np.mean([tuple(v.co) for v in vs], 0), 3), 'new faces', len(tris))
+        bm.normal_update()
     return bm, eyes, img
 
 
+
+def surface(src):
+    """a model's triangles as a ray-cast tree that outlives the scene (load() clears it)"""
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.ops.import_scene.gltf(filepath=src)
+    vs, fs = [], []
+    for o in bpy.data.objects:
+        if o.type != 'MESH': continue
+        n = len(vs); vs += [tuple(o.matrix_world @ v.co) for v in o.data.vertices]
+        fs += [tuple(n + i for i in p.vertices) for p in o.data.polygons]
+    return BVHTree.FromPolygons(vs, fs), np.array(vs)
+
+
+# the hero's own hair in this frame (the head the helm goes on: the game pulls the hair in under it)
+hair, HV = surface('public/models/hero_chibi_hair.glb') if 'fitHead' in C else (None, None)
 ref = load(REF['src'], REF['scale'], REF['lift'])
 _, reyes, _ = head(ref, REF['neck'])
 g = load(C['src'], C.get('scale'), C.get('lift'))
@@ -162,6 +217,24 @@ k = float(np.clip(np.linalg.norm(reyes[0] - reyes[1]) / np.linalg.norm(eyes[0] -
 off = Vector((reyes[0] + reyes[1]) / 2 - k * (eyes[0] + eyes[1]) / 2)
 bmesh.ops.transform(bm, matrix=Matrix.Translation(off) @ Matrix.Scale(k, 4), verts=bm.verts[:])
 print(HELM, 'tris', len(bm.faces), 'scale %.3f' % k, 'move', np.round(off, 3), 'eyes', np.round(eyes[0], 3), np.round(eyes[1], 3))
+if hair:
+    # the eyes alone size a helm badly when the sheet's head is bigger or its eyes set closer than the
+    # Travel model's: the helm is then scaled about the hair's middle so its inside lies on the hero's
+    # hair (`fitHead`: its inside over the hair's outside, in the median over the crown, the sides
+    # and the back; the face's opening is left out), as the sheet's helm sits on its head
+    lo, hi = HV.min(0), HV.max(0)
+    c = Vector(((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2] + 0.45 * (hi[2] - lo[2])))
+    tree = BVHTree.FromBMesh(bm); r = []
+    for el in range(0, 91, 10):
+        for az in range(0, 360, 15):
+            e, a = np.radians(el), np.radians(az)
+            d = Vector((np.sin(a) * np.cos(e), -np.cos(a) * np.cos(e), np.sin(e)))
+            if d.y < -0.45 and el < 45: continue  # the face's opening
+            out = hair.ray_cast(c + d, -d)[0]; inn = tree.ray_cast(c, d)[0]
+            if out is not None and inn is not None: r.append((inn - c).length / (out - c).length)
+    s = float(np.clip(C['fitHead'] / np.median(r), 0.5, 1.5))
+    bmesh.ops.transform(bm, matrix=Matrix.Translation(c) @ Matrix.Scale(s, 4) @ Matrix.Translation(-c), verts=bm.verts[:])
+    print('fit to the hair: inside/hair %.2f, scaled %.3f' % (np.median(r), s))
 bm.to_mesh(g.data); bm.free()
 for p in g.data.polygons: p.use_smooth = True
 img.scale(C.get('tex', 2048), C.get('tex', 2048))

@@ -1,0 +1,60 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for the snail-shell set (the Pearl Snail King's shell): the front view of the owner's turnaround (snailshell_turnaround.png), meshy-t2 image-to-3d in T-pose (task 01a18b3f-30c3-721b-88e1-ada54adc3c87) and a Meshy 6 retexture from the same image (task 01a18b40-0ad3-7534-b488-6a96dde14846); sized from its arm axis, cut at the neck, sleeve ends (cuff) and boot tops read off the model. Models only for now: no item uses them yet.",
+ "id": "snailshell",
+ "src": "assets/meshy/outfits/snailshell_meshy.glb",
+ "neck": 0.925,
+ "cuff": 0.33,
+ "bootTop": 0.37,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.0,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "skirt": {
+  "from": 0.45,
+  "to": 0.56,
+  "hips": 0.5
+ },
+ "out": {
+  "armor": "public/models/outfits/snailshell_plate.glb",
+  "boots": "public/models/outfits/snailshell_greaves.glb",
+  "gloves": "public/models/outfits/snailshell_gloves.glb"
+ },
+ "eyes": [
+  [
+   0.067,
+   -0.145,
+   1.045
+  ],
+  [
+   -0.065,
+   -0.146,
+   1.045
+  ]
+ ],
+ "fitHead": 1.0,
+ "glove": 0.33,
+ "wrist": 0.44
+}

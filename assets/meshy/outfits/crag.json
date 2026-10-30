@@ -34,7 +34,10 @@
  "coverHits": 2,
  "out": {
   "armor": "public/models/outfits/crag_plate.glb",
-  "boots": "public/models/outfits/crag_greaves.glb"
+  "boots": "public/models/outfits/crag_greaves.glb",
+  "gloves": "public/models/outfits/crag_gauntlets.glb"
  },
- "weightSmooth": 4
+ "weightSmooth": 4,
+ "glove": 0.31,
+ "wrist": 0.46
 }

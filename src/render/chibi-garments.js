@@ -12,6 +12,7 @@ import { garmentFrame, garmentUniforms, pieceUniforms, garmentMaterial, garmentH
 import { regionShell, skirt } from './base-garments.js';
 import { toonCopy } from './vrm-body.js';
 import { chibiOutline, paintedLight, darkInside } from './chibi-body.js';
+import { clothGeometry, Cloth } from './chibi-cloth.js';
 
 const BONES = { arm: 'LeftArm', elbow: 'LeftForeArm', hand: 'LeftHand', foot: 'LeftFoot', toe: 'LeftToeBase', neck: 'neck', chest: 'Spine', hips: 'Hips', leg: 'LeftUpLeg', knee: 'LeftLeg' };
 /** HairSample metres per chibi metre (hips to ankle 0.89 m against 0.53 m). */
@@ -90,7 +91,7 @@ export function prepareChibiOutfit(gltf, m) {
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   return { piece: m.chibiOutfit, geometry, bind: bindSpace(mesh), bones: mesh.skeleton.bones.map((b) => b.name), map: mesh.material.map,
     hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, localInside: !!m.localInside, neckline: m.neckline || null,
-    tunicCloth: m.tunicCloth || null, fitted: null };
+    tunicCloth: m.tunicCloth || null, cloth: m.cloth || null, fitted: null };
 }
 
 /**
@@ -302,11 +303,18 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
     rig.skin.body.traverse((o) => { if (o.isSkinnedMesh && o.geometry === src) o.geometry = body; });
   }
   for (const O of worn) {
-    const geometry = fitOutfit(O, mesh);
+    let geometry = fitOutfit(O, mesh), skeleton = mesh.skeleton;
+    // a robe's skirt or a coat's tails swing on their own panel bones (chibi-cloth.js)
+    if (O.piece === 'armor' && O.cloth && T.cloth) {
+      const cfg = { ...T.cloth, ...O.cloth };
+      O.swing ||= clothGeometry(geometry, mesh.skeleton, mesh.bindMatrix, cfg);
+      rig.cloth = new Cloth(mesh, O.swing, cfg);
+      geometry = O.swing.geometry; skeleton = rig.cloth.skeleton;
+    }
     const make = (material) => {
       const m = new THREE.SkinnedMesh(geometry, material);
       m.position.copy(mesh.position); m.quaternion.copy(mesh.quaternion); m.scale.copy(mesh.scale);
-      m.bind(mesh.skeleton, mesh.bindMatrix);
+      m.bind(skeleton, mesh.bindMatrix);
       m.frustumCulled = false;
       m.userData.garment = O.piece;
       return m;

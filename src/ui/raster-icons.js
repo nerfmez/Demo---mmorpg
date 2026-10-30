@@ -243,7 +243,32 @@ export const RASTER_ICONS = Object.freeze({
  "skill/crystal_wall": "assets/icons/skill/crystal_wall.png",
  "skill/cleanse": "assets/icons/skill/cleanse.png",
  "skill/battle_aura": "assets/icons/skill/battle_aura.png",
- "skill/stone_guardian": "assets/icons/skill/stone_guardian.png"
+ "skill/stone_guardian": "assets/icons/skill/stone_guardian.png",
+ "material/pearl_scale": "assets/icons/material/pearl_scale.png",
+ "material/sea_slime": "assets/icons/material/sea_slime.png",
+ "material/clam_shell": "assets/icons/material/clam_shell.png",
+ "material/snail_shell_shard": "assets/icons/material/snail_shell_shard.png",
+ "material/golden_pearl": "assets/icons/material/golden_pearl.png",
+ "material/pangolin_plate": "assets/icons/material/pangolin_plate.png",
+ "material/foxleaf_tail": "assets/icons/material/foxleaf_tail.png",
+ "material/tanuki_fur": "assets/icons/material/tanuki_fur.png",
+ "gear/leafbear_coat": "assets/icons/gear/leafbear_coat.png",
+ "gear/leafbear_hood": "assets/icons/gear/leafbear_hood.png",
+ "gear/leafbear_gloves": "assets/icons/gear/leafbear_gloves.png",
+ "gear/leafbear_boots": "assets/icons/gear/leafbear_boots.png",
+ "gear/snailshell_plate": "assets/icons/gear/snailshell_plate.png",
+ "gear/snailshell_helm": "assets/icons/gear/snailshell_helm.png",
+ "gear/snailshell_gloves": "assets/icons/gear/snailshell_gloves.png",
+ "gear/snailshell_greaves": "assets/icons/gear/snailshell_greaves.png",
+ "gear/pearlscale_armor": "assets/icons/gear/pearlscale_armor.png",
+ "gear/pearlscale_crest": "assets/icons/gear/pearlscale_crest.png",
+ "gear/pearlscale_gloves": "assets/icons/gear/pearlscale_gloves.png",
+ "gear/pearlscale_boots": "assets/icons/gear/pearlscale_boots.png",
+ "gear/leaf_axe": "assets/icons/gear/leaf_axe.png",
+ "gear/snailshell_mace": "assets/icons/gear/snailshell_mace.png",
+ "gear/snailshell_shield": "assets/icons/gear/snailshell_shield.png",
+ "gear/foxleaf_charm": "assets/icons/gear/foxleaf_charm.png",
+ "gear/golden_pearl_pendant": "assets/icons/gear/golden_pearl_pendant.png"
 });
 export const EXPECTED_RASTER_KEYS = Object.freeze(["material/enhancement_stone", "material/skill_crystal", "gear/sporeweave_vest", "gear/sporeweave_gloves", "gear/moonleaf_slippers", "gear/wardenstalker_coat", "gear/wardenstalker_hood", "gear/wardenstalker_gloves", "gear/beetle_maul", "gear/crab_shield", "gear/beetle_buckler", "gear/crag_tower_shield", "gear/crab_greatshield", "gear/beetle_greatshield", "gear/crag_greatshield", "gear/hide_gloves", "gear/shell_mitts", "gear/wolf_grips", "gear/wisp_wraps", "gear/crag_gauntlets", "gear/shell_knife", "gear/tusk_club", "gear/tusk_greatblade", "gear/tide_staff", "gear/wolfbite_sword", "gear/venom_wand", "gear/hermit_cleaver", "gear/spore_staff", "gear/fang_bow", "gear/frontier_kris", "gear/moonleaf_wand", "gear/ranger_axe", "gear/knight_greatsword", "gear/tidecaller_staff", "gear/dusk_longbow", "gear/kite_shield", "gear/ranger_coat", "gear/ranger_hood", "gear/brigand_gloves", "gear/trail_boots", "gear/fang_talisman", "gear/stormglass_blade", "gear/wisp_stiletto", "gear/lantern_wand", "gear/thunder_maul", "gear/galebreaker", "gear/highland_shield", "gear/gale_boots", "gear/oathblade", "gear/ruin_fang", "gear/relic_wand", "gear/skyrender_bow", "arrow/feather_arrow", "arrow/tusk_arrow", "arrow/hawk_arrow", "arrow/storm_arrow", "arrow/hunter_arrow", "gear/rusty_sword", "gear/old_bow", "gear/apprentice_staff", "gear/tusk_blade", "gear/hunter_bow", "gear/fang_dagger", "gear/wisp_staff", "gear/spore_wand", "gear/crag_axe", "gear/storm_bow", "gear/greyfang_sabre", "gear/horn_greatblade", "gear/ancient_staff", "gear/travel_tunic", "gear/hide_vest", "gear/shell_guard", "gear/wolfpelt_coat", "gear/storm_mantle", "gear/crag_plate", "gear/leather_cap", "gear/beetle_helm", "gear/spore_hood", "gear/feather_circlet", "gear/horned_helm", "gear/travel_boots", "gear/wolf_boots", "gear/wisp_slippers", "gear/crag_greaves", "gear/tusk_charm", "gear/wisp_pendant", "gear/spore_amulet", "gear/feather_charm", "gear/golem_amulet", "gear/ancient_ring", "gear/crabshell_helm", "gear/tide_boots", "gear/pearl_pendant", "material/boar_hide", "material/boar_tusk", "material/beetle_shell", "material/venom_gland", "material/wisp_core", "material/glow_dust", "material/ruin_shard", "material/wolf_pelt", "material/wolf_fang", "material/spore_sac", "material/crag_stone", "material/golem_heart", "material/hawk_feather", "material/storm_quill", "material/greyfang_mane", "material/warden_horn", "material/ancient_core", "material/crab_shell", "material/sea_pearl", "material/salt_gel", "material/shore_feather", "material/hermit_fragment", "skill/slash", "skill/whirl_blade", "skill/hunter_shot", "skill/firebolt", "skill/chain_spark", "skill/stone_burst", "skill/frost_nova", "skill/venom_mire", "skill/hex", "skill/ward", "skill/war_cry", "skill/healing_spring", "skill/spirit_wolf", "skill/dash", "skill/roll", "skill/blink", "skill/leap",
  "material/mantis_scythe",
@@ -271,7 +296,7 @@ export const EXPECTED_RASTER_KEYS = Object.freeze(["material/enhancement_stone",
  "skill/cleanse",
  "skill/battle_aura",
  "skill/stone_guardian"
-, "gear/travel_cap", "gear/travel_gloves", "gear/boarhide_boots", "gear/crabshell_vest", "gear/beetle_gloves", "gear/beetle_boots", "gear/sporeweave_boots", "gear/wolfpelt_hood", "gear/burrowguard_armor", "gear/burrowguard_helm", "gear/burrowguard_gloves", "gear/burrowguard_boots", "gear/mirrorwing_robe", "gear/mirrorwing_hood", "gear/mirrorwing_gloves", "gear/mirrorwing_boots", "gear/fernstep_coat", "gear/fernstep_cap", "gear/fernstep_gloves", "gear/fernstep_boots", "gear/moonleaf_robe", "gear/moonleaf_cowl", "gear/moonleaf_gloves", "gear/moonleaf_pendant", "gear/storm_gloves", "gear/wisp_robe", "gear/wisp_hood", "gear/wisp_boots", "gear/wardenstalker_boots"]);
+, "gear/travel_cap", "gear/travel_gloves", "gear/boarhide_boots", "gear/crabshell_vest", "gear/beetle_gloves", "gear/beetle_boots", "gear/sporeweave_boots", "gear/wolfpelt_hood", "gear/burrowguard_armor", "gear/burrowguard_helm", "gear/burrowguard_gloves", "gear/burrowguard_boots", "gear/mirrorwing_robe", "gear/mirrorwing_hood", "gear/mirrorwing_gloves", "gear/mirrorwing_boots", "gear/fernstep_coat", "gear/fernstep_cap", "gear/fernstep_gloves", "gear/fernstep_boots", "gear/moonleaf_robe", "gear/moonleaf_cowl", "gear/moonleaf_gloves", "gear/moonleaf_pendant", "gear/storm_gloves", "gear/wisp_robe", "gear/wisp_hood", "gear/wisp_boots", "gear/wardenstalker_boots", "material/pearl_scale", "material/sea_slime", "material/clam_shell", "material/snail_shell_shard", "material/golden_pearl", "material/pangolin_plate", "material/foxleaf_tail", "material/tanuki_fur", "gear/leafbear_coat", "gear/leafbear_hood", "gear/leafbear_gloves", "gear/leafbear_boots", "gear/snailshell_plate", "gear/snailshell_helm", "gear/snailshell_gloves", "gear/snailshell_greaves", "gear/pearlscale_armor", "gear/pearlscale_crest", "gear/pearlscale_gloves", "gear/pearlscale_boots", "gear/leaf_axe", "gear/snailshell_mace", "gear/snailshell_shield", "gear/foxleaf_charm", "gear/golden_pearl_pendant"]);
 // Every registered skill has an owner-reviewed round touch presentation too.
 export const SKILL_ROUND_ICONS = Object.freeze(Object.fromEntries(
  Object.keys(RASTER_ICONS).filter(key => key.startsWith('skill/'))

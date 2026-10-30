@@ -230,6 +230,12 @@ follows; percentages stay the base's own. Per-item-level growth (reference, iden
 curves) was divided by 1.625 when levels stretched from 1-25 to 1-40. The balance model gives the reference hero
 gear at its own level (`gearTierAt` = level). The crafting page shows the level the piece will get and its range.
 
+Monsters awaiting placement (owner, 2026-10-30): a `monsters.json` entry with `awaiting: "placement"` is fully
+defined (fixed `levels`, stats, attacks borrowed from an existing `behavior`, drops) but in no map yet; the balance
+model (`recipeFarming`) and the crafting audit (`encounterCraftAudit`, `summary.awaitingPlacement`) count it as a
+source at its fixed levels. Remove the flag when it is placed. A weapon whose own model is not wired in yet points
+at an existing one with `models.json` `placeholderOf`.
+
 Stat thresholds (owner, 2026-10-29): `progression.statPerks` lists, per stat, four perks at 50/100/150/200
 total points (`id`, `at`, `nameTh`, `descTh` and the perk's own numbers). `derive()` sets `d.perks` to the
 unlocked ones (`stat-perks.js activePerks`, null when none) and adds AGI 150's movement charge after the caps.

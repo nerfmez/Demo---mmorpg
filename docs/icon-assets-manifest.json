@@ -6956,6 +6956,406 @@
         ],
         "export": "Copied byte-for-byte from assets-source/equipment/20261025/icons (provenance/large-shields.json)"
       }
+    },
+    {
+      "key": "material/pearl_scale",
+      "path": "assets/icons/material/pearl_scale.png",
+      "sha256": "8022111b2544705ad5706efcd6edbe9f698bd69cdd8f77e9e8e228d4c10fd77a",
+      "bytes": 234594,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (grotto-materials-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "material/sea_slime",
+      "path": "assets/icons/material/sea_slime.png",
+      "sha256": "f2e6d683297e41c8dc0bcef44416fdc6a9b8d9bdc32206291c0014aa9028a67f",
+      "bytes": 242886,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (grotto-materials-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "material/clam_shell",
+      "path": "assets/icons/material/clam_shell.png",
+      "sha256": "4c3dcbce45478f820525dc62b4cb5bb8bd2b8baf0853f32fc0b1a206f38c684f",
+      "bytes": 262661,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (grotto-materials-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "material/snail_shell_shard",
+      "path": "assets/icons/material/snail_shell_shard.png",
+      "sha256": "51d847cc73cc9540ab8b38ed7ba9efd177ebbad0d454739a13a0906985066705",
+      "bytes": 366018,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (grotto-materials-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "material/golden_pearl",
+      "path": "assets/icons/material/golden_pearl.png",
+      "sha256": "3c95118ed57e05403c1bd49724cc7cb0d0ce00f776659af5b1ab702e89c58122",
+      "bytes": 285468,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (grotto-materials-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "material/pangolin_plate",
+      "path": "assets/icons/material/pangolin_plate.png",
+      "sha256": "16bd84f42c7bb4874e2aa3d1cc3dd4cf8349ef540ca8e3399589d11e9e235379",
+      "bytes": 294516,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (forest-materials-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "material/foxleaf_tail",
+      "path": "assets/icons/material/foxleaf_tail.png",
+      "sha256": "43c91809584cc39547eaa00186278bb1a4a38792bf257e79083a2d007e1f1975",
+      "bytes": 220959,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (forest-materials-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "material/tanuki_fur",
+      "path": "assets/icons/material/tanuki_fur.png",
+      "sha256": "a72faf6f131279aa16374908bc29a342955cba96633f7a134f4767883e7c2deb",
+      "bytes": 293429,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (forest-materials-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/leafbear_coat",
+      "path": "assets/icons/gear/leafbear_coat.png",
+      "sha256": "73f7f8685d0e558e93102b0b6fcb0ede52575868eb7779f4ada3462822adb0df",
+      "bytes": 354940,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (leafbear-set-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/leafbear_hood",
+      "path": "assets/icons/gear/leafbear_hood.png",
+      "sha256": "8769d91aa771c806ff2d6317812112877fc653cd0dc7473acf85e3c808c39ed0",
+      "bytes": 333871,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (leafbear-set-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/leafbear_gloves",
+      "path": "assets/icons/gear/leafbear_gloves.png",
+      "sha256": "8255e25072b7e5489329622da6a877134ec22297305d02bb9dfb38c382073f6f",
+      "bytes": 276078,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (leafbear-set-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/leafbear_boots",
+      "path": "assets/icons/gear/leafbear_boots.png",
+      "sha256": "8158dfd881da691ed9c025d685f64af3f6ca73049ddce3cb52ed0dcee7fe76f0",
+      "bytes": 329557,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (leafbear-set-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/snailshell_plate",
+      "path": "assets/icons/gear/snailshell_plate.png",
+      "sha256": "ff01ab83a47a5fc837a241585f554f7e81296fd1fdd3cc3306815ee8d269f598",
+      "bytes": 372527,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (pearlscale-snailshell-sets-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/snailshell_helm",
+      "path": "assets/icons/gear/snailshell_helm.png",
+      "sha256": "d8b13c004fd040f282ad7dfbf0391f1353d86f8912169992d8d07769f44c66bd",
+      "bytes": 333673,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (pearlscale-snailshell-sets-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/snailshell_gloves",
+      "path": "assets/icons/gear/snailshell_gloves.png",
+      "sha256": "cf385d8212ffda681a9504e2a3c2571909ded48d554b24a06ab5f680192a5def",
+      "bytes": 328267,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (pearlscale-snailshell-sets-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/snailshell_greaves",
+      "path": "assets/icons/gear/snailshell_greaves.png",
+      "sha256": "c906a219651fe82607f6662506daf4047209efd5e438ccf9213a58655c40cef9",
+      "bytes": 356648,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (pearlscale-snailshell-sets-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/pearlscale_armor",
+      "path": "assets/icons/gear/pearlscale_armor.png",
+      "sha256": "3e7c46d8fb4eb566fdb4312d0e6318531d7f66eb5a2b4bdc6c6258d6b7767732",
+      "bytes": 280332,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (pearlscale-snailshell-sets-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/pearlscale_crest",
+      "path": "assets/icons/gear/pearlscale_crest.png",
+      "sha256": "c4cb1581c0e0557dd7f6ab04c4fee7f78308796c453321e21d747743e313b590",
+      "bytes": 274848,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (pearlscale-snailshell-sets-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/pearlscale_gloves",
+      "path": "assets/icons/gear/pearlscale_gloves.png",
+      "sha256": "abbd0416b01797969556f13486daa009757990b5e853dc3e5bc8bd1b1a1f372c",
+      "bytes": 276518,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (pearlscale-snailshell-sets-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/pearlscale_boots",
+      "path": "assets/icons/gear/pearlscale_boots.png",
+      "sha256": "afdf2a87d5d4fda659d066d3055a23ef1b53a137306d6dfcb0a3012d4df4fcd1",
+      "bytes": 290638,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (pearlscale-snailshell-sets-sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/leaf_axe",
+      "path": "assets/icons/gear/leaf_axe.png",
+      "sha256": "e31d5c27c5db9654e0eb51c934d6ce0b43f93a84098a5a79538afbd140e3e4cc",
+      "bytes": 233934,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (PR170 assets/meshy/gear/gear_sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/snailshell_mace",
+      "path": "assets/icons/gear/snailshell_mace.png",
+      "sha256": "5abe0a193504cccc92d50cad662e1838a29699ee77bacd2fe1ab45570e25b409",
+      "bytes": 202377,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (PR170 assets/meshy/gear/gear_sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/snailshell_shield",
+      "path": "assets/icons/gear/snailshell_shield.png",
+      "sha256": "adeabcbbf095b4ce1c0364affa141b21ca922808e7fd4b4bf3ce5eb0e25e4f92",
+      "bytes": 370069,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (PR170 assets/meshy/gear/gear_sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/foxleaf_charm",
+      "path": "assets/icons/gear/foxleaf_charm.png",
+      "sha256": "16a5346d3383fe0d171ef8e60fb8337f66d4b04657ab746022f935afe9bf86ae",
+      "bytes": 224901,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (PR170 assets/meshy/gear/gear_sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
+    },
+    {
+      "key": "gear/golden_pearl_pendant",
+      "path": "assets/icons/gear/golden_pearl_pendant.png",
+      "sha256": "353f952f107dd5a0b03e3e54826a9cdc09442e7b2b4876a76955f5e1be87dd9d",
+      "bytes": 181847,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source": "owner sheet in chat 2026-10-30 (PR170 assets/meshy/gear/gear_sheet.png, masters in assets-source/items/20261030/): cut out by its own alpha, centred on a 512 px square"
     }
   ],
   "pending_count": 0,

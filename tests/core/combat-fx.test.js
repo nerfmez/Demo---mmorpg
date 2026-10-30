@@ -35,6 +35,7 @@ test('creatures strike with what they have: trails come out of their own claws, 
     assert.ok(fx.monsters[name].trail.streaks >= 3, `${name}: three or four claw lines`);
   }
   for (const [type, def] of Object.entries(data.monsters.monsters)) {
+    if (def.awaiting) continue; // its model and limbs come with its placement (monsters.json awaiting)
     for (const name of Object.keys(def.attacks)) {
       const base = fx.monsters[name];
       if (!['claw', 'fangs', 'pincer'].includes(base?.kind)) continue;

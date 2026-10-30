@@ -204,7 +204,9 @@ export function bossOnlyMaterials(data) {
  */
 export function recipeFarming(data, recipe, kit = 'sword') {
   const b = data.progression.balance, boss = bossOnlyMaterials(data), M = data.monsters.monsters;
-  const spawns = Object.values(data.maps || { w: data.world }).flatMap((m) => m.spawns);
+  // a monster awaiting placement (monsters.json awaiting) counts at its fixed levels
+  const spawns = [...Object.values(data.maps || { w: data.world }).flatMap((m) => m.spawns),
+    ...Object.entries(M).filter(([, m]) => m.awaiting && !m.boss && m.levels).map(([id, m]) => ({ monster: id, level: m.levels }))];
   const gearRate = Object.values(data.items.gearDrops.normal).reduce((a, c) => a + c, 0);
   const share = data.items.salvage.returnByGrade.C;
   const out = { minutes: 0, bossKills: 0, parts: {} };

@@ -659,6 +659,75 @@
         ],
         "scale": 0.34
       }
+    },
+    "leaf_axe": {
+      "file": "models/weapons/ranger_axe.glb",
+      "tris": 8426,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.62,
+          -0.65,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.6
+      },
+      "edge": -1,
+      "placeholderOf": "ranger_axe",
+      "placeholder": "uses ranger_axe until the model from PR #170 (assets/meshy/gear) is wired in"
+    },
+    "snailshell_mace": {
+      "file": "models/weapons/beetle_maul.glb",
+      "tris": 16332,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "R2",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1.46
+      },
+      "placeholderOf": "beetle_maul",
+      "placeholder": "uses beetle_maul until the model from PR #170 (assets/meshy/gear) is wired in"
+    },
+    "snailshell_shield": {
+      "file": "models/weapons/beetle_greatshield.glb",
+      "tris": 3899,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "source": "Meshy (assets/meshy/shields/beetle_greatshield_meshy.glb, tasks.json) with its texture at 768 px (scripts/shrink-glb-texture.py 768 76), decimated under the 4,000-triangle weapon budget (scripts/decimate-glb.py 3900). Fit: the right grip bar at the grip, +Z across to the left bar, the face toward +Y (equipment.js greatshieldGrips)",
+      "sourceTransform": {
+        "grip": [
+          -0.206,
+          0,
+          -0.238
+        ],
+        "rotation": [
+          -1.5707963267948966,
+          0,
+          -1.5707963267948966
+        ],
+        "scale": 0.68
+      },
+      "placeholderOf": "beetle_greatshield",
+      "placeholder": "uses beetle_greatshield until the model from PR #170 (assets/meshy/gear) is wired in"
     }
   },
   "characters": {

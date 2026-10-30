@@ -2341,6 +2341,221 @@
       },
       "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
       "itemLevel": 35
+    },
+    "leafbear_coat": {
+      "type": "gear",
+      "result": "leafbear_coat",
+      "cost": {
+        "tanuki_fur": 8,
+        "foxleaf_tail": 4,
+        "boar_hide": 20,
+        "gold": 150
+      },
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "itemLevel": 15
+    },
+    "leafbear_hood": {
+      "type": "gear",
+      "result": "leafbear_hood",
+      "cost": {
+        "tanuki_fur": 8,
+        "foxleaf_tail": 3,
+        "boar_hide": 16,
+        "gold": 150
+      },
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "itemLevel": 15
+    },
+    "leafbear_gloves": {
+      "type": "gear",
+      "result": "leafbear_gloves",
+      "cost": {
+        "foxleaf_tail": 8,
+        "pangolin_plate": 4,
+        "boar_tusk": 12,
+        "gold": 150
+      },
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
+      "itemLevel": 15
+    },
+    "leafbear_boots": {
+      "type": "gear",
+      "result": "leafbear_boots",
+      "cost": {
+        "tanuki_fur": 8,
+        "pangolin_plate": 4,
+        "boar_hide": 20,
+        "gold": 150
+      },
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "itemLevel": 15
+    },
+    "snailshell_plate": {
+      "type": "gear",
+      "result": "snailshell_plate",
+      "cost": {
+        "snail_shell_shard": 2,
+        "clam_shell": 14,
+        "crab_shell": 10,
+        "boar_hide": 22,
+        "gold": 300
+      },
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
+      "itemLevel": 30
+    },
+    "snailshell_helm": {
+      "type": "gear",
+      "result": "snailshell_helm",
+      "cost": {
+        "snail_shell_shard": 2,
+        "clam_shell": 12,
+        "crab_shell": 8,
+        "boar_hide": 18,
+        "gold": 300
+      },
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
+      "itemLevel": 30
+    },
+    "snailshell_gloves": {
+      "type": "gear",
+      "result": "snailshell_gloves",
+      "cost": {
+        "snail_shell_shard": 1,
+        "clam_shell": 12,
+        "beetle_shell": 8,
+        "boar_tusk": 18,
+        "gold": 300
+      },
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
+      "itemLevel": 30
+    },
+    "snailshell_greaves": {
+      "type": "gear",
+      "result": "snailshell_greaves",
+      "cost": {
+        "snail_shell_shard": 1,
+        "clam_shell": 14,
+        "crab_shell": 8,
+        "boar_hide": 22,
+        "gold": 300
+      },
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "move_pct"],
+      "itemLevel": 30
+    },
+    "pearlscale_armor": {
+      "type": "gear",
+      "result": "pearlscale_armor",
+      "cost": {
+        "pearl_scale": 12,
+        "sea_slime": 6,
+        "viper_scale": 5,
+        "boar_hide": 30,
+        "gold": 300
+      },
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "itemLevel": 25
+    },
+    "pearlscale_crest": {
+      "type": "gear",
+      "result": "pearlscale_crest",
+      "cost": {
+        "pearl_scale": 12,
+        "sea_slime": 4,
+        "glow_dust": 6,
+        "spore_sac": 30,
+        "gold": 300
+      },
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "itemLevel": 25
+    },
+    "pearlscale_gloves": {
+      "type": "gear",
+      "result": "pearlscale_gloves",
+      "cost": {
+        "sea_slime": 12,
+        "pearl_scale": 6,
+        "viper_scale": 4,
+        "boar_tusk": 30,
+        "gold": 300
+      },
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
+      "itemLevel": 25
+    },
+    "pearlscale_boots": {
+      "type": "gear",
+      "result": "pearlscale_boots",
+      "cost": {
+        "sea_slime": 12,
+        "clam_shell": 4,
+        "pearl_scale": 6,
+        "boar_hide": 30,
+        "gold": 300
+      },
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "itemLevel": 25
+    },
+    "leaf_axe": {
+      "type": "gear",
+      "result": "leaf_axe",
+      "cost": {
+        "pangolin_plate": 6,
+        "tanuki_fur": 3,
+        "boar_tusk": 13,
+        "gold": 60
+      },
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"],
+      "itemLevel": 10
+    },
+    "snailshell_mace": {
+      "type": "gear",
+      "result": "snailshell_mace",
+      "cost": {
+        "snail_shell_shard": 2,
+        "clam_shell": 14,
+        "beetle_shell": 10,
+        "boar_tusk": 18,
+        "gold": 300
+      },
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"],
+      "itemLevel": 30
+    },
+    "snailshell_shield": {
+      "type": "gear",
+      "result": "snailshell_shield",
+      "cost": {
+        "snail_shell_shard": 2,
+        "clam_shell": 16,
+        "crab_shell": 10,
+        "boar_hide": 22,
+        "gold": 300
+      },
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "attack_flat", "melee_pct", "regen_flat", "mp_on_hit", "vit_flat", "str_flat"],
+      "itemLevel": 30
+    },
+    "foxleaf_charm": {
+      "type": "gear",
+      "result": "foxleaf_charm",
+      "cost": {
+        "foxleaf_tail": 12,
+        "tanuki_fur": 4,
+        "boar_tusk": 12,
+        "gold": 150
+      },
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
+      "itemLevel": 15
+    },
+    "golden_pearl_pendant": {
+      "type": "gear",
+      "result": "golden_pearl_pendant",
+      "cost": {
+        "golden_pearl": 1,
+        "clam_shell": 10,
+        "pearl_scale": 6,
+        "boar_tusk": 22,
+        "gold": 300
+      },
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
+      "itemLevel": 25
     }
   }
 }

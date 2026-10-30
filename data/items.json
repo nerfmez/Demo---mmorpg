@@ -247,6 +247,64 @@
       "color": "#e7dcc4",
       "value": 9,
       "shape": "horn"
+    },
+    "pearl_scale": {
+      "name": "Pearl Scale",
+      "nameTh": "เกล็ดมุก",
+      "color": "#cfe4f4",
+      "value": 12,
+      "shape": "gem"
+    },
+    "sea_slime": {
+      "name": "Sea Slime",
+      "nameTh": "เมือกทะเล",
+      "color": "#4fd6cf",
+      "value": 12,
+      "shape": "gem"
+    },
+    "clam_shell": {
+      "name": "Violet Clam Shell",
+      "nameTh": "เปลือกหอยม่วง",
+      "color": "#b79bd8",
+      "value": 13,
+      "shape": "box"
+    },
+    "snail_shell_shard": {
+      "name": "Bronze Shell Shard",
+      "nameTh": "เศษเปลือกสำริด",
+      "color": "#c89a4a",
+      "value": 40,
+      "shape": "box",
+      "rare": true
+    },
+    "golden_pearl": {
+      "name": "Golden Pearl",
+      "nameTh": "ไข่มุกทอง",
+      "color": "#f2c14e",
+      "value": 160,
+      "shape": "gem",
+      "rare": true
+    },
+    "pangolin_plate": {
+      "name": "Stone Plate",
+      "nameTh": "แผ่นเกราะหิน",
+      "color": "#d8c8a4",
+      "value": 9,
+      "shape": "box"
+    },
+    "foxleaf_tail": {
+      "name": "Leaf Tail",
+      "nameTh": "หางใบไม้",
+      "color": "#f08a3a",
+      "value": 9,
+      "shape": "feather"
+    },
+    "tanuki_fur": {
+      "name": "Tanuki Fur",
+      "nameTh": "ขนทานุกิ",
+      "color": "#8a6648",
+      "value": 8,
+      "shape": "box"
     }
   },
   "slots": [
@@ -347,7 +405,7 @@
     "every": 10,
     "group": { "sword": "A", "heavy": "A", "priest": "A", "staff": "A", "greatshield": "A", "shield": "A", "plate": "A", "dagger": "B", "bow": "B", "wand": "B", "wand_dex": "B", "leather": "B", "cloth": "B", "charm": "B" },
     "_knownGapsDoc": "Levels 1-40 (today's monsters) where a line has no base yet: the list of new bases to make (tests/core/gear-tiers.test.js). It may only shrink.",
-    "knownGaps": { "axe": "1-19,30-39", "mace": "20-29,40", "greatshield": "20-39", "plate.armor": "20-39", "plate.helm": "20-39", "plate.gloves": "20-39", "plate.boots": "1-9,20-39", "leather.armor": "25-34", "leather.helm": "25-34", "cloth.armor": "1-4,35-40", "cloth.helm": "1-4,35-40", "cloth.gloves": "1-4,35-40", "cloth.boots": "35-40" }
+    "knownGaps": { "axe": "1-9,30-39", "mace": "20-29,40", "greatshield": "20-29", "plate.armor": "20-29", "plate.helm": "20-29", "plate.gloves": "20-29", "plate.boots": "1-9,20-29", "cloth.armor": "1-4,35-40", "cloth.helm": "1-4,35-40", "cloth.gloves": "1-4,35-40", "cloth.boots": "35-40" }
   },
   "gearBases": {
     "rusty_sword": {
@@ -2058,6 +2116,242 @@
       "upgradeMaterial": "greyfang_mane",
       "itemLevel": 35,
       "maxItemLevel": 54
+    },
+    "leafbear_coat": {
+      "name": "Leafbear Coat",
+      "nameTh": "เสื้อทานุกิใบไม้",
+      "slot": "armor",
+      "requirementStat": "AGI",
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "stats": { "moveSpeedPct": 4.2, "defense": 189, "maxHp": 363 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "tanuki_fur",
+      "itemLevel": 15,
+      "maxItemLevel": 24,
+      "look": "pelt"
+    },
+    "leafbear_hood": {
+      "name": "Leafbear Hood",
+      "nameTh": "ฮู้ดทานุกิใบไม้",
+      "slot": "helm",
+      "requirementStat": "AGI",
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "stats": { "critChancePct": 6.4, "defense": 80, "maxHp": 153 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "tanuki_fur",
+      "itemLevel": 15,
+      "maxItemLevel": 24,
+      "look": "hood"
+    },
+    "leafbear_gloves": {
+      "name": "Leafbear Gloves",
+      "nameTh": "ถุงมือทานุกิใบไม้",
+      "slot": "gloves",
+      "requirementStat": "AGI",
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
+      "stats": { "attack": 30, "critChancePct": 3.2, "defense": 33, "maxHp": 64 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "foxleaf_tail",
+      "itemLevel": 15,
+      "maxItemLevel": 24,
+      "look": "pelt"
+    },
+    "leafbear_boots": {
+      "name": "Leafbear Boots",
+      "nameTh": "รองเท้าทานุกิใบไม้",
+      "slot": "boots",
+      "requirementStat": "AGI",
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "stats": { "moveSpeedPct": 4.2, "defense": 59, "maxHp": 113 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "tanuki_fur",
+      "itemLevel": 15,
+      "maxItemLevel": 24
+    },
+    "snailshell_plate": {
+      "name": "Snailshell Plate",
+      "nameTh": "เกราะเปลือกหอยทาก",
+      "slot": "armor",
+      "requirementStat": "VIT",
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
+      "stats": { "defense": 543, "maxHp": 1016 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "clam_shell",
+      "itemLevel": 30,
+      "maxItemLevel": 39,
+      "look": "plate"
+    },
+    "snailshell_helm": {
+      "name": "Snailshell Helm",
+      "nameTh": "หมวกเปลือกหอยทาก",
+      "slot": "helm",
+      "requirementStat": "VIT",
+      "secondaryStat": "STR",
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat"],
+      "stats": { "defense": 242, "maxHp": 452 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "clam_shell",
+      "itemLevel": 30,
+      "maxItemLevel": 39
+    },
+    "snailshell_gloves": {
+      "name": "Snailshell Gauntlets",
+      "nameTh": "ถุงมือเปลือกหอยทาก",
+      "slot": "gloves",
+      "requirementStat": "VIT",
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "attack_flat", "melee_pct"],
+      "stats": { "attack": 26, "defense": 109, "maxHp": 205 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "clam_shell",
+      "itemLevel": 30,
+      "maxItemLevel": 39,
+      "look": "plate"
+    },
+    "snailshell_greaves": {
+      "name": "Snailshell Greaves",
+      "nameTh": "รองเท้าเปลือกหอยทาก",
+      "slot": "boots",
+      "requirementStat": "VIT",
+      "optionPool": ["hp_flat", "defense_flat", "block_pct", "regen_flat", "barrier_pct", "vit_flat", "str_flat", "move_pct"],
+      "stats": { "defense": 181, "maxHp": 339 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "clam_shell",
+      "itemLevel": 30,
+      "maxItemLevel": 39
+    },
+    "pearlscale_armor": {
+      "name": "Pearlscale Coat",
+      "nameTh": "เสื้อเกล็ดมุก",
+      "slot": "armor",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "stats": { "critChancePct": 8.9, "defense": 308, "maxHp": 578 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "pearl_scale",
+      "itemLevel": 25,
+      "maxItemLevel": 34,
+      "look": "pelt"
+    },
+    "pearlscale_crest": {
+      "name": "Pearlscale Crest",
+      "nameTh": "หมวกครีบเกล็ดมุก",
+      "slot": "helm",
+      "requirementStat": "AGI",
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "stats": { "hastePct": 13.4, "defense": 135, "maxHp": 254 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "pearl_scale",
+      "itemLevel": 25,
+      "maxItemLevel": 34
+    },
+    "pearlscale_gloves": {
+      "name": "Pearlscale Gloves",
+      "nameTh": "ถุงมือเกล็ดมุก",
+      "slot": "gloves",
+      "requirementStat": "AGI",
+      "secondaryStat": "DEX",
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat", "attack_flat", "projectile_pct", "crit_mult_pct"],
+      "stats": { "attack": 50, "critChancePct": 4.5, "defense": 55, "maxHp": 103 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "sea_slime",
+      "itemLevel": 25,
+      "maxItemLevel": 34,
+      "look": "pelt"
+    },
+    "pearlscale_boots": {
+      "name": "Pearlscale Boots",
+      "nameTh": "รองเท้าเกล็ดมุก",
+      "slot": "boots",
+      "requirementStat": "AGI",
+      "optionPool": ["defense_flat", "hp_flat", "move_pct", "cdr_pct", "crit_pct", "agi_flat", "dex_flat"],
+      "stats": { "moveSpeedPct": 5.7, "defense": 97, "maxHp": 182 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "sea_slime",
+      "itemLevel": 25,
+      "maxItemLevel": 34
+    },
+    "leaf_axe": {
+      "name": "Leaf Axe",
+      "nameTh": "ขวานใบไม้",
+      "slot": "weapon",
+      "weaponType": "axe",
+      "requirementStat": "STR",
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"],
+      "stats": { "attack": 300 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "pangolin_plate",
+      "itemLevel": 10,
+      "maxItemLevel": 19
+    },
+    "snailshell_mace": {
+      "name": "Snailshell Mace",
+      "nameTh": "กระบองเปลือกหอยทาก",
+      "slot": "weapon",
+      "weaponType": "mace",
+      "requirementStat": "STR",
+      "secondaryStat": "VIT",
+      "optionPool": ["melee_pct", "attack_flat", "area_pct", "hp_flat", "regen_flat", "leech_pct", "mp_on_hit", "str_flat", "vit_flat"],
+      "stats": { "attack": 551, "maxHp": 329 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "clam_shell",
+      "itemLevel": 30,
+      "maxItemLevel": 39
+    },
+    "snailshell_shield": {
+      "name": "Snailshell Greatshield",
+      "nameTh": "โล่ใหญ่เปลือกหอยทาก",
+      "slot": "weapon",
+      "weaponType": "greatshield",
+      "requirementStat": "VIT",
+      "secondaryStat": "STR",
+      "optionPool": ["defense_flat", "hp_flat", "block_pct", "attack_flat", "melee_pct", "regen_flat", "mp_on_hit", "vit_flat", "str_flat"],
+      "stats": { "attack": 542, "defense": 229, "maxHp": 417, "blockChancePct": 16 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "clam_shell",
+      "itemLevel": 30,
+      "maxItemLevel": 39
+    },
+    "foxleaf_charm": {
+      "name": "Foxleaf Charm",
+      "nameTh": "เครื่องรางหางจิ้งจอก",
+      "slot": "charm",
+      "requirementStat": "AGI",
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
+      "stats": { "attack": 542, "defense": 229, "maxHp": 417, "blockChancePct": 16 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "foxleaf_tail",
+      "itemLevel": 15,
+      "maxItemLevel": 24
+    },
+    "golden_pearl_pendant": {
+      "name": "Golden Pearl Pendant",
+      "nameTh": "จี้ไข่มุกทอง",
+      "slot": "charm",
+      "requirementStat": "LUK",
+      "optionPool": ["crit_pct", "crit_mult_pct", "attack_flat", "magic_flat", "melee_pct", "projectile_pct", "spell_pct", "area_pct", "summon_pct", "hp_flat", "mp_flat", "shield_flat", "cdr_pct", "move_pct", "leech_pct", "mp_on_hit", "gear_find", "gold_find", "material_find", "str_flat", "agi_flat", "dex_flat", "luk_flat", "int_flat", "vit_flat"],
+      "stats": { "attack": 542, "defense": 229, "maxHp": 417, "blockChancePct": 16 },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "golden_pearl",
+      "itemLevel": 25,
+      "maxItemLevel": 34
     }
   },
   "gearOptions": {

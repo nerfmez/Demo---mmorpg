@@ -30,7 +30,9 @@ function arena(type, level = 15) {
 
 test('five newer monsters live in the upper levels with patterns of their own; every level 1-40 has a monster of its own', () => {
   const signature = (m) => [m.behavior, ...Object.keys(m.attacks).sort()].join('|');
-  const old = new Set(Object.entries(M).filter(([id]) => !NEW.includes(id)).map(([, m]) => signature(m)));
+  // monsters awaiting placement borrow an existing behaviour until they get their own (monsters.json awaiting)
+  const old = new Set(Object.entries(M).filter(([id, m]) => !NEW.includes(id) && !m.awaiting).map(([, m]) => signature(m)));
+  for (const [id, m] of Object.entries(M)) if (m.awaiting) assert.ok(!spawns.some((s) => s.monster === id), `${id} awaits placement: not in a map yet`);
   for (const id of NEW) {
     const m = M[id];
     assert.ok(m && !m.boss, id);

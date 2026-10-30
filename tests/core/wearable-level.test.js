@@ -9,8 +9,8 @@ const bases=Object.entries(data.items.gearBases).filter(([,b])=>slots.includes(b
 const item=(ch,base,extra={})=>{const it={uid:ch.nextUid++,base,grade:'C',upgrade:0,options:[],...extra};ch.gear.push(it);return it;};
 const fund=ch=>{ch.gold=100000;for(const id in data.items.materials)ch.materials[id]=10000;return ch;};
 
-test('all 74 wearable bases block below level; armour also asks for its stats, a charm for its level only',()=>{
- assert.equal(bases.length,74);
+test('all 88 wearable bases block below level; armour also asks for its stats, a charm for its level only',()=>{
+ assert.equal(bases.length,88);
  for(const [id,b] of bases){
   const ch=createCharacter(data),it=item(ch,id,{itemLevel:b.itemLevel});
   const req=gearRequirements(it,data);assert.equal(req.level,b.itemLevel,id);
@@ -62,8 +62,8 @@ test('missing metadata uses existing base fallback; valid custom level remains a
  migrateCharacter(ch,data);assert.equal(ch.level,70);assert.equal(ch.equipped.armor,it.uid);assert.equal(it.itemLevel,71);assert.ok(ch.gear.includes(it));assert.match(ch.progress.equipmentNotice,/สถานะไม่ได้ใช้/);
 });
 
-test('all 41 weapons and 5 shields retain stat gates and grade/upgrade scaling; their gate follows the piece level inside its range',()=>{
- const held=Object.entries(data.items.gearBases).filter(([,b])=>['weapon','offhand'].includes(b.slot));assert.equal(held.length,46);
+test('all 44 weapons and 5 shields retain stat gates and grade/upgrade scaling; their gate follows the piece level inside its range',()=>{
+ const held=Object.entries(data.items.gearBases).filter(([,b])=>['weapon','offhand'].includes(b.slot));assert.equal(held.length,49);
  for(const [id]of held){const ch=createCharacter(data),it=item(ch,id,{itemLevel:999});ch.level=1;const req=gearRequirements(it,data);assert.equal(req.level,undefined,id);
   for(const stat in req)ch.stats[stat]=req[stat];assert.ok(gearEquipState(ch,data,it).ok,id);
   ch.level=99;for(const stat in req)ch.stats[stat]=0;assert.equal(gearEquipState(ch,data,it).ok,false,id);

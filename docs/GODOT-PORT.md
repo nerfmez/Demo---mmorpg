@@ -459,8 +459,10 @@ with `lightWall`, `lightWall.offset` m ahead across the aim (`radius` is half it
 are chilled by `lightWall.slow` while in its band (`tickLightWalls`), monster projectiles that reach the band end there
 (`lightWallBlock`), and a hit on the hero or an ally standing on the caster's side within `lightWall.depth` m from an
 attacker on the far side is taken at `lightWall.taken` (`coverMult`, applied in `damageUnit`; the best cover counts).
-Until their own effects the renderer draws stand-ins (frontier-fx.js: an upright pane of light, the guarded arc on the
-ground; colours in `combat-fx.json frontier`) and the hero borrows the shield shove and the riposte guard.
+Their effects are `render/skillfx/greatshield-fx.js` (driven by skill-fx.js from `castStart`, `dashStrike`, `hit`,
+`rushStop`, `dashArrive`, `channelStart/End`, `fortBlock`, `area`, `lightWallBlock`, `areaEnd`; in Godot a ribbon trail,
+a shader pane on a cylinder strip and a shader quad plus particle posts); the hero still borrows the shield shove and the
+riposte guard until their own reference-clip actions.
 
 **Signature and basic mods (owner, 2026-10-27).** A damage skill whose base cooldown is at least
 `mods.json signatureCooldown` (12 s) carries the `Signature` tag, and every mod that multiplies a

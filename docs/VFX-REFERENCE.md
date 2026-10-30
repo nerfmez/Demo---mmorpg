@@ -409,3 +409,21 @@ its leading end, with a faint shimmer; each is drawn by a fast leading edge and 
 (the dash streaks from where the hero left, the lane line after it parts) instead of popping in or out as
 a flat bar. The X on each monster is two such blades, the second a hair after the first, and the glow
 blobs became short spinning star glints.
+
+## Greatshield skills, round 1 (2026-10-30)
+
+The owner tried the three greatshield skills on the bench with stand-ins ("ไม่มีเอฟเฟคอะไรเลย"). The Cartoon FX
+gallery host is blocked from this session's network, so the round follows the game's approved guard language
+(Measured Riposte's pane and clash, Hold the Line's gold), `skillfx/greatshield-fx.js`:
+- Line Breaker: light drawn in to the shield's front over the wind-up; a bow wave of three gold chevrons pushed
+  ahead of the shield, speed lines streaming off the body and two skid lines on the ground; each monster reached
+  bursts gold with sparks thrown out to its side; a boss or big monster that stops the charge sets off a clash
+  (spinning stars, a glint, upright and ground rings, a hard shake); a dust ring on arrival.
+- Shield Fortress: a tall curved pane of gold glass (a faint hex weave, crisp rim, sliding shine) over the guard's
+  140 degrees while held, an arc on the ground; a blocked blow ripples the pane where it struck, with a clash star,
+  glint and sparks thrown back; it sinks away when the shield drops.
+- Wall of Faith: a line of light runs out both ways on the ground with rune ticks, then the wall rises with an
+  overshoot. The high camera sees a wall across the aim almost edge on, so its height is carried by eleven posts of
+  light (wide at the foot) joined by a bright top edge, a glow band on its footprint and motes rising, over a pane
+  whose columns stream upward; a stopped shot rings a ripple and a flash; it dissolves upward at its end.
+

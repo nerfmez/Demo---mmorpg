@@ -302,9 +302,11 @@ flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to
 
 ## Greatshield skills (2026-10-30, stand-in looks)
 
-Line Breaker, Shield Fortress and Wall of Faith are on the bench with a greatshield, using the game's
-stand-ins until their own effects (`render/frontier-fx.js`, now also run by the bench: the pane of
-light, the guarded arc). Each layout gives something to watch the rules do:
+Line Breaker, Shield Fortress and Wall of Faith are on the bench with a greatshield, drawn by
+`render/skillfx/greatshield-fx.js` in the guardian's gold (first round; the bench also runs
+`render/frontier-fx.js` now, like the game). The bench shows heal numbers only for real heals (Life Leech, a
+kill's heal), not the regeneration every frame (owner: the numbers popped constantly). Each layout gives
+something to watch the rules do:
 - Line Breaker: three dummies in the lane to throw aside, one beside it, and a last one marked as a
   boss that stops the charge and is stunned.
 - Shield Fortress (hold the cast button): two dummies wind up and strike the shield in front, one

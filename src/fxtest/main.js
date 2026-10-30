@@ -175,6 +175,9 @@ function rebuild() {
   if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, haste: state.haste ?? null });
   game.aimAt(aimAngle);
+  // heal numbers show only real heals (Life Leech, a kill's heal), not the steady regeneration every frame
+  const heal = game.healPlayer.bind(game);
+  game.healPlayer = (amount, quiet) => { const p = game.player, before = p.hp; heal(amount, quiet); healed += p.hp - before; };
   const off = data.skills.combat[state.skill]?.requiresOffhand || state.offhand || null; // Shield Bash holds a shield; setOffhand a second weapon
   const weapon = state.weapon || BENCH_WEAPON[state.skill]; // setWeapon: another weapon in the right hand
   if (weapon !== heroWeapon || off !== heroOffhand) buildHero(weapon, off);
@@ -238,7 +241,7 @@ function floatNumber(x, y, z, text, color, big) {
   const n = numbers.find((q) => q.el === el) || (numbers.push({ el }), numbers[numbers.length - 1]);
   Object.assign(n, { x: x + (Math.random() - 0.5) * 0.5, y, z, t: 0 });
 }
-let lastHp = 0, banner = null, bannerT = 0;
+let lastHp = 0, healed = 0, banner = null, bannerT = 0;
 function showBanner(text) { banner = text; bannerT = 1.2; const b = document.getElementById('banner'); b.textContent = text; b.style.opacity = 1; }
 
 // ---------- core events -> effects ----------
@@ -550,7 +553,8 @@ function tick(real, draw = true) {
   game.benchStep(dt);
   drain();
   const p = game.player;
-  if (p.hp > lastHp + 0.5) floatNumber(p.x, 2.3, p.z, '+' + Math.round(p.hp - lastHp), '#7dff9a');
+  if (healed > 0.5) floatNumber(p.x, 2.3, p.z, '+' + Math.round(healed), '#7dff9a');
+  healed = 0;
   lastHp = p.hp;
   if (lastHp > p.maxHp * 0.9) { p.hp = p.maxHp * 0.6; lastHp = p.hp; } // keep room for Life Leech to show
 

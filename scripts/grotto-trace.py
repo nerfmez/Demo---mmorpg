@@ -407,13 +407,19 @@ for i, z in enumerate(zones):
         zi, zj = (cv2.dilate((label == k).astype(np.uint8), ell(7)) for k in (i, j))
         u = cv2.morphologyEx((zi | zj) & walk, cv2.MORPH_CLOSE, ell(z['joinClose'])) & (zi | zj)
         u = fill_small_holes(u, 200000)
-        joined[i], joined[j] = u & zi, u & zj
+        # a zone drawn as a `circle` (the dais) gives its picture area to the room it stands in
+        joined[i], joined[j] = (u, np.zeros_like(u)) if zones[j].get('circle') else (u & zi, u & zj)
 
 
 for i, z in enumerate(zones):
+    if z.get('circle'):
+        continue  # drawn below as an exact circle
     # each zone reaches a few pixels past its edge, so two zones on one level overlap instead of
     # leaving a hairline of void between their outlines
     zm = cv2.dilate((label == i).astype(np.uint8), ell(7))
+    for k, o in enumerate(zones):
+        if o.get('circle') and z.get('join') == o['id']:
+            zm |= cv2.dilate((label == k).astype(np.uint8), ell(7))  # the room takes in the circle's picture area
     area = joined.get(i, zm & walk)
     if z.get('round'):
         # a walled room: the rocks and props painted over the floor's edge would leave notches
@@ -457,6 +463,39 @@ for i, z in enumerate(zones):
             if holes:
                 f['holes'] = holes
             floors.append(f)
+
+def inscribed(fl, G=0.25):
+    """The largest circle inside the floors `fl` together, in metres: (x, z, r)."""
+    xs = [q[0] for f in fl for q in f['pts']]
+    zs = [q[1] for f in fl for q in f['pts']]
+    x0, z0 = min(xs) - 1, min(zs) - 1
+    m_ = np.zeros((int((max(zs) - z0 + 1) / G) + 1, int((max(xs) - x0 + 1) / G) + 1), np.uint8)
+    for f in fl:
+        cv2.fillPoly(m_, [np.array([[(q[0] - x0) / G, (q[1] - z0) / G] for q in f['pts']], np.int32)], 1)
+        for h in f.get('holes', []):
+            cv2.fillPoly(m_, [np.array([[(q[0] - x0) / G, (q[1] - z0) / G] for q in h], np.int32)], 0)
+    d = cv2.distanceTransform(m_, cv2.DIST_L2, 5) * G
+    k = int(np.argmax(d))
+    return x0 + (k % m_.shape[1]) * G, z0 + (k // m_.shape[1]) * G, float(d.flat[k])
+
+
+# a `circle` zone (owner, 29 October 2026: "the floor a perfect circle"): an exact round platform
+# of `circle.r` metres in the middle of the room it stands in (the largest open circle there), a
+# polygon of 96 corners; the room's water runs on under and around it
+for z in zones:
+    if not z.get('circle'):
+        continue
+    host = next(o for o in zones if o.get('join') == z['id'])
+    room = [f for f in floors if f['shape'] == 'poly' and f['id'].startswith(host['id'] + '-')]
+    cx_, cz_, _ = inscribed(room)
+    r_ = z['circle']['r']
+    f = {'id': f"{z['id']}-floor-0", 'kind': 'stone', 'shape': 'poly', 'y': z['y'],
+         'pts': [[round(cx_ + math.cos(a) * r_, 2), round(cz_ + math.sin(a) * r_, 2)] for a in (k / 96 * math.tau for k in range(96))]}
+    for key in ('tone', 'style'):
+        if z.get(key):
+            f[key] = z[key]
+    floors.append(f)
+
 
 # each flight runs the whole length the concept draws (its steps are deep, as the picture's are)
 # and takes the tone of the room it climbs to

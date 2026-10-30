@@ -8,9 +8,8 @@ import { caveSourceHash } from '../../scripts/grotto-cave-input.mjs';
 
 const FILE = JSON.parse(readFileSync(new URL('../../data/dungeons/shell-grotto.json', import.meta.url), 'utf8'));
 const inside = createDungeon(FILE.inside, FILE);
-const outside = createDungeon(FILE.outside, FILE);
-const maps = { inside, outside };
-const reach = { inside: reachableFrom(inside, FILE.inside.spawn), outside: reachableFrom(outside, FILE.outside.spawn) };
+const maps = { inside };
+const reach = { inside: reachableFrom(inside, FILE.inside.spawn) };
 
 /** Some reached cell within `r` of (x, z). */
 const reachedNear = (part, [x, z], r) => {
@@ -19,7 +18,7 @@ const reachedNear = (part, [x, z], r) => {
 };
 
 test('the spawns stand on walkable ground and every named area is reached on foot', () => {
-  for (const part of ['inside', 'outside']) {
+  for (const part of ['inside']) {
     const [x, z] = FILE[part].spawn;
     assert.ok(Number.isFinite(maps[part].landY(x, z)), `${part} spawn`);
     for (const r of FILE[part].regions) assert.ok(reachedNear(part, r.at, r.r / 2), `${part}: ${r.id} not reached`);
@@ -58,6 +57,26 @@ test('stairs are gentle and joined to the floors at both ends', () => {
   }
 });
 
+test('every flight is walked straight on and off at both ends: no slit, ledge, strip of water or prop at its head or foot', () => {
+  for (const f of FILE.inside.floors.filter((g) => g.shape === 'stairs')) {
+    const [ax, az] = f.a, [bx, bz] = f.b, L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L;
+    // the middle lane from 2 m before one end to 2 m past the other; the side lanes within the aprons
+    for (const [off, past] of [[0, 2], [-0.3, 1], [0.3, 1]]) for (const dir of [1, -1]) {
+      const o = off * f.w, t0 = dir > 0 ? -past : L + past;
+      const pos = { x: ax + ux * t0 - uz * o, z: az + uz * t0 + ux * o };
+      pos.y = inside.landY(pos.x, pos.z);
+      assert.ok(Number.isFinite(pos.y), `${f.id}: stand ${past} m off its end`);
+      for (let k = 0; k < (L + 2 * past) * 12; k++) {
+        const before = (pos.x - ax) * ux + (pos.z - az) * uz;
+        inside.move(pos, ux * dir * 0.1, uz * dir * 0.1);
+        const t = (pos.x - ax) * ux + (pos.z - az) * uz;
+        if (dir > 0 ? t >= L + past : t <= -past) break;
+        assert.ok((t - before) * dir > 0.02, `${f.id}: walking ${dir > 0 ? 'up' : 'down'} lane ${off} stops at ${t.toFixed(2)} of ${L.toFixed(2)} m`);
+      }
+    }
+  }
+});
+
 test('a ledge is a wall: walking off the corridor toward the coral pool stays on the corridor', () => {
   const [x, z] = px([760, 420]), [, zPool] = px([760, 540]);
   const pos = { x, z, y: inside.landY(x, z) };
@@ -86,7 +105,7 @@ test('props block and the hero slides around them', () => {
 });
 
 test('every prop type is known, sits inside the bounds and on a floor', () => {
-  for (const part of ['inside', 'outside']) {
+  for (const part of ['inside']) {
     const { minX, maxX, minZ, maxZ } = FILE[part].bounds;
     for (const p of FILE[part].props) {
       assert.ok(FILE.propTypes[p.type], `${p.type} unknown`);
@@ -99,23 +118,13 @@ test('every prop type is known, sits inside the bounds and on a floor', () => {
   }
 });
 
-test('the giant shell hides a secret door: it opens only after inspecting it, and both doors land on reached ground', () => {
-  const mouth = FILE.outside.links.find((l) => l.secret);
-  const found = new Set();
-  assert.equal(outside.linkAt(mouth.at[0], mouth.at[1], found), null, 'hidden before it is found');
-  const near = [mouth.at[0] - 3, mouth.at[1] + 2];
-  assert.equal(outside.inspectAt(near[0], near[1], found)?.id, mouth.id);
-  assert.equal(outside.inspectAt(-15, 10, found), null, 'too far to notice');
-  found.add(mouth.id);
-  assert.equal(outside.inspectAt(near[0], near[1], found), null, 'found once');
-  assert.equal(outside.linkAt(mouth.at[0], mouth.at[1], found)?.to, 'inside');
-  for (const part of ['inside', 'outside']) {
-    for (const l of FILE[part].links) {
-      assert.ok(reachedNear(part, l.at, 1.5), `${l.id} cannot be walked to`);
-      assert.ok(reach[l.to](l.spawn[0], l.spawn[1]), `${l.id} lands on unreached ground`);
-      assert.equal(maps[l.to].linkAt(l.spawn[0], l.spawn[1], new Set([mouth.id])), null, `${l.id} lands inside another door`);
-    }
+test('the pearl gate is walked to and leads back to the game, and the spawn is clear of it', () => {
+  for (const l of FILE.inside.links) {
+    assert.equal(l.to, 'game');
+    assert.ok(reachedNear('inside', l.at, 1.5), `${l.id} cannot be walked to`);
   }
+  const [x, z] = FILE.inside.spawn;
+  assert.equal(inside.linkAt(x, z, new Set()), null, 'the spawn is not inside the door');
 });
 
 test('the old stone over the water has broken away: each break is wading water beside the stone, reached, and no walkway was cut in two', () => {
@@ -148,6 +157,7 @@ test('the boss stage is one open room of stone and wading water: nothing blocks 
     const t = (k / 24) * Math.PI * 2, x = a.at[0] + Math.cos(t) * (a.clear - 0.5) * ring, z = a.at[1] + Math.sin(t) * (a.clear - 0.5) * ring;
     const s = inside.surfaceAt(x, z);
     assert.ok(s && a.floors.includes(s.floor.id) && s.walkable, `stage floor at ${x.toFixed(1)},${z.toFixed(1)}`);
+    if (inside.blockers.some((b) => b.prop === 'bossSnail' && Math.hypot(x - b.x, z - b.z) < b.r + 1)) continue; // the boss's own body is solid
     assert.ok(reach.inside(x, z) || reachedNear('inside', [x, z], 1), `walked at ${x.toFixed(1)},${z.toFixed(1)}`);
   }
   // the dais meets the water in one step: no ledge or rock between them
@@ -165,7 +175,27 @@ test('the boss stage is one open room of stone and wading water: nothing blocks 
   assert.ok(Math.hypot(a.boss[0] - a.throne[0], a.boss[1] - a.throne[1]) > body + FILE.propTypes.bigPearl.block * throne.scale, 'the boss stands clear of the altar');
   const facing = [Math.sin(a.bossFacing), Math.cos(a.bossFacing)], toEntry = [a.entry[0] - a.boss[0], a.entry[1] - a.boss[1]];
   assert.ok(facing[0] * toEntry[0] + facing[1] * toEntry[1] > 0, 'the boss faces the entry');
-  assert.ok(reachedNear('inside', a.at, 1) && reachedNear('inside', a.boss, 1), 'the stage is reached on foot');
+  // the boss's own body is solid: its spot is reached at its side
+  const boss = FILE.inside.props.find((p) => p.type === 'bossSnail'), reachBoss = boss ? body * (boss.scale ?? 1) + 1 : 1;
+  const within = (q) => (Math.hypot(q[0] - a.boss[0], q[1] - a.boss[1]) < reachBoss ? reachBoss : 1);
+  assert.ok(reachedNear('inside', a.at, within(a.at)) && reachedNear('inside', a.boss, reachBoss), 'the stage is reached on foot');
+});
+
+test('the boss sleeps in its shell until the hero talks to the pearl on the throne, which is walked to past it', () => {
+  const a = FILE.inside.arena, pearl = FILE.inside.props.find((p) => p.talk);
+  assert.ok(pearl && pearl.type === 'bigPearl' && Math.hypot(pearl.at[0] - a.throne[0], pearl.at[1] - a.throne[1]) < 0.01, 'the talking pearl is the throne');
+  assert.ok(FILE.inside.props.some((p) => p.type === pearl.talk.wakes), `it wakes the ${pearl.talk.wakes}`);
+  assert.ok(pearl.talk.labelTh && pearl.talk.lineTh, 'its button and its line');
+  // a walked spot from which it answers, and nothing answers away from it
+  let spot = null;
+  for (let k = 0; k < 48 && !spot; k++) {
+    const t = (k / 48) * Math.PI * 2, r = pearl.talk.r - 0.3, q = [pearl.at[0] + Math.cos(t) * r, pearl.at[1] + Math.sin(t) * r];
+    if (!inside.blockedAt(...q) && reachedNear('inside', q, 0.5)) spot = q;
+  }
+  assert.ok(spot, 'the pearl is walked to');
+  assert.equal(inside.talkAt(...spot)?.at, pearl.at);
+  assert.equal(inside.talkAt(...spot, new Set([pearl.talk.wakes])), null, 'once the boss is awake the pearl has nothing more to say');
+  assert.equal(inside.talkAt(...a.entry), null);
 });
 
 test('paths are smoothed but keep their ends', () => {
@@ -211,6 +241,41 @@ test('the painted props hold every piece the map asks for (blender -b --python s
   }
   assert.ok(byProp.get('arch_sealed').some((p) => p.kind === 'glow'), 'the sealed door has its glowing seal');
   assert.ok(byProp.get('candles').some((p) => p.kind === 'glow'), 'the candles have flames');
+});
+
+// a Meshy monster file (scripts/blender/meshy_parts.py): every part each monster's motion moves
+// (src/render/grotto/monsters.js draws mon_<monster>_<part> with its monster's texture), textured,
+// each monster on its own foot and about as big as the hero or bigger
+function checkMonsters(path, want) {
+  const glb = readFileSync(new URL(path, import.meta.url));
+  const gltf = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString());
+  const parts = new Map();
+  for (const n of gltf.nodes) {
+    const m = /^mon_([a-z]+)_([a-z]+)$/.exec(n.name);
+    if (m) parts.set(`${m[1]}.${m[2]}`, gltf.accessors[gltf.meshes[n.mesh].primitives[0].attributes.POSITION]);
+  }
+  for (const [mon, list] of Object.entries(want)) {
+    for (const part of list) assert.ok(parts.has(`${mon}.${part}`), `${mon} has its ${part}`);
+    // textured by Meshy: every part has its texture coordinates and a material with a picture
+    for (const n of gltf.nodes.filter((q) => q.name?.startsWith(`mon_${mon}_`))) {
+      const prim = gltf.meshes[n.mesh].primitives[0];
+      assert.ok(prim.attributes.TEXCOORD_0 !== undefined && gltf.materials[prim.material].pbrMetallicRoughness.baseColorTexture, `${n.name} is textured`);
+    }
+    const acc = [...parts].filter(([k]) => k.startsWith(`${mon}.`)).map(([, a]) => a);
+    const low = Math.min(...acc.map((a) => a.min[1])), size = Math.max(...acc.map((a) => Math.max(a.max[0] - a.min[0], a.max[2] - a.min[2])));
+    assert.ok(Math.abs(low) < 0.01, `${mon} stands on y = 0 (${low})`);
+    assert.ok(size > 1.4, `${mon} is ${size} m across`);
+  }
+}
+
+test('the textured monsters hold every part their motion moves (blender -b --python scripts/blender/grotto-monsters.py)', () => {
+  checkMonsters('../../public/models/grotto/grotto-monsters.glb', { fish: ['body', 'tail', 'finl', 'finr'], slug: ['body', 'cerata', 'pearls'],
+    clam: ['shell', 'eye', 'pearls'], boss: ['body', 'eyel', 'eyer', 'pearl'], bossshell: ['shell', 'pearl'] });
+  // every monster the map places is one of them, on a floor
+  const kinds = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam', bossSnail: 'boss' };
+  const placed = FILE.inside.props.filter((p) => p.type in kinds);
+  for (const k of Object.keys(kinds)) assert.ok(placed.some((p) => p.type === k), `a ${k} is placed`);
+  for (const p of placed) assert.ok(inside.surfaceAt(...p.at)?.walkable, `${p.type} at ${p.at} is on a floor`);
 });
 
 test('the painted corals hold a body and a glow for every coral the cave rooms grow (blender -b --python scripts/blender/grotto-corals.py)', () => {

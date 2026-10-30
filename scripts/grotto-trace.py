@@ -4,8 +4,7 @@
 Reads data/dungeons/shell-grotto-trace.json (zones, stairs, props... in concept pixels), finds the
 stone floor (warm, light, unsaturated) and the water (cyan) in the concept, cleans the masks, cuts
 them by zone and writes polygon floors (with holes for rock islands) plus everything else, now in
-metres, into data/dungeons/shell-grotto.json `inside`. The beach (`outside`) and the shared rules
-are left as they are.
+metres, into data/dungeons/shell-grotto.json `inside`. The shared rules are left as they are.
 
 Usage: python3 scripts/grotto-trace.py [--debug out.png]   (needs numpy and opencv-python)
 """
@@ -554,6 +553,10 @@ def inside_pts(q, pts):
     return c
 
 
+def on_floor_pts(f, q):
+    return inside_pts(q, f['pts']) and not any(inside_pts(q, h) for h in f.get('holes', []))
+
+
 # where a flight meets the floors, the joint is built, not overlapped. A flight stops at the edge
 # of the floor it reaches (its ends are drawn back to that edge where the concept's line runs on
 # into the floor, as long as the slope stays walkable), the floor at each end's level gets a square
@@ -584,14 +587,40 @@ for st in [f for f in floors if f['shape'] == 'stairs']:
     rect = lambda t0, t1: [(ax + ux * t0 - uz * h, az + uz * t0 + ux * h), (ax + ux * t1 - uz * h, az + uz * t1 + ux * h),
                            (ax + ux * t1 + uz * h, az + uz * t1 - ux * h), (ax + ux * t0 + uz * h, az + uz * t0 - ux * h)]
     run = rect(0, L)
-    # each apron reaches 5 cm under the flight's end, so the two meet (the flight is listed later and wins there)
-    aprons = [(f_end, r) for f_end, r in zip(ends, (rect(-APRON, 0.05), rect(L - 0.05, L + APRON))) if f_end is not None]
+    # each apron reaches 0.3 m under the flight's end, so the two meet with no slit left by the grid
+    # (the flight is listed later and wins there). Where the floor at that level only comes back past
+    # a gap (the picture's path turned or was hidden), the apron runs on straight across to it, so the
+    # walk off a flight never ends at the void.
+    def reach_out(f_end, sign):
+        e = (ax, az) if sign < 0 else (bx, bz)
+        def at(d):
+            q = (e[0] + ux * sign * d, e[1] + uz * sign * d)
+            under = [f for f in floors if f['shape'] == 'poly' and on_floor_pts(f, q)]
+            if any(f['kind'] == 'stone' and abs(f['y'] - f_end['y']) < 0.05 for f in under):
+                return 'floor'
+            return 'other' if under else 'void'
+        d, gap = 0.3, False
+        while d < 8:
+            k_ = at(d)
+            if k_ == 'other':
+                return APRON  # water or another level: only the void is bridged
+            if k_ == 'void':
+                gap = True
+            elif gap:
+                return min(8.0, d + 0.6)
+            d += 0.1
+        return APRON
+    aprons = [(f_end, r) for f_end, r in zip(ends, (rect(-max(APRON, reach_out(ends[0], -1)) if ends[0] else -APRON, 0.3),
+                                                    rect(L - 0.3, L + (max(APRON, reach_out(ends[1], 1)) if ends[1] else APRON)))) if f_end is not None]
     reach = [q for r in [run] + [r for _, r in aprons] for q in r]
     rx0, rz0 = min(q[0] for q in reach) - 0.5, min(q[1] for q in reach) - 0.5
     rx1, rz1 = max(q[0] for q in reach) + 0.5, max(q[1] for q in reach) + 0.5
     for f in [f for f in floors if f['shape'] == 'poly']:
         xs, zs = [q[0] for q in f['pts']], [q[1] for q in f['pts']]
         mine = [r for g_, r in aprons if g_ is f]
+        # water a zone's edge laps over an apron gives way to it (a strip of pool across a stair's head
+        # was a ledge)
+        wet = [r for g_, r in aprons if f['kind'] in ('shallow', 'deep')]
         if (max(xs) < rx0 or min(xs) > rx1 or max(zs) < rz0 or min(zs) > rz1) and not mine:
             continue
         x0, z0 = min(min(xs), rx0) - 1, min(min(zs), rz0) - 1
@@ -605,6 +634,11 @@ for st in [f for f in floors if f['shape'] == 'stairs']:
             fill(mask, hole, 0)
         before = mask.copy()
         fill(mask, run, 0)
+        for r in wet:
+            # a hand's width in from the apron's edges, so the two masks never leave a slit between them
+            c_ = (sum(q[0] for q in r) / 4, sum(q[1] for q in r) / 4)
+            in_ = lambda q: (q[0] + (c_[0] - q[0]) * 0.15 / math.hypot(c_[0] - q[0], c_[1] - q[1]), q[1] + (c_[1] - q[1]) * 0.15 / math.hypot(c_[0] - q[0], c_[1] - q[1]))
+            fill(mask, [in_(q) for q in r], 0)
         for r in mine:
             fill(mask, r, 1)
         if (mask == before).all():
@@ -694,7 +728,22 @@ to_wall = cv2.distanceTransform(open_floor, cv2.DIST_L2, 5)
 to_rim = cv2.distanceTransform(stone, cv2.DIST_L2, 5)
 # pillars line the stone's rim, a stone's width in from where it drops to water or the dark, as the
 # concept rows them along its walkways and platforms (never out in the water)
-rim_pts = np.argwhere((to_rim >= 7) & (to_rim <= 11))
+# (never on a flight or at its head or foot, where they would stand in the way)
+def stair_zone_px(f, ext, pad):
+    (ax_, az_), (bx_, bz_) = f['a'], f['b']
+    l = math.hypot(bx_ - ax_, bz_ - az_) or 1
+    ux_, uz_ = (bx_ - ax_) / l, (bz_ - az_) / l
+    hw = f['w'] / 2 + pad
+    quad = [(ax_ - ux_ * ext - uz_ * hw, az_ - uz_ * ext + ux_ * hw), (bx_ + ux_ * ext - uz_ * hw, bz_ + uz_ * ext + ux_ * hw),
+            (bx_ + ux_ * ext + uz_ * hw, bz_ + uz_ * ext - ux_ * hw), (ax_ - ux_ * ext + uz_ * hw, az_ - uz_ * ext - ux_ * hw)]
+    return np.array([px(q) for q in quad], np.int32)
+
+
+no_pillar = np.zeros_like(walk)
+for f in floors:
+    if f['shape'] == 'stairs':
+        cv2.fillPoly(no_pillar, [stair_zone_px(f, 3.0, 1.0)], 1)
+rim_pts = np.argwhere((to_rim >= 7) & (to_rim <= 11) & (no_pillar == 0))
 # the loose furniture (chests, barrels, crates, candles, posts) stands back against the walls, in
 # front of the corals at their foot, and faces into the room
 wall_pts = np.argwhere((to_wall >= 15) & (to_wall <= 21))
@@ -708,7 +757,7 @@ def nearest(pts, at):
 
 def onto_rim(at):
     x, y = at
-    return at if stone[y, x] and 6 <= to_rim[y, x] <= 13 else nearest(rim_pts, at)
+    return at if stone[y, x] and 6 <= to_rim[y, x] <= 13 and not no_pillar[y, x] else nearest(rim_pts, at)
 
 
 def against_wall(at):
@@ -853,6 +902,10 @@ if A:
     throne = [round(cx + dx * t, 2), round(cz + dz * t, 2)]
     boss = [round(throne[0] - dx * A['bossAhead'], 2), round(throne[1] - dz * A['bossAhead'], 2)]
     for q in props:
+        if q['type'] == 'bossSnail':  # the boss takes its spot in front of the throne, facing the entry
+            q['at'] = boss
+            q['rot'] = round(math.atan2(-dx, -dz), 3)
+            continue
         if q['type'] in ('rubble', 'runeCircle') or not on_stage(q['at']) or math.hypot(q['at'][0] - cx, q['at'][1] - cz) > R - 0.35:
             continue
         if q['type'] == 'bigPearl':
@@ -935,11 +988,9 @@ if arena:
 else:
     inside.pop('arena', None)
 inside['_doc'] = 'Generated by scripts/grotto-trace.py from data/dungeons/shell-grotto-trace.json and the concept picture; edit those, not this section.'
-# the beach's door lands at the new spawn
-for l in data['outside']['links']:
-    if l['to'] == 'inside':
-        l['spawn'] = inside['spawn']
-        l['facing'] = inside['spawnFacing']
+# the way in is the game's Singing Conch (data/maps/frontier-wilds.json landmark `dungeon`), which
+# opens the page at `spawn`; the pearl gate (`to: "game"`) goes back out to it
+data.pop('outside', None)
 
 
 def compact(o, ind=0):

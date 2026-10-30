@@ -157,3 +157,30 @@ export function takeTravel() {
     return null;
   }
 }
+
+// The Pearlshell Grotto (dungeon.html) is its own page, opened from the Singing Conch. The trip
+// (slot or unsaved character, and how the hero looks) stays while the page is open, so a reload
+// keeps it; the pearl gate hands it back to the game as a map trip.
+const DUNGEON = 'frontier.dungeon';
+export function stashDungeon(trip) {
+  try {
+    sessionStorage.setItem(DUNGEON, JSON.stringify(trip));
+    return true;
+  } catch {
+    return false;
+  }
+}
+export function peekDungeon() {
+  try {
+    const raw = sessionStorage.getItem(DUNGEON);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+export function leaveDungeon() {
+  const trip = peekDungeon();
+  try { sessionStorage.removeItem(DUNGEON); } catch { /* storage blocked: the game opens at its title */ }
+  if (trip?.slot || trip?.character) stashTravel(trip.slot ? { slot: trip.slot } : { character: trip.character });
+  return trip;
+}

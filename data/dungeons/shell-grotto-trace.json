@@ -29,7 +29,7 @@
   "spawn": [161, 774],
   "spawnFace": [266, 814],
   "links": [
-    { "id": "shell-exit", "at": [96, 752], "r": 1.8, "to": "outside", "spawn": [-3.6, 4.2], "facing": -0.62, "labelTh": "ออกจากเปลือกหอย" }
+    { "id": "shell-exit", "at": [96, 752], "r": 1.8, "to": "game", "labelTh": "ออกจากเปลือกหอย" }
   ],
   "regions": [
     { "id": "entrance", "at": [170, 800], "r": 170, "name": "Pearl Gate Cave", "nameTh": "ถ้ำประตูมุก" },
@@ -79,6 +79,13 @@
     { "type": "coral", "at": [72, 830], "color": "#b06cff", "scale": 1.2 },
     { "type": "coral", "at": [300, 745], "color": "#4fd9ff" },
     { "type": "giantClam", "at": [190, 716], "face": [205, 820], "scale": 1.15 },
+    { "type": "bossSnail", "at": [1201, 196], "face": [1201, 320], "scale": 1.15 },
+    { "type": "pearlFish", "at": [600, 580], "face": [660, 600], "scale": 1.0 },
+    { "type": "pearlFish", "at": [1100, 840], "face": [1040, 820], "scale": 1.1 },
+    { "type": "pearlSlug", "at": [335, 560], "face": [335, 660], "scale": 1.0 },
+    { "type": "pearlSlug", "at": [1250, 700], "face": [1250, 800], "scale": 0.9 },
+    { "type": "eyeClam", "at": [300, 205], "face": [300, 345], "scale": 1.0 },
+    { "type": "eyeClam", "at": [1350, 300], "face": [1350, 445], "scale": 1.1 },
     { "type": "pearl", "at": [298, 882] },
     { "type": "pearl", "at": [150, 800], "scale": 0.8 },
     { "type": "pillarBroken", "at": [318, 640], "h": 1.6, "scale": 0.8 },
@@ -138,7 +145,7 @@
     { "type": "coral", "at": [1000, 852], "color": "#b06cff" },
     { "type": "pearl", "at": [1432, 712] },
     { "type": "pearl", "at": [1372, 826], "scale": 0.8 },
-    { "type": "bigPearl", "at": [1215, 240], "scale": 1.15 },
+    { "type": "bigPearl", "at": [1215, 240], "scale": 1.15, "talk": { "r": 3.4, "labelTh": "คุยกับไข่มุก", "lineTh": "ไข่มุกส่องแสงวาบ… เสียงก้องจากเปลือกหอยยักษ์ตรงหน้า ราชาหอยทากมุกตื่นแล้ว!", "wakes": "bossSnail" } },
     { "type": "pillar", "at": [1005, 240] },
     { "type": "pillar", "at": [1055, 292] },
     { "type": "pillar", "at": [1410, 335] },

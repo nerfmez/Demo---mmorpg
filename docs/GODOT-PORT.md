@@ -498,8 +498,10 @@ joints remapped to the body skeleton by name (`prepareChibiOutfit`, `fitOutfit`)
 toon material and outline. A gloves model closes with the fists: `closeGloves` adds the body's two
 fist morph targets to it (same names and order, so it shares the body's influences), each vertex led by
 a hand bone bent by the same curl as the hand inside it (`curlFist` returns that bend as `close`); its
-outline is thinned on the hands as the body's is. In Godot add the same blend shapes to the glove mesh
-(or use finger bones for both). Its node extras `hideBody` list the body triangles it covers; while it is
+outline is thinned on the hands as the body's is. The body triangles a gloves model covers are left
+out of the body's index while it is worn (not tucked: the chibi's mitten hand showed between the
+glove's separate fingers). In Godot add the same blend shapes to the glove mesh (or use finger bones
+for both) and draw the body with those triangles removed. Its node extras `hideBody` list the body triangles it covers; while it is
 worn those body vertices are tucked `underCloth.inset` inside the cloth along their normals (`coveredBody`;
 a vertex is tucked only when every triangle round it is covered) and drawn at `underCloth.under` of its
 light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view

@@ -274,7 +274,14 @@ function coveredBody(T, src, models, worn, cuffs = null) {
     g.setAttribute('tucked', new THREE.BufferAttribute(tucked, 1));
     g.morphAttributes = src.morphAttributes;
     g.morphTargetsRelative = src.morphTargetsRelative;
-    g.setIndex(src.index);
+    // the hand inside a modelled glove is not drawn at all: the chibi's mitten hand showed between
+    // the glove's separate fingers (and its tips below them) when the fists closed
+    const gone = new Set(models.filter((O) => O.piece === 'gloves').flatMap((O) => O.hide));
+    if (gone.size) {
+      const kept = [];
+      for (let t = 0; t < ix.length / 3; t++) if (!gone.has(t)) kept.push(ix[3 * t], ix[3 * t + 1], ix[3 * t + 2]);
+      g.setIndex(kept);
+    } else g.setIndex(src.index);
     g.boundingSphere = src.boundingSphere;
     g.userData.shared = true;
     T.covered.set(key, g);

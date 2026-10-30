@@ -52,5 +52,7 @@
  "dropPale": 0.06,
  "proud": 0.015,
  "uncover": 0.12,
- "glove": 0.31
+ "glove": 0.31,
+ "wrist": 0.38,
+ "hugKeep": 0.1
 }

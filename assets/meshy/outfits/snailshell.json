@@ -55,5 +55,6 @@
   ]
  ],
  "fitHead": 1.0,
- "glove": 0.33
+ "glove": 0.33,
+ "wrist": 0.44
 }

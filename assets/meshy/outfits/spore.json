@@ -42,5 +42,6 @@
   "boots": "public/models/outfits/moonleaf_slippers.glb",
   "gloves": "public/models/outfits/sporeweave_gloves.glb"
  },
- "glove": 0.31
+ "glove": 0.31,
+ "wrist": 0.43
 }

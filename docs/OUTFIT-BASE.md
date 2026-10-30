@@ -144,7 +144,9 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    background, and no per-pose adjustment is needed; garment insides are shaded too.
    Gloves come from the same model: past `glove` (the gloves' tops, read off the model, out along
    the arm) the hands and forearms are kept as a third piece, fitted and skinned like the sleeves,
-   and in game they close with the fists (`closeGloves` bends them as the hand inside bends). The
+   the hand mapped from the model's `wrist` onto the chibi's and drawn onto the hand inside
+   (`hugKeep`); in game they close with the fists (`closeGloves` bends them as the hand inside
+   bends) and the hand inside them is not drawn (the mitten hand showed between their fingers). The
    Travel and Storm sets' models draw bare or wrapped hands, not their gloves' icons, so
    `travel_gloves` and `storm_gloves` (and boots without a model) still use the code-built shells;
    the body inside them is tucked the same way, and each shell is cut clean at its length in the shader.

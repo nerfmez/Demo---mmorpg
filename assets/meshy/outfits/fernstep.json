@@ -42,5 +42,6 @@
   "boots": "public/models/outfits/fernstep_boots.glb",
   "gloves": "public/models/outfits/fernstep_gloves.glb"
  },
- "glove": 0.37
+ "glove": 0.37,
+ "wrist": 0.48
 }

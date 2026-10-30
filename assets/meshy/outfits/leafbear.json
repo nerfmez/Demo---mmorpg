@@ -45,5 +45,6 @@
  "fitHead": 1.0,
  "dropBehind": 0.3,
  "glove": 0.31,
- "keepAbove": 0.15
+ "keepAbove": 0.15,
+ "wrist": 0.37
 }

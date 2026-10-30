@@ -386,6 +386,16 @@ else:
 armV = BV[BW[:, armg].sum(1) > 0.6]; armV = armV[np.abs(armV[:, 0]) > 0.14]
 kz = np.polyfit(np.abs(armV[:, 0]), armV[:, 2], 1); ky = np.polyfit(np.abs(armV[:, 0]), armV[:, 1], 1)
 ac = armx(ax)
+# the gloves' hands: Meshy draws short hands (7-23 cm from the wrist) and the chibi's are 15 cm, so
+# along the arm the glove goes from its top (where the sleeve map leaves it) to the model's wrist
+# (`wrist`, read off the model) onto the chibi's wrist, and from there to the fingertips onto the
+# chibi's: its hand lies over the hand it covers and closes with it (a uniform map left the glove's
+# cuff over the palm and its whole hand bending as long fingers, the palm and thumb poking out)
+if GLOVE and C.get('wrist'):
+    _w = arm.matrix_world @ arm.data.bones['LeftHand'].head_local
+    _g = (ax > GLOVE) & (z > C.get('armpit', 0.66)) & (z < C['neck'])
+    _tip = float(np.abs(P0[:, 0]).max())
+    ac[_g] = np.interp(ax[_g], [GLOVE, C['wrist'], _tip], [float(armx(np.array(GLOVE))), abs(_w.x), CHIBI_TIP])
 # front to back the sleeve is measured from the generated body's middle (its hips, as the torso is):
 # Meshy centres the whole model in its box, so a hood or cape behind it moves the arms forward
 # the generated arm's own centre line too: Meshy's T-pose arms slope up to the shoulder, so heights
@@ -461,6 +471,25 @@ P = P + D
 P = P + push(P)
 # the collar's fur fluffed out along its surface (`inflate`), as thick as the sheet's
 P[incollar] += N0[incollar] * C.get('collar', {}).get('inflate', 0)
+if GLOVE:
+    # the glove's hand drawn onto the hand inside it: past the chibi's wrist each point's distance
+    # from the hand beyond the margin is cut to `hugKeep` of it (spread over the surface), so its
+    # plates and pads still stand off a little; Meshy's hands are wider and thicker than the
+    # chibi's, and their fingers, 2-3 cm off the hand, read as long fingers sticking out of the fist
+    _wx = abs((arm.matrix_world @ arm.data.bones['LeftHand'].head_local).x)
+    _hand = (P0[:, 0] ** 2 > GLOVE ** 2) & (z > C.get('armpit', 0.66)) & (z < C['neck'])
+    _fade = smooth01(_wx - 0.03, _wx + 0.01, np.abs(P[:, 0])) * _hand
+    keep, m = C.get('hugKeep', 0.3), C['margin'].get('gloves', 0.004)
+    H = np.zeros_like(P)
+    for i in np.nonzero(_fade > 0)[0]:
+        loc, n, idx, dist = body_bvh.find_nearest(Vector(P[i]))
+        if loc is None or dist <= m: continue
+        H[i] = (np.array(loc) - P[i]) * (1 - (m + (dist - m) * keep) / dist) * _fade[i]
+    for _ in range(3):
+        H = np.where(_hand[:, None], 0.5 * H + 0.5 * np.array([H[n].mean(0) if n else H[i] for i, n in enumerate(nbr)]), H)
+    P = P + H
+    P = P + push(P)
+    print('gloves drawn onto the hand: mean %.4f max %.4f' % (np.linalg.norm(H[_hand], axis=1).mean(), np.linalg.norm(H, axis=1).max()))
 for v, p in zip(bm.verts, P): v.co = Vector(p)
 bm.normal_update()
 print('pushed: mean %.4f max %.4f' % (np.linalg.norm(D, axis=1).mean(), np.linalg.norm(D, axis=1).max()))

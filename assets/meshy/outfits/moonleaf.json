@@ -42,5 +42,6 @@
   "boots": null,
   "gloves": "public/models/outfits/moonleaf_gloves.glb"
  },
- "glove": 0.3
+ "glove": 0.3,
+ "wrist": 0.4
 }

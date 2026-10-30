@@ -1671,7 +1671,7 @@
     "outfit_crag_gauntlets": {
       "file": "models/outfits/crag_gauntlets.glb",
       "chibiOutfit": "gloves",
-      "tris": 949,
+      "tris": 913,
       "source": "The gauntlets of the same model as outfit_crag_plate: its hands and forearms from the glove tops out (`glove` in assets/meshy/outfits/crag.json), fitted to the chibi's arms by scripts/fit-chibi-outfit.py; they close with the fists in game (chibi-body.js closeGloves)."
     },
     "outfit_wolfpelt_coat": {

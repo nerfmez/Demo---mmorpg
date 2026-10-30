@@ -57,5 +57,7 @@
  "drapeY": -0.04,
  "weightSmooth": 6,
  "shoulderRise": 0.45,
- "glove": 0.31
+ "glove": 0.31,
+ "wrist": 0.405,
+ "hugKeep": 0.1
 }

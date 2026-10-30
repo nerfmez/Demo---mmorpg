@@ -42,5 +42,6 @@
   "boots": "public/models/outfits/wolf_boots.glb",
   "gloves": "public/models/outfits/wolf_grips.glb"
  },
- "glove": 0.265
+ "glove": 0.265,
+ "wrist": 0.35
 }

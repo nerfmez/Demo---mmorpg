@@ -37,5 +37,6 @@
   "boots": "public/models/outfits/trail_boots.glb",
   "gloves": "public/models/outfits/hide_gloves.glb"
  },
- "glove": 0.3
+ "glove": 0.3,
+ "wrist": 0.37
 }

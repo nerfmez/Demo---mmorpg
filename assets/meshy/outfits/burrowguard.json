@@ -42,5 +42,6 @@
   "boots": "public/models/outfits/burrowguard_boots.glb",
   "gloves": "public/models/outfits/burrowguard_gloves.glb"
  },
- "glove": 0.33
+ "glove": 0.33,
+ "wrist": 0.44
 }

@@ -38,5 +38,6 @@
   "gloves": "public/models/outfits/crag_gauntlets.glb"
  },
  "weightSmooth": 4,
- "glove": 0.31
+ "glove": 0.31,
+ "wrist": 0.46
 }

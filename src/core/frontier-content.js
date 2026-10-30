@@ -1,7 +1,7 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};

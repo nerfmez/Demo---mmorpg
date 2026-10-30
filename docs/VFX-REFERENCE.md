@@ -458,3 +458,12 @@ Owner: no joined columns; design it again. The wall is now one slab of holy ligh
 narrowing upward, its top gently arched and sloping down at the ends, nearly solid with a slow shimmer rising through
 it, a bright frame round its outline and a thin inset line inside (a per-vertex distance to the outline, `aEdge`), a
 lit top; from the side it reads as a thick slab.
+
+## Job skills batch 2, group 1: the buff shouts (2026-10-30)
+
+Provoke, Boiling Blood, Fighting Spirit and Berserk join the approved party-shout language (`buff-fx.js` `LOOKS`, Rally's
+and Frenzy Roar's): one approach, new colours and marks, so each reads apart. Provoke roars in guardian orange to the
+taunt's true 8 m and pops an anime anger mark (four bowed strokes, camera-facing, throbbing) over every monster it
+turned, held 2.2 s; Boiling Blood shouts in crimson with up-chevrons; Fighting Spirit in green-gold with chevrons and
+streaks circling each body; Berserk roars to 3.5 m in crimson-violet with chevrons and streaks streaming back. The
+gallery host is still blocked; no clip was inspected.

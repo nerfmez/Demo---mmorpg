@@ -47,7 +47,7 @@ const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -288,7 +288,10 @@ export class SkillFx {
         // party shouts (Rally): the ring to the true radius, and a mark over every body the buff reached
         const bodies = this.buffBodies; bodies.length = 0; bodies.push(g.player);
         for (const a of g.allies || []) if (!a.dead && Math.hypot(a.x - e.x, a.z - e.z) < e.radius) bodies.push(a);
+        // Provoke: its marks go over the monsters it turned (the hero first only for the facing)
+        if (BUFF_LOOKS[e.kind].vein) for (const m of g.monsters) if (!m.dead && m.forcedTargetId === g.player.id && m.tauntT > 0) bodies.push(m);
         this.buff.shout(e.kind, e.x, e.z, e.radius, bodies);
+        if (BUFF_LOOKS[e.kind].vein) this.buff.marks[0].t = 9; // no mark over the hero
         return true;
       }
       case 'guardStance': { const s = this.skillOf('riposte') || g.player.riposte?.skill; this.riposte.guard(e.duration, s?.guard?.arc || 110); return true; }

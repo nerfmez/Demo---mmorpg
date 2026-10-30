@@ -315,3 +315,9 @@ something to watch the rules do:
 - Wall of Faith: two dummies shoot from the far side (their shots stop at the wall) and one walks
   toward the hero through it (slowed in its band), starting again when it arrives.
 The attackers, shooters and the walker are bench-only (sandbox.js); the hero never falls.
+
+## Job skills batch 2, group 1 (2026-10-30)
+
+Provoke (with a greatshield), Boiling Blood, Fighting Spirit and Berserk (with a sword) are on the bench, drawn by
+`render/skillfx/buff-fx.js`. Provoke's layout puts three dummies inside its 8 m on different sides (each gets the anger
+mark) and one out of reach.

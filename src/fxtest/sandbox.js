@@ -8,14 +8,16 @@ import { installFusion } from './fusion.js';
 
 export const BENCH_SKILLS = ['slash', 'hunter_shot', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_bolt', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte',
   // job skills, batch 1 (2026-10-26): the game's general effects until each gets its own
-  'sky_shatter', 'earth_rend', 'iron_body', 'cross_cut', 'blade_storm', 'backstab', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'meteor', 'blizzard', 'thunderstorm', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut'];
+  'sky_shatter', 'earth_rend', 'iron_body', 'cross_cut', 'blade_storm', 'backstab', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'meteor', 'blizzard', 'thunderstorm', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut',
+  // greatshield skills (2026-10-30): stand-in looks until their own effects
+  'shield_rush', 'shield_fort', 'faith_wall'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
-export const BENCH_WEAPON = { slash: 'sword', hunter_shot: 'bow', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', venom_bolt: 'wand', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword', sky_shatter: 'greatblade', earth_rend: 'greatblade', iron_body: 'greatblade', cross_cut: 'dagger', blade_storm: 'dagger', backstab: 'dagger', rally: 'sword', frenzy_roar: 'sword', stand_firm: 'sword', team_stand: 'sword', blessing: 'staff', rapid_volley: 'bow', killing_arrow: 'bow', meteor: 'staff', blizzard: 'staff', thunderstorm: 'staff', holy_bell: 'staff', light_chain: 'staff', spell_wave: 'sword', draw_cut: 'sword' };
+export const BENCH_WEAPON = { slash: 'sword', hunter_shot: 'bow', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', venom_bolt: 'wand', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword', sky_shatter: 'greatblade', earth_rend: 'greatblade', iron_body: 'greatblade', cross_cut: 'dagger', blade_storm: 'dagger', backstab: 'dagger', rally: 'sword', frenzy_roar: 'sword', stand_firm: 'sword', team_stand: 'sword', blessing: 'staff', rapid_volley: 'bow', killing_arrow: 'bow', meteor: 'staff', blizzard: 'staff', thunderstorm: 'staff', holy_bell: 'staff', light_chain: 'staff', spell_wave: 'sword', draw_cut: 'sword', shield_rush: 'greatshield', shield_fort: 'greatshield', faith_wall: 'greatshield' };
 
 // Dummy layouts per skill (caster at the origin facing +X). Each shows what mods change:
 // extra chain hops, the nova edge (Concentrated shrinks it), the cone edge and range.
 // the game and close cameras frame this area for each skill (centre cx, cz; width w, depth d)
-export const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, hunter_shot: { cx: 6.0, cz: 0.6, w: 16, d: 7.5 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, venom_bolt: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 }, sky_shatter: { cx: 1.8, cz: 0.4, w: 8, d: 6 }, earth_rend: { cx: 3.6, cz: 0, w: 11, d: 6 }, iron_body: { cx: 1.2, cz: 0, w: 8, d: 6 }, cross_cut: { cx: 1.4, cz: 0.2, w: 7, d: 5.5 }, blade_storm: { cx: 0.6, cz: 0, w: 9, d: 7.5 }, backstab: { cx: 3.0, cz: 0, w: 10, d: 6.5 }, rally: { cx: 0, cz: 0, w: 18, d: 13 }, frenzy_roar: { cx: 0, cz: 0, w: 18, d: 13 }, stand_firm: { cx: 0, cz: 0, w: 18, d: 13 }, team_stand: { cx: 0, cz: 0, w: 19, d: 14 }, blessing: { cx: 0, cz: 0, w: 19, d: 14 }, rapid_volley: { cx: 6.5, cz: 0.4, w: 16, d: 7 }, killing_arrow: { cx: 8.5, cz: 0, w: 20, d: 7 }, meteor: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, blizzard: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, thunderstorm: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, holy_bell: { cx: 0.8, cz: 0, w: 12.5, d: 9.5 }, light_chain: { cx: 5.6, cz: 0, w: 14, d: 6 }, spell_wave: { cx: 5.0, cz: 0, w: 13, d: 6.5 }, draw_cut: { cx: 4.0, cz: 0.4, w: 15, d: 7 } };
+export const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, hunter_shot: { cx: 6.0, cz: 0.6, w: 16, d: 7.5 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, venom_bolt: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 }, sky_shatter: { cx: 1.8, cz: 0.4, w: 8, d: 6 }, earth_rend: { cx: 3.6, cz: 0, w: 11, d: 6 }, iron_body: { cx: 1.2, cz: 0, w: 8, d: 6 }, cross_cut: { cx: 1.4, cz: 0.2, w: 7, d: 5.5 }, blade_storm: { cx: 0.6, cz: 0, w: 9, d: 7.5 }, backstab: { cx: 3.0, cz: 0, w: 10, d: 6.5 }, rally: { cx: 0, cz: 0, w: 18, d: 13 }, frenzy_roar: { cx: 0, cz: 0, w: 18, d: 13 }, stand_firm: { cx: 0, cz: 0, w: 18, d: 13 }, team_stand: { cx: 0, cz: 0, w: 19, d: 14 }, blessing: { cx: 0, cz: 0, w: 19, d: 14 }, rapid_volley: { cx: 6.5, cz: 0.4, w: 16, d: 7 }, killing_arrow: { cx: 8.5, cz: 0, w: 20, d: 7 }, meteor: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, blizzard: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, thunderstorm: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, holy_bell: { cx: 0.8, cz: 0, w: 12.5, d: 9.5 }, light_chain: { cx: 5.6, cz: 0, w: 14, d: 6 }, spell_wave: { cx: 5.0, cz: 0, w: 13, d: 6.5 }, draw_cut: { cx: 4.0, cz: 0.4, w: 15, d: 7 }, shield_rush: { cx: 4.0, cz: 0.4, w: 15, d: 8 }, shield_fort: { cx: 1.2, cz: 0, w: 11, d: 8 }, faith_wall: { cx: 3.6, cz: 0, w: 14, d: 9 } };
 export const LAYOUTS = {
   // two in the swing, one just outside its arc, and a line behind for a linked bolt to fly on into
   slash: [[2.0, 0.4], [1.8, -0.9], [1.4, 2.0], [5.0, 0.6], [8.2, -0.3], [11.0, 1.0]],
@@ -67,6 +69,12 @@ export const LAYOUTS = {
   spell_wave: [[4.0, 0.0], [6.5, 0.6], [8.6, -0.5], [5.0, 2.6], [11.5, 0.2]],
   // three on the dash's lane, one beside it, one past its end
   draw_cut: [[2.5, 0.2], [4.6, -0.4], [6.2, 0.3], [4.0, 2.4], [9.5, 0.0]],
+  // Line Breaker: three in the lane to throw aside, one beside it, and a boss past them that stops the charge
+  shield_rush: [[2.2, 0.2], [3.6, -0.4], [4.6, 0.3], [3.5, 2.6], [5.8, 0.0]],
+  // Shield Fortress: two strike the shield in front, one shoots at it, one strikes from behind
+  shield_fort: [[1.6, 0.4], [1.7, -0.7], [6.5, 0.6], [-2.4, 0.3]],
+  // Wall of Faith: shooters on the far side and one walking through the wall toward the hero
+  faith_wall: [[7.5, 1.6], [7.8, -1.4], [6.5, 0.2]],
 };
 // Facings per layout (default: every dummy faces the hero). Flank Thrust needs some backs turned.
 export const FACINGS = {
@@ -172,6 +180,46 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
         next = EVERY; m.state = 'windup'; m.windup = { name: Object.keys(m.def.attacks || {})[0] }; m.benchWind = WIND;
         this.emit({ type: 'benchWindup', id: m.id, total: WIND });
       }
+    };
+  }
+  // Line Breaker: the last dummy stands in for a boss, so the charge stops at it
+  if (skill === 'shield_rush') g.monsters[g.monsters.length - 1].boss = true;
+  // Shield Fortress and Wall of Faith: something to guard against. Melee attackers wind up (the rules'
+  // windup state, shown as on Riposte) and strike through damageUnit; shooters loose a real monster
+  // projectile at the hero; a walker comes on toward the hero (slowed in the wall's band) and starts
+  // again from its place when it arrives. The bench hero never falls.
+  const kind = data.skills.combat[skill]?.kind;
+  if (kind === 'guard_hold' || kind === 'light_wall') {
+    const ROLES = { shield_fort: ['melee', 'melee', 'shoot', 'melee'], faith_wall: ['shoot', 'shoot', 'walk'] }[skill];
+    const WIND = 0.9, EVERY = 2.4, HIT = 30;
+    const timers = g.monsters.map((_, i) => 1.0 + i * 0.6);
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      const p = this.player;
+      this.monsters.forEach((m, i) => {
+        const role = ROLES[i];
+        if (role === 'walk') {
+          const d = Math.hypot(p.x - m.x, p.z - m.z), slow = m.statuses.chill ? 1 - m.statuses.chill.slow : 1;
+          if (d > 1.4) { m.x += ((p.x - m.x) / d) * 1.6 * slow * dt; m.z += ((p.z - m.z) / d) * 1.6 * slow * dt; m.facing = Math.atan2(p.x - m.x, p.z - m.z); }
+          else { m.x = m.homeX; m.z = m.homeZ; }
+          return;
+        }
+        if (m.state === 'stunned') return;
+        if (m.state === 'windup' && (m.benchWind -= dt) <= 0) {
+          m.state = 'idle'; m.windup = null;
+          this.emit({ type: 'benchWindupEnd', id: m.id });
+          this.emit({ type: 'benchAttack', id: m.id, x: m.x, z: m.z });
+          this.damageUnit(p, HIT, m);
+        }
+        if ((timers[i] -= dt) > 0 || m.state === 'windup') return;
+        timers[i] = EVERY;
+        if (role === 'shoot') {
+          const a = Math.atan2(p.x - m.x, p.z - m.z), sp = 9;
+          this.projectiles.push({ id: this.newId(), owner: 'monster', kind: 'spit', x: m.x, z: m.z, vx: Math.sin(a) * sp, vz: Math.cos(a) * sp, speed: sp, angle: a, range: 14, travelled: 0, radius: 0.3, damage: HIT, sourceId: m.id, ground: 0, hit: new Set(), element: 'arcane' });
+        } else { m.state = 'windup'; m.windup = { name: Object.keys(m.def.attacks || {})[0] }; m.benchWind = WIND; this.emit({ type: 'benchWindup', id: m.id, total: WIND }); }
+      });
+      p.hp = Math.max(p.hp, p.maxHp * 0.3);
     };
   }
   if (fusion) g.fusion = installFusion(g, fusionRules, 0, 1);

@@ -325,7 +325,9 @@ export function tickFrontier(g,dt){
     const c=p.channeling,s=c.skill;
     if(p.dead||p.dash||!g.skills[c.slot]?.requirementsMet||g.skills[c.slot].id!==s.id){cancelChannel(g);return;}
     c.t+=dt;
-    const aim=g.resolveAim(s,null);p.facing=aim.angle;
+    // a raised shield faces where the player aims (pointer or a drag on the button); otherwise the target
+    const aimed=s.kind==='guard_hold'&&(g.input.aimFromPointer||g.input.manualAim);
+    const aim=aimed?{angle:g.input.aimAngle,x:p.x,z:p.z}:g.resolveAim(s,null);p.facing=aim.angle;
     // Shield Fortress: a held stance, no pulses; it drops on its own after channel.maxDuration
     if(s.kind==='guard_hold'){if(c.t>=s.castTime+s.channel.maxDuration)cancelChannel(g);}
     else if(c.t>=c.next){

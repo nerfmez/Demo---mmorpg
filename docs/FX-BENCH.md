@@ -299,3 +299,16 @@ rules' `damagePlayer` (bench-only; the hero is never brought below 30% life).
 
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.
+
+## Greatshield skills (2026-10-30, stand-in looks)
+
+Line Breaker, Shield Fortress and Wall of Faith are on the bench with a greatshield, using the game's
+stand-ins until their own effects (`render/frontier-fx.js`, now also run by the bench: the pane of
+light, the guarded arc). Each layout gives something to watch the rules do:
+- Line Breaker: three dummies in the lane to throw aside, one beside it, and a last one marked as a
+  boss that stops the charge and is stunned.
+- Shield Fortress (hold the cast button): two dummies wind up and strike the shield in front, one
+  shoots at it from range, one strikes from behind (it lands). A block shows "กันได้!".
+- Wall of Faith: two dummies shoot from the far side (their shots stop at the wall) and one walks
+  toward the hero through it (slowed in its band), starting again when it arrives.
+The attackers, shooters and the walker are bench-only (sandbox.js); the hero never falls.

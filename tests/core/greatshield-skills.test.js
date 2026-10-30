@@ -128,6 +128,10 @@ test('Shield Fortress lets go early on release and blocks shots from the front t
   g.projectiles.push({ id: 'shot', owner: 'monster', kind: 'spit', x: 4, z: 0, vx: -10, vz: 0, speed: 10, range: 8, travelled: 0, radius: 0.3, damage: 300, sourceId: 'archer', ground: 0, hit: new Set() });
   for (let t = 0; t < 0.5; t += 1 / 60) step(g);
   assert.equal(g.player.hp, hp, 'the shot hits the shield');
+  // aimed by the player, the shield keeps facing the aim even with a target locked behind
+  g.player.targetId = 'archer'; g.input.aimFromPointer = true; g.input.aimAngle = -Math.PI / 2;
+  step(g);
+  assert.ok(Math.abs(g.player.facing + Math.PI / 2) < 1e-9);
   cancelChannel(g);
   assert.equal(g.player.channeling, null);
   assert.equal(g.player.cooldowns[0], s.cooldown);

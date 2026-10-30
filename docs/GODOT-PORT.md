@@ -449,7 +449,8 @@ hero, `width` wide) once and moves it `rush.knockSide` m out to its own side; a 
 `rush.bigRadius` is hit with a `rush.stun` s stun, the hero is put back to where the shield meets it and the dash ends
 (`rushStop`, then `dashArrive` with `stopped`). Its damage adds `damage.defenseScale` x the hero's defense
 (`computeSkill`). *Shield Fortress* (`shield_fort`, kind `guard_hold`) is a held channel with no pulses: it pays `cost`
-once, walks at `channel.moveMult`, follows the aim and drops after `channel.maxDuration` s or on release (the cooldown
+once, walks at `channel.moveMult`, faces the player's own aim (pointer or a drag on the button; else the locked
+target) and drops after `channel.maxDuration` s or on release (the cooldown
 starts then). Past its `castTime` a monster hit from inside the front `guard.arc` (melee or a shot; never damage over
 time) is taken at `guard.taken` (0: no damage, no knockback, `fortBlock`) and a monster that struck from close is moved
 `guard.push` m back; an ally behind the hero (behind its facing) within `guard.coverRange` m takes `guard.coverTaken`.

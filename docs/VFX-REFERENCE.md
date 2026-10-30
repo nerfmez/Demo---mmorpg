@@ -437,8 +437,8 @@ the camera; one shell program for all three. Contacts: the ragged `flashMaterial
 gold embers that flutter up, dust puffs, a point light, a short shake.
 - Line Breaker: wisps spiral in to the shield over the wind-up while a knot of force swells there; the charge is a bow
   wave (a comet shell over the shield's front, its light streaming back) with dust kicked up behind; each monster hit
-  flashes and throws sparks to the side it is knocked; a boss that stops it: a big flash, sparks, embers, a dug pit
-  (`ground-kit` crater, freshly dug soil) and a ring of dust, a hard shake; on arrival the wave collapses forward.
+  flashes and throws sparks to the side it is knocked; a boss that stops it: a big flash, sparks, embers, a ring of
+  dust, a hard shake (a dug pit was tried; owner: no pit); on arrival the wave collapses forward.
 - Shield Fortress: the shield is planted (a low flash, dust at the curtain's foot) and a curved curtain of gold light rises
   over the true 140° arc, flowing up and torn into short tongues at the top; a block flashes where it struck, a ripple
   runs through the curtain, sparks fly back at the attacker; the curtain burns away from the top when the shield drops.

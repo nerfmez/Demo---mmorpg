@@ -464,8 +464,8 @@ Their effects are `render/skillfx/greatshield-fx.js` (driven by skill-fx.js from
 Firebolt: gold light cut out of Firebolt's warped noise (`V5_FIELD`) on nested see-through shells, one shader program
 (`uMode` 0 a comet shell round the shield for the charge, 1 a rising curtain: a 140° cylinder strip for the fortress, a row of
 overlapping open columns along the wall so it keeps its height edge on); contacts use the ragged `flashMaterial` flash,
-bouncing sparks, rising embers, dust puffs, a dug pit (`ground-kit` crater) where a boss stops the charge, a point light and
-a light pool decal under the wall. In Godot: the same noise in a spatial shader on those meshes, GPUParticles for the
+bouncing sparks, rising embers, dust puffs (a ring of them where a boss stops the charge), a point light and a light pool
+decal under the wall. In Godot: the same noise in a spatial shader on those meshes, GPUParticles for the
 rest. The hero still borrows the shield shove and the riposte guard until their own reference-clip actions.
 
 **Signature and basic mods (owner, 2026-10-27).** A damage skill whose base cooldown is at least

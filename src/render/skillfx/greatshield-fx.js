@@ -5,13 +5,13 @@
 // gold, gold, amber edge) with narrow transitions, glowing above the tone mapping, moving smoothly every
 // frame, see-through where a shell faces the camera (Blizzard's wall). Contacts are Firebolt's: a ragged
 // flash, sparks that bounce, embers that flutter up, a point light, a short shake; big hits touch the
-// ground (dust, a dug pit). Cosmetic only: they read the rules' events and the hero's state.
+// ground (dust). Cosmetic only: they read the rules' events and the hero's state.
 //  - Line Breaker (shield_rush): through the wind-up wisps of light spiral in to the shield and a small
 //    knot of force swells there; on the charge it bursts into a bow wave (a comet shell wrapping the
 //    shield's front, its light streaming back along the dash) with dust kicked up behind; each monster
 //    reached gets a flash and sparks thrown to the side it is knocked; a boss or big monster that stops
-//    the charge sets off a clash (a big flash, sparks and embers, a dug pit and a dust ring, a hard
-//    shake); on arrival the wave collapses forward and dust skids out.
+//    the charge sets off a clash (a big flash, sparks and embers, a ring of dust, a hard shake; owner:
+//    no pit in the ground); on arrival the wave collapses forward and dust skids out.
 //  - Shield Fortress (shield_fort): the shield is planted (a flash, dust at its foot) and a curved
 //    curtain of gold light rises over the guard's arc, its light flowing up and torn into short tongues
 //    at the top; a blocked blow flashes where it struck, a ripple runs through the curtain and sparks fly
@@ -26,7 +26,7 @@ import * as THREE from 'three';
 import { Ribbon, mulberry32, place, placeV, flashMaterial, BILLBOARD_VS, NOISE, addLight, conformPlane } from './fx-common.js';
 import { V5_FIELD } from '../fireball-v5.js';
 import { cometShell } from './meteor-flame.js';
-import { craterMesh, DUST_FS, DECAL_VS } from './ground-kit.js';
+import { DUST_FS, DECAL_VS } from './ground-kit.js';
 
 // gold light, linear: amber edge, gold body, pale gold, white core (the shells' ramp)
 const RAMP = { rim: [0.86, 0.46, 0.06], body: [1.0, 0.7, 0.2], hot: [1.0, 0.9, 0.56], core: [1.0, 0.99, 0.92] };
@@ -149,7 +149,7 @@ export class GreatshieldFx {
     for (const m of this.wallShells) { m.material.uniforms.uH.value = WALL_H; m.material.uniforms.uFlow.value = 1.0; m.material.uniforms.uFace.value = 0.55; }
     this.pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 24, 4), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uT: { value: 0 }, uRun: { value: 0 }, uEnd: { value: 0.8 } }, vertexShader: DECAL_VS, fragmentShader: POOL_FS, transparent: true, depthWrite: false }));
     this.pool.visible = false; this.pool.renderOrder = 2; scene.add(this.pool);
-    // contacts: Firebolt's ragged flash in gold, dust puffs, a dug pit, a point light
+    // contacts: Firebolt's ragged flash in gold, dust puffs, a point light
     const quad = new THREE.PlaneGeometry(1, 1); quad.userData.shared = true;
     this.flashes = Array.from({ length: FLASHES }, (_, k) => {
       const m = new THREE.Mesh(quad, flashMaterial(2 + k * 4.3)); const u = m.material.uniforms;
@@ -164,7 +164,6 @@ export class GreatshieldFx {
       return { m, p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, size: 1, life: 0.7 };
     });
     this.dustI = 0;
-    this.pit = craterMesh(scene, 4.1); this.pit.material.uniforms.uBurn.value = 0; this.pitT = 9;
     this.light = addLight(scene, new THREE.PointLight('#ffc45e', 0, 9, 1.6)); this.lightAt = new THREE.Vector3(); this.lightI = 0; this.lightHold = 0;
     this.sparks = Array.from({ length: SPARKS }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), life: 9, max: 1, w: 0 }));
     this.embers = []; this.emberFree = []; this.emberAlive = (m) => m.age < m.life || (this.emberFree.push(m), false);
@@ -241,8 +240,7 @@ export class GreatshieldFx {
     this.flash(ax, 1.05, az, 2.3); this.flash(ax, 0.6, az, 1.4);
     this.sparkBurst(ax, 1.0, az, -s, -c, 26, 3.2, 8.5);
     this.emberBurst(ax, 1.0, az, 14, 1.4, 0.5);
-    // the ground takes it: a pit dug at the clash, a ring of dust
-    place(this.pit, ax - s * 0.2, 0.05, az - c * 0.2); this.pit.scale.setScalar(1.15 * 1.7 * 2); this.pit.rotation.z = r() * 6.283; conformPlane(this.pit); this.pit.visible = true; this.pitT = 0;
+    // a ring of dust round the clash
     for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2 + r() * 0.4; this.puff(ax + Math.sin(a) * 0.6, 0.25, az + Math.cos(a) * 0.6, Math.sin(a) * 2.6, Math.cos(a) * 2.6, 1.1 + r() * 0.5, 0.8); }
     this.glowAt(ax, 1.1, az, 12);
     this.onShake?.(0.28, 0.32);
@@ -408,11 +406,6 @@ export class GreatshieldFx {
       const u = Math.min(1, q.t / q.life);
       q.m.visible = true; placeV(q.m, q.p); q.m.quaternion.copy(this.camera.quaternion); q.m.scale.setScalar(q.size * (0.55 + 0.8 * out2(u))); q.m.material.uniforms.uT.value = u;
     }
-    if (this.pitT < 2.2) {
-      this.pitT += dt;
-      this.pit.material.uniforms.uA.value = Math.min(1, this.pitT / 0.05) * Math.max(0, Math.min(1, (2.2 - this.pitT) / 0.6));
-      if (this.pitT >= 2.2) this.pit.visible = false;
-    }
     for (const sp of this.sparks) {
       if (sp.life >= sp.max) continue;
       sp.life += dt; sp.v.y -= 16 * dt; sp.v.multiplyScalar(1 - 1.8 * dt); sp.p.addScaledVector(sp.v, dt);
@@ -453,8 +446,8 @@ export class GreatshieldFx {
   clear() {
     const R = this.rush; R.on = false; R.wind = 9; R.end = 9;
     this.fortUp = false; this.fortDown = 9; this.wall.id = null;
-    for (const m of [...this.bow, ...this.fort, ...this.wallShells, this.pool, this.pit]) m.visible = false;
-    this.pitT = 9; this.lightI = 0; this.light.intensity = 0;
+    for (const m of [...this.bow, ...this.fort, ...this.wallShells, this.pool]) m.visible = false;
+    this.lightI = 0; this.light.intensity = 0;
     for (const f of this.flashes) { f.t = 9; f.m.visible = false; }
     for (const q of this.dust) { q.t = q.life = 9; q.m.visible = false; }
     for (const sp of this.sparks) sp.life = sp.max;

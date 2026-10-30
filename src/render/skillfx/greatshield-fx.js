@@ -17,11 +17,11 @@
 //    at the top; a blocked blow flashes where it struck, a ripple runs through the curtain and sparks fly
 //    back at the attacker; when the shield drops the curtain burns away from the top.
 //  - Wall of Faith (faith_wall): a seam of light opens along the ground and a pool of light spreads round
-//    it, then the wall rises from it with an overshoot (dust and embers bursting up, a shake): a row of
-//    overlapping closed columns of holy light, so it has height from every side under the high camera;
-//    solid (owner: tongues read as a wave), nearly full cover with a slow shimmer, flat lit tops and a
-//    hard top edge, the columns' sides bright like pillars; embers drift up off it; a stopped shot
-//    flashes, ripples and throws sparks back; at its end it sinks away and the seam closes.
+//    it, then the wall rises from it with an overshoot (dust and embers bursting up, a shake): a single
+//    slab of holy light (owner: tongues read as a wave, joined columns rejected): nearly solid with a
+//    slow shimmer rising through it, narrowing upward, its top gently arched and sloping down at the
+//    ends, a bright frame round its outline and a thin inset line, a lit top; embers drift up off it; a
+//    stopped shot flashes, ripples and throws sparks back; at its end it sinks away and the seam closes.
 // Pools only: no allocation per frame. Numbers that tune a shader are uniforms (one shell program).
 import * as THREE from 'three';
 import { Ribbon, mulberry32, place, placeV, flashMaterial, BILLBOARD_VS, NOISE, addLight, conformPlane } from './fx-common.js';
@@ -50,8 +50,8 @@ const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
 const GLOW_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); float a=pow(1.0-d,2.5)*0.6; gl_FragColor=vec4(vT*a*vA, 1.0); }`;
 
-const SHELL_VS = `varying vec3 vObject; varying vec3 vNormal; varying vec3 vEye; varying float vUp;
-  void main(){ vObject = position; vUp = normal.y; vec4 mv = modelViewMatrix*vec4(position, 1.0);
+const SHELL_VS = `attribute float aEdge; varying vec3 vObject; varying vec3 vNormal; varying vec3 vEye; varying float vUp; varying float vEdge;
+  void main(){ vObject = position; vUp = normal.y; vEdge = aEdge; vec4 mv = modelViewMatrix*vec4(position, 1.0);
     vNormal = normalize(normalMatrix*normal); vEye = normalize(-mv.xyz); gl_Position = projectionMatrix*mv; }`;
 // uMode 0: the rush's bow wave, a comet (object +x forward) whose light is carried back along -x.
 // uMode 1: a curtain (object y up, 0..uH metres), its light carried up and torn into tongues at the top.
@@ -59,7 +59,7 @@ const SHELL_VS = `varying vec3 vObject; varying vec3 vNormal; varying vec3 vEye;
 // old) push light through it.
 const SHELL_FS = `uniform float uTime, uLayer, uAlpha, uMode, uFlow, uLen, uFront, uH, uCut, uSeed, uFace, uFlash, uRipT, uFill, uSolid;
   uniform vec3 uRip;
-  varying vec3 vObject; varying vec3 vNormal; varying vec3 vEye; varying float vUp;` + V5_FIELD + `
+  varying vec3 vObject; varying vec3 vNormal; varying vec3 vEye; varying float vUp; varying float vEdge;` + V5_FIELD + `
   vec3 ramp(float h){ vec3 c = mix(uRim, uBody, smoothstep(0.43, 0.57, h)); c = mix(c, uHot, smoothstep(0.57, 0.65, h)); return mix(c, uCore, smoothstep(0.65, 0.75, h)); }
   void main(){
     float l = uLayer, t = uTime;
@@ -83,13 +83,16 @@ const SHELL_FS = `uniform float uTime, uLayer, uAlpha, uMode, uFlow, uLen, uFron
     heat += 0.4*(n - thr) + 0.3*push;                                           // hot inside each tongue
     float face = abs(dot(normalize(vNormal), normalize(vEye)));
     if (uSolid > 0.5) {
-      // a solid wall (owner: tongues read as a wave, not a wall): nearly full cover with a few shimmering
-      // holes, closed flat tops, a hard top edge that sinks (with a wobble) as the wall ends, the columns'
-      // sides bright so they stand as pillars, a bright band at the top and the foot
+      // the wall, one solid slab of holy light (owner: tongues read as a wave; joined columns rejected):
+      // nearly full cover with a slow shimmer rising through it, a bright frame round its edges and a thin
+      // inset line inside it (vEdge: metres from the slab's outline), a lit top, a bright foot; it sinks
+      // into the ground as it ends (uCut, a wobbly edge)
       float edge = 1.01 - 2.6*uCut + (uCut > 0.0 ? 0.06*(n - 0.5) : 0.0);
-      coverage = (1.0 - smoothstep(edge - 0.012, edge, h))*clamp((n - 0.3 + 0.2*push + 0.012)/0.034, 0.0, 1.0);
-      heat = 0.47 + 0.42*(n - 0.45) + 0.24*smoothstep(0.86, 0.96, h) + 0.15*smoothstep(0.1, 0.0, h) + 0.2*(1.0 - face) + 0.3*push;
-      if (vUp > 0.5) heat = 0.68 + 0.1*n + 0.3*push;                             // the tops: a lit lid
+      float frame = smoothstep(0.13, 0.05, vEdge), inset = smoothstep(0.03, 0.0, abs(vEdge - 0.3));
+      coverage = (1.0 - smoothstep(edge - 0.012, edge, h))*clamp((n - 0.28 + frame + inset + 0.2*push + 0.012)/0.034, 0.0, 1.0);
+      heat = 0.49 + 0.4*(n - 0.45) + 0.4*frame + 0.14*inset + 0.12*smoothstep(0.1, 0.0, h) + 0.3*push;
+      if (vUp > 0.6) heat = 0.66 + 0.08*n + 0.3*push;                            // the top: lit like a lid
+      face = mix(face, 0.0, max(frame, inset));                                  // the frame never fades
     }
     float alpha = coverage*uAlpha*mix(1.0, uFace, smoothstep(0.35, 0.9, face));
     if (alpha < 0.01) discard;
@@ -111,7 +114,7 @@ const POOL_FS = `varying vec2 vP; uniform float uA; uniform float uT; uniform fl
     gl_FragColor = vec4(c, clamp(pool*0.5 + seam, 0.0, 1.0)*uA); }`;
 
 const FLASHES = 6, DUST = 18, SPARKS = 64, EMBERS = 36, WISPS = 9, TRAIL = 8, HIST = 6, ARC_PTS = 21;
-const FORT_R = 1.2, FORT_H = 2.0, WALL_H = 2.4, WALL_R = 0.45, WALL_STEP = 0.75;
+const FORT_R = 1.2, FORT_H = 2.0, WALL_H = 2.4;
 const BOW_HEAD = 0.95, BOW_LEN = 2.2;
 const compact = (arr, alive) => { let w = 0; for (const x of arr) if (alive(x)) arr[w++] = x; arr.length = w; };
 let stripW = 0, stripU = 0;
@@ -133,20 +136,21 @@ function shellMaterial(mode, layer, L) {
     vertexShader: SHELL_VS, fragmentShader: SHELL_FS, transparent: true, depthWrite: false, depthTest: true, side: THREE.DoubleSide, forceSinglePass: true,
   });
 }
-// the wall: overlapping open columns along local x (its axis), y up from 0 to WALL_H; one noise field over
-// all of them, so they read as one mass from the side and as a row of pillars edge on
+// the wall: one slab along local x (its axis), the rules' thickness at its foot, narrowing upward, its
+// top arched a little and sloping down at the ends, y up from 0; aEdge holds each point's distance (m)
+// from the slab's outline (top and ends) for the frame
 const wallCache = new Map();
-function wallGeometry(half) {
-  const key = half.toFixed(2); if (wallCache.has(key)) return wallCache.get(key);
-  const n = Math.max(2, Math.round((half * 2 - WALL_R * 1.2) / WALL_STEP) + 1), step = (half * 2 - WALL_R * 1.2) / (n - 1), pos = [], nor = [], idx = [];
-  let base = 0;
-  for (let i = 0; i < n; i++) {
-    const c = new THREE.CylinderGeometry(WALL_R, WALL_R * 1.1, WALL_H, 16, 5, false); c.translate(-half + WALL_R * 0.6 + i * step, WALL_H / 2, 0);
-    pos.push(...c.attributes.position.array); nor.push(...c.attributes.normal.array);
-    for (const k of c.index.array) idx.push(k + base);
-    base += c.attributes.position.count; c.dispose();
+function wallGeometry(half, thick) {
+  const key = half.toFixed(2) + ':' + thick.toFixed(2); if (wallCache.has(key)) return wallCache.get(key);
+  const g = new THREE.BoxGeometry(half * 2, WALL_H, thick, Math.max(12, Math.round(half * 8)), 12, 1); g.translate(0, WALL_H / 2, 0);
+  const p = g.attributes.position, edge = new Float32Array(p.count);
+  const topAt = (u) => WALL_H * (1 + 0.06 * (1 - u * u)) * (1 - 0.3 * Math.min(1, Math.max(0, (Math.abs(u) - 0.72) / 0.28)) ** 2);
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), k = p.getY(i) / WALL_H, u = x / half, top = topAt(u), y = k * top;
+    p.setXYZ(i, x, y, p.getZ(i) * (1 - 0.4 * k));
+    edge[i] = Math.min(top - y, half - Math.abs(x));
   }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setIndex(idx);
+  g.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1)); g.computeVertexNormals();
   g.userData.shared = true; wallCache.set(key, g); return g;
 }
 
@@ -163,9 +167,9 @@ export class GreatshieldFx {
     this.fort = [shell(new THREE.BufferGeometry(), 1, 0, 6, LOOK.fort), shell(new THREE.BufferGeometry(), 1, 1, 5, LOOK.fort)];
     for (const m of this.fort) { m.material.uniforms.uH.value = FORT_H; m.material.uniforms.uFace.value = 0.4; m.material.uniforms.uFill.value = 0.04; }
     this.fortArc = 0;
-    // Wall of Faith: two nested walls of columns and a pool of light on the ground
+    // Wall of Faith: two nested slabs and a pool of light on the ground
     this.wallShells = [shell(new THREE.BufferGeometry(), 1, 0, 6, LOOK.wall), shell(new THREE.BufferGeometry(), 1, 1, 5, LOOK.wall)];
-    for (const m of this.wallShells) { const U = m.material.uniforms; U.uH.value = WALL_H; U.uFlow.value = 0.35; U.uFace.value = 0.5; U.uSolid.value = 1; }
+    for (const m of this.wallShells) { const U = m.material.uniforms; U.uH.value = WALL_H * 1.06; U.uFlow.value = 0.35; U.uFace.value = 0.45; U.uSolid.value = 1; }
     this.pool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 24, 4), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uT: { value: 0 }, uRun: { value: 0 }, uEnd: { value: 0.8 } }, vertexShader: DECAL_VS, fragmentShader: POOL_FS, transparent: true, depthWrite: false }));
     this.pool.visible = false; this.pool.renderOrder = 2; scene.add(this.pool);
     // contacts: Firebolt's ragged flash in gold, dust puffs, a point light
@@ -305,7 +309,7 @@ export class GreatshieldFx {
   wallBegin(area) {
     this.L = LOOK.wall;
     const W = this.wall; W.id = area.id; W.x = area.x; W.z = area.z; W.axis = area.angle; W.facing = area.facing; W.half = area.radius; W.t = 0; W.end = 9; W.emberAt = 0; W.rose = false;
-    const geo = wallGeometry(W.half);
+    const geo = wallGeometry(W.half, area.lightWall?.thickness || 0.7);
     for (const m of this.wallShells) { m.geometry = geo; m.material.uniforms.uRipT.value = 9; m.material.uniforms.uCut.value = 0; }
     this.pool.scale.set(W.half * 2 + 1.2, 2.4, 1); this.pool.material.uniforms.uEnd.value = W.half / (W.half + 0.6);
     this.pool.rotation.set(-Math.PI / 2, W.facing, 0, 'YXZ'); place(this.pool, W.x, 0.04, W.z); conformPlane(this.pool); this.pool.visible = true;
@@ -414,12 +418,6 @@ export class GreatshieldFx {
         });
         // embers drift up off it now and then
         if (rise >= 1 && gone === 0 && time >= W.emberAt) { W.emberAt = time + 0.22; const u = r() * 2 - 1; this.emberBurst(W.x + sa * W.half * u, 0.4 + r() * 1.4, W.z + ca * W.half * u, 1, 0.7, 0.4); }
-        // the wall's hard top edge, a bright line once it stands
-        if (rise > 0.6) {
-          const top = WALL_H * Math.max(0.02, k) * (1 - gone), half = W.half - WALL_R * 0.1;
-          three[0].set(W.x - sa * half, top, W.z - ca * half); three[2].set(W.x + sa * half, top, W.z + ca * half); three[1].copy(three[0]).lerp(three[2], 0.5);
-          stripW = 0.07 * Math.min(1, (rise - 0.6) * 2.5) * (1 - gone); this.glow.strip(three, lineGlowW, 0.7 * (1 - gone), LOOK.wall.glow); this.core.strip(three, lineW, 0.9 * (1 - gone), WHITE);
-        }
         // the seam's bright line, running out both ways from the middle
         for (const s of [-1, 1]) {
           three[0].set(W.x, 0.05, W.z); three[2].set(W.x + sa * W.half * run * s, 0.05, W.z + ca * W.half * run * s); three[1].copy(three[0]).lerp(three[2], 0.5);

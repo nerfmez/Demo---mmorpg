@@ -454,3 +454,7 @@ priest holy white-gold; the duelist, archer and heavy-weapon skills each have th
 Owner: Wall of Faith looked like a wave and should look sturdier. The columns are now a solid wall (`uSolid`): nearly
 full cover with only a slow shimmer through it, closed flat tops lit like a lid, a hard straight top edge with a bright
 line, the columns' sides bright so they stand as pillars; at its end it sinks into the ground instead of burning away.
+Owner: no joined columns; design it again. The wall is now one slab of holy light the rules' thickness at its foot,
+narrowing upward, its top gently arched and sloping down at the ends, nearly solid with a slow shimmer rising through
+it, a bright frame round its outline and a thin inset line inside (a per-vertex distance to the outline, `aEdge`), a
+lit top; from the side it reads as a thick slab.

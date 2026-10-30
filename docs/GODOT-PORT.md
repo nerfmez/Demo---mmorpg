@@ -463,7 +463,7 @@ Their effects are `render/skillfx/greatshield-fx.js` (driven by skill-fx.js from
 `rushStop`, `dashArrive`, `channelStart/End`, `fortBlock`, `area`, `lightWallBlock`, `areaEnd`). They are made like
 Firebolt: gold light cut out of Firebolt's warped noise (`V5_FIELD`) on nested see-through shells, one shader program
 (`uMode` 0 a comet shell round the shield for the charge, 1 a rising curtain: a 140° cylinder strip for the fortress, a row of
-overlapping closed columns along the wall so it keeps its height edge on, drawn solid with `uSolid`); contacts use the ragged `flashMaterial` flash,
+one tapered slab along the wall, drawn solid with `uSolid`, its frame from a per-vertex distance to the outline `aEdge`); contacts use the ragged `flashMaterial` flash,
 bouncing sparks, rising embers, dust puffs (a ring of them where a boss stops the charge), a point light and a light pool
 decal under the wall. In Godot: the same noise in a spatial shader on those meshes, GPUParticles for the
 rest. The hero still borrows the shield shove and the riposte guard until their own reference-clip actions.

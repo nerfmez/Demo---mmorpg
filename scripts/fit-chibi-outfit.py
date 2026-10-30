@@ -395,7 +395,9 @@ if GLOVE and C.get('wrist'):
     _w = arm.matrix_world @ arm.data.bones['LeftHand'].head_local
     _g = (ax > GLOVE) & (z > C.get('armpit', 0.66)) & (z < C['neck'])
     _tip = float(np.abs(P0[:, 0]).max())
-    ac[_g] = np.interp(ax[_g], [GLOVE, C['wrist'], _tip], [float(armx(np.array(GLOVE))), abs(_w.x), CHIBI_TIP])
+    # (`tipAt`: where the model's fingertips land instead of the chibi's: claws past the fingertips
+    # read as long fingers)
+    ac[_g] = np.interp(ax[_g], [GLOVE, C['wrist'], _tip], [float(armx(np.array(GLOVE))), abs(_w.x), C.get('tipAt', CHIBI_TIP)])
 # front to back the sleeve is measured from the generated body's middle (its hips, as the torso is):
 # Meshy centres the whole model in its box, so a hood or cape behind it moves the arms forward
 # the generated arm's own centre line too: Meshy's T-pose arms slope up to the shoulder, so heights

@@ -720,6 +720,7 @@
         "_doc": "Finger bones (scripts/rig-chibi-hands.py) posed by `poses` (scripts/hand-poses.py, from Quaternius UAL1): a hand holding something takes `holding`, opened to wrap a handle of `gripRadius` (m: the weapons' handles at the chibi's gear scale), an empty one `empty`; the left hand also grips the weapons in `leftGripWith`.",
         "holding": "grip",
         "gripRadius": 0.027,
+        "roundFingers": 0.7,
         "empty": "relaxed",
         "leftGripWith": [
           "axe",

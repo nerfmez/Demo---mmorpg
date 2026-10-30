@@ -86,5 +86,9 @@ gloves: `pearlscale_{armor,boots,crest,gloves}`, `snailshell_{plate,greaves,helm
   came out up to twice the head's size. `fitHead` (1.0) then scales each about the hero's hair's
   middle so its inside lies on that hair (the median over the crown, sides and back).
   `keepAbove` keeps the small pieces of the leaf-bear hood's crown leaf.
+- `fillHoles` (leaf-bear: 8) closes small holes the cuts leave in a helm above the cheeks (the hero's
+  dark hair showed through them as dark wedges by the hood's ears), each patch wound as the faces
+  round it and painted from its corners' own texture. `tipAt` (warden: 0.505) sets where a glove's
+  fingertips land: its ivory claws past the fingertips read as long fingers.
 - The leaf-bear model grew a limb out of its back that the sheet does not draw: `dropBehind` drops
   any loose piece reaching further behind than that.

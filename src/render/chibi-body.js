@@ -420,6 +420,41 @@ function softHeadNormals(geo, { centre, w }, soft) {
 
 const HAND_OUTLINE = 0.35;
 
+/**
+ * The fingers' normals rounded about their bones: a finger is a few rings of triangles, and bent at a
+ * joint the toon ramp cut its facets into sharp light and dark wedges. Each vertex led by a finger
+ * bone takes `round` of the way from its own normal to the way out from that bone's line (the line to
+ * the next joint, the last bone carrying on), which turns with the bone.
+ */
+function roundFingers(mesh, bones, round) {
+  const geo = mesh.geometry, pos = geo.attributes.position, nrm = geo.attributes.normal, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
+  const toMesh = new THREE.Matrix4().copy(mesh.matrixWorld).invert(), at = (b) => b.getWorldPosition(new THREE.Vector3()).applyMatrix4(toMesh);
+  const lines = new Map();
+  for (const b of mesh.skeleton.bones) {
+    const m = /^(Left|Right)Hand(\w+?)([123])$/.exec(b.name);
+    if (!m) continue;
+    const a = at(b), k = +m[3], next = k < 3 ? bones[`${m[1]}Hand${m[2]}${k + 1}`] : null;
+    const prev = k > 1 ? at(bones[`${m[1]}Hand${m[2]}${k - 1}`]) : null;
+    const e = next ? at(next) : a.clone().add(a.clone().sub(prev)); // the last bone carries on as far
+    lines.set(mesh.skeleton.bones.indexOf(b), [a, e]);
+  }
+  const p = new THREE.Vector3(), n = new THREE.Vector3(), d = new THREE.Vector3(), q = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    let lead = 0;
+    for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, lead)) lead = k;
+    const line = lines.get(si.getComponent(i, lead));
+    if (!line) continue;
+    const [a, e] = line;
+    p.fromBufferAttribute(pos, i); d.subVectors(e, a);
+    const t = THREE.MathUtils.clamp(q.subVectors(p, a).dot(d) / d.lengthSq(), 0, 1);
+    q.copy(a).addScaledVector(d, t); q.subVectors(p, q);
+    if (q.lengthSq() < 1e-12) continue;
+    n.fromBufferAttribute(nrm, i).lerp(q.normalize(), round).normalize();
+    nrm.setXYZ(i, n.x, n.y, n.z);
+  }
+  nrm.needsUpdate = true;
+}
+
 /** An `outlineScale` attribute that thins the outline on the hands (their bone or a finger's), whose
  *  small folded shapes a full-width hull turns into black jags. */
 function thinHandOutline(mesh) {
@@ -455,6 +490,7 @@ export function prepareChibiBody(gltf, cfg) {
   // 1 where the head lies under the fitted hair (fitHairToHead), drawn in the hair's shade, else 0
   mesh.geometry.setAttribute('underHair', new THREE.BufferAttribute(new Float32Array(mesh.geometry.attributes.position.count), 1));
   thinHandOutline(mesh);
+  if (hands.Left && hands.Right) roundFingers(mesh, bones, cfg.hands?.roundFingers ?? 0.7);
   if (head0) softHeadNormals(mesh.geometry, head0, cfg.headShape.soft);
   if (head0 && cfg.faceShadow) addFaceCoords(mesh, head0.w, cfg.faceShadow);
   mesh.geometry.userData.shared = true;

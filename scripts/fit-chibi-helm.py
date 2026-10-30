@@ -147,6 +147,44 @@ def head(g, neck):
         if len(comp) >= C.get('minPiece', 40) or min(g.calc_center_median().z for g in comp) > top: keep.update(comp)
     bmesh.ops.delete(bm, geom=[f for f in bm.faces if f not in keep], context='FACES')
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    if C.get('fillHoles') and g is not ref:
+        # small holes the cuts above left in the helm above the cheeks (`fillHoles`: at most this many
+        # edges round; the face's opening and the neck are far larger): the hero's dark hair showed
+        # through them. Each patch takes the texture of the faces round it (its corners' own UVs).
+        bound = [e for e in bm.edges if e.is_boundary]
+        par = {}
+        def find(a):
+            while par.setdefault(a, a) != a: a = par[a]
+            return a
+        for e in bound: par[find(e.verts[0])] = find(e.verts[1])
+        loops = {}
+        for e in bound: loops.setdefault(find(e.verts[0]), []).append(e)
+        for es in loops.values():
+            vs = {v for e in es for v in e.verts}
+            if len(es) > C['fillHoles'] or np.mean([v.co.z for v in vs]) < mid[2] - 0.08: continue
+            uv0 = {v: next(l[uvl].uv.copy() for l in v.link_loops) for v in vs}
+            # the loop's corners in order round it, fanned from the first (holes_fill leaves some
+            # small loops open)
+            ring, prev = [es[0].verts[0]], None
+            while len(ring) < len(es):
+                nxt = [e.other_vert(ring[-1]) for e in es if ring[-1] in e.verts and e.other_vert(ring[-1]) is not prev and e.other_vert(ring[-1]) not in ring]
+                if not nxt: break
+                prev = ring[-1]; ring.append(nxt[0])
+            if len(ring) != len(es): continue
+            tris = []
+            for k in range(1, len(ring) - 1):
+                try: tris.append(bm.faces.new((ring[0], ring[k], ring[k + 1])))
+                except ValueError: pass
+            for f in tris: f.normal_update()
+            for f in tris:
+                for l in f.loops: l[uvl].uv = uv0[l.vert]
+            # wound as the faces round them (holes_fill picks either way; a patch facing in is
+            # drawn as the helm's inside, a dark wedge)
+            for f in tris:
+                nb = [o for e in f.edges for o in e.link_faces if o not in tris]
+                if nb and sum(o.normal.dot(f.normal) for o in nb) < 0: f.normal_flip()
+            print('filled a hole of', len(es), 'edges at', np.round(np.mean([tuple(v.co) for v in vs], 0), 3), 'new faces', len(tris))
+        bm.normal_update()
     return bm, eyes, img
 
 

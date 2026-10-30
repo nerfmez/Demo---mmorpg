@@ -42,9 +42,10 @@
   "boots": "public/models/outfits/leafbear_boots.glb",
   "gloves": "public/models/outfits/leafbear_gloves.glb"
  },
- "fitHead": 1.0,
+ "fitHead": 1.08,
  "dropBehind": 0.3,
  "glove": 0.31,
  "keepAbove": 0.15,
- "wrist": 0.37
+ "wrist": 0.37,
+ "fillHoles": 8
 }

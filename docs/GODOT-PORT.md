@@ -480,7 +480,7 @@ turns each bone the least way onto its direction. A hand holding something takes
 until the circle its long fingers curl round is `hands.gripRadius` (the weapons' handles at the gear
 scale), and its hole (`gripHole`) is where the handle goes; an empty hand takes `hands.empty`. The
 pose is set on the finger bones before `bindSkinSync`, which keeps undriven bones at that rotation.
-In Godot set the same bone rotations. The outline is thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
+In Godot set the same bone rotations. The fingers' normals are rounded about their bones at load (`roundFingers`: `hands.roundFingers` of the way from each finger vertex's normal to the way out from its bone's line), so a bent finger's few facets do not cut the toon ramp into sharp wedges. The outline is thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
 bind pose). The head is reshaped once at load toward the sheet's rounder head
 (`headShape`: wider, shorter below the eye line, fuller cheeks, the whole head scaled by `scale`
 about its base on the neck) and its normals are bent toward the

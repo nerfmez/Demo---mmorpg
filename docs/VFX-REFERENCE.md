@@ -467,3 +467,14 @@ taunt's true 8 m and pops an anime anger mark (four bowed strokes, camera-facing
 turned, held 2.2 s; Boiling Blood shouts in crimson with up-chevrons; Fighting Spirit in green-gold with chevrons and
 streaks circling each body; Berserk roars to 3.5 m in crimson-violet with chevrons and streaks streaming back. The
 gallery host is still blocked; no clip was inspected.
+
+Owner on the buffs: "ไม่ต่างกันเท่าไหร่" (all one recipe in different colours), the earlier buffs too; Stand Firm's cast
+is good. Each buff now has its own signature, cast and lasting, in `skillfx/aura-fx.js` built with Firebolt's
+noise-cut shells (one shader: fire rising, wind carried round the axis, a skin of light with a ripple): Rally and War
+Cry burst fire off every body and set the hero's blade burning while they last; Frenzy Roar sweeps a ring of wind out
+to its true radius and whirls wind round each body's legs; Stand Firm keeps its shout and wraps each body in a thin
+blue skin of light that ripples where a blow lands; Hold the Line keeps its shield wall and turns a ring of gold runes
+underfoot; Provoke keeps its roar and anger marks and runs a red tether from every provoked monster to the hero;
+Boiling Blood bursts a low puff of dark blood steam and keeps dark maroon steam rising that thickens as HP falls;
+Fighting Spirit keeps its ring and sends a green mote of life from each struck monster back to whoever hit it;
+Berserk blasts a crimson aura with a hard shake and keeps a dense crimson flame round the hero, its eyes glowing red.

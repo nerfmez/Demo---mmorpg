@@ -665,7 +665,18 @@ joints remapped to the body skeleton by name (`prepareChibiOutfit`, `fitOutfit`)
 toon material and outline. A gloves model is skinned to the finger bones (its weights taken from
 the body's nearest point), so it closes with the hand inside it. The body triangles a gloves model covers are left
 out of the body's index while it is worn (not tucked: the chibi's mitten hand showed between the
-glove's separate fingers). In Godot draw the body with those triangles removed. Its node extras `hideBody` list the body triangles it covers; while it is
+glove's separate fingers). In Godot draw the body with those triangles removed. An armour model with `cloth`
+(`characters.hero_chibi.cloth` its defaults) swings below the waist (`render/chibi-cloth.js`): every
+vertex under `pivot` (bind height) hands its Hips weight, blended in over `ramp`, to the two nearest of
+`panels` bones by its angle round the hips (the four largest weights kept); each panel bone is a child
+of Hips on the waist ring, its bind frame x along the ring, y up, z outward, so at rest it skins
+exactly like the Hips. Every frame each panel's hem (its lowest weighted point below the pivot) is a
+point in world space on a spring toward its rest place (`stiffness`, `damping` against the rest place's
+own velocity, `drag` against the world, its speed against the rest place capped at `speed`, a teleport
+over 1 m resets it); its offset becomes the panel bone's turn out about x (`out`, inward at most `in`)
+and to the side about z (`side`), the clamped offset carrying the waist's speed. In Godot add the panel
+bones to the Skeleton3D and set their poses after the animation, or use a SpringBoneSimulator3D with one
+joint per panel and the same limits. Its node extras `hideBody` list the body triangles it covers; while it is
 worn those body vertices are tucked `underCloth.inset` inside the cloth along their normals (`coveredBody`;
 a vertex is tucked only when every triangle round it is covered) and drawn at `underCloth.under` of its
 light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view

@@ -602,7 +602,7 @@ export function prepareChibiBody(gltf, cfg) {
   const headTuck = { verts: Uint32Array.from(fitVerts), neck: Uint32Array.from(neck), ears: Uint32Array.from(ears), face: Uint32Array.from(face), toMesh, bone: hb };
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, hands, handPoses, handHolding: cfg.hands?.holding, handEmpty: cfg.hands?.empty, gripShare: gripK, faceShadow, faceDecal: cfg.faceDecal || null, eyeColor: cfg.eyeColor || null, chibi: true, grip, thumb, leftFistWith: cfg.hands?.leftGripWith || [], paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, headTuck, hands, handPoses, handHolding: cfg.hands?.holding, handEmpty: cfg.hands?.empty, gripShare: gripK, faceShadow, faceDecal: cfg.faceDecal || null, eyeColor: cfg.eyeColor || null, chibi: true, grip, thumb, leftFistWith: cfg.hands?.leftGripWith || [], paintedLight: cfg.paintedLight ?? 0, tint: cfg.tint || null, underCloth: cfg.underCloth || null, cloth: cfg.cloth || null, gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 

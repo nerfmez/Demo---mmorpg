@@ -28,9 +28,11 @@ an entry in `data/outfits.json`, not a new model.
   - IL6: leather and shell.
   - IL11: coats with piping.
   - IL16–21: mantles and plate with gold trim and a glowing gem.
-- **No cloth simulation (iPad).** Skirts are skinned with weights blended between the hips and
-  the thighs, so they swing with the legs. Capes ride the chest. This is the cheap version of
-  the skirt-bone chains anime games use.
+- **No full cloth simulation (iPad).** Skirts are skinned with weights blended between the hips and
+  the thighs, so they swing with the legs. Capes ride the chest. On the chibi hero a modelled
+  robe, skirt or coat with `cloth` (data/models.json) also swings on its own: the cloth below the
+  waist hangs from eight panel bones round the hips, each driven by one damped spring (the
+  skirt-bone chains anime games use, one bone deep; `render/chibi-cloth.js`).
 
 ## Bases by category
 

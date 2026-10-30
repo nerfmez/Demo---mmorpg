@@ -615,6 +615,8 @@ export class HumanoidAnimator {
       reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0,0,STAFF_CAST.supportGrip)), 1);
       this.rig.syncSkin();
     }
+    // secondary motion: a robe's skirt or a coat's tails trail and swing (chibi-cloth.js)
+    this.rig.cloth?.update(dt);
   }
 
   /** This weapon's carry: two-handed when the type allows it and the left hand is free; dual with a second weapon there. */

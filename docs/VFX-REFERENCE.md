@@ -451,3 +451,6 @@ what each skill does, the guardian's gold shared by all - Line Breaker steel whi
 Shield Fortress full gold (the guard), Wall of Faith pale holy white-gold like Blessing of Light (`LOOK` in
 `greatshield-fx.js`). Other jobs today: the blade job is violet and the spellblade arcane blue-violet on every skill, the
 priest holy white-gold; the duelist, archer and heavy-weapon skills each have their own colour by function.
+Owner: Wall of Faith looked like a wave and should look sturdier. The columns are now a solid wall (`uSolid`): nearly
+full cover with only a slow shimmer through it, closed flat tops lit like a lid, a hard straight top edge with a bright
+line, the columns' sides bright so they stand as pillars; at its end it sinks into the ground instead of burning away.

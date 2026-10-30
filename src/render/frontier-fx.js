@@ -23,6 +23,20 @@ export class FrontierFx {
    if(!obj){obj=new THREE.Group();const stone=new THREE.Mesh(this.stone,new THREE.MeshBasicMaterial({color:cfg.wallColor}));stone.scale.set(a.r,cfg.wallHeight,a.skill.wall.thickness/2);stone.position.y=cfg.wallHeight;obj.add(stone);const edge=new THREE.LineSegments(new THREE.EdgesGeometry(this.stone),new THREE.LineBasicMaterial({color:cfg.wallEdge}));edge.scale.copy(stone.scale);edge.position.copy(stone.position);obj.add(edge);this.scene.add(obj);this.live.set(id,obj);}
    obj.position.set(a.x,this.gy(a.x,a.z),a.z);obj.scale.y=Math.min(1,a.t/cfg.wallRise);obj.rotation.y=a.angle-Math.PI/2;
   }
+  // Wall of Faith (stand-in): an upright pane of light across the aim, rising in and fading out
+  for(const a of game.areas||[])if(a.lightWall){
+   const id='faith'+a.id;seen.add(id);let obj=this.live.get(id);
+   if(!obj){obj=new THREE.Group();const pane=new THREE.Mesh(this.plane,mat(cfg.faithColor,cfg.faithOpacity));pane.scale.set(a.radius*2,cfg.faithHeight,1);pane.position.y=cfg.faithHeight/2;obj.add(pane);const base=new THREE.Mesh(this.plane,mat(cfg.faithEdge,.7));base.rotation.x=-Math.PI/2;base.scale.set(a.radius*2,a.lightWall.thickness,1);base.position.y=.05;obj.add(base);this.scene.add(obj);this.live.set(id,obj);}
+   obj.position.set(a.x,this.gy(a.x,a.z),a.z);obj.rotation.y=a.angle-Math.PI/2;
+   const k=Math.min(1,a.t/cfg.faithRise,(a.duration-a.t)/cfg.faithRise);obj.scale.y=Math.max(.01,k);obj.children[0].material.opacity=cfg.faithOpacity*(.85+.15*Math.sin(time*4));
+  }
+  // Shield Fortress (stand-in): the guarded front arc on the ground while the shield is held up
+  const c=game.player?.channeling;
+  if(c?.skill.kind==='guard_hold'){
+   const id='fort';seen.add(id);let obj=this.live.get(id);
+   if(!obj){const arc=c.skill.guard.arc*Math.PI/180;obj=new THREE.Mesh(new THREE.RingGeometry(.55,1,24,1,-Math.PI/2-arc/2,arc),mat(cfg.fortColor,cfg.fortOpacity));obj.rotation.x=-Math.PI/2;this.scene.add(obj);this.live.set(id,obj);}
+   const p=game.player;obj.position.set(p.x,this.gy(p.x,p.z)+.05,p.z);obj.scale.setScalar(cfg.fortRadius);obj.rotation.z=p.facing; // laid flat, the arc's middle points along the facing
+  }
   // Arrow Rain and Flame Stream are drawn by the skill effects (skill-fx.js)
   for(const a of Object.values(game.player?.auras||{})){
    const id='aura'+a.slot;seen.add(id);let obj=this.live.get(id);

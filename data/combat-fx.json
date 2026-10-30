@@ -1042,6 +1042,15 @@
     }
   },
   "frontier": {
+    "_greatshieldDoc": "Stand-in looks for the greatshield skills until their own effects: Wall of Faith a standing pane of light (faith*), Shield Fortress the guarded front arc on the ground (fort*).",
+    "faithColor": "#ffe7a3",
+    "faithEdge": "#fff8de",
+    "faithHeight": 1.8,
+    "faithOpacity": 0.34,
+    "faithRise": 0.2,
+    "fortColor": "#ffe1a0",
+    "fortOpacity": 0.5,
+    "fortRadius": 1.6,
     "lineColor": "#ffe3a5",
     "lineLife": 0.24,
     "guardColor": "#bfe9ff",

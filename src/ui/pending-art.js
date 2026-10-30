@@ -23,6 +23,9 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   light_chain: 'โซ่แสง',
   spell_wave: 'คลื่นดาบเวท',
   draw_cut: 'ชักดาบพริบตา',
+  shield_rush: 'ทลายแนว',
+  shield_fort: 'ป้อมโล่',
+  faith_wall: 'กำแพงแห่งศรัทธา',
 });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

@@ -211,6 +211,9 @@ const BY_SKILL = {
   // a staff) for spells aimed at a spot, Chain Spark's flick (zap) for calling a summon, Frost Nova's
   // burst (nova) for spells around the hero
   crystal_wall: 'boltCast', stone_guardian: 'zap', cleanse: 'nova', battle_aura: 'nova', flame_stream: 'staffCastHeld',
+  // greatshield skills, until their own reference-clip actions: the shove leads the charge, the riposte
+  // guard holds the raised shield and calls the wall
+  shield_rush: 'shieldShove', shield_fort: 'riposteGuard', faith_wall: 'riposteGuard',
 };
 // skill kind -> action, for skills without their own entry
 const BY_KIND = {

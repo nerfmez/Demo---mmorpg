@@ -152,7 +152,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
   const baseLineInc = lineInc(tags, def.element);
   inc += baseLineInc;
 
-  if (def.damage) s.damage = (def.damage.base + def.damage.scale * power) * levelMult * (1 + inc / 100);
+  // Line Breaker: a greatshield skill also hits harder with the hero's defense (damage.defenseScale)
+  if (def.damage) s.damage = (def.damage.base + def.damage.scale * power + (def.damage.defenseScale || 0) * derived.defense) * levelMult * (1 + inc / 100);
   if (def.heal) s.heal = (def.heal.base + def.heal.scale * power) * levelMult * (1 + derived.healPct / 100);
   if (def.barrier) s.barrier = (def.barrier.base + def.barrier.scale * power) * levelMult * (1 + derived.barrierPct / 100);
   if (def.kind === 'curse_zone') {

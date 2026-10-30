@@ -10,7 +10,7 @@ import { computeSkill, movementSkill } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
-import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
@@ -478,7 +478,7 @@ export class Game {
       this.emit({ type: 'fail', reason: 'target', slot: i });
       return false;
     }
-    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance'].includes(s.kind);
+    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'light_wall'].includes(s.kind);
     // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
     // Pointer aim and touch drag are explicit overrides.
     if (!point && directional && !this.input.manualAim && !s.shadowStep) { // a shadow step already chose its target
@@ -544,7 +544,7 @@ export class Game {
     const p = this.player;
     const t = this.target;
     let angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance'].includes(s.kind)) {
+    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'guard_hold', 'light_wall'].includes(s.kind)) {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
@@ -1025,6 +1025,7 @@ export class Game {
   /** Damage from a monster to the player or an ally. */
   damageUnit(unit, amount, source, opts = {}) {
     if (source?.statuses?.hex) amount *= source.statuses.hex.dealt;
+    amount *= coverMult(this, unit, source); // Shield Fortress, Wall of Faith
     if (unit.kind === 'ally') return this.damageAlly(unit, amount, source);
     return this.damagePlayer(amount, source, opts);
   }
@@ -1057,6 +1058,12 @@ export class Game {
       return 0;
     }
     const guard=applyGuard(this,amount,source,opts);
+    // Shield Fortress takes the whole hit on the shield: no damage, no knockback
+    if (guard.full) {
+      this.emit({ type: 'playerHit', amount: 0, absorbed: 0, shielded: 0, blocked: true, x: p.x, z: p.z });
+      if (p.hp > 0) this.fireTriggers('on_guard');
+      return 0;
+    }
     let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * defenseFactor(this.derived.defense, this.data) * (1 + this.derived.damageTakenPct / 100) * buffTaken(p.buffs) * perkTaken(this);
     let blocked = guard.guarded;
     // A shield blocks hits from in front only; ground hazards (no source) are never blocked.
@@ -1511,6 +1518,7 @@ export class Game {
         const step = Math.min(dt, p.dash.dur - (p.dash.t - dt)); // the last frame moves only what is left: a dash goes its distance exactly
         this.moveEntity(p, p.dash.vx * step, p.dash.vz * step);
       }
+      if (p.dash.kind === 'shield_rush') rushContact(this, p.dash); // Line Breaker hits what it runs into
       if (p.dash.t >= p.dash.dur) {
         const d = p.dash;
         p.dash = null;
@@ -1527,6 +1535,7 @@ export class Game {
           if (d.skill.cutDelay) this.later(d.skill.cutDelay, () => strikeLane(this, d.skill, d.fromX, d.fromZ, d.angle, len, d.mult));
           else strikeLane(this, d.skill, d.fromX, d.fromZ, d.angle, len, d.mult);
         }
+        else if (d.kind === 'shield_rush') this.emit({ type: 'dashArrive', skill: d.skill.id, x: p.x, z: p.z, angle: d.angle, delay: 0, stopped: !!d.stopped });
         else this.fireTriggers('on_movement');
       }
       return;
@@ -1833,6 +1842,8 @@ export class Game {
           dead = true;
           break;
         }
+      } else if (!dead && pr.owner === 'monster' && lightWallStops(this, pr)) {
+        dead = true;
       } else if (!dead && pr.owner === 'monster') {
         for (const u of this.units()) {
           if (dist(pr.x, pr.z, u.x, u.z) < u.r + pr.radius) {
@@ -1859,6 +1870,7 @@ export class Game {
     const keep = [];
     for (const a of this.areas) {
       if(a.wallHp!==undefined){a.t+=dt;if(a.wallHp>0&&a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
+      if(a.lightWall){a.t+=dt;if(a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.follow){if(this.player.dead)continue;a.x=this.player.x;a.z=this.player.z;}
       a.t += dt;
       if (a.t < a.delay) {

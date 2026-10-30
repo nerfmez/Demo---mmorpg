@@ -1516,9 +1516,13 @@ export class Game {
         p.z = p.dash.fromZ + (p.dash.toZ - p.dash.fromZ) * k;
       } else if (p.dash.vx || p.dash.vz) {
         const step = Math.min(dt, p.dash.dur - (p.dash.t - dt)); // the last frame moves only what is left: a dash goes its distance exactly
-        this.moveEntity(p, p.dash.vx * step, p.dash.vz * step);
+        const moved = this.moveEntity(p, p.dash.vx * step, p.dash.vz * step);
+        if (moved.blocked && p.dash.kind === 'shield_rush') p.dash.blocked = true;
       }
-      if (p.dash.kind === 'shield_rush') rushContact(this, p.dash); // Line Breaker hits what it runs into
+      if (p.dash.kind === 'shield_rush') {
+        rushContact(this, p.dash); // Line Breaker hits what it runs into
+        if (p.dash.blocked) p.dash.t = p.dash.dur; // a wall or a cliff ends the charge: no sliding along it off the lane
+      }
       if (p.dash.t >= p.dash.dur) {
         const d = p.dash;
         p.dash = null;

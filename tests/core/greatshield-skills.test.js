@@ -50,6 +50,19 @@ test('the three greatshield skills need a greatshield, are learned from drops at
   assert.ok(s.requirementsMet);
 });
 
+test('Line Breaker ends at a wall instead of sliding along it', () => {
+  const { g } = fixture('shield_rush');
+  // a wall 2 m ahead, struck at an angle: the world slides the hero along it (z only), blocked
+  g.world.move = (x, z, r, dx, dz) => (x + dx > 2 ? { x, z: z + dz, blocked: true } : { x: x + dx, z: z + dz, blocked: false });
+  g.input.aimAngle = Math.atan2(1, 0.4); g.player.facing = g.input.aimAngle;
+  assert.ok(g.castSlot(0));
+  let arrived = null;
+  for (let t = 0; t < 1.2; t += 1 / 60) { step(g); for (const e of g.drainEvents()) if (e.type === 'dashArrive') arrived = e; }
+  assert.ok(arrived, 'the charge ends with its arrival');
+  assert.ok(g.player.x <= 2 && g.player.z < 1.2, `stopped at the wall, not slid along it (${g.player.x.toFixed(2)}, ${g.player.z.toFixed(2)})`);
+  assert.equal(g.player.dash, null);
+});
+
 test('Line Breaker charges along the aim, hits each monster in the lane once and throws it aside', () => {
   const { g, mk, s } = fixture('shield_rush');
   g.monsters = [mk('a', 2, 0), mk('b', 4, -0.4), mk('beside', 3, 2.5), mk('behind', -2, 0), mk('past', 9, 0)];

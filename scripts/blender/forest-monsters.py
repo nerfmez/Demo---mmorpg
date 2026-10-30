@@ -3,8 +3,8 @@ shapes and Meshy's textures, made like the grotto's monsters (grotto-monsters.py
 
 Run headless:  blender -b --python scripts/blender/forest-monsters.py
 Each monster of the sheet was cut out as it is (docs/reference/forest-stone-pangolin.png,
-forest-leaf-fox.png, forest-leaf-tanuki.png) and sent to Meshy alone: image-to-3D, smart topology
-(meshy-t2), no texture (assets/meshy/forest/*_meshy.glb), then retextured with Meshy 6 from the same
+forest-leaf-fox.png: the fox as redrawn standing side-on, forest-leaf-tanuki.png) and sent to Meshy
+alone: image-to-3D, smart topology (meshy-t2), no texture (assets/meshy/forest/*_meshy.glb), then retextured with Meshy 6 from the same
 picture (2K, original UVs kept, lighting removed: assets/meshy/forest/*_textured_meshy.glb).
 Writes public/models/forest/forest-monsters.glb with objects mon_<monster>_<part>, each standing on
 its own origin, in metres, facing -Y here (+Z in the game):
@@ -29,7 +29,7 @@ put(MONSTERS, 'pangolin', 'body', parts)
 # ---- the leaf fox: head toward -Y, its leafy tail toward +Y ----
 parts = load(SRC('leaf_fox'))
 body = parts[0]
-tail = [p for p in parts[1:] if p['c'].y > 0.08]
+tail = [p for p in parts[1:] if p['c'].y > 0.15]  # the leaves behind the haunch; the one on the haunch stays with the body
 put(MONSTERS, 'fox', 'body', [body] + [p for p in parts[1:] if p not in tail])
 put(MONSTERS, 'fox', 'tail', tail)
 

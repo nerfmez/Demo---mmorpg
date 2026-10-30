@@ -30,6 +30,9 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   blood_boil: 'เลือดเดือด',
   fighting_spirit: 'ขวัญนักสู้',
   berserk: 'คลั่ง',
+  stealth: 'ซ่อนตัว',
+  steal: 'ขโมย',
+  decoy: 'ร่างแยกหลอก',
 });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

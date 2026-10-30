@@ -87,10 +87,10 @@ export function updateMonster(game, m, dt) {
 
 /** Who this monster fights: the player, or a summon that is closer and bothering it. */
 function pickTarget(game, m) {
-  if(m.tauntT>0){const forced=game.units().find(u=>u.id===m.forcedTargetId);if(forced&&!game.isSafe(forced.x,forced.z)){m.targetUnit=forced;return forced;}}
-  const p = game.player;
+  const p = game.player, hiddenHero = (p.stealthT || 0) > 0; // Stealth (core/rogue.js): out of sight
+  if(m.tauntT>0){const forced=game.units().find(u=>u.id===m.forcedTargetId);if(forced&&!game.isSafe(forced.x,forced.z)&&!(forced===p&&hiddenHero)){m.targetUnit=forced;return forced;}}
   const units = [];
-  if (!p.dead && !game.isSafe(p.x, p.z)) units.push(p);
+  if (!p.dead && !game.isSafe(p.x, p.z) && !hiddenHero) units.push(p);
   for (const a of game.allies) if (!a.dead && a.life > 0) units.push(a);
   if (!units.length) return null;
   let cur = m.targetUnit && units.includes(m.targetUnit) ? m.targetUnit : null;
@@ -105,7 +105,7 @@ function pickTarget(game, m) {
   }
   if (!cur) cur = best;
   else if (best !== cur && bd < dist(m.x, m.z, cur.x, cur.z) - 2.5) cur = best;
-  if (!m.aggro) cur = p.dead || game.isSafe(p.x, p.z) ? best : p;
+  if (!m.aggro) cur = p.dead || game.isSafe(p.x, p.z) || hiddenHero ? best : p;
   m.targetUnit = cur;
   return cur;
 }

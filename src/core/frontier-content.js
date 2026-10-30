@@ -1,7 +1,8 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
+import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -78,6 +79,7 @@ export function healUnit(g,u,amount,s,mult=1) {
 }
 export function executeFrontier(g,s,aim,mult,triggered) {
   const p=g.player,e=s.modEffects || {};
+  if(executeRogue(g,s,aim,mult))return true;
   if(s.channel){if(!p.channeling)startChannel(g,s);return true;}
   if(s.kind==='heal_target'){
     g.emit({type:'healCast',skill:s.id,x:p.x,z:p.z,radius:1.2});
@@ -310,6 +312,7 @@ export function wallBlocked(g,e,x,z){
 }
 export function tickFrontier(g,dt){
   const p=g.player;
+  tickRogue(g,dt);
   tickLightWalls(g);
   if(p.riposte&&g.time>Math.max(p.riposte.guardUntil,p.riposte.readyUntil))p.riposte=null;
   for(const [key,a] of Object.entries(p.auras||{})){

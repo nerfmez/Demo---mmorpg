@@ -588,7 +588,7 @@ function tick(real, draw = true) {
   // dodge effects as in the game (view.js): the dash streak and afterimages, roll dust (the blink and
   // the leap: skillfx/move-fx.js through fx); the body is gone between the blink's jump and its end
   vfx.syncMovement(p, hero.root.position.y, dt, hero);
-  hero.root.visible = !(p.dash?.kind === 'blink' && p.dash.moved);
+  hero.root.visible = !(p.dash?.kind === 'blink' && p.dash.moved) && !(p.stealthT > 0); // Stealth: SkillFx draws its ghost
   vfx.updateCast(dt, hero, !p.cast, p);
   // Thunder Arrow's arrows stay Hunter's Shot arrows (vfx.js) under their own lightning; a wave recipe draws its own projectile
   vfx.syncProjectiles(game, dt, simTime, recipeKind && !arrowFusion() ? benchSkip(recipeKind) : OWN_PROJECTILES);

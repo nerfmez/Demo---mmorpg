@@ -43,7 +43,7 @@ opt-in developer mode, not the online player entry. Both explicit builds include
 
 Player sessions use map/space `frontier-atlas-v1`. Azure Coast, Greenhollow Frontier
 and Moonroot Grove are regions within that space, not separate multiplayer rooms.
-The wire pose is `{x,z,facing,moving,region}` in **global atlas coordinates**. Each
+The wire pose is `{x,z,facing,moving,region}` in **global atlas coordinates**. Since protocol 5 it may also carry `hidden` (boolean: Stealth, draw nothing) and `decoy` (`null` or `{x,z,facing}` within 40 m: draw a second copy of the player there). Each
 client adds its fixed initial `coordinateOrigin` when sending and subtracts that
 same origin when rendering. Crossing a seam changes only validated `region` metadata;
 it does not replace membership, identity, interpolation or the remote rig.

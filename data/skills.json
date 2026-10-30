@@ -1331,6 +1331,88 @@
       "job": "duelist",
       "iconPending": true
     },
+    "stealth": {
+      "name": "Stealth",
+      "nameTh": "ซ่อนตัว",
+      "desc": "หายตัวจริง 5 วินาที มอนและผู้เล่นคนอื่นมองไม่เห็น (มอนเลิกตาม) โจมตีครั้งแรกจากที่ซ่อนคริแน่นอนแล้วหลุดซ่อน โดนตีก็หลุด",
+      "tags": [
+        "Attack",
+        "Buff",
+        "Duration"
+      ],
+      "kind": "stealth",
+      "power": "attack",
+      "radius": 0,
+      "duration": 5,
+      "cooldown": 18,
+      "castTime": 0.1,
+      "cost": 96,
+      "element": "none",
+      "requires": { "AGI": 5, "DEX": 4 },
+      "requiresWeapon": [
+        "dagger"
+      ],
+      "upgradeMaterial": "dusk_pelt",
+      "upgradeStat": "AGI",
+      "job": "blade",
+      "iconPending": true
+    },
+    "steal": {
+      "name": "Steal",
+      "nameTh": "ขโมย",
+      "desc": "ฉกเป้าตรงหน้า ดาเมจเบาๆ ได้ทองตามเลเวลมอน และมีโอกาส 30% ขโมยวัตถุดิบที่มอนตัวนั้นดรอปได้ 1 ชิ้น (บอส 10%) มอนแต่ละตัวโดนขโมยได้ครั้งเดียว",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Damage",
+        "Physical"
+      ],
+      "kind": "steal",
+      "power": "attack",
+      "damage": { "base": 80, "scale": 0.8 },
+      "range": 1.8,
+      "steal": { "arc": 100, "gold": 4, "goldPerLevel": 2, "itemChance": 0.3, "bossItemChance": 0.1 },
+      "cooldown": 8,
+      "castTime": 0.15,
+      "cost": 64,
+      "element": "physical",
+      "requires": { "DEX": 4, "LUK": 3 },
+      "requiresWeapon": [
+        "dagger"
+      ],
+      "upgradeMaterial": "wolf_fang",
+      "upgradeStat": "DEX",
+      "job": "blade",
+      "iconPending": true
+    },
+    "decoy": {
+      "name": "Decoy",
+      "nameTh": "ร่างแยกหลอก",
+      "desc": "ทิ้งร่างที่หน้าตาเหมือนเราไว้ 5 วินาที ร่างนี้ไม่ดึงดูดอะไร แค่หลอกตา และตัวจริงหายตัว 1.5 วินาที",
+      "tags": [
+        "Attack",
+        "Buff",
+        "Duration"
+      ],
+      "kind": "decoy",
+      "power": "attack",
+      "radius": 0,
+      "duration": 5,
+      "stealth": 1.5,
+      "cooldown": 20,
+      "castTime": 0,
+      "cost": 96,
+      "element": "none",
+      "requires": { "AGI": 6, "DEX": 5 },
+      "requiresWeapon": [
+        "dagger"
+      ],
+      "upgradeMaterial": "mirror_scale",
+      "upgradeStat": "AGI",
+      "job": "blade",
+      "iconPending": true
+    },
     "blessing": {
       "name": "Blessing of Light",
       "nameTh": "พรแห่งแสง",

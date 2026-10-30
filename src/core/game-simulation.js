@@ -12,6 +12,7 @@ import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
 import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
+import { reveal } from './rogue.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
@@ -61,6 +62,7 @@ export class Game {
     this.projectiles = [];
     this.areas = [];
     this.drops = [];
+    this.decoys = []; // Decoy copies of the hero (core/rogue.js): cosmetic, they draw nothing
     this.spawnPoints = [];
     this.pending = [];
     this.input = { moveX: 0, moveZ: 0, aimAngle: 0, aimPoint: null, aimFromPointer: false, manualAim: false };
@@ -478,7 +480,7 @@ export class Game {
       this.emit({ type: 'fail', reason: 'target', slot: i });
       return false;
     }
-    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'light_wall'].includes(s.kind);
+    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'light_wall', 'steal'].includes(s.kind);
     // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
     // Pointer aim and touch drag are explicit overrides.
     if (!point && directional && !this.input.manualAim && !s.shadowStep) { // a shadow step already chose its target
@@ -544,7 +546,7 @@ export class Game {
     const p = this.player;
     const t = this.target;
     let angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'guard_hold', 'light_wall'].includes(s.kind)) {
+    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'guard_hold', 'light_wall', 'steal'].includes(s.kind)) {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
@@ -779,6 +781,7 @@ export class Game {
     this.projectiles = [];
     this.areas = [];
     this.drops = [];
+    this.decoys = [];
     this.spawnPoints = [];
     this.zoneId = world.zoneAt(p.x, p.z).id;
     this.spawnMonsters();
@@ -918,6 +921,8 @@ export class Game {
     let dmg = adjustFrontierHit(this,m,amount,opts);
     if(m.dead)return 0;
     let crit = opts.crit ?? false;
+    // Stealth: the first hit out of hiding is a sure critical, and it ends the hiding (core/rogue.js)
+    if (!opts.byAlly && !opts.dot && this.player.stealthT > 0) { crit = true; reveal(this, 'attack'); }
     // stat perks (core/stat-perks.js) on the hero's own skill hits
     const perk = this.derived.perks && opts.skill && !opts.dot && !opts.byAlly ? perkHit(this, m, opts, crit) : null;
     if (perk) { dmg *= perk.mult; crit = perk.crit; }
@@ -1095,6 +1100,7 @@ export class Game {
     const shielded = this.drainShield(dmg);
     dmg -= shielded;
     p.hp -= dmg;
+    if (dmg > 0) reveal(this, 'hit');
     perkAfterTaken(this, dmg); // VIT's barrier; a lethal hit may be survived
     if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;

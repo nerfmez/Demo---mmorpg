@@ -1,5 +1,5 @@
 // Shared, data-driven wire contract. Content IDs only; never asset URLs or save data.
-export const PROTOCOL = 4; // 4: the chibi hair styles and faces (HAIR_STYLES, FACES)
+export const PROTOCOL = 5; // 4: the chibi hair styles and faces (HAIR_STYLES, FACES); 5: a pose may say the player is hidden (Stealth) and carry its decoy
 export const WORLD_ID = 'frontier-atlas-v1';
 export const GEAR_SLOTS = ['weapon', 'offhand', 'armor', 'helm', 'gloves', 'boots'];
 export const exact = (o, names) => !!o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === names.length && names.every(n => Object.hasOwn(o, n));
@@ -30,9 +30,17 @@ export function createProtocol({ maps, items, skills }) {
     return d.slot === slot || (slot === 'offhand' && d.slot === 'weapon' && items.weaponTypes[d.weaponType]?.hands === 'light');
   });
   const lookOK = look => exact(look, lookKeys) && HAIR_STYLES.includes(look.hairStyle) && FACES.includes(look.face) && lookKeys.slice(2).every(k => typeof look[k] === 'string' && /^#[0-9a-f]{6}$/i.test(look[k]));
+  // optional: hidden (Stealth: the others draw nothing) and decoy (a Decoy copy: {x, z, facing}, within 40 m)
+  const decoyOK = (d, p) => d === null || (exact(d, ['x', 'z', 'facing']) && Number.isFinite(d.x) && Number.isFinite(d.z) && angleOK(d.facing) && Math.hypot(d.x - p.x, d.z - p.z) <= 40);
   const poseOK = (p, map) => {
     const b = Object.hasOwn(maps, map) && maps[map].bounds;
-    if (!exact(p, map === WORLD_ID ? ['x', 'z', 'facing', 'moving', 'region'] : ['x', 'z', 'facing', 'moving']) || !Number.isFinite(p.x) || !Number.isFinite(p.z) || !angleOK(p.facing) || typeof p.moving !== 'boolean') return false;
+    if (!p || typeof p !== 'object' || Array.isArray(p)) return false;
+    const base = map === WORLD_ID ? ['x', 'z', 'facing', 'moving', 'region'] : ['x', 'z', 'facing', 'moving'];
+    const extra = Object.keys(p).filter(k => !base.includes(k));
+    if (!base.every(k => Object.hasOwn(p, k)) || !extra.every(k => k === 'hidden' || k === 'decoy')) return false;
+    if (Object.hasOwn(p, 'hidden') && typeof p.hidden !== 'boolean') return false;
+    if (!Number.isFinite(p.x) || !Number.isFinite(p.z) || !angleOK(p.facing) || typeof p.moving !== 'boolean') return false;
+    if (Object.hasOwn(p, 'decoy') && !decoyOK(p.decoy, p)) return false;
     return map === WORLD_ID ? typeof p.region === 'string' && p.region === regionAt(p.x, p.z)
       : !!b && p.x >= b.minX && p.x <= b.maxX && p.z >= b.minZ && p.z <= b.maxZ;
   };
@@ -43,10 +51,14 @@ export function createProtocol({ maps, items, skills }) {
 // Transport uses atlas coordinates, while the core and renderer keep their fixed session origin.
 export function presencePose(game) {
   const p = game.player, pose = { x: p.x, z: p.z, facing: Math.atan2(Math.sin(p.facing), Math.cos(p.facing)), moving: !!p.moving };
+  const d = game.decoys?.[0];
   if (game.world.unified) {
     [pose.x, pose.z] = game.worldPoint(p.x, p.z);
     pose.region = game.world.regionAt(p.x, p.z)?.id;
   }
+  // Stealth (core/rogue.js): the others draw nothing; a Decoy: a copy of the player stands there
+  pose.hidden = (p.stealthT || 0) > 0;
+  if (d) { const [x, z] = game.world.unified ? game.worldPoint(d.x, d.z) : [d.x, d.z]; pose.decoy = { x, z, facing: Math.atan2(Math.sin(d.facing), Math.cos(d.facing)) }; } else pose.decoy = null;
   return pose;
 }
 export function visualGear(gear, items) {

@@ -214,6 +214,8 @@ const BY_SKILL = {
   // greatshield skills (data/action-clips.json, the owner's picks): a low lunge behind the shield held
   // through the charge, a brace leaning into the raised shield, the shield slammed into the ground
   shield_rush: 'gsRush', shield_fort: 'gsFortress', faith_wall: 'gsWall',
+  // the blade's trickery, until their own reference-clip actions: Steal is the dagger's quick cut, Stealth and Decoy a flick
+  steal: 'daggerCut', stealth: 'zap', decoy: 'zap',
 };
 // skill kind -> action, for skills without their own entry
 const BY_KIND = {

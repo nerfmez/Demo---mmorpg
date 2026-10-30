@@ -29,8 +29,9 @@ const RAMPS = {
   berserk: [[0.35, 0.0, 0.04], [0.85, 0.01, 0.04], [1.0, 0.15, 0.06], [1.0, 0.6, 0.4]],
   wind: [[0.45, 0.7, 0.85], [0.75, 0.9, 0.98], [0.93, 0.99, 1.0], [1, 1, 1]],
   guard: [[0.08, 0.3, 0.9], [0.3, 0.6, 1.0], [0.7, 0.9, 1.0], [1, 1, 1]],
+  shadow: [[0.12, 0.02, 0.25], [0.35, 0.12, 0.65], [0.62, 0.42, 0.95], [0.92, 0.85, 1.0]],
 };
-const RAMP_OF = { rally: 'fire', war_cry: 'fire', blood_boil: 'blood', berserk: 'berserk', frenzy_roar: 'wind', stand_firm: 'guard' };
+const RAMP_OF = { rally: 'fire', war_cry: 'fire', blood_boil: 'blood', berserk: 'berserk', frenzy_roar: 'wind', stand_firm: 'guard', stealth: 'shadow' };
 /** Buffs whose shout is this module's (the others keep BuffFx's) and whose lasting look is this module's. */
 export const AURA_SHOUTS = new Set(['rally', 'war_cry', 'frenzy_roar', 'blood_boil', 'berserk']);
 export const AURA_LINGER = new Set(['rally', 'war_cry', 'frenzy_roar', 'stand_firm', 'team_stand', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk']);
@@ -94,6 +95,10 @@ const RUNE_FS = `varying vec2 vP; uniform float uA; uniform float uT;
     gl_FragColor = vec4(mix(vec3(1.0, 0.62, 0.12), vec3(1.0, 0.95, 0.7), clamp(edge, 0.0, 1.0)), a*uA); }`;
 const DECAL_VS = `varying vec2 vP; void main(){ vP = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position, 1.0); }`;
 
+// motes: Fighting Spirit's green life, Steal's gold
+const MOTE_LIFE_LOOK = { glow: [0.3, 0.9, 0.2], core: [0.85, 1.0, 0.55] }, MOTE_GOLD = { glow: [1.0, 0.6, 0.05], core: [1.0, 0.92, 0.5] };
+export { MOTE_GOLD };
+const SWIPE_PTS = 11, SWIPE_LIFE = 0.22;
 const FLAMES = 8, WINDS = 6, SKINS = 4, RUNES = 4, TETHERS = 6, MOTES = 18, TETHER_PTS = 9, MOTE_PTS = 6, MOTE_LIFE = 0.5;
 const out2 = (k) => 1 - (1 - k) * (1 - k);
 const UP = new THREE.Vector3(0, 1, 0);
@@ -130,6 +135,7 @@ export class AuraFx {
     this.motes = Array.from({ length: MOTES }, () => ({ from: new THREE.Vector3(), to: new THREE.Vector3(), body: null, t: 9, pts: Array.from({ length: MOTE_PTS }, () => new THREE.Vector3()) }));
     this.moteI = 0;
     this.tether = Array.from({ length: TETHER_PTS }, () => new THREE.Vector3());
+    this.sw = { t: 9, x: 0, z: 0, a: 0 }; this.swPts = Array.from({ length: SWIPE_PTS }, () => new THREE.Vector3());
     this.ripT = 9; this.ripAt = new THREE.Vector3(); this.onShake = null;
     this.q = new THREE.Quaternion(); this.v = new THREE.Vector3(); this.w = new THREE.Vector3(); this.side = new THREE.Vector3();
   }
@@ -139,8 +145,10 @@ export class AuraFx {
   }
   // the cast (the rules' 'buff'): bodies [{x, z}] the buff reached; radius its true reach
   shout(kind, x, z, radius, bodies) {
-    if (kind === 'frenzy_roar') this.burst(kind, x, z, Math.max(1.5, radius || 1.5), 0.75);
+    if (kind === 'stealth') this.burst(kind, x, z, 1.15, 0.5); // a puff of shadow (going in, coming out, a decoy fading)
+    else if (kind === 'frenzy_roar') this.burst(kind, x, z, Math.max(1.5, radius || 1.5), 0.75);
     else for (const b of bodies) this.burst(kind, b.x, b.z, kind === 'berserk' ? 1.6 : 1.25, kind === 'berserk' ? 0.9 : 0.75);
+    if (kind === 'stealth') return;
     if (kind === 'berserk') this.onShake?.(0.22, 0.4); else if (kind === 'blood_boil') this.onShake?.(0.06, 0.15); else this.onShake?.(0.08, 0.15);
   }
   burst(kind, x, z, size, life) {
@@ -148,10 +156,12 @@ export class AuraFx {
     b.kind = kind; b.x = x; b.z = z; b.r = size; b.t = 0; b.life = life;
   }
   // Fighting Spirit: a mote of life from the struck monster back to the one who hit it
-  mote(from, body) {
+  mote(from, body, look = MOTE_LIFE_LOOK) {
     const m = this.motes[this.moteI++ % MOTES];
-    m.from.copy(from); m.body = body; m.t = 0;
+    m.from.copy(from); m.body = body; m.t = 0; m.look = look;
   }
+  // Steal: a quick violet swipe of a shadow hand from the hero toward the angle (and the target)
+  swipe(x, z, angle) { this.sw.t = 0; this.sw.x = x; this.sw.z = z; this.sw.a = angle; }
   // Stand Firm: a blow on the hero ripples its skin of light where it came from
   ripple(p, fromX, fromZ) {
     const a = Math.atan2(fromX - p.x, fromZ - p.z);
@@ -182,8 +192,8 @@ export class AuraFx {
       } else {
         // fire / steam / a crimson aura bursting up off the body, burning away
         const m = flame(b.kind); if (!m) continue;
-        m.visible = true; place(m, b.x, 0, b.z); m.rotation.set(0, 0, 0); const wide = b.kind === 'blood_boil' ? 1.5 : 1, s = b.r * wide * (0.75 + 0.4 * out2(k)); m.scale.set(s, b.r * (0.9 + 0.5 * out2(k)) / wide, s);
-        const U = m.material.uniforms; U.uTime.value = t; U.uFlow.value = b.kind === 'blood_boil' ? 1.4 : 2.6; U.uAlpha.value = Math.min(1, k * 10); U.uCut.value = (b.kind === 'blood_boil' ? 0.06 : -0.06) + 0.42 * k * k; U.uHeat.value = b.kind === 'blood_boil' ? 0.02 : -0.06 * k; U.uFace.value = 0.45; U.uH.value = 1.9;
+        m.visible = true; place(m, b.x, 0, b.z); m.rotation.set(0, 0, 0); const wide = b.kind === 'blood_boil' || b.kind === 'stealth' ? 1.5 : 1, s = b.r * wide * (0.75 + 0.4 * out2(k)); m.scale.set(s, b.r * (0.9 + 0.5 * out2(k)) / wide, s);
+        const U = m.material.uniforms; U.uTime.value = t; U.uFlow.value = b.kind === 'blood_boil' || b.kind === 'stealth' ? 1.4 : 2.6; U.uAlpha.value = Math.min(1, k * 10); U.uCut.value = (b.kind === 'blood_boil' || b.kind === 'stealth' ? 0.06 : -0.06) + 0.42 * k * k; U.uHeat.value = b.kind === 'blood_boil' ? 0.02 : -0.06 * k; U.uFace.value = 0.45; U.uH.value = 1.9;
       }
     }
     // what lasts, per body
@@ -241,6 +251,14 @@ export class AuraFx {
         }
       }
     }
+    // Stealth: a violet shimmer of shadow round the hidden hero (only its own player draws any of this)
+    if (hero && (hero.stealthT || 0) > 0 && !hero.dead) {
+      const m = this.skins[si++];
+      if (m) {
+        this.ramp(m, 'stealth'); m.visible = true; place(m, hero.x, 0, hero.z); m.scale.set(0.6, 0.95, 0.6);
+        const U = m.material.uniforms; U.uTime.value = t; U.uFlow.value = 1.6; U.uAlpha.value = 0.9; U.uH.value = 1.9; U.uRipT.value = 9;
+      }
+    }
     for (; fi < FLAMES; fi++) this.flames[fi].visible = false;
     for (; wi < WINDS; wi++) this.winds[wi].visible = false;
     for (; si < SKINS; si++) this.skins[si].visible = false;
@@ -278,7 +296,17 @@ export class AuraFx {
         q.pts[MOTE_PTS - 1 - i].lerpVectors(q.from, q.to, e); q.pts[MOTE_PTS - 1 - i].y += Math.sin(Math.PI * e) * 1.1;
       }
       const a = Math.min(1, k * 6) * (1 - k * k * k);
-      W.v = 0.2; this.glow.strip(q.pts, tailGlowW, 0.9 * a, [0.3, 0.9, 0.2]); this.core.strip(q.pts, tailW, a, [0.85, 1.0, 0.55]);
+      W.v = 0.2; this.glow.strip(q.pts, tailGlowW, 0.9 * a, (q.look || MOTE_LIFE_LOOK).glow); this.core.strip(q.pts, tailW, a, (q.look || MOTE_LIFE_LOOK).core);
+    }
+    // Steal's swipe: an arc of a shadow hand sweeping across the front, drawn by its leading edge
+    if (this.sw.t < SWIPE_LIFE) {
+      this.sw.t += dt;
+      const k = Math.min(1, this.sw.t / SWIPE_LIFE), lead = out2(Math.min(1, k * 1.6)), tail = Math.max(0, (k - 0.35) / 0.65);
+      for (let i = 0; i < SWIPE_PTS; i++) {
+        const u = tail + (lead - tail) * (i / (SWIPE_PTS - 1)), a = this.sw.a + (0.9 - 1.8 * u), r = 1.25;
+        this.swPts[i].set(this.sw.x + Math.sin(a) * r, 0.95 + 0.25 * Math.sin(Math.PI * u), this.sw.z + Math.cos(a) * r);
+      }
+      W.v = 0.2 * (1 - k * 0.5); this.glow.strip(this.swPts, tailGlowW, 0.9 * (1 - k), [0.55, 0.2, 1.0]); this.core.strip(this.swPts, tailW, 1 - k * k, [0.85, 0.7, 1.0]);
     }
     this.core.end(); this.glow.end();
   }

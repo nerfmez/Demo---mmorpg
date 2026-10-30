@@ -8,8 +8,10 @@ import { Game } from '../../src/core/game.js';
 import { createCharacter } from '../../src/core/character.js';
 import { computeSkill } from '../../src/core/skills.js';
 import { craft } from '../../src/core/crafting.js';
+import { tickFrontier } from '../../src/core/frontier-content.js';
+import { updateMonster } from '../../src/core/ai.js';
 
-const GROUP = { provoke: 'guardian', blood_boil: 'duelist', fighting_spirit: 'duelist', berserk: 'duelist' };
+const GROUP = { provoke: 'guardian', blood_boil: 'duelist', fighting_spirit: 'duelist', berserk: 'duelist', stealth: 'blade', steal: 'blade', decoy: 'blade' };
 
 const fixture = (id, level = 1) => {
   const ch = createCharacter(data, { kit: 'sword' });
@@ -33,7 +35,7 @@ test('the four skills are their jobs\' buffs, learned at the workbench from real
   const drops = new Set(Object.values(data.monsters.monsters).flatMap((m) => m.drops.map((d) => d.item)));
   for (const [id, job] of Object.entries(GROUP)) {
     const def = data.skills.combat[id];
-    assert.ok(def.kind === 'buff' && def.job === job && def.iconPending && def.nameTh, id);
+    assert.ok((def.kind === 'buff' || job === 'blade') && def.job === job && def.iconPending && def.nameTh, id);
     const r = data.recipes.recipes['learn_' + id];
     assert.ok(r?.type === 'skill' && r.result === id, id);
     for (const k of Object.keys(r.cost)) assert.ok(k === 'gold' || drops.has(k), `${id}: ${k} drops somewhere`);
@@ -103,4 +105,68 @@ test('Berserk: more damage and speed, no knockback, but more damage taken, a pri
     g.damagePlayer(10, { kind: 'monster', x: g.player.x - 1, z: g.player.z }, { knock: { angle: Math.PI / 2, force: 10 } });
     assert.equal(g.player.x, x0, 'no knockback (nothing breaks a cast or channel)');
   }
+});
+
+// ---- group 3, the blade job's trickery (owner, 2026-10-30: Stealth and Decoy are player-versus-player skills) ----
+const blade = (id) => { const f = fixture(id); f.g.derived.weaponType = 'dagger'; f.s = computeSkill(f.g.ch, data, f.g.derived, 0); return f; };
+const tick = (g, t) => { for (let s = 0; s < t; s += 0.05) { g.time += 0.05; tickFrontier(g, 0.05); for (const m of g.monsters) updateMonster(g, m, 0.05); } };
+
+test('Stealth hides the hero: monsters chasing it lose it, idle ones never notice it; the first hit out of it is a sure critical and ends it; a blow ends it', () => {
+  const { g, mk, s } = blade('stealth');
+  assert.ok(s.requirementsMet);
+  const chaser = mk('chaser', 3, 0), idle = mk('idle', -4, 0);
+  Object.assign(chaser, { aggro: true, state: 'chase', targetUnit: g.player, homeX: 3, homeZ: 0 }); Object.assign(idle, { homeX: -4, homeZ: 0 });
+  g.monsters = [chaser, idle];
+  g.executeSkill(s, aim);
+  assert.ok(g.player.stealthT > 0 && g.drainEvents().some((e) => e.type === 'stealth' && e.on));
+  tick(g, 1);
+  assert.equal(chaser.aggro, false, 'lost the hero'); assert.equal(idle.aggro, false, 'never noticed it');
+  // the first hit out of hiding: a critical, and the hero shows again
+  const before = chaser.hp;
+  g.hitMonster(chaser, 1000, { element: 'physical', crit: false });
+  const critHit = before - chaser.hp;
+  assert.equal(g.player.stealthT, 0); assert.ok(g.drainEvents().some((e) => e.type === 'stealth' && !e.on && e.why === 'attack'));
+  const plain = chaser.hp; g.hitMonster(chaser, 1000, { element: 'physical', crit: false });
+  assert.ok(critHit > plain - chaser.hp, 'the hit from hiding was a critical');
+  // a blow taken ends it too
+  g.executeSkill(s, aim); g.player.hp = g.player.maxHp = 1e6;
+  g.damagePlayer(100, null); assert.equal(g.player.stealthT, 0);
+  // and it runs out on its own
+  g.executeSkill(s, aim); tick(g, s.duration + 0.2); assert.equal(g.player.stealthT, 0);
+});
+
+test('Decoy leaves a copy of the hero that draws nothing, hides the hero a moment, and goes when its time is up', () => {
+  const { g, mk, s } = blade('decoy');
+  const m = mk('m', 4, 0); Object.assign(m, { homeX: 4, homeZ: 0 }); g.monsters = [m];
+  g.executeSkill(s, aim);
+  const d = g.decoys[0];
+  assert.ok(d && d.x === g.player.x && d.z === g.player.z, 'where the hero stood');
+  assert.ok(g.drainEvents().some((e) => e.type === 'decoy'));
+  assert.equal(g.player.stealthT, data.skills.combat.decoy.stealth);
+  assert.ok(!g.units().some((u) => u.id === d.id), 'not a unit: nothing targets it');
+  tick(g, s.duration + 0.2);
+  assert.equal(g.decoys.length, 0); assert.ok(g.drainEvents().some((e) => e.type === 'decoyEnd'));
+  assert.equal(m.forcedTargetId, null);
+});
+
+test('Steal takes gold and maybe one of the monster\'s own materials, once per monster, landing at the hero\'s feet', () => {
+  const { g, mk, s } = blade('steal');
+  const S = data.skills.combat.steal.steal;
+  const boar = mk('boar', 1.5, 0); boar.level = 10; boar.def = data.monsters.monsters.tusk_boar; g.monsters = [boar];
+  g.executeSkill(s, aim);
+  const res = g.drainEvents().find((e) => e.type === 'stealResult');
+  assert.ok(res && !res.empty && res.gold >= Math.floor((S.gold + S.goldPerLevel * 10) * 0.8) && res.gold <= Math.ceil((S.gold + S.goldPerLevel * 10) * 1.2));
+  assert.ok(boar.hp < 1e6, 'a light hit');
+  const own = new Set(boar.def.drops.map((d) => d.item));
+  assert.ok(res.item === null || own.has(res.item), 'only its own materials');
+  assert.ok(g.drops.some((d) => d.item === 'gold' && d.qty === res.gold && d.x === g.player.x), 'the gold at the hero\'s feet');
+  g.executeSkill(s, aim);
+  assert.ok(g.drainEvents().find((e) => e.type === 'stealResult')?.empty, 'once per monster');
+  // over many monsters the item comes about as often as itemChance says
+  let items = 0;
+  for (let i = 0; i < 400; i++) { const m = mk('m' + i, 1.5, 0); m.level = 5; m.def = boar.def; g.monsters = [m]; g.executeSkill(s, aim); if (g.drainEvents().find((e) => e.type === 'stealResult')?.item) items++; }
+  assert.ok(Math.abs(items / 400 - S.itemChance) < 0.08, `items ${items}/400`);
+  // nothing in front: a swipe at the air
+  g.monsters = [mk('behind', -2, 0)]; g.executeSkill(s, aim);
+  assert.equal(g.drainEvents().find((e) => e.type === 'steal')?.id, null);
 });

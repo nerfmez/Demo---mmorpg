@@ -478,3 +478,9 @@ underfoot; Provoke keeps its roar and anger marks and runs a red tether from eve
 Boiling Blood bursts a low puff of dark blood steam and keeps dark maroon steam rising that thickens as HP falls;
 Fighting Spirit keeps its ring and sends a green mote of life from each struck monster back to whoever hit it;
 Berserk blasts a crimson aura with a hard shake and keeps a dense crimson flame round the hero, its eyes glowing red.
+
+Group 3, the blade's trickery (2026-10-30; owner: Stealth and Decoy are PvP skills, truly invisible to the others,
+the caster sees an effect; the decoy draws nothing). Stealth: a puff of violet shadow going in and out, the body
+hidden and a violet see-through copy of the hero re-posed every frame in a violet shimmer, seen only by its own
+player. Decoy: a copy of the hero in its own look, held in the pose it was left in, gone in a puff of shadow. Steal:
+a violet swipe of a shadow hand across the front and gold motes arcing back from the monster. No gallery access.

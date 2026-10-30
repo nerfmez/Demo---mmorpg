@@ -18,6 +18,17 @@ export const GROTTO_MONSTERS = {
   boss: { outline: '#3e1c26' }, // the Pearl Snail King, out of its shell
   bossshell: { outline: '#2c2a36' }, // the same, hidden in its shell
 };
+/**
+ * The forest's monsters from the owner's second sheet (docs/reference/forest-monster-sheet.png),
+ * made the same way (scripts/blender/forest-monsters.py, public/models/forest/forest-monsters.glb).
+ * They live in daylight: no light of their own.
+ */
+export const FOREST_MONSTERS = {
+  pangolin: { outline: '#4a3e2a', light: 0 }, // the stone pangolin
+  fox: { outline: '#5c2014', light: 0 }, // the leaf fox
+  tanuki: { outline: '#3a2818', light: 0 }, // the leaf tanuki
+};
+const LOOK = { ...GROTTO_MONSTERS, ...FOREST_MONSTERS };
 // how much of its own colour each part gives off: a little for every part, so the monsters read in
 // the dark of the cave the way the corals do, more for the pearls
 const SELF_LIGHT = 0.2, PEARL_LIGHT = 0.45, BOSS_PEARL_LIGHT = 0.3; // the boss's great pearl is golden: more would wash it white
@@ -25,7 +36,7 @@ const SELF_LIGHT = 0.2, PEARL_LIGHT = 0.45, BOSS_PEARL_LIGHT = 0.3; // the boss'
 const BOSS_LIGHT = 0.06;
 const WIDTH = 0.012;
 
-/** Load the monsters. Resolves Map(name -> {parts: {part: {geometry, glow}}, map, height}); rejects if the file is missing. */
+/** Load a monster file (the grotto's by default). Resolves Map(name -> {parts: {part: {geometry, glow}}, map, height}); rejects if the file is missing. */
 export function loadGrottoMonsters(url = 'models/grotto/grotto-monsters.glb') {
   return new Promise((resolve, reject) => {
     new GLTFLoader().load(url, (gltf) => {
@@ -40,7 +51,8 @@ export function loadGrottoMonsters(url = 'models/grotto/grotto-monsters.glb') {
         g.userData.shared = true; // kept for the page's life, like the kit
         if (!out.has(m[1])) out.set(m[1], { parts: {}, map: null });
         const mon = out.get(m[1]);
-        mon.parts[m[2]] = { geometry: g, glow: m[2] === 'pearls' ? PEARL_LIGHT : m[2] === 'pearl' ? BOSS_PEARL_LIGHT : m[1].startsWith('boss') ? BOSS_LIGHT : SELF_LIGHT };
+        const own = m[2] === 'pearls' ? PEARL_LIGHT : m[2] === 'pearl' ? BOSS_PEARL_LIGHT : m[1].startsWith('boss') ? BOSS_LIGHT : SELF_LIGHT;
+        mon.parts[m[2]] = { geometry: g, glow: LOOK[m[1]]?.light ?? own };
         if (o.material?.map && !mon.map) {
           mon.map = o.material.map;
           mon.map.userData.shared = true;
@@ -84,11 +96,12 @@ const PIVOT = {
   clam: { eye: (b) => middle(b) },
   boss: { eyel: (b) => middle(b), eyer: (b) => middle(b), pearl: (b) => middle(b) },
   bossshell: { pearl: (b) => middle(b) },
+  fox: { tail: (b) => [b.min.x, b.min.y, b.max.z] }, // the tail's root, against the fox's rump
 };
 
 /** One monster as a Group with userData.nodes {part: Group}; each moving part's group sits at its pivot. */
 export function buildMonster(monsters, name) {
-  const mon = monsters.get(name), edge = outlineMaterial(GROTTO_MONSTERS[name].outline, WIDTH);
+  const mon = monsters.get(name), edge = outlineMaterial(LOOK[name].outline, WIDTH);
   const root = new THREE.Group();
   root.name = `monster-${name}`;
   const nodes = {};
@@ -148,5 +161,20 @@ export function idleMonster(group, name, t, phase = 0) {
     }
   } else if (name === 'bossshell') {
     n.shell.rotation.z = Math.sin(k * 0.7) * 0.012; // it sits nearly still, rocking a hair
+  } else if (name === 'pangolin') {
+    // its plates rise and settle with a slow, heavy breath
+    const s = Math.sin(k * 0.9);
+    n.body.scale.set(1 + s * 0.01, 1 + s * 0.022, 1);
+  } else if (name === 'fox') {
+    // it breathes quickly, and the leaves of its tail sway like a branch in the wind
+    const s = Math.sin(k * 2.4);
+    n.body.scale.set(1 + s * 0.006, 1 + s * 0.012, 1);
+    n.tail.rotation.y = Math.sin(k * 1.3) * 0.09;
+    n.tail.rotation.x = Math.sin(k * 1.9 + 0.7) * 0.04;
+  } else if (name === 'tanuki') {
+    // it breathes and bobs on its paws, ready to pounce
+    const s = Math.sin(k * 1.8);
+    n.body.scale.set(1 + s * 0.012, 1 + s * 0.02, 1 + s * 0.008);
+    n.body.position.y = Math.max(0, Math.sin(k * 3.6)) * 0.025;
   }
 }

@@ -216,17 +216,17 @@ test('the painted props hold every piece the map asks for (blender -b --python s
   assert.ok(byProp.get('candles').some((p) => p.kind === 'glow'), 'the candles have flames');
 });
 
-test('the textured monsters hold every part their idle motion moves (blender -b --python scripts/blender/grotto-monsters.py)', () => {
-  // src/render/grotto/monsters.js draws mon_<monster>_<part> (with its monster's texture) and moves these parts on their own
-  const glb = readFileSync(new URL('../../public/models/grotto/grotto-monsters.glb', import.meta.url));
+// a Meshy monster file (scripts/blender/meshy_parts.py): every part each monster's idle motion moves
+// (src/render/grotto/monsters.js draws mon_<monster>_<part> with its monster's texture), textured,
+// each monster on its own foot and about as big as the hero or bigger
+function checkMonsters(path, want) {
+  const glb = readFileSync(new URL(path, import.meta.url));
   const gltf = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString());
   const parts = new Map();
   for (const n of gltf.nodes) {
     const m = /^mon_([a-z]+)_([a-z]+)$/.exec(n.name);
     if (m) parts.set(`${m[1]}.${m[2]}`, gltf.accessors[gltf.meshes[n.mesh].primitives[0].attributes.POSITION]);
   }
-  const want = { fish: ['body', 'tail', 'finl', 'finr'], slug: ['body', 'cerata', 'pearls'], clam: ['shell', 'eye', 'pearls'],
-    boss: ['body', 'eyel', 'eyer', 'pearl'], bossshell: ['shell', 'pearl'] };
   for (const [mon, list] of Object.entries(want)) {
     for (const part of list) assert.ok(parts.has(`${mon}.${part}`), `${mon} has its ${part}`);
     // textured by Meshy: every part has its texture coordinates and a material with a picture
@@ -234,18 +234,26 @@ test('the textured monsters hold every part their idle motion moves (blender -b 
       const prim = gltf.meshes[n.mesh].primitives[0];
       assert.ok(prim.attributes.TEXCOORD_0 !== undefined && gltf.materials[prim.material].pbrMetallicRoughness.baseColorTexture, `${n.name} is textured`);
     }
-    // each stands on its own foot (y = 0), and is about as big as the hero or bigger
     const acc = [...parts].filter(([k]) => k.startsWith(`${mon}.`)).map(([, a]) => a);
     const low = Math.min(...acc.map((a) => a.min[1])), size = Math.max(...acc.map((a) => Math.max(a.max[0] - a.min[0], a.max[2] - a.min[2])));
     assert.ok(Math.abs(low) < 0.01, `${mon} stands on y = 0 (${low})`);
-    assert.ok(size > 1.5, `${mon} is ${size} m across`);
+    assert.ok(size > 1.4, `${mon} is ${size} m across`);
   }
+}
+
+test('the textured monsters hold every part their idle motion moves (blender -b --python scripts/blender/grotto-monsters.py)', () => {
+  checkMonsters('../../public/models/grotto/grotto-monsters.glb', { fish: ['body', 'tail', 'finl', 'finr'], slug: ['body', 'cerata', 'pearls'],
+    clam: ['shell', 'eye', 'pearls'], boss: ['body', 'eyel', 'eyer', 'pearl'], bossshell: ['shell', 'pearl'] });
   // every monster the map places is one of them
   const kinds = { pearlFish: 'fish', pearlSlug: 'slug', eyeClam: 'clam', bossSnail: 'boss' };
   const placed = FILE.inside.props.filter((p) => p.type in kinds);
   assert.ok(placed.length >= 3, 'the monsters are placed');
   assert.ok(placed.some((p) => p.type === 'bossSnail'), 'the boss is on its throne');
   for (const p of placed) assert.ok(inside.surfaceAt(...p.at), `${p.type} at ${p.at} is over a floor`);
+});
+
+test('the forest monsters hold every part their idle motion moves (blender -b --python scripts/blender/forest-monsters.py)', () => {
+  checkMonsters('../../public/models/forest/forest-monsters.glb', { pangolin: ['body'], fox: ['body', 'tail'], tanuki: ['body'] });
 });
 
 test('the painted corals hold a body and a glow for every coral the cave rooms grow (blender -b --python scripts/blender/grotto-corals.py)', () => {

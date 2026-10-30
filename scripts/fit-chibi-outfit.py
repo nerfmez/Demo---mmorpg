@@ -481,7 +481,7 @@ if GLOVE:
     _wx = abs((arm.matrix_world @ arm.data.bones['LeftHand'].head_local).x)
     _hand = (P0[:, 0] ** 2 > GLOVE ** 2) & (z > C.get('armpit', 0.66)) & (z < C['neck'])
     _fade = smooth01(_wx - 0.03, _wx + 0.01, np.abs(P[:, 0])) * _hand
-    keep, m = C.get('hugKeep', 0.3), C['margin'].get('gloves', 0.004)
+    keep, m = C.get('hugKeep', 0.15), C['margin'].get('gloves', 0.004)
     H = np.zeros_like(P)
     for i in np.nonzero(_fade > 0)[0]:
         loc, n, idx, dist = body_bvh.find_nearest(Vector(P[i]))

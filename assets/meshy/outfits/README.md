@@ -67,7 +67,7 @@ inside the sleeve's `cuff`, so a fur cuff over the sleeve's end stays with the g
 files as they were. `wrist` is the model's wrist (read off front and top renders of its hand):
 Meshy draws short hands (7-23 cm from the wrist; the chibi's are 15 cm), so the glove's hand is
 mapped wrist to wrist and fingertip to fingertip onto the chibi's, and then drawn onto the hand
-inside it (`hugKeep` of its distance beyond the margin kept, 0.3): their fingers stood 2-3 cm off
+inside it (`hugKeep` of its distance beyond the margin kept, 0.15, the same for every set so all gloves sit as close on the hand): their fingers stood 2-3 cm off
 the hand and read as long fingers sticking out of the fist. Gloves: crag (`crag_gauntlets`), hide (`hide_gloves`), shell (`shell_mitts`),
 wolf (`wolf_grips`), wisp (`wisp_wraps`), ranger (`brigand_gloves`), spore (`sporeweave_gloves`),
 warden (`wardenstalker_gloves`), beetle (`beetle_gloves`), burrowguard, mirrorwing, fernstep and

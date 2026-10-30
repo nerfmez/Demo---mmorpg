@@ -54,6 +54,5 @@
  "uncover": 0.12,
  "glove": 0.31,
  "wrist": 0.38,
- "hugKeep": 0.1,
  "tipAt": 0.505
 }

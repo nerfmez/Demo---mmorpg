@@ -43,6 +43,5 @@
   "gloves": "public/models/outfits/mirrorwing_gloves.glb"
  },
  "glove": 0.42,
- "wrist": 0.45,
- "hugKeep": 0.1
+ "wrist": 0.45
 }

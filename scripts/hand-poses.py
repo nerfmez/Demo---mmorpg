@@ -105,8 +105,32 @@ for name, (clip, frac, only) in POSES.items():
     res[name] = {'clip': f'UAL1 {clip} at {frac:.2f}'}
     for s, side in (('l', 'Left'), ('r', 'Right')):
         res[name][side] = pose(S, only or s, mirror=bool(only) and only != s)
+
+# `rest`: the empty hand at rest, as an anime hand hangs: the open hand's fingers drawn together
+# (`together`: that share of their spread kept) and each curled a little further toward the fist than
+# the one before it, the index least (`curl`). The reference's free hand (its sword idle's left) holds
+# its fingers fanned and bent unevenly, and on the chibi's short fingers it read as a claw.
+REST = {'together': 0.25, 'curl': {'Thumb': 0.25, 'Index': 0.3, 'Middle': 0.36, 'Ring': 0.42, 'Pinky': 0.48}}
+
+
+def between(a, b, k):
+    v = (1 - k) * np.array(a) + k * np.array(b)
+    return v / np.linalg.norm(v)
+
+
+res['rest'] = {'clip': 'UAL1 Idle_Paper at 0.70 and Idle_Rock at 0.70, between (scripts/hand-poses.py REST)'}
+for side in ('Left', 'Right'):
+    res['rest'][side] = {}
+    for f in FINGERS:
+        out = []
+        for o, c in zip(res['open'][side][f], res['fist'][side][f]):
+            o = np.array(o, float)
+            if f != 'Thumb': o[1] *= REST['together']
+            out.append([round(float(x), 4) for x in between(o / np.linalg.norm(o), c, REST['curl'][f])])
+        res['rest'][side][f] = out
+for name in res:
     curl = {f: round(float(np.degrees(np.arccos(np.clip(res[name]['Right'][f][2][0], -1, 1)))), 0) for f in FINGERS}
-    print(name, clip, 'tip bone off the hand line (deg):', curl)
+    print(name, 'tip bone off the hand line (deg):', curl)
 
 # into data/models.json as text (the file's own layout kept): the `hands` entry replaced or added
 # as hero_chibi's first key

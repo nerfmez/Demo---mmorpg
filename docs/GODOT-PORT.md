@@ -472,13 +472,13 @@ along the haft, and the animator reaches the left arm so its fist hole (not its 
 haft after the right fist is seated (`rig.support`). Each hand has finger bones (a thumb and four
 fingers of three bones each, `Left|RightHand{Thumb,Index,Middle,Ring,Pinky}{1,2,3}`, added by
 `scripts/rig-chibi-hands.py` from the hand's own shape, the hand's skin weight shared out along each
-finger). Their poses (`hands.poses`: open, relaxed, fist, grip) come from Quaternius UAL1 clips
+finger). Their poses (`hands.poses`: open, relaxed, fist, grip, and `rest` built from open and fist: the fingers drawn together and curled a little more toward the pinky) come from Quaternius UAL1 clips
 (`scripts/hand-poses.py`) as each bone's direction in the hand's frame (F out to the middle knuckle,
 A across toward the thumb, P = F x A; a pose taken from the other hand turns P over); `handPoseQuats`
 turns each bone the least way onto its direction. A hand holding something takes `hands.holding`
 (the left also for the weapons in `hands.leftGripWith`), opened (`gripShare`: a share of each turn)
 until the circle its long fingers curl round is `hands.gripRadius` (the weapons' handles at the gear
-scale), and its hole (`gripHole`) is where the handle goes; an empty hand takes `hands.empty`. The
+scale), and its hole (`gripHole`) is where the handle goes; an empty hand takes `hands.empty` (`rest`). The
 pose is set on the finger bones before `bindSkinSync`, which keeps undriven bones at that rotation.
 In Godot set the same bone rotations. The fingers' normals are rounded about their bones at load (`roundFingers`: `hands.roundFingers` of the way from each finger vertex's normal to the way out from its bone's line), so a bent finger's few facets do not cut the toon ramp into sharp wedges. The outline is thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
 bind pose). The head is reshaped once at load toward the sheet's rounder head

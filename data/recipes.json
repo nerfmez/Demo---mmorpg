@@ -1991,6 +1991,9 @@
     "learn_light_chain": {"type":"skill","result":"light_chain","cost":{"mirror_scale":3,"glow_dust":2,"gold":45}},
     "learn_spell_wave": {"type":"skill","result":"spell_wave","cost":{"rune_core":2,"mantis_scythe":2,"gold":55}},
     "learn_draw_cut": {"type":"skill","result":"draw_cut","cost":{"rune_core":2,"wisp_core":2,"gold":60}},
+    "learn_shield_rush": {"type":"skill","result":"shield_rush","cost":{"crab_shell":4,"boar_tusk":2,"gold":25}},
+    "learn_shield_fort": {"type":"skill","result":"shield_fort","cost":{"beetle_shell":4,"wolf_pelt":2,"gold":35}},
+    "learn_faith_wall": {"type":"skill","result":"faith_wall","cost":{"crag_stone":3,"mirror_scale":2,"gold":60}},
     "travel_cap": {
       "type": "gear",
       "result": "travel_cap",

@@ -1562,6 +1562,102 @@
       "upgradeStat": "STR",
       "job": "spellblade",
       "iconPending": true
+    },
+    "shield_rush": {
+      "name": "Line Breaker",
+      "nameTh": "ทลายแนว",
+      "desc": "ตั้งท่า 0.3 วิ แล้วยกโล่ใหญ่วิ่งชนไปตามทิศเล็ง 6 ม. มอนในแนว (กว้าง 1.6 ม.) โดนดาเมจและกระเด็นออกด้านข้าง 2.5 ม. ชนบอสหรือมอนตัวใหญ่จะหยุดตรงนั้นและทำให้มึน 0.6 วิ ดาเมจได้เพิ่มตามค่าป้องกัน หยุดเมื่อชนกำแพงหรือหน้าผา ต้องถือโล่ใหญ่",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Line",
+        "Damage",
+        "Physical",
+        "Guard",
+        "Control"
+      ],
+      "kind": "dash_line",
+      "power": "attack",
+      "damage": {
+        "base": 200,
+        "scale": 1.5,
+        "defenseScale": 0.5
+      },
+      "range": 6,
+      "width": 1.6,
+      "dashTime": 0.3,
+      "aimDuringCast": true,
+      "rush": { "knockSide": 2.5, "bigRadius": 1.1, "stun": 0.6 },
+      "cooldown": 9.6,
+      "castTime": 0.3,
+      "cost": 112,
+      "element": "physical",
+      "requires": { "VIT": 3, "STR": 2 },
+      "requiresWeapon": [
+        "greatshield"
+      ],
+      "upgradeMaterial": "crab_shell",
+      "upgradeStat": "VIT",
+      "job": "guardian",
+      "iconPending": true
+    },
+    "shield_fort": {
+      "name": "Shield Fortress",
+      "nameTh": "ป้อมโล่",
+      "desc": "กดค้างตั้งโล่ใหญ่ไว้ข้างหน้า นานสุด 4 วิ ปล่อยเพื่อลดโล่ ระหว่างตั้งโล่กันการโจมตีจากด้านหน้า 140° ได้ทั้งหมด ทั้งการตีประชิดและลูกที่ยิงมา มอนที่ตีโดนโล่ถูกดันถอย 1 ม. เดินได้ 30% และเพื่อนที่ยืนหลังเราในระยะ 3 ม. รับดาเมจลดลง 30% ต้องถือโล่ใหญ่",
+      "tags": [
+        "Attack",
+        "Guard"
+      ],
+      "kind": "guard_hold",
+      "power": "attack",
+      "range": 3,
+      "arc": 140,
+      "channel": { "tick": 0.25, "manaPerSecond": 0, "moveMult": 0.3, "maxDuration": 4 },
+      "guard": { "arc": 140, "taken": 0, "push": 1, "coverRange": 3, "coverTaken": 0.7 },
+      "cooldown": 16,
+      "castTime": 0.2,
+      "cost": 96,
+      "element": "none",
+      "requires": { "VIT": 5 },
+      "requiresWeapon": [
+        "greatshield"
+      ],
+      "upgradeMaterial": "beetle_shell",
+      "upgradeStat": "VIT",
+      "job": "guardian",
+      "iconPending": true
+    },
+    "faith_wall": {
+      "name": "Wall of Faith",
+      "nameTh": "กำแพงแห่งศรัทธา",
+      "desc": "ร่าย 0.5 วิ ปักกำแพงแสงกว้าง 6 ม. ห่างไปข้างหน้า 3 ม. อยู่ได้ 6 วิ กันลูกที่มอนยิงมา มอนที่เดินผ่านกำแพงช้าลง 40% ตัวเราและเพื่อนที่อยู่ฝั่งหลังกำแพงรับดาเมจลดลง 25% มอนเดินผ่านกำแพงได้ ต้องถือโล่ใหญ่",
+      "tags": [
+        "Spell",
+        "Area",
+        "Guard",
+        "Control",
+        "Construct",
+        "Duration"
+      ],
+      "kind": "light_wall",
+      "power": "spell",
+      "range": 3,
+      "duration": 6,
+      "lightWall": { "length": 6, "thickness": 0.7, "offset": 3, "slow": 0.4, "taken": 0.75, "depth": 6 },
+      "cooldown": 24,
+      "castTime": 0.5,
+      "cost": 160,
+      "element": "holy",
+      "requires": { "VIT": 7, "INT": 5 },
+      "requiresWeapon": [
+        "greatshield"
+      ],
+      "upgradeMaterial": "crag_stone",
+      "upgradeStat": "VIT",
+      "job": "guardian",
+      "iconPending": true
     }
   },
   "movement": {

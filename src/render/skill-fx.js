@@ -41,12 +41,13 @@ import { BellFx } from './skillfx/bell-fx.js';
 import { LightChainFx } from './skillfx/lightchain-fx.js';
 import { WaveFx, wavePalette } from './skillfx/wave-fx.js';
 import { DrawFx } from './skillfx/draw-fx.js';
+import { GreatshieldFx } from './skillfx/greatshield-fx.js';
 const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -55,7 +56,7 @@ const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
 // a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
 const stormSpan = (s) => (s.repeats || 0) * ((s.repeatDelay || 0) + 0.1);
-const POST = { draw_cut: 0.95, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
+const POST = { shield_rush: 0.6, faith_wall: 0.5, draw_cut: 0.95, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**
@@ -105,9 +106,10 @@ export class SkillFx {
     this.lchain = new LightChainFx(scene, camera);
     this.wave = new WaveFx(scene, camera);
     this.draw = new DrawFx(scene, camera);
+    this.gs = new GreatshieldFx(scene, camera); // the guardian's greatshield skills
     this.lchain.locate = (id) => { for (const m of this.game.monsters) if (m.id === id) return m; return null; };
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell]) fx.onShake = shake;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
@@ -186,6 +188,7 @@ export class SkillFx {
         this.play(e.skill, e.total + (POST[e.skill] ?? 0.28), e.kind === 'melee_arc' ? this.nextSwingStep() : e.step, e.total, e.kind);
         if (e.skill === 'cross_cut') this.crossI = 0;
         if (e.skill === 'iron_body') this.iron.gather(g.player.x, g.player.z, e.total);
+        if (e.skill === 'shield_rush') this.gs.windup(g.player, e.total); // Line Breaker: light drawn in to the shield's front
         if (BUFF_LOOKS[e.skill]) this.buff.rouse(e.skill, g.player.x, g.player.z, e.total);
         if (e.skill === 'blessing') this.bless.gather(g.player.x, g.player.z, e.total);
         if (e.skill === 'killing_arrow') { // the aim: the sight line, and the reticle on a target locked in reach
@@ -213,11 +216,19 @@ export class SkillFx {
       case 'channelStart': {
         if (!SKILL_FX.has(e.skill)) return false;
         const s = this.skillOf(e.skill); if (!s) return false;
+        // Shield Fortress: the raised shield's pane of light, held while the button is (skillfx/greatshield-fx.js)
+        if (s.kind === 'guard_hold') { this.play(e.skill, e.total + 0.28, 0, e.total, 'channel_cone'); this.gs.raise(s.guard.arc); return true; }
         this.play(e.skill, e.total + 0.28, 0, e.total, 'channel_cone'); this.flame.begin(s, s.element);
         return true;
       }
       case 'channelPulse': if (!this.flame.state) return false; this.flame.pulse(e); return true;
-      case 'channelEnd': if (!this.flame.state) return false; this.flame.end(); host.anim().action = null; return true;
+      case 'channelEnd':
+        if (this.gs.fortUp) { this.gs.lower(); host.anim().action = null; return true; }
+        if (!this.flame.state) return false; this.flame.end(); host.anim().action = null; return true;
+      case 'fortBlock': this.gs.block(g.player, e.fromX, e.fromZ); return true;
+      case 'rushStop': this.gs.rushStop(e.x, e.z, e.angle); return true;
+      case 'lightWallBlock': this.gs.wallBlock(e.id, e.x, e.z); return true;
+      case 'areaEnd': this.gs.wallEnd(e.id); return false;
       case 'chargeStart': {
         if (!SKILL_FX.has(e.skill)) return false;
         const s = this.skillOf(e.skill);
@@ -256,12 +267,15 @@ export class SkillFx {
       }
       // Blink Draw: the dash's streaks, then the lane cut on arrival (skillfx/draw-fx.js)
       case 'dashStrike': {
+        if (e.skill === 'shield_rush') { this.gs.rushStart(e); return true; } // Line Breaker's charge
         if (e.skill !== 'draw_cut') return false;
         this.draw.dash(e); this.drawEchoes = 0;
         host.shake(0.05, 0.08);
         return true;
       }
-      case 'dashArrive': if (e.skill !== 'draw_cut') return false; this.draw.arrive(e.x, e.z, e.angle); return true;
+      case 'dashArrive':
+        if (e.skill === 'shield_rush') { this.gs.rushArrive(e.x, e.z); return true; }
+        if (e.skill !== 'draw_cut') return false; this.draw.arrive(e.x, e.z, e.angle); return true;
       case 'lineStrike':
         if (e.skill === 'draw_cut') { this.draw.strike(e); host.shake(0.22, 0.2); return true; }
         if (e.skill === 'earth_rend') { this.split.clear(); this.rend.strike(e); return true; }
@@ -315,6 +329,7 @@ export class SkillFx {
       case 'blinkPlayer': this.move.jump(e.fromX, e.fromZ, e.x, e.z); host.vfx.blinkEcho(e.fromX, e.fromZ, host.rig()); return true;
       case 'area': {
         if (e.owner !== 'player') return false;
+        if (e.kind === 'faith_wall') { const a = g.areas.find((q) => q.id === e.id); if (a) this.gs.wallBegin(a); return true; }
         const el = this.skillOf(e.kind)?.element;
         if (e.kind === 'arrow_rain') { this.rain.wave(e, el || 'physical', g.player); return true; }
         if (e.kind === 'meteor') { this.meteor.begin(e); return true; }
@@ -366,6 +381,7 @@ export class SkillFx {
         if (e.skill === 'holy_bell') this.bell.hit(c);
         if (e.skill === 'spell_wave') this.wave.hit(c);
         if (e.skill === 'draw_cut') this.draw.hit(c);
+        if (e.skill === 'shield_rush') this.gs.rushHit(c, e.fromX, e.fromZ);
         if (e.skill === 'light_chain') this.lchain.hit(e.id, c, g.monsters.find((q) => q.id === e.id)?.r);
         if (e.skill === 'frontline_split') this.split.cut(c);
         if (e.skill === 'interrupt_slam' || e.skill === 'sky_shatter') this.mace.hit(c, e.fromX, e.fromZ);
@@ -480,13 +496,14 @@ export class SkillFx {
     this.bless.follow(p.x, p.z);
     this.bless.update(dt);
     this.shadow.update(dt);
+    this.gs.update(dt, p);
   }
   // the offscreen flame passes, right before the main render
   prerender() { this.flame.prerender(); }
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs]) fx.clear();
     this.timers.length = 0;
   }
 }

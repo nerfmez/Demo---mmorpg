@@ -409,3 +409,52 @@ its leading end, with a faint shimmer; each is drawn by a fast leading edge and 
 (the dash streaks from where the hero left, the lane line after it parts) instead of popping in or out as
 a flat bar. The X on each monster is two such blades, the second a hair after the first, and the glow
 blobs became short spinning star glints.
+
+## Greatshield skills, round 1 (2026-10-30)
+
+The owner tried the three greatshield skills on the bench with stand-ins ("ไม่มีเอฟเฟคอะไรเลย"). The Cartoon FX
+gallery host is blocked from this session's network, so the round follows the game's approved guard language
+(Measured Riposte's pane and clash, Hold the Line's gold), `skillfx/greatshield-fx.js`:
+- Line Breaker: light drawn in to the shield's front over the wind-up; a bow wave of three gold chevrons pushed
+  ahead of the shield, speed lines streaming off the body and two skid lines on the ground; each monster reached
+  bursts gold with sparks thrown out to its side; a boss or big monster that stops the charge sets off a clash
+  (spinning stars, a glint, upright and ground rings, a hard shake); a dust ring on arrival.
+- Shield Fortress: a tall curved pane of gold glass (a faint hex weave, crisp rim, sliding shine) over the guard's
+  140 degrees while held, an arc on the ground; a blocked blow ripples the pane where it struck, with a clash star,
+  glint and sparks thrown back; it sinks away when the shield drops.
+- Wall of Faith: a line of light runs out both ways on the ground with rune ticks, then the wall rises with an
+  overshoot. The high camera sees a wall across the aim almost edge on, so its height is carried by eleven posts of
+  light (wide at the foot) joined by a bright top edge, a glow band on its footprint and motes rising, over a pane
+  whose columns stream upward; a stopped shot rings a ripple and a flash; it dissolves upward at its end.
+
+
+Round 2 (owner: "เดี๋ยวเอฟเฟคสกิลผมเคยให้บันทึกวิธีคิดวิธีทำไว้แล้วนี่"): round 1 had skipped this method. It was rebuilt
+after reading the reference skills' code (Firebolt `fireball-v5.js`, `meteor-flame.js`, `fire-extras.js`, Blizzard's
+wind wall, Blessing's and Holy Bell's shells), with their techniques; the gallery host is still blocked, so no clip was
+inspected. The force is gold light made like Firebolt's fire: two nested see-through shells per skill, cut out of
+`V5_FIELD` noise carried along the flow, a white-to-amber ramp with narrow transitions, see-through where a shell faces
+the camera; one shell program for all three. Contacts: the ragged `flashMaterial` flash in gold, sparks that bounce,
+gold embers that flutter up, dust puffs, a point light, a short shake.
+- Line Breaker: wisps spiral in to the shield over the wind-up while a knot of force swells there; the charge is a bow
+  wave (a comet shell over the shield's front, its light streaming back) with dust kicked up behind; each monster hit
+  flashes and throws sparks to the side it is knocked; a boss that stops it: a big flash, sparks, embers, a ring of
+  dust, a hard shake (a dug pit was tried; owner: no pit); on arrival the wave collapses forward.
+- Shield Fortress: the shield is planted (a low flash, dust at the curtain's foot) and a curved curtain of gold light rises
+  over the true 140° arc, flowing up and torn into short tongues at the top; a block flashes where it struck, a ripple
+  runs through the curtain, sparks fly back at the attacker; the curtain burns away from the top when the shield drops.
+- Wall of Faith: a seam of light opens along the ground in a pool of light, then the wall bursts up with an overshoot
+  (dust and embers along it, a shake). It is a row of overlapping columns under one noise field: face on it reads as one
+  curtain of holy flame, edge on (aim across the screen) as a tall row of pillars, so it keeps its height under the high
+  camera. Embers drift off it; a stopped shot flashes, ripples and throws sparks back; at its end the tongues burn away.
+Owner: no pit where the charge stops (removed). Colours (owner asked whether the three must match; agreed to try): by
+what each skill does, the guardian's gold shared by all - Line Breaker steel white with gold edges (a physical blow),
+Shield Fortress full gold (the guard), Wall of Faith pale holy white-gold like Blessing of Light (`LOOK` in
+`greatshield-fx.js`). Other jobs today: the blade job is violet and the spellblade arcane blue-violet on every skill, the
+priest holy white-gold; the duelist, archer and heavy-weapon skills each have their own colour by function.
+Owner: Wall of Faith looked like a wave and should look sturdier. The columns are now a solid wall (`uSolid`): nearly
+full cover with only a slow shimmer through it, closed flat tops lit like a lid, a hard straight top edge with a bright
+line, the columns' sides bright so they stand as pillars; at its end it sinks into the ground instead of burning away.
+Owner: no joined columns; design it again. The wall is now one slab of holy light the rules' thickness at its foot,
+narrowing upward, its top gently arched and sloping down at the ends, nearly solid with a slow shimmer rising through
+it, a bright frame round its outline and a thin inset line inside (a per-vertex distance to the outline, `aEdge`), a
+lit top; from the side it reads as a thick slab.

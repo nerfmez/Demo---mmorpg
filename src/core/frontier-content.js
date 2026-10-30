@@ -1,7 +1,7 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -119,8 +119,16 @@ export function executeFrontier(g,s,aim,mult,triggered) {
   // invulnerability); the lane it crossed is cut when it arrives (Game.updatePlayer, strikeLane)
   if(s.kind==='dash_line'){
     const v=s.range/s.dashTime;
-    p.dash={t:0,dur:s.dashTime,vx:Math.sin(aim.angle)*v,vz:Math.cos(aim.angle)*v,inv:false,kind:'draw_cut',skill:s,mult,fromX:p.x,fromZ:p.z,angle:aim.angle};
+    // Line Breaker (s.rush): the shield hits what it runs into on the way (rushContact), not on arrival
+    p.dash={t:0,dur:s.dashTime,vx:Math.sin(aim.angle)*v,vz:Math.cos(aim.angle)*v,inv:false,kind:s.rush?'shield_rush':'draw_cut',skill:s,mult,fromX:p.x,fromZ:p.z,angle:aim.angle,hit:new Set()};
     g.emit({type:'dashStrike',skill:s.id,x:p.x,z:p.z,angle:aim.angle,range:s.range,time:s.dashTime,element:s.element});
+    return true;
+  }
+  // Wall of Faith: a band of light offset ahead of the hero, across the aim. Monsters walk through it
+  // (slowed); their shots stop at it; the hero and allies on the hero's side take less (coverMult).
+  if(s.kind==='light_wall'){
+    const L=s.lightWall,x=p.x+Math.sin(aim.angle)*L.offset,z=p.z+Math.cos(aim.angle)*L.offset;
+    g.spawnArea({owner:'player',kind:'faith_wall',skill:s,x,z,radius:L.length/2,angle:aim.angle+Math.PI/2,facing:aim.angle,duration:s.duration,lightWall:L});
     return true;
   }
   if(s.kind==='wall'){
@@ -144,6 +152,34 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     }return true;
   }
   return false;
+}
+
+/**
+ * Line Breaker (dash_line with s.rush), each frame of the dash: every monster the raised shield has
+ * reached in the lane (s.width wide, from the start to just ahead of the hero) is hit once and thrown
+ * out to the side (rush.knockSide m). A boss or a big monster (radius >= rush.bigRadius) stops the
+ * charge where it stands, in front of it, and is stunned for rush.stun s.
+ */
+export function rushContact(g,d){
+  const p=g.player,s=d.skill,R=s.rush,sn=Math.sin(d.angle),cs=Math.cos(d.angle);
+  const went=(p.x-d.fromX)*sn+(p.z-d.fromZ)*cs;
+  const close=g.monsters.filter(m=>!m.dead&&m.targetable!==false&&!d.hit.has(m.id)).map(m=>{
+    const dx=m.x-d.fromX,dz=m.z-d.fromZ;return {m,forward:dx*sn+dz*cs,side:dx*cs-dz*sn};
+  }).filter(o=>o.forward>=-o.m.r&&o.forward<=went+p.r+o.m.r&&Math.abs(o.side)<=s.width/2+o.m.r).sort((a,b)=>a.forward-b.forward);
+  for(const {m,forward,side} of close){
+    d.hit.add(m.id);
+    const big=m.boss||m.r>=R.bigRadius;
+    g.hitMonster(m,s.damage*d.mult,g.hitOpts(s,{crit:g.rollCrit(),fromX:p.x,fromZ:p.z,...(big?{stun:{duration:R.stun,bossDuration:R.stun}}:{})}));
+    if(big){
+      // stopped in front of it: back to where the shield meets it
+      const stop=Math.max(0,forward-m.r-p.r);
+      if(stop<went)g.moveEntity(p,-sn*(went-stop),-cs*(went-stop));
+      d.t=d.dur;d.stopped=true;
+      g.emit({type:'rushStop',id:m.id,x:p.x,z:p.z,angle:d.angle});
+      return;
+    }
+    if(!m.dead){const k=side>=0?1:-1;g.moveEntity(m,cs*R.knockSide*k,-sn*R.knockSide*k);}
+  }
 }
 
 /** A straight lane from (x, z) along angle, range long and s.width wide: every monster in it is hit once. */
@@ -208,8 +244,21 @@ export function spreadCurse(g,m){
     if(next)next.statuses[key]={...h};
   }
 }
+/** Shield Fortress held (guard_hold, past its raise): the hit's source is in the front arc. */
+export function fortressGuard(g,source){
+  const p=g.player,c=p.channeling;
+  if(!c||c.skill.kind!=='guard_hold'||c.t<c.skill.castTime||!source||source.x===undefined)return null;
+  return Math.abs(angleDiff(p.facing,angleTo(p.x,p.z,source.x,source.z)))<=c.skill.guard.arc*DEG/2?c.skill:null;
+}
 export function applyGuard(g,amount,source,opts){
   const p=g.player,r=p.riposte;
+  // Shield Fortress takes the hit on the shield (guard.taken) and pushes a monster that struck it back
+  const fort=!opts.dot&&!opts.unblockable&&fortressGuard(g,source);
+  if(fort){
+    if(source.kind==='monster'&&!source.dead&&!source.boss&&dist(p.x,p.z,source.x,source.z)<=fort.range+source.r+1){const a=angleTo(p.x,p.z,source.x,source.z);g.moveEntity(source,Math.sin(a)*fort.guard.push,Math.cos(a)*fort.guard.push);}
+    g.emit({type:'fortBlock',x:p.x,z:p.z,angle:p.facing,fromX:source.x,fromZ:source.z});
+    return {amount:amount*fort.guard.taken,guarded:true,full:fort.guard.taken<=0};
+  }
   if(!r||g.time>r.guardUntil||!source||opts.dot||opts.unblockable)return {amount,guarded:false};
   if(Math.abs(angleDiff(p.facing,angleTo(p.x,p.z,source.x,source.z)))>r.skill.guard.arc*DEG/2)return {amount,guarded:false};
   r.guardUntil=0;r.readyUntil=g.time+r.skill.guard.readyDuration;
@@ -261,6 +310,7 @@ export function wallBlocked(g,e,x,z){
 }
 export function tickFrontier(g,dt){
   const p=g.player;
+  tickLightWalls(g);
   if(p.riposte&&g.time>Math.max(p.riposte.guardUntil,p.riposte.readyUntil))p.riposte=null;
   for(const [key,a] of Object.entries(p.auras||{})){
     if(p.dead||!activeAura(g,a)){delete p.auras[key];continue;}
@@ -275,8 +325,12 @@ export function tickFrontier(g,dt){
     const c=p.channeling,s=c.skill;
     if(p.dead||p.dash||!g.skills[c.slot]?.requirementsMet||g.skills[c.slot].id!==s.id){cancelChannel(g);return;}
     c.t+=dt;
-    const aim=g.resolveAim(s,null);p.facing=aim.angle;
-    if(c.t>=c.next){
+    // a raised shield faces where the player aims (pointer or a drag on the button); otherwise the target
+    const aimed=s.kind==='guard_hold'&&(g.input.aimFromPointer||g.input.manualAim);
+    const aim=aimed?{angle:g.input.aimAngle,x:p.x,z:p.z}:g.resolveAim(s,null);p.facing=aim.angle;
+    // Shield Fortress: a held stance, no pulses; it drops on its own after channel.maxDuration
+    if(s.kind==='guard_hold'){if(c.t>=s.castTime+s.channel.maxDuration)cancelChannel(g);}
+    else if(c.t>=c.next){
       const cost=s.channel.manaPerSecond*s.channel.tick;
       if(p.mp<cost){cancelChannel(g);return;}
       p.mp-=cost;c.next+=s.channel.tick;
@@ -294,6 +348,46 @@ export function tickFrontier(g,dt){
     for(const k of ['exposure','poise'])if(m.statuses[k]){m.statuses[k].t-=dt;if(m.statuses[k].t<=0)delete m.statuses[k];}
     if(m.wallTarget){const w=g.areas.find(a=>a.id===m.wallTarget);if(!w||w.wallHp<=0||dist(m.x,m.z,w.x,w.z)>m.r+w.r+.8){m.wallTarget=null;continue;}if(m.state!=='chase'){m.wallAttackT=0;continue;}if(!(m.wallAttackT>0))g.emit({type:'wallWindup',x:w.x,z:w.z,radius:w.r+.2,duration:w.skill.wall.breakWindup});m.wallAttackT=(m.wallAttackT||0)+dt;if(m.wallAttackT>=w.skill.wall.breakWindup){m.wallAttackT=0;w.wallHp-=m.damage;g.emit({type:'wallHit',id:w.id,x:w.x,z:w.z});}}
   }
+}
+/** A point in a light wall's frame: along its length and across it (positive on the far side from the caster). */
+function wallFrame(a,x,z){
+  const dx=x-a.x,dz=z-a.z;
+  return {along:dx*Math.sin(a.angle)+dz*Math.cos(a.angle),across:dx*Math.sin(a.facing)+dz*Math.cos(a.facing)};
+}
+const lightWalls=g=>g.areas.filter(a=>a.lightWall&&a.t<a.duration);
+/** Wall of Faith slows the monsters walking through its band (a short chill refreshed while inside). */
+export function tickLightWalls(g){
+  for(const a of lightWalls(g))for(const m of g.monsters){
+    if(m.dead)continue;
+    const f=wallFrame(a,m.x,m.z);
+    if(Math.abs(f.along)>a.radius+m.r||Math.abs(f.across)>a.lightWall.thickness/2+m.r)continue;
+    m.statuses.chill={slow:Math.max(a.lightWall.slow,m.statuses.chill?.slow||0),t:Math.max(.2,m.statuses.chill?.t||0)};
+  }
+}
+/** A monster shot meets a Wall of Faith: it stops there (true). */
+export function lightWallStops(g,pr){
+  for(const a of lightWalls(g)){
+    const f=wallFrame(a,pr.x,pr.z);
+    if(Math.abs(f.along)<=a.radius+pr.radius&&Math.abs(f.across)<=a.lightWall.thickness/2+pr.radius){g.emit({type:'lightWallBlock',id:a.id,x:pr.x,z:pr.z});return true;}
+  }
+  return false;
+}
+/**
+ * The share of a monster hit a unit still takes from cover: an ally standing behind the hero's raised
+ * Shield Fortress (within guard.coverRange), or the hero or an ally on the caster's side of a Wall of Faith
+ * (within its length and lightWall.depth) while the attacker is on the far side. The best cover counts.
+ */
+export function coverMult(g,u,source){
+  let k=1;const p=g.player,c=p.channeling;
+  if(u!==p&&c?.skill.kind==='guard_hold'&&c.t>=c.skill.castTime&&dist(p.x,p.z,u.x,u.z)<=c.skill.guard.coverRange+u.r){
+    const ahead=(u.x-p.x)*Math.sin(p.facing)+(u.z-p.z)*Math.cos(p.facing);
+    if(ahead<0)k=Math.min(k,c.skill.guard.coverTaken);
+  }
+  if(source&&source.x!==undefined)for(const a of lightWalls(g)){
+    const f=wallFrame(a,u.x,u.z),s=wallFrame(a,source.x,source.z);
+    if(f.across<0&&f.across>=-a.lightWall.depth&&Math.abs(f.along)<=a.radius+u.r&&s.across>0)k=Math.min(k,a.lightWall.taken);
+  }
+  return k;
 }
 export function endProjectile(g,pr){
   const e=pr.skill?.modEffects;if(e?.terminalBurst&&(!e.returnMult||pr.returning))secondaryBurst(g,pr.x,pr.z,e.burstRadius,pr.damage*e.terminalBurst,pr.element,pr.kind);

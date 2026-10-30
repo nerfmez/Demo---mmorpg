@@ -442,6 +442,33 @@ shared with `melee_line`) cuts the lane from the start to where the hero stopped
 `lineStrike` with the travelled length; a skill's dash fires no `on_movement` triggers. The build
 profile counts its distance as mobility.
 
+**Greatshield skills (owner 2026-10-27, levels 1/10/30 since 2026-10-30; `job: guardian`, `requiresWeapon: greatshield`).**
+*Line Breaker* (`shield_rush`) is a `dash_line` with `rush`: the dash is kind `shield_rush` and every frame
+`rushContact` (frontier-content.js) hits each monster the shield has reached in the lane (start to just ahead of the
+hero, `width` wide) once and moves it `rush.knockSide` m out to its own side; a boss or a monster with radius at least
+`rush.bigRadius` is hit with a `rush.stun` s stun, the hero is put back to where the shield meets it and the dash ends
+(`rushStop`, then `dashArrive` with `stopped`). Its damage adds `damage.defenseScale` x the hero's defense
+(`computeSkill`). *Shield Fortress* (`shield_fort`, kind `guard_hold`) is a held channel with no pulses: it pays `cost`
+once, walks at `channel.moveMult`, faces the player's own aim (pointer or a drag on the button; else the locked
+target) and drops after `channel.maxDuration` s or on release (the cooldown
+starts then). Past its `castTime` a monster hit from inside the front `guard.arc` (melee or a shot; never damage over
+time) is taken at `guard.taken` (0: no damage, no knockback, `fortBlock`) and a monster that struck from close is moved
+`guard.push` m back; an ally behind the hero (behind its facing) within `guard.coverRange` m takes `guard.coverTaken`.
+A knockback from outside the arc still breaks it. *Wall of Faith* (`faith_wall`, kind `light_wall`) spawns a player area
+with `lightWall`, `lightWall.offset` m ahead across the aim (`radius` is half its length): monsters walk through it but
+are chilled by `lightWall.slow` while in its band (`tickLightWalls`), monster projectiles that reach the band end there
+(`lightWallBlock`), and a hit on the hero or an ally standing on the caster's side within `lightWall.depth` m from an
+attacker on the far side is taken at `lightWall.taken` (`coverMult`, applied in `damageUnit`; the best cover counts).
+Their effects are `render/skillfx/greatshield-fx.js` (driven by skill-fx.js from `castStart`, `dashStrike`, `hit`,
+`rushStop`, `dashArrive`, `channelStart/End`, `fortBlock`, `area`, `lightWallBlock`, `areaEnd`). They are made like
+Firebolt: gold light cut out of Firebolt's warped noise (`V5_FIELD`) on nested see-through shells, one shader program
+(`uMode` 0 a comet shell round the shield for the charge, 1 a rising curtain: a 140° cylinder strip for the fortress, a row of
+one tapered slab along the wall, drawn solid with `uSolid`, its frame from a per-vertex distance to the outline `aEdge`); contacts use the ragged `flashMaterial` flash,
+bouncing sparks, rising embers, dust puffs (a ring of them where a boss stops the charge), a point light and a light pool
+decal under the wall. In Godot: the same noise in a spatial shader on those meshes, GPUParticles for the
+rest. The hero plays `gsRush`, `gsFortress` and `gsWall` (`data/action-clips.json`, the owner's picks: Quaternius
+Shield_Dash, Push_Loop and Sword_GroundPound on the body, the arms kept on the shield by the carry and `reach`).
+
 **Signature and basic mods (owner, 2026-10-27).** A damage skill whose base cooldown is at least
 `mods.json signatureCooldown` (12 s) carries the `Signature` tag, and every mod that multiplies a
 cast's hits (`extraProjectiles`, `repeats`, `echoDelay`, `trigger`, `returnMult`) lists `Signature`

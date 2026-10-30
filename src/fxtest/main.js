@@ -21,6 +21,7 @@ import { mulberry32 } from '../render/skillfx/fx-common.js';
 import { OCCLUDER_LAYER } from '../render/skillfx/flame-fx.js';
 import { SkillFx, OWN_PROJECTILES, ELEMENT_COLOR } from '../render/skill-fx.js';
 import { GAME_CAMERA_OFFSET } from '../render/game-camera.js';
+import { FrontierFx } from '../render/frontier-fx.js';
 
 
 const data = benchData(gameData, FUSION); // with the bench-only prototype spells (Venom Bolt)
@@ -151,6 +152,8 @@ const arrowRecipe = () => game.fusion?.recipe?.type === 'arrow_chain';
 const arrowFusion = () => game.fusion?.recipe?.type?.startsWith('arrow_'); // the carrier's own arrows, restyled
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
+// the game's simple looks for walls, guards and auras (view.js), e.g. the greatshield stand-ins
+const frontierFx = new FrontierFx(scene, { groundY: () => 0 });
 // the skill effects, driven by the same director as the game (src/render/skill-fx.js)
 const fx = new SkillFx({
   scene, camera, renderer, vfx,
@@ -172,6 +175,9 @@ function rebuild() {
   if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, haste: state.haste ?? null });
   game.aimAt(aimAngle);
+  // heal numbers show only real heals (Life Leech, a kill's heal), not the steady regeneration every frame
+  const heal = game.healPlayer.bind(game);
+  game.healPlayer = (amount, quiet) => { const p = game.player, before = p.hp; heal(amount, quiet); healed += p.hp - before; };
   const off = data.skills.combat[state.skill]?.requiresOffhand || state.offhand || null; // Shield Bash holds a shield; setOffhand a second weapon
   const weapon = state.weapon || BENCH_WEAPON[state.skill]; // setWeapon: another weapon in the right hand
   if (weapon !== heroWeapon || off !== heroOffhand) buildHero(weapon, off);
@@ -189,7 +195,7 @@ function rebuild() {
 }
 const skillDef = () => game.skills[0];
 function clearFx() {
-  fx.clear(); flameSlash.clear(); thunderArrow.clear();
+  fx.clear(); flameSlash.clear(); thunderArrow.clear(); frontierFx.clear();
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -204,7 +210,7 @@ function castDown() {
   if (!game.castSlot(0, aimPoint())) return; // still cooling down
   stats.casts++;
   stats.last = { hits: 0, total: 0 };
-  if (s.kind === 'channel_cone' || s.charge) state.holding = true;
+  if (s.kind === 'channel_cone' || s.kind === 'guard_hold' || s.charge) state.holding = true; // held: Flame Stream, Shield Fortress
   drain();
 }
 function castUp() {
@@ -235,7 +241,7 @@ function floatNumber(x, y, z, text, color, big) {
   const n = numbers.find((q) => q.el === el) || (numbers.push({ el }), numbers[numbers.length - 1]);
   Object.assign(n, { x: x + (Math.random() - 0.5) * 0.5, y, z, t: 0 });
 }
-let lastHp = 0, banner = null, bannerT = 0;
+let lastHp = 0, healed = 0, banner = null, bannerT = 0;
 function showBanner(text) { banner = text; bannerT = 1.2; const b = document.getElementById('banner'); b.textContent = text; b.style.opacity = 1; }
 
 // ---------- core events -> effects ----------
@@ -275,6 +281,11 @@ function drain() {
     }
     // a skill the effects director leaves alone (Hunter's Shot) still gets its pose, as in the game (view.js)
     if (e.type === 'castStart' && !drawn) { heroAnim.play(e.skill, e.total + 0.28, heroWeapon, e.step, e.total, e.kind); vfx.beginCast(e, skillDef().element); }
+    // a held skill the effects leave alone (Shield Fortress) holds its pose while held, as in view.js
+    if (e.type === 'channelStart' && !drawn) heroAnim.play(e.skill, e.total + 0.28, heroWeapon, 0, e.total, 'channel_cone');
+    if (e.type === 'channelEnd' && !drawn) heroAnim.action = null;
+    if (!drawn) frontierFx.event(e);
+    if (e.type === 'playerHit' && e.blocked && e.amount === 0) showBanner('กันได้!');
     if (e.type === 'hit') {
       const d = dummyOf(e.id); if (!d) continue;
       const el = e.element || 'physical';
@@ -467,7 +478,7 @@ function renderPanel() {
   renderStats();
 
   const castLabel = document.getElementById('castLabel');
-  castLabel.textContent = s.kind === 'channel_cone' ? 'กดค้าง' : s.recipe?.chargeTime ? 'ชาร์จ' : 'ร่าย';
+  castLabel.textContent = s.kind === 'channel_cone' || s.kind === 'guard_hold' ? 'กดค้าง' : s.recipe?.chargeTime ? 'ชาร์จ' : 'ร่าย';
   document.getElementById('dodge').classList.toggle('hint', !!s.trigger);
 }
 function renderStats() {
@@ -534,15 +545,16 @@ function tick(real, draw = true) {
   // auto cast: whenever the skill is ready (at most every 1.2 s); Flame Stream held 1.4 s
   if (state.auto) {
     autoT -= dt;
-    if (autoT <= 0 && !(game.player.cooldowns[0] > 0)) { castDown(); autoT = skillDef().kind === 'channel_cone' ? 2.4 : skillDef().charge ? 2.8 : 1.2; }
+    if (autoT <= 0 && !(game.player.cooldowns[0] > 0)) { castDown(); autoT = skillDef().kind === 'channel_cone' || skillDef().kind === 'guard_hold' ? 2.4 : skillDef().charge ? 2.8 : 1.2; }
     if (state.holding && autoT < 1.0 && !castBtn.matches(':active')) castUp();
   }
   // held like the game's attack button: a plain skill repeats whenever it is ready
-  if (state.pressHeld && !state.holding && !skillDef().charge && skillDef().kind !== 'channel_cone' && !game.player.cast && !(game.player.cooldowns[0] > 0)) castDown();
+  if (state.pressHeld && !state.holding && !skillDef().charge && skillDef().kind !== 'channel_cone' && skillDef().kind !== 'guard_hold' && !game.player.cast && !(game.player.cooldowns[0] > 0)) castDown();
   game.benchStep(dt);
   drain();
   const p = game.player;
-  if (p.hp > lastHp + 0.5) floatNumber(p.x, 2.3, p.z, '+' + Math.round(p.hp - lastHp), '#7dff9a');
+  if (healed > 0.5) floatNumber(p.x, 2.3, p.z, '+' + Math.round(healed), '#7dff9a');
+  healed = 0;
   lastHp = p.hp;
   if (lastHp > p.maxHp * 0.9) { p.hp = p.maxHp * 0.6; lastHp = p.hp; } // keep room for Life Leech to show
 
@@ -581,6 +593,7 @@ function tick(real, draw = true) {
   // Thunder Arrow's arrows stay Hunter's Shot arrows (vfx.js) under their own lightning; a wave recipe draws its own projectile
   vfx.syncProjectiles(game, dt, simTime, recipeKind && !arrowFusion() ? benchSkip(recipeKind) : OWN_PROJECTILES);
   vfx.syncAreas(game, dt, simTime); // warning circles and zones of skills without their own bench effect
+  frontierFx.sync(game, dt, simTime);
   if (hero.bones?.weapon) { hero.bones.weapon.getWorldPosition(nockAt); nockAt.y += 0.05; }
   thunderArrow.update(dt, game.projectiles, arrowRecipe() ? recipeKind : null, nockAt);
   vfx.update(dt);

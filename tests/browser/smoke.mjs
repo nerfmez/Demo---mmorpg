@@ -8,7 +8,7 @@
 import { completeOpeningUi } from './opening-helper.mjs';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { enterFullscreenGate } from './fullscreen-entry.mjs';
 import { initialUiReady, chibiHeroReady } from './startup-ready.mjs';
 
@@ -376,9 +376,10 @@ async function chibiHero() {
     const palm = hand.localToWorld(view.hero.gripCenter.clone()), at = socket.getWorldPosition(palm.clone());
     const fingers = palm.clone().sub(hand.getWorldPosition(palm.clone())).normalize();
     const blade = palm.clone().set(0, 0, 1).applyQuaternion(socket.getWorldQuaternion(hand.quaternion.clone()));
-    // the sword hand closes into its fist; the empty left hand stays open
-    let fists = null;
-    body.traverse((o) => { if (o.isSkinnedMesh && o.morphTargetInfluences && !fists) fists = [...o.morphTargetInfluences]; });
+    // the sword hand closes round the handle; the empty left hand is curled a little (each middle
+    // finger's bend: its three bones' turns, chibi-body.js poseHand)
+    const bend = (side) => [1, 2, 3].reduce((a, k) => a + 2 * Math.acos(Math.min(1, Math.abs(body.getObjectByName(`${side}HandMiddle${k}`)?.quaternion.w ?? 1))), 0);
+    const fists = [bend('Right'), bend('Left')];
     return { skinned, textured, h, grip: palm.distanceTo(at), cross: Math.abs(fingers.dot(blade)), fists, garments: [...new Set(garments)].sort() };
   });
   check(info.skinned === 2 && info.textured === 2, `chibi hero: body and outline load with the texture (${JSON.stringify(info)})`);
@@ -386,9 +387,8 @@ async function chibiHero() {
   check(info.garments.includes('boots') && (info.garments.includes('armor') || ['pants', 'top'].every((k) => info.garments.includes(k))), `chibi hero: wears the outfit's top, trousers and boots (${info.garments})`);
   check(info.h > 0.15, `chibi hero: head stays above the hips while running (${info.h.toFixed(2)} m)`);
   check(info.grip < 0.001 && info.cross < 0.25, `chibi hero: sword held in the fist, fingers across the handle (${info.grip.toFixed(4)} m, ${info.cross.toFixed(2)})`);
-  // an empty hand rests part way curled (data/models.json hero_chibi.fist.relaxed)
-  const relaxed = JSON.parse(readFileSync(new URL('../../data/models.json', import.meta.url), 'utf8')).characters.hero_chibi.fist.relaxed ?? 0;
-  check(info.fists?.join() === `1,${relaxed}`, `chibi hero: sword hand closed, empty left hand relaxed (${info.fists})`);
+  // the finger bones take the holding and empty poses (data/models.json hero_chibi.hands)
+  check(info.fists[0] > 1.2 && info.fists[1] > 0.2 && info.fists[1] < info.fists[0], `chibi hero: sword hand closed, empty left hand relaxed (${info.fists.map((a) => a.toFixed(2))} rad)`);
   check(errors.length === 0, `chibi hero: no page errors ${errors.slice(0, 3).join(' | ')}`);
   await page.screenshot({ path: `${OUT}chibi-hero.png` });
   await ctx.close();

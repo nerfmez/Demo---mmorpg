@@ -446,3 +446,8 @@ gold embers that flutter up, dust puffs, a point light, a short shake.
   (dust and embers along it, a shake). It is a row of overlapping columns under one noise field: face on it reads as one
   curtain of holy flame, edge on (aim across the screen) as a tall row of pillars, so it keeps its height under the high
   camera. Embers drift off it; a stopped shot flashes, ripples and throws sparks back; at its end the tongues burn away.
+Owner: no pit where the charge stops (removed). Colours (owner asked whether the three must match; agreed to try): by
+what each skill does, the guardian's gold shared by all - Line Breaker steel white with gold edges (a physical blow),
+Shield Fortress full gold (the guard), Wall of Faith pale holy white-gold like Blessing of Light (`LOOK` in
+`greatshield-fx.js`). Other jobs today: the blade job is violet and the spellblade arcane blue-violet on every skill, the
+priest holy white-gold; the duelist, archer and heavy-weapon skills each have their own colour by function.

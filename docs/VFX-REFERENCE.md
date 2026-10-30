@@ -427,3 +427,22 @@ gallery host is blocked from this session's network, so the round follows the ga
   light (wide at the foot) joined by a bright top edge, a glow band on its footprint and motes rising, over a pane
   whose columns stream upward; a stopped shot rings a ripple and a flash; it dissolves upward at its end.
 
+
+Round 2 (owner: "เดี๋ยวเอฟเฟคสกิลผมเคยให้บันทึกวิธีคิดวิธีทำไว้แล้วนี่"): round 1 had skipped this method. It was rebuilt
+after reading the reference skills' code (Firebolt `fireball-v5.js`, `meteor-flame.js`, `fire-extras.js`, Blizzard's
+wind wall, Blessing's and Holy Bell's shells), with their techniques; the gallery host is still blocked, so no clip was
+inspected. The force is gold light made like Firebolt's fire: two nested see-through shells per skill, cut out of
+`V5_FIELD` noise carried along the flow, a white-to-amber ramp with narrow transitions, see-through where a shell faces
+the camera; one shell program for all three. Contacts: the ragged `flashMaterial` flash in gold, sparks that bounce,
+gold embers that flutter up, dust puffs, a point light, a short shake.
+- Line Breaker: wisps spiral in to the shield over the wind-up while a knot of force swells there; the charge is a bow
+  wave (a comet shell over the shield's front, its light streaming back) with dust kicked up behind; each monster hit
+  flashes and throws sparks to the side it is knocked; a boss that stops it: a big flash, sparks, embers, a dug pit
+  (`ground-kit` crater, freshly dug soil) and a ring of dust, a hard shake; on arrival the wave collapses forward.
+- Shield Fortress: the shield is planted (a low flash, dust at the curtain's foot) and a curved curtain of gold light rises
+  over the true 140° arc, flowing up and torn into short tongues at the top; a block flashes where it struck, a ripple
+  runs through the curtain, sparks fly back at the attacker; the curtain burns away from the top when the shield drops.
+- Wall of Faith: a seam of light opens along the ground in a pool of light, then the wall bursts up with an overshoot
+  (dust and embers along it, a shake). It is a row of overlapping columns under one noise field: face on it reads as one
+  curtain of holy flame, edge on (aim across the screen) as a tall row of pillars, so it keeps its height under the high
+  camera. Embers drift off it; a stopped shot flashes, ripples and throws sparks back; at its end the tongues burn away.

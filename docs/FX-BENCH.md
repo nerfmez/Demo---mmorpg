@@ -300,10 +300,11 @@ rules' `damagePlayer` (bench-only; the hero is never brought below 30% life).
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.
 
-## Greatshield skills (2026-10-30, stand-in looks)
+## Greatshield skills (2026-10-30)
 
 Line Breaker, Shield Fortress and Wall of Faith are on the bench with a greatshield, drawn by
-`render/skillfx/greatshield-fx.js` in the guardian's gold (first round; the bench also runs
+`render/skillfx/greatshield-fx.js` in the guardian's gold (round 2: Firebolt's noise-cut shells, see
+`docs/VFX-REFERENCE.md`; the bench also runs
 `render/frontier-fx.js` now, like the game). The bench shows heal numbers only for real heals (Life Leech, a
 kill's heal), not the regeneration every frame (owner: the numbers popped constantly). Each layout gives
 something to watch the rules do:

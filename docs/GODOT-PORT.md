@@ -460,9 +460,13 @@ are chilled by `lightWall.slow` while in its band (`tickLightWalls`), monster pr
 (`lightWallBlock`), and a hit on the hero or an ally standing on the caster's side within `lightWall.depth` m from an
 attacker on the far side is taken at `lightWall.taken` (`coverMult`, applied in `damageUnit`; the best cover counts).
 Their effects are `render/skillfx/greatshield-fx.js` (driven by skill-fx.js from `castStart`, `dashStrike`, `hit`,
-`rushStop`, `dashArrive`, `channelStart/End`, `fortBlock`, `area`, `lightWallBlock`, `areaEnd`; in Godot a ribbon trail,
-a shader pane on a cylinder strip and a shader quad plus particle posts); the hero still borrows the shield shove and the
-riposte guard until their own reference-clip actions.
+`rushStop`, `dashArrive`, `channelStart/End`, `fortBlock`, `area`, `lightWallBlock`, `areaEnd`). They are made like
+Firebolt: gold light cut out of Firebolt's warped noise (`V5_FIELD`) on nested see-through shells, one shader program
+(`uMode` 0 a comet shell round the shield for the charge, 1 a rising curtain: a 140° cylinder strip for the fortress, a row of
+overlapping open columns along the wall so it keeps its height edge on); contacts use the ragged `flashMaterial` flash,
+bouncing sparks, rising embers, dust puffs, a dug pit (`ground-kit` crater) where a boss stops the charge, a point light and
+a light pool decal under the wall. In Godot: the same noise in a spatial shader on those meshes, GPUParticles for the
+rest. The hero still borrows the shield shove and the riposte guard until their own reference-clip actions.
 
 **Signature and basic mods (owner, 2026-10-27).** A damage skill whose base cooldown is at least
 `mods.json signatureCooldown` (12 s) carries the `Signature` tag, and every mod that multiplies a

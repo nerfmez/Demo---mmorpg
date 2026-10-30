@@ -240,13 +240,13 @@ Stat thresholds (owner, 2026-10-29): `progression.statPerks` lists, per stat, fo
 total points (`id`, `at`, `nameTh`, `descTh` and the perk's own numbers). `derive()` sets `d.perks` to the
 unlocked ones (`stat-perks.js activePerks`, null when none) and adds AGI 150's movement charge after the caps.
 `src/core/stat-perks.js` holds the rules as hooks the simulation calls. Every perk works for every skill
-and weapon (owner: a stat is used by several styles, so no perk helps only one). `executeSkill` asks
-`perkSkillStart` which skill to run: every Nth damaging cast (4th, 3rd at STR 200) runs as a copy marked
-`perkHeavy`, and `hitOpts` passes `heavy` (and `tags`) so arrows and areas carry it. `perkHit` runs before
-crit in `hitMonster` for the hero's own skill hits (also returns DEX's `penetrate`, applied to defense; DEX 150's
-bonus grows on hits to `player.targetId` and starts again on a new target; `computeSkill` adds DEX 100's `rangePct`) and
-`perkAfterHit` after it (DEX crit marks `perkMarks` on the monster, STR's
-shockwave as `secondary` hits, INT's MP return once per cast), `perkCast(g, s, slot, paid)` in `castSlot`
+and weapon (owner: a stat is used by several styles, so no perk helps only one). No perk staggers (owner).
+`computeSkill` widens Melee skills by STR 50's `widthPct` (arc, and a `melee_nova`'s radius) and adds DEX 100's
+`rangePct`. `perkHit` runs before crit in `hitMonster` for the hero's own skill hits: STR 150 on a monster's first
+hit (`perkStruck`, set on the monster; a respawn is a new monster), STR 200 below `hpPct`, DEX 150's bonus on hits
+to `player.targetId` (starts again on a new target), and it returns DEX's `penetrate`, applied to defense.
+`perkAfterHit` runs after it (DEX crit marks `perkMarks` on the monster, INT's MP return once per cast), `perkKill`
+in `killMonster` (STR 100 heals `healPct` of max HP, not for a summoned minion), `perkCast(g, s, slot, paid)` in `castSlot`
 (INT's pending return and every 5th paid cast refunded, LUK's cooldown reset), `perkMovement` in
 `useMovement`, `perkDodge` on a dodge, `perkInvulnerable`/`perkTaken`/`perkSteady`/`perkAfterTaken` in
 `damagePlayer` (VIT's barrier and the two lethal-hit saves), `perkRegen` and `perkShield` in

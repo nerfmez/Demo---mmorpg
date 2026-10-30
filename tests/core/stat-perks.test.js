@@ -47,7 +47,7 @@ test('every stat has four perks at 50/100/150/200, named and described, and the 
     }
   }
   const stats = { STR: 149, AGI: 0, DEX: 50, LUK: 0, INT: 200, VIT: 0 };
-  assert.deepEqual(Object.keys(activePerks(data, stats)).sort(), ['dex_armor', 'int_free', 'int_flow', 'int_focus', 'int_return', 'str_crush', 'str_heavy'].sort());
+  assert.deepEqual(Object.keys(activePerks(data, stats)).sort(), ['dex_armor', 'int_free', 'int_flow', 'int_focus', 'int_return', 'str_rally', 'str_wide'].sort());
   const list = perkList(data, stats);
   assert.equal(list.length, 6);
   assert.deepEqual(list.find((r) => r.stat === 'STR').perks.map((p) => p.active), [true, true, false, false]);
@@ -56,52 +56,41 @@ test('every stat has four perks at 50/100/150/200, named and described, and the 
   assert.equal(g.derived.perks, null);
 });
 
-test('STR: every 4th attack of any kind is heavy (+40%, staggers), every 3rd at 200; a staggered enemy takes +25% at 100', () => {
+test('STR: melee sweeps wider at 50, a kill heals at 100, the first hit on an enemy at 150 and a low enemy at 200 hit harder', () => {
   const { g, m } = setup({ STR: 50 });
-  const hits = [swing(g, m), swing(g, m), swing(g, m), swing(g, m), swing(g, m)];
-  assert.ok(Math.abs(hits[3] / hits[0] - 1.4) < 0.02, hits.join());
-  assert.ok(Math.abs(hits[4] / hits[0] - 1) < 0.02, hits.join());
-  g.player.perk.swings = 3;
-  m.staggerT = 0;
+  const base = computeSkill(g.ch, data, { ...g.derived, perks: null }, 0);
+  assert.ok(base.tags.has('Melee') && base.arc * 1.15 < 360);
+  assert.ok(Math.abs(g.skills[0].arc / base.arc - 1.15) < 0.001);
+  // nothing staggers: STR's perks never add a stagger of their own
+  const hp = m.hp;
   g.executeSkill(g.skills[0], aimAt(g, m));
-  assert.ok(m.staggerT >= 0.4 - 1e-9, 'the heavy blow staggers');
-  // not only melee: the 4th cast is a heavy arrow or spell too, and the mark rides on its projectile
-  const fb = g.skills[g.ch.slots.findIndex((q) => q.skill === 'firebolt')];
-  g.player.perk.swings = 0;
-  for (let i = 0; i < 3; i++) g.executeSkill(fb, aimAt(g, m));
-  g.projectiles.length = 0;
-  g.executeSkill(fb, aimAt(g, m));
-  assert.equal(g.projectiles.at(-1).skill.perkHeavy, true);
-  assert.equal(g.hitOpts(g.projectiles.at(-1).skill).heavy, true);
+  assert.ok(m.hp < hp);
 
-  const t = setup({ STR: 200 });
-  const h = [swing(t.g, t.m), swing(t.g, t.m), swing(t.g, t.m)];
-  assert.ok(Math.abs(h[2] / h[0] - 1.4) < 0.02, h.join());
-  // a boss is staggered by the heavy blow only at 200
-  t.m.boss = true;
-  swing(t.g, t.m); swing(t.g, t.m);
-  t.m.staggerT = 0;
-  t.g.executeSkill(t.g.skills[0], aimAt(t.g, t.m));
-  assert.ok(t.m.staggerT >= 0.25 - 1e-9);
+  // 100: a kill heals 3% of max HP; a summoned minion gives nothing
+  const k = setup({ STR: 100 });
+  k.g.player.hp = 100;
+  Object.assign(k.m, { hp: 1, exp: 0, jobExp: 0 }); // no level-up heal in the way
+  k.g.executeSkill(k.g.skills[0], aimAt(k.g, k.m));
+  assert.ok(k.m.dead);
+  assert.ok(Math.abs(k.g.player.hp - (100 + k.g.player.maxHp * 0.03)) < 1, `${k.g.player.hp}`);
+  const n = setup({ STR: 100 });
+  n.g.player.hp = 100;
+  Object.assign(n.m, { hp: 1, exp: 0, jobExp: 0, minion: true });
+  n.g.executeSkill(n.g.skills[0], aimAt(n.g, n.m));
+  assert.equal(n.g.player.hp, 100);
 
-  const c = setup({ STR: 100 });
-  const plain = swing(c.g, c.m);
-  c.g.player.perk.swings = 0;
-  const hp = c.m.hp;
-  c.m.staggerT = 0.5;
-  c.g.executeSkill(c.g.skills[0], aimAt(c.g, c.m));
-  assert.ok(Math.abs((hp - c.m.hp) / plain - 1.25) < 0.02);
-});
+  // 150: the first hit an enemy takes is +40%, later ones are not
+  const o = setup({ STR: 150 });
+  const first = swing(o.g, o.m), second = swing(o.g, o.m);
+  assert.ok(Math.abs(first / second - 1.4) < 0.02, `${first} ${second}`);
 
-test('STR 150: a crit sends a shockwave to the enemies around the target', () => {
-  const { g, m } = setup({ STR: 150 });
-  const o = g.monsters.find((q) => q !== m && q.dead);
-  Object.assign(o, { dead: false, x: m.x + 1.5, z: m.z + 1.8, hp: 1e6, maxHp: 1e6 });
-  g.derived.critChance = 1;
-  g.drainEvents();
-  g.executeSkill(g.skills[0], aimAt(g, m));
-  assert.ok(o.hp < 1e6, 'the neighbour outside the swing is hit by the shockwave');
-  assert.ok(g.drainEvents().some((e) => e.type === 'perk' && e.id === 'str_quake'));
+  // 200: below 30% HP the hit is +30% (the opener is spent first)
+  const c = setup({ STR: 200 });
+  swing(c.g, c.m);
+  const high = swing(c.g, c.m);
+  c.m.hp = c.m.maxHp * 0.2;
+  const low = swing(c.g, c.m);
+  assert.ok(Math.abs(low / high - 1.3) < 0.02, `${low} ${high}`);
 });
 
 test('AGI: a quick cast after moving, a dodge refunds a charge, +1 charge, a doubled hit after a dodge', () => {

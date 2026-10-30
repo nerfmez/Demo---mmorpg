@@ -472,10 +472,10 @@
   "statPerks": {
     "_doc": "Stat thresholds (owner, 2026-10-29): reaching 50/100/150/200 total points (trained + Job Tree + gear) in a stat unlocks a perk that changes behaviour, not just numbers. Rules in src/core/stat-perks.js; nameTh/descTh show on the stats page.",
     "STR": [
-      {"id":"str_heavy","at":50,"nameTh":"หนักแน่น","descTh":"สกิลโจมตีทุกครั้งที่ 4 (ทุกอาวุธ ทุกสาย) เป็นท่าหนัก: แรงขึ้น 40% และทำให้ศัตรูชะงัก 0.4 วินาที","every":4,"mult":1.4,"stagger":0.4},
-      {"id":"str_crush","at":100,"nameTh":"ทุบทะลวง","descTh":"ตีศัตรูที่กำลังชะงักแรงขึ้น 25%","mult":1.25},
-      {"id":"str_quake","at":150,"nameTh":"แรงสะเทือน","descTh":"คริติคอลส่งแรงกระแทก 30% ของดาเมจไปยังศัตรูรอบเป้าในรัศมี 2.5 เมตร","share":0.3,"radius":2.5},
-      {"id":"str_titan","at":200,"nameTh":"พลังยักษ์","descTh":"ท่าหนักมาทุกครั้งที่ 3 และทำให้บอสชะงัก 0.25 วินาที","every":3,"bossStagger":0.25}
+      {"id":"str_wide","at":50,"nameTh":"ฟันกว้าง","descTh":"วงโจมตีของสกิลประชิดกว้างขึ้น 15% (มุมฟัน และรัศมีท่าหมุนรอบตัว)","widthPct":15},
+      {"id":"str_rally","at":100,"nameTh":"ฮึดสู้","descTh":"ฆ่าศัตรูได้ ฟื้น HP 3% ของ HP สูงสุด","healPct":3},
+      {"id":"str_opener","at":150,"nameTh":"เปิดฉาก","descTh":"ตีโดนศัตรูที่ยังไม่เคยโดนตี แรงขึ้น 40%","mult":1.4},
+      {"id":"str_crush","at":200,"nameTh":"บดขยี้","descTh":"ตีศัตรูที่ HP เหลือต่ำกว่า 30% แรงขึ้น 30%","hpPct":30,"mult":1.3}
     ],
     "AGI": [
       {"id":"agi_rush","at":50,"nameTh":"ก้าวเร่ง","descTh":"หลังใช้สกิลเคลื่อนที่ สกิลถัดไปภายใน 2 วินาทีร่ายเร็วขึ้น 30%","window":2,"speed":0.3},

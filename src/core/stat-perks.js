@@ -7,7 +7,6 @@
  *
  * Perk rolls use `game.perkRng`, a stream of their own, so unlocking a perk changes no other seeded roll.
  */
-import { dist } from './math.js';
 import { manaLimit } from './frontier-content.js';
 
 export const PERK_STATS = ['STR', 'AGI', 'DEX', 'LUK', 'INT', 'VIT'];
@@ -32,39 +31,22 @@ const perk = (g, id) => g.derived.perks?.[id];
 
 /** The hero's perk timers and counters (kept on the player, made on first use). */
 function state(g) {
-  return (g.player.perk ||= { swings: 0, casts: 0, focusId: null, focusHits: 0, grazeReady: 0, shadowUntil: -1, invUntil: -1, escapeReady: 0, undyingReady: 0, ironReady: 0, refunds: {} });
+  return (g.player.perk ||= { casts: 0, focusId: null, focusHits: 0, grazeReady: 0, shadowUntil: -1, invUntil: -1, escapeReady: 0, undyingReady: 0, ironReady: 0, refunds: {} });
 }
 
 /**
- * A skill goes off (not a repeat, echo or trigger): STR counts attacks of every kind (melee, arrows,
- * spells) and every Nth is heavy. Returns the skill to run: a heavy one is a copy marked `perkHeavy`,
- * so its projectiles and areas carry the mark to wherever they land.
- */
-export function perkSkillStart(g, s, counted) {
-  const heavy = perk(g, 'str_heavy');
-  if (!counted || !heavy || !has(s.tags, 'Damage')) return s;
-  const st = state(g);
-  st.swings++;
-  if (st.swings < (perk(g, 'str_titan')?.every || heavy.every)) return s;
-  st.swings = 0;
-  g.emit({ type: 'perk', id: heavy.id, x: g.player.x, z: g.player.z });
-  return { ...s, perkHeavy: true };
-}
-
-/**
- * A hit from the hero's own skill, before crit and defense. Returns { mult, crit, critMult, stagger,
- * bossStagger } for hitMonster.
+ * A hit from the hero's own skill, before crit and defense. Returns { mult, crit, critMult, penetrate }
+ * for hitMonster.
  */
 export function perkHit(g, m, opts, crit) {
   const p = g.player, st = state(g);
-  let mult = 1, critMult = 1, stagger = 0, bossStagger = 0;
-  const h = opts.heavy && perk(g, 'str_heavy'); // an arrow in flight keeps its mark; the perk may be gone by then
-  if (h) {
-    mult *= h.mult;
-    stagger = h.stagger;
-    bossStagger = perk(g, 'str_titan')?.bossStagger || 0;
-  }
-  if (perk(g, 'str_crush') && m.staggerT > 0) mult *= perk(g, 'str_crush').mult;
+  let mult = 1, critMult = 1;
+  // STR 150: the first hit an enemy takes; STR 200: an enemy low on HP
+  const opener = perk(g, 'str_opener');
+  if (opener && !m.perkStruck) mult *= opener.mult;
+  m.perkStruck = true;
+  const crush = perk(g, 'str_crush');
+  if (crush && m.hp < (m.maxHp * crush.hpPct) / 100) mult *= crush.mult;
   const shadow = perk(g, 'agi_shadow');
   if (shadow && g.time <= st.shadowUntil) {
     mult *= shadow.mult;
@@ -88,10 +70,10 @@ export function perkHit(g, m, opts, crit) {
       g.emit({ type: 'perk', id: jack.id, x: m.x, z: m.z });
     }
   }
-  return { mult, crit, critMult, stagger, bossStagger, penetrate: perk(g, 'dex_armor')?.penetrate || 0 };
+  return { mult, crit, critMult, penetrate: perk(g, 'dex_armor')?.penetrate || 0 };
 }
 
-/** After the hero's own hit landed: DEX marks, STR's shockwave, INT's mana return. */
+/** After the hero's own hit landed: DEX marks, INT's mana return. */
 export function perkAfterHit(g, m, dmg, opts, crit) {
   const p = g.player, st = state(g);
   const mark = perk(g, 'dex_mark');
@@ -100,14 +82,6 @@ export function perkAfterHit(g, m, dmg, opts, crit) {
   if (ret) {
     delete st.refunds[opts.skill];
     p.mp = Math.min(manaLimit(g), p.mp + ret);
-  }
-  const quake = perk(g, 'str_quake');
-  if (quake && crit) {
-    g.emit({ type: 'perk', id: quake.id, x: m.x, z: m.z, radius: quake.radius });
-    for (const o of g.monsters) {
-      if (o === m || o.dead || o.targetable === false || dist(o.x, o.z, m.x, m.z) - o.r > quake.radius) continue;
-      g.hitMonster(o, dmg * quake.share, { element: 'physical', secondary: true, fromX: m.x, fromZ: m.z });
-    }
   }
 }
 
@@ -199,6 +173,13 @@ export function perkRegen(g) {
 export function perkShield(g) {
   const f = perk(g, 'int_flow');
   return f ? { rate: f.rate, delay: f.delay } : null;
+}
+
+/** A kill heals the hero (STR 100); never a summoned minion. */
+export function perkKill(g, m) {
+  const rally = perk(g, 'str_rally');
+  if (!rally || m.minion || g.player.dead) return;
+  g.healPlayer((g.player.maxHp * rally.healPct) / 100, true);
 }
 
 /** Extra loot from a kill (LUK 50); never from summoned minions. */

@@ -9,7 +9,7 @@ import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expTo
 import { computeSkill, movementSkill } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
-import { perkSkillStart, perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkDrops } from './stat-perks.js';
+import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
 import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
@@ -917,7 +917,7 @@ export class Game {
     const perk = this.derived.perks && opts.skill && !opts.dot && !opts.byAlly ? perkHit(this, m, opts, crit) : null;
     if (perk) { dmg *= perk.mult; crit = perk.crit; }
     if (crit) dmg *= this.derived.critMult * (perk ? perk.critMult : 1);
-    const stagger = Math.max(opts.stagger || 0, perk?.stagger || 0);
+    const stagger = opts.stagger || 0;
     // Penetration ignores a share of the monster's defense.
     const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100) * (1 - (opts.modEffects?.penetrate || 0) / 100) * (1 - (perk?.penetrate || 0)); // Piercing Line: a mod's own share
     if (!opts.dot) dmg *= defenseFactor(def, this.data);
@@ -935,7 +935,6 @@ export class Game {
       m.staggerT = Math.max(m.staggerT || 0, stagger || (combat?.stagger ?? 0.14));
       if (!stagger) m.flinchReady = this.time + (combat?.flinchLock || 0);
     }
-    if (m.boss && perk?.bossStagger) m.staggerT = Math.max(m.staggerT || 0, perk.bossStagger);
     this.stats.damageDealt += dmg;
     this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
@@ -986,7 +985,10 @@ export class Game {
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
     const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng, {}, m.worldId).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId);
-    if (this.derived.perks) drops.push(...perkDrops(this, m));
+    if (this.derived.perks) {
+      perkKill(this, m);
+      drops.push(...perkDrops(this, m));
+    }
     drops.forEach((d, i) => {
       const a = (i / Math.max(1, drops.length)) * Math.PI * 2 + this.rng.range(0, 1);
       const r = this.rng.range(0.6, 1.4);
@@ -1133,7 +1135,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, heavy:s.perkHeavy, ...extra, ...(s.noCrit ? NO_CRIT : null) };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1145,8 +1147,7 @@ export class Game {
 
   /** Execute a computed skill. mult scales damage (triggers, echoes, repeats). */
   executeSkill(s, aim, opts = {}) {
-    // stat perks: a skill's own going-off counts toward STR's heavy blow (a marked copy runs)
-    this.runSkill(this.derived.perks ? perkSkillStart(this, s, !opts.triggered && !opts.repeat) : s, aim, opts);
+    this.runSkill(s, aim, opts);
   }
 
   runSkill(s, aim, { mult = 1, triggered = false, repeat = 0, step = null } = {}) {

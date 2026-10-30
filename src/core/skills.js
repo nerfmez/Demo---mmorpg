@@ -285,6 +285,12 @@ export function computeSkill(ch, data, derived, slotIndex) {
     s.range *= 1 + reach.rangePct / 100;
     if (s.kind === 'melee_nova') s.radius *= 1 + reach.rangePct / 100;
   }
+  // STR 50: melee skills sweep wider (a cut's arc, a spin's radius)
+  const wide = derived.perks?.str_wide;
+  if (wide && tags.has('Melee')) {
+    s.arc *= 1 + wide.widthPct / 100;
+    if (s.kind === 'melee_nova') s.radius *= 1 + wide.widthPct / 100;
+  }
   s.arc = Math.min(s.arc, 360);
   s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
   compileFrontier(s, def, activeMods);

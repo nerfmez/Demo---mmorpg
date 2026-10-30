@@ -866,6 +866,9 @@ cel-shaded over the texture with a little self-light (0.2, pearls 0.45, boss 0.0
 slapping, a small turn per flop); `pearlSlug`/`eyeClam` idle. The `bossSnail` sleeps in its shell until a prop with `talk: {r, labelTh, lineTh,
 wakes}` is used: `dungeon.talkAt(x, z, woken)` offers the throne's pearl within `r` until what it wakes is in `woken`; then the shell trembles
 1.1 s and the king pushes out (0.8 s) and stays out (`sleepingBoss`). In Godot keep `woken` with the dungeon run and swap the two scenes the same way.
+The forest's monsters are made the same way (`scripts/blender/forest-monsters.py`, shared steps in `scripts/blender/meshy_parts.py`)
+in `public/models/forest/forest-monsters.glb`: pangolin (body), fox (body, tail: hung from its root against the rump) and tanuki (body),
+drawn by the same `monsters.js` with no self-light (they live in daylight); they are not placed in any map yet.
 
 Monsters with `propTypes.<type>.walk` wander about their homes (`src/core/dungeon-monsters.js`, seeded): rest `rest` s, pick a
 spot within `wander` m (or inside the arena for `arena: true`) where their body (the largest of their collision circles) fits

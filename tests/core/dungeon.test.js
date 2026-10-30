@@ -278,6 +278,10 @@ test('the textured monsters hold every part their motion moves (blender -b --pyt
   for (const p of placed) assert.ok(inside.surfaceAt(...p.at)?.walkable, `${p.type} at ${p.at} is on a floor`);
 });
 
+test('the forest monsters hold every part their idle motion moves (blender -b --python scripts/blender/forest-monsters.py)', () => {
+  checkMonsters('../../public/models/forest/forest-monsters.glb', { pangolin: ['body'], fox: ['body', 'tail'], tanuki: ['body'] });
+});
+
 test('the painted corals hold a body and a glow for every coral the cave rooms grow (blender -b --python scripts/blender/grotto-corals.py)', () => {
   // src/render/grotto/corals.js asks for these by name; one missing would leave a coral without its glow
   const glb = readFileSync(new URL('../../public/models/grotto/glow-corals.glb', import.meta.url));

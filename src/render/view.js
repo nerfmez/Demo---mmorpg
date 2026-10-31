@@ -639,6 +639,11 @@ export class View {
       case 'impact':
         if (!drawn) v.impact(e);
         break;
+      case 'twitch': { // shock (ชา): a sharp little jolt of the body on each twitch
+        const mv = this.monsterViews.get(e.id);
+        if (mv) { const a = Math.random() * 6.283; mv.kx = (mv.kx || 0) + Math.cos(a) * 0.08; mv.kz = (mv.kz || 0) + Math.sin(a) * 0.08; mv.flash = Math.max(mv.flash || 0, 0.06); }
+        break;
+      }
       case 'hit': {
         if (!drawn) v.hitSpark(e);
         const mv = this.monsterViews.get(e.id);

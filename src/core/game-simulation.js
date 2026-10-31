@@ -1158,7 +1158,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, shockCharge:s.shockCharge, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, shock:s.shock, shockCharge:s.shockCharge, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1650,6 +1650,15 @@ export class Game {
         this.hitMonster(m, n, { dot: true, element: k === 'burn' ? 'fire' : k === 'bleed' ? 'physical' : 'poison' });
       }
       if (st.t <= 0) delete m.statuses[k];
+    }
+    // shock: a twitch every interval (a short pause of everything the monster does: core/ai.js)
+    const sh = m.statuses.shock;
+    if (sh) {
+      const S = this.data.progression.combat.shock;
+      sh.next -= dt;
+      if (sh.next <= 0) { sh.next += S.interval; m.twitchT = m.boss ? S.bossTwitch : S.twitch; this.emit({ type: 'twitch', id: m.id, x: m.x, z: m.z, duration: m.twitchT }); }
+      sh.t -= dt;
+      if (sh.t <= 0) delete m.statuses.shock;
     }
     for (const k of ['chill', 'hex', 'mire', 'charged']) {
       if (!m.statuses[k]) continue;

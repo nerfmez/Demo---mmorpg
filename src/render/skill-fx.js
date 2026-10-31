@@ -121,6 +121,7 @@ export class SkillFx {
     this.gs = new GreatshieldFx(scene, camera); // the guardian's greatshield skills
     this.lchain.locate = (id) => { for (const m of this.game.monsters) if (m.id === id) return m; return null; };
     this.iarrow.locate = (id) => this.centerOf(id);
+    this.lance.locate = (id) => this.centerOf(id);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
@@ -370,6 +371,9 @@ export class SkillFx {
         }
         return false; // the View still flinches the hero and shakes for the blow
       }
+      // shock (ชา): each twitch crackles over the body (core: tickStatuses 'twitch')
+      case 'twitch': this.lance.twitch(e.id, e.duration); return true;
+      case 'shocked': this.lance.twitch(e.id, 0.2); return true;
       case 'stunned': {
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);
         const head = this.headOf(e.id);

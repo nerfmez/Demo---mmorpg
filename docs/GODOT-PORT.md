@@ -1428,6 +1428,17 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
     a DoT tick or a secondary hit): event `chargeShock`, then a secondary lightning hit of that damage.
     The status runs out with its time (`tickStatuses`) or its shocks.
   The build profile counts them (`build-rules.js` castDamage and the per-cast burst).
+- Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}
+  sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
+  sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns
+  at once while `twitchT` > 0, so movement, attacks, wind-ups and cooldowns pause and then carry on (a
+  wind-up is delayed, never cancelled). Thunder Lance's after-shock gives it (`afterShock.shock` s); the
+  build profile counts it as stun time twitch / interval of its length.
+- Status display (`core/statuses.js statusList(data, unit, heroId)`): what a unit has now - stun (state
+  stunned), shock, chill, burn, poison (stacks), bleed, exposure, hex, charged, taunt (on the hero) - with
+  seconds left, in `progression.combat.statusDisplay` order (Thai name, colour, icon key). The HUD
+  (`ui/status-icons.js`, inline SVG) shows the icons over each monster's name bar, named with seconds left
+  under the boss bar, and named beside the hero's bars; the floating "มึน!" text is gone.
 - Melee arc swings in a row alternate `step` 0/1 within `comboWindow` (animation side only).
   Every swing is the same strike: there is no third-hit finisher, bonus or knockback.
 - Rain pays all three arrows once and schedules three separate delayed areas. Walls

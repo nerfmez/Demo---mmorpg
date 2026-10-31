@@ -51,6 +51,8 @@ export class LanceFx {
     this.a = new THREE.Vector3(); this.b = new THREE.Vector3(); this.pts = []; this.ws = []; this.two = [new THREE.Vector3(), new THREE.Vector3()];
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.line = Array.from({ length: LINE }, () => new THREE.Vector3());
+    this.twitches = Array.from({ length: 12 }, () => ({ id: 0, t: 9, dur: 0.15, seed: 0 })); this.twitchI = 0;
+    this.locate = null; // set by the director: id -> a monster's centre {x, y, z} or null
   }
   // LINE points from a to b (a straight strip that can taper)
   fill(a, b) { for (let i = 0; i < LINE; i++) this.line[i].copy(a).lerp(b, i / (LINE - 1)); return this.line; }
@@ -84,6 +86,11 @@ export class LanceFx {
     this.flash(e.x + dx * 0.8, 1.15, e.z + dz * 0.8, 1.5);                 // the loose at the bow
     this.flash(e.x + dx * e.range, 1.0, e.z + dz * e.range, 1.6);          // the spearhead at the far end
     this.spark(e.x + dx * e.range, 1.0, e.z + dz * e.range, 8, 4);
+  }
+  // shock's twitch (the rules' 'twitch' and 'shocked'): a few short arcs crackle over the body for a moment
+  twitch(id, dur = 0.15) {
+    const q = this.twitches.find((x) => x.t >= x.dur) || this.twitches[this.twitchI++ % this.twitches.length];
+    q.id = id; q.t = 0; q.dur = Math.max(0.12, dur + 0.05); q.seed = Math.floor(this.rnd() * 999);
   }
   // a struck target: a sharp burst of sparks off it
   hit(c) { this.spark(c.x, c.y, c.z, 5, 3.5); }
@@ -152,6 +159,19 @@ export class LanceFx {
       if (l.t < 0.9 || (l.snapT >= 0 && l.snapT < SNAP)) this.lanes[w++] = l; else { l.snapT = -1; this.free.push(l); }
     }
     this.lanes.length = w;
+    // twitches: two or three short arcs jumping over the body
+    for (const q of this.twitches) {
+      if (q.t >= q.dur) continue;
+      q.t += dt;
+      const c = this.locate?.(q.id); if (!c) { q.t = q.dur; continue; }
+      const r = R2.seed(q.seed + flick * 3), fade = 1 - q.t / q.dur;
+      for (let i = 0; i < 3; i++) {
+        const a1 = r.next() * 6.283, a2 = a1 + 1.2 + r.next() * 1.5, h1 = (r.next() - 0.5) * 0.9, h2 = (r.next() - 0.5) * 0.9;
+        A.set(c.x + Math.cos(a1) * 0.45, c.y + h1, c.z + Math.sin(a1) * 0.45);
+        B.set(c.x + Math.cos(a2) * 0.45, c.y + h2, c.z + Math.sin(a2) * 0.45);
+        this.bolt(A, B, q.seed * 7 + flick * 13 + i, 0.3, 4, 0.03, fade);
+      }
+    }
     // sparks
     let sw2 = 0;
     for (const s of this.sparks) {
@@ -179,9 +199,10 @@ export class LanceFx {
   }
   clear() {
     this.charge = null;
+    for (const q of this.twitches) q.t = 9;
     for (const l of this.lanes) { l.snapT = -1; this.free.push(l); } this.lanes.length = 0;
     for (const s of this.sparks) this.sparkFree.push(s); this.sparks.length = 0;
     for (const f of this.glints) f.t = 9;
   }
-  get busy() { return this.lanes.length > 0 || this.sparks.length > 0 || !!this.charge; }
+  get busy() { return this.lanes.length > 0 || this.sparks.length > 0 || !!this.charge || this.twitches.some((q) => q.t < q.dur); }
 }

@@ -9,6 +9,8 @@ import { Game } from '../../src/core/game.js';
 import { createCharacter } from '../../src/core/character.js';
 import { computeSkill } from '../../src/core/skills.js';
 import { craft } from '../../src/core/crafting.js';
+import { updateMonster } from '../../src/core/ai.js';
+import { statusList } from '../../src/core/statuses.js';
 
 const SKILLS = {
   fire_arrow_rain: ['spellarcher', 'fire'], frost_shatter_arrow: ['spellarcher', 'cold'], thunder_lance: ['spellarcher', 'lightning'], poison_mist_arrow: ['spellarcher', 'poison'],
@@ -106,7 +108,7 @@ test('Shatter Arrow: stopped by a monster it breaks into a fan of shards that fl
   }
 });
 
-test('Thunder Lance strikes the whole lane at once, then the lane strikes again a beat later, weaker, stunning all but bosses', () => {
+test('Thunder Lance strikes the whole lane at once, then the lane strikes again a beat later, weaker, and shocks it', () => {
   const { g, mk, s } = fixture('thunder_lance');
   const D = C.thunder_lance, A = D.afterShock;
   const near = mk('near', 2, 0.2), far = mk('far', D.range - 0.5, -0.3), boss = mk('boss', 6, 0, { boss: true }), beside = mk('beside', 5, D.width / 2 + 1.5), behind = mk('behind', -2, 0);
@@ -122,8 +124,7 @@ test('Thunder Lance strikes the whole lane at once, then the lane strikes again 
   const second = hitsOn(g);
   assert.deepEqual(Object.keys(second).sort(), ['boss', 'far', 'near'], 'the same lane again');
   assert.ok(Math.abs((1e6 - near.hp - after1) / after1 - A.mult) < 0.02, 'weaker by its share');
-  assert.equal(near.state, 'stunned'); assert.equal(far.state, 'stunned');
-  assert.notEqual(boss.state, 'stunned', 'a boss is not stunned');
+  for (const m of [near, far, boss]) assert.equal(m.statuses.shock?.t, A.shock, `${m.id} shocked`);
 });
 
 test('Miasma Arrow: the mist poisons on each tick and its poison stacks up to the most stacks', () => {
@@ -201,7 +202,7 @@ test('every one of the seven is worth pressing over the main attack: several mai
     assert.ok(per(id) >= 2.5 * main[w], `${id}: ${(per(id) / main[w]).toFixed(1)} s of the main attack per target`);
   }
   for (const id of ['frost_shatter_arrow', 'ice_spikes']) assert.ok(C[id].chill.slow >= 0.45 && C[id].chill.duration >= 2.5, `${id} controls`);
-  assert.ok(C.thunder_lance.afterShock.stun >= 0.5, 'Thunder Lance stuns long enough to break a wind-up');
+  assert.ok(C.thunder_lance.afterShock.shock >= 1.5, 'Thunder Lance shocks long enough to twitch a few times');
   assert.ok(C.poison_mist_arrow.duration >= 3, 'Miasma Arrow keeps working while the hero shoots');
   for (const id of Object.keys(SKILLS)) assert.ok(C[id].cooldown >= 6, `${id}: a cooldown skill`);
 });
@@ -237,4 +238,40 @@ test('main attacks start slow, the dagger quickest and heavy weapons slowest; we
   assert.ok(Math.abs(axe.cost / axe.cooldown - sword.cost / sword.cooldown) < 1e-6, 'the same MP per second');
   const f = fixture('flame_slash'), cd = (w) => { f.g.derived.weaponType = w; return computeSkill(f.g.ch, data, f.g.derived, 0).cooldown; };
   assert.equal(cd('greatblade'), cd('sword'), 'a cooldown skill keeps its own cooldown');
+});
+
+// Shock (ชา, owner 2026-10-31): lightning's status is a twitch, a mini-stun every so often, not a stun.
+test('Shock: the monster twitches to a stop every interval (a boss more briefly); a wind-up is only delayed; it ends with its time', () => {
+  const S = data.progression.combat.shock;
+  const { g, mk } = fixture('thunder_lance');
+  const m = mk('m', 3, 0), boss = mk('b', 6, 0, { boss: true });
+  g.monsters = [m, boss];
+  for (const q of [m, boss]) g.hitMonster(q, 10, { element: 'lightning', shock: { duration: 2 } });
+  assert.ok(g.drainEvents().some((e) => e.type === 'shocked'));
+  Object.assign(m, { state: 'windup', stateT: 0, stateDur: 1, windup: { attack: 'x' } });
+  // the first tick twitches it at once
+  g.tickStatuses(m, 0.01); g.tickStatuses(boss, 0.01);
+  assert.equal(m.twitchT, S.twitch); assert.equal(boss.twitchT, S.bossTwitch, 'a boss twitches more briefly');
+  const t0 = m.stateT;
+  updateMonster(g, m, S.twitch * 0.5);
+  assert.equal(m.stateT, t0, 'everything pauses during the twitch');
+  assert.equal(m.state, 'windup', 'the wind-up is still there, only delayed');
+  // over its whole length it twitches about duration / interval times, then it is gone
+  let twitches = 0; // the first twitch's event is still queued and counted below
+  for (let t = 0; t < 2.2; t += 0.05) { g.tickStatuses(m, 0.05); twitches += g.drainEvents().filter((e) => e.type === 'twitch' && e.id === 'm').length; }
+  assert.ok(twitches >= 2 / S.interval && twitches <= 2 / S.interval + 1, `${twitches} twitches`);
+  assert.ok(!m.statuses.shock, 'gone after its time');
+});
+
+test('the HUD status list: what a monster has now, in the display order, with time left and stacks', () => {
+  const { g, mk } = fixture('thunder_lance');
+  const m = mk('m', 3, 0);
+  m.statuses = { poison: { t: 3, dps: 1, acc: 0, stacks: 4 }, shock: { t: 1.5, next: 0.2 }, chill: { slow: 0.3, t: 2 } };
+  Object.assign(m, { state: 'stunned', stateT: 0.2, stateDur: 1, tauntT: 2, forcedTargetId: g.player.id });
+  const L = statusList(data, m, g.player.id);
+  const order = Object.keys(data.progression.combat.statusDisplay);
+  assert.deepEqual(L.map((s) => s.id), order.filter((id) => ['stun', 'shock', 'chill', 'poison', 'taunt'].includes(id)));
+  assert.equal(L.find((s) => s.id === 'poison').stacks, 4);
+  assert.ok(Math.abs(L.find((s) => s.id === 'stun').left - 0.8) < 1e-9);
+  for (const [id, d] of Object.entries(data.progression.combat.statusDisplay)) assert.ok(d.nameTh && /^#[0-9a-f]{6}$/i.test(d.color) && d.icon, id);
 });

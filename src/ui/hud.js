@@ -6,6 +6,8 @@ import { worldMapImage } from './mapimage.js';
 import { toWorld, waypointUnlocked } from '../core/atlas.js';
 import { loadPref, savePref } from '../save.js';
 import { fieldIcon, xpMarkup, xpPresentation, trackerMarkup } from './fieldhud.js';
+import { statusList } from '../core/statuses.js';
+import { statusChips, statusKey } from './status-icons.js';
 
 const h = (html) => {
   const t = document.createElement('template');
@@ -66,7 +68,7 @@ export class Hud {
       quest: h(`<div class="quest-widget"><div class="quest-heading"><span>ภารกิจติดตาม</span><span class="quest-count"></span><button class="quest-collapse" aria-label="ย่อภารกิจ" aria-expanded="true" aria-controls="quest-detail">−</button></div>
         <button class="questtrack" id="quest-detail" aria-label="แสดงหรือซ่อนเส้นทางภารกิจ" aria-pressed="false"></button></div>`),
       zone: h(`<div class="zonebanner passive"><div class="zd"></div><div class="zn"></div><div class="zs"></div></div>`),
-      boss: h(`<div class="bossbar passive"><div class="bn"></div><div class="bar"><i class="fill"></i><span></span></div></div>`),
+      boss: h(`<div class="bossbar passive"><div class="bn"></div><div class="bar"><i class="fill"></i><span></span></div><div class="bst"></div></div>`),
       floats: h(`<div class="floats passive"></div>`),
       toasts: h(`<div class="toasts passive"></div>`),
       prompt: h(`<div class="prompt"></div>`),
@@ -454,9 +456,6 @@ export class Hud {
         if (m?.boss) this.toast(`${m.def.name} หอนเรียกฝูง!`, '#ff9a6a');
         break;
       }
-      case 'stunned':
-        this.float(e.x, 2.4, e.z, 'มึน!', 'info');
-        break;
       case 'shell': {
         const m = g.monsterById(e.id);
         if (m) this.float(m.x, 2, m.z, 'หดกระดอง!', 'shell');
@@ -508,8 +507,8 @@ export class Hud {
       this.el.topright.querySelector('.location-chip').innerHTML = area ? `${fieldIcon('pin')}<span>${esc(area.nameTh)}<small>${area.safe ? 'เขตปลอดภัย' : `Lv. ${area.level}+`}</small></span>` : '';
     }
     const st = [`<b>Job ${ch.jobLevel}</b>`, `<b class="gold">${fieldIcon('coin')}${ch.gold.toLocaleString('en-US')} G</b>`];
-    if (p.statuses.poison) st.push('<b class="st poison">ติดพิษ</b>');
-    if (p.statuses.chill) st.push('<b class="st cold">หนาวช้า</b>');
+    const mine = statusList(g.data, p);
+    if (mine.length) st.push(`<span class="st-icons">${statusChips(g.data, mine, { names: true })}</span>`);
     for (const id in p.buffs) st.push(`<b class="st buff">${esc(g.data.skills.combat[id]?.nameTh || 'บัฟ')}</b>`);
     if (g.allies.length) st.push(`<b class="st ally">หมาป่า ×${g.allies.length}</b>`);
     const html = st.join('');
@@ -534,6 +533,9 @@ export class Hud {
       this.el.boss.querySelector('.bn').textContent = `${boss.def.name} · ${boss.def.nameTh} · Lv.${boss.level}${boss.enraged ? ' · คลั่ง' : ''}`;
       this.el.boss.querySelector('.fill').style.width = pct(boss.hp, boss.maxHp);
       this.el.boss.querySelector('span').textContent = `${Math.ceil(boss.hp)} / ${boss.maxHp}`;
+      // its statuses under the bar, named, with the seconds left (owner, 2026-10-31)
+      const L = statusList(g.data, boss, p.id), key = statusKey(L, true);
+      if (key !== this.bossStatusKey) { this.bossStatusKey = key; this.el.boss.querySelector('.bst').innerHTML = statusChips(g.data, L, { names: true, timer: true }); }
     }
 
     // interaction prompt
@@ -577,7 +579,7 @@ export class Hud {
       seen.add(m.id);
       let b = this.mbars.get(m.id);
       if (!b) {
-        b = h(`<div class="mbar"><div class="mn"></div><div class="bar"><i class="fill"></i></div></div>`);
+        b = h(`<div class="mbar"><div class="mst"></div><div class="mn"></div><div class="bar"><i class="fill"></i></div></div>`);
         b.querySelector('.mn').innerHTML = `<em>Lv.${m.level}</em> ${esc(m.def.nameTh)}`;
         this.el.floats.appendChild(b);
         this.mbars.set(m.id, b);
@@ -587,6 +589,8 @@ export class Hud {
       b.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -100%)`;
       b.querySelector('.fill').style.width = pct(m.hp, m.maxHp);
       b.classList.toggle('target', m.id === p.targetId);
+      const L = statusList(g.data, m, p.id), key = statusKey(L);
+      if (key !== b.statusKey) { b.statusKey = key; b.querySelector('.mst').innerHTML = statusChips(g.data, L); }
       b.style.visibility = mv.hidden && mv.fade < 0.04 ? 'hidden' : '';
     }
     for (const [id, b] of this.mbars) {

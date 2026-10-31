@@ -202,6 +202,9 @@ export function buildProfile(data, spec) {
     const e = s.modEffects || {}, stun = s.stun || s.def.stun, chill = s.chill || (s.slow ? { slow: s.slow, duration: s.duration } : null);
     if (stun) free *= 1 - Math.min(C.cap, rate * stun.duration * reach);
     if (e.chainStun) free *= 1 - Math.min(C.cap, rate * e.chainStun / R.pack.size); // one monster, the chain's last
+    // shock: its twitches stop the monster for twitch / interval of the time it lasts
+    const SH = s.def.afterShock?.shock, SHK = data.progression.combat.shock;
+    if (SH && SHK) free *= 1 - Math.min(C.cap, rate * SH * (SHK.twitch / SHK.interval) * reach);
     if (s.knock) free *= 1 - Math.min(C.cap, rate * s.knock / C.monsterSpeed * reach);
     if (chill) free *= 1 - Math.min(C.cap, chill.slow * C.slowShare * Math.min(1, rate * chill.duration) * reach);
     if (s.kind === 'curse_zone' && s.dealtMult) free *= 1 - (1 - s.dealtMult) * Math.min(1, s.duration / s.cooldown) * share(s);

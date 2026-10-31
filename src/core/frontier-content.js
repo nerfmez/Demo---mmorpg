@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -152,6 +152,10 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     for(const w of walls)g.spawnArea({owner:'player',kind:'crystal_wall',skill:s,...w,radius:w.r,angle:axis,duration:s.duration,wallHp:s.wall.hp.base+s.wall.hp.scale*g.derived.magic,wallHitAt:0});
     return true;
   }
+  // Traps (s.trap, the trapper): set at the aim point; armed after arm s, a trap waits (for life s) until a
+  // monster comes within trigger m, then springs: one burst of the skill over its radius (updateAreas). A
+  // skill keeps at most max traps set (the oldest goes); a field (count) scatters its traps over spread m.
+  if(s.trap){placeTraps(g,s,aim,mult);return true;}
   // Flame Arrow Rain (s.arrows): count arrows pin across the circle at land s, one near its middle, the rest
   // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
   if(s.arrows){
@@ -260,6 +264,10 @@ export function adjustFrontierHit(g,m,amount,opts) {
   // Thunder Slash: what it cuts keeps a charge (shocks, each a share of this hit) for the hero's main skills
   if(opts.shockCharge&&!opts.byAlly){const C=opts.shockCharge;m.statuses.charged={t:C.duration,shocks:C.shocks,damage:amount*C.mult};g.emit({type:'charged',id:m.id,x:m.x,z:m.z,duration:C.duration});}
   if(opts.taunt){m.forcedTargetId=g.player.id;m.tauntT=Math.max(m.tauntT||0,opts.taunt.duration);}
+  // Net Trap: rooted, it cannot walk (core/ai.js) but still strikes what is in reach
+  if(opts.root&&!opts.byAlly){const d=m.boss?opts.root.bossDuration:opts.root.duration;if(d>0){m.statuses.root={t:Math.max(m.statuses.root?.t||0,d)};g.emit({type:'rooted',id:m.id,x:m.x,z:m.z,duration:d});}}
+  // Spike Trap: the wound bleeds a share of the hit over its duration
+  if(opts.bleed&&!opts.byAlly&&amount>0){const next={dps:amount*opts.bleed.fraction/opts.bleed.duration,t:opts.bleed.duration,acc:0},old=m.statuses.bleed;if(!old||next.dps>=old.dps)m.statuses.bleed=next;}
   if(e.pull&&!m.boss){const a=angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z),d=Math.min(e.pull,dist(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z));g.moveEntity(m,Math.sin(a)*d,Math.cos(a)*d);}
   if(e.poisonFraction){const source=amount/(1-e.poisonFraction),old=m.statuses.poison;const next={dps:source*e.poisonFraction/e.poisonDuration,t:e.poisonDuration,acc:0,owner:'player'};if(!old||next.dps>=old.dps)m.statuses.poison=next;}
   if(e.bleedFraction){const source=amount/(1-e.bleedFraction),old=m.statuses.bleed;const next={dps:source*e.bleedFraction/e.bleedDuration,t:e.bleedDuration,acc:0};if(!old||next.dps>=old.dps)m.statuses.bleed=next;}
@@ -454,4 +462,18 @@ export function endProjectile(g,pr){
   const e=pr.skill?.modEffects;if(e?.terminalBurst&&(!e.returnMult||pr.returning))secondaryBurst(g,pr.x,pr.z,e.burstRadius,pr.damage*e.terminalBurst,pr.element,pr.kind);
   if(e?.returnMult&&!pr.returning){pr.returning=true;pr.hit.clear();pr.vx*=-1;pr.vz*=-1;pr.angle+=Math.PI;pr.damage*=e.returnMult;pr.travelled=0;pr.range=dist(pr.x,pr.z,pr.startX,pr.startZ);pr.pierce=Infinity;return pr.range>.05;}
   return false;
+}
+
+/** The trapper's traps (s.trap): see executeFrontier. A trap is a player area waiting with no delay of its
+ *  own (TRAP_WAIT) until updateAreas springs it. */
+export const TRAP_WAIT = 1e6;
+export function placeTraps(g,s,aim,mult){
+  const T=s.trap,n=T.count||1,mine=g.areas.filter(a=>a.trap&&!a.sprung&&a.skill?.id===s.id);
+  while(mine.length&&mine.length+n>T.max){const old=mine.shift();g.areas=g.areas.filter(a=>a!==old);g.emit({type:'areaEnd',id:old.id});}
+  for(let i=0;i<n;i++){
+    const a=(i+g.rng.range(0,.6))/n*Math.PI*2,d=n>1&&i>0?T.spread*(.45+.55*Math.sqrt(g.rng.range(0,1))):0;
+    const x=aim.x+Math.cos(a)*d,z=aim.z+Math.sin(a)*d;
+    const area=g.spawnArea({owner:'player',kind:s.id,skill:s,x,z,radius:s.radius,delay:TRAP_WAIT,duration:.35,damage:s.damage*mult,element:s.element,trap:{arm:T.arm,life:T.life,trigger:T.trigger}});
+    g.emit({type:'trapSet',skill:s.id,id:area.id,x,z,arm:T.arm,life:T.life,fromX:g.player.x,fromZ:g.player.z,i});
+  }
 }

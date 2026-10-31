@@ -8,11 +8,10 @@
 import { icon } from './icons.js';
 import { art } from './art.js';
 import { arrowsPerCast, arrowTotal } from '../core/character.js';
+import { aimsAtGround } from '../core/skills.js'; // skills aimed at a point on the ground (drag places a circle)
 import { joystickMarks } from './fieldhud.js';
 import { potionArt } from './potionart.js';
 
-// skills aimed at a point on the ground (drag places a circle)
-const AREA_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'];
 
 /** Pointer capture keeps a drag on its control; it can fail (synthetic or already-ended pointers). */
 const capture = (el, id) => {
@@ -407,9 +406,9 @@ export class Input {
     // screen up = world -Z, screen right = world +X
     const angle = Math.atan2(dx, dy);
     const maxDrag = 110;
-    if (AREA_KINDS.includes(s.kind)) {
+    if (aimsAtGround(s)) {
       const r = Math.min(1, len / maxDrag) * s.range;
-      return { x: p.x + Math.sin(angle) * r, z: p.z + Math.cos(angle) * r, radius: s.wall?.length/2 || s.radius };
+      return { x: p.x + Math.sin(angle) * r, z: p.z + Math.cos(angle) * r, radius: s.wall?.length/2 || s.radius || s.summon?.tauntRadius };
     }
     if (s.shadowStep) {
       // Backstab: the drag picks the target to step behind, anywhere within the step's reach

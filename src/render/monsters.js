@@ -1089,7 +1089,32 @@ function animShoreGull(r, s, dt, time) {
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * .6 + look, 16, dt);
 }
 
+// ---------- lure dummy (the trapper's Lure Dummy: a straw target on a post, a summon that only draws monsters) ----------
+function buildLureDummy() {
+  const C = { post: '#6e4a2c', straw: '#d9b56a', band: '#b0403a', head: '#e2c47e', mark: '#7a2a22' };
+  const rb = new RigBuilder({ outline: 0.03, darkness: 0.3 });
+  rb.bone('body', 'root', [0, 0, 0]);
+  rb.bone('top', 'body', [0, 1.05, 0]);
+  rb.add('body', new THREE.CylinderGeometry(0.07, 0.09, 1.1, 8).translate(0, 0.55, 0), C.post);
+  rb.add('top', new THREE.CylinderGeometry(0.3, 0.27, 0.62, 12), C.straw);
+  rb.add('top', new THREE.CylinderGeometry(0.31, 0.31, 0.1, 12), C.band, { pos: [0, -0.04, 0], plain: true });
+  rb.add('top', sph(0.23, 12, 9), C.head, { pos: [0, 0.52, 0] });
+  rb.add('top', new THREE.CylinderGeometry(0.05, 0.05, 1.05, 6).rotateZ(Math.PI / 2), C.post, { pos: [0, 0.18, 0] });
+  // a painted target on its chest, so it reads as a lure
+  rb.add('top', new THREE.TorusGeometry(0.11, 0.025, 5, 16), C.mark, { pos: [0, 0.06, 0.29], plain: true });
+  const rig = rb.build();
+  rig.height = 1.9;
+  return rig;
+}
+function animLureDummy(r, s, dt, time) {
+  // planted: it only wobbles when struck and leans a little in the wind
+  const b = r.bones, hit = s.hurt || 0;
+  b.top.rotation.z = damp(b.top.rotation.z, Math.sin(time * 1.1 + r.seed) * 0.03 + Math.sin(time * 40) * 0.12 * hit, 10, dt);
+  b.top.rotation.x = damp(b.top.rotation.x, -0.15 * hit, 10, dt);
+}
+
 const BUILDERS = {
+  lure_dummy: [buildLureDummy, animLureDummy],
   tusk_boar: [buildBoar, (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.62, paw: true })],
   thornback_wolf: [() => buildWolf('wolf'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   greyfang: [() => buildWolf('greyfang'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],

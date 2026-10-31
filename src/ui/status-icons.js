@@ -14,6 +14,7 @@ const ICONS = {
   exposure: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m13 7-3 5h4l-3 5"/>',
   hex: '<circle cx="12" cy="12" r="8"/><path d="M12 8a4 4 0 1 1-4 4"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/>',
   charged: '<circle cx="12" cy="12" r="9"/><path d="M13 5.5 8 13h4l-1 5.5 5-7.5h-4z" fill="currentColor" stroke="none"/>',
+  root: '<path d="M4 4l16 16M20 4L4 20M4 12h16M12 4v16"/><circle cx="12" cy="12" r="8.5"/>',
   taunt: '<path d="M8 3v6M16 3v6M3 8h6M15 8h6M8 15v6M16 15v6M3 16h6M15 16h6"/>',
 };
 export const statusIcon = (key) => svg(ICONS[key] || ICONS.stun);

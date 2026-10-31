@@ -160,7 +160,8 @@ export function buildProfile(data, spec) {
   const amp = 1 + [...attacks, ...helpers].reduce((a, s) => a + (s.def.exposure ? s.def.exposure.fraction * Math.min(1, s.def.exposure.duration / s.cooldown) : 0)
     + (s.kind === 'curse_zone' && s.takenMult ? (s.takenMult - 1) * Math.min(1, s.duration / s.cooldown) : 0), 0);
   // burning and poison add their damage over time (a share of the hit, progression.balance.rules.control)
-  const dots = (s) => 1 + (s.burnChance || 0) * C.burn + pct('poisonChancePct') * C.poison;
+  // a bleed (Spike Trap) is its share of the hit, all of it over its duration
+  const dots = (s) => 1 + (s.burnChance || 0) * C.burn + pct('poisonChancePct') * C.poison + (s.bleed?.fraction || 0);
   const dealt = (hitsOf, scen) => {
     const r = fit(hitsOf);
     return attacks.reduce((a, s, i) => {
@@ -175,7 +176,9 @@ export function buildProfile(data, spec) {
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
       // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there
       const e = s.modEffects || {}, tip = e.tipMult ? (scen === 'pack' ? 1 + e.tipShare * (e.tipMult - 1) : e.tipMult) : 1;
-      return a + (r[i] + triggered) * castDamage(s) * (scen === 'single' ? fanShots(s, data) : 1) * tip * hits * (1 + burst) * dots(s) * critOf(s) * armourOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
+      // a field of traps (Trap Field): a pack walks into each of them, a lone monster into fieldSingle
+      const field = s.trap?.count > 1 ? (scen === 'pack' ? Math.min(s.trap.count, R.pack.size) : C.fieldSingle) : 1;
+      return a + (r[i] + triggered) * castDamage(s) * field * (scen === 'single' ? fanShots(s, data) : 1) * tip * hits * (1 + burst) * dots(s) * critOf(s) * armourOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
     }, 0) * armour * amp * (1 + selfDamage * helperShare);
   };
   // summons fight beside us: each attacks every attackCooldown while it lives (life of every cooldown)
@@ -215,6 +218,8 @@ export function buildProfile(data, spec) {
     if (SH && SHK) free *= 1 - Math.min(C.cap, rate * SH * (SHK.twitch / SHK.interval) * reach);
     if (s.knock) free *= 1 - Math.min(C.cap, rate * s.knock / C.monsterSpeed * reach);
     if (chill) free *= 1 - Math.min(C.cap, chill.slow * C.slowShare * Math.min(1, rate * chill.duration) * reach);
+    // a root (Net Trap) holds them where they stand: a full slow for its length
+    if (s.root) free *= 1 - Math.min(C.cap, C.slowShare * Math.min(1, rate * s.root.duration) * reach);
     if (s.kind === 'curse_zone' && s.dealtMult) free *= 1 - (1 - s.dealtMult) * Math.min(1, s.duration / s.cooldown) * share(s);
     if (s.summon?.tauntRadius || s.def.summon?.tauntRadius || s.tauntRadius) free *= 1 - C.tauntShare * Math.min(1, (s.summon?.life || s.duration || 0) / s.cooldown) * share(s);
   });

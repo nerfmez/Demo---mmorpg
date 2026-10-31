@@ -179,6 +179,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
       speed: sm.speed,
       range: sm.range,
       attackCooldown: sm.attackCooldown,
+      placeAt: sm.placeAt,
+      static: !!sm.static,
     };
   }
   if (tags.has('Area') && s.radius) s.radius *= 1 + derived.areaRadiusPct / 100;
@@ -414,3 +416,8 @@ export function setMovement(ch, data, id) {
   ch.movement = id;
   return { ok: true };
 }
+
+/** Skills aimed at a point on the ground (the drag places a circle): areas, zones, walls, and a summon set
+ *  where it is aimed (Lure Dummy). */
+export const GROUND_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'];
+export const aimsAtGround = (s) => !!s && (GROUND_KINDS.includes(s.kind) || s.summon?.placeAt === 'aim');

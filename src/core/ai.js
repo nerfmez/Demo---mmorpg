@@ -7,7 +7,8 @@ import { DEG, angleDiff, angleTo, clamp, dist, dirFromAngle } from './math.js';
 
 export function updateMonster(game, m, dt) {
   const def = m.def;
-  const slowMult = (m.statuses.chill ? 1 - m.statuses.chill.slow : 1) * (m.buffs.howl ? 1 + m.buffs.howl.speed : 1);
+  // a rooted monster (Net Trap) walks nowhere but still strikes what is in reach
+  const slowMult = (m.statuses.root ? 0 : 1) * (m.statuses.chill ? 1 - m.statuses.chill.slow : 1) * (m.buffs.howl ? 1 + m.buffs.howl.speed : 1);
   const enraged = def.enrageAt && m.hp / m.maxHp <= def.enrageAt;
   if (enraged && !m.enraged) {
     m.enraged = true;
@@ -198,6 +199,8 @@ function idle(game, m, dt, slowMult) {
 /** Walk toward a point. Returns true when arrived. */
 function walkTo(game, m, x, z, speed, dt) {
   const d = dist(m.x, m.z, x, z);
+  // rooted (Net Trap): no walking of any kind, home included, until it wears off
+  if (m.statuses?.root && d >= 0.3) { m.moving = false; return false; }
   if (d < 0.3) {
     m.moving = false;
     return true;

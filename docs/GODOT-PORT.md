@@ -1434,6 +1434,21 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
     a DoT tick or a secondary hit): event `chargeShock`, then a secondary lightning hit of that damage.
     The status runs out with its time (`tickStatuses`) or its shocks.
   The build profile counts them (`build-rules.js` castDamage and the per-cast burst).
+- Trapper skills (2026-10-31, `tests/core/trap-skills.test.js`; bow, job `trapper`). A trap is a `ground_area`
+  with `trap` {arm, life, trigger, max, count?, spread?}: `placeTraps` (frontier-content.js) spawns a player
+  area at the aim point with `delay` `TRAP_WAIT` (it never fires on its own) and `trap`, emitting `trapSet`;
+  a skill keeps at most `max` unsprung traps (the oldest goes, `areaEnd`); a field (`count`) scatters its
+  traps over `spread` m (rng). `updateAreas` counts an unsprung trap's `t`; past `life` it ends; once `t` >=
+  `arm` and a monster is within `trigger` + its radius it springs (`sprung`, `t` = `delay` = 0, `trapSprung`)
+  and the ordinary burst hits everything in `radius` with the skill's `hitOpts`. Spike Trap / Trap Field
+  add `bleed` {fraction, duration} (the hit's share over the duration, `statuses.bleed`); Net Trap adds
+  `root` {duration, bossDuration} (`statuses.root`: `ai.js walkTo` walks nowhere, attacks still land; it
+  ticks off in `tickStatuses`, icon `root`); Blast Trap is the big burst. Lure Dummy is a `summon` with
+  `placeAt: 'aim'` (set where it is aimed: `aimsAtGround(s)` in skills.js covers the ground kinds and such a
+  summon, for `resolveAim`, triggers and the touch drag) and `static` (`updateAllies` skips it: it never
+  moves or strikes) whose `tauntRadius` draws monsters (`tickFrontier`). The build profile counts a bleed
+  as its share of the hit, a root as a full slow for its length, and a field's traps (`fieldSingle` of
+  them on a lone monster, all of them on a pack).
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}
   sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
   sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns

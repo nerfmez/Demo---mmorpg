@@ -169,6 +169,215 @@
       "icon": "fire",
       "upgradeStat": "INT"
     },
+    "spike_trap": {
+      "name": "Spike Trap",
+      "nameTh": "กับดักหนาม",
+      "desc": "วางกับดักหนามที่จุดเล็ง ศัตรูเดินเข้ามาหนามแทงขึ้น เลือดไหล 40% ของดาเมจใน 4 วินาที วางค้างได้ 3 อัน อยู่ 20 วินาที ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Area", "Damage", "Physical"],
+      "kind": "ground_area",
+      "damage": {
+        "base": 260,
+        "scale": 2.1
+      },
+      "range": 9,
+      "radius": 1.4,
+      "delay": 0,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 0.9,
+        "max": 3
+      },
+      "bleed": {
+        "fraction": 0.4,
+        "duration": 4
+      },
+      "cooldown": 5,
+      "castTime": 0.25,
+      "cost": 96,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "AGI": 3
+      },
+      "upgradeMaterial": "boar_tusk",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "net_trap": {
+      "name": "Net Trap",
+      "nameTh": "กับดักตาข่าย",
+      "desc": "วางกับดักตาข่ายที่จุดเล็ง ศัตรูเดินเข้ามาตาข่ายคลุมวง 2.4 ม. ตรึงอยู่กับที่ 2.5 วินาที (บอส 0.8) ยังตีได้ถ้าอยู่ในระยะ วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Area", "Control"],
+      "kind": "ground_area",
+      "damage": {
+        "base": 90,
+        "scale": 0.7
+      },
+      "range": 9,
+      "radius": 2.4,
+      "delay": 0,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 2
+      },
+      "root": {
+        "duration": 2.5,
+        "bossDuration": 0.8
+      },
+      "cooldown": 9,
+      "castTime": 0.25,
+      "cost": 112,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "AGI": 4
+      },
+      "upgradeMaterial": "wolf_pelt",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "blast_trap": {
+      "name": "Blast Trap",
+      "nameTh": "กับดักระเบิด",
+      "desc": "วางกับดักระเบิดที่จุดเล็ง ศัตรูเดินเข้ามาระเบิดแรงวง 2.6 ม. วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Area", "Damage", "Fire"],
+      "kind": "ground_area",
+      "damage": {
+        "base": 510,
+        "scale": 4.0
+      },
+      "range": 9,
+      "radius": 2.6,
+      "delay": 0,
+      "trap": {
+        "arm": 0.8,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 2
+      },
+      "cooldown": 10,
+      "castTime": 0.25,
+      "cost": 160,
+      "element": "fire",
+      "requires": {
+        "DEX": 6,
+        "AGI": 4
+      },
+      "upgradeMaterial": "crag_stone",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "lure_dummy": {
+      "name": "Lure Dummy",
+      "nameTh": "หุ่นล่อเป้า",
+      "desc": "ตั้งหุ่นฟางที่จุดเล็ง 8 วินาที ศัตรูในระยะ 5 ม. หันไปตีหุ่นแทน หุ่นไม่ตีและไม่เดิน ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Summon", "Minion", "Guard"],
+      "kind": "summon",
+      "range": 8,
+      "cooldown": 18,
+      "castTime": 0.3,
+      "cost": 128,
+      "element": "physical",
+      "summon": {
+        "type": "lure_dummy",
+        "count": 1,
+        "life": 8,
+        "placeAt": "aim",
+          "static": true,
+        "hp": {
+          "base": 900,
+          "vit": 40,
+          "level": 40
+        },
+        "damage": {
+          "base": 0,
+          "scale": 0
+        },
+        "speed": 0,
+        "range": 0,
+        "attackCooldown": 99,
+        "tauntRadius": 5,
+        "tauntInterval": 1.5,
+        "tauntDuration": 2
+      },
+      "requires": {
+        "DEX": 5,
+        "AGI": 4
+      },
+      "upgradeMaterial": "boar_hide",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "trap_field": {
+      "name": "Trap Field",
+      "nameTh": "ทุ่งกับดัก",
+      "desc": "โยนกับดักหนาม 5 อันกระจายทั่ววง 3 ม. ที่จุดเล็ง แต่ละอันทำงานเมื่อศัตรูเดินเข้า เลือดไหล 40% ใน 4 วินาที อยู่ 20 วินาที ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Area", "Damage", "Physical", "Signature"],
+      "kind": "ground_area",
+      "damage": {
+        "base": 200,
+        "scale": 1.6
+      },
+      "range": 9,
+      "radius": 1.3,
+      "delay": 0,
+      "trap": {
+        "arm": 0.8,
+        "life": 20,
+        "trigger": 0.9,
+        "max": 5,
+        "count": 5,
+        "spread": 3
+      },
+      "bleed": {
+        "fraction": 0.4,
+        "duration": 4
+      },
+      "cooldown": 14,
+      "castTime": 0.35,
+      "cost": 224,
+      "element": "physical",
+      "requires": {
+        "DEX": 7,
+        "AGI": 5
+      },
+      "upgradeMaterial": "mantis_scythe",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
     "ice_ball": {
       "name": "Ice Ball",
       "nameTh": "บอลน้ำแข็ง",

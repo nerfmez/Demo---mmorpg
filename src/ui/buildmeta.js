@@ -8,7 +8,7 @@ export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'
 // tests/core/skill-tags.test.js holds skills, movement skills and mods to this vocabulary.
 export const TAG_GROUPS = {
   power: {Attack:'โจมตี',Spell:'เวท'},
-  delivery: {Melee:'ประชิด',Strike:'ฟันเป้า',Slam:'ทุบพื้น',Projectile:'ยิง',Chain:'เด้งต่อ',Area:'วงกว้าง',Channel:'ร่ายต่อเนื่อง',Summon:'อัญเชิญ',Minion:'ลูกสมุน',Aura:'ออร่า',Warcry:'คำราม',Curse:'คำสาป',Movement:'เคลื่อนที่'},
+  delivery: {Melee:'ประชิด',Strike:'ฟันเป้า',Slam:'ทุบพื้น',Projectile:'ยิง',Chain:'เด้งต่อ',Area:'วงกว้าง',Channel:'ร่ายต่อเนื่อง',Summon:'อัญเชิญ',Minion:'ลูกสมุน',Aura:'ออร่า',Warcry:'คำราม',Curse:'คำสาป',Movement:'เคลื่อนที่',Trap:'กับดัก'},
   shape: {Arc:'ฟันโค้ง',Line:'แนวตรง',Cone:'กรวย',Nova:'รอบตัว',Rain:'ยิงระลอก',Ground:'เล็งพื้น',Zone:'ค้างบนพื้น',Construct:'สิ่งสร้าง',Target:'เป้าหมาย'},
   element: {Physical:'กายภาพ',Fire:'ไฟ',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',Earth:'ดิน',Arcane:'อาร์เคน'},
   effect: {Damage:'ทำดาเมจ',DoT:'ดาเมจต่อเนื่อง',Control:'ควบคุม',Debuff:'ดีบัฟ',Buff:'บัฟ',Heal:'ฟื้นฟู',Barrier:'โล่เกราะ',Guard:'ตั้งรับ',Counter:'สวนกลับ',Cleanse:'ล้างสถานะ',Leech:'ดูดเลือด'},

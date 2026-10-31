@@ -6,7 +6,7 @@ import { createWorld } from './world.js';
 import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
-import { computeSkill, movementSkill } from './skills.js';
+import { computeSkill, movementSkill, aimsAtGround } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
@@ -343,7 +343,7 @@ export class Game {
     return a;
   }
 
-  spawnAllies(s, x, z) {
+  spawnAllies(s, x, z, exact = false) {
     const sm = s.summon;
     const mine = this.allies.filter((a) => a.type === sm.type && !a.dead);
     while (mine.length >= sm.count) {
@@ -352,8 +352,8 @@ export class Game {
     }
     for (let i = 0; i < sm.count - mine.length; i++) {
       const a = (i / sm.count) * Math.PI * 2;
-      let ax = x + Math.sin(a) * 1.2;
-      let az = z + Math.cos(a) * 1.2;
+      let ax = exact ? x : x + Math.sin(a) * 1.2;
+      let az = exact ? z : z + Math.cos(a) * 1.2;
       if (!this.world.isFree(ax, az, 0.6)) {
         ax = x;
         az = z;
@@ -363,6 +363,7 @@ export class Game {
         kind: 'ally',
         team: 'player',
         type: sm.type,
+        static: !!sm.static,
         effects: sm.effects, skill: s.id, tauntRadius:sm.tauntRadius, tauntInterval:sm.tauntInterval, tauntDuration:sm.tauntDuration,
         x: ax,
         z: az,
@@ -550,7 +551,7 @@ export class Game {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
-    if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'].includes(s.kind)) {
+    if (aimsAtGround(s)) {
       let pt = point || (this.input.aimFromPointer ? this.input.aimPoint : null);
       if (!pt) {
         if (s.kind === 'heal_zone') pt = { x: p.x, z: p.z };
@@ -1158,7 +1159,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, shock:s.shock, shockCharge:s.shockCharge, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, shock:s.shock, shockCharge:s.shockCharge, root:s.root, bleed:s.bleed, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1373,6 +1374,8 @@ export class Game {
         return;
       }
       case 'summon': {
+        // a summon set at the aim point (Lure Dummy) stands where it is put, within the skill's range
+        if (s.summon.placeAt === 'aim') { const d = Math.min(s.range || 0, dist(p.x, p.z, aim.x, aim.z)), a = angleTo(p.x, p.z, aim.x, aim.z); this.spawnAllies(s, p.x + Math.sin(a) * d, p.z + Math.cos(a) * d, true); return; }
         this.spawnAllies(s, p.x - Math.sin(p.facing) * 1.2, p.z - Math.cos(p.facing) * 1.2);
         return;
       }
@@ -1629,7 +1632,7 @@ export class Game {
       if(s.trigger.cost&&p.mp<s.cost)return;
       p.triggerCd[i] = s.trigger.icd;
       let aim;
-      if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'].includes(s.kind)) aim = { angle: p.facing, x: p.x, z: p.z };
+      if (aimsAtGround(s)) aim = { angle: p.facing, x: p.x, z: p.z };
       else aim = this.resolveAim(s, null);
       this.emit({ type: 'trigger', slot: i, skill: s.id });
       if(s.trigger.cost)p.mp-=s.cost;
@@ -1660,7 +1663,7 @@ export class Game {
       sh.t -= dt;
       if (sh.t <= 0) delete m.statuses.shock;
     }
-    for (const k of ['chill', 'hex', 'mire', 'charged']) {
+    for (const k of ['chill', 'hex', 'mire', 'charged', 'root']) {
       if (!m.statuses[k]) continue;
       m.statuses[k].t -= dt;
       if (m.statuses[k].t <= 0) delete m.statuses[k];
@@ -1709,6 +1712,8 @@ export class Game {
         continue;
       }
       keep.push(a);
+      // a static one (Lure Dummy) stands where it was set: it only draws monsters (tickFrontier taunts)
+      if (a.static) { a.moving = false; continue; }
       // pick a target: what we are fighting, else the player's target, else something threatening the player
       if(a.command==='follow'){a.targetId=null;}
       if(a.command!=='attack'&&a.effects?.focusTarget&&p.lastHitTarget!==a.focusId){a.focusId=p.lastHitTarget;a.focusReady=this.time+a.effects.focusSwitchDelay;a.targetId=null;}
@@ -1904,6 +1909,15 @@ export class Game {
       if(a.wallHp!==undefined){a.t+=dt;if(a.wallHp>0&&a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.lightWall){a.t+=dt;if(a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.follow){if(this.player.dead)continue;a.x=this.player.x;a.z=this.player.z;}
+      // a set trap (core/frontier-content.js placeTraps) waits, armed after arm s, until a monster comes within
+      // its trigger, then springs at once (the burst below); it is gone after its life unsprung
+      if (a.trap && !a.sprung) {
+        a.t += dt;
+        if (a.t >= a.trap.life) { this.emit({ type: 'areaEnd', id: a.id }); continue; }
+        if (!(a.t >= a.trap.arm && this.monsters.some((m) => !m.dead && dist(a.x, a.z, m.x, m.z) <= a.trap.trigger + m.r))) { keep.push(a); continue; }
+        a.sprung = true; a.t = 0; a.delay = 0;
+        this.emit({ type: 'trapSprung', skill: a.kind, id: a.id, x: a.x, z: a.z, radius: a.radius });
+      }
       // a monster's attack marked at its wind-up waits while that monster twitches from shock (ai.js pauses
       // the wind-up), so the hit still lands with the strike; one already launched (a rock in flight) does not
       if (a.owner === 'monster' && a.t < a.delay) { const src = this.monsterById(a.sourceId); if (src && src.twitchT > 0 && src.state === 'windup') { keep.push(a); continue; } }

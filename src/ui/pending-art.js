@@ -41,6 +41,11 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   ice_spikes: 'หนามน้ำแข็ง',
   thunder_slash: 'ฟันสายฟ้า',
   ice_ball: 'บอลน้ำแข็ง',
+  spike_trap: 'กับดักหนาม',
+  net_trap: 'กับดักตาข่าย',
+  blast_trap: 'กับดักระเบิด',
+  lure_dummy: 'หุ่นล่อเป้า',
+  trap_field: 'ทุ่งกับดัก',
 });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

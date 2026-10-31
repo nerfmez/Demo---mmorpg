@@ -299,6 +299,7 @@
       "exposure": { "nameTh": "เกราะแตก", "color": "#ffb36a", "icon": "exposure" },
       "hex": { "nameTh": "คำสาป", "color": "#c99bff", "icon": "hex" },
       "charged": { "nameTh": "ประจุ", "color": "#ffe56a", "icon": "charged" },
+      "root": { "nameTh": "ติดตาข่าย", "color": "#d8c08a", "icon": "root" },
       "taunt": { "nameTh": "ยั่วยุ", "color": "#ff6a4a", "icon": "taunt" }
     },
     "_weaponTempoDoc": "Weapon weight (owner, 2026-10-31): a main attack (power attack, base cooldown at most mainSkillCooldown) used with one of these weapons has its cooldown, damage and MP per press multiplied by the value: heavy weapons swing slower and harder, the same per second (core/skills.js computeSkill). Main attacks start slow (owner: a 0.8 s basic swing was too fast for an MMORPG): sword 1.2 s, dagger 1.0 s, bow 1.3 s; comboWindow covers the slowest so swings in a row still alternate the arm.",
@@ -453,9 +454,10 @@
       "survivalCap": 600,
       "recover": 0.28,
       "control": {
-        "_doc": "Assumptions the profile uses for things it cannot see directly (check them in play): slowShare, how much of a slow keeps a monster from hitting (a chill only slows walking); tauntShare, how much of the pack a taunting summon draws; dodgeUse, how often a dodge is used against its recharge (on-dodge triggers); monsterSpeed, average walking m/s (knockback); burn/poison, the share of a hit a burn (15% x 3 s) or poison (12% x 4 s) adds; cap, the most control can take away; teamShare, how much of our control counts as help for the team; fanSingleShare, how much of each projectile past the first in a fan reaches one lone target (the rest fly past it; a pack takes one projectile per monster); interruptTiming, how often a stun cast is timed into a monster's wind-up (it cancels that attack, most often its big one; the rest of the pack it reaches are cancelled when they happen to be winding up).",
+        "_doc": "Assumptions the profile uses for things it cannot see directly (check them in play): slowShare, how much of a slow keeps a monster from hitting (a chill only slows walking); tauntShare, how much of the pack a taunting summon draws; dodgeUse, how often a dodge is used against its recharge (on-dodge triggers); monsterSpeed, average walking m/s (knockback); burn/poison, the share of a hit a burn (15% x 3 s) or poison (12% x 4 s) adds; cap, the most control can take away; teamShare, how much of our control counts as help for the team; fanSingleShare, how much of each projectile past the first in a fan reaches one lone target (the rest fly past it; a pack takes one projectile per monster); interruptTiming, how often a stun cast is timed into a monster's wind-up (it cancels that attack, most often its big one; the rest of the pack it reaches are cancelled when they happen to be winding up); fieldSingle, how many traps of a field a lone monster walks into.",
         "slowShare": 0.4, "tauntShare": 0.5, "dodgeUse": 0.5, "monsterSpeed": 3.2, "burn": 0.45, "poison": 0.48, "cap": 0.8, "teamShare": 0.5, "fanSingleShare": 0.35,
-        "interruptTiming": 0.6
+        "interruptTiming": 0.6,
+        "fieldSingle": 1.5
       },
       "budgetBand": 0.25,
       "budgetWeights": { "single": 1, "pack": 1, "survival": 1, "sustain": 0.25, "mobility": 0.25, "team": 1, "income": 0.25 },

@@ -674,4 +674,6 @@ halo) drawn out from the middle to the true radius, turned at random each time.
 Stun mark (every stun in the game, `mace-fx.js` on the rules' `stunned`). Owner: the little stars over a
 stunned head read as something else; make it swirling lines. Now three short comet-like strokes of warm
 light (thick at their leading head, thinning behind) orbit the head on a tilted ring for the stun, fading
-in and out; no sprites.
+in and out; no sprites. Owner: "still not clear, add something" - over them a dizzy spiral (an anime '@' swirl,
+1.8 turns) faces the camera above the head, turning, bobbing and popping in, and every stun line now has
+a dark warm ink edge under its light so it reads on bright grass.

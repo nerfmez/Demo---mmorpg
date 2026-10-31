@@ -539,3 +539,12 @@ Round 2 (owner: does not like the bursts): the ragged blue flashes at the bow, t
 after-shock are gone; the loose and the spearhead only pop a small clean four-point glint with sparks.
 Round 3 (owner: its head and tail were too square): the lance and its glow are now strips of 28 points, the tail rounding in from nothing at the bow and the head drawn out into a long point; the charged lane's line on the ground fades in and out at its ends.
 Round 4 (owner: the effect felt too light): a thicker lance that surges as it is loosed and flickers while it holds (0.4 s), three bolts wound round it and short forks leaping off it, speed lines kicking back from the bow, a bolt running down through each struck body into the ground, a brighter charged lane with more arcs, three heavier bolts on the after-shock and a harder shake; still no ragged bursts.
+
+Miasma Arrow, round 1 (`miasma-fx.js`; the rules' 'area' and 'areaEnd' of kind poison_mist_arrow). The
+mist comes out of an arrow, apart from Venom Arrow's needle and the mage's zones: a poisoned arrow arcs
+from the bow and pins at the centre; a murky violet pool (it must read on green grass) with thin lime
+swirls, welling bubbles and a clear lime rim at the true radius; a ring runs out over it on every
+half-second beat (the rules' ticks) while the arrow's glow pulses; cel puffs of sickly lime gas with violet
+shadows roll out from the arrow and rise, a big one on each beat; when it ends the gas thins and the pool
+dries inward. Puffs are one instanced draw (camera-facing quads cut from noise). The floating "พิษ ×N" text
+is gone everywhere: the status icons carry the stacks.

@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { data } from './helpers.js';
 import { Game } from '../../src/core/game.js';
 import { createCharacter } from '../../src/core/character.js';
-import { computeSkill } from '../../src/core/skills.js';
+import { computeSkill, modFits } from '../../src/core/skills.js';
 import { craft } from '../../src/core/crafting.js';
 import { tickFrontier } from '../../src/core/frontier-content.js';
 import { updateMonster } from '../../src/core/ai.js';
@@ -169,4 +169,25 @@ test('Steal takes gold and maybe one of the monster\'s own materials, once per m
   // nothing in front: a swipe at the air
   g.monsters = [mk('behind', -2, 0)]; g.executeSkill(s, aim);
   assert.equal(g.drainEvents().find((e) => e.type === 'steal')?.id, null);
+});
+
+test('Following Aura keeps a buff\'s own effects (at its share); Provoke takes no aura (a standing taunt is not the design)', () => {
+  const k = data.mods.mods.following_aura.effect.buffAura[0];
+  for (const id of ['fighting_spirit', 'stand_firm', 'blood_boil']) {
+    const ch = createCharacter(data, { kit: 'sword' });
+    ch.stats = { STR: 60, DEX: 5, INT: 60, AGI: 5, VIT: 60, LUK: 5 };
+    ch.skills[id] = 1; ch.mods = [{ id: 'following_aura', uid: 900, level: 1, grade: 'C' }];
+    ch.slots = [{ skill: id, mods: [900] }, ...ch.slots.slice(1).map(() => ({ skill: null, mods: [] }))];
+    const g = new Game(data, { seed: 7, character: ch });
+    g.skills = ch.slots.map((_, i) => computeSkill(ch, data, g.derived, i));
+    const s = g.skills[0];
+    assert.ok(s.modEffects?.buffAura, `${id} takes the aura`);
+    g.executeSkill(s, aim); tickFrontier(g, 0.6);
+    const b = g.player.buffs[id];
+    assert.ok(b, `${id}: its own entry while the aura runs`);
+    if (id === 'fighting_spirit') assert.ok(Math.abs(b.leech - data.skills.combat.fighting_spirit.spirit.leech * k) < 1e-9);
+    if (id === 'stand_firm') assert.ok(b.taken < 1 && b.taken > s.takenMult, 'less damage taken, at its share');
+    if (id === 'blood_boil') assert.ok(Math.abs(b.rage.max - data.skills.combat.blood_boil.rage.max * k) < 1e-9);
+  }
+  assert.equal(modFits(data.skills.combat.provoke, data.mods.mods.following_aura).ok, false);
 });

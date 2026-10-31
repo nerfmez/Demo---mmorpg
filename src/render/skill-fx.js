@@ -385,12 +385,13 @@ export class SkillFx {
         return true;
       }
       case 'blinkPlayer': this.move.jump(e.fromX, e.fromZ, e.x, e.z); host.vfx.blinkEcho(e.fromX, e.fromZ, host.rig()); return true;
+      case 'arrowPin': this.frain.pin(e, this.skillOf(e.skill)?.arrows?.blast || 1.4); return true;
       case 'area': {
         if (e.owner !== 'player') return false;
         if (e.kind === 'faith_wall') { const a = g.areas.find((q) => q.id === e.id); if (a) this.gs.wallBegin(a); return true; }
         const el = this.skillOf(e.kind)?.element;
         if (e.kind === 'arrow_rain') { this.rain.wave(e, el || 'physical', g.player); return true; }
-        if (e.kind === 'fire_arrow_rain') { this.frain.wave(e, g.player); return true; }
+        if (e.kind === 'fire_arrow_rain') return true; // drawn from its arrowPin events
         if (e.kind === 'meteor') { this.meteor.begin(e); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.begin(e, el || 'lightning'); return true; }
         if (e.kind === 'blizzard') { this.blizzard.begin(e); return true; }
@@ -398,7 +399,7 @@ export class SkillFx {
       }
       case 'burst':
         if (e.kind === 'arrow_rain') { this.rain.burst(e); return true; }
-        if (e.kind === 'fire_arrow_rain') { this.frain.burst(e); host.shake(0.06, 0.08); return true; }
+        if (e.kind === 'fire_arrow_rain') { this.frain.burst(e); host.shake(0.08, 0.1); return true; }
         if (e.kind === 'meteor') { this.meteor.impact(e); host.shake(0.4, 0.3); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.strike(e, g.monsters.filter((m) => !m.dead && Math.hypot(m.x - e.x, m.z - e.z) <= (e.radius || 3) + (m.r || 0)).map((m) => [m.x, m.z])); host.shake(0.14, 0.12); return true; }
         if (e.kind === 'leap') { this.move.land(e.x, e.z, e.radius); host.shake(0.2, 0.18); return true; }

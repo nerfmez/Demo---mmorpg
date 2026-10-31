@@ -500,3 +500,10 @@ wrapped in a comet of Firebolt's fire from `meteor-flame.js`) that pin into the 
 burn there as small tongues of the same fire over a round scorch, then burn away and leave the charred
 shafts a moment. A thin ember circle marks the area and pulses with each wave. Unlike Meteor: no rock, no
 crater, no dome; unlike Arrow Rain: few heavy arrows, not a rain of light. No gallery access.
+
+Flame Arrow Rain, round 2 (owner: round 1 looked too much like Arrow Rain; each arrow should burst on its own
+time). The rules now pin eight arrows across the circle and burst each on its own fuse (`arrows`). The look:
+a fan of fire arrows flies low arcs from the bow (no burst in the sky, nothing raining down), they pin
+together, each burns down its fuse (its flame tongue swelling and flickering faster, an ember ring closing
+from its blast edge onto the arrow) and bursts on its own beat with a flash, a fire puff and embers, a ring of
+fire out to its blast radius and a scorch.

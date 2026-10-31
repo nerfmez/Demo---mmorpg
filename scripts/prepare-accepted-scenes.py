@@ -122,7 +122,12 @@ function polyAt(T, x, z) {
   return inside ? -Math.sqrt(best) : Math.sqrt(best);
 }"""
 
-for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden','ranger-forest','gull-headland','mirror-pond','moonstone-camp','stone-ring','fern-rise','root-warren']:
+# Greenhollow Frontier's seven zones (owner, 31 October 2026), in the Frontier map (region frontier-wilds-v1).
+FRONTIER=['sunny-meadow','bramble-glade','greyfang-den','sunfall-coast','glimmer-wetland','crag-highlands','frontier-settlement']
+# Optional names on the command line regenerate only those factories (the rest stay as committed).
+only=set(sys.argv[2:])
+for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose-garden','ranger-forest','gull-headland','mirror-pond','moonstone-camp','stone-ring','fern-rise','root-warren']+FRONTIER:
+ if only and name not in only:continue
  if name=='beach':
   src=b[b.index('// ---------- world layout'):b.index('function resize()')]
   src=src[:src.index('// ---------- renderer')]+src[src.index('// ---------- shared GLSL'):]
@@ -214,7 +219,7 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
   src=src.replace('const pos = new V3(), q = new THREE.Quaternion(), spinQ = new THREE.Quaternion();','const pos = wpPosition, q = wpRotation, spinQ = wpSpinRotation;').replace('new V3(0, 1, 0), t * 0.9 * G','wpAxis, t * 0.9 * G').replace('new V3(0, 1, 0), WP.spin','wpAxis, WP.spin')
   pre+='const wpPosition=new V3(),wpRotation=new THREE.Quaternion(),wpSpinRotation=new THREE.Quaternion(),wpAxis=new V3(0,1,0);\n'
  meta="const routes=typeof ROUTES!=='undefined'?ROUTES:typeof ST!=='undefined'&&ST.rows?[{id:'stairs',...ST}]:[];\nconst trails=typeof TRAILS!=='undefined'?TRAILS:[];\n"
- end="\nbuild();\n"+meta+"return {root:scene,height,field,colliders:COLLIDERS,routes,trails,landmark:typeof MILL!=='undefined'?MILL:typeof WELL!=='undefined'?WELL:typeof GAZEBO!=='undefined'?GAZEBO:null,P:typeof P!=='undefined'?P:null,trailDistance:typeof trailEdge!=='undefined'?trailEdge:(x,z)=>Math.abs(x-pathX(z))-2.6,shore:typeof zShore!=='undefined'?zShore:null,\nwaypoint:typeof WP!=='undefined'?WP:null,crossing:typeof CROSSING!=='undefined'?CROSSING:null,pond:typeof POND!=='undefined'?{...POND,radius:pondRadius,waterY:SEA_Y}:null,update(dt,t,on){timeU.value=t;"
+ end="\nbuild();\n"+meta+"return {root:scene,height,field,colliders:COLLIDERS,routes,trails,landmark:typeof MILL!=='undefined'?MILL:typeof WELL!=='undefined'?WELL:typeof GAZEBO!=='undefined'?GAZEBO:null,P:typeof P!=='undefined'?P:null,trailDistance:typeof trailEdge!=='undefined'?trailEdge:(x,z)=>Math.abs(x-pathX(z))-2.6,shore:typeof zShore!=='undefined'?zShore:null,\nwaypoint:typeof WP!=='undefined'?WP:null,crossing:typeof CROSSING!=='undefined'?CROSSING:null,pond:typeof POND!=='undefined'?{...POND,radius:pondRadius,waterY:SEA_Y}:null,pools:typeof POOLS!=='undefined'?{list:POOLS,radius:poolRadius,waterY:SEA_Y}:null,cave:typeof CAVE!=='undefined'?CAVE:null,update(dt,t,on){timeU.value=t;"
  if 'function updateWaypoint' in src:end+="WP.active=on;updateWaypoint(dt,t);"
  if 'function updateAmbience' in src:end+="/* ambient particles remain game-owned */"
  if name=='forest':end+=""

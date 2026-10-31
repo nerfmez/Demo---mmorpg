@@ -688,6 +688,22 @@ export function createWorld(worldData) {
         }
       }
       decor.sceneShrubs.push(...shrubs);
+      // Flowers carry on from the scene into the map in small clumps over a wider ring, thinning
+      // outward, in the zone's own colours (owner, 31 October 2026: flowers all round a scene, not in
+      // one patch). Their own seed: the trees and shrubs above keep their places.
+      if (!cfg.flowers) continue;
+      const fl = { ...cfg.flowers, ...own.flowers }, fr = createRng((cfg.seed ^ hash(s.id) ^ 0x51f15) >>> 0), bloom = [];
+      for (let placed = 0, tries = 0; placed < fl.perScene && tries < fl.perScene * 6; tries++) {
+        const centre = pick(fr, s, fl);
+        if (!centre) continue;
+        for (let k = 0, n = fr.int(fl.clump[0], fl.clump[1]); k < n && placed < fl.perScene; k++) {
+          const a = fr.range(0, 6.28), d = k ? fr.range(0.3, fl.clumpRadius) : 0, x = centre[0] + Math.sin(a) * d, z = centre[1] + Math.cos(a) * d;
+          if (!inBounds(x, z, 1) || scenes.some((o) => sceneWeight(o, x, z) > 0.1) || isWater(x, z, 0.6) || isBeach(x, z, 0.5) || nearRoad(x, z, 0.4) || nearWaypoint(x, z, 2) || connectorClear(worldData, x, z, 0.6)) continue;
+          if (hf.slopeAt(x, z) > fl.slope || nearTown(x, z, 1) || bloom.some((o) => dist(x, z, o.x, o.z) < fl.spacing) || overlaps(x, z, 0.2)) continue;
+          bloom.push({ x, z, color: fr.pick(zoneDecor(zoneAt(x, z)).flowers), s: fr.range(fl.size[0], fl.size[1]) }); placed++;
+        }
+      }
+      decor.flowers.push(...bloom);
     }
   }
 

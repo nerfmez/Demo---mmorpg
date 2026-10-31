@@ -1619,6 +1619,26 @@ atlas portraits (`public/assets/icons/monster|region/...`, registered in `raster
 atlas manifests) and item pictures (`public/assets/moonroot/...`) drawn inside the authored SVG frame
 (`ui/art.js`), with every crop and hash in `assets/moonroot/manifest.json`.
 
+### Greenhollow Frontier zone scenes (31 October 2026)
+
+The approved zone scenes stand in the Frontier map (`region: frontier-wilds-v1`, s 0.42), each where its
+zone landmark stood, which the scene now draws (`landmark.acceptedScene`): Sunny Meadow (89, 6) on the main
+road (its sundial), Bramble Glade (100, 100) (the bramble arch), Greyfang Den (100, -114) (the cave),
+Glimmer Wetland (-62, 26) (the crystal; y 0.06 puts its pools at the water level) and Crag Highlands
+(-140, -80) (the brazier shrine). `scripts/place-frontier-scenes.mjs` writes the map side: native roads
+are cut where a scene stands, the scene's paths are added as roads (`acceptedScene`), and each cut road
+end is joined to the nearest point of that scene's paths by a final connector (also a road); the
+scenes' other paths lead off into the woods. Scene colliders beside a path are shrunk to keep it clear
+by the hero radius (`inspect-accepted-scenes.mjs` spec `clearPaths`). Greyfang Den draws the den itself:
+the native `den` ring is gone and the boss's arena is the clearing before the cave mouth; the cave path
+road stops before the tunnel's closed back (`scene.cave` gives its mouth, back, width and height in world
+metres). Glimmer Wetland exports its four pools as `scene.pools` (Mirror Pond's `pond` shape, a list):
+the ground draws each to its waterline, and circles filling them (in `ponds`) are only their collision;
+the wetland waypoint moved onto the fork's open ground. `surround.plant.flowers` adds clumps of the
+zone's own flowers in a wider ring round each scene (`plantSceneSurrounds`, own seed, `decor.flowers`):
+flowers carry on from a scene into the map instead of ending at its frame (owner). These scenes keep
+their authored tree sizes (their roots are drawn for those trunks), as Moonroot's do.
+
 ### Zone landmarks and ground cover
 
 Every zone of every map has one landmark of its own (`landmarks` in each map's data; kinds are

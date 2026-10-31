@@ -118,6 +118,7 @@ function brambleArch(ua,va,ub,vb,vTop){
   addBush(p.x,p.y-M(.35),p.z,R(.55,.95),{sy:.8,tint:R(-.06,.1)});
   if(rand()<.6)addRose(p.clone().addScaledVector(out,M(.3)).add(new V3(0,0,M(.2))),R(.26,.38),pick(BRAMBLE_ROSES),out.clone().add(new V3(0,.4,.6)));
  }
- for(const[x,z]of[[ax,az],[bx,bz]]){COLLIDERS.push({x,z,r:M(.7)});for(let k=0;k<3;k++)bramble(x+R(-1,1)*M(.7),height(x,z),z+R(-.4,1)*M(.7),R(.9,1.2));}
+ for(const[x,z]of[[ax,az],[bx,bz]]){COLLIDERS.push({x,z,r:M(.5)});   // the feet stand beside the path: their circles keep off it (game, hero radius .45)
+ for(let k=0;k<3;k++)bramble(x+R(-1,1)*M(.7),height(x,z),z+R(-.4,1)*M(.7),R(.9,1.2));}
  ARCH={ax,az,bx,bz,top:H};
 }

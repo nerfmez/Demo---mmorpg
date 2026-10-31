@@ -915,7 +915,8 @@ export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrain
   };
   // A scene that exports its pond's waterline (Mirror Pond: 72 radii from -PI) is drawn to that
   // outline; the circles in `ponds` that fill it are only its collision.
-  const scenePonds = acceptedScenes(world.data).filter((s) => s.pond).map((s) => s.pond);
+  // Glimmer Wetland exports several pools, each drawn the same way.
+  const scenePonds = acceptedScenes(world.data).flatMap((s) => s.pond ? [s.pond] : s.pools || []);
   for (const sp of scenePonds) {
     const n = sp.radius.length, rimAt = (a) => {
       const f = ((a + Math.PI) / (2 * Math.PI)) * n, i = Math.floor(f), u = f - i;

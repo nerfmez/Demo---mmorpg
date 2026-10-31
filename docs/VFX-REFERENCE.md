@@ -620,3 +620,10 @@ then (light only where it helps reading). When a monster steps in, steel spikes 
 punch up in two rings over the true radius with speed lines, a dust burst, a glint and a warm light; what
 they strike bleeds a spray of drops; they hold, sink back, and the plate is gone. The bench walks a dummy
 into an armed trap so it springs there as in the game.
+
+Net Trap, round 1 (`trap-fx.js`, the same plates). Its plate carries the net rolled up in a coil of rope
+instead of teeth. When a monster steps in, a dome of rope bursts up off the plate (tall and narrow), then
+spreads out and down over the whole circle with a little bounce, iron weights on its rim pinning it; it is
+held for the root's length over what it caught, then thins away. The net is drawn as lines, not a fill: a
+rope grid on the dome (tan cords with a dark same-hue edge, lit from above, brighter knots where they
+cross); the meridians thin toward the top so the cells stay even.

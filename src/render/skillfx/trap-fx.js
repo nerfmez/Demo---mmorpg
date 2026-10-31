@@ -7,6 +7,8 @@
 //   armed (arm s): its teeth click up with a glint; a thin amber ring pulses at the trigger range;
 //   Spike Trap springs (trapSprung): steel spikes punch up in two rings over the trap's radius with a
 //     glint and dust, hold, then sink back and the plate is gone;
+//   Net Trap springs: a dome of rope bursts up off the plate and drapes over the whole circle, iron weights
+//     on its rim pinning it, held while it roots what is under it, then thinning away;
 //   unsprung at the end of its life (areaEnd): the plate sinks away.
 // Cosmetic only; pooled (8 plates, one instanced spike mesh with its outline), no per-frame allocation.
 import * as THREE from 'three';
@@ -17,7 +19,27 @@ import { toon, outlineMaterial } from '../toon.js';
 
 const PLATES = 8, TEETH = 8, SPIKES_PER = 14, DUSTS = 24;
 const TOSS = 0.32, SPRING = 0.07, HOLD = 0.42, SINK = 0.28; // seconds
-const STEEL = '#8a95a6', IRON = '#4a4f5a', WOOD = '#7a5434', EDGE = '#262a33';
+const STEEL = '#8a95a6', IRON = '#4a4f5a', WOOD = '#7a5434', EDGE = '#262a33', ROPE = '#c8a46a';
+const NETS = 4, WEIGHTS = 8, NET_UP = 0.13, NET_DRAPE = 0.22, NET_FADE = 0.35; // seconds
+
+// the net: a rope grid on a dome (uv.x round it, uv.y from its rim up to its top), lines not a fill: tan rope
+// with a dark same-hue edge, lit from above, knots where the ropes cross; uA fades it, uSeed wobbles the cells
+const NET_VS = `varying vec2 vUv; varying vec3 vN; void main(){ vUv = uv; vN = normalize(normalMatrix*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const NET_FS = `varying vec2 vUv; varying vec3 vN; uniform float uA, uSeed;
+  void main(){
+    float el = vUv.y*1.5708;                                     // elevation up the dome
+    vec2 g = vec2(vUv.x*18.0, vUv.y*6.5 + 0.12*sin(vUv.x*31.0 + uSeed));
+    vec2 f = abs(fract(g) - 0.5);
+    // distance to the nearest rope, in a parallel's cell units: a meridian's cells narrow toward the top
+    float dm = (0.5 - f.x)*cos(el)*2.9, dp = 0.5 - f.y, d = min(dm, dp);
+    float w = 0.085;
+    if (d > w + 0.012 || vUv.y > 0.97) discard;                 // the holes between the ropes
+    float edge = smoothstep(w*0.45, w, d);                       // a dark same-hue edge round a tan cord
+    float knot = (1.0 - smoothstep(0.1, 0.2, max(dm, dp)));      // where two ropes cross
+    float l = 0.62 + 0.38*max(0.0, normalize(vN).y);
+    vec3 c = mix(vec3(0.82, 0.66, 0.42)*l, vec3(0.36, 0.24, 0.13), edge);
+    c = mix(c, vec3(0.96, 0.84, 0.58), knot*0.55*(1.0 - edge));
+    gl_FragColor = vec4(c, uA); }`;
 
 // a thin ring of light on the ground (additive), pulsing outward from the trap: where it will spring
 const RING_VS = `varying vec2 vUv; void main(){ vUv = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
@@ -50,18 +72,28 @@ export class TrapFx {
     this.camera = camera; this.rnd = mulberry32(83); this.time = 0;
     // plates: a wooden disc in an iron rim with teeth round it (toon + outline hulls)
     const disc = new THREE.CylinderGeometry(0.4, 0.44, 0.08, 18), rim = new THREE.TorusGeometry(0.42, 0.045, 6, 22).rotateX(Math.PI / 2), tooth = new THREE.ConeGeometry(0.045, 0.14, 4).translate(0, 0.07, 0), hub = new THREE.CylinderGeometry(0.1, 0.12, 0.07, 10);
-    for (const g of [disc, rim, tooth, hub]) g.userData.shared = true;
+    const coilGeos = [0.13, 0.2, 0.27].map((r) => new THREE.TorusGeometry(r, 0.035, 5, 18).rotateX(Math.PI / 2));
+    for (const g of [disc, rim, tooth, hub, ...coilGeos]) g.userData.shared = true;
     const edge = outlineMaterial(EDGE, 0.02);
     this.plates = Array.from({ length: PLATES }, () => {
       const g = new THREE.Group(), add = (geo, color, y = 0) => { const m = new THREE.Mesh(geo, toon(color)); m.position.y = y; const o = new THREE.Mesh(geo, edge); m.add(o); g.add(m); return m; };
       add(disc, WOOD, 0.04); add(rim, IRON, 0.07); add(hub, IRON, 0.1);
       const teeth = [];
       for (let i = 0; i < TEETH; i++) { const a = i / TEETH * Math.PI * 2, t = add(tooth, STEEL, 0.06); t.position.x = Math.cos(a) * 0.3; t.position.z = Math.sin(a) * 0.3; teeth.push(t); }
+      // a net trap's plate carries its net rolled up in a coil of rope instead of teeth
+      const coil = [0.13, 0.2, 0.27].map((r, i) => { const m = add(coilGeos[i], ROPE, 0.1 + (2 - i) * 0.025); m.visible = false; return m; });
       g.visible = false; scene.add(g);
       const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uPulse: { value: 0 } }, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
       ring.rotation.x = -Math.PI / 2; ring.renderOrder = 2; ring.visible = false; scene.add(ring);
-      return { g, teeth, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
+      return { g, teeth, coil, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
     });
+    // nets (Net Trap): a dome of rope that bursts up off the plate and drapes over the circle, with iron
+    // weights on its rim flung out to pin it
+    const dome = new THREE.SphereGeometry(1, 36, 10, 0, Math.PI * 2, 0, Math.PI / 2); dome.userData.shared = true;
+    this.nets = Array.from({ length: NETS }, () => { const m = new THREE.Mesh(dome, new THREE.ShaderMaterial({ uniforms: { uA: { value: 1 }, uSeed: { value: 0 } }, vertexShader: NET_VS, fragmentShader: NET_FS, transparent: true, side: THREE.DoubleSide })); m.visible = false; m.renderOrder = 5; scene.add(m); return { m, t: 9, x: 0, z: 0, R: 2.4, hold: 2.5, seed: 0 }; });
+    const ball = new THREE.SphereGeometry(0.11, 10, 8); ball.userData.shared = true;
+    this.weights = new THREE.InstancedMesh(ball, toon(IRON), NETS * WEIGHTS); this.weights.frustumCulled = false;
+    for (let i = 0; i < this.weights.count; i++) this.weights.setMatrixAt(i, ZERO); scene.add(this.weights);
     // spikes: one instanced draw for all plates, and its outline
     const sg = spikeGeometry();
     this.spikes = new THREE.InstancedMesh(sg, toon('#ffffff', { vertexColors: true }), PLATES * SPIKES_PER);
@@ -85,13 +117,25 @@ export class TrapFx {
     Object.assign(p, { id: e.id, skill: e.skill, t: 0, state: 'toss', x: e.x, z: e.z, arm: e.arm ?? 0.6, trigger: def?.trap?.trigger ?? 1, radius: def?.radius ?? 1.4, seed: this.rnd() * 10, spin: (this.rnd() - 0.5) * 12 });
     p.from.copy(from);
     p.g.visible = true; p.ring.visible = false;
-    for (const t of p.teeth) t.scale.set(1, 0.3, 1);
+    p.net = e.skill === 'net_trap'; p.hold = def?.root?.duration ?? 2.5;
+    for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net; }
+    for (const c of p.coil) c.visible = p.net;
   }
   /** The rules' trapSprung. */
   spring(e) {
     const p = this.plates.find((q) => q.id === e.id && q.state !== 'off'); if (!p) return;
     p.state = 'spring'; p.springT = 0; p.ring.visible = false;
     const r = this.rnd, R = p.radius;
+    if (p.net) {
+      // the net bursts up off the plate and drapes over the whole circle; the plate is spent at once
+      const n = this.nets.find((q) => q.t >= q.hold + NET_UP + NET_DRAPE + NET_FADE) || this.nets[0];
+      Object.assign(n, { t: 0, x: p.x, z: p.z, R, hold: p.hold, seed: r() * 6 }); n.m.material.uniforms.uSeed.value = n.seed; n.m.visible = true;
+      for (const c of p.coil) c.visible = false;
+      for (let i = 0; i < 6; i++) { const a = r() * 6.283; this.dust(p.x + Math.cos(a) * R * 0.9, 0.12, p.z + Math.sin(a) * R * 0.9, Math.cos(a) * 0.8, 0.3, Math.sin(a) * 0.8, 0.6, 0.5); }
+      this.glint(p.x, 1.3, p.z, 0.8, 0.25);
+      place(this.light, p.x, 1, p.z); this.lightT = 0;
+      return;
+    }
     p.spikes.forEach((k, i) => {
       const inner = i < 5, a = (i / (inner ? 5 : SPIKES_PER - 5)) * Math.PI * 2 + r() * 0.5, d = inner ? R * (0.12 + 0.25 * r()) : R * (0.45 + 0.4 * r());
       Object.assign(k, { x: p.x + Math.cos(a) * d, z: p.z + Math.sin(a) * d, h: inner ? 1.0 + 0.35 * r() : 0.55 + 0.3 * r(), w: inner ? 1.7 : 1.25, lean: (inner ? 0.12 : 0.35) + r() * 0.12, yaw: -a + Math.PI / 2, delay: (inner ? 0 : 0.03) + r() * 0.03 });
@@ -151,7 +195,7 @@ export class TrapFx {
       // the spikes of a sprung trap: punch up fast with an overshoot, hold, sink back into the ground
       for (let j = 0; j < SPIKES_PER; j++, k++) {
         const s = p.spikes[j];
-        if (p.state !== 'spring') { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
+        if (p.state !== 'spring' || p.net) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
         const u = (p.springT - s.delay) / SPRING;
         if (u <= 0) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
         const out = Math.max(0, (p.springT - SPRING - HOLD - s.delay) / SINK), hk = easeBack(Math.min(1, u)) * (1 - Math.min(1, out));
@@ -162,6 +206,24 @@ export class TrapFx {
       }
     }
     this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
+    // nets: up off the plate fast (a tall narrow dome), then out and down over the circle (a low wide one)
+    // with a little bounce, held while it roots them, then thinning away; weights fly out to its rim
+    this.nets.forEach((n, ni) => {
+      const end = n.hold + NET_UP + NET_DRAPE;
+      if (n.t >= end + NET_FADE) { n.m.visible = false; for (let w = 0; w < WEIGHTS; w++) this.weights.setMatrixAt(ni * WEIGHTS + w, ZERO); return; }
+      n.t += dt;
+      const up = Math.min(1, n.t / NET_UP), dr = Math.min(1, Math.max(0, (n.t - NET_UP) / NET_DRAPE)), ed = easeBack(dr);
+      const wide = n.R * (0.25 + 0.75 * up * 0.55 + 0.45 * ed), high = 1.5 * up * (1 - dr) + 0.75 * ed * (1 + 0.04 * Math.sin(n.t * 9) * (1 - Math.min(1, (n.t - NET_UP - NET_DRAPE) / 0.6)));
+      place(n.m, n.x, 0.02, n.z); n.m.scale.set(Math.max(0.05, wide), Math.max(0.05, high), Math.max(0.05, wide)); n.m.rotation.y = n.seed;
+      n.m.material.uniforms.uA.value = n.t < end ? 1 : Math.max(0, 1 - (n.t - end) / NET_FADE);
+      for (let w = 0; w < WEIGHTS; w++) {
+        const a = n.seed + (w / WEIGHTS) * Math.PI * 2, rr = wide * 1.0;
+        _p.set(n.x + Math.cos(a) * rr, fxGround.y(n.x, n.z) + 0.1 + 0.6 * up * (1 - dr), n.z - Math.sin(a) * rr);
+        const sc = n.t < end ? 1 : Math.max(0.001, 1 - (n.t - end) / NET_FADE);
+        _m.compose(_p, _q.identity(), _s.set(sc, sc, sc)); this.weights.setMatrixAt(ni * WEIGHTS + w, _m);
+      }
+    });
+    this.weights.instanceMatrix.needsUpdate = true;
     // speed lines: thin streaks shooting up beside the tall spikes as they punch (the first 0.16 s)
     this.core.begin(); this.glow.begin();
     for (const p of this.plates) {
@@ -199,6 +261,7 @@ export class TrapFx {
     for (let i = 0; i < this.spikes.count; i++) { this.spikes.setMatrixAt(i, ZERO); this.spikeEdges.setMatrixAt(i, ZERO); }
     this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
     for (const q of this.dusts) { q.t = 9; q.m.visible = false; } for (const g of this.glints) { g.t = 9; g.s.visible = false; }
+    for (const n of this.nets) { n.t = 99; n.m.visible = false; } for (let i = 0; i < this.weights.count; i++) this.weights.setMatrixAt(i, ZERO); this.weights.instanceMatrix.needsUpdate = true;
     for (const q of this.drops) q.t = 9; this.core.begin(); this.core.end(); this.glow.begin(); this.glow.end();
     this.light.intensity = 0; this.lightT = 9;
   }

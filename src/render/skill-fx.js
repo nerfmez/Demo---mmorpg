@@ -58,9 +58,9 @@ const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap']);
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
-const TRAP_FX = new Set(['spike_trap']);
+const TRAP_FX = new Set(['spike_trap', 'net_trap']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')

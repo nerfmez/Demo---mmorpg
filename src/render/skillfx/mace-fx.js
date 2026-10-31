@@ -4,7 +4,8 @@
 // each struck target, which is then stunned. Every stun in the game (the rules' 'stunned') is drawn here:
 // a swirl over its head for the stun (owner, 2026-10-31: the earlier little stars read as something
 // else; then "only the spiral, instead of the lines below") - a dizzy spiral (an anime '@' swirl) lying flat
-// over the head, turning round the vertical, bobbing and popping in, a warm light line with a dark ink edge so it
+// over the head, turning round the vertical and popping in: a flat mesh of even width (camera-facing ribbons
+// laid flat went lopsided), a warm cream line with a dark ink edge so it
 // reads on bright grass.
 // (windup()/the red "!" warning remain for monsters that wind up an attack; a stunned target's
 // warning shatters.) Cosmetic only.
@@ -13,13 +14,29 @@ import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 const EDGE = [1.0, 0.93, 0.7], GLOW = [0.95, 0.65, 0.25], WARN = [1.0, 0.25, 0.15], WARN_GLOW = [0.9, 0.12, 0.05];
 const BURSTS = 6, RAYS = 10, RING_PTS = 25, ICONS = 6;
-const DAZE = [1.0, 0.95, 0.62], DAZE_GLOW = [0.95, 0.72, 0.3], INK = [0.33, 0.18, 0.05], SPIRAL_PTS = 30, SPIRAL_TURNS = 1.8;
+const SPIRALS = 10, SPIRAL_SEG = 72, SPIRAL_TURNS = 1.8, SPIRAL_R = 0.3, SPIRAL_W = 0.1;
+// the stun spiral: a flat strip on the XZ plane winding out from its middle (uv.y -1..1 across it); a cream
+// line inside a dark warm ink edge, rounded at its two ends; uA fades it
+function spiralGeometry() {
+  const pos = [], uv = [], idx = [];
+  for (let i = 0; i <= SPIRAL_SEG; i++) {
+    const u = i / SPIRAL_SEG, th = u * SPIRAL_TURNS * 6.283, r = SPIRAL_R * (0.1 + 0.9 * u), w = SPIRAL_W * (0.6 + 0.4 * u) / 2;
+    for (const k of [-1, 1]) { const rr = r + k * w; pos.push(Math.cos(th) * rr, 0, Math.sin(th) * rr); uv.push(u, k); }
+    if (i < SPIRAL_SEG) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
+  g.userData.shared = true; return g;
+}
+const SPIRAL_VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position, 1.0); }`;
+const SPIRAL_FS = `varying vec2 vUv; uniform float uA;
+  void main(){
+    float d = abs(vUv.y), end = min(vUv.x, 1.0 - vUv.x)*60.0;            // round off the two ends a little
+    if (d > min(1.0, end + 0.35)) discard;
+    vec3 c = d < 0.5 ? vec3(1.0, 0.94, 0.62) : vec3(0.33, 0.18, 0.05);
+    gl_FragColor = vec4(c, uA); }`;
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.9) discard;
     vec3 c = d < 0.4 ? mix(vT, vec3(1.0,0.98,0.92), 0.8) : vT; gl_FragColor=vec4(c, vA); }`;
-// a plain ink line (the dark edge under the stun's light strokes)
-const INK_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
-  void main(){ if(abs(vUv.y)>0.95) discard; gl_FragColor=vec4(vT, vA); }`;
 const GLOW_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); float a=pow(1.0-d,2.5)*0.6; gl_FragColor=vec4(vT*a*vA, 1.0); }`;
 
@@ -42,20 +59,18 @@ const warnTex = () => canvasTexture((g) => {
   g.fillStyle = '#fff4e8'; g.beginPath(); g.moveTo(54, 30); g.lineTo(74, 30); g.lineTo(69, 76); g.lineTo(59, 76); g.closePath(); g.fill();
   g.beginPath(); g.arc(64, 92, 9, 0, 6.283); g.fill();
 });
-// the stun spiral: a little thicker toward its outer end
-const spiralW = (x) => stripW * (0.55 + 0.45 * x), spiralInkW = (x) => spiralW(x) * 1.9, spiralGlowW = (x) => spiralW(x) * 2.6;
 
 export class MaceFx {
   constructor(scene, camera) {
     this.core = new Ribbon(scene, camera, 4000, CORE_FS, THREE.NormalBlending);
     this.glow = new Ribbon(scene, camera, 4000, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
-    this.ink = new Ribbon(scene, camera, 1500, INK_FS, THREE.NormalBlending); this.ink.mesh.renderOrder = 7.5;
     const sprite = (map, opts, order) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthWrite: false, transparent: true, ...opts })); sp.visible = false; sp.renderOrder = order; scene.add(sp); return sp; };
     const g = glowTex(), w = warnTex();
     this.bursts = Array.from({ length: BURSTS }, () => ({ sp: sprite(g, { blending: THREE.AdditiveBlending }, 9), t: 9, life: 0.3, size: 1, pos: new THREE.Vector3(), rays: Array.from({ length: RAYS }, () => ({ d: new THREE.Vector3(), len: 1 })) }));
     this.icons = Array.from({ length: ICONS }, () => ({ sp: sprite(w, { depthTest: false, toneMapped: false }, 10), id: null, t: 0, total: 1 }));
-    this.spiral = Array.from({ length: SPIRAL_PTS }, () => new THREE.Vector3());
+    const sg = spiralGeometry();
+    this.spirals = Array.from({ length: SPIRALS }, () => { const m = new THREE.Mesh(sg, new THREE.ShaderMaterial({ uniforms: { uA: { value: 1 } }, vertexShader: SPIRAL_VS, fragmentShader: SPIRAL_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide })); m.visible = false; m.renderOrder = 10; m.frustumCulled = false; scene.add(m); return m; });
     this.stunned = []; this.rings = []; this.shards = [];
     this.burstI = 0; this.rnd = mulberry32(47); this.t = 0;
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
@@ -112,7 +127,7 @@ export class MaceFx {
   }
   update(dt, headOf) {
     this.t += dt;
-    this.core.begin(); this.glow.begin(); this.ink.begin();
+    this.core.begin(); this.glow.begin();
     const three = this.three;
     for (const b of this.bursts) {
       b.t += dt;
@@ -159,27 +174,24 @@ export class MaceFx {
       for (let i = 0; i < RING_PTS; i++) { const a = (i / (RING_PTS - 1)) * 6.283 * u; this.pts[i].set(head.x + Math.sin(a) * 0.55, 0.05, head.z + Math.cos(a) * 0.55); sub.push(this.pts[i]); }
       stripW = 0.05; this.glow.strip(sub, lineGlowW, 0.7, WARN_GLOW); this.core.strip(sub, lineW, 0.9, WARN);
     }
-    // stun: a dizzy spiral above the head
+    // stun: a dizzy spiral lying flat over the head (owner: not upright), turning round the vertical, popping in
+    let n = 0;
     for (const s of this.stunned) {
       s.t += dt;
-      const head = headOf(s.id) || s.head; if (!head) continue;
-      const fade = Math.max(0, Math.min(1, (s.duration - s.t) / 0.15)) * Math.min(1, s.t / 0.1);
-      // the dizzy spiral, lying flat over the head (owner: not standing up): winding out from its middle,
-      // turning round the vertical, bobbing, popping in
-      const pop = Math.min(1, s.t / 0.15), size = 0.3 * (pop < 1 ? 0.6 + 0.55 * Math.sin(pop * 2.2) : 1), spin = -s.t * 6;
-      const cx = head.x, cy = head.y + 0.42 + 0.04 * Math.sin(s.t * 5), cz = head.z;
-      for (let i = 0; i < SPIRAL_PTS; i++) {
-        const u = i / (SPIRAL_PTS - 1), th = u * SPIRAL_TURNS * 6.283, r = size * (0.12 + 0.88 * u), a = th + spin;
-        this.spiral[i].set(cx + Math.cos(a) * r, cy + 0.02 * Math.sin(a * 2 + s.t * 4), cz + Math.sin(a) * r);
-      }
-      stripW = 0.045; this.ink.strip(this.spiral, spiralInkW, 0.9 * fade, INK); this.glow.strip(this.spiral, spiralGlowW, 0.5 * fade, DAZE_GLOW); this.core.strip(this.spiral, spiralW, fade, DAZE);
+      const head = headOf(s.id) || s.head; if (!head || n >= SPIRALS) continue;
+      const m = this.spirals[n++], fade = Math.max(0, Math.min(1, (s.duration - s.t) / 0.15)), pop = Math.min(1, s.t / 0.15);
+      m.visible = true; place(m, head.x, head.y + 0.42, head.z);
+      m.rotation.y = s.t * 6; m.scale.setScalar(pop < 1 ? 0.6 + 0.55 * Math.sin(pop * 2.2) : 1);
+      m.material.uniforms.uA.value = fade;
     }
+    for (let i = n; i < SPIRALS; i++) this.spirals[i].visible = false;
     compact(this.stunned, this.stunAlive);
-    this.core.end(); this.glow.end(); this.ink.end();
+    this.core.end(); this.glow.end();
   }
   clear() {
     for (const b of this.bursts) { b.t = 9; b.sp.visible = false; }
     for (const ic of this.icons) { ic.id = null; ic.sp.visible = false; }
+    for (const m of this.spirals) m.visible = false;
     this.stunned.length = 0; this.rings.length = 0; for (const q of this.shards) this.free.push(q); this.shards.length = 0;
   }
 }

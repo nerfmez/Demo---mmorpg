@@ -678,4 +678,6 @@ in and out; no sprites. Owner: "still not clear, add something" - over them a di
 1.8 turns) faces the camera above the head, turning, bobbing and popping in, and every stun line now has
 a dark warm ink edge under its light so it reads on bright grass. Then: "only the spiral, instead of the lines below" - the orbiting
 strokes are gone; the stun mark is the spiral alone. Then: "why does the spiral turn upright?" - it faced the camera; it now
-lies flat over the head and turns round the vertical, a little larger (0.3 m).
+lies flat over the head and turns round the vertical, a little larger (0.3 m). Then: "it is lopsided!" - camera-facing ribbons laid flat went
+uneven and it bobbed; it is now a flat strip mesh of even width (cream line, dark ink edge) turning
+round the vertical, nothing else.

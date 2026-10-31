@@ -408,8 +408,7 @@
       ],
       "job": "trapper",
       "iconPending": true,
-      "fxPending": true,
-      "upgradeStat": "DEX",
+            "upgradeStat": "DEX",
       "castTime": 0.25
     },
     "frost_jaw": {

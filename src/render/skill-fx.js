@@ -23,6 +23,7 @@ import { ModFx } from './skillfx/mod-fx.js';
 import { VenomFx } from './skillfx/venom-fx.js';
 import { RainFx } from './skillfx/rain-fx.js';
 import { FlameRainFx } from './skillfx/flamerain-fx.js';
+import { GeyserFx } from './skillfx/geyser-fx.js';
 import { IceArrowFx } from './skillfx/icearrow-fx.js';
 import { LanceFx } from './skillfx/lance-fx.js';
 import { MiasmaFx } from './skillfx/miasma-fx.js';
@@ -58,9 +59,9 @@ const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap', 'blast_trap', 'lure_dummy']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap', 'blast_trap', 'lure_dummy', 'flame_geyser']);
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
-const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field']);
+const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -102,6 +103,7 @@ export class SkillFx {
     this.venom = new VenomFx(scene, camera);
     this.rain = new RainFx(scene, camera);
     this.frain = new FlameRainFx(scene, camera, this.fire); // the spell archer's Flame Arrow Rain
+    this.geyser = new GeyserFx(scene, camera, this.fire); // the trapper's Flame Geyser eruptions
     this.iarrow = new IceArrowFx(scene, camera); // the spell archer's Shatter Arrow
     this.lance = new LanceFx(scene, camera); // the spell archer's Thunder Lance
     this.miasma = new MiasmaFx(scene, camera); // the spell archer's Miasma Arrow
@@ -288,7 +290,12 @@ export class SkillFx {
       case 'areaEnd': this.gs.wallEnd(e.id); this.miasma.end(e.id); this.traps.end(e.id); return false;
       // the trapper's traps: tossed from the hand, set, sprung (skillfx/trap-fx.js)
       // Trap Field throws the others' plates (e.look: which trap each one is)
-      case 'trapSet': { if (!TRAP_FX.has(e.skill)) return false; this.traps.set(e, this.skillOf(e.skill), this.castTip()); return true; }
+      case 'trapSet': {
+        if (!TRAP_FX.has(e.skill)) return false;
+        const s = this.skillOf(e.skill), P = s?.trap?.pulses;
+        if (P) e.vent = (P.count - 1) * P.interval + 0.75; // a geyser's vent stays through its pulses
+        this.traps.set(e, s, this.castTip()); return true;
+      }
       // Lure Dummy: its thump when set and its straw when gone (skillfx/trap-fx.js); the view still draws the summon
       case 'summon': if (e.skill === 'lure_dummy') this.traps.plant(e); return false;
       case 'allyGone': this.traps.gone(e); return false;
@@ -446,6 +453,7 @@ export class SkillFx {
       case 'burst':
         if (e.kind === 'arrow_rain') { this.rain.burst(e); return true; }
         if (e.kind === 'fire_arrow_rain') { this.frain.burst(e); host.shake(0.08, 0.1); return true; }
+        if (e.kind === 'flame_geyser') { this.geyser.erupt(e.x, e.z, e.radius || 2.2); host.shake(0.12, 0.14); return true; }
         if (TRAP_FX.has(e.kind)) return true; // the spring is drawn by trapSprung
         if (e.kind === 'meteor') { this.meteor.impact(e); host.shake(0.4, 0.3); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.strike(e, g.monsters.filter((m) => !m.dead && Math.hypot(m.x - e.x, m.z - e.z) <= (e.radius || 3) + (m.r || 0)).map((m) => [m.x, m.z])); host.shake(0.14, 0.12); return true; }
@@ -546,7 +554,7 @@ export class SkillFx {
     }
     this.venom.update(dt, tip);
     this.rain.update(dt);
-    this.frain.update(dt);
+    this.frain.update(dt); this.geyser.update(dt);
     this.iarrow.update(dt);
     this.lance.update(dt);
     this.miasma.update(dt);
@@ -632,7 +640,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

@@ -646,3 +646,13 @@ Trap Field, round 1 (`trap-fx.js`, no new pieces). Owner: the field throws the t
 whether the player has learned them or not. The hero sows five plates that leave the hand one after another
 (0.06 s apart) and spread over the 3 m circle; each is a Spike, Net or Blast plate (teeth, rope coil, bomb)
 with its own trigger ring, and springs with that trap's approved effect.
+
+Flame Geyser, round 1 (`geyser-fx.js`, plate in `trap-fx.js`). The trap's plate is an iron vent whose throat
+glows once armed and between eruptions. Each of the rules' three bursts is an eruption of Firebolt's fire
+(meteor-flame.js on V5_FIELD): a comet shell turned to point down into the vent, so its hot round head sits
+in the nozzle and its tail is a tongue of fire about 3 m tall carried upward; it shoots up in a few frames
+with an overshoot, roars, then its cut rises so the top tears first while it sinks back into the vent (a
+head left standing read as a ball). A thin ring of fire runs out to the true 2.2 m radius, and short
+tongues lick up from the ground where it passes. Embers, a warm light, a small shake. A squashed dome at
+the jet's foot was tried and dropped: it read as a flat blotchy disc. Nothing comes from the sky, unlike
+Flame Arrow Rain and Blast Trap's dome.

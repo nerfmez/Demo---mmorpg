@@ -86,7 +86,8 @@ export class TrapFx {
     const disc = new THREE.CylinderGeometry(0.4, 0.44, 0.08, 18), rim = new THREE.TorusGeometry(0.42, 0.045, 6, 22).rotateX(Math.PI / 2), tooth = new THREE.ConeGeometry(0.045, 0.14, 4).translate(0, 0.07, 0), hub = new THREE.CylinderGeometry(0.1, 0.12, 0.07, 10);
     const coilGeos = [0.13, 0.2, 0.27].map((r) => new THREE.TorusGeometry(r, 0.035, 5, 18).rotateX(Math.PI / 2));
     const bombGeo = new THREE.SphereGeometry(0.24, 14, 10), fuseGeo = new THREE.CylinderGeometry(0.025, 0.03, 0.14, 6);
-    for (const g of [disc, rim, tooth, hub, bombGeo, fuseGeo, ...coilGeos]) g.userData.shared = true;
+    const nozzleGeo = new THREE.CylinderGeometry(0.16, 0.22, 0.2, 12, 1, true), lipGeo = new THREE.TorusGeometry(0.16, 0.035, 6, 14).rotateX(Math.PI / 2);
+    for (const g of [disc, rim, tooth, hub, bombGeo, fuseGeo, nozzleGeo, lipGeo, ...coilGeos]) g.userData.shared = true;
     const edge = outlineMaterial(EDGE, 0.02);
     this.plates = Array.from({ length: PLATES }, () => {
       const g = new THREE.Group(), add = (geo, color, y = 0) => { const m = new THREE.Mesh(geo, toon(color)); m.position.y = y; const o = new THREE.Mesh(geo, edge); m.add(o); g.add(m); return m; };
@@ -97,11 +98,13 @@ export class TrapFx {
       const coil = [0.13, 0.2, 0.27].map((r, i) => { const m = add(coilGeos[i], ROPE, 0.1 + (2 - i) * 0.025); m.visible = false; return m; });
       // a blast trap's plate carries a round black bomb with a short fuse that sparks once it is armed
       const bomb = [add(bombGeo, BOMB, 0.3), add(fuseGeo, ROPE, 0.55)]; for (const m of bomb) m.visible = false;
+      // a Flame Geyser's plate is a vent: an open iron nozzle whose throat glows once it is armed
+      const vent = [add(nozzleGeo, IRON, 0.18), add(lipGeo, EDGE, 0.28)]; for (const m of vent) m.visible = false;
       const spark = lightSprite(scene, starTexture('fire'), true, 10);
       g.visible = false; scene.add(g);
       const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uPulse: { value: 0 } }, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
       ring.rotation.x = -Math.PI / 2; ring.renderOrder = 2; ring.visible = false; scene.add(ring);
-      return { g, teeth, coil, bomb, spark, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
+      return { g, teeth, coil, bomb, vent, spark, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
     });
     // nets (Net Trap): a dome of rope that bursts up off the plate and drapes over the circle, with iron
     // weights on its rim flung out to pin it
@@ -141,7 +144,10 @@ export class TrapFx {
     p.from.copy(from);
     p.g.visible = p.t >= 0; p.ring.visible = false;
     p.net = look === 'net_trap'; p.hold = e.hold ?? def?.root?.duration ?? 2.5; p.blast = look === 'blast_trap';
-    for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net && !p.blast; }
+    // a geyser's vent stays through its pulses (e.vent: their span), then sinks
+    p.geyser = look === 'flame_geyser'; p.ventT = e.vent ?? 2;
+    for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net && !p.blast && !p.geyser; }
+    for (const m of p.vent) m.visible = p.geyser;
     for (const c of p.coil) c.visible = p.net;
     for (const m of p.bomb) m.visible = p.blast;
   }
@@ -150,6 +156,7 @@ export class TrapFx {
     const p = this.plates.find((q) => q.id === e.id && q.state !== 'off'); if (!p) return;
     p.state = 'spring'; p.springT = 0; p.ring.visible = false;
     const r = this.rnd, R = p.radius;
+    if (p.geyser) { this.glint(p.x, 0.5, p.z, 0.6, 0.2); return; } // its eruptions are GeyserFx's, at each of the rules' bursts
     if (p.blast) {
       // the bomb goes off: the plate is gone at once, the burst is Flame Arrow Rain's (onBlast)
       p.state = 'off'; p.clicked = false; p.g.visible = false; p.spark.visible = false;
@@ -245,8 +252,9 @@ export class TrapFx {
         for (const t of p.teeth) t.scale.set(1, 0.3 + 0.7 * easeBack(ak), 1);
         if (armed && !p.clicked) { p.clicked = true; this.glint(p.x, gy + 0.35, p.z, 0.45, 0.22); }
         // a bomb's fuse sparks once armed, flickering
-        p.spark.visible = p.blast && armed;
-        if (p.spark.visible) { place(p.spark, p.x, 0.66, p.z); p.spark.scale.setScalar(0.32 + 0.1 * Math.sin(this.time * 37 + p.seed) + 0.06 * Math.sin(this.time * 23)); p.spark.material.rotation = this.time * 6; }
+        p.spark.visible = (p.blast || p.geyser) && armed;
+        if (p.spark.visible && p.geyser) { place(p.spark, p.x, 0.3, p.z); p.spark.scale.setScalar(0.42 + 0.08 * Math.sin(this.time * 9 + p.seed)); p.spark.material.rotation = this.time; }
+        else if (p.spark.visible) { place(p.spark, p.x, 0.66, p.z); p.spark.scale.setScalar(0.32 + 0.1 * Math.sin(this.time * 37 + p.seed) + 0.06 * Math.sin(this.time * 23)); p.spark.material.rotation = this.time * 6; }
         // the trigger range, steady, with a soft ring running out to it every 1.4 s
         p.ring.visible = armed;
         if (armed) {
@@ -257,7 +265,9 @@ export class TrapFx {
       } else if (p.state === 'spring' || p.state === 'sink') {
         p.spark.visible = false;
         p.springT += dt;
-        const st = p.springT, gone = p.state === 'sink' ? st / SINK : Math.max(0, (st - SPRING - HOLD) / SINK);
+        const st = p.springT, gone = p.state === 'sink' ? st / SINK : Math.max(0, (st - SPRING - (p.geyser ? p.ventT : HOLD)) / SINK);
+        // a geyser's throat glows hot between its eruptions
+        if (p.geyser && p.state === 'spring' && gone <= 0) { p.spark.visible = true; place(p.spark, p.x, 0.3, p.z); p.spark.scale.setScalar(0.6 + 0.15 * Math.sin(this.time * 17)); }
         p.g.position.y = gy - 0.12 * Math.min(1, gone);
         p.g.scale.setScalar(Math.max(0.001, 1 - Math.max(0, gone - 0.3) / 0.7));
         if (gone >= 1) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.g.scale.setScalar(1); }
@@ -265,7 +275,7 @@ export class TrapFx {
       // the spikes of a sprung trap: punch up fast with an overshoot, hold, sink back into the ground
       for (let j = 0; j < SPIKES_PER; j++, k++) {
         const s = p.spikes[j];
-        if (p.state !== 'spring' || p.net) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
+        if (p.state !== 'spring' || p.net || p.geyser) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
         const u = (p.springT - s.delay) / SPRING;
         if (u <= 0) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
         const out = Math.max(0, (p.springT - SPRING - HOLD - s.delay) / SINK), hk = easeBack(Math.min(1, u)) * (1 - Math.min(1, out));
@@ -297,7 +307,7 @@ export class TrapFx {
     // speed lines: thin streaks shooting up beside the tall spikes as they punch (the first 0.16 s)
     this.core.begin(); this.glow.begin();
     for (const p of this.plates) {
-      if (p.state !== 'spring' || p.springT > 0.16) continue;
+      if (p.state !== 'spring' || p.springT > 0.16 || p.geyser) continue;
       const u = p.springT / 0.16, two = this.two;
       for (let j = 0; j < 7; j++) {
         const s = p.spikes[j], ox = Math.cos(j * 2.4 + p.seed) * 0.18, oz = Math.sin(j * 2.4 + p.seed) * 0.18;

@@ -1404,7 +1404,23 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   areas, and emits `stunned` with `duration`.
 - `poison` (Venom Arrow, a bow projectile): every direct hit adds one stack up to
   `maxStacks` and refreshes `duration`; the poison deals `stacks × stackDps × hit` per second.
-  `poisonStack` is emitted only when the count grows.
+  `poisonStack` is emitted only when the count grows. The stacking is `stackPoison(g, m, poison, amount)`;
+  a `dot_zone` whose skill has `poison` (Miasma Arrow) calls it on every tick with the tick's damage.
+- Elemental job skills (2026-10-31, `tests/core/elemental-skills.test.js`; plain skills, one element
+  each, for the spell archer `spellarcher` and the spellblade): Flame Arrow Rain (`ground_area` with
+  `waves`, `burnChance`), Miasma Arrow (`dot_zone` + `poison`), Flame Slash (a wide `melee_arc`),
+  Ice Blade Thrust (`melee_line` + `chill`), and three new fields:
+  - `shatter` {count, arc, range, mult, speed} on a projectile (Shatter Arrow): when a monster stops the
+    arrow (`pr.stopOn`, set in `updateProjectiles`), `endProjectile` fans `count` shard projectiles
+    (`shard: true`, same kind, `damage × mult`, their `hit` set copied so the struck monster is never hit
+    again) over `arc` degrees along the arrow, then emits `shatter`. Shards never shatter; a miss never
+    breaks; a returning or endlessly piercing shot never stops, so it never breaks.
+  - `afterShock` {delay, mult, stun} on a `melee_line` (Thunder Lance): `strikeLane` again after `delay`
+    on the same lane (fixed where it was cast) at `mult`, every hit stunning `stun` s (bosses 0);
+    `lineStrike` carries `after: true` for the second.
+  - `discharge` {delay, ahead, radius, mult} on a `melee_arc` (Thunder Slash): `delay` s after the swing a
+    `secondaryBurst` (kind `discharge`) of `radius` centred `ahead` m along the aim, at `mult`.
+  The build profile counts them (`build-rules.js` castDamage and the per-cast burst).
 - Melee arc swings in a row alternate `step` 0/1 within `comboWindow` (animation side only).
   Every swing is the same strike: there is no third-hit finisher, bonus or knockback.
 - Rain pays all three arrows once and schedules three separate delayed areas. Walls

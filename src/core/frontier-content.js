@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','discharge'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -116,7 +116,19 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     }
     return true;
   }
-  if(s.kind==='melee_line'){strikeLane(g,s,p.x,p.z,aim.angle,s.range,mult);return true;}
+  // Thunder Lance (s.afterShock): the lane it struck crackles again a moment later, weaker, and stuns
+  if(s.kind==='melee_line'){
+    const x=p.x,z=p.z,a=aim.angle,A=s.afterShock;
+    strikeLane(g,s,x,z,a,s.range,mult);
+    if(A&&!triggered)g.later(A.delay,()=>strikeLane(g,s,x,z,a,s.range,mult*A.mult,{stun:{duration:A.stun,bossDuration:0}},true));
+    return true;
+  }
+  // Thunder Slash (s.discharge): the cut's charge bursts ahead of the hero a moment after the swing
+  // (the swing itself is the usual melee_arc below)
+  if(s.discharge&&s.kind==='melee_arc'&&!triggered){
+    const D=s.discharge,x=p.x+Math.sin(aim.angle)*D.ahead,z=p.z+Math.cos(aim.angle)*D.ahead;
+    g.later(D.delay,()=>!p.dead&&secondaryBurst(g,x,z,D.radius,s.damage*mult*D.mult,s.element,s.id,'discharge'));
+  }
   // Blink Draw (dash_line): the hero dashes along the aim (walls and cliffs stop it, no
   // invulnerability); the lane it crossed is cut when it arrives (Game.updatePlayer, strikeLane)
   if(s.kind==='dash_line'){
@@ -185,7 +197,7 @@ export function rushContact(g,d){
 }
 
 /** A straight lane from (x, z) along angle, range long and s.width wide: every monster in it is hit once. */
-export function strikeLane(g,s,x,z,angle,range,mult) {
+export function strikeLane(g,s,x,z,angle,range,mult,extra=null,after=false) {
   const e=s.modEffects||{};
   // Far End: the far end of the lane hits harder
   const tip=e.tipMult?range*(1-e.tipShare):Infinity;
@@ -193,11 +205,18 @@ export function strikeLane(g,s,x,z,angle,range,mult) {
     if(m.dead)continue;const dx=m.x-x,dz=m.z-z;
     const forward=dx*Math.sin(angle)+dz*Math.cos(angle),side=dx*Math.cos(angle)-dz*Math.sin(angle);
     if(forward < -m.r || forward>range+m.r || Math.abs(side)>s.width/2+m.r)continue;
-    g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,{crit:g.rollCrit(),fromX:x,fromZ:z}));
+    g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,{crit:g.rollCrit(),fromX:x,fromZ:z,...extra}));
   }
-  g.emit({type:'lineStrike',skill:s.id,x,z,angle,range,width:s.width,element:s.element});
+  g.emit({type:'lineStrike',skill:s.id,x,z,angle,range,width:s.width,element:s.element,after});
 }
 
+/** One more poison stack (up to pz.maxStacks), refreshed; every stack poisons for pz.stackDps x amount a second
+ * (Venom Arrow's direct hits, Miasma Arrow's mist ticks). */
+export function stackPoison(g,m,pz,amount){
+  const old=m.statuses.poison,before=old?.stacks||0,stacks=Math.min(pz.maxStacks,before+1);
+  m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks};
+  if(stacks>before)g.emit({type:'poisonStack',id:m.id,stacks,x:m.x,z:m.z});
+}
 export function adjustFrontierHit(g,m,amount,opts) {
   const s=opts.skill && g.skills.find(s=>s?.id===opts.skill),e=opts.modEffects || {};
   if(opts.dot||opts.secondary)return amount;
@@ -214,11 +233,7 @@ export function adjustFrontierHit(g,m,amount,opts) {
   }
   // Venom Arrow: each direct hit adds a poison stack (up to maxStacks) and refreshes it; every stack
   // poisons for stackDps x this hit per second.
-  if(opts.poison&&!opts.byAlly){
-    const pz=opts.poison,old=m.statuses.poison,before=old?.stacks||0,stacks=Math.min(pz.maxStacks,before+1);
-    m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks};
-    if(stacks>before)g.emit({type:'poisonStack',id:m.id,stacks,x:m.x,z:m.z});
-  }
+  if(opts.poison&&!opts.byAlly)stackPoison(g,m,opts.poison,amount);
   if(opts.taunt){m.forcedTargetId=g.player.id;m.tauntT=Math.max(m.tauntT||0,opts.taunt.duration);}
   if(e.pull&&!m.boss){const a=angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z),d=Math.min(e.pull,dist(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z));g.moveEntity(m,Math.sin(a)*d,Math.cos(a)*d);}
   if(e.poisonFraction){const source=amount/(1-e.poisonFraction),old=m.statuses.poison;const next={dps:source*e.poisonFraction/e.poisonDuration,t:e.poisonDuration,acc:0,owner:'player'};if(!old||next.dps>=old.dps)m.statuses.poison=next;}
@@ -399,6 +414,18 @@ export function coverMult(g,u,source){
   return k;
 }
 export function endProjectile(g,pr){
+  // Shatter Arrow (s.shatter): stopped by a monster, the arrow breaks into a fan of shards flying on
+  // (weaker, not breaking again, never hitting what the arrow hit)
+  const S=pr.skill?.shatter;
+  if(S&&!pr.shard&&pr.stopOn){
+    const step=S.count>1?S.arc*DEG/(S.count-1):0;
+    for(let i=0;i<S.count;i++){
+      const a=pr.angle+(i-(S.count-1)/2)*step;
+      g.spawnProjectile({owner:'player',kind:pr.kind,skill:pr.skill,shard:true,x:pr.x,z:pr.z,y:pr.y??1.05,angle:a,speed:S.speed,radius:.2,range:S.range,damage:pr.damage*S.mult,element:pr.element,pierce:0,chain:0,triggered:pr.triggered,hit:new Set(pr.hit)});
+    }
+    g.emit({type:'shatter',skill:pr.skill.id,x:pr.x,z:pr.z,angle:pr.angle,arc:S.arc,count:S.count,element:pr.element});
+    pr.stopOn=null;
+  }
   const e=pr.skill?.modEffects;if(e?.terminalBurst&&(!e.returnMult||pr.returning))secondaryBurst(g,pr.x,pr.z,e.burstRadius,pr.damage*e.terminalBurst,pr.element,pr.kind);
   if(e?.returnMult&&!pr.returning){pr.returning=true;pr.hit.clear();pr.vx*=-1;pr.vz*=-1;pr.angle+=Math.PI;pr.damage*=e.returnMult;pr.travelled=0;pr.range=dist(pr.x,pr.z,pr.startX,pr.startZ);pr.pierce=Infinity;return pr.range>.05;}
   return false;

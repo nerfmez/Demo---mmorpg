@@ -52,6 +52,10 @@ export function castDamage(s) {
   if (s.charge) dmg *= s.charge.maxDamageMult || 1;
   if (s.echo) dmg *= 1 + s.echo.mult; // the echo strikes again
   if (s.modEffects?.returnMult) dmg *= 1 + s.modEffects.returnMult; // a returning shot's way back
+  if (s.afterShock) dmg *= 1 + s.afterShock.mult; // Thunder Lance: the lane strikes again
+  // a zone that stacks poison on each tick (Miasma Arrow): the stacks poison on top of the ticks, on
+  // average about two thirds of the way to the most stacks
+  if (s.kind === 'dot_zone' && s.poison) dmg *= 1 + s.poison.stackDps * s.poison.maxStacks * (2 / 3) * (s.tick || 0.5);
   return dmg;
 }
 
@@ -160,7 +164,11 @@ export function buildProfile(data, spec) {
     return attacks.reduce((a, s, i) => {
       const hits = hitsOf(s), perTarget = scen === 'pack' ? Math.min(pct('perTargetDamagePct') * hits, pct('perTargetCap') || Infinity) : 0;
       // a burst where a shot ends (a mod) and a free cast each time we dodge (a trigger mod)
-      const burst = s.modEffects?.terminalBurst ? s.modEffects.terminalBurst * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.modEffects.burstRadius }, R.pack) : 1) / Math.max(1, hits) : 0;
+      let burst = s.modEffects?.terminalBurst ? s.modEffects.terminalBurst * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.modEffects.burstRadius }, R.pack) : 1) / Math.max(1, hits) : 0;
+      // a skill's own second hits: Thunder Slash's discharge ahead, Shatter Arrow's shards (they fly on
+      // past the target the arrow struck, so only the rest of a pack takes them; a shot that never stops never breaks)
+      if (s.discharge) burst += s.discharge.mult * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.discharge.radius }, R.pack) : 1) / Math.max(1, hits);
+      if (s.shatter && scen === 'pack' && s.pierce !== Infinity) burst += s.shatter.mult * Math.min(s.shatter.count, R.pack.size - 1) / Math.max(1, hits);
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
       // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there
       const e = s.modEffects || {}, tip = e.tipMult ? (scen === 'pack' ? 1 + e.tipShare * (e.tipMult - 1) : e.tipMult) : 1;

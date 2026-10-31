@@ -470,10 +470,19 @@ export const TRAP_WAIT = 1e6;
 export function placeTraps(g,s,aim,mult){
   const T=s.trap,n=T.count||1,mine=g.areas.filter(a=>a.trap&&!a.sprung&&a.skill?.id===s.id);
   while(mine.length&&mine.length+n>T.max){const old=mine.shift();g.areas=g.areas.filter(a=>a!==old);g.emit({type:'areaEnd',id:old.id});}
+  // a pool (Trap Field): each trap thrown is one of the trapper's traps at random, learned or not; it works
+  // as that trap (its circle, trigger, element, root or bleed) with the pool's share of this skill's damage
+  const pool=T.pool?Object.keys(T.pool):null,as={};
   for(let i=0;i<n;i++){
     const a=(i+g.rng.range(0,.6))/n*Math.PI*2,d=n>1&&i>0?T.spread*(.45+.55*Math.sqrt(g.rng.range(0,1))):0;
     const x=aim.x+Math.cos(a)*d,z=aim.z+Math.sin(a)*d;
-    const area=g.spawnArea({owner:'player',kind:s.id,skill:s,x,z,radius:s.radius,delay:TRAP_WAIT,duration:.35,damage:s.damage*mult,element:s.element,trap:{arm:T.arm,life:T.life,trigger:T.trigger}});
-    g.emit({type:'trapSet',skill:s.id,id:area.id,x,z,arm:T.arm,life:T.life,fromX:g.player.x,fromZ:g.player.z,i});
+    let look=s.id,use=s,k=1,radius=s.radius,trigger=T.trigger;
+    if(pool){
+      look=g.rng.pick(pool);const def=g.data.skills.combat[look];
+      use=as[look]||(as[look]={...s,element:def.element,root:def.root,bleed:def.bleed});
+      k=T.pool[look];radius=def.radius;trigger=def.trap.trigger;
+    }
+    const area=g.spawnArea({owner:'player',kind:s.id,skill:use,look,x,z,radius,delay:TRAP_WAIT,duration:.35,damage:s.damage*mult*k,element:use.element,trap:{arm:T.arm,life:T.life,trigger}});
+    g.emit({type:'trapSet',skill:s.id,look,id:area.id,x,z,arm:T.arm,life:T.life,radius,trigger,hold:use.root?.duration,fromX:g.player.x,fromZ:g.player.z,i});
   }
 }

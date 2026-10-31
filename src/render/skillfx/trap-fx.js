@@ -134,10 +134,13 @@ export class TrapFx {
   /** The rules' trapSet: toss a plate from the hand (from: a ground-relative point) to (e.x, e.z). */
   set(e, def, from) {
     const p = this.plates.find((q) => q.state === 'off') || this.plates.reduce((a, b) => (a.t > b.t ? a : b));
-    Object.assign(p, { id: e.id, skill: e.skill, t: 0, state: 'toss', x: e.x, z: e.z, arm: e.arm ?? 0.6, trigger: def?.trap?.trigger ?? 1, radius: def?.radius ?? 1.4, seed: this.rnd() * 10, spin: (this.rnd() - 0.5) * 12 });
+    // a field's traps leave the hand one after another (e.i), each its own kind (e.look)
+    const look = e.look || e.skill;
+    Object.assign(p, { id: e.id, skill: look, t: -(e.look && e.look !== e.skill ? e.i || 0 : 0) * 0.06, state: 'toss', x: e.x, z: e.z, arm: e.arm ?? 0.6, trigger: e.trigger ?? def?.trap?.trigger ?? 1, radius: e.radius ?? def?.radius ?? 1.4, seed: this.rnd() * 10, spin: (this.rnd() - 0.5) * 12 });
+    p.arm += p.t; // its teeth still click up when the rules arm it
     p.from.copy(from);
-    p.g.visible = true; p.ring.visible = false;
-    p.net = e.skill === 'net_trap'; p.hold = def?.root?.duration ?? 2.5; p.blast = e.skill === 'blast_trap';
+    p.g.visible = p.t >= 0; p.ring.visible = false;
+    p.net = look === 'net_trap'; p.hold = e.hold ?? def?.root?.duration ?? 2.5; p.blast = look === 'blast_trap';
     for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net && !p.blast; }
     for (const c of p.coil) c.visible = p.net;
     for (const m of p.bomb) m.visible = p.blast;
@@ -225,7 +228,8 @@ export class TrapFx {
       p.t += dt;
       const gy = fxGround.y(p.x, p.z);
       if (p.state === 'toss') {
-        const u = Math.min(1, p.t / TOSS), h = Math.sin(Math.PI * u) * 1.1;
+        p.g.visible = p.t >= 0;
+        const u = Math.max(0, Math.min(1, p.t / TOSS)), h = Math.sin(Math.PI * u) * 1.1;
         _p.copy(p.from).lerp(_p.set(p.x, 0, p.z), u);
         p.g.position.set(p.from.x + (p.x - p.from.x) * u, fxGround.y(_p.x, _p.z) + p.from.y * (1 - u) + h, p.from.z + (p.z - p.from.z) * u);
         p.g.rotation.set(p.spin * u * 0.5, p.spin * u, 0);

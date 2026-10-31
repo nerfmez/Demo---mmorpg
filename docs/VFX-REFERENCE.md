@@ -640,3 +640,9 @@ a glint. Each time it draws them (the rules' taunt, every 1.5 s) a thin ring of 
 5 m lure range; an amber tether sags and sways from each monster it has drawn to its chest (Provoke's
 tether, warm instead of red, to the dummy instead of the hero); it wobbles when struck; when its time is up
 it falls apart in a burst of straw. The bench now draws static summons and walks drawn dummies up to it.
+The owner passed it.
+
+Trap Field, round 1 (`trap-fx.js`, no new pieces). Owner: the field throws the trapper's traps at random,
+whether the player has learned them or not. The hero sows five plates that leave the hand one after another
+(0.06 s apart) and spread over the 3 m circle; each is a Spike, Net or Blast plate (teeth, rope coil, bomb)
+with its own trigger ring, and springs with that trap's approved effect.

@@ -110,6 +110,35 @@ test('Blast Trap hits harder than a Spike Trap; Trap Field scatters its traps ov
   assert.equal(traps(g, 'trap_field').length, D.trap.count - 1, 'only the trap it walked into sprang');
 });
 
+test('Trap Field throws the trapper\'s traps at random, learned or not: each works as its own trap at its share of the damage', () => {
+  const D = C.trap_field, kinds = Object.keys(D.trap.pool), seen = new Set();
+  for (let seed = 1; seed <= 12 && seen.size < kinds.length; seed++) {
+    const { g, mk, s } = fixture('trap_field');
+    g.rng = (g.rng.state = seed, g.rng);
+    assert.ok(kinds.every((k) => !g.ch.skills[k]), 'none of the pool learned');
+    g.executeSkill(s, aim);
+    const ev = g.drainEvents().filter((e) => e.type === 'trapSet');
+    for (const a of traps(g, 'trap_field')) {
+      const def = C[a.look];
+      assert.ok(kinds.includes(a.look), 'one of the pool');
+      seen.add(a.look);
+      assert.equal(a.radius, def.radius, `${a.look}: its own circle`);
+      assert.equal(a.trap.trigger, def.trap.trigger);
+      assert.ok(Math.abs(a.damage - s.damage * D.trap.pool[a.look] * g.playerDamageMult()) < 1e-6, `${a.look}: its share of the damage`);
+      assert.ok(ev.some((e) => e.id === a.id && e.look === a.look), 'the effects are told which trap it is');
+    }
+    // walk a monster onto each trap: a net roots, spikes bleed, a blast burns hardest
+    for (const a of traps(g, 'trap_field')) {
+      const m = mk('m' + a.id, a.x, a.z); g.monsters = [m];
+      a.t = D.trap.arm; step(g, 0.1);
+      if (a.look === 'net_trap') assert.ok(m.statuses.root, 'the net roots');
+      if (a.look === 'spike_trap') assert.ok(m.statuses.bleed && !m.statuses.root, 'the spikes bleed');
+      if (a.look === 'blast_trap') assert.ok(!m.statuses.root && !m.statuses.bleed, 'the blast just hits');
+    }
+  }
+  assert.equal(seen.size, kinds.length, 'every kind comes up');
+});
+
 test('Lure Dummy stands where it is set, never moves or strikes, draws the monsters near it, and is gone with its life', () => {
   const D = C.lure_dummy, { g, mk, s } = fixture('lure_dummy');
   const near = mk('n', aim.x + 2, aim.z), far = mk('f', aim.x + D.summon.tauntRadius + 4, aim.z);

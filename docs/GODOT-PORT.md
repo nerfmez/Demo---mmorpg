@@ -1448,7 +1448,13 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   summon, for `resolveAim`, triggers and the touch drag) and `static` (`updateAllies` skips it: it never
   moves or strikes) whose `tauntRadius` draws monsters (`tickFrontier`). The build profile counts a bleed
   as its share of the hit, a root as a full slow for its length, and a field's traps (`fieldSingle` of
-  them on a lone monster, all of them on a pack).
+  them on a lone monster, all of them on a pack). Trap Field's `trap.pool` {skillId: damage share} makes
+  each trap one of those traps at random (`rng.pick`, learned or not): the area takes that trap's `radius`,
+  `trap.trigger`, `element`, `root` and `bleed` (a copy of the skill with them, its id kept), the pool's
+  share of the skill's damage, and `look` = that trap's id, carried on `trapSet` (with `radius`,
+  `trigger`, `hold`) and `trapSprung` so the view draws that trap's plate; `hit` events carry `bleed`.
+  The build profile measures a pool as its average trap (mean share, mean circle, the bleed and root at
+  their odds).
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}
   sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
   sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns

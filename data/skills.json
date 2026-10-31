@@ -334,13 +334,10 @@
     "trap_field": {
       "name": "Trap Field",
       "nameTh": "ทุ่งกับดัก",
-      "desc": "โยนกับดักหนาม 5 อันกระจายทั่ววง 3 ม. ที่จุดเล็ง แต่ละอันทำงานเมื่อศัตรูเดินเข้า เลือดไหล 40% ใน 4 วินาที อยู่ 20 วินาที ต้องใช้ธนู",
+      "desc": "โยนกับดัก 5 อันกระจายทั่ววง 3 ม. ที่จุดเล็ง แต่ละอันสุ่มเป็นหนาม (เลือดไหล) ตาข่าย (ตรึง) หรือระเบิด (ไฟ แรงสุด) ไม่ต้องรู้สกิลนั้น แต่ละอันทำงานเมื่อศัตรูเดินเข้า อยู่ 20 วินาที ต้องใช้ธนู",
       "tags": ["Attack", "Trap", "Area", "Damage", "Physical", "Signature"],
       "kind": "ground_area",
-      "damage": {
-        "base": 200,
-        "scale": 1.6
-      },
+      "damage": { "base": 150, "scale": 1.2 },
       "range": 9,
       "radius": 1.3,
       "delay": 0,
@@ -348,14 +345,7 @@
         "arm": 0.8,
         "life": 20,
         "trigger": 0.9,
-        "max": 5,
-        "count": 5,
-        "spread": 3
-      },
-      "bleed": {
-        "fraction": 0.4,
-        "duration": 4
-      },
+        "max": 5, "count": 5, "spread": 3, "pool": { "spike_trap": 1, "net_trap": 0.35, "blast_trap": 1.9 } },
       "cooldown": 14,
       "castTime": 0.35,
       "cost": 224,
@@ -371,7 +361,7 @@
       ],
       "job": "trapper",
       "iconPending": true,
-      "fxPending": true,
+      
       "upgradeStat": "DEX"
     },
     "ice_ball": {

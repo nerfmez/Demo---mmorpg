@@ -947,7 +947,7 @@ export class Game {
       if (!stagger) m.flinchReady = this.time + (combat?.flinchLock || 0);
     }
     this.stats.damageDealt += dmg;
-    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
+    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', bleed: !!opts.bleed, dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
       chargeShock(this, m, opts); // Thunder Slash's charge: a main skill's hit shocks it
@@ -1916,7 +1916,7 @@ export class Game {
         if (a.t >= a.trap.life) { this.emit({ type: 'areaEnd', id: a.id }); continue; }
         if (!(a.t >= a.trap.arm && this.monsters.some((m) => !m.dead && dist(a.x, a.z, m.x, m.z) <= a.trap.trigger + m.r))) { keep.push(a); continue; }
         a.sprung = true; a.t = 0; a.delay = 0;
-        this.emit({ type: 'trapSprung', skill: a.kind, id: a.id, x: a.x, z: a.z, radius: a.radius });
+        this.emit({ type: 'trapSprung', skill: a.kind, look: a.look || a.kind, id: a.id, x: a.x, z: a.z, radius: a.radius });
       }
       // a monster's attack marked at its wind-up waits while that monster twitches from shock (ai.js pauses
       // the wind-up), so the hit still lands with the strike; one already launched (a rock in flight) does not

@@ -408,7 +408,7 @@ export class Input {
     const maxDrag = 110;
     if (aimsAtGround(s)) {
       const r = Math.min(1, len / maxDrag) * s.range;
-      return { x: p.x + Math.sin(angle) * r, z: p.z + Math.cos(angle) * r, radius: s.wall?.length/2 || s.radius || s.summon?.tauntRadius };
+      return { x: p.x + Math.sin(angle) * r, z: p.z + Math.cos(angle) * r, radius: s.wall?.length/2 || s.trap?.spread || s.radius || s.summon?.tauntRadius };
     }
     if (s.shadowStep) {
       // Backstab: the drag picks the target to step behind, anywhere within the step's reach

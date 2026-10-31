@@ -118,7 +118,15 @@ export function buildProfile(data, spec) {
   // a held channel is measured as one cast per tick: its damage per second over a tick, its drain
   // per second over a tick (the rules: frontier-content.js tickFrontier)
   const held = (s) => s.channel ? { ...s, cooldown: s.channel.tick, castTime: 0, damage: s.damage * s.channel.tick, cost: s.channel.manaPerSecond * s.channel.tick } : s;
-  const skills = ch.slots.map((sl, i) => sl.skill && held(computeSkill(ch, data, d, i))).filter(Boolean);
+  // a trap pool (Trap Field) is measured as its average trap: the mean share of the damage and circle,
+  // the bleed and root of the traps that carry them, each at its odds (core/frontier-content.js placeTraps)
+  const mixed = (s) => {
+    const P = s.trap?.pool; if (!P) return s;
+    const ks = Object.keys(P), defs = ks.map((k) => data.skills.combat[k]), n = ks.length, sum = ks.reduce((a, k) => a + P[k], 0);
+    const bleed = ks.reduce((a, k, i) => a + P[k] * (defs[i].bleed?.fraction || 0), 0) / sum, root = defs.reduce((a, x) => a + (x.root?.duration || 0), 0) / n;
+    return { ...s, damage: s.damage * sum / n, radius: defs.reduce((a, x) => a + x.radius, 0) / n, bleed: bleed ? { fraction: bleed } : null, root: root ? { duration: root } : null };
+  };
+  const skills = ch.slots.map((sl, i) => sl.skill && mixed(held(computeSkill(ch, data, d, i)))).filter(Boolean);
   const C = R.control, all = [...skills];
   // a buff turned aura (a mod) holds for good, at its share of the buff, and keeps MP reserved
   const aura = (s) => s.modEffects?.buffAura || 0;

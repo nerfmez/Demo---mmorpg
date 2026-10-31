@@ -1168,7 +1168,7 @@ Mod ranks are not gated by character level: only materials, gold and the stat re
 
 ## Rendering performance (static batching and dynamic resolution)
 
-`render/static-batch.js` runs once after the scenery is built and the water contact is baked. Static meshes whose materials are the shared toon colours, their outline hulls or the shared feature-edge lines are merged per 24 m map cell: each part's colour (and outline colour) becomes a vertex colour, so one vertex-coloured toon material and one outline material draw a whole cell, and a surface and its hull share one merged geometry. Wind-patched, walk-surface, transparent, instanced, skinned and moving objects (waypoint crystals) are left alone. Emptied groups are pruned and the static subtree's matrices frozen (`matrixAutoUpdate`/`matrixWorldAutoUpdate` false). In Godot, use merged static meshes per cell or MultiMesh with vertex colours; the look is identical.
+`render/static-batch.js` runs once after the scenery is built and the water contact is baked. Static meshes whose materials are the shared toon colours, their outline hulls or the shared feature-edge lines are merged per 24 m map cell: each part's colour (and outline colour) becomes a vertex colour, so one vertex-coloured toon material and one outline material draw a whole cell, and a surface and its hull share one merged geometry. Wind-patched, walk-surface, transparent, instanced, skinned and moving objects (the waypoints' warp pillars) are left alone. Emptied groups are pruned and the static subtree's matrices frozen (`matrixAutoUpdate`/`matrixWorldAutoUpdate` false). In Godot, use merged static meshes per cell or MultiMesh with vertex colours; the look is identical.
 
 `render/resolution.js` (`ResolutionGovernor`, settings `rendering.json` → `dynamicResolution`) lowers the render scale step by step when the average frame time stays above `slowMs`, never below `minScale` or 1 device pixel per CSS pixel, and climbs back once frames run at the display's own rate (average within `vsyncSlack` of the shortest recent frame, since requestAnimationFrame never beats vsync) for `recover` seconds; a step up that is followed by a slowdown doubles that wait, up to `maxRecover`. A device that holds the target stays at scale 1. It is off under browser automation (`navigator.webdriver`) and with `?dynres=0`. In Godot, use the viewport's `scaling_3d_scale` with the same thresholds.
 
@@ -1649,6 +1649,24 @@ calls; three in one view do not fit the iPad budget): the shopkeeper under the e
 awning with the shop spot in front of it, the workbench and smith by the north-west market stall, the
 trainer on the road by the garden, the respawn, the town centre and the town waypoint on the square.
 The settlement zone gains the village's rectangle.
+
+Warp pillars (31 October 2026, owner: the new pillar replaces every old crystal stone). Every native
+waypoint is the arrival beach's rebuilding pillar (`render/waypoint-ruin.js`, numbers and colours in
+`data/art.json` `waypointRuin`): a heap of twenty carved blocks in a broken stone ring until unlocked,
+then the blocks fly up one by one into the pillar (the beach's timing, `assemble` seconds); a waypoint
+already unlocked when first seen is shown built. The twenty blocks are the bones of one skinned mesh
+(with its outline hull, the carved grooves and their glow), so a pillar is about a dozen draws; shapes
+and textures are shared by every pillar, each owns its skeleton and animated materials. In Godot:
+a `Skeleton3D` with twenty bones and one skinned `MeshInstance3D` per layer, or twenty
+`MeshInstance3D`s if draws allow. The unlock VFX is the spark burst only (no beam). Arrival beach and
+Moonstone Camp keep the pillar their scene draws. Collision: the heap and ring are one circle of
+`core/world.js` `WAYPOINT_SOLID` (1.5 m); the arrival spot stays 2.2 m in front. Placement rule
+(`tests/core/waypoints.test.js`): every other waypoint stands on level ground (under 0.3 m of rise
+within 2.6 m), at least 2.8 m from any road edge, clear of every other collider by 2.6 m; ten were
+moved to meet it or to stand in view (Azure town from behind a house to the plaza's west side, Gull
+Headland off its stair, the Frontier town by the garden road, Sunfall Coast and the Frontier forest
+out from behind trees, Glimmer Wetland, Stone Ring off its road, and three small nudges).
+Accepted scenes keep their instanced plants 3.2 m clear of the map's pillars.
 
 iPad budgets (31 October 2026, `tests/browser/open-world.mjs`): the Frontier map's
 `acceptedScenes.foliage.chunk` is 32 m (one resident cell) and `chunkMin` 24: a scene's instanced

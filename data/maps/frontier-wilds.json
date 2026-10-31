@@ -949,7 +949,7 @@
       "id": "town",
       "name": "Settlement Gate",
       "nameTh": "\u0e1b\u0e23\u0e30\u0e15\u0e39\u0e19\u0e34\u0e04\u0e21",
-      "pos": [202, 41],
+      "pos": [192, 42],
       "unlocked": true
     },
     {
@@ -968,13 +968,13 @@
       "id": "forest",
       "name": "Forest Clearing",
       "nameTh": "\u0e25\u0e32\u0e19\u0e01\u0e25\u0e32\u0e07\u0e1b\u0e48\u0e32",
-      "pos": [57.6, -64]
+      "pos": [58.1, -69]
     },
     {
       "id": "wetland",
       "name": "Wetland Stone",
       "nameTh": "\u0e2b\u0e34\u0e19\u0e17\u0e35\u0e48\u0e0a\u0e38\u0e48\u0e21\u0e19\u0e49\u0e33",
-      "pos": [-57.375, 28.759]
+      "pos": [-55.975, 30.859]
     },
     {
       "id": "highlands",
@@ -992,7 +992,7 @@
       "id": "coast",
       "name": "Sunfall Beach Stone",
       "nameTh": "\u0e2b\u0e34\u0e19\u0e0a\u0e32\u0e22\u0e2b\u0e32\u0e14\u0e15\u0e30\u0e27\u0e31\u0e19\u0e23\u0e2d\u0e19",
-      "pos": [1.76, 169.266]
+      "pos": [-12.05, 170.72]
     }
   ],
   "town": {

@@ -72,7 +72,7 @@ if(sun){
  const cliffs=raw.acceptedScenes.edgeCliffs;
  const headland={id:'sunfall-headland',top:6.8,lean:1.3,ramp:10,points:[[18,124],[round(line[0][0]-.2),top-.4],[east+.4,top-.4],[east+.4,180],[40,184],[44,177],[44,127]],note:'Sunfall Coast: a rock headland as high as the scene\'s cliff closes its bay on the north (behind the arch) and the east; rock faces all round, clear of the pond to its east'};
  const k=cliffs.findIndex(c=>c.id===headland.id);if(k<0)cliffs.push(headland);else cliffs[k]=headland;
- const wp=raw.waypoints.find(w=>w.id==='coast');const fork=sun.roads.find(r=>r.id==='sunfall-coast/south').points.at(-1);wp.pos=[round(fork[0]-3.5),round(fork[1]+3)];
+ const wp=raw.waypoints.find(w=>w.id==='coast');wp.pos=[-12.05,170.72]; // flat ground off the west path, in view (no tree in front), clear of the pillar's ring (31 Oct)
  raw.acceptedScenes.apron.sides['sunfall-coast']='NW';
  // its approved sand is a narrow strip by the water; the clearing behind keeps its earth
  raw.acceptedScenes.beach.scene={...raw.acceptedScenes.beach.scene,'sunfall-coast':1};
@@ -111,7 +111,7 @@ const den=scenes.find(s=>s.id==='greyfang-den');
 if(den){const mouth=[round(den.cave.ax),round(den.cave.az)];raw.den={centre:mouth,radius:9};raw.landmarks.find(l=>l.id==='greyfang_den').at=mouth;const boss=raw.bosses.find(b=>b.id==='greyfang'),at=[round(den.cave.ax),round(den.cave.az+9)];boss.pos=at;boss.arena={x:at[0],z:at[1],r:8};}
 // The wetland's waypoint stood where its pools now are: it moves onto the open ground at the fork.
 const wet=scenes.find(s=>s.id==='glimmer-wetland');
-if(wet){const fork=wet.roads.find(r=>r.id==='glimmer-wetland/south').points.at(-1),wp=raw.waypoints.find(w=>w.id==='wetland');wp.pos=[round(fork[0]+3.5),round(fork[1]+2.5)];
+if(wet){const fork=wet.roads.find(r=>r.id==='glimmer-wetland/south').points.at(-1),wp=raw.waypoints.find(w=>w.id==='wetland');wp.pos=[round(fork[0]+4.9),round(fork[1]+4.6)];
  // the pools: circles filling each waterline are their collision (the scene's waterline is what is drawn)
  raw.ponds=raw.ponds.filter(p=>!inside(p,wet));
  for(const pool of wet.pools){
@@ -139,15 +139,14 @@ if(wet){const fork=wet.roads.find(r=>r.id==='glimmer-wetland/south').points.at(-
 const village=scenes.find(s=>s.id==='frontier-settlement');
 if(village){
  const V=(lx,lz)=>[village.x+lx,village.z+lz],town=raw.town,placed=[];
- const free=(x,z,r)=>world.isFree(x,z,r)&&!world.isWater(x,z,.5)&&village.roads.every(rd=>distToPolyline(x,z,rd.points)>rd.width/2+.8)&&placed.every(q=>Math.hypot(q[0]-x,q[1]-z)>2.5);
- const spot=([ax,az],r=1)=>{for(let d=0;d<6;d+=.5)for(let k=0;k<16;k++){const a=k/16*Math.PI*2,x=ax+Math.sin(a)*d,z=az+Math.cos(a)*d;if(free(x,z,r)){placed.push([x,z]);return[round(x),round(z)];}}throw Error('no free spot near '+[ax,az]);};
  const onPath=([ax,az])=>{placed.push([ax,az]);return[round(ax),round(az)];};
- const stall=[211.644,33.294]; // the east stall (its collider in data/accepted-scenes)
  town.centre=onPath(V(1.8,0.3));town.plazaRadius=6;town.respawn=onPath(V(1.8,2.8));
- const keeper=spot([stall[0]-2.2,stall[1]+.3],.6);town.shopkeeper=[...keeper,0];town.shop=spot([stall[0]-.8,stall[1]+2.6],.6);
- town.workbench=spot([192,22],1.2);town.trainer=spot([190.5,34],.8);
+ // free spots found by spot() near the east stall, the north-west stall and the garden (31 October),
+ // kept as numbers: the map's own service colliders would move them on a re-run
+ town.shopkeeper=onPath([209.444,33.594]).concat(0);town.shop=onPath([210.844,35.894]);
+ town.workbench=onPath([192.5,22]);town.trainer=onPath([191.5,34]);
  town.buildings=[];delete town.stalls;delete town.walls;delete town.well;town.noticeBoard=false;
- const wp=raw.waypoints.find(w=>w.id==='town');wp.pos=spot(V(5.5,5.5),1.2);
+ const wp=raw.waypoints.find(w=>w.id==='town');wp.pos=[192,42]; // level ground by the garden road, the pillar's ring clear of it
  const zone=raw.zones.find(z=>z.id==='settlement');zone.rects=[[184,224,-32,6],[168,224,6,47]];
 }
 // Flowers spread round each scene into the map (core/world.js plantSceneSurrounds, owner 31 October 2026).

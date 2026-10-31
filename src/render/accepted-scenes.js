@@ -56,6 +56,9 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
   // Animated parts are not baked: they move whole with the ground edit under them (lift).
   for(const o of [result.landmark?.rotor,result.waypoint?.root])if(o)seatWhole(world,spec,o);
   const meshes=[];source.traverse(o=>{if(o.isMesh||o.isPoints)meshes.push(o);});
+  // the map's warp pillars (render/waypoint-ruin.js) stand clear of the scene's plants; a scene that
+  // draws its own pillar keeps its authored planting round it
+  const own=result.waypoint?spec.waypoint?.id||'landing':null,pillars=(world.waypoints||[]).filter(w=>w.id!==own);
   // repair connectors pruned by their boxes (the check runs for every vertex)
   const repairs=world.data.acceptedScenes.connectors.filter(r=>r.repair).map(r=>{const pad=r.width/2+2.5,xs=r.points.map(p=>p[0]),zs=r.points.map(p=>p[1]);return {r,box:[Math.min(...xs)-pad,Math.max(...xs)+pad,Math.min(...zs)-pad,Math.max(...zs)+pad]};});
   const nearRepair=(x,z)=>repairs.some(({r,box})=>x>=box[0]&&x<=box[1]&&z>=box[2]&&z<=box[3]&&distToPolyline(x,z,r.points)<r.width/2+2.5);
@@ -80,7 +83,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
      // Every instance stands on the ground the player walks on (feather, seams,
      // connectors and shore all move it); only those at the very edge are left out,
      // and ground cover where the game's sea runs over the scene's old shore.
-     if(sceneWeight(spec,p.x,p.z)<.1||connectorClear(world.data,p.x,p.z,1.2)||edgeCliffCover(world.data,p.x,p.z,1.6))continue;
+     if(sceneWeight(spec,p.x,p.z)<.1||connectorClear(world.data,p.x,p.z,1.2)||edgeCliffCover(world.data,p.x,p.z,1.6)||pillars.some(w=>Math.hypot(p.x-w.x,p.z-w.z)<3.2))continue;
      if(cover&&spec.shore&&p.y-sceneSample(spec,'heights',p.x,p.z)<1&&world.inSea(p.x,p.z))continue;
      m.elements[13]+=world.groundY(p.x,p.z)-sceneSample(spec,'heights',p.x,p.z);
      mesh.setMatrixAt(count,m);if(mesh.instanceColor){mesh.getColorAt(i,color);mesh.setColorAt(count,color);}count++;

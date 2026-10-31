@@ -7,6 +7,7 @@ import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders,
 import {outsideClearingWeight,sceneKeep,seamBandAt} from './ground-regions.js';
 import {edgeCliffColliders} from './edge-cliffs.js';
 import { createRng } from './rng.js';
+export const WAYPOINT_SOLID = 1.5;
 import { pondEdgeDistance } from './ponds.js';
 import { clamp, dist, distToPolyline, distToPolylineBounds, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
@@ -286,7 +287,9 @@ export function createWorld(worldData) {
 
   // ---------- waypoints ----------
   const waypoints = (worldData.waypoints || []).map((wp) => ({ ...wp, x: wp.pos[0], z: wp.pos[1] }));
-  for (const wp of waypoints) addCircle({ x: wp.x, z: wp.z, r: 0.7, type: 'waypoint', id: wp.id, scale: 1, rot: 0 });
+  // the warp pillar's heap and broken stone ring are solid (render/waypoint-ruin.js, data/art.json
+  // waypointRuin: ring stones about 1.7-2 m out); arrival stands 2.2 m in front of the centre
+  for (const wp of waypoints) addCircle({ x: wp.x, z: wp.z, r: WAYPOINT_SOLID, type: 'waypoint', id: wp.id, scale: 1, rot: 0 });
   // Travel points to linked maps (data/maps). They sit on roads, so they add no collider.
   const exits = (worldData.exits || []).map((e) => ({ ...e, x: e.pos[0], z: e.pos[1] }));
   // Open edges shared with a neighbouring map: walking off one continues on the other.

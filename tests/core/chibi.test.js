@@ -226,3 +226,21 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
     if (m.chibiOutfit === 'gloves') assert.ok(hand > pos.length / 3 / 4, id + ' hands led by the hand bones');
   }
 });
+
+test('the swinging cloth is bounded and only on modelled armour', () => {
+  const chars = data.models.characters, c = chars.hero_chibi.cloth;
+  assert.ok(c, 'hero_chibi has cloth defaults');
+  const f = chars.hero_chibi.fit;
+  assert.ok(c.pivot > f.crotch && c.pivot < f.armAxis, 'the panels hinge at the waist, between the crotch and the arms');
+  assert.ok(c.ramp > 0 && c.ramp <= 0.15, 'the swing blends in over a few cm below the waist');
+  assert.ok(Number.isInteger(c.panels) && c.panels >= 4 && c.panels <= 12 && c.panels % 2 === 0, 'a few panels, front and back opposite');
+  const cfgs = Object.entries(chars).filter(([, m]) => m.cloth && m !== chars.hero_chibi);
+  assert.ok(cfgs.length > 0, 'some outfits swing');
+  for (const [id, m] of cfgs) {
+    assert.equal(m.chibiOutfit, 'armor', id + ': only an armour model has a skirt or coat tails');
+    const k = { ...c, ...m.cloth };
+    assert.ok(k.stiffness > 20 && k.stiffness < 400 && k.damping > 1 && k.damping < 2 * Math.sqrt(k.stiffness), id + ': a springy swing that settles (under-damped)');
+    assert.ok(k.drag >= 0 && k.drag < k.damping && k.speed > 0.3 && k.speed < 5, id + ': air drag and a speed cap');
+    assert.ok(k.out > 0 && k.out <= 1 && k.in >= 0 && k.in <= 0.15 && k.side > 0 && k.side <= 0.8, id + ': the cloth swings out, barely into the legs');
+  }
+});

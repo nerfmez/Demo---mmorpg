@@ -785,6 +785,10 @@
       "source": "HairSample_Male-beta from approved live Character Studio V6; original SHA256 4af2194f90ba846f3b13c00b50b14262419062d2171d17de922bcce2f89979c7. Complete base skin/scalp; separate gear-controlled garments. VRoid source metadata CC0. See docs/HAIRSAMPLE-INTEGRATION.md."
     },
     "hero_chibi": {
+      "cloth": {
+        "_doc": "The skirt, robe or coat tails of a modelled outfit with its own `cloth` swing (src/render/chibi-cloth.js): the cloth below `pivot` (bind height, m) takes its Hips weight onto `panels` bones hinged round the waist (blended in over `ramp` m), each panel's hem a spring in world space (`stiffness` 1/s\u00b2, `damping` 1/s against the hem's rest motion, air `drag` 1/s, at most `speed` m/s against the waist) that may swing `out` and `in` (toward the legs) and to the `side` (radians). An outfit's `cloth` overrides any of these.",
+        "pivot": 0.56, "ramp": 0.08, "panels": 8, "stiffness": 110, "damping": 7, "drag": 0.9, "speed": 1.5, "out": 0.6, "in": 0.06, "side": 0.4
+      },
       "hands": {
         "_doc": "Finger bones (scripts/rig-chibi-hands.py) posed by `poses` (scripts/hand-poses.py, from Quaternius UAL1): a hand holding something takes `holding`, opened to wrap a handle of `gripRadius` (m: the weapons' handles at the chibi's gear scale), an empty one `empty`; the left hand also grips the weapons in `leftGripWith`.",
         "holding": "grip",
@@ -1904,6 +1908,7 @@
     "outfit_travel_tunic": {
       "file": "models/outfits/travel_tunic.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "localInside": true,
       "tunicCloth": {
         "_doc": "The shirt's cloth takes the look's tunic colour (chibi-garments.js tunicCloth): texels bright (linear luminance smoothstep `lum`) and pale (saturation under smoothstep `sat`) are multiplied by the chosen colour over `ref` (the default tunic colour, so it draws as painted).",
@@ -1934,6 +1939,7 @@
     "outfit_ranger_coat": {
       "file": "models/outfits/ranger_coat.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 2405,
       "source": "The chibi in the ranger_coat set (the owner's reference sheet 01 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-0d22-7308-94f7-d6b344cc84e1), Meshy 6 retexture (task 01a16f6d-835c-76fd-bed2-acab3d0763c5); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/ranger.json)."
     },
@@ -1964,6 +1970,7 @@
     "outfit_storm_mantle": {
       "file": "models/outfits/storm_mantle.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 2281,
       "source": "The chibi in the storm_mantle set (the owner's reference sheet 05 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-14ee-75c2-bb0c-98df95347362), Meshy 6 retexture (task 01a16f6d-e992-7553-8e4d-20914d03ce41); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/storm.json)."
     },
@@ -1994,6 +2001,7 @@
     "outfit_wardenstalker_coat": {
       "file": "models/outfits/wardenstalker_coat.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 2002,
       "source": "The chibi in the wardenstalker_coat set (the owner's reference sheet 08 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-1d1d-7353-83b5-c18abb750df5), Meshy 6 retexture (task 01a16f6d-f4f3-73a5-a285-555646842a15); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden.json)."
     },
@@ -2030,6 +2038,7 @@
     "outfit_wolfpelt_coat": {
       "file": "models/outfits/wolfpelt_coat.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 2254,
       "source": "The chibi in the wolfpelt_coat set (the owner's reference sheet 14 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-24b3-77a0-bb19-94cb3b5ec658), Meshy 6 retexture (task 01a16f6d-ff8a-7663-a641-2f02902bf714); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wolf.json)."
     },
@@ -2060,6 +2069,7 @@
     "outfit_moonleaf_robe": {
       "file": "models/outfits/moonleaf_robe.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 2040,
       "source": "The moonleaf set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-228c-7160-ab2c-d1855129fee8), Meshy 6 retexture (task 01a17807-cb2d-73c9-bd62-b2b218c6c609); assets/meshy/outfits/moonleaf_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/moonleaf.json)."
     },
@@ -2072,6 +2082,7 @@
     "outfit_burrowguard_armor": {
       "file": "models/outfits/burrowguard_armor.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 1470,
       "source": "The burrowguard set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2612-7259-ac3e-3f3f8154a9b7), Meshy 6 retexture (task 01a17807-cfb8-748b-83eb-5d1f87e06040); assets/meshy/outfits/burrowguard_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/burrowguard.json)."
     },
@@ -2096,6 +2107,7 @@
     "outfit_wisp_robe": {
       "file": "models/outfits/wisp_robe.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 1926,
       "source": "The wisp set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-29ef-77c6-8c8d-8e46b8f5e9c6), Meshy 6 retexture (task 01a17807-d4bd-76f4-8e3b-3f5fedb17824); assets/meshy/outfits/wisp_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wisp.json)."
     },
@@ -2120,6 +2132,7 @@
     "outfit_mirrorwing_robe": {
       "file": "models/outfits/mirrorwing_robe.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 1883,
       "source": "The mirrorwing set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-2dc2-7490-8c66-9842a631e1c1), Meshy 6 retexture (task 01a17807-db67-73cc-91aa-8fa5bf8e71b4); assets/meshy/outfits/mirrorwing_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/mirrorwing.json)."
     },
@@ -2144,6 +2157,7 @@
     "outfit_fernstep_coat": {
       "file": "models/outfits/fernstep_coat.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 2134,
       "source": "The fernstep set's dressed chibi: the front view of its equipment turnaround (assets-source/equipment/20261026), meshy-t2 image-to-3d in T-pose (task 01a17807-31b0-7370-8029-76a7d8c133b5), Meshy 6 retexture (task 01a17807-e0b0-7681-85a7-5108deaaba6e); assets/meshy/outfits/fernstep_meshy.glb. Armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/fernstep.json)."
     },
@@ -2210,6 +2224,7 @@
     "outfit_sporeweave_vest": {
       "file": "models/outfits/sporeweave_vest.glb",
       "chibiOutfit": "armor",
+      "cloth": {},
       "tris": 1539,
       "source": "The chibi in the sporeweave_vest set (the owner's reference sheet 16 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-2873-7686-b2d4-e6540f6a59b2), Meshy 6 retexture (task 01a16f6d-8d67-7600-a805-fdaca7e554fc); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/spore.json)."
     },

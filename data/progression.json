@@ -284,8 +284,8 @@
     "comboWindow": 1.1,
     "stagger": 0.14,
     "flinchLock": 0.6,
-    "_mainSkillDoc": "A main skill (สกิลหลัก, the quick attack pressed over and over) has a base cooldown of at most mainSkillCooldown s (the fusion rule's line); Thunder Slash's charge shocks only on a main skill's hit (core/frontier-content.js chargeShock).",
-    "mainSkillCooldown": 1.5,
+    "_mainSkillDoc": "A main skill (สกิลหลัก, the quick attack pressed over and over) has a base cooldown of at most mainSkillCooldown s: the fusion rule's 1.5 s line, grown 1.6x with every base cooldown on 2026-10-27. Below it a main skill is a cheap repeatable attack (content budget: scored against its weapon's reference main); above it a cooldown skill must give a reason to be pressed. Thunder Slash's charge shocks only on a main skill's hit (core/frontier-content.js chargeShock).",
+    "mainSkillCooldown": 2.4,
     "_inputBufferDoc": "A skill pressed while its cooldown has at most inputBuffer seconds left is remembered and cast the moment the cooldown ends (one press, the latest wins; not for charged or channelled skills), so a press a little early never feels dropped. core/game-simulation.js castSlot.",
     "inputBuffer": 0.25,
     "block": {
@@ -385,8 +385,8 @@
       "mod": [0.05, 1.5],
       "known": {
         "skills": {
-          "chain_spark": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
-          "whirl_blade": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
+          "chain_spark": "a main skill since the main line moved to 2.4 s (its MP now lasts on regeneration), it scores under its weapon's reference main; awaiting the skill growth rebalance (phase 3)",
+          "whirl_blade": "a main skill since the main line moved to 2.4 s (its MP now lasts on regeneration), it scores under its weapon's reference main; awaiting the skill growth rebalance (phase 3)",
           "thunderstorm": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
           "stone_guardian": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
           "meteor": "over its class band: awaiting a decision on its numbers",
@@ -403,8 +403,6 @@
           "spell_wave": "weaker than its weapon's reference main attack"
         },
         "mods": {
-          "fork_chain": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
-          "conductive": "its MP per second costs more than it adds once MP is priced (potions an emergency aid); awaiting the skill growth rebalance (phase 3)",
           "release_burst": "its MP cost outweighs the measured gain on a Flame Stream that already drains its supply; awaiting the skill growth rebalance",
           "split": "over the mod band on venom_mire: awaiting a decision",
           "chain_return": "adds less than it costs on every skill it fits, or its effect is not measured yet",

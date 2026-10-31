@@ -23,7 +23,7 @@ const fixture = (id) => {
   ch.slots = [{ skill: id, mods: [] }, ...ch.slots.slice(1).map(() => ({ skill: null, mods: [] }))];
   const g = new Game(data, { seed: 7, character: ch });
   g.player.x = 0; g.player.z = 0; g.player.facing = Math.PI / 2;
-  g.derived.weaponType = C[id].requiresWeapon[0];
+  g.derived.weaponType = C[id].requiresWeapon?.[0] || 'staff';
   g.skills = ch.slots.map((_, i) => computeSkill(ch, data, g.derived, i));
   const m0 = g.monsters[0];
   const mk = (mid, x, z, extra = {}) => ({ ...m0, id: mid, x, z, hp: 1e6, maxHp: 1e6, defense: 0, boss: false, dead: false, state: 'chase', aggro: true, statuses: {}, r: 0.5, ...extra });
@@ -59,19 +59,25 @@ test('the seven are their jobs\' skills of one element each, learned at the work
   }
 });
 
-test('Flame Arrow Rain: its waves fall on the circle, in fire, and set some of what they hit burning', () => {
+test('Flame Arrow Rain: its arrows pin across the circle together, then each bursts on its own fuse, in fire, never before it lands', () => {
   const { g, mk, s } = fixture('fire_arrow_rain');
-  const D = C.fire_arrow_rain;
-  const ms = Array.from({ length: 8 }, (_, i) => mk('in' + i, aim.x + 1.5 * Math.cos(i), 1.5 * Math.sin(i)));
-  g.monsters = [...ms, mk('out', aim.x + D.radius + 2, 0)];
+  const D = C.fire_arrow_rain, A = D.arrows;
+  g.monsters = [mk('mid', aim.x, 0), mk('out', aim.x + D.radius + A.blast + 1.5, 0)];
   g.executeSkill(s, aim);
-  run(g, D.delay + D.waves * D.waveInterval + 0.5);
-  const by = {}, els = new Set();
-  for (const e of g.drainEvents()) if (e.type === 'hit' && !e.dot) { by[e.id] = (by[e.id] || 0) + 1; els.add(e.element); }
-  for (const m of ms) assert.equal(by[m.id], D.waves, `${m.id} takes every wave`);
-  assert.ok(!by.out, 'outside the circle is safe');
-  assert.deepEqual([...els], ['fire']);
-  assert.ok(ms.some((m) => m.statuses.burn), 'some of them burn');
+  const pins = g.drainEvents().filter((e) => e.type === 'arrowPin');
+  assert.equal(pins.length, A.count);
+  const times = pins.map((e) => e.delay);
+  for (const e of pins) {
+    assert.ok(Math.hypot(e.x - aim.x, e.z - aim.z) <= D.radius + 1e-9, 'inside the circle');
+    assert.ok(e.land === A.land && e.delay >= A.land + A.fuseMin - 1e-9 && e.delay <= A.land + A.fuseMax + 1e-9, 'a fuse after it lands');
+  }
+  assert.ok(new Set(times.map((x) => x.toFixed(3))).size === A.count, 'no two burst at the same time');
+  const bursts = []; let first = Infinity;
+  run(g, A.land + A.fuseMax + 0.3, (t) => { for (const e of g.drainEvents()) { if (e.type === 'burst' && e.kind === 'fire_arrow_rain') bursts.push(t); if (e.type === 'hit' && !e.dot) { first = Math.min(first, t); assert.equal(e.element, 'fire'); assert.notEqual(e.id, 'out', 'outside every blast'); } } });
+  assert.equal(bursts.length, A.count, 'every arrow bursts once');
+  assert.ok(Math.max(...bursts) - Math.min(...bursts) > 0.4, 'spread over time');
+  assert.ok(first >= A.land + A.fuseMin - 0.03, 'nothing is hit before the first fuse burns down');
+  assert.ok(g.monsters[0].hp < 1e6, 'the arrow near the middle catches what stands there');
 });
 
 test('Shatter Arrow: stopped by a monster it breaks into a fan of shards that fly on and chill; the struck one is not hit again; a miss never breaks', () => {
@@ -156,6 +162,7 @@ test('Flame Slash cuts a wide arc in front and burns; Ice Spikes runs a lane and
 test('Thunder Slash leaves a charge on what it cuts: each main-skill hit on it shocks once more, until the shocks or the time run out', () => {
   const D = C.thunder_slash, Q = D.shockCharge, mainCd = data.progression.combat.mainSkillCooldown;
   assert.ok(D.cooldown > mainCd && C.slash.cooldown <= mainCd && C.flame_slash.cooldown > mainCd);
+  for (const id of ['slash', 'whirl_blade', 'chain_spark', 'hunter_shot', 'firebolt']) assert.ok(C[id].cooldown <= mainCd, `${id} is a main skill`);
   const { g, mk, s } = fixture('thunder_slash');
   const cut = mk('cut', 1.5, 0), away = mk('away', 6, 0);
   g.monsters = [cut, away];
@@ -169,7 +176,7 @@ test('Thunder Slash leaves a charge on what it cuts: each main-skill hit on it s
   g.hitMonster(cut, 100, { skill: 'slash', byAlly: true }); g.hitMonster(cut, 100, { dot: true, element: 'fire' });
   assert.ok(!g.drainEvents().some((e) => e.type === 'chargeShock'));
   for (let k = 0; k < Q.shocks; k++) {
-    const before = cut.hp, ev = hit(cut, 'slash');
+    const before = cut.hp, ev = hit(cut, k === 1 ? 'whirl_blade' : 'slash');
     const shock = ev.find((e) => e.type === 'hit' && e.element === 'lightning');
     assert.ok(ev.some((e) => e.type === 'chargeShock') && shock, `shock ${k + 1}`);
     assert.ok(Math.abs(shock.amount - cutDmg * Q.mult) <= 1, 'each shock is its share of the cut');
@@ -185,7 +192,7 @@ test('Thunder Slash leaves a charge on what it cuts: each main-skill hit on it s
 });
 
 test('every one of the seven is worth pressing over the main attack: several main hits per target, or control, or a lasting effect', () => {
-  const per = (id) => { const d = C[id]; return d.damage.base * (d.waves || 1) * (1 + (d.afterShock?.mult || 0)) * (1 + (d.shockCharge ? d.shockCharge.mult * d.shockCharge.shocks : 0)); };
+  const per = (id) => { const d = C[id], A = d.arrows; return d.damage.base * (A ? A.count * (A.blast / d.radius) ** 2 : 1) * (1 + (d.afterShock?.mult || 0)) * (1 + (d.shockCharge ? d.shockCharge.mult * d.shockCharge.shocks : 0)); };
   const main = { bow: C.hunter_shot.damage.base, sword: C.slash.damage.base };
   for (const id of ['fire_arrow_rain', 'thunder_lance', 'flame_slash', 'thunder_slash']) {
     const w = C[id].requiresWeapon[0];
@@ -195,4 +202,22 @@ test('every one of the seven is worth pressing over the main attack: several mai
   assert.ok(C.thunder_lance.afterShock.stun >= 0.5, 'Thunder Lance stuns long enough to break a wind-up');
   assert.ok(C.poison_mist_arrow.duration >= 3, 'Miasma Arrow keeps working while the hero shoots');
   for (const id of Object.keys(SKILLS)) assert.ok(C[id].cooldown >= 6, `${id}: a cooldown skill`);
+});
+
+// The rule looked back at older skills (owner, 2026-10-31): Stone Burst had no reason to be pressed over
+// Firebolt, so its rocks now knock what they hit up into a short stun that breaks a wind-up.
+test('Stone Burst stuns what its rocks hit (not a boss), a control skill on a cooldown', () => {
+  const { g, mk } = fixture('stone_burst');
+  const D = C.stone_burst;
+  g.derived.weaponType = 'staff';
+  const s = computeSkill(g.ch, data, g.derived, 0);
+  const m = mk('m', aim.x, 0), boss = mk('boss', aim.x + 0.8, 0.4, { boss: true });
+  g.monsters = [m, boss];
+  g.executeSkill(s, aim);
+  run(g, D.delay - 0.05);
+  assert.notEqual(m.state, 'stunned', 'not before the rocks rise');
+  run(g, 0.15);
+  assert.equal(m.state, 'stunned'); assert.equal(m.stateDur, D.stun.duration);
+  assert.notEqual(boss.state, 'stunned');
+  assert.ok(D.cooldown > data.progression.combat.mainSkillCooldown && D.tags.includes('Control'));
 });

@@ -27,8 +27,8 @@ export function referenceFor(data, def) {
 }
 
 /** main (a quick attack), burst (a damage skill on a cooldown), or the support kind. */
-export function skillClass(def) {
-  if (def.damage && def.kind !== 'counter_stance') return def.cooldown <= 1.6 ? 'main' : 'burst';
+export function skillClass(def, data = null) {
+  if (def.damage && def.kind !== 'counter_stance') return def.cooldown <= (data?.progression.combat.mainSkillCooldown ?? 2.4) ? 'main' : 'burst';
   if (def.kind === 'buff' || def.kind === 'aura') return 'buff';
   if (def.heal) return 'heal';
   if (def.barrier) return 'barrier';
@@ -100,7 +100,7 @@ export function pricedGain(data, ref, level, p, b) {
 
 /** What one skill adds: { id, cls, ref, score, gain (per axis) }. */
 export function skillValue(data, id, level) {
-  const def = data.skills.combat[id], ref = referenceFor(data, def), cls = skillClass(def), main = ref.build.skill;
+  const def = data.skills.combat[id], ref = referenceFor(data, def), cls = skillClass(def, data), main = ref.build.skill;
   const base = run(data, ref, level, { loadout: [main] });
   const withIt = cls === 'main' ? run(data, ref, level, { loadout: [id] })
     : def.damage ? run(data, ref, level, { loadout: [main, id] })
@@ -117,7 +117,7 @@ export function modValue(data, modId, level, fits) {
   for (const id of Object.keys(data.skills.combat)) {
     const def = data.skills.combat[id];
     if (!fits(def, data.mods.mods[modId])) continue;
-    const ref = referenceFor(data, def), cls = skillClass(def), main = ref.build.skill;
+    const ref = referenceFor(data, def), cls = skillClass(def, data), main = ref.build.skill;
     const lo = cls === 'main' ? [id] : def.damage ? [main, id] : [main];
     const sup = !def.damage ? [id] : [];
     const slot = cls === 'main' ? 0 : def.damage ? 1 : 1;

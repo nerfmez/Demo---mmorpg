@@ -53,6 +53,8 @@ export function castDamage(s) {
   if (s.echo) dmg *= 1 + s.echo.mult; // the echo strikes again
   if (s.modEffects?.returnMult) dmg *= 1 + s.modEffects.returnMult; // a returning shot's way back
   if (s.afterShock) dmg *= 1 + s.afterShock.mult; // Thunder Lance: the lane strikes again
+  // Flame Arrow Rain: arrows burst over the circle, so a target there is in about count x (blast / radius)^2 of them
+  if (s.arrows) dmg *= s.arrows.count * Math.min(1, (s.arrows.blast / Math.max(0.1, s.radius || 1)) ** 2);
   // a zone that stacks poison on each tick (Miasma Arrow): the stacks poison on top of the ticks, on
   // average about two thirds of the way to the most stacks
   if (s.kind === 'dot_zone' && s.poison) dmg *= 1 + s.poison.stackDps * s.poison.maxStacks * (2 / 3) * (s.tick || 0.5);

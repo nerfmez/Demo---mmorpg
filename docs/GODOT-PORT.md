@@ -1408,7 +1408,9 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   a `dot_zone` whose skill has `poison` (Miasma Arrow) calls it on every tick with the tick's damage.
 - Elemental job skills (2026-10-31, `tests/core/elemental-skills.test.js`; plain skills, one element
   each, for the spell archer `spellarcher` and the spellblade): Flame Arrow Rain (`ground_area` with
-  `waves`, `burnChance`), Miasma Arrow (`dot_zone` + `poison`), Flame Slash (a wide `melee_arc`),
+  `arrows` {count, land, fuseMin, fuseMax, blast}: `count` arrows at seeded spots in the circle (one near
+  its middle), each a delayed area of radius `blast` bursting at land + its own fuse (rng), an `arrowPin`
+  event per arrow with `land` and `delay`; an echo repeats the volley; `burnChance`), Miasma Arrow (`dot_zone` + `poison`), Flame Slash (a wide `melee_arc`),
   Ice Spikes (`melee_line` + `chill`), and three new fields:
   - `shatter` {count, arc, range, mult, speed} on a projectile (Shatter Arrow): when a monster stops the
     arrow (`pr.stopOn`, set in `updateProjectiles`), `endProjectile` fans `count` shard projectiles
@@ -1421,7 +1423,8 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   - `shockCharge` {duration, shocks, mult} on a hit (Thunder Slash, through `hitOpts`): each monster it hits
     gets `statuses.charged` {t, shocks, damage: the hit's amount x mult} (event `charged`). `chargeShock`
     (called from `Game.hitMonster` after a direct hit) spends one shock when the hit's skill is one of the
-    hero's main skills (base cooldown at most `progression.combat.mainSkillCooldown`, 1.5 s; not an ally,
+    hero's main skills (base cooldown at most `progression.combat.mainSkillCooldown`, 2.4 s: the fusion
+    rule's 1.5 s grown with the 1.6x cooldowns; the content budget's main class uses it too; not an ally,
     a DoT tick or a secondary hit): event `chargeShock`, then a secondary lightning hit of that damage.
     The status runs out with its time (`tickStatuses`) or its shocks.
   The build profile counts them (`build-rules.js` castDamage and the per-cast burst).

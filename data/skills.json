@@ -58,7 +58,7 @@
       "radius": 2.8,
       "cooldown": 1.92,
       "castTime": 0.24,
-      "cost": 96,
+      "cost": 58,
       "element": "physical",
       "requires": { "STR": 3, "AGI": 2 },
       "upgradeMaterial": "wolf_fang",
@@ -191,7 +191,7 @@
       "chainFalloff": 0.85,
       "cooldown": 2.08,
       "castTime": 0.24,
-      "cost": 160,
+      "cost": 112,
       "element": "lightning",
       "requires": { "INT": 4, "LUK": 2 },
       "upgradeMaterial": "wisp_core",
@@ -201,25 +201,27 @@
     "stone_burst": {
       "name": "Stone Burst",
       "nameTh": "หินปะทุ",
-      "desc": "เล็งจุดบนพื้น หินจะปะทุขึ้นมาหลังดีเลย์สั้น ๆ ไม่ต้องล็อกเป้า",
+      "desc": "เล็งจุดบนพื้น หินปะทุขึ้นมาหลังดีเลย์สั้น ๆ กระแทกศัตรูในวงลอยจนมึน 0.5 วินาที (บอสไม่มึน) ตัดท่าเงื้อได้ ไม่ต้องล็อกเป้า",
       "tags": [
         "Spell",
         "Area",
         "Earth",
         "Damage",
         "Physical",
+        "Control",
         "Ground"
       ],
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 288,
-        "scale": 2.4
+        "base": 240,
+        "scale": 2.0
       },
       "range": 10,
       "radius": 2.3,
       "delay": 0.55,
-      "cooldown": 3.84,
+      "stun": { "duration": 0.5, "bossDuration": 0 },
+      "cooldown": 6,
       "castTime": 0.3,
       "cost": 224,
       "element": "physical",
@@ -1847,26 +1849,23 @@
     "fire_arrow_rain": {
       "name": "Flame Arrow Rain",
       "nameTh": "ฝนศรเพลิง",
-      "desc": "ยิงศรไฟขึ้นฟ้า แล้วศรไฟตกลงวง 3.2 ม. 3 ระลอก เว้น 0.35 วิ ติดไหม้ 50% ต้องใช้ธนู",
+      "desc": "ยิงศรไฟ 8 ดอกโค้งขึ้นไปตกปักกระจายทั่ววง 3.2 ม. ศรแต่ละดอกลุกไฟแล้วระเบิดเองในเวลาไม่เท่ากัน (วงละ 1.4 ม.) ติดไหม้ 50% ต้องใช้ธนู",
       "tags": [
         "Attack",
         "Area",
         "Fire",
         "Damage",
-        "Rain",
         "Ground"
       ],
       "kind": "ground_area",
       "power": "attack",
       "damage": {
-        "base": 128,
-        "scale": 1.04
+        "base": 256,
+        "scale": 2.08
       },
       "range": 13,
       "radius": 3.2,
-      "delay": 0.5,
-      "waves": 3,
-      "waveInterval": 0.35,
+      "arrows": { "count": 8, "land": 0.45, "fuseMin": 0.25, "fuseMax": 1.5, "blast": 1.4 },
       "burnChance": 0.5,
       "cooldown": 10,
       "castTime": 0.3,

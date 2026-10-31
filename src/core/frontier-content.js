@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -150,6 +150,21 @@ export function executeFrontier(g,s,aim,mult,triggered) {
       walls.push({x,z,r});
     }
     for(const w of walls)g.spawnArea({owner:'player',kind:'crystal_wall',skill:s,...w,radius:w.r,angle:axis,duration:s.duration,wallHp:s.wall.hp.base+s.wall.hp.scale*g.derived.magic,wallHitAt:0});
+    return true;
+  }
+  // Flame Arrow Rain (s.arrows): count arrows pin across the circle at land s, one near its middle, the rest
+  // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
+  if(s.arrows){
+    const A=s.arrows,volley=(k,later)=>{
+      for(let i=0;i<A.count;i++){
+        const a=(i+g.rng.range(0,.8))/A.count*Math.PI*2,d=i===0?g.rng.range(0,.25)*s.radius:s.radius*(.35+.6*Math.sqrt(g.rng.range(0,1)));
+        const x=aim.x+Math.cos(a)*d,z=aim.z+Math.sin(a)*d,fuse=A.fuseMin+(A.fuseMax-A.fuseMin)*g.rng.range(0,1);
+        const area=g.spawnArea({owner:'player',kind:s.id,skill:s,x,z,radius:A.blast,delay:later+A.land+fuse,duration:.35,damage:s.damage*mult*k,element:s.element,echo:later>0});
+        g.emit({type:'arrowPin',skill:s.id,id:area.id,x,z,land:later+A.land,delay:area.delay,fromX:g.player.x,fromZ:g.player.z,i});
+      }
+    };
+    volley(1,0);
+    if(s.echo)volley(s.echo.mult,s.echo.delay);
     return true;
   }
   if(s.waves){

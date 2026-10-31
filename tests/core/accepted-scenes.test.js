@@ -13,7 +13,7 @@ const data=loadData(),world=createWorld(data.world);
 const frontier=data.maps['frontier-wilds-v1'],moonroot=data.maps['moonroot-grove-v1'],worlds={[data.world.id]:world,[frontier.id]:createWorld(frontier),[moonroot.id]:createWorld(moonroot)};
 const regionOf=s=>s.region||data.world.id,home=s=>worlds[regionOf(s)],homeData=s=>data.maps[regionOf(s)];
 test('all approved areas share real roads, collision and continuous edge heights',()=>{
- const N=acceptedSceneLayout.scenes.length;assert.equal(N,18);
+ const N=acceptedSceneLayout.scenes.length;assert.equal(N,19);
  for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){if(regionOf(acceptedSceneLayout.scenes[i])!==regionOf(acceptedSceneLayout.scenes[j]))continue;const a=acceptedSceneLayout.scenes[i].bounds,b=acceptedSceneLayout.scenes[j].bounds;assert.ok(Math.min(a[1],b[1])<=Math.max(a[0],b[0])||Math.min(a[3],b[3])<=Math.max(a[2],b[2]),'scene footprints must not overlap');}
  let samples=0;
  for(const world of Object.values(worlds)){

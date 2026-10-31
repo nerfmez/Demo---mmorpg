@@ -1630,7 +1630,7 @@ are cut where a scene stands, the scene's paths are added as roads (`acceptedSce
 end is joined to the nearest point of that scene's paths by a final connector (also a road); the
 scenes' other paths lead off into the woods. Scene colliders beside a path are shrunk to keep it clear
 by the hero radius (`inspect-accepted-scenes.mjs` spec `clearPaths`). Greyfang Den draws the den itself:
-the native `den` ring is gone and the boss's arena is the clearing before the cave mouth; the cave path
+the native `den` moves to the cave mouth (its ring falls inside the scene) and the boss's arena is the clearing before the cave mouth; the cave path
 road stops before the tunnel's closed back (`scene.cave` gives its mouth, back, width and height in world
 metres). Glimmer Wetland exports its four pools as `scene.pools` (Mirror Pond's `pond` shape, a list):
 the ground draws each to its waterline, and circles filling them (in `ponds`) are only their collision;
@@ -1638,6 +1638,15 @@ the wetland waypoint moved onto the fork's open ground. `surround.plant.flowers`
 zone's own flowers in a wider ring round each scene (`plantSceneSurrounds`, own seed, `decor.flowers`):
 flowers carry on from a scene into the map instead of ending at its frame (owner). These scenes keep
 their authored tree sizes (their roots are drawn for those trunks), as Moonroot's do.
+
+The Frontier Settlement (196.5, 33.5) is the town: the village stands just south of the main road from
+Azure Coast, which runs on along its north side; short connectors join the village's north, north-east
+and stair paths to it (`PORTS` in the placement script). The scene draws the cottages, stalls and bell
+tower (`frontier_bell.acceptedScene`), so the town's native buildings, stalls, fence and well are gone
+(`buildings: []`, no `stalls`, `walls` or `well`, `noticeBoard: false`), as Moonstone Camp's. The services
+stand in the village on free ground off its paths: the shopkeeper behind the market stall and the shop
+spot in front of it, the trainer by the bell tower, the workbench under the great tree, the respawn,
+the town centre and the town waypoint on the square. The settlement zone gains the village's rectangle.
 
 ### Zone landmarks and ground cover
 

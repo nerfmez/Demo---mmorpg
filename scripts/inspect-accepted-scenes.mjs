@@ -39,7 +39,11 @@ const specs=[
  {id:'bramble-glade',region:'frontier-wilds-v1',clearPaths:true,x:100,z:100,s:.42,y:.3,box:[-65,65,-65,30]},
  {id:'greyfang-den',region:'frontier-wilds-v1',clearPaths:true,x:100,z:-114,s:.42,y:.3,box:[-65,65,-65,30]},
  {id:'glimmer-wetland',region:'frontier-wilds-v1',clearPaths:true,x:-62,z:26,s:.42,y:.06,box:[-65,65,-65,30]},
- {id:'crag-highlands',region:'frontier-wilds-v1',clearPaths:true,x:-140,z:-80,s:.42,y:.3,box:[-65,65,-65,30]}
+ {id:'crag-highlands',region:'frontier-wilds-v1',clearPaths:true,x:-140,z:-80,s:.42,y:.3,box:[-65,65,-65,30]},
+ // the Frontier Settlement: the village just south of the main road from Azure Coast, which passes
+ // along its north side and turns in by its north and north-east paths; the town's services stand in
+ // its square
+ {id:'frontier-settlement',region:'frontier-wilds-v1',clearPaths:true,x:196.5,z:33.5,s:.42,y:.4,box:[-65,65,-65,30]}
 ];
 const round=n=>Math.round(n*1000)/1000,scenes=[];
 // Optional ids on the command line export only those scenes (the others' files stay as committed).

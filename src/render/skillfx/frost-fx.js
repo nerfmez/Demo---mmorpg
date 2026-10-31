@@ -34,7 +34,7 @@ const mistFS = `varying vec2 vUv; uniform float uT; uniform float uSeed; ${NOISE
     vec3 c = body > 0.3 ? vec3(0.96,0.99,1.0) : vec3(0.72,0.88,0.98);
     gl_FragColor = vec4(retint(c), body > 0.3 ? 0.8 : 0.5); }`;
 
-function crystalGeo(seed) {
+export function crystalGeo(seed) {
   const r = mulberry32(seed), n = 6, pos = [], bar = [];
   const shoulder = 0.62 + r() * 0.14, low = [], high = [];
   for (let i = 0; i < n; i++) {

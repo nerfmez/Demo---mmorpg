@@ -10,6 +10,7 @@ import STAFF_CAST from '../../data/staff-cast.json';
 import { fxGround } from './skillfx/fx-common.js';
 import { SlashFx } from './skillfx/slash-fx.js';
 import { FlameSlashFx } from './skillfx/flameslash-fx.js';
+import { IceSpikeFx } from './skillfx/icespike-fx.js';
 import { ACTIONS, pickAction } from './actions.js';
 import { FireExtras } from './skillfx/fire-extras.js';
 import { ChainFx } from './skillfx/chain-fx.js';
@@ -54,7 +55,7 @@ const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -83,6 +84,7 @@ export class SkillFx {
     this.scene = scene;
     this.slash = new SlashFx(scene, camera);
     this.fslash = new FlameSlashFx(scene, camera);
+    this.ispike = new IceSpikeFx(scene, camera);
     this.fire = new FireExtras(scene, camera);
     this.chain = new ChainFx(scene, camera);
     this.frost = new FrostFx(scene, camera);
@@ -244,6 +246,7 @@ export class SkillFx {
         }
         if (e.kind === 'chain') this.chain.beginCharge(e.total, s.element);
         if (e.skill === 'thunder_lance') this.lance.windup(g.player.x, g.player.z, e.angle, e.total);
+        else if (e.skill === 'ice_spikes') this.ispike.windup(e.total); // frost at the blade's tip, no lane drawn
         else if (e.kind === 'melee_line') this.split.windup(e.total, s.range, s.width, s.element);
         if (e.kind === 'dash_line') this.draw.windup(e.total, s.element);
         if (e.skill === 'sky_shatter') this.shatter.charge(g.player.x, g.player.z, e.total);
@@ -322,6 +325,7 @@ export class SkillFx {
         if (e.skill === 'draw_cut') { this.draw.strike(e); host.shake(0.22, 0.2); return true; }
         if (e.skill === 'earth_rend') { this.split.clear(); this.rend.strike(e); return true; }
         if (e.skill === 'thunder_lance') { this.lance.strike(e); host.shake(e.after ? 0.18 : 0.16, 0.14); return true; }
+        if (e.skill === 'ice_spikes') { this.ispike.strike(e); host.shake(0.18, 0.16); return true; }
         this.split.strike(e); return true;
       // Iron Body: the steel shell, glint and ring, then the sheen while it lasts (skillfx/iron-fx.js)
       case 'buff': {
@@ -542,6 +546,7 @@ export class SkillFx {
     this.bladePoints();
     this.split.update(dt, p, p.facing, this.bladeBase, this.bladeTip);
     this.fslash.update(dt, this.bladeBase, this.bladeTip);
+    this.ispike.update(dt, this.bladeTip);
     this.draw.update(dt, p, this.bladeBase, this.bladeTip);
     // Blink Draw: afterimages of the body along the dash (the game's posed echoes, in its violet)
     if (p.dash?.kind === 'draw_cut' && this.drawEchoes < 3 && p.dash.t >= p.dash.dur * (0.15 + 0.3 * this.drawEchoes)) { host.vfx?.drawCutEcho?.(host.rig?.()); this.drawEchoes++; }
@@ -596,7 +601,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

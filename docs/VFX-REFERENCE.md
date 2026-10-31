@@ -578,3 +578,12 @@ and heat ramp), swept with the blade, its head a point running along the outer e
 edge (the blade's path), orange inside, its inner edge torn into flame streaks drawn out along the cut and
 carried back against the sweep; it burns away from the inner edge and rises a little, gone in half a
 second. Lesson: a cut must read as one fast stroke; fire that stays standing reads as burning, not slashing.
+
+Ice Spikes, round 1 (`icespike-fx.js`; spellblade `melee_line`, 6 m x 1.3 m; owner: spikes stabbing up out
+of the ground in a line, like the earth skills, but ice). The hero drives the sword down (`splitChop`) as
+a cold star blooms at its tip; a front runs down the lane in 0.22 s and behind it clusters of crystal
+spikes stab up with an overshoot (a tall one leaning forward, small ones leaning out; tallest past the
+middle; Frost Nova's crystal shape and cel ice, a white point), ice chips and glints, over Frost Nova's
+cel frost crust spreading along the lane; they hold 0.75 s, crack apart from the near end (chips flung
+out, each spike sinking and shrinking away), cold mist rises and the crust melts inward. First try:
+the spikes were short and wide and read as a pile of crystals: thinner and taller spikes read as stabs.

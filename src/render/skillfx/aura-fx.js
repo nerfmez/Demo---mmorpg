@@ -251,14 +251,6 @@ export class AuraFx {
         }
       }
     }
-    // Stealth: a violet shimmer of shadow round the hidden hero (only its own player draws any of this)
-    if (hero && (hero.stealthT || 0) > 0 && !hero.dead) {
-      const m = this.skins[si++];
-      if (m) {
-        this.ramp(m, 'stealth'); m.visible = true; place(m, hero.x, 0, hero.z); m.scale.set(0.6, 0.95, 0.6);
-        const U = m.material.uniforms; U.uTime.value = t; U.uFlow.value = 1.6; U.uAlpha.value = 0.9; U.uH.value = 1.9; U.uRipT.value = 9;
-      }
-    }
     for (; fi < FLAMES; fi++) this.flames[fi].visible = false;
     for (; wi < WINDS; wi++) this.winds[wi].visible = false;
     for (; si < SKINS; si++) this.skins[si].visible = false;

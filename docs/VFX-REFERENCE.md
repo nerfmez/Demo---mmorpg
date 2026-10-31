@@ -481,6 +481,6 @@ Berserk blasts a crimson aura with a hard shake and keeps a dense crimson flame 
 
 Group 3, the blade's trickery (2026-10-30; owner: Stealth and Decoy are PvP skills, truly invisible to the others,
 the caster sees an effect; the decoy draws nothing). Stealth: a puff of violet shadow going in and out, the body
-hidden and a violet see-through copy of the hero re-posed every frame in a violet shimmer, seen only by its own
-player. Decoy: a copy of the hero in its own look, held in the pose it was left in, gone in a puff of shadow. Steal:
+hidden and a violet see-through copy of the hero re-posed every frame, seen only by its own player (a violet
+shimmer round it was dropped: owner, it looked like a shield). Decoy: a copy of the hero in its own look, held in the pose it was left in, gone in a puff of shadow. Steal:
 a violet swipe of a shadow hand across the front and gold motes arcing back from the monster. No gallery access.

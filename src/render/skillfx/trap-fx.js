@@ -7,6 +7,8 @@
 //   armed (arm s): its teeth click up with a glint; a thin amber ring pulses at the trigger range;
 //   Spike Trap springs (trapSprung): steel spikes punch up in two rings over the trap's radius with a
 //     glint and dust, hold, then sink back and the plate is gone;
+//   Blast Trap springs: its bomb (its fuse sparking since it armed) goes off in Flame Arrow Rain's burst of
+//     fire (FlameRainFx.boom, through onBlast) over the trap's radius, with dust thrown out;
 //   Net Trap springs: a dome of rope bursts up off the plate and drapes over the whole circle, iron weights
 //     on its rim pinning it, held while it roots what is under it, then thinning away;
 //   unsprung at the end of its life (areaEnd): the plate sinks away.
@@ -19,7 +21,7 @@ import { toon, outlineMaterial } from '../toon.js';
 
 const PLATES = 8, TEETH = 8, SPIKES_PER = 14, DUSTS = 24;
 const TOSS = 0.32, SPRING = 0.07, HOLD = 0.42, SINK = 0.28; // seconds
-const STEEL = '#8a95a6', IRON = '#4a4f5a', WOOD = '#7a5434', EDGE = '#262a33', ROPE = '#c8a46a';
+const STEEL = '#8a95a6', IRON = '#4a4f5a', WOOD = '#7a5434', EDGE = '#262a33', ROPE = '#c8a46a', BOMB = '#2c2a33';
 const NETS = 4, WEIGHTS = 8, NET_UP = 0.13, NET_DRAPE = 0.22, NET_FADE = 0.35; // seconds
 
 // the net: a rope grid on a dome (uv.x round it, uv.y from its rim up to its top), lines not a fill: tan rope
@@ -73,7 +75,8 @@ export class TrapFx {
     // plates: a wooden disc in an iron rim with teeth round it (toon + outline hulls)
     const disc = new THREE.CylinderGeometry(0.4, 0.44, 0.08, 18), rim = new THREE.TorusGeometry(0.42, 0.045, 6, 22).rotateX(Math.PI / 2), tooth = new THREE.ConeGeometry(0.045, 0.14, 4).translate(0, 0.07, 0), hub = new THREE.CylinderGeometry(0.1, 0.12, 0.07, 10);
     const coilGeos = [0.13, 0.2, 0.27].map((r) => new THREE.TorusGeometry(r, 0.035, 5, 18).rotateX(Math.PI / 2));
-    for (const g of [disc, rim, tooth, hub, ...coilGeos]) g.userData.shared = true;
+    const bombGeo = new THREE.SphereGeometry(0.24, 14, 10), fuseGeo = new THREE.CylinderGeometry(0.025, 0.03, 0.14, 6);
+    for (const g of [disc, rim, tooth, hub, bombGeo, fuseGeo, ...coilGeos]) g.userData.shared = true;
     const edge = outlineMaterial(EDGE, 0.02);
     this.plates = Array.from({ length: PLATES }, () => {
       const g = new THREE.Group(), add = (geo, color, y = 0) => { const m = new THREE.Mesh(geo, toon(color)); m.position.y = y; const o = new THREE.Mesh(geo, edge); m.add(o); g.add(m); return m; };
@@ -82,10 +85,13 @@ export class TrapFx {
       for (let i = 0; i < TEETH; i++) { const a = i / TEETH * Math.PI * 2, t = add(tooth, STEEL, 0.06); t.position.x = Math.cos(a) * 0.3; t.position.z = Math.sin(a) * 0.3; teeth.push(t); }
       // a net trap's plate carries its net rolled up in a coil of rope instead of teeth
       const coil = [0.13, 0.2, 0.27].map((r, i) => { const m = add(coilGeos[i], ROPE, 0.1 + (2 - i) * 0.025); m.visible = false; return m; });
+      // a blast trap's plate carries a round black bomb with a short fuse that sparks once it is armed
+      const bomb = [add(bombGeo, BOMB, 0.3), add(fuseGeo, ROPE, 0.55)]; for (const m of bomb) m.visible = false;
+      const spark = lightSprite(scene, starTexture('fire'), true, 10);
       g.visible = false; scene.add(g);
       const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uPulse: { value: 0 } }, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
       ring.rotation.x = -Math.PI / 2; ring.renderOrder = 2; ring.visible = false; scene.add(ring);
-      return { g, teeth, coil, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
+      return { g, teeth, coil, bomb, spark, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
     });
     // nets (Net Trap): a dome of rope that bursts up off the plate and drapes over the circle, with iron
     // weights on its rim flung out to pin it
@@ -117,15 +123,24 @@ export class TrapFx {
     Object.assign(p, { id: e.id, skill: e.skill, t: 0, state: 'toss', x: e.x, z: e.z, arm: e.arm ?? 0.6, trigger: def?.trap?.trigger ?? 1, radius: def?.radius ?? 1.4, seed: this.rnd() * 10, spin: (this.rnd() - 0.5) * 12 });
     p.from.copy(from);
     p.g.visible = true; p.ring.visible = false;
-    p.net = e.skill === 'net_trap'; p.hold = def?.root?.duration ?? 2.5;
-    for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net; }
+    p.net = e.skill === 'net_trap'; p.hold = def?.root?.duration ?? 2.5; p.blast = e.skill === 'blast_trap';
+    for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net && !p.blast; }
     for (const c of p.coil) c.visible = p.net;
+    for (const m of p.bomb) m.visible = p.blast;
   }
   /** The rules' trapSprung. */
   spring(e) {
     const p = this.plates.find((q) => q.id === e.id && q.state !== 'off'); if (!p) return;
     p.state = 'spring'; p.springT = 0; p.ring.visible = false;
     const r = this.rnd, R = p.radius;
+    if (p.blast) {
+      // the bomb goes off: the plate is gone at once, the burst is Flame Arrow Rain's (onBlast)
+      p.state = 'off'; p.clicked = false; p.g.visible = false; p.spark.visible = false;
+      this.onBlast?.(p.x, p.z, R);
+      this.glint(p.x, 0.9, p.z, 1.5, 0.3); place(this.light, p.x, 1, p.z); this.lightT = 0; // a clean glint, not a ragged flash
+      for (let i = 0; i < 10; i++) { const a = r() * 6.283, sp = 2 + r() * 2.5; this.dust(p.x + Math.cos(a) * R * 0.4, 0.2, p.z + Math.sin(a) * R * 0.4, Math.cos(a) * sp, 0.8 + r() * 0.8, Math.sin(a) * sp, 0.9 + r() * 0.6, 0.7); }
+      return;
+    }
     if (p.net) {
       // the net bursts up off the plate and drapes over the whole circle; the plate is spent at once
       const n = this.nets.find((q) => q.t >= q.hold + NET_UP + NET_DRAPE + NET_FADE) || this.nets[0];
@@ -178,6 +193,9 @@ export class TrapFx {
         const armed = p.t >= p.arm, ak = armed ? Math.min(1, (p.t - p.arm) / 0.08) : 0;
         for (const t of p.teeth) t.scale.set(1, 0.3 + 0.7 * easeBack(ak), 1);
         if (armed && !p.clicked) { p.clicked = true; this.glint(p.x, gy + 0.35, p.z, 0.45, 0.22); }
+        // a bomb's fuse sparks once armed, flickering
+        p.spark.visible = p.blast && armed;
+        if (p.spark.visible) { place(p.spark, p.x, 0.66, p.z); p.spark.scale.setScalar(0.32 + 0.1 * Math.sin(this.time * 37 + p.seed) + 0.06 * Math.sin(this.time * 23)); p.spark.material.rotation = this.time * 6; }
         // the trigger range, steady, with a soft ring running out to it every 1.4 s
         p.ring.visible = armed;
         if (armed) {
@@ -186,6 +204,7 @@ export class TrapFx {
           p.ring.material.uniforms.uPulse.value = ph; p.ring.material.uniforms.uA.value = Math.min(1, (p.t - p.arm) * 4) * (0.85 + 0.15 * Math.sin(this.time * 3));
         }
       } else if (p.state === 'spring' || p.state === 'sink') {
+        p.spark.visible = false;
         p.springT += dt;
         const st = p.springT, gone = p.state === 'sink' ? st / SINK : Math.max(0, (st - SPRING - HOLD) / SINK);
         p.g.position.y = gy - 0.12 * Math.min(1, gone);
@@ -257,7 +276,7 @@ export class TrapFx {
     if (this.lightT < 0.35) { this.lightT += dt; this.light.intensity = 3 * (1 - this.lightT / 0.35); } else this.light.intensity = 0;
   }
   clear() {
-    for (const p of this.plates) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.ring.visible = false; p.g.scale.setScalar(1); }
+    for (const p of this.plates) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.ring.visible = false; p.spark.visible = false; p.g.scale.setScalar(1); }
     for (let i = 0; i < this.spikes.count; i++) { this.spikes.setMatrixAt(i, ZERO); this.spikeEdges.setMatrixAt(i, ZERO); }
     this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
     for (const q of this.dusts) { q.t = 9; q.m.visible = false; } for (const g of this.glints) { g.t = 9; g.s.visible = false; }

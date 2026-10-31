@@ -283,7 +283,6 @@
       ],
       "job": "trapper",
       "iconPending": true,
-      "fxPending": true,
       "upgradeStat": "DEX"
     },
     "lure_dummy": {

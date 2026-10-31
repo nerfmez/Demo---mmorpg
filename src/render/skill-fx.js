@@ -58,9 +58,9 @@ const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap', 'blast_trap']);
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
-const TRAP_FX = new Set(['spike_trap', 'net_trap']);
+const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -93,6 +93,7 @@ export class SkillFx {
     this.tslash = new ThunderSlashFx(scene, camera);
     this.iball = new IceBallFx(scene, camera);
     this.traps = new TrapFx(scene, camera);
+    this.traps.onBlast = (x, z, r) => this.frain.boom(x, z, r, false); // Blast Trap: Flame Arrow Rain's burst, bigger, no ragged flash (owner)
     this.fire = new FireExtras(scene, camera);
     this.chain = new ChainFx(scene, camera);
     this.frost = new FrostFx(scene, camera);
@@ -287,7 +288,7 @@ export class SkillFx {
       case 'areaEnd': this.gs.wallEnd(e.id); this.miasma.end(e.id); this.traps.end(e.id); return false;
       // the trapper's traps: tossed from the hand, set, sprung (skillfx/trap-fx.js)
       case 'trapSet': { if (!TRAP_FX.has(e.skill)) return false; this.traps.set(e, this.skillOf(e.skill), this.castTip()); return true; }
-      case 'trapSprung': { if (!TRAP_FX.has(e.skill)) return false; this.traps.spring(e); host.shake(0.1, 0.1); return true; }
+      case 'trapSprung': { if (!TRAP_FX.has(e.skill)) return false; this.traps.spring(e); if (e.skill === 'blast_trap') host.shake(0.3, 0.25); else host.shake(0.1, 0.1); return true; }
       case 'chargeStart': {
         if (!SKILL_FX.has(e.skill)) return false;
         const s = this.skillOf(e.skill);

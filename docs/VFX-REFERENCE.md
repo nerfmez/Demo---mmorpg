@@ -486,3 +486,17 @@ shimmer round it was dropped: owner, it looked like a shield). Decoy: a copy of 
 a violet swipe of a shadow hand across the front and gold motes arcing back from the monster. No gallery access.
 Owner: the plain purple ghost was too flat. The hidden hero is now a cloak: its body nearly clear, a bright pale rim round
 its outline and light bands sweeping over it like heat haze (`hero-copy.js` `cloakMaterial`).
+
+## Elemental job skills, group 4 (2026-10-31)
+
+Owner: normal skills stay easy to understand (one element each); their effects must not look like the
+elemental mage's spells, each needs its own identity. The rule we keep: the mage's spells are raw element
+from the sky, the ground or the hand; the spell archer's effects are always made of arrows (shafts,
+fletching, arrows pinned in the ground); the spellblade's follow the blade (crescents, the blade's line).
+
+Flame Arrow Rain (`flamerain-fx.js`, round 1): a burning arrow climbs from the bow and blooms in fire above
+the circle; each wave brings down seven heavy fire arrows (a dark shaft with red fletching and a hot point,
+wrapped in a comet of Firebolt's fire from `meteor-flame.js`) that pin into the ground at their slant and
+burn there as small tongues of the same fire over a round scorch, then burn away and leave the charred
+shafts a moment. A thin ember circle marks the area and pulses with each wave. Unlike Meteor: no rock, no
+crater, no dome; unlike Arrow Rain: few heavy arrows, not a rain of light. No gallery access.

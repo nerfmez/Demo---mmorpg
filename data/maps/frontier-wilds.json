@@ -98,7 +98,7 @@
     {
       "id": "coast_trail",
       "width": 3.5,
-      "points": [[76.308, 116.185], [70.4, 128], [51.2, 147.2], [25.6, 156.8], [-6.4, 158.4]]
+      "points": [[76.308, 116.185], [70.4, 128], [58, 120.5], [40, 117.5], [22, 118.5], [6, 123], [-8, 130.5]]
     },
     {
       "id": "coast_east_trail",
@@ -324,6 +324,36 @@
       "acceptedScene": "frontier-settlement"
     },
     {
+      "id": "sunfall-coast/south",
+      "width": 5.096,
+      "points": [[5.674, 171.804], [5.665, 171.419], [5.649, 171.021], [5.626, 170.61], [5.598, 170.19], [5.565, 169.762], [5.528, 169.328], [5.489, 168.889], [5.449, 168.448], [5.408, 168.006], [5.367, 167.565], [5.328, 167.127], [5.292, 166.693], [5.26, 166.266]],
+      "acceptedScene": "sunfall-coast"
+    },
+    {
+      "id": "sunfall-coast/stair",
+      "width": 3.066,
+      "points": [[5.26, 166.266], [5.18, 165.492], [5.111, 164.689], [5.039, 163.896], [4.949, 163.154], [4.83, 162.504], [4.72, 162.1], [4.611, 161.773], [4.492, 161.476], [4.363, 161.208], [4.222, 160.969], [4.079, 160.773], [3.929, 160.624], [3.77, 160.5], [3.606, 160.388], [3.442, 160.275], [3.283, 160.15], [3.117, 160.029], [2.949, 159.912], [2.785, 159.789], [2.633, 159.653], [2.501, 159.494], [2.386, 159.309], [2.283, 159.104], [2.194, 158.887], [2.119, 158.67], [2.063, 158.461], [2.025, 158.277], [2, 158.091], [1.988, 157.909], [1.992, 157.738], [2.012, 157.584], [2.054, 157.453], [2.121, 157.35], [2.206, 157.263], [2.303, 157.181], [2.404, 157.09], [2.507, 156.978], [2.626, 156.859], [2.754, 156.734], [2.882, 156.598], [3, 156.447], [3.102, 156.272], [3.188, 156.064], [3.26, 155.834], [3.325, 155.59], [3.389, 155.345], [3.457, 155.106]],
+      "acceptedScene": "sunfall-coast"
+    },
+    {
+      "id": "sunfall-coast/north",
+      "width": 2.304,
+      "points": [[3.457, 155.106], [3.289, 155.024], [3.122, 154.941], [2.955, 154.857], [2.788, 154.772], [2.621, 154.686], [2.455, 154.601], [2.288, 154.515], [2.122, 154.43], [1.955, 154.345], [1.788, 154.26], [1.621, 154.177], [1.453, 154.094], [1.285, 154.013], [1.117, 153.932], [0.948, 153.854], [0.779, 153.777], [0.609, 153.703], [0.438, 153.631], [0.268, 153.561], [0.098, 153.495], [-0.072, 153.432], [-0.243, 153.372], [-0.415, 153.313], [-0.587, 153.257], [-0.759, 153.202], [-0.932, 153.148], [-1.105, 153.095], [-1.278, 153.042], [-1.452, 152.99], [-1.625, 152.938], [-1.799, 152.885], [-1.973, 152.832], [-2.148, 152.777], [-2.322, 152.721], [-2.496, 152.663], [-2.671, 152.603], [-2.845, 152.541], [-3.025, 152.475], [-3.209, 152.409], [-3.394, 152.343], [-3.58, 152.277], [-3.766, 152.21], [-3.954, 152.143], [-4.141, 152.075], [-4.329, 152.006], [-4.516, 151.937], [-4.703, 151.865], [-4.889, 151.792], [-5.074, 151.718], [-5.257, 151.641], [-5.439, 151.562], [-5.618, 151.481], [-5.796, 151.397], [-5.971, 151.31], [-6.143, 151.22], [-6.312, 151.127], [-6.474, 151.038], [-6.633, 150.953], [-6.791, 150.87], [-6.946, 150.788], [-7.1, 150.706], [-7.253, 150.623], [-7.404, 150.538], [-7.553, 150.451], [-7.702, 150.358], [-7.849, 150.261], [-7.995, 150.158], [-8.141, 150.047], [-8.286, 149.927], [-8.431, 149.798], [-8.575, 149.659], [-8.719, 149.508], [-8.864, 149.345], [-9.008, 149.167], [-9.241, 148.847], [-9.53, 148.386], [-9.815, 147.862], [-10.096, 147.282], [-10.374, 146.652], [-10.648, 145.977], [-10.921, 145.263], [-11.191, 144.516]],
+      "acceptedScene": "sunfall-coast"
+    },
+    {
+      "id": "sunfall-coast/west",
+      "width": 3.361,
+      "points": [[5.26, 166.266], [5.024, 166.198], [4.788, 166.128], [4.551, 166.057], [4.313, 165.984], [4.075, 165.91], [3.836, 165.836], [3.598, 165.762], [3.36, 165.689], [3.123, 165.618], [2.887, 165.549], [2.652, 165.482], [2.418, 165.418], [2.186, 165.357], [1.956, 165.301], [1.728, 165.249], [1.502, 165.202], [1.299, 165.165], [1.103, 165.132], [0.909, 165.104], [0.717, 165.079], [0.526, 165.057], [0.336, 165.037], [0.147, 165.019], [-0.041, 165.003], [-0.229, 164.989], [-0.416, 164.975], [-0.604, 164.962], [-0.791, 164.948], [-0.978, 164.934], [-1.167, 164.92], [-1.355, 164.904], [-1.545, 164.886], [-1.736, 164.866], [-1.927, 164.846], [-2.117, 164.825], [-2.306, 164.804], [-2.495, 164.783], [-2.684, 164.762], [-2.873, 164.74], [-3.062, 164.719], [-3.252, 164.698], [-3.443, 164.677], [-3.635, 164.657], [-3.828, 164.638], [-4.023, 164.619], [-4.219, 164.601], [-4.417, 164.584], [-4.618, 164.568], [-4.83, 164.552], [-5.053, 164.538], [-5.274, 164.524], [-5.493, 164.512], [-5.712, 164.501], [-5.931, 164.491], [-6.152, 164.482], [-6.376, 164.473], [-6.604, 164.465], [-6.836, 164.457], [-7.074, 164.449], [-7.319, 164.441], [-7.572, 164.433], [-7.834, 164.425], [-8.105, 164.416], [-8.388, 164.406], [-8.722, 164.394], [-9.24, 164.376], [-9.794, 164.357], [-10.379, 164.338], [-10.991, 164.318], [-11.628, 164.298], [-12.285, 164.278], [-12.959, 164.258], [-13.646, 164.237], [-14.343, 164.216], [-15.045, 164.196]],
+      "acceptedScene": "sunfall-coast"
+    },
+    {
+      "id": "sunfall-coast/shore",
+      "width": 3.556,
+      "points": [[5.26, 166.266], [5.506, 166.557], [5.758, 166.848], [6.012, 167.139], [6.268, 167.431], [6.523, 167.722], [6.777, 168.013], [7.027, 168.305], [7.272, 168.595], [7.51, 168.885], [7.74, 169.175], [7.959, 169.464], [8.156, 169.735], [8.331, 169.99], [8.5, 170.245], [8.662, 170.501], [8.819, 170.756], [8.971, 171.01], [9.121, 171.264], [9.268, 171.516], [9.415, 171.767]],
+      "acceptedScene": "sunfall-coast"
+    },
+    {
       "id": "accepted/main-sunny-meadow",
       "final": true,
       "width": 3.264,
@@ -438,7 +468,7 @@
       "final": true,
       "width": 3.5,
       "points": [[99.997, 106.365], [98.175, 107.12], [96.353, 107.876], [94.53, 108.631], [92.708, 109.387], [90.886, 110.142], [89.064, 110.897], [87.241, 111.653], [85.419, 112.408], [83.597, 113.163], [81.775, 113.919], [79.952, 114.674], [78.13, 115.43], [76.308, 116.185]],
-      "heights": [0.301, 0.251, 0.201, 0.15, 0.1, 0.05, 0, -0.05, -0.101, -0.151, -0.201, -0.251, -0.301, -0.351],
+      "heights": [0.301, 0.246, 0.191, 0.136, 0.081, 0.026, -0.029, -0.084, -0.139, -0.194, -0.249, -0.304, -0.36, -0.415],
       "from": "coast_trail",
       "joins": "bramble-glade",
       "acceptedScene": "connector"
@@ -448,7 +478,7 @@
       "final": true,
       "width": 4,
       "points": [[199.065, 12.239], [199.025, 10.503], [198.985, 8.767], [198.945, 7.032], [198.904, 5.296], [198.864, 3.56], [198.824, 1.824]],
-      "heights": [0.392, 0.391, 0.391, 0.39, 0.39, 0.389, 0.389],
+      "heights": [0.392, 0.393, 0.393, 0.394, 0.395, 0.395, 0.396],
       "from": "frontier-settlement/north",
       "joins": "frontier-settlement",
       "acceptedScene": "connector"
@@ -458,7 +488,7 @@
       "final": true,
       "width": 4,
       "points": [[217.69, 16.706], [217.729, 14.743], [217.767, 12.779], [217.806, 10.816], [217.845, 8.853], [217.884, 6.89], [217.923, 4.927], [217.961, 2.963], [218, 1]],
-      "heights": [0.404, 0.375, 0.346, 0.318, 0.289, 0.26, 0.232, 0.203, 0.174],
+      "heights": [0.404, 0.375, 0.347, 0.318, 0.29, 0.261, 0.233, 0.204, 0.176],
       "from": "frontier-settlement/east",
       "joins": "frontier-settlement",
       "acceptedScene": "connector"
@@ -468,9 +498,19 @@
       "final": true,
       "width": 3.014,
       "points": [[180.136, 12.506], [180.001, 10.515], [179.865, 8.524], [179.73, 6.533], [179.594, 4.542], [179.459, 2.551]],
-      "heights": [3.023, 2.486, 1.949, 1.412, 0.875, 0.338],
+      "heights": [3.023, 2.495, 1.966, 1.438, 0.91, 0.382],
       "from": "frontier-settlement/stair",
       "joins": "frontier-settlement",
+      "acceptedScene": "connector"
+    },
+    {
+      "id": "accepted/sunfall-coast-north-join",
+      "final": true,
+      "width": 3,
+      "points": [[-11.191, 144.516], [-10.792, 142.764], [-10.393, 141.012], [-9.994, 139.26], [-9.596, 137.508], [-9.197, 135.756], [-8.798, 134.004], [-8.399, 132.252], [-8, 130.5]],
+      "heights": [5.627, 4.929, 4.231, 3.534, 2.836, 2.138, 1.44, 0.742, 0.044],
+      "from": "sunfall-coast/north",
+      "joins": "sunfall-coast",
       "acceptedScene": "connector"
     }
   ],
@@ -909,7 +949,7 @@
       "id": "town",
       "name": "Settlement Gate",
       "nameTh": "\u0e1b\u0e23\u0e30\u0e15\u0e39\u0e19\u0e34\u0e04\u0e21",
-      "pos": [202, 39],
+      "pos": [202, 41],
       "unlocked": true
     },
     {
@@ -952,17 +992,17 @@
       "id": "coast",
       "name": "Sunfall Beach Stone",
       "nameTh": "\u0e2b\u0e34\u0e19\u0e0a\u0e32\u0e22\u0e2b\u0e32\u0e14\u0e15\u0e30\u0e27\u0e31\u0e19\u0e23\u0e2d\u0e19",
-      "pos": [9.6, 153.6]
+      "pos": [1.76, 169.266]
     }
   ],
   "town": {
     "height": 0.4,
     "centre": [198.3, 33.8],
     "plazaRadius": 6,
-    "workbench": [202.179, 27.179],
+    "workbench": [206.022, 33.457],
     "shop": [194.3, 23.6],
     "shopkeeper": [194.9, 19, 0],
-    "trainer": [203.7, 24.3],
+    "trainer": [204.407, 24.007],
     "respawn": [198.3, 36.3],
     "buildings": [],
     "kit": {
@@ -1036,7 +1076,45 @@
       "foamWidth": 0.075,
       "filmTop": 1.5,
       "filmTopDoc": "The beach swash film (render/ground.js) drapes over ground up to this many metres above the water; higher ground beside the shoreline (a headland, a terrace) keeps it underneath."
-    }
+    },
+    "bays": [
+      {
+        "id": "sunfall-bay",
+        "points": [[21.7, 139], [22.2, 140.5], [23.2, 142], [23.2, 143.5], [23.2, 145], [22.7, 146.5], [22.2, 148], [21.2, 149.5], [20.2, 151], [18.7, 152.5], [17.7, 154], [16.7, 155.5], [16.2, 157], [15.2, 158.5], [13.7, 160], [11.2, 161.5], [11.2, 163], [11.2, 164.5], [11.7, 166], [11.7, 167.5], [12.2, 169], [12.7, 170.5], [13.2, 172], [14.2, 173.5], [15.7, 175], [17.7, 176.5], [17.7, 186], [31.2, 186], [31.2, 139]],
+        "kinds": [
+          "cliff",
+          "cliff",
+          "cliff",
+          "cliff",
+          "cliff",
+          "cliff",
+          "cliff",
+          "cliff",
+          "cliff",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "beach",
+          "cliff",
+          "cliff",
+          "cliff",
+          "cliff"
+        ],
+        "note": "Sunfall Coast: its sea, cut into the land east of its beach and under its arch; the headland edge cliff closes it north and east"
+      }
+    ]
   },
   "landmarks": [
     {
@@ -1128,7 +1206,8 @@
       "name": "Sunfall Sea Arch",
       "nameTh": "\u0e0b\u0e38\u0e49\u0e21\u0e2b\u0e34\u0e19\u0e15\u0e30\u0e27\u0e31\u0e19\u0e23\u0e2d\u0e19",
       "colliders": [[-3.3, 0, 1.4], [3.3, 0, 1.4]],
-      "clear": 6
+      "clear": 6,
+      "acceptedScene": "sunfall-coast"
     },
     {
       "id": "meadow_sundial",
@@ -1737,7 +1816,9 @@
       "inset": 0.5,
       "dryMargin": 0.4,
       "pondMargin": 12,
-      "sides": {}
+      "sides": {
+        "sunfall-coast": "NW"
+      }
     },
     "source": "00bed638a57b6217f675e1a279fcc8fcf769dda7",
     "_doc": "Accepted scenes placed in this region (data/accepted-scenes, scene.region): the Conch Coast west of the arrival beach (owner, 25 October 2026). Same settings as data/world.json acceptedScenes; coordinates are this map's local metres.",
@@ -1748,13 +1829,17 @@
       "greyfang-den",
       "glimmer-wetland",
       "crag-highlands",
-      "frontier-settlement"
+      "frontier-settlement",
+      "sunfall-coast"
     ],
     "grassBanksDoc": "Scenes whose rock faces are their own meshes: the ground's slope paint keeps grass on their steep banks instead of painting grey strata (render/ground.js aBank).",
     "beach": {
       "width": 11,
       "fade": 18,
-      "_doc": "Sand band width (render/terrain-domain.js sceneBeach) inside the scenes placed here: the Conch Coast keeps the 11 m beach it was approved with on Azure Coast, easing back to this map's 20 m over fade metres outside its bounds."
+      "_doc": "Sand band width (render/terrain-domain.js sceneBeach) inside the scenes placed here: the Conch Coast keeps the 11 m beach it was approved with on Azure Coast, easing back to this map's 20 m over fade metres outside its bounds.",
+      "scene": {
+        "sunfall-coast": 1
+      }
     },
     "edgeCliffs": [
       {
@@ -1870,6 +1955,14 @@
           [127, 176]
         ],
         "note": "The Conch Coast is a hidden cove with one way in (owner, 26 October 2026): a rock ring round its west and north backs, as high as its west headland, joined to the west headland's plateau at the east. Its one opening, and the only way up onto the whole rise, is a ramp on the north side above the stair gully: up onto the back, down the stairs to the conch beach. Open edges lie on the scene's own tops (as high or higher). Its west face follows a wavy natural line with a rounded north-west corner (owner, 26 October 2026: the straight face read as unnatural)."
+      },
+      {
+        "id": "sunfall-headland",
+        "top": 6.8,
+        "lean": 1.3,
+        "ramp": 10,
+        "points": [[18, 124], [21.5, 138.6], [31.599999999999998, 138.6], [31.599999999999998, 180], [40, 184], [44, 177], [44, 127]],
+        "note": "Sunfall Coast: a rock headland as high as the scene's cliff closes its bay on the north (behind the arch) and the east; rock faces all round, clear of the pond to its east"
       }
     ],
     "edgeCliffsDoc": "core/edge-cliffs.js: a plateau `top` m high inside a closed outline; points mark cliff edges (default, a face `lean` m deep, rock columns in render/edge-cliffs.js), ramp edges (a slope `ramp` m wide, or the point's 4th value) or open edges (full height up to the edge, where it meets ground as high). `raise` [x, z, radius, top] lifts the top near a higher wall. Local metres of this map; an outline crossing a seam is kept by both maps and each draws the faces inside its bounds. Applied after the scenes and seams as a floor under the ground; scene props and colliders inside are left out.",
@@ -2040,7 +2133,7 @@
         "final": true,
         "width": 3.5,
         "points": [[99.997, 106.365], [98.175, 107.12], [96.353, 107.876], [94.53, 108.631], [92.708, 109.387], [90.886, 110.142], [89.064, 110.897], [87.241, 111.653], [85.419, 112.408], [83.597, 113.163], [81.775, 113.919], [79.952, 114.674], [78.13, 115.43], [76.308, 116.185]],
-        "heights": [0.301, 0.251, 0.201, 0.15, 0.1, 0.05, 0, -0.05, -0.101, -0.151, -0.201, -0.251, -0.301, -0.351],
+        "heights": [0.301, 0.246, 0.191, 0.136, 0.081, 0.026, -0.029, -0.084, -0.139, -0.194, -0.249, -0.304, -0.36, -0.415],
         "from": "coast_trail",
         "joins": "bramble-glade"
       },
@@ -2049,7 +2142,7 @@
         "final": true,
         "width": 4,
         "points": [[199.065, 12.239], [199.025, 10.503], [198.985, 8.767], [198.945, 7.032], [198.904, 5.296], [198.864, 3.56], [198.824, 1.824]],
-        "heights": [0.392, 0.391, 0.391, 0.39, 0.39, 0.389, 0.389],
+        "heights": [0.392, 0.393, 0.393, 0.394, 0.395, 0.395, 0.396],
         "from": "frontier-settlement/north",
         "joins": "frontier-settlement"
       },
@@ -2058,7 +2151,7 @@
         "final": true,
         "width": 4,
         "points": [[217.69, 16.706], [217.729, 14.743], [217.767, 12.779], [217.806, 10.816], [217.845, 8.853], [217.884, 6.89], [217.923, 4.927], [217.961, 2.963], [218, 1]],
-        "heights": [0.404, 0.375, 0.346, 0.318, 0.289, 0.26, 0.232, 0.203, 0.174],
+        "heights": [0.404, 0.375, 0.347, 0.318, 0.29, 0.261, 0.233, 0.204, 0.176],
         "from": "frontier-settlement/east",
         "joins": "frontier-settlement"
       },
@@ -2067,9 +2160,18 @@
         "final": true,
         "width": 3.014,
         "points": [[180.136, 12.506], [180.001, 10.515], [179.865, 8.524], [179.73, 6.533], [179.594, 4.542], [179.459, 2.551]],
-        "heights": [3.023, 2.486, 1.949, 1.412, 0.875, 0.338],
+        "heights": [3.023, 2.495, 1.966, 1.438, 0.91, 0.382],
         "from": "frontier-settlement/stair",
         "joins": "frontier-settlement"
+      },
+      {
+        "id": "accepted/sunfall-coast-north-join",
+        "final": true,
+        "width": 3,
+        "points": [[-11.191, 144.516], [-10.792, 142.764], [-10.393, 141.012], [-9.994, 139.26], [-9.596, 137.508], [-9.197, 135.756], [-8.798, 134.004], [-8.399, 132.252], [-8, 130.5]],
+        "heights": [5.627, 4.929, 4.231, 3.534, 2.836, 2.138, 1.44, 0.742, 0.044],
+        "from": "sunfall-coast/north",
+        "joins": "sunfall-coast"
       }
     ],
     "clearanceRoads": []

@@ -19,4 +19,5 @@ import s15 from './accepted-scenes/greyfang-den.json' with {type:'json'};
 import s16 from './accepted-scenes/glimmer-wetland.json' with {type:'json'};
 import s17 from './accepted-scenes/crag-highlands.json' with {type:'json'};
 import s18 from './accepted-scenes/frontier-settlement.json' with {type:'json'};
-export default {...index,scenes:[s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18]};
+import s19 from './accepted-scenes/sunfall-coast.json' with {type:'json'};
+export default {...index,scenes:[s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19]};

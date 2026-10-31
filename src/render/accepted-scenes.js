@@ -20,6 +20,7 @@ import {createAcceptedScene as greyfangDen} from './accepted-scenes/greyfang-den
 import {createAcceptedScene as glimmerWetland} from './accepted-scenes/glimmer-wetland.js';
 import {createAcceptedScene as cragHighlands} from './accepted-scenes/crag-highlands.js';
 import {createAcceptedScene as frontierSettlement} from './accepted-scenes/frontier-settlement.js';
+import {createAcceptedScene as sunfallCoast} from './accepted-scenes/sunfall-coast.js';
 import {acceptedScenes,connectorClear,sceneWeight,sceneSample,sceneLift} from '../core/accepted-scenes.js';
 import {distToPolyline} from '../core/math.js';
 import {timeUniform} from './patch.js';
@@ -31,7 +32,7 @@ import {edgeCliffGeometry} from './edge-cliffs.js';
 import {animeConfig,animeFoliageMaterial,animeTrunkMaterial} from './anime-study.js';
 import {hullMaterial} from './patch.js';
 import {grassMaterial,attachGrassSurfaceSteps} from './grass.js';
-const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose,'ranger-forest':ranger,'gull-headland':headland,'root-warren':warren,'moonstone-camp':camp,'mirror-pond':pond,'fern-rise':fern,'stone-ring':ring,'sunny-meadow':sunnyMeadow,'bramble-glade':brambleGlade,'greyfang-den':greyfangDen,'glimmer-wetland':glimmerWetland,'crag-highlands':cragHighlands,'frontier-settlement':frontierSettlement};
+const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose,'ranger-forest':ranger,'gull-headland':headland,'root-warren':warren,'moonstone-camp':camp,'mirror-pond':pond,'fern-rise':fern,'stone-ring':ring,'sunny-meadow':sunnyMeadow,'bramble-glade':brambleGlade,'greyfang-den':greyfangDen,'glimmer-wetland':glimmerWetland,'crag-highlands':cragHighlands,'frontier-settlement':frontierSettlement,'sunfall-coast':sunfallCoast};
 export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  const root=new THREE.Group();root.name='accepted-concept-scenes';adopt?.(root);
  const animations=[],waypoints=new Map(),textures=new Set(),depthMaterials=new Set();let cliffLook=null;

@@ -1648,6 +1648,22 @@ stand in the village on free ground off its paths: the shopkeeper behind the mar
 spot in front of it, the trainer by the bell tower, the workbench under the great tree, the respawn,
 the town centre and the town waypoint on the square. The settlement zone gains the village's rectangle.
 
+Sunfall Coast (6, 165.4, y 0.517 so its sea is at the water level) stands on the south coast with its sea
+east of its beach, under its arch: a bay cut into the land. `sea.bays` (new, optional, for maps with an X
+shoreline): each a closed outline {points, kinds} whose open side lies out at sea. `math.js`
+`seaContains` counts a point inside a bay as sea; `coastSample` near a bay (within 60 m of its box)
+measures to the bay's edges that are not out at sea and to the shoreline's segments that are not inside
+a bay (edge kinds: `cliff` gives flat water without the swash film, `beach` the film), and answers
+exactly as before everywhere else; `terrain.js` lowers the map's own ground under a bay to a sea floor
+(the scene's shore is drawn over it); the sea mesh reaches the bay. The bay outline follows the scene's
+waterline (traced from its exported ground) and is closed on the north (behind the arch) and the east
+by the `sunfall-headland` edge cliff, as high as the scene's cliff, rock faces all round. The coast trail,
+which ran where the bay now is, goes round the headland's back to the scene's top path (a connector);
+the scene's north and west sides take the apron; the coast waypoint moved onto its clearing.
+`acceptedScenes.beach.scene[id]` gives one scene its own sand band width (`render/terrain-domain.js`
+`sceneBeach`, the nearest scene's counts): Sunfall Coast (1 m) keeps the narrow strip by its bay it was approved
+with, its clearing earth.
+
 ### Zone landmarks and ground cover
 
 Every zone of every map has one landmark of its own (`landmarks` in each map's data; kinds are

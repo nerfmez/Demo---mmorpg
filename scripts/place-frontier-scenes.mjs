@@ -10,9 +10,9 @@ import {acceptedSceneLayout,sceneSample} from '../src/core/accepted-scenes.js';
 import {distToPolyline} from '../src/core/math.js';
 const path=new URL('../data/maps/frontier-wilds.json',import.meta.url),raw=JSON.parse(readFileSync(path,'utf8'));
 // the zone landmark each scene draws itself
-const LANDMARKS={'sunny-meadow':'meadow_sundial','bramble-glade':'bramble_arch','greyfang-den':'greyfang_den','glimmer-wetland':'glimmer_spire','crag-highlands':'crag_beacon','frontier-settlement':'frontier_bell'};
+const LANDMARKS={'sunny-meadow':'meadow_sundial','bramble-glade':'bramble_arch','greyfang-den':'greyfang_den','glimmer-wetland':'glimmer_spire','crag-highlands':'crag_beacon','frontier-settlement':'frontier_bell','sunfall-coast':'sunfall_arch'};
 // scene paths that lead out to a native road the scene does not cut (the village south of the main road)
-const PORTS={'frontier-settlement':['north','east','stair']};
+const PORTS={'frontier-settlement':['north','east','stair'],'sunfall-coast':['north']};
 const IDS=Object.keys(LANDMARKS),scenes=acceptedSceneLayout.scenes.filter(s=>IDS.includes(s.id));
 const round=x=>Math.round(x*1000)/1000;
 // The map file's style: two-space indents, numeric arrays (and lists of number pairs) on one line,
@@ -30,6 +30,8 @@ const inside=(p,s,pad=0)=>p[0]>s.bounds[0]+pad&&p[0]<s.bounds[1]-pad&&p[1]>s.bou
 // an earlier run's additions go first
 raw.roads=raw.roads.filter(r=>!IDS.includes(r.acceptedScene)&&!IDS.includes(r.joins));
 raw.acceptedScenes.connectors=raw.acceptedScenes.connectors.filter(c=>!IDS.includes(c.joins));
+// the coast trail runs behind Sunfall Coast's headland to the scene's top path (the bay is where it ran)
+if(scenes.some(s=>s.id==='sunfall-coast')){const t=raw.roads.find(r=>r.id==='coast_trail');t.points=[[83.2,102.4],[70.4,128],[58,120.5],[40,117.5],[22,118.5],[6,123],[-8,130.5]];}
 function simplify(points){
  if(points.length<3)return points;const a=points[0],b=points.at(-1),dx=b[0]-a[0],dz=b[1]-a[1],ll=dx*dx+dz*dz;let far=.05,index=-1;
  for(let i=1;i<points.length-1;i++){const p=points[i],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(ll||1))),d=Math.hypot(p[0]-a[0]-dx*t,p[1]-a[1]-dz*t);if(d>far){far=d;index=i;}}
@@ -56,6 +58,25 @@ for(const s of scenes)for(const road of s.roads){
 }
 // The den's cave path runs to the tunnel's closed back; the walk ends before it (the back wall is solid).
 for(const r of newRoads)if(r.id==='greyfang-den/cave'){const c=scenes.find(s=>s.id==='greyfang-den').cave;r.points=r.points.filter(p=>Math.hypot(p[0]-c.bx,p[1]-c.bz)>4.5);}
+// Sunfall Coast's sea lies east of its beach, under its arch: a bay cut into the land (sea.bays) from its
+// own waterline (traced from its ground) out to the sea, closed on the north and east by a rock headland
+// as high as its cliff (an edge cliff). The coast trail, which ran where the bay now is, goes round the
+// headland's back to the scene's top path.
+const sun=scenes.find(s=>s.id==='sunfall-coast');
+if(sun){
+ const g=sun.grid,at=(i,j)=>sun.heights[j*g.w+i],wl=raw.waterLevel,line=[];
+ for(let z=139;z<=177.5;z+=1.5){const j=Math.round((z-g.oz)/g.res);let i=g.w-1;while(i>g.w*.45&&at(i-1,j)<wl-.05)i--;line.push([round(g.ox+i*g.res),z]);}
+ const top=line[0][1],east=round(sun.bounds[1]-2.1);
+ const points=[...line,[round(line.at(-1)[0]),186],[east,186],[east,top]],kinds=points.map(([x,z],i)=>i<line.length-1?(z<152?'cliff':'beach'):'cliff');
+ raw.sea.bays=[{id:'sunfall-bay',points,kinds,note:'Sunfall Coast: its sea, cut into the land east of its beach and under its arch; the headland edge cliff closes it north and east'}];
+ const cliffs=raw.acceptedScenes.edgeCliffs;
+ const headland={id:'sunfall-headland',top:6.8,lean:1.3,ramp:10,points:[[18,124],[round(line[0][0]-.2),top-.4],[east+.4,top-.4],[east+.4,180],[40,184],[44,177],[44,127]],note:'Sunfall Coast: a rock headland as high as the scene\'s cliff closes its bay on the north (behind the arch) and the east; rock faces all round, clear of the pond to its east'};
+ const k=cliffs.findIndex(c=>c.id===headland.id);if(k<0)cliffs.push(headland);else cliffs[k]=headland;
+ const wp=raw.waypoints.find(w=>w.id==='coast');const fork=sun.roads.find(r=>r.id==='sunfall-coast/south').points.at(-1);wp.pos=[round(fork[0]-3.5),round(fork[1]+3)];
+ raw.acceptedScenes.apron.sides['sunfall-coast']='NW';
+ // its approved sand is a narrow strip by the water; the clearing behind keeps its earth
+ raw.acceptedScenes.beach.scene={...raw.acceptedScenes.beach.scene,'sunfall-coast':1};
+}
 const world=createWorld(raw);
 // Each native road a scene cut is joined, from its cut end, to the nearest point of that scene's own
 // paths: the map's roads run on into the scene. The scenes' other paths lead off into the woods.

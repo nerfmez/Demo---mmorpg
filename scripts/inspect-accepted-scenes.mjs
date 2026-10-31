@@ -43,7 +43,10 @@ const specs=[
  // the Frontier Settlement: the village just south of the main road from Azure Coast, which passes
  // along its north side and turns in by its north and north-east paths; the town's services stand in
  // its square
- {id:'frontier-settlement',region:'frontier-wilds-v1',clearPaths:true,x:196.5,z:33.5,s:.42,y:.4,box:[-65,65,-65,30]}
+ {id:'frontier-settlement',region:'frontier-wilds-v1',clearPaths:true,x:196.5,z:33.5,s:.42,y:.4,box:[-65,65,-65,30]},
+ // Sunfall Coast on the south coast, its sea in a bay cut into the land (sea.bays, the arch over it); y puts
+ // its sea, SEA_Y = -2.184 scene units, at the water level
+ {id:'sunfall-coast',region:'frontier-wilds-v1',clearPaths:true,x:6,z:165.4,s:.42,y:.517,box:[-65,65,-65,30]}
 ];
 const round=n=>Math.round(n*1000)/1000,scenes=[];
 // Optional ids on the command line export only those scenes (the others' files stay as committed).

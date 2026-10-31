@@ -949,7 +949,8 @@ export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrain
     const x0 = hf.ox;
     const x1 = hf.ox + (hf.w - 1) * hf.res;
     const coast = sea.coastline || sea.shore;
-    const zMin = Math.max(hf.oz, hf.oz + Math.floor((Math.min(...coast.map((p) => p[1])) - 6 - hf.oz) / hf.res) * hf.res);
+    // bays cut into the land (sea.bays) reach further north than the shoreline
+    const zMin = Math.max(hf.oz, hf.oz + Math.floor((Math.min(...coast.map((p) => p[1]), ...(sea.bays || []).flatMap((b) => b.points.map((p) => p[1]))) - 6 - hf.oz) / hf.res) * hf.res);
     const z1 = Math.max(...coast.map((p) => p[1])) + 40;
     const step = hf.res;
     const nx = Math.ceil((x1 - x0) / step);

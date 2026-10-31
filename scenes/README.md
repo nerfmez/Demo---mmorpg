@@ -29,6 +29,13 @@ the built `index.html` in a browser. Each page has a wipe slider to compare with
 | Frontier Settlement (`frontier-settlement/`) | **v1 sent for owner review, 31 October 2026** (https://claude.ai/artifact/TjCdgzuexR78BN3av7zm7n). Seventh Greenhollow Frontier zone (นิคมชายแดน): a village round a square: timber-framed cottages with tiled roofs and chimneys, the market stall and banner, the bell tower, the great tree with a bench and barrels, a fenced vegetable garden, dry-stone walls, a stone stair up the bank. [Build](frontier-settlement/README.md) | `python3 frontier-settlement/prepare.py && python3 frontier-settlement/assemble.py` |
 | Chibi hero model (Blender, `chibi/`) | **Paused** by the owner (quality not good enough; Meshy or bought/commissioned models suggested) | needs Blender bpy: `python chibi/build.py chibi/face.png chibi.glb` |
 
+## Greenhollow Frontier in the game (31 October 2026)
+The seven approved Frontier zone scenes stand in the Frontier map, each where its zone landmark stood
+(`scripts/place-frontier-scenes.mjs`; details in `docs/GODOT-PORT.md`, "Greenhollow Frontier zone scenes"):
+the Frontier Settlement is the town (its services in the village), Greyfang Den's cave holds the pack
+leader's den, Glimmer Wetland's pools are water, Sunfall Coast's sea is a bay cut into the coast and
+closed by a rock headland, and flowers spread round every scene into the map (owner's rule).
+
 ## Zone tones (owner, 26 October 2026)
 Each region keeps its own colour mood, so the zones feel different. Moonroot Grove scenes take the
 tone of `assets/moonroot/moonroot_grove_concept.jpg` (deep teal-green, blue-green round crowns,

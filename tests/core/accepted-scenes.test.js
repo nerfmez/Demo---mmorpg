@@ -13,7 +13,7 @@ const data=loadData(),world=createWorld(data.world);
 const frontier=data.maps['frontier-wilds-v1'],moonroot=data.maps['moonroot-grove-v1'],worlds={[data.world.id]:world,[frontier.id]:createWorld(frontier),[moonroot.id]:createWorld(moonroot)};
 const regionOf=s=>s.region||data.world.id,home=s=>worlds[regionOf(s)],homeData=s=>data.maps[regionOf(s)];
 test('all approved areas share real roads, collision and continuous edge heights',()=>{
- const N=acceptedSceneLayout.scenes.length;assert.equal(N,19);
+ const N=acceptedSceneLayout.scenes.length;assert.equal(N,20);
  for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){if(regionOf(acceptedSceneLayout.scenes[i])!==regionOf(acceptedSceneLayout.scenes[j]))continue;const a=acceptedSceneLayout.scenes[i].bounds,b=acceptedSceneLayout.scenes[j].bounds;assert.ok(Math.min(a[1],b[1])<=Math.max(a[0],b[0])||Math.min(a[3],b[3])<=Math.max(a[2],b[2]),'scene footprints must not overlap');}
  let samples=0;
  for(const world of Object.values(worlds)){
@@ -281,3 +281,37 @@ test('Moonroot\'s woods: small to giant trees, zone plants and surface roots cle
  assert.ok(w.decor.groundRoots.length>100,'surface roots');
  for(const r of w.decor.groundRoots)for(const [x,z] of r.points){assert.ok(w.roadDist(x,z)>0,'roots stay off the paths');assert.ok(!w.isWater(x,z),'and out of the water');}
 });
+test('Greenhollow Frontier\'s seven zone scenes: landmarks, town services, the boss, pools and flowers',()=>{
+ const w=worlds[frontier.id],scenes=acceptedSceneLayout.scenes.filter(s=>s.region===frontier.id&&s.id!=='shell-beach');
+ assert.deepEqual(scenes.map(s=>s.id).sort(),['bramble-glade','crag-highlands','frontier-settlement','glimmer-wetland','greyfang-den','sunfall-coast','sunny-meadow']);
+ // each stands where its zone's landmark stood and draws it
+ for(const s of scenes){const lm=frontier.landmarks.find(l=>l.acceptedScene===s.id);assert.ok(lm,s.id+' draws its landmark');}
+ // the town's services stand free in the village, inside the safe settlement zone
+ const town=frontier.town,village=scenes.find(s=>s.id==='frontier-settlement');
+ // (a waypoint's arrival spot is 2.2 m in front of its stone, as the game teleports there)
+ const stone=frontier.waypoints.find(q=>q.id==='town').pos;
+ for(const p of[town.workbench,town.trainer,town.shop,town.respawn,[stone[0],stone[1]+2.2]]){
+  assert.ok(w.isFree(...p,.45),'service '+p);assert.equal(w.zoneAt(...p).id,'settlement');
+  assert.ok(p[0]>village.bounds[0]&&p[0]<village.bounds[1]&&p[1]>village.bounds[2]&&p[1]<village.bounds[3],'in the village '+p);
+ }
+ assert.deepEqual(town.buildings,[]);assert.equal(town.stalls,undefined,'the village draws its own stalls');
+ // the pack leader waits on open ground before the den's cave
+ const boss=frontier.bosses.find(b=>b.id==='greyfang');assert.ok(w.isFree(...boss.pos,.8));
+ // the wetland's pools are water that blocks walking; its waypoint stands on dry ground
+ for(const pool of scenes.find(s=>s.id==='glimmer-wetland').pools){assert.ok(w.isWater(pool.x,pool.z,0)&&!w.isFree(pool.x,pool.z,.45),'pool at '+[pool.x,pool.z]);}
+ for(const id of['wetland','coast','town'])assert.ok(!w.isWater(...frontier.waypoints.find(q=>q.id===id).pos,1),id);
+ // flowers carry on round every scene into the map (owner, 31 October 2026)
+ for(const s of scenes){const b=s.bounds,ring=w.decor.flowers.filter(f=>{const d=Math.hypot(Math.max(b[0]-f.x,0,f.x-b[1]),Math.max(b[2]-f.z,0,f.z-b[3]));return d>0&&d<26;});assert.ok(ring.length>=60,s.id+' flowers round it: '+ring.length);}
+});
+test('Sunfall Coast\'s bay: sea cut into the land, the coast unchanged away from it',async()=>{
+ const {seaContains,coastSample}=await import('../../src/core/math.js');
+ const w=worlds[frontier.id],sea=frontier.sea,bay=sea.bays[0],plain={...sea,bays:undefined};
+ // the middle of the bay is sea and blocks walking; the beach beside it is land
+ const [bx,bz]=[(bay.points[3][0]+bay.points.at(-1)[0])/2+3,bay.points[3][1]+2];
+ assert.ok(seaContains(sea,bx,bz)&&!seaContains(plain,bx,bz),'bay water at '+[bx,bz]);
+ assert.ok(w.isWater(bx,bz,0)&&!w.isFree(bx,bz,.45));
+ const beach=scenes2(frontier).roads.find(r=>r.id==='sunfall-coast/south').points.at(-1);assert.ok(!w.isWater(...beach,0)&&w.isFree(...beach,.45));
+ // far from the bay every coast answer is the plain shoreline's
+ for(const [x,z]of[[-150,170],[-60,176],[120,175],[180,186],[200,150]]){const a=coastSample(sea,x,z),b=coastSample(plain,x,z);assert.equal(a.distance,b.distance);assert.equal(seaContains(sea,x,z),seaContains(plain,x,z));}
+});
+function scenes2(map){return acceptedSceneLayout.scenes.find(s=>s.region===map.id&&s.id==='sunfall-coast');}

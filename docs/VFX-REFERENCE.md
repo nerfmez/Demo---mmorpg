@@ -484,3 +484,5 @@ the caster sees an effect; the decoy draws nothing). Stealth: a puff of violet s
 hidden and a violet see-through copy of the hero re-posed every frame, seen only by its own player (a violet
 shimmer round it was dropped: owner, it looked like a shield). Decoy: a copy of the hero in its own look, held in the pose it was left in, gone in a puff of shadow. Steal:
 a violet swipe of a shadow hand across the front and gold motes arcing back from the monster. No gallery access.
+Owner: the plain purple ghost was too flat. The hidden hero is now a cloak: its body nearly clear, a bright pale rim round
+its outline and light bands sweeping over it like heat haze (`hero-copy.js` `cloakMaterial`).

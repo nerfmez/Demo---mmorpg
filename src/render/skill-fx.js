@@ -35,7 +35,7 @@ import { ShadowFx } from './skillfx/shadow-fx.js';
 import { IronFx } from './skillfx/iron-fx.js';
 import { BuffFx, LOOKS as BUFF_LOOKS } from './skillfx/buff-fx.js';
 import { AuraFx, AURA_SHOUTS, AURA_LINGER, MOTE_GOLD } from './skillfx/aura-fx.js';
-import { copyRig, syncCopy, dropCopy } from './hero-copy.js';
+import { copyRig, syncCopy, dropCopy, cloakMaterial } from './hero-copy.js';
 import { BlessFx } from './skillfx/bless-fx.js';
 import { VolleyFx } from './skillfx/volley-fx.js';
 import { KillFx } from './skillfx/kill-fx.js';
@@ -104,7 +104,7 @@ export class SkillFx {
     this.buff = new BuffFx(scene, camera); this.buffBodies = [];
     this.aura = new AuraFx(scene, camera); this.auraBodies = []; this.auraBlade = [new THREE.Vector3(), new THREE.Vector3()]; this.headV = new THREE.Vector3(); // each buff's own signature (skillfx/aura-fx.js)
     // Stealth's ghost (only its own player sees the hidden hero) and Decoy's copies, by decoy id
-    this.ghost = null; this.ghostMat = new THREE.MeshBasicMaterial({ color: 0x7a4fd8, transparent: true, opacity: 0.32, depthWrite: false }); this.decoyCopies = new Map();
+    this.ghost = null; this.ghostMat = cloakMaterial(THREE); this.decoyCopies = new Map();
     this.bless = new BlessFx(scene, camera);
     this.volley = new VolleyFx(scene, camera);
     this.kill = new KillFx(scene, camera);
@@ -170,7 +170,7 @@ export class SkillFx {
     if (hb) { hb.updateWorldMatrix(true, false); head = this.rel(hb.getWorldPosition(this.headV)); }
     this.aura.update(dt, bodies, g.monsters, p, rage, blade, head);
     // the hidden hero's ghost follows its pose (the real body is hidden by the view while p.stealthT > 0)
-    if (this.ghost) { if ((p.stealthT || 0) > 0 && !p.dead) syncCopy(this.ghost); else { dropCopy(this.ghost); this.ghost = null; } }
+    if (this.ghost) { this.ghostMat.userData.cloak.uTime.value += dt; if ((p.stealthT || 0) > 0 && !p.dead) syncCopy(this.ghost); else { dropCopy(this.ghost); this.ghost = null; } }
   }
   centerOf(id) { const b = this.host.body(id); return b ? this.center.set(b.x, b.h * 0.55, b.z) : null; }
   nextSwingStep() { this.swingStep = this.time - this.lastSwingAt < 1.2 ? (this.swingStep + 1) % 2 : 0; this.lastSwingAt = this.time; return this.swingStep; }

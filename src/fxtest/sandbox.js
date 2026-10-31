@@ -134,7 +134,10 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   ch.skills[skill] = 1;
   ch.mods = mods.map((m) => ({ id: m.id, uid: ch.nextUid++, level: m.level || 1, grade: 'C' }));
   if (fusion) ch.skills[fusion] = 1;
-  ch.slots = ch.slots.map((_, i) => ({ skill: i === 0 ? skill : i === 1 && fusion ? fusion : null, mods: i === 0 ? ch.mods.map((m) => m.uid) : [] }));
+  // Lightning Rod sets off our other traps near it: the bench sets a Blast Trap and a Net Trap beside it (slots 1, 2)
+  const helpers = skill === 'lightning_rod' ? ['blast_trap', 'net_trap'] : [];
+  for (const h of helpers) ch.skills[h] = 1;
+  ch.slots = ch.slots.map((_, i) => ({ skill: i === 0 ? skill : i === 1 && fusion ? fusion : helpers[i - 1] || null, mods: i === 0 ? ch.mods.map((m) => m.uid) : [] }));
   const mv = data.skills.movement[movement] ? movement : 'dash'; // the dodge button's move (the bench's หลบ picker)
   if (data.skills.movement[mv]) { ch.movementSkills = [mv]; ch.movement = mv; }
   ch.equipped.weapon = ch.equipped.offhand = null;
@@ -158,6 +161,14 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   g.world = { surfaceY: () => 0, groundY: () => 0, isFree: () => true, move: (x, z, r, dx, dz) => ({ x: x + dx, z: z + dz, blocked: false }), seams: [], seamAt: () => null, bounds: { minX: -40, maxX: 40, minZ: -40, maxZ: 40 } };
   g.isSafe = () => false;
   g.nearby = () => ({ inTown: false });
+  if (helpers.length) {
+    const run = g.runSkill.bind(g);
+    g.runSkill = (s, aim, opts) => {
+      run(s, aim, opts);
+      if (s.id !== skill) return;
+      helpers.forEach((h, i) => { const hs = g.skills.find((q) => q?.id === h); if (hs) run(hs, { ...aim, x: aim.x - 1.6, z: aim.z + (i ? -2.2 : 2.2) }, opts); });
+    };
+  }
   if (haste !== null) {
     const refresh = g.refreshSkills.bind(g);
     g.refreshSkills = () => { g.derived.hastePct = haste; refresh(); };

@@ -681,3 +681,13 @@ strokes are gone; the stun mark is the spiral alone. Then: "why does the spiral 
 lies flat over the head and turns round the vertical, a little larger (0.3 m). Then: "it is lopsided!" - camera-facing ribbons laid flat went
 uneven and it bobbed; it is now a flat strip mesh of even width (cream line, dark ink edge) turning
 round the vertical, nothing else.
+
+Lightning Rod, round 1 (`rod-fx.js`, plate in `trap-fx.js`; Chain Spark's `zig` and crackle shaders). The
+plate carries the rod's stub with a copper coil and ball, a cold spark on it once armed. When a monster
+steps in, an iron rod wound with copper coils and topped with a copper ball punches up 1.7 m with an
+overshoot, with a burst of short arcs round the ball, a glint and a cold light. A long jagged bolt runs from
+the ball to each of our traps it sets off (the rules' trapRelay), a glint where it lands; while it stands,
+small arcs keep crackling off the ball and its glow breathes; each strike (trapZap) is a bolt from the ball
+into the monster with a glint and sparks on the body; at the end it sinks back. Every bolt leaves the rod,
+so it is not Chain Spark's hop from body to body. The bench sets a Blast Trap and a Net Trap beside the rod
+so the relay shows.

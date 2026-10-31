@@ -677,4 +677,5 @@ light (thick at their leading head, thinning behind) orbit the head on a tilted 
 in and out; no sprites. Owner: "still not clear, add something" - over them a dizzy spiral (an anime '@' swirl,
 1.8 turns) faces the camera above the head, turning, bobbing and popping in, and every stun line now has
 a dark warm ink edge under its light so it reads on bright grass. Then: "only the spiral, instead of the lines below" - the orbiting
-strokes are gone; the stun mark is the spiral alone.
+strokes are gone; the stun mark is the spiral alone. Then: "why does the spiral turn upright?" - it faced the camera; it now
+lies flat over the head and turns round the vertical, a little larger (0.3 m).

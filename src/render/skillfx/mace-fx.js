@@ -3,8 +3,8 @@
 // that pops, upward rays, two shock rings racing out over the 65 degree cone) and a hard burst on
 // each struck target, which is then stunned. Every stun in the game (the rules' 'stunned') is drawn here:
 // a swirl over its head for the stun (owner, 2026-10-31: the earlier little stars read as something
-// else; then "only the spiral, instead of the lines below") - a dizzy spiral (an anime '@' swirl) above the
-// head facing the camera, turning, bobbing and popping in, a warm light line with a dark ink edge so it
+// else; then "only the spiral, instead of the lines below") - a dizzy spiral (an anime '@' swirl) lying flat
+// over the head, turning round the vertical, bobbing and popping in, a warm light line with a dark ink edge so it
 // reads on bright grass.
 // (windup()/the red "!" warning remain for monsters that wind up an attack; a stunned target's
 // warning shatters.) Cosmetic only.
@@ -51,7 +51,6 @@ export class MaceFx {
     this.glow = new Ribbon(scene, camera, 4000, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
     this.ink = new Ribbon(scene, camera, 1500, INK_FS, THREE.NormalBlending); this.ink.mesh.renderOrder = 7.5;
-    this.camera = camera; this.camR = new THREE.Vector3(); this.camU = new THREE.Vector3();
     const sprite = (map, opts, order) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthWrite: false, transparent: true, ...opts })); sp.visible = false; sp.renderOrder = order; scene.add(sp); return sp; };
     const g = glowTex(), w = warnTex();
     this.bursts = Array.from({ length: BURSTS }, () => ({ sp: sprite(g, { blending: THREE.AdditiveBlending }, 9), t: 9, life: 0.3, size: 1, pos: new THREE.Vector3(), rays: Array.from({ length: RAYS }, () => ({ d: new THREE.Vector3(), len: 1 })) }));
@@ -165,14 +164,13 @@ export class MaceFx {
       s.t += dt;
       const head = headOf(s.id) || s.head; if (!head) continue;
       const fade = Math.max(0, Math.min(1, (s.duration - s.t) / 0.15)) * Math.min(1, s.t / 0.1);
-      // the dizzy spiral above, facing the camera: winding out from its middle, turning, bobbing, popping in
-      const cq = this.camera.quaternion, rt = this.camR.set(1, 0, 0).applyQuaternion(cq), up = this.camU.set(0, 1, 0).applyQuaternion(cq);
-      const pop = Math.min(1, s.t / 0.15), size = 0.24 * (pop < 1 ? 0.6 + 0.55 * Math.sin(pop * 2.2) : 1), spin = -s.t * 6;
+      // the dizzy spiral, lying flat over the head (owner: not standing up): winding out from its middle,
+      // turning round the vertical, bobbing, popping in
+      const pop = Math.min(1, s.t / 0.15), size = 0.3 * (pop < 1 ? 0.6 + 0.55 * Math.sin(pop * 2.2) : 1), spin = -s.t * 6;
       const cx = head.x, cy = head.y + 0.42 + 0.04 * Math.sin(s.t * 5), cz = head.z;
       for (let i = 0; i < SPIRAL_PTS; i++) {
         const u = i / (SPIRAL_PTS - 1), th = u * SPIRAL_TURNS * 6.283, r = size * (0.12 + 0.88 * u), a = th + spin;
-        const ox = Math.cos(a) * r, oy = Math.sin(a) * r * 0.85;
-        this.spiral[i].set(cx + rt.x * ox + up.x * oy, cy + rt.y * ox + up.y * oy, cz + rt.z * ox + up.z * oy);
+        this.spiral[i].set(cx + Math.cos(a) * r, cy + 0.02 * Math.sin(a * 2 + s.t * 4), cz + Math.sin(a) * r);
       }
       stripW = 0.045; this.ink.strip(this.spiral, spiralInkW, 0.9 * fade, INK); this.glow.strip(this.spiral, spiralGlowW, 0.5 * fade, DAZE_GLOW); this.core.strip(this.spiral, spiralW, fade, DAZE);
     }

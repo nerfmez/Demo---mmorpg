@@ -11,18 +11,9 @@ function onGround(u,v){
 }
 const offPath=(x,z,pad)=>{const st=stairsAt(x,z);return st.s>st.half+pad&&(polyAt(PLAZA,x,z)??Infinity)>pad;};
 const nearDial=(x,z,pad)=>DIAL&&Math.hypot(x-DIAL.x,z-DIAL.z)<DIAL.r*1.35+pad;
-function islandBlocks(){
- // the island under the big oak is fronted by big square mossy blocks, as the concept's
- for(const[u,v,w,h]of[[.27,.59,.055,.04],[.315,.635,.055,.038],[.375,.655,.06,.04],[.44,.655,.065,.045],[.50,.645,.06,.042],[.255,.545,.04,.03]]){
-  const[x,y,z]=onGround(u,v),width=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h);
-  if(!offPath(x,z,0))continue;
-  block(x,y-M(.25),z,width,hh+M(.25),width*R(.8,.95),R(-.15,.15),.7);COLLIDERS.push({x,z,r:width*.45});
-  for(let k=0;k<3;k++)addBush(x+R(-.6,.6)*width,y+hh*R(.5,1),z+R(-.3,.3)*width,M(R(.28,.42)),{sy:.6,tint:R(-.1,.2)});
- }
-}
 function meadowRocks(){
  // the concept's loose boulders: [u, foot v, width, top v]
- for(const[u,v,w,h]of[[.405,.45,.03,.035],[.465,.445,.025,.03],[.43,.40,.02,.025],[.66,.56,.03,.035],[.70,.57,.025,.03],[.62,.52,.02,.025],[.35,.56,.03,.04],[.30,.90,.03,.025],[.80,.86,.03,.025],[.66,.60,.035,.045],[.73,.08,.04,.07],[.46,.08,.03,.05],[.55,.06,.03,.05],[.88,.26,.03,.05],[.03,.24,.04,.06],[.10,.43,.03,.04]]){
+ for(const[u,v,w,h]of[[.405,.45,.03,.035],[.465,.445,.025,.03],[.43,.40,.02,.025],[.66,.56,.03,.035],[.70,.57,.025,.03],[.62,.52,.02,.025],[.30,.90,.03,.025],[.80,.86,.03,.025],[.66,.60,.035,.045],[.73,.08,.04,.07],[.46,.08,.03,.05],[.55,.06,.03,.05],[.88,.26,.03,.05],[.03,.24,.04,.06],[.10,.43,.03,.04]]){
   const[x,y,z]=onGround(u,v),width=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h);
   if(!offPath(x,z,width*.5+M(.3))||nearDial(x,z,width))continue;
   fieldStone(x,y-M(.25),z,width*R(.85,1),hh+M(.25),width*R(.7,.85),{ry:R(-.9,.9),moss:.55,chamfer:.35});COLLIDERS.push({x,z,r:width*.42});
@@ -36,7 +27,7 @@ function meadowRocks(){
  }
 }
 function plantMeadow(){
- // oaks: [u, v, size, seed]; the big one on the island beside the dial, the rest framing the meadow
+ // oaks: [u, v, size, seed]; the big one beside the dial, the rest framing the meadow
  // [u, v] is the trunk's foot in the concept
  for(const[u,v,s,seed]of[[.305,.555,4.4,5],[.265,.20,3.8,9],[.05,.18,3.2,3],[.13,.06,2.8,5],[.42,.10,3.2,9],[.745,.085,3.4,3],[.60,.04,2.8,5],[.955,.21,3.2,9],[.875,.445,2.6,3],[.985,.66,2.4,5],[.35,.03,2.4,3],[.86,.02,2.6,9],[.96,1.0,2.6,3],[.03,1.0,2.6,9]]){
   const[x,,z]=onGround(u,v);
@@ -72,7 +63,7 @@ function build(){
  const[x,z]=P(.50,.84);HERO.x=x;HERO.z=z;HERO.face=-2.9;
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();
  dialPosts(sundial(.60,.315));
- islandBlocks();meadowRocks();plantMeadow();
+ meadowRocks();plantMeadow();
  if(rootParts.length){const roots=new THREE.Mesh(mergeGeometries(rootParts),barkPaint());roots.castShadow=roots.receiveShadow=true;scene.add(roots);}
  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
  for(let i=0;i<woodParts.length;i++){let g=woodParts[i];if(g.index)g=g.toNonIndexed();if(g.attributes.uv)g.deleteAttribute('uv');woodParts[i]=g;}

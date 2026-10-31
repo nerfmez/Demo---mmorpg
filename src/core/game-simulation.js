@@ -10,7 +10,7 @@ import { computeSkill, movementSkill, aimsAtGround } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
-import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock } from './frontier-content.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock, springTrap, tickTrap } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
@@ -1914,9 +1914,8 @@ export class Game {
       if (a.trap && !a.sprung) {
         a.t += dt;
         if (a.t >= a.trap.life) { this.emit({ type: 'areaEnd', id: a.id }); continue; }
-        if (!(a.t >= a.trap.arm && this.monsters.some((m) => !m.dead && dist(a.x, a.z, m.x, m.z) <= a.trap.trigger + m.r))) { keep.push(a); continue; }
-        a.sprung = true; a.t = 0; a.delay = 0;
-        this.emit({ type: 'trapSprung', skill: a.kind, look: a.look || a.kind, id: a.id, x: a.x, z: a.z, radius: a.radius });
+        if (!(a.relayed || (a.t >= Math.max(a.trap.arm, a.nextArm || 0) && this.monsters.some((m) => !m.dead && dist(a.x, a.z, m.x, m.z) <= a.trap.trigger + m.r)))) { keep.push(a); continue; }
+        if (!springTrap(this, a)) { if (!a.spent) keep.push(a); continue; }
       }
       // a monster's attack marked at its wind-up waits while that monster twitches from shock (ai.js pauses
       // the wind-up), so the hit still lands with the strike; one already launched (a rock in flight) does not
@@ -1977,9 +1976,12 @@ export class Game {
           this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner });
         }
       }
+      if (a.trap) tickTrap(this, a, dt);
       if (live < (a.duration || 0)) keep.push(a);
       else this.emit({ type: 'areaEnd', id: a.id });
     }
+    // areas spawned during the loop (a Spore Pod's puff, a Flame Geyser's later pulses) were walked by the
+    // same for-of and are in keep; a Lightning Rod relaying to a trap already passed springs it next step
     this.areas = keep;
   }
 

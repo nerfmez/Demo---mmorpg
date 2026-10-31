@@ -53,6 +53,7 @@ export function castDamage(s) {
   if (s.echo) dmg *= 1 + s.echo.mult; // the echo strikes again
   if (s.modEffects?.returnMult) dmg *= 1 + s.modEffects.returnMult; // a returning shot's way back
   if (s.afterShock) dmg *= 1 + s.afterShock.mult; // Thunder Lance: the lane strikes again
+  if (s.trap?.pulses) dmg *= s.trap.pulses.count; // Flame Geyser: the burst again, interval s apart
   // Flame Arrow Rain: arrows burst over the circle, so a target there is in about count x (blast / radius)^2 of them
   if (s.arrows) dmg *= s.arrows.count * Math.min(1, (s.arrows.blast / Math.max(0.1, s.radius || 1)) ** 2);
   // a zone that stacks poison on each tick (Miasma Arrow): the stacks poison on top of the ticks, on
@@ -180,12 +181,16 @@ export function buildProfile(data, spec) {
       // what it cut: all of them on a lone target, on one of a pack), Shatter Arrow's shards (they fly on
       // past the target the arrow struck, so only the rest of a pack takes them; a shot that never stops never breaks)
       if (s.shockCharge) burst += s.shockCharge.mult * s.shockCharge.shocks / (scen === 'pack' ? Math.max(1, hits) : 1);
+      // Lightning Rod: a strike on one monster each interval for its life
+      const Z = s.trap?.zap; if (Z) burst += Z.mult * Math.floor(Z.life / Z.interval) / (scen === 'pack' ? Math.max(1, hits) : 1);
       if (s.shatter && scen === 'pack' && s.pierce !== Infinity) burst += s.shatter.mult * Math.min(s.shatter.count, R.pack.size - 1) / Math.max(1, hits);
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
       // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there
       const e = s.modEffects || {}, tip = e.tipMult ? (scen === 'pack' ? 1 + e.tipShare * (e.tipMult - 1) : e.tipMult) : 1;
       // a field of traps (Trap Field): a pack walks into each of them, a lone monster into fieldSingle
-      const field = s.trap?.count > 1 ? (scen === 'pack' ? Math.min(s.trap.count, R.pack.size) : C.fieldSingle) : 1;
+      // a pod that puffs each time a monster passes (Spore Pod) counts the same way
+      const many = s.trap?.count > 1 ? s.trap.count : s.trap?.puffs || 0;
+      const field = many > 1 ? (scen === 'pack' ? Math.min(many, R.pack.size) : C.fieldSingle) : 1;
       return a + (r[i] + triggered) * castDamage(s) * field * (scen === 'single' ? fanShots(s, data) : 1) * tip * hits * (1 + burst) * dots(s) * critOf(s) * armourOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
     }, 0) * armour * amp * (1 + selfDamage * helperShare);
   };
@@ -222,7 +227,7 @@ export function buildProfile(data, spec) {
     }
     if (e.chainStun) free *= 1 - Math.min(C.cap, rate * e.chainStun / R.pack.size); // one monster, the chain's last
     // shock: its twitches stop the monster for twitch / interval of the time it lasts
-    const SH = s.def.afterShock?.shock, SHK = data.progression.combat.shock;
+    const SH = s.def.afterShock?.shock || s.shock?.duration, SHK = data.progression.combat.shock;
     if (SH && SHK) free *= 1 - Math.min(C.cap, rate * SH * (SHK.twitch / SHK.interval) * reach);
     if (s.knock) free *= 1 - Math.min(C.cap, rate * s.knock / C.monsterSpeed * reach);
     if (chill) free *= 1 - Math.min(C.cap, chill.slow * C.slowShare * Math.min(1, rate * chill.duration) * reach);

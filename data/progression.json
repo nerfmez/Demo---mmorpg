@@ -403,6 +403,7 @@
       "mod": [0.05, 1.5],
       "known": {
         "skills": {
+          "gravity_rune": "its worth is drawing a pack onto our other traps and areas, which the build profile does not measure (it scores only its small hit)",
           "chain_spark": "a main skill since the main line moved to 2.4 s (its MP now lasts on regeneration), it scores under its weapon's reference main; awaiting the skill growth rebalance (phase 3)",
           "whirl_blade": "a main skill since the main line moved to 2.4 s (its MP now lasts on regeneration), it scores under its weapon's reference main; awaiting the skill growth rebalance (phase 3)",
           "thunderstorm": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",

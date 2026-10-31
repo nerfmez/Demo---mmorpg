@@ -364,6 +364,257 @@
       
       "upgradeStat": "DEX"
     },
+    "flame_geyser": {
+      "name": "Flame Geyser",
+      "nameTh": "น้ำพุเพลิง",
+      "desc": "วางกับดักที่จุดเล็ง ศัตรูเดินเข้ามาเปลวไฟพุ่งจากพื้น 3 ระลอก ห่างกัน 1 วินาที โดนทั้งวง 2.2 ม. และติดไฟลุก วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Damage",
+        "Fire"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 120,
+        "scale": 0.95
+      },
+      "radius": 2.2,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 2,
+        "pulses": {
+          "count": 3,
+          "interval": 1.0
+        }
+      },
+      "burnChance": 1,
+      "cooldown": 10,
+      "cost": 144,
+      "element": "fire",
+      "requires": {
+        "DEX": 6,
+        "AGI": 4
+      },
+      "upgradeMaterial": "glow_dust",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "frost_jaw": {
+      "name": "Frost Jaw",
+      "nameTh": "ขากรรไกรน้ำแข็ง",
+      "desc": "วางกับดักที่จุดเล็ง ศัตรูเดินเข้ามาขากรรไกรน้ำแข็งงับ สตัน 1.6 วินาที (บอส 0.4) และช้าลง 40% 3 วินาที วง 1.8 ม. วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Control",
+        "Cold"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 110,
+        "scale": 0.85
+      },
+      "radius": 1.8,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 0.9,
+        "max": 2
+      },
+      "stun": {
+        "duration": 1.6,
+        "bossDuration": 0.4
+      },
+      "chill": {
+        "slow": 0.4,
+        "duration": 3
+      },
+      "cooldown": 12,
+      "cost": 128,
+      "element": "cold",
+      "requires": {
+        "DEX": 6,
+        "AGI": 4
+      },
+      "upgradeMaterial": "pearl_scale",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "lightning_rod": {
+      "name": "Lightning Rod",
+      "nameTh": "เสาล่อฟ้า",
+      "desc": "วางกับดักที่จุดเล็ง ศัตรูเดินเข้ามาเสาเหล็กเด้งขึ้น จุดกับดักอื่นของเราในระยะ 6 ม. ให้ทำงานทันที แล้วช็อตศัตรูใกล้สุดในระยะ 4 ม. ทุก 0.8 วินาทีนาน 6 วินาที ติดชา วางค้างได้ 1 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Damage",
+        "Lightning"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 90,
+        "scale": 0.7
+      },
+      "radius": 1.2,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 1,
+        "relay": 6,
+        "zap": {
+          "interval": 0.8,
+          "range": 4,
+          "life": 6,
+          "mult": 1
+        }
+      },
+      "shock": {
+        "duration": 1.5
+      },
+      "cooldown": 11,
+      "cost": 160,
+      "element": "lightning",
+      "requires": {
+        "DEX": 7,
+        "AGI": 4
+      },
+      "upgradeMaterial": "storm_quill",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "spore_pod": {
+      "name": "Spore Pod",
+      "nameTh": "ฝักสปอร์",
+      "desc": "วางฝักที่จุดเล็ง พ่นหมอกพิษทุกครั้งที่ศัตรูเดินผ่าน (สูงสุด 3 ครั้ง) ซ้อนพิษ ศัตรูที่ตายขณะติดพิษนี้แพร่พิษให้ตัวที่ใกล้ที่สุดในระยะ 3 ม. วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Damage",
+        "Poison",
+        "DoT"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 70,
+        "scale": 0.55
+      },
+      "radius": 2.0,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 2,
+        "puffs": 3,
+        "rearm": 1.2
+      },
+      "poison": {
+        "maxStacks": 5,
+        "duration": 4,
+        "stackDps": 0.25,
+        "spread": 3
+      },
+      "cooldown": 9,
+      "cost": 120,
+      "element": "poison",
+      "requires": {
+        "DEX": 6,
+        "AGI": 4
+      },
+      "upgradeMaterial": "spore_sac",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "gravity_rune": {
+      "name": "Gravity Rune",
+      "nameTh": "วงเวทดูด",
+      "desc": "วางวงเวทที่จุดเล็ง ศัตรูเดินเข้ามาวงเวทดูดศัตรูในระยะ 4.5 ม. เข้ากลางวงใน 0.8 วินาที (บอสไม่ถูกดูด) ใช้ต้อนศัตรูลงกับดักอื่น วางค้างได้ 1 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Control",
+        "Arcane"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 80,
+        "scale": 0.6
+      },
+      "radius": 1.6,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 1
+      },
+      "pull": {
+        "radius": 4.5,
+        "time": 0.8
+      },
+      "cooldown": 12,
+      "cost": 128,
+      "element": "arcane",
+      "requires": {
+        "DEX": 6,
+        "AGI": 5
+      },
+      "upgradeMaterial": "rune_core",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
     "ice_ball": {
       "name": "Ice Ball",
       "nameTh": "บอลน้ำแข็ง",

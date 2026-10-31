@@ -12,7 +12,7 @@ import { craft } from '../../src/core/crafting.js';
 import { updateMonster } from '../../src/core/ai.js';
 import { tickFrontier } from '../../src/core/frontier-content.js';
 
-const C = data.skills.combat, TRAPS = ['spike_trap', 'net_trap', 'blast_trap', 'lure_dummy', 'trap_field'];
+const C = data.skills.combat, TRAPS = ['spike_trap', 'net_trap', 'blast_trap', 'lure_dummy', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune'];
 
 const fixture = (id) => {
   const ch = createCharacter(data, { kit: 'bow' });
@@ -34,7 +34,7 @@ const aim = { angle: Math.PI / 2, x: 6, z: 0 };
 const step = (g, seconds) => { for (let t = 0; t < seconds - 1e-9; t += 0.02) { g.time += 0.02; g.updateAreas(0.02); } };
 const traps = (g, id) => g.areas.filter((a) => a.trap && !a.sprung && a.skill?.id === id); // still set, waiting
 
-test('the five are the trapper\'s bow skills, learned at the workbench from real drops, waiting for pictures', () => {
+test('the trapper\'s bow skills (the five and the elemental set) are learned at the workbench from real drops, waiting for pictures', () => {
   const drops = new Set(Object.values(data.monsters.monsters).flatMap((m) => m.drops.map((d) => d.item)));
   for (const id of TRAPS) {
     const def = C[id];
@@ -157,4 +157,77 @@ test('Lure Dummy stands where it is set, never moves or strikes, draws the monst
   assert.equal(near.hp, 1e6, 'it never strikes');
   for (let i = 0; i < D.summon.life * 20 + 5; i++) g.updateAllies(0.05);
   assert.ok(!g.allies.some((a) => a.id === d.id), 'gone after its life');
+});
+
+// The elemental traps (owner, 2026-10-31: creative, no new statuses; docs/SKILL-TREE-WHEEL-DRAFT-TH.md)
+const armNow = (g, id) => { for (const a of g.areas) if (a.trap && a.skill?.id === id) a.t = Math.max(a.t, a.trap.arm); };
+
+test('Flame Geyser erupts its pulses an interval apart, each over the circle and setting it burning', () => {
+  const D = C.flame_geyser, { g, mk, s } = fixture('flame_geyser');
+  const m = mk('m', aim.x, aim.z); g.monsters = [m];
+  g.executeSkill(s, aim); armNow(g, 'flame_geyser'); g.drainEvents();
+  const hits = [];
+  for (let t = 0; t < D.trap.pulses.interval * D.trap.pulses.count + 0.5; t += 0.02) { g.time += 0.02; g.updateAreas(0.02); for (const e of g.drainEvents()) if (e.type === 'hit' && e.id === 'm') hits.push(t); }
+  assert.equal(hits.length, D.trap.pulses.count, 'one hit per pulse');
+  assert.ok(Math.abs(hits[1] - hits[0] - D.trap.pulses.interval) < 0.05, 'an interval apart');
+  assert.ok(m.statuses.burn, 'it burns');
+});
+
+test('Frost Jaw stuns what steps in (a boss briefly) and chills it', () => {
+  const D = C.frost_jaw, { g, mk, s } = fixture('frost_jaw');
+  const m = mk('m', aim.x, aim.z), boss = mk('b', aim.x + 0.4, aim.z, { boss: true }); g.monsters = [m, boss];
+  g.executeSkill(s, aim); step(g, D.trap.arm + 0.05);
+  assert.equal(m.state, 'stunned'); assert.ok(Math.abs(m.stateDur - D.stun.duration) < 1e-9);
+  assert.ok(Math.abs(boss.stateDur - D.stun.bossDuration) < 1e-9, 'a boss only briefly');
+  assert.ok(m.statuses.chill?.slow === D.chill.slow, 'and chilled');
+});
+
+test('Lightning Rod springs our other armed traps near it at once, then strikes the nearest monster in range every interval with shock', () => {
+  const D = C.lightning_rod, { g, mk, s } = fixture('lightning_rod');
+  // a Blast Trap set 4 m away, armed, with nothing on it
+  const blast = fixture('blast_trap').s;
+  g.skills[1] = blast; g.executeSkill(blast, { ...aim, x: aim.x + 4 });
+  const far = fixture('blast_trap').s; g.executeSkill(far, { ...aim, x: aim.x - D.trap.relay - 2 });
+  g.executeSkill(s, aim); step(g, 1);
+  const near = mk('n', aim.x, aim.z), side = mk('s', aim.x + 4, aim.z + 0.2); g.monsters = [near];
+  g.drainEvents(); step(g, 0.06);
+  const ev = g.drainEvents();
+  assert.ok(ev.some((e) => e.type === 'trapRelay' && Math.abs(e.tx - (aim.x + 4)) < 1e-9), 'it relays to the trap 4 m away');
+  assert.ok(!ev.some((e) => e.type === 'trapRelay' && e.tx < aim.x), 'not to one out of its reach');
+  assert.ok(ev.some((e) => e.type === 'trapSprung' && e.skill === 'blast_trap'), 'the relayed trap springs with nothing on it');
+  assert.equal(ev.filter((e) => e.type === 'trapSprung' && e.skill === 'blast_trap').length, 1, 'only that one');
+  g.monsters.push(side);
+  const zaps = [];
+  for (let t = 0; t < D.trap.zap.life + 1; t += 0.02) { g.time += 0.02; g.updateAreas(0.02); for (const e of g.drainEvents()) if (e.type === 'trapZap') zaps.push(e); }
+  assert.equal(zaps.length, Math.floor(D.trap.zap.life / D.trap.zap.interval), 'a strike every interval for its life');
+  assert.ok(zaps.every((e) => e.target === 'n'), 'the nearest');
+  assert.ok(near.statuses.shock, 'with shock');
+});
+
+test('Spore Pod puffs each time a monster passes up to its puffs, stacking poison; a monster dying poisoned passes it on once', () => {
+  const D = C.spore_pod, { g, mk, s } = fixture('spore_pod');
+  const m = mk('m', aim.x, aim.z); g.monsters = [m];
+  g.executeSkill(s, aim);
+  let puffs = 0;
+  for (let t = 0; t < D.trap.arm + D.trap.rearm * (D.trap.puffs + 1); t += 0.02) { g.time += 0.02; g.updateAreas(0.02); puffs += g.drainEvents().filter((e) => e.type === 'trapSprung').length; }
+  assert.equal(puffs, D.trap.puffs, 'its puffs, a rearm apart');
+  assert.equal(traps(g, 'spore_pod').length, 0, 'then spent');
+  assert.equal(m.statuses.poison?.stacks, D.trap.puffs, 'a stack each puff');
+  const a = mk('a', aim.x + 2, aim.z), b = mk('b', aim.x + 2.5, aim.z), c = mk('c', aim.x + 20, aim.z);
+  g.monsters.push(a, b, c);
+  g.killMonster(m);
+  assert.equal(a.statuses.poison?.stacks, D.trap.puffs, 'the nearest takes its poison');
+  assert.ok(!b.statuses.poison && !c.statuses.poison, 'only the nearest within reach');
+  g.killMonster(a);
+  assert.ok(!b.statuses.poison, 'passed on once, not again');
+});
+
+test('Gravity Rune draws monsters within its reach to its middle (not a boss), and no further', () => {
+  const D = C.gravity_rune, { g, mk, s } = fixture('gravity_rune');
+  const on = mk('on', aim.x, aim.z + 0.5), m = mk('m', aim.x + 3.5, aim.z), boss = mk('b', aim.x - 3, aim.z, { boss: true }), far = mk('f', aim.x + D.pull.radius + 2, aim.z);
+  g.monsters = [on, m, boss, far];
+  g.executeSkill(s, aim); step(g, D.trap.arm + D.pull.time + 0.2);
+  assert.ok(Math.hypot(m.x - aim.x, m.z - aim.z) < 0.6, 'drawn to the middle');
+  assert.equal(boss.x, aim.x - 3, 'a boss is not drawn');
+  assert.equal(far.x, aim.x + D.pull.radius + 2, 'nor one out of reach');
 });

@@ -1455,6 +1455,20 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   `trigger`, `hold`) and `trapSprung` so the view draws that trap's plate; `hit` events carry `bleed`.
   The build profile measures a pool as its average trap (mean share, mean circle, the bleed and root at
   their odds).
+- Elemental traps (2026-10-31, `tests/core/trap-skills.test.js`; no new statuses). A trap's moment goes
+  through `springTrap` (frontier-content.js; a trap springs on a monster in its trigger or when relayed,
+  `a.relayed`), and a sprung trap's lasting part through `tickTrap` each step. `trap.pulses` {count,
+  interval} (Flame Geyser): the burst again as plain areas `delay` k x interval (`pulseOf`, `pulse`);
+  `burnChance` 1 burns. Frost Jaw is `stun` + `chill` on the burst. `trap.relay` (Lightning Rod): our
+  other armed unsprung traps within relay m spring at once (`trapRelay` {id, to}); `trap.zap` {interval,
+  range, life, mult}: the area stays `life` s and every interval strikes the nearest monster in range
+  (`trapZap` {id, target}) with the skill's `shock`. `trap.puffs`/`rearm` (Spore Pod): each moment is a
+  burst area of its own and the pod waits again (`nextArm`) until spent (`areaEnd`); its `poison.spread`
+  is kept on `statuses.poison.spread`, and `spreadCurse` at a kill passes the stacks to the nearest
+  monster within it once (`poisonSpread`). `pull` {radius, time} (Gravity Rune, skill field): monsters (not
+  bosses) within radius are moved toward the middle over `time` with `moveEntity`. The build profile
+  counts pulses as hits, zaps as a per-cast burst, puffs like a field's traps and the shock as control;
+  the pull is not measured (budgets.known).
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}
   sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
   sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns

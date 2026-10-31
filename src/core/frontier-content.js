@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -239,7 +239,8 @@ export function chargeShock(g,m,opts){
  * (Venom Arrow's direct hits, Miasma Arrow's mist ticks). */
 export function stackPoison(g,m,pz,amount){
   const old=m.statuses.poison,before=old?.stacks||0,stacks=Math.min(pz.maxStacks,before+1);
-  m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks};
+  // a poison that spreads (Spore Pod's): passed on when the monster dies (spreadCurse)
+  m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks,spread:Math.max(pz.spread||0,old?.spread||0)};
   if(stacks>before)g.emit({type:'poisonStack',id:m.id,stacks,x:m.x,z:m.z});
 }
 export function adjustFrontierHit(g,m,amount,opts) {
@@ -288,6 +289,13 @@ function secondaryBurst(g,x,z,radius,damage,element,skill,kind='mod_burst'){
 }
 /** Spreading Hex: a dying target passes each spreadable debuff (Hex, armor exposure) with its remaining time to the nearest clean monster. */
 export function spreadCurse(g,m){
+  // Spore Pod: a monster dying poisoned passes its stacks to the nearest one within spread (once: the
+  // poison passed on does not spread again)
+  const pz=m.statuses.poison;
+  if(pz?.spread&&pz.t>0){
+    const next=g.monsters.filter(q=>q!==m&&!q.dead&&dist(m.x,m.z,q.x,q.z)<=pz.spread).sort((a,b)=>dist(m.x,m.z,a.x,a.z)-dist(m.x,m.z,b.x,b.z))[0];
+    if(next){const old=next.statuses.poison;next.statuses.poison={dps:Math.max(pz.dps,old?.dps||0),t:Math.max(pz.t,old?.t||0),acc:old?.acc||0,owner:'player',stacks:Math.max(pz.stacks||0,old?.stacks||0),spread:0};g.emit({type:'poisonSpread',from:m.id,id:next.id,x:m.x,z:m.z,tx:next.x,tz:next.z});}
+  }
   for(const key of ['hex','exposure']){
     const h=m.statuses[key];if(!h?.spread||h.t<=0)continue;
     const next=g.monsters.filter(q=>q!==m&&!q.dead&&!q.statuses[key]&&dist(m.x,m.z,q.x,q.z)<=h.spread).sort((a,b)=>dist(m.x,m.z,a.x,a.z)-dist(m.x,m.z,b.x,b.z))[0];
@@ -464,6 +472,53 @@ export function endProjectile(g,pr){
   return false;
 }
 
+/** A set trap's moment (core/game-simulation.js updateAreas): a monster came within its trigger, or a
+ *  Lightning Rod relayed to it. Returns true when it springs into its burst; false when it waits again
+ *  (a Spore Pod with puffs left) or is spent (a.spent).
+ *  - puffs (Spore Pod): each puff is a burst area of its own; the pod re-arms after rearm s
+ *  - pulses (Flame Geyser): the burst comes count times, interval s apart
+ *  - relay (Lightning Rod): springs our other armed traps within relay m at once
+ *  - zap (Lightning Rod): it stands zap.life s, striking the nearest monster in range every interval
+ *  - pull (Gravity Rune, the skill's own field): draws monsters (not bosses) to its middle over pull.time */
+export function springTrap(g,a){
+  const T=a.trap,s=a.skill;a.relayed=false;
+  if(T.puffs){
+    a.puffs=(a.puffs??T.puffs)-1;a.nextArm=a.t+(T.rearm||1);
+    g.spawnArea({owner:'player',kind:a.kind,skill:s,x:a.x,z:a.z,radius:a.radius,delay:0,duration:.35,damage:a.damage,element:a.element});
+    g.emit({type:'trapSprung',skill:a.kind,look:a.look||a.kind,id:a.id,x:a.x,z:a.z,radius:a.radius,puffsLeft:a.puffs});
+    if(a.puffs<=0){a.spent=true;g.emit({type:'areaEnd',id:a.id});}
+    return false;
+  }
+  a.sprung=true;a.t=0;a.delay=0;
+  g.emit({type:'trapSprung',skill:a.kind,look:a.look||a.kind,id:a.id,x:a.x,z:a.z,radius:a.radius});
+  if(T.relay)for(const b of g.areas)if(b!==a&&b.trap&&b.owner==='player'&&!b.sprung&&!b.spent&&b.t>=b.trap.arm&&dist(a.x,a.z,b.x,b.z)<=T.relay){b.relayed=true;g.emit({type:'trapRelay',id:a.id,to:b.id,x:a.x,z:a.z,tx:b.x,tz:b.z});}
+  if(T.pulses)for(let k=1;k<T.pulses.count;k++)g.spawnArea({owner:'player',kind:a.kind,skill:s,x:a.x,z:a.z,radius:a.radius,delay:k*T.pulses.interval,duration:.35,damage:a.damage,element:a.element,pulseOf:a.id,pulse:k});
+  if(T.zap){a.zapT=T.zap.interval;a.duration=T.zap.life;}
+  if(s?.pull){a.pullT=s.pull.time;a.duration=Math.max(a.duration||0,s.pull.time);}
+  return true;
+}
+/** A sprung trap's lasting part, each step (updateAreas): Lightning Rod's zaps, Gravity Rune's pull. */
+export function tickTrap(g,a,dt){
+  const Z=a.trap?.zap;
+  if(Z&&a.zapT!==undefined){
+    a.zapT-=dt;
+    if(a.zapT<=0){
+      a.zapT+=Z.interval;
+      let best=null,bd=Z.range;
+      for(const m of g.monsters){if(m.dead)continue;const d=dist(a.x,a.z,m.x,m.z)-m.r;if(d<=bd){bd=d;best=m;}}
+      if(best){g.hitMonster(best,a.damage*Z.mult,g.hitOpts(a.skill,{crit:g.rollCrit(),fromX:a.x,fromZ:a.z}));g.emit({type:'trapZap',id:a.id,target:best.id,x:a.x,z:a.z,tx:best.x,tz:best.z});}
+    }
+  }
+  const P=a.skill?.pull;
+  if(P&&a.pullT>0){
+    const k=Math.min(1,dt/a.pullT);a.pullT-=dt;
+    for(const m of g.monsters){
+      if(m.dead||m.boss)continue;
+      const d=dist(a.x,a.z,m.x,m.z);if(d>P.radius+m.r||d<.35)continue;
+      g.moveEntity(m,(a.x-m.x)*k*(1-.35/d),(a.z-m.z)*k*(1-.35/d));
+    }
+  }
+}
 /** The trapper's traps (s.trap): see executeFrontier. A trap is a player area waiting with no delay of its
  *  own (TRAP_WAIT) until updateAreas springs it. */
 export const TRAP_WAIT = 1e6;
@@ -482,7 +537,7 @@ export function placeTraps(g,s,aim,mult){
       use=as[look]||(as[look]={...s,element:def.element,root:def.root,bleed:def.bleed});
       k=T.pool[look];radius=def.radius;trigger=def.trap.trigger;
     }
-    const area=g.spawnArea({owner:'player',kind:s.id,skill:use,look,x,z,radius,delay:TRAP_WAIT,duration:.35,damage:s.damage*mult*k,element:use.element,trap:{arm:T.arm,life:T.life,trigger}});
+    const area=g.spawnArea({owner:'player',kind:s.id,skill:use,look,x,z,radius,delay:TRAP_WAIT,duration:.35,damage:s.damage*mult*k,element:use.element,trap:{...T,trigger}});
     g.emit({type:'trapSet',skill:s.id,look,id:area.id,x,z,arm:T.arm,life:T.life,radius,trigger,hold:use.root?.duration,fromX:g.player.x,fromZ:g.player.z,i});
   }
 }

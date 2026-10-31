@@ -1,6 +1,7 @@
 # Bramble Glade — standalone scene for owner review
 
-**Owner status: v1 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/Mbfp9jihRTVcdHZNy4qR5N).
+**Owner status: ผ่าน — approved, 31 October 2026** ("ทำฉากต่อไป"), artifact version 1:
+https://claude.ai/artifact/Mbfp9jihRTVcdHZNy4qR5N.
 
 Concept: `bramble-glade.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
 (branch `docs/landscape-concepts-40deg-20261022`), retained without recompression as `concept.png`.

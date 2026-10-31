@@ -594,3 +594,12 @@ rhythm instead of a random thicket; the opaque crust with its outline became fro
 down the lane with fern branches slanting forward and sparkles, additive, no fill); a cold light runs ahead
 of the spikes; each spike flashes white before it cracks into slender shards with a glint. Bug found on
 the way: unused instance slots must start at a zero matrix, or they draw a full-size crystal at the origin.
+
+Thunder Slash, round 1 (`tslash-fx.js`; spellblade `melee_arc` 120 degrees, 2.8 m, leaving a charge of 4
+shocks for 4 s that the hero's main skills set off). Chain Spark's clean angular lightning, following the
+blade: arcs crackle along the sword through the wind-up; the cut is a jagged arc of lightning swept with the
+blade (the blade tip's real travel, as Flame Slash), a thinner arc inside, a soft glow band behind and two
+short forks, held a beat and gone; each charged monster carries one small comet of light circling it per
+shock left (the count reads at a glance) with an occasional crackle; each shock drops a bolt from above
+through the body into the ground. The sky bolt starts 2.6 m up and leans toward the camera so its top stays
+on screen under the high game camera.

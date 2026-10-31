@@ -10,7 +10,7 @@ import { computeSkill, movementSkill } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
-import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact } from './frontier-content.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
@@ -949,6 +949,7 @@ export class Game {
     this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
+      chargeShock(this, m, opts); // Thunder Slash's charge: a main skill's hit shocks it
       if(!opts.byAlly&&!opts.secondary)this.player.lastHitTarget=m.id;
       if (opts.chill&&!opts.consumedChill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
       if (opts.burnChance && this.rng.chance(opts.burnChance)) m.statuses.burn = { dps: amount * 0.15, t: 3, acc: 0, owner:'player' };
@@ -1157,7 +1158,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, shock:s.shock, shockCharge:s.shockCharge, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1650,7 +1651,16 @@ export class Game {
       }
       if (st.t <= 0) delete m.statuses[k];
     }
-    for (const k of ['chill', 'hex', 'mire']) {
+    // shock: a twitch every interval (a short pause of everything the monster does: core/ai.js)
+    const sh = m.statuses.shock;
+    if (sh) {
+      const S = this.data.progression.combat.shock;
+      sh.next -= dt;
+      if (sh.next <= 0) { sh.next += S.interval; m.twitchT = m.boss ? S.bossTwitch : S.twitch; this.emit({ type: 'twitch', id: m.id, x: m.x, z: m.z, duration: m.twitchT }); }
+      sh.t -= dt;
+      if (sh.t <= 0) delete m.statuses.shock;
+    }
+    for (const k of ['chill', 'hex', 'mire', 'charged']) {
       if (!m.statuses[k]) continue;
       m.statuses[k].t -= dt;
       if (m.statuses[k].t <= 0) delete m.statuses[k];
@@ -1861,6 +1871,7 @@ export class Game {
             continue;
           }
           dead = true;
+          pr.stopOn = m; // what stopped it (Shatter Arrow breaks there, core/frontier-content.js endProjectile)
           break;
         }
       } else if (!dead && pr.owner === 'monster' && lightWallStops(this, pr)) {
@@ -1893,6 +1904,9 @@ export class Game {
       if(a.wallHp!==undefined){a.t+=dt;if(a.wallHp>0&&a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.lightWall){a.t+=dt;if(a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.follow){if(this.player.dead)continue;a.x=this.player.x;a.z=this.player.z;}
+      // a monster's attack marked at its wind-up waits while that monster twitches from shock (ai.js pauses
+      // the wind-up), so the hit still lands with the strike; one already launched (a rock in flight) does not
+      if (a.owner === 'monster' && a.t < a.delay) { const src = this.monsterById(a.sourceId); if (src && src.twitchT > 0 && src.state === 'windup') { keep.push(a); continue; } }
       a.t += dt;
       if (a.t < a.delay) {
         keep.push(a);
@@ -1926,6 +1940,7 @@ export class Game {
               if(ramp){const dwell=(a.dwell.get(m.id)||0)+a.tick;a.dwell.set(m.id,dwell);m.statuses.chill={slow:Math.max(m.statuses.chill?.slow||0,(a.slow||0)+(ramp-(a.slow||0))*Math.min(1,dwell/fx.rampTime)),t:.6};}
               if (a.slow) m.statuses.chill = { slow: Math.max(a.slow, m.statuses.chill?.slow || 0), t: Math.max(0.6, m.statuses.chill?.t || 0) };
               this.hitMonster(m, a.damage, { dot: true, element: a.element });
+              if (a.skill?.poison && !m.dead) stackPoison(this, m, a.skill.poison, a.damage); // Miasma Arrow: each tick stacks its poison
             }
           }
         }

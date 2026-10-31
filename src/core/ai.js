@@ -13,6 +13,8 @@ export function updateMonster(game, m, dt) {
     m.enraged = true;
     game.emit({ type: 'enrage', id: m.id, x: m.x, z: m.z });
   }
+  // shock's twitch (core/game-simulation.js tickStatuses): everything pauses for a moment, then carries on
+  if (m.twitchT > 0) { m.twitchT -= dt; m.moving = false; return; }
   const tempo = m.enraged ? 1.25 : 1;
   for (const k in m.cd) m.cd[k] = Math.max(0, m.cd[k] - dt * tempo);
   m.stateT += dt;

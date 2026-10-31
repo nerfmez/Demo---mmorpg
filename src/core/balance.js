@@ -31,8 +31,13 @@ export function referenceMonster(data, level) {
     exp: avg((m) => m.exp) * (1 + sc.expPerLevel * L),
     jobExp: avg((m) => m.jobExp) * (1 + sc.expPerLevel * L),
     hitInterval: b.hitInterval,
+    // its attacks (all telegraphed): the share of its time spent winding one up, and its biggest attack's
+    // damage over a plain hit (a stun lands in a wind-up and cancels that attack: core/ai.js cancelWindup)
+    windupShare: avg((m) => Math.min(1, attacksOf(m).reduce((a, x) => a + x.windup / x.cooldown, 0))),
+    bigMult: avg((m) => Math.max(1, ...attacksOf(m).map((x) => x.damageMult))),
   };
 }
+const attacksOf = (m) => Object.values(m.attacks || {}).filter((x) => x && x.damageMult && x.cooldown && x.windup);
 
 /** A character of `kit` at `level`: stat points spent per the kit's build, main skill slotted
  * (with `mods`, mod ids socketed at their top level). */

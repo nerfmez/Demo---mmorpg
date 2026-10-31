@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -116,7 +116,13 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     }
     return true;
   }
-  if(s.kind==='melee_line'){strikeLane(g,s,p.x,p.z,aim.angle,s.range,mult);return true;}
+  // Thunder Lance (s.afterShock): the lane it struck crackles again a moment later, weaker, and shocks
+  if(s.kind==='melee_line'){
+    const x=p.x,z=p.z,a=aim.angle,A=s.afterShock;
+    strikeLane(g,s,x,z,a,s.range,mult);
+    if(A&&!triggered)g.later(A.delay,()=>strikeLane(g,s,x,z,a,s.range,mult*A.mult,{shock:{duration:A.shock}},true));
+    return true;
+  }
   // Blink Draw (dash_line): the hero dashes along the aim (walls and cliffs stop it, no
   // invulnerability); the lane it crossed is cut when it arrives (Game.updatePlayer, strikeLane)
   if(s.kind==='dash_line'){
@@ -144,6 +150,21 @@ export function executeFrontier(g,s,aim,mult,triggered) {
       walls.push({x,z,r});
     }
     for(const w of walls)g.spawnArea({owner:'player',kind:'crystal_wall',skill:s,...w,radius:w.r,angle:axis,duration:s.duration,wallHp:s.wall.hp.base+s.wall.hp.scale*g.derived.magic,wallHitAt:0});
+    return true;
+  }
+  // Flame Arrow Rain (s.arrows): count arrows pin across the circle at land s, one near its middle, the rest
+  // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
+  if(s.arrows){
+    const A=s.arrows,volley=(k,later)=>{
+      for(let i=0;i<A.count;i++){
+        const a=(i+g.rng.range(0,.8))/A.count*Math.PI*2,d=i===0?g.rng.range(0,.25)*s.radius:s.radius*(.35+.6*Math.sqrt(g.rng.range(0,1)));
+        const x=aim.x+Math.cos(a)*d,z=aim.z+Math.sin(a)*d,fuse=A.fuseMin+(A.fuseMax-A.fuseMin)*g.rng.range(0,1);
+        const area=g.spawnArea({owner:'player',kind:s.id,skill:s,x,z,radius:A.blast,delay:later+A.land+fuse,duration:.35,damage:s.damage*mult*k,element:s.element,echo:later>0});
+        g.emit({type:'arrowPin',skill:s.id,id:area.id,x,z,land:later+A.land,delay:area.delay,fromX:g.player.x,fromZ:g.player.z,i});
+      }
+    };
+    volley(1,0);
+    if(s.echo)volley(s.echo.mult,s.echo.delay);
     return true;
   }
   if(s.waves){
@@ -185,7 +206,7 @@ export function rushContact(g,d){
 }
 
 /** A straight lane from (x, z) along angle, range long and s.width wide: every monster in it is hit once. */
-export function strikeLane(g,s,x,z,angle,range,mult) {
+export function strikeLane(g,s,x,z,angle,range,mult,extra=null,after=false) {
   const e=s.modEffects||{};
   // Far End: the far end of the lane hits harder
   const tip=e.tipMult?range*(1-e.tipShare):Infinity;
@@ -193,11 +214,30 @@ export function strikeLane(g,s,x,z,angle,range,mult) {
     if(m.dead)continue;const dx=m.x-x,dz=m.z-z;
     const forward=dx*Math.sin(angle)+dz*Math.cos(angle),side=dx*Math.cos(angle)-dz*Math.sin(angle);
     if(forward < -m.r || forward>range+m.r || Math.abs(side)>s.width/2+m.r)continue;
-    g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,{crit:g.rollCrit(),fromX:x,fromZ:z}));
+    g.hitMonster(m,s.damage*mult*(forward>=tip?e.tipMult:1),g.hitOpts(s,{crit:g.rollCrit(),fromX:x,fromZ:z,...extra}));
   }
-  g.emit({type:'lineStrike',skill:s.id,x,z,angle,range,width:s.width,element:s.element});
+  g.emit({type:'lineStrike',skill:s.id,x,z,angle,range,width:s.width,element:s.element,after});
 }
 
+/** Thunder Slash's charge: a hit from one of the hero's main skills (a base cooldown of at most
+ * progression.combat.mainSkillCooldown) on a charged monster shocks it once more in lightning, until its
+ * shocks or its time run out. */
+export function chargeShock(g,m,opts){
+  const c=m.statuses.charged;
+  if(!c||m.dead||opts.byAlly||opts.secondary||opts.dot||!opts.skill)return;
+  const def=g.data.skills.combat[opts.skill];
+  if(!def||def.cooldown>g.data.progression.combat.mainSkillCooldown)return;
+  c.shocks--;if(c.shocks<=0)delete m.statuses.charged;
+  g.emit({type:'chargeShock',id:m.id,x:m.x,z:m.z,left:Math.max(0,c.shocks)});
+  g.hitMonster(m,c.damage,{element:'lightning',secondary:true,skill:'thunder_slash'});
+}
+/** One more poison stack (up to pz.maxStacks), refreshed; every stack poisons for pz.stackDps x amount a second
+ * (Venom Arrow's direct hits, Miasma Arrow's mist ticks). */
+export function stackPoison(g,m,pz,amount){
+  const old=m.statuses.poison,before=old?.stacks||0,stacks=Math.min(pz.maxStacks,before+1);
+  m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks};
+  if(stacks>before)g.emit({type:'poisonStack',id:m.id,stacks,x:m.x,z:m.z});
+}
 export function adjustFrontierHit(g,m,amount,opts) {
   const s=opts.skill && g.skills.find(s=>s?.id===opts.skill),e=opts.modEffects || {};
   if(opts.dot||opts.secondary)return amount;
@@ -214,11 +254,11 @@ export function adjustFrontierHit(g,m,amount,opts) {
   }
   // Venom Arrow: each direct hit adds a poison stack (up to maxStacks) and refreshes it; every stack
   // poisons for stackDps x this hit per second.
-  if(opts.poison&&!opts.byAlly){
-    const pz=opts.poison,old=m.statuses.poison,before=old?.stacks||0,stacks=Math.min(pz.maxStacks,before+1);
-    m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks};
-    if(stacks>before)g.emit({type:'poisonStack',id:m.id,stacks,x:m.x,z:m.z});
-  }
+  if(opts.poison&&!opts.byAlly)stackPoison(g,m,opts.poison,amount);
+  // Shock (ชา): the monster twitches to a stop every so often while it lasts (core/ai.js, tickStatuses)
+  if(opts.shock&&!opts.byAlly){const old=m.statuses.shock;m.statuses.shock={t:Math.max(old?.t||0,opts.shock.duration),next:old?old.next:0};g.emit({type:'shocked',id:m.id,x:m.x,z:m.z,duration:opts.shock.duration});}
+  // Thunder Slash: what it cuts keeps a charge (shocks, each a share of this hit) for the hero's main skills
+  if(opts.shockCharge&&!opts.byAlly){const C=opts.shockCharge;m.statuses.charged={t:C.duration,shocks:C.shocks,damage:amount*C.mult};g.emit({type:'charged',id:m.id,x:m.x,z:m.z,duration:C.duration});}
   if(opts.taunt){m.forcedTargetId=g.player.id;m.tauntT=Math.max(m.tauntT||0,opts.taunt.duration);}
   if(e.pull&&!m.boss){const a=angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z),d=Math.min(e.pull,dist(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z));g.moveEntity(m,Math.sin(a)*d,Math.cos(a)*d);}
   if(e.poisonFraction){const source=amount/(1-e.poisonFraction),old=m.statuses.poison;const next={dps:source*e.poisonFraction/e.poisonDuration,t:e.poisonDuration,acc:0,owner:'player'};if(!old||next.dps>=old.dps)m.statuses.poison=next;}
@@ -399,6 +439,18 @@ export function coverMult(g,u,source){
   return k;
 }
 export function endProjectile(g,pr){
+  // Shatter Arrow (s.shatter): stopped by a monster, the arrow breaks into a fan of shards flying on
+  // (weaker, not breaking again, never hitting what the arrow hit)
+  const S=pr.skill?.shatter;
+  if(S&&!pr.shard&&pr.stopOn){
+    const step=S.count>1?S.arc*DEG/(S.count-1):0;
+    for(let i=0;i<S.count;i++){
+      const a=pr.angle+(i-(S.count-1)/2)*step;
+      g.spawnProjectile({owner:'player',kind:pr.kind,skill:pr.skill,shard:true,x:pr.x,z:pr.z,y:pr.y??1.05,angle:a,speed:S.speed,radius:.2,range:S.range,damage:pr.damage*S.mult,element:pr.element,pierce:0,chain:0,triggered:pr.triggered,hit:new Set(pr.hit)});
+    }
+    g.emit({type:'shatter',skill:pr.skill.id,x:pr.x,z:pr.z,angle:pr.angle,arc:S.arc,count:S.count,element:pr.element});
+    pr.stopOn=null;
+  }
   const e=pr.skill?.modEffects;if(e?.terminalBurst&&(!e.returnMult||pr.returning))secondaryBurst(g,pr.x,pr.z,e.burstRadius,pr.damage*e.terminalBurst,pr.element,pr.kind);
   if(e?.returnMult&&!pr.returning){pr.returning=true;pr.hit.clear();pr.vx*=-1;pr.vz*=-1;pr.angle+=Math.PI;pr.damage*=e.returnMult;pr.travelled=0;pr.range=dist(pr.x,pr.z,pr.startX,pr.startZ);pr.pierce=Infinity;return pr.range>.05;}
   return false;

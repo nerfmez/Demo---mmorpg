@@ -270,6 +270,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
   }
   s.castTime *= castTimeMult;
   if (s.growthCooldown) s.cooldown *= s.growthCooldown; // the bars' cooldown cost, after speed
+  // weapon weight (owner, 2026-10-31): a heavy weapon swings its main attacks slower and harder by
+  // progression.combat.weaponTempo, its MP per press alike: the same per second, a heavier rhythm
+  const weight = def.power === 'attack' && def.cooldown <= (data.progression.combat.mainSkillCooldown ?? 2.4) ? data.progression.combat.weaponTempo?.[derived.weaponType] || 1 : 1;
+  if (weight !== 1) { s.cooldown *= weight; if (s.damage) s.damage *= weight; s.costMult *= weight; s.weaponWeight = weight; }
   // Elemental Focus: the hit grows, the element's status (burn, chill) is gone
   if (s.noStatus) { s.chill = null; s.burnChance = 0; }
   // Apply tag-specific passives after mods; socket order cannot change the result.

@@ -206,6 +206,7 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
       const set = this.areas.filter((a) => a.trap && !a.sprung && a.t >= a.trap.arm + 0.3);
       for (let i = 0; i < WALKERS; i++) {
         const m = this.monsters[i];
+        if (m.state === 'stunned' || m.statuses?.root) { m.moving = false; continue; } // held by the trap, as in the game
         let to = null, best = Infinity;
         for (const a of set) { const d = Math.hypot(a.x - m.x, a.z - m.z); if (d < best) { best = d; to = a; } }
         const tx = to ? to.x : m.homeX, tz = to ? to.z : m.homeZ, d = Math.hypot(tx - m.x, tz - m.z);

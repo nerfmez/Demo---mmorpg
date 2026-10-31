@@ -23,12 +23,12 @@ const FRONT = 0.22, GROW = 0.06, HOLD = 0.75, BREAK = 0.22, MELT0 = 1.3, END = 2
 // lines and light): a deep blue root rising to cyan and a white point, see-through where it faces the camera
 // and solid at its rim, bright facet edges, thin light streaks running up inside; aFlash (per instance)
 // turns it white just before it cracks
-const ICE_VS = `attribute vec3 bary; attribute float aFlash; varying vec3 vB; varying vec3 vN; varying vec3 vV; varying vec3 vP; varying float vF;
+export const ICE_VS = `attribute vec3 bary; attribute float aFlash; varying vec3 vB; varying vec3 vN; varying vec3 vV; varying vec3 vP; varying float vF;
   void main(){ vB = bary; vP = position; vF = aFlash;
     mat4 m = modelMatrix*instanceMatrix; vec4 w = m*vec4(position, 1.0);
     vN = normalize(mat3(m)*normal); vV = normalize(cameraPosition - w.xyz);
     gl_Position = projectionMatrix*viewMatrix*w; }`;
-const ICE_FS = `varying vec3 vB; varying vec3 vN; varying vec3 vV; varying vec3 vP; varying float vF;
+export const ICE_FS = `varying vec3 vB; varying vec3 vN; varying vec3 vV; varying vec3 vP; varying float vF;
   void main(){
     vec3 N = normalize(vN); if (!gl_FrontFacing) N = -N;
     float y = clamp((vP.y + 0.25)/1.25, 0.0, 1.0);                             // 0 root .. 1 point
@@ -69,7 +69,7 @@ const CRUST_FS = `varying vec2 vP; uniform float uFront, uMelt, uLen, uSeed;` + 
     float k = (glow + max(vein*0.9, branch*0.7) + sparkle*exp(-d*3.0))*ends*lead*fade;
     if (k < 0.004) discard;
     gl_FragColor = vec4(vec3(0.45, 0.8, 1.0)*k + vec3(0.5, 0.6, 0.6)*k*k, 1.0); }`;
-const MIST_FS = `varying vec2 vUv; uniform float uT; uniform float uSeed;` + NOISE + `
+export const MIST_FS = `varying vec2 vUv; uniform float uT; uniform float uSeed;` + NOISE + `
   void main(){ float r = length(vUv);
     float n = fbm(vUv*2.0 + uSeed + vec2(uT*0.6, -uT*0.9));
     float body = n*1.2 - r*0.95 - uT*0.8;

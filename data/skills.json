@@ -431,7 +431,7 @@
       "trap": {
         "arm": 0.6,
         "life": 20,
-        "trigger": 0.9,
+        "trigger": 0.4,
         "max": 2
       },
       "stun": {
@@ -458,8 +458,7 @@
       ],
       "job": "trapper",
       "iconPending": true,
-      "fxPending": true,
-      "upgradeStat": "DEX",
+            "upgradeStat": "DEX",
       "castTime": 0.25
     },
     "lightning_rod": {

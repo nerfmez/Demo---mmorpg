@@ -100,11 +100,11 @@ export class TrapFx {
       const bomb = [add(bombGeo, BOMB, 0.3), add(fuseGeo, ROPE, 0.55)]; for (const m of bomb) m.visible = false;
       // a Flame Geyser's plate is a vent: an open iron nozzle whose throat glows once it is armed
       const vent = [add(nozzleGeo, IRON, 0.18), add(lipGeo, EDGE, 0.28)]; for (const m of vent) m.visible = false;
-      const spark = lightSprite(scene, starTexture('fire'), true, 10);
+      const spark = lightSprite(scene, starTexture('fire'), true, 10), cold = lightSprite(scene, starTexture('cold'), true, 10); cold.visible = false;
       g.visible = false; scene.add(g);
       const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uPulse: { value: 0 } }, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
       ring.rotation.x = -Math.PI / 2; ring.renderOrder = 2; ring.visible = false; scene.add(ring);
-      return { g, teeth, coil, bomb, vent, spark, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
+      return { g, teeth, coil, bomb, vent, spark, cold, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
     });
     // nets (Net Trap): a dome of rope that bursts up off the plate and drapes over the circle, with iron
     // weights on its rim flung out to pin it
@@ -146,6 +146,7 @@ export class TrapFx {
     p.net = look === 'net_trap'; p.hold = e.hold ?? def?.root?.duration ?? 2.5; p.blast = look === 'blast_trap';
     // a geyser's vent stays through its pulses (e.vent: their span), then sinks
     p.geyser = look === 'flame_geyser'; p.ventT = e.vent ?? 2;
+    p.frost = look === 'frost_jaw'; // a Frost Jaw: the iron trap with a cold light in its middle once armed
     for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net && !p.blast && !p.geyser; }
     for (const m of p.vent) m.visible = p.geyser;
     for (const c of p.coil) c.visible = p.net;
@@ -156,7 +157,8 @@ export class TrapFx {
     const p = this.plates.find((q) => q.id === e.id && q.state !== 'off'); if (!p) return;
     p.state = 'spring'; p.springT = 0; p.ring.visible = false;
     const r = this.rnd, R = p.radius;
-    if (p.geyser) { this.glint(p.x, 0.5, p.z, 0.6, 0.2); return; } // its eruptions are GeyserFx's, at each of the rules' bursts
+    if (p.geyser) { this.glint(p.x, 0.5, p.z, 0.6, 0.2); return; }
+    if (p.frost) { p.cold.visible = false; return; } // its bite is JawFx's; the plate sinks under it // its eruptions are GeyserFx's, at each of the rules' bursts
     if (p.blast) {
       // the bomb goes off: the plate is gone at once, the burst is Flame Arrow Rain's (onBlast)
       p.state = 'off'; p.clicked = false; p.g.visible = false; p.spark.visible = false;
@@ -184,7 +186,7 @@ export class TrapFx {
     place(this.light, p.x, 1, p.z); this.lightT = 0;
   }
   /** The rules' areaEnd: a trap that ran out its life unsprung sinks away (a sprung one is already ending). */
-  end(id) { const p = this.plates.find((q) => q.id === id && (q.state === 'set' || q.state === 'toss')); if (p) { p.state = 'sink'; p.springT = 0; p.ring.visible = false; } }
+  end(id) { const p = this.plates.find((q) => q.id === id && (q.state === 'set' || q.state === 'toss')); if (p) { p.state = 'sink'; p.springT = 0; p.ring.visible = false; p.cold.visible = false; } }
   /** A struck body bleeds: a spray of drops off it (c: its centre, ground-relative). */
   bleed(c) {
     const r = this.rnd;
@@ -253,6 +255,8 @@ export class TrapFx {
         if (armed && !p.clicked) { p.clicked = true; this.glint(p.x, gy + 0.35, p.z, 0.45, 0.22); }
         // a bomb's fuse sparks once armed, flickering
         p.spark.visible = (p.blast || p.geyser) && armed;
+        p.cold.visible = p.frost && armed;
+        if (p.cold.visible) { place(p.cold, p.x, 0.22, p.z); p.cold.scale.setScalar(0.38 + 0.06 * Math.sin(this.time * 7 + p.seed)); p.cold.material.rotation = this.time * 0.8; }
         if (p.spark.visible && p.geyser) { place(p.spark, p.x, 0.3, p.z); p.spark.scale.setScalar(0.42 + 0.08 * Math.sin(this.time * 9 + p.seed)); p.spark.material.rotation = this.time; }
         else if (p.spark.visible) { place(p.spark, p.x, 0.66, p.z); p.spark.scale.setScalar(0.32 + 0.1 * Math.sin(this.time * 37 + p.seed) + 0.06 * Math.sin(this.time * 23)); p.spark.material.rotation = this.time * 6; }
         // the trigger range, steady, with a soft ring running out to it every 1.4 s
@@ -275,7 +279,7 @@ export class TrapFx {
       // the spikes of a sprung trap: punch up fast with an overshoot, hold, sink back into the ground
       for (let j = 0; j < SPIKES_PER; j++, k++) {
         const s = p.spikes[j];
-        if (p.state !== 'spring' || p.net || p.geyser) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
+        if (p.state !== 'spring' || p.net || p.geyser || p.frost) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
         const u = (p.springT - s.delay) / SPRING;
         if (u <= 0) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
         const out = Math.max(0, (p.springT - SPRING - HOLD - s.delay) / SINK), hk = easeBack(Math.min(1, u)) * (1 - Math.min(1, out));
@@ -307,7 +311,7 @@ export class TrapFx {
     // speed lines: thin streaks shooting up beside the tall spikes as they punch (the first 0.16 s)
     this.core.begin(); this.glow.begin();
     for (const p of this.plates) {
-      if (p.state !== 'spring' || p.springT > 0.16 || p.geyser) continue;
+      if (p.state !== 'spring' || p.springT > 0.16 || p.geyser || p.frost) continue;
       const u = p.springT / 0.16, two = this.two;
       for (let j = 0; j < 7; j++) {
         const s = p.spikes[j], ox = Math.cos(j * 2.4 + p.seed) * 0.18, oz = Math.sin(j * 2.4 + p.seed) * 0.18;
@@ -345,7 +349,7 @@ export class TrapFx {
     if (this.lightT < 0.35) { this.lightT += dt; this.light.intensity = 3 * (1 - this.lightT / 0.35); } else this.light.intensity = 0;
   }
   clear() {
-    for (const p of this.plates) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.ring.visible = false; p.spark.visible = false; p.g.scale.setScalar(1); }
+    for (const p of this.plates) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.ring.visible = false; p.spark.visible = false; p.cold.visible = false; p.g.scale.setScalar(1); }
     for (let i = 0; i < this.spikes.count; i++) { this.spikes.setMatrixAt(i, ZERO); this.spikeEdges.setMatrixAt(i, ZERO); }
     this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
     for (const q of this.dusts) { q.t = 9; q.m.visible = false; } for (const g of this.glints) { g.t = 9; g.s.visible = false; }

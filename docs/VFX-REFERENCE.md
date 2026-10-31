@@ -655,4 +655,15 @@ with an overshoot, roars, then its cut rises so the top tears first while it sin
 head left standing read as a ball). A thin ring of fire runs out to the true 2.2 m radius, and short
 tongues lick up from the ground where it passes. Embers, a warm light, a small shake. A squashed dome at
 the jet's foot was tried and dropped: it read as a flat blotchy disc. Nothing comes from the sky, unlike
-Flame Arrow Rain and Blast Trap's dome.
+Flame Arrow Rain and Blast Trap's dome. The owner passed it.
+
+Frost Jaw, round 1 (`jaw-fx.js`, plate in `trap-fx.js`; Ice Spikes' translucent crystal shader, its own
+shape). The plate is the iron trap with a cold light in its middle once armed. When it springs, two rows
+of ice fangs break out of the ground on opposite sides, leaning out like an open jaw, then snap in with an
+overshoot so their points nearly meet over the monster that stepped in - a cage of fangs - with a glint
+where they meet, chips and a cold light. Thin frost lines (spokes with fern branches) run out to the
+trap's true radius under it. The jaw stays shut for the stun, its fangs breathing light, then flashes
+white and cracks into chips with cold mist. Changes during the round: the fangs close on the nearest
+monster rather than the plate's middle (the rules hit the whole circle; the cage shows who is held), the
+trap's trigger went to 0.4 m so it bites what steps on it, the frost lines were made fainter (they drew
+over the fangs), and the bench's walking dummies now stay put while stunned or rooted.

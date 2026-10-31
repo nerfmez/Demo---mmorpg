@@ -245,8 +245,8 @@
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 240,
-        "scale": 2.0
+        "base": 210,
+        "scale": 1.75
       },
       "range": 10,
       "radius": 2.3,

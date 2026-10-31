@@ -366,7 +366,10 @@ added gold, on the income axis), then with gear rolls (`mpPrice`, `mpCost`). MP 
 emergency aid (30 s cooldown, small restores) and every main attack must last on regeneration alone
 at the reference pace. A held channel is measured as one cast per tick (its drain per second). The
 profile counts a rotation, our buffs, heals and leech, summons, burn/poison, stuns, knockback, slows,
-curses and taunts with the assumptions in `progression.balance.rules.control`.
+curses and taunts with the assumptions in `progression.balance.rules.control`. A stun also counts the
+attacks it cancels (every stun ends a wind-up, `ai.js cancelWindup`): per cast, `interruptTiming` of the
+monster's biggest attack (the player times it) plus the wind-ups of the others it reaches
+(`referenceMonster` `windupShare`, `bigMult`, from the monsters' attack data).
 Gear bases sit on tiers (item level 1/6/11/16/21). The six targeted garment additions
 (Sporeweave vest/gloves at 6, Moonleaf Slippers at 11, Wardenstalker coat/hood/gloves
 at 21) use the same stat-based wear, recipe, grade, enhancement and drop rules;

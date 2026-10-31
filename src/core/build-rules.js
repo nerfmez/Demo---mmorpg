@@ -200,7 +200,15 @@ export function buildProfile(data, spec) {
   attacks.concat(helpers).forEach((s, i) => {
     const rate = i < attacks.length ? rf[i] : share(s) / s.cooldown, reach = Math.min(1, packHits(s, R.pack) / R.pack.size);
     const e = s.modEffects || {}, stun = s.stun || s.def.stun, chill = s.chill || (s.slow ? { slow: s.slow, duration: s.duration } : null);
-    if (stun) free *= 1 - Math.min(C.cap, rate * stun.duration * reach);
+    if (stun) {
+      free *= 1 - Math.min(C.cap, rate * stun.duration * reach);
+      // interrupts: a stun cancels the attack a monster is winding up (core/ai.js cancelWindup). The player
+      // times a cast into a wind-up (interruptTiming of them; most often the monster's big attack); the
+      // others it reaches are cancelled when they happen to be winding up. Each cancelled attack is a
+      // hit the pack never lands, on top of the time the stun holds them.
+      const n = reach * R.pack.size, cancelled = C.interruptTiming * m.bigMult + Math.max(0, n - 1) * m.windupShare;
+      free *= 1 - Math.min(C.cap, rate * m.hitInterval * cancelled / R.pack.size);
+    }
     if (e.chainStun) free *= 1 - Math.min(C.cap, rate * e.chainStun / R.pack.size); // one monster, the chain's last
     // shock: its twitches stop the monster for twitch / interval of the time it lasts
     const SH = s.def.afterShock?.shock, SHK = data.progression.combat.shock;

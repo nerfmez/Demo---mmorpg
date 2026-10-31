@@ -47,3 +47,7 @@ exposes `ports`, `junctions`, `routes`, `crystal`, `blocked`, `height` and `pond
 
 As for the other Frontier scenes (owner, 31 October 2026), the scene's planting carries on round it
 into the map (`plantSceneSurrounds`), not ending at its bounds.
+
+iPad budget (31 October 2026): each willow strand keeps its index (`indexedPart` in `marsh.js`): the same
+shape and colours with a quarter of the vertices, 5 MB less per willow; the four willows had pushed the
+resident geometry of all maps over `data/rendering.json` `budgets.residentGeometryMB`.

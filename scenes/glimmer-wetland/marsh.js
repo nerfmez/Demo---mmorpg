@@ -62,6 +62,12 @@ function rootTree(u,v,s,seed){
 // A great weeping willow, the concept's: a thick gnarled trunk of two or three twisting stems, big
 // buttress roots spreading over the ground (into the water where a pool is near), boughs reaching up
 // and out, and from the bough ends long curtains of hanging strands, no leafy dome.
+// a strand keeps its index (28 shared vertices, not 108): same shape and colour, a quarter of the memory
+function indexedPart(g,color){
+ g.deleteAttribute('uv');const c=new THREE.Color(color),colors=new Float32Array(g.attributes.position.count*3);
+ for(let i=0;i<g.attributes.position.count;i++)colors.set([c.r,c.g,c.b],i*3);
+ g.setAttribute('color',new THREE.BufferAttribute(colors,3));return g;
+}
 function willow(u,v,s,strands=1300){
  const[x,y,z]=onGround(u,v),parts=[],H=M(1.55)*s,Rc=M(2.1)*s;
  const lean=R(0,Math.PI*2);
@@ -85,7 +91,7 @@ function willow(u,v,s,strands=1300){
   const a=R(0,Math.PI*2),f=Math.sqrt(R(0,1)),rr=Rc*f,px=x+Math.cos(a)*rr,pz=z+Math.sin(a)*rr*.9,top=cy+Rc*.32*(1-f*f)+R(-.15,.15);
   const L=Math.max(.6,Math.min(top-Math.max(height(px,pz),SEA_Y)-.4,M(R(.8,1.7))*s*(.35+.85*f))),out=M(R(.15,.35))*(.3+f);
   const pts=[new V3(px-Math.cos(a)*out*.5,top-.2,pz-Math.sin(a)*out*.5),new V3(px,top+.08,pz),new V3(px+Math.cos(a)*out*.8,top-L*.3,pz+Math.sin(a)*out*.8),new V3(px+Math.cos(a)*out,top-L*.7,pz+Math.sin(a)*out),new V3(px+Math.cos(a)*out*1.05,top-L,pz+Math.sin(a)*out*1.05)];
-  parts.push(coloredPart(taperedTube(pts,M(.036),M(.009),6,3),pick(LEAF)));
+  parts.push(indexedPart(taperedTube(pts,M(.036),M(.009),6,3),pick(LEAF)));
  }
  const leaf=new THREE.Mesh(mergeGeometries(parts),paint({vertexColors:true,shade:[.5,.64,.5],mid:[.84,.93,.8]}));leaf.castShadow=true;scene.add(leaf);
  COLLIDERS.push({x,z,r:M(.45)*s});

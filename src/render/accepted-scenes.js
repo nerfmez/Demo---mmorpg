@@ -88,7 +88,8 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
     mesh.count=count;mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;
     // As the map's own plants: one piece per chunk, so a camera or the sun's shadow
     // box draws only the pieces it reaches (grass keeps its own per-clump culling).
-    placed=kind==='grass'||!foliage?.chunk?[mesh]:splitInstances(mesh,foliage.chunk);
+    // A set under chunkMin instances (a scene's few trees) stays one piece: one draw call.
+    placed=kind==='grass'||!foliage?.chunk||mesh.count<(foliage.chunkMin||0)?[mesh]:splitInstances(mesh,foliage.chunk);
     if(kind)for(const part of placed)yield* gameFoliageSteps(world,part,kind,gameMaterial,foliage,root);
    }else{
     // Copy before baking: hulls may share a geometry with their visible surface.

@@ -39,3 +39,7 @@ trees) and `scene.js` (layout, barrels, dry-stone walls, planting). `window.__sc
 
 As for the other Frontier scenes (owner, 31 October 2026), the scene's planting carries on round it
 into the map (`plantSceneSurrounds`), not ending at its bounds.
+
+iPad budget (31 October 2026): the ground bushes are thinned to three in five, chosen by position
+(`keepBush` in `scene.js`, so nothing else in the scene moves); with all of them the town view drew
+1.5 million triangles, over `data/rendering.json` `budgets.frameTriangles`.

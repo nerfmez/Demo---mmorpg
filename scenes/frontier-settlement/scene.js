@@ -76,10 +76,14 @@ function plantVillage(){
  }
 }
 FOL.leaf=['#2a6e50','#5a963e','#b9ce4e'];FOL.shrub=['#2b6b4b','#5e9639','#acbf45'];STONE.splice(0,STONE.length,...ruinPalette);
+// The ground bushes thinned to three in five (by place, so nothing else in the scene moves): all of
+// them cost the town view more triangles than the iPad budget allows (data/rendering.json budgets).
+function keepBush(item){const h=Math.sin(item.x*12.9898+item.z*78.233)*43758.5453;return h-Math.floor(h)<.6;}
 function clearPaths(){
  for(const list of[shrubItems,grassItems,flowerItems])for(let i=list.length-1;i>=0;i--){
   const item=list[i],st=stairsAt(item.x,item.z),radius=Math.max(item.sx||item.s||.1,item.sz||item.s||.1)*.60;
   if(item.y>height(item.x,item.z)+M(.6))continue;   // ivy on the walls
+  if(list===shrubItems&&!keepBush(item)){list.splice(i,1);continue;}
   if((polyAt(PLAZA,item.x,item.z)??1)<-.2||inHouse(item.x,item.z,0)||(st.s<st.half+radius+.28&&Math.abs(item.y-st.y)<M(.75)))list.splice(i,1);
  }
 }

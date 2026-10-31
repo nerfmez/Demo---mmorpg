@@ -1644,9 +1644,18 @@ Azure Coast, which runs on along its north side; short connectors join the villa
 and stair paths to it (`PORTS` in the placement script). The scene draws the cottages, stalls and bell
 tower (`frontier_bell.acceptedScene`), so the town's native buildings, stalls, fence and well are gone
 (`buildings: []`, no `stalls`, `walls` or `well`, `noticeBoard: false`), as Moonstone Camp's. The services
-stand in the village on free ground off its paths: the shopkeeper behind the market stall and the shop
-spot in front of it, the trainer by the bell tower, the workbench under the great tree, the respawn,
-the town centre and the town waypoint on the square. The settlement zone gains the village's rectangle.
+stand in the village on free ground off its paths, apart as in the old town (each NPC is about 53 draw
+calls; three in one view do not fit the iPad budget): the shopkeeper under the east market cottage's
+awning with the shop spot in front of it, the workbench and smith by the north-west market stall, the
+trainer on the road by the garden, the respawn, the town centre and the town waypoint on the square.
+The settlement zone gains the village's rectangle.
+
+iPad budgets (31 October 2026, `tests/browser/open-world.mjs`): the Frontier map's
+`acceptedScenes.foliage.chunk` is 32 m (one resident cell) and `chunkMin` 24: a scene's instanced
+plants split into 32 m pieces, and a set of fewer than 24 instances (a scene's few trees of one kind)
+stays one piece (`render/accepted-scenes.js`). In Godot: one MultiMesh per piece by the same rule.
+Glimmer Wetland's willow strands keep their index (same shape, a quarter of the vertices) and the
+settlement's ground bushes are thinned to three in five by position (`keepBush`).
 
 Sunfall Coast (6, 165.4, y 0.517 so its sea is at the water level) stands on the south coast with its sea
 east of its beach, under its arch: a bay cut into the land. `sea.bays` (new, optional, for maps with an X

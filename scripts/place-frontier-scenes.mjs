@@ -132,18 +132,20 @@ if(wet){const fork=wet.roads.find(r=>r.id==='glimmer-wetland/south').points.at(-
 }
 // The Frontier Settlement is the town: the scene draws its cottages, stalls and bell tower, so the
 // native buildings, stalls, fence and well go; the services stand in the village (each on free ground
-// near its anchor and off the paths: the shop at the market stall, the trainer by the bell tower, the
-// workbench under the great tree, the respawn and the town waypoint on the square).
+// near its anchor and off the paths: the shop at the east market stall, the workbench by the north-west
+// stall, the trainer by the garden, the respawn and the town waypoint on the square). The three stand
+// apart, as in the old town: each NPC is about 53 draw calls, and three in one view do not fit the
+// iPad budget (data/rendering.json budgets).
 const village=scenes.find(s=>s.id==='frontier-settlement');
 if(village){
  const V=(lx,lz)=>[village.x+lx,village.z+lz],town=raw.town,placed=[];
  const free=(x,z,r)=>world.isFree(x,z,r)&&!world.isWater(x,z,.5)&&village.roads.every(rd=>distToPolyline(x,z,rd.points)>rd.width/2+.8)&&placed.every(q=>Math.hypot(q[0]-x,q[1]-z)>2.5);
  const spot=([ax,az],r=1)=>{for(let d=0;d<6;d+=.5)for(let k=0;k<16;k++){const a=k/16*Math.PI*2,x=ax+Math.sin(a)*d,z=az+Math.cos(a)*d;if(free(x,z,r)){placed.push([x,z]);return[round(x),round(z)];}}throw Error('no free spot near '+[ax,az]);};
  const onPath=([ax,az])=>{placed.push([ax,az]);return[round(ax),round(az)];};
- const stall=V(-1.4,-12.1);
+ const stall=[211.644,33.294]; // the east stall (its collider in data/accepted-scenes)
  town.centre=onPath(V(1.8,0.3));town.plazaRadius=6;town.respawn=onPath(V(1.8,2.8));
- const keeper=spot([stall[0]-.2,stall[1]-1.9],.6);town.shopkeeper=[...keeper,0];town.shop=spot([stall[0]+.2,stall[1]+2.2],.6);
- town.trainer=spot(V(7.2,-10.2),.8);town.workbench=spot(V(7.8,-4.2),1.2);
+ const keeper=spot([stall[0]-2.2,stall[1]+.3],.6);town.shopkeeper=[...keeper,0];town.shop=spot([stall[0]-.8,stall[1]+2.6],.6);
+ town.workbench=spot([192,22],1.2);town.trainer=spot([190.5,34],.8);
  town.buildings=[];delete town.stalls;delete town.walls;delete town.well;town.noticeBoard=false;
  const wp=raw.waypoints.find(w=>w.id==='town');wp.pos=spot(V(5.5,5.5),1.2);
  const zone=raw.zones.find(z=>z.id==='settlement');zone.rects=[[184,224,-32,6],[168,224,6,47]];

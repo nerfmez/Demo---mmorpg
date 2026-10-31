@@ -999,10 +999,10 @@
     "height": 0.4,
     "centre": [198.3, 33.8],
     "plazaRadius": 6,
-    "workbench": [206.022, 33.457],
-    "shop": [194.3, 23.6],
-    "shopkeeper": [194.9, 19, 0],
-    "trainer": [204.407, 24.007],
+    "workbench": [192.5, 22],
+    "shop": [210.844, 35.894],
+    "shopkeeper": [209.444, 33.594, 0],
+    "trainer": [191.5, 34],
     "respawn": [198.3, 36.3],
     "buildings": [],
     "kit": {
@@ -1969,8 +1969,9 @@
     "foliage": {
       "_doc": "In the game the scenes' trees, shrubs and grass are the map's own (render/accepted-scenes.js): the game's geometry, palette and materials, crowns in the map's proportions and tint. Ordinary trees: each scene's authored sizes (world scale of the trunk's width) times treeScale[scene], which brings its typical tree near the map's (median 0.9; the forest's a little larger) and keeps its own variation. bigTrees stay big: the tree nearest 'at' (world x, z, within 1 m) takes 'size' (world scale; the map's largest ordinary tree is about 1.14). Colliders keep the scene data.",
       "crownTint": "#edf1e2",
-      "chunk": 16,
-      "chunkDoc": "Each scene's instanced plants (crowns, trunks, shrubs, flowers, fronds) are split into chunk-metre square pieces, as the map's own plants are, so the camera and the sun's shadow box draw only the pieces they reach. Grass keeps its own per-clump culling.",
+      "chunk": 32,
+      "chunkDoc": "Each scene's instanced plants (crowns, trunks, shrubs, flowers, fronds) are split into chunk-metre square pieces, as the map's own plants are, so the camera and the sun's shadow box draw only the pieces they reach. Grass keeps its own per-clump culling. 32 m here (one resident cell): the Frontier's scenes are dense in shrubs and flowers, and 16 m pieces cost the town view more draw calls than the culling saved. A set of fewer than chunkMin instances (a scene's few trees of one kind) stays one piece.",
+      "chunkMin": 24,
       "treeScale": {
         "shell-beach": 0.96
       },

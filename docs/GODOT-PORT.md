@@ -357,7 +357,9 @@ most once per `combat.flinchLock`.
 `core/content-budget.js` measures each skill (what it adds to a reference hero of its weapon) and
 each mod (its best gain on a skill it fits) with the same profile, against class bands in
 `progression.balance.budgets`; items outside their band are listed in `budgets.known` with a reason
-until decided (`tests/core/content-budget.test.js`, report: `node scripts/content-budget.mjs`). MP is
+until decided (`tests/core/content-budget.test.js`, report: `node scripts/content-budget.mjs`). A gain is
+scored per axis as the log of the ratio, held within +-1, except team help, which is the plain difference
+(`scoreGain`; 2026-10-31: a ratio of two near-zero team shares had read as a fivefold gain). MP is
 priced, not a wall: profiles run with `mpFree` and a build pays for its MP shortfall past its own
 supply with MP potions in tiers (one potion per group cooldown, each bigger potion's added MP at its
 added gold, on the income axis), then with gear rolls (`mpPrice`, `mpCost`). MP potions are an

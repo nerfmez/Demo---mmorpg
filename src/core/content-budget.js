@@ -40,7 +40,9 @@ export function skillClass(def, data = null) {
  * a cap cannot swamp the rest. */
 export function scoreGain(data, p, b) {
   const w = data.progression.balance.rules.budgetWeights, clamp = (x) => Math.max(-1, Math.min(1, x));
-  return AXES.reduce((a, k) => a + (w[k] || 0) * clamp(b[k] > 0 ? (p[k] > 0 ? Math.log(p[k] / b[k]) : -1) : p[k] - b[k]), 0);
+  // team help is absolute, as above: a build's tiny team share (its control spares allies a little) must
+  // not turn a ratio of two near-zero numbers into a doubling
+  return AXES.reduce((a, k) => a + (w[k] || 0) * clamp(k !== 'team' && b[k] > 0 ? (p[k] > 0 ? Math.log(p[k] / b[k]) : -1) : p[k] - b[k]), 0);
 }
 
 const run = (data, ref, level, extra) => buildProfile(data, { kit: ref.kit, build: ref.build, level, gear: 'mixed', mpFree: true, ...extra });

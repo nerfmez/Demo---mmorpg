@@ -11,7 +11,10 @@
 //     fire (FlameRainFx.boom, through onBlast) over the trap's radius, with dust thrown out;
 //   Net Trap springs: a dome of rope bursts up off the plate and drapes over the whole circle, iron weights
 //     on its rim pinning it, held while it roots what is under it, then thinning away;
-//   unsprung at the end of its life (areaEnd): the plate sinks away.
+//   unsprung at the end of its life (areaEnd): the plate sinks away;
+//   Lure Dummy (a static summon: summon, allyGone): it thumps in with dust and straw, a ring of amber light
+//     runs out to its lure range each time it draws them, an amber tether sways from each monster it drew
+//     to its chest, and it falls apart in straw when it is gone.
 // Cosmetic only; pooled (8 plates, one instanced spike mesh with its outline), no per-frame allocation.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, BILLBOARD_VS, addLight, fxGround, place } from './fx-common.js';
@@ -53,6 +56,13 @@ const RING_FS = `varying vec2 vUv; uniform float uA, uPulse;
     if (k < 0.01) discard;
     gl_FragColor = vec4(vec3(1.0, 0.72, 0.32)*k, 1.0); }`;
 
+// a lure's pulse: one ring of amber light running out to its range (uPulse 0..1 of the plane), thinning
+const PULSE_FS = `varying vec2 vUv; uniform float uA, uPulse;
+  void main(){ float r = length(vUv);
+    float ring = exp(-pow((r - uPulse*0.96)/0.012, 2.0)), inner = exp(-pow((r - uPulse*0.96)/0.08, 2.0))*0.18*step(r, uPulse*0.96);
+    float k = (ring*0.6 + inner)*uA; if (k < 0.01) discard;
+    gl_FragColor = vec4(vec3(1.0, 0.66, 0.28)*k, 1.0); }`;
+
 /** A spike: a four-sided steel blade from 0 (base) to 1 (tip) along +y, steel below and catching the light
  *  white at its point (vertex colours under a white toon material). */
 function spikeGeometry() {
@@ -64,7 +74,7 @@ function spikeGeometry() {
 }
 let sw = 0;
 const lineW = (x) => sw * Math.sin(Math.PI * x), lineGlowW = (x) => sw * 2.6 * Math.sin(Math.PI * x), dropW = (x) => sw * (1 - x * 0.6);
-const WHITE = [1, 0.97, 0.9], WARM = [1, 0.75, 0.4], BLOOD = [0.85, 0.08, 0.1], BLOOD_GLOW = [0.5, 0.02, 0.04];
+const WHITE = [1, 0.97, 0.9], WARM = [1, 0.75, 0.4], BLOOD = [0.85, 0.08, 0.1], BLOOD_GLOW = [0.5, 0.02, 0.04], STRAW = [0.95, 0.8, 0.42], STRAW_GLOW = [0.3, 0.22, 0.06];
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 const easeBack = (k) => { const c = 2.4; k -= 1; return 1 + (c + 1) * k * k * k + c * k * k; };
@@ -114,7 +124,11 @@ export class TrapFx {
     // speed lines up the spikes as they punch, and blood drops off what they strike (light strips)
     this.core = new Ribbon(scene, camera, 600, CORE_FS, THREE.NormalBlending); this.glow = new Ribbon(scene, camera, 600, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 9; this.glow.mesh.renderOrder = 8;
-    this.drops = Array.from({ length: 40 }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, life: 0.5 })); this.dropI = 0;
+    this.drops = Array.from({ length: 64 }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, life: 0.5, col: BLOOD, glow: BLOOD_GLOW, w: 0.11, g: 12 })); this.dropI = 0;
+    // Lure Dummy: rings of light pulsing out to its lure range each time it draws them, amber tethers from
+    // what it drew, a thump and a burst of straw when it is set and when it is gone
+    this.pulses = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uPulse: { value: 0 } }, vertexShader: RING_VS, fragmentShader: PULSE_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); m.rotation.x = -Math.PI / 2; m.renderOrder = 2; m.visible = false; scene.add(m); return { m, t: 9, dur: 0.6, x: 0, z: 0, R: 5 }; }); this.pulseI = 0;
+    this.lures = new Map(); this.tether = Array.from({ length: 10 }, () => new THREE.Vector3());
     this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
   }
   /** The rules' trapSet: toss a plate from the hand (from: a ground-relative point) to (e.x, e.z). */
@@ -164,13 +178,46 @@ export class TrapFx {
   /** A struck body bleeds: a spray of drops off it (c: its centre, ground-relative). */
   bleed(c) {
     const r = this.rnd;
-    for (let i = 0; i < 11; i++) { const q = this.drops[this.dropI++ % this.drops.length], a = r() * 6.283, sp = 1.2 + r() * 1.8; q.p.set(c.x, c.y, c.z); q.v.set(Math.cos(a) * sp, 1.5 + r() * 2, Math.sin(a) * sp); q.t = 0; q.life = 0.35 + r() * 0.25; }
+    for (let i = 0; i < 11; i++) { const q = this.drops[this.dropI++ % this.drops.length], a = r() * 6.283, sp = 1.2 + r() * 1.8; q.p.set(c.x, c.y, c.z); q.v.set(Math.cos(a) * sp, 1.5 + r() * 2, Math.sin(a) * sp); q.t = 0; q.life = 0.35 + r() * 0.25; Object.assign(q, { col: BLOOD, glow: BLOOD_GLOW, w: 0.11, g: 12 }); }
   }
+  /** Straw thrown off a Lure Dummy (when it is set and when it is gone): light stalks that tumble and drift. */
+  straw(x, z, n, up) {
+    const r = this.rnd;
+    for (let i = 0; i < n; i++) { const q = this.drops[this.dropI++ % this.drops.length], a = r() * 6.283, sp = 0.8 + r() * 2; q.p.set(x + Math.cos(a) * 0.2, 0.6 + r() * 0.9, z + Math.sin(a) * 0.2); q.v.set(Math.cos(a) * sp, up * (0.8 + r() * 1.6), Math.sin(a) * sp); q.t = 0; q.life = 0.5 + r() * 0.5; Object.assign(q, { col: STRAW, glow: STRAW_GLOW, w: 0.07, g: 5 }); }
+  }
+  /** The rules' summon of a Lure Dummy (e.id, e.x, e.z): it thumps into the ground. */
+  plant(e) {
+    this.lures.set(e.id, { x: e.x, z: e.z, cd: 0 });
+    for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2 + this.rnd(); this.dust(e.x + Math.cos(a) * 0.35, 0.1, e.z + Math.sin(a) * 0.35, Math.cos(a) * 1.4, 0.35, Math.sin(a) * 1.4, 0.55, 0.5); }
+    this.straw(e.x, e.z, 6, 1); this.glint(e.x, 1.7, e.z, 0.7, 0.25);
+    this.pulse(e.x, e.z, 1.6, 0.35);
+  }
+  /** The rules' allyGone: a Lure Dummy that ran out falls apart in a burst of straw. */
+  gone(e) {
+    if (!this.lures.has(e.id)) return;
+    this.lures.delete(e.id);
+    this.straw(e.x, e.z, 16, 1.4);
+    for (let i = 0; i < 5; i++) { const a = this.rnd() * 6.283; this.dust(e.x + Math.cos(a) * 0.3, 0.3, e.z + Math.sin(a) * 0.3, Math.cos(a), 0.6, Math.sin(a), 0.6, 0.6); }
+  }
+  pulse(x, z, R, dur) { const q = this.pulses[this.pulseI++ % this.pulses.length]; Object.assign(q, { t: 0, x, z, R, dur }); q.m.visible = true; }
   dust(x, y, z, vx, vy, vz, size, life) { const q = this.dusts[this.dustI++ % DUSTS]; q.p.set(x, y, z); q.v.set(vx, vy, vz); q.t = 0; q.size = size; q.life = life; q.m.material.uniforms.uSeed.value = this.rnd() * 40; }
   glint(x, y, z, size, life) { const g = this.glints[this.glintI++ % this.glints.length]; g.p.set(x, y, z); g.t = 0; g.size = size; g.life = life; }
 
-  update(dt) {
+  update(dt, allies = null, monsters = null) {
     this.time += dt;
+    // Lure Dummy: a ring of light runs out to the lure range each time it draws them (its tauntCd resets)
+    for (const [id, L] of this.lures) {
+      const a = allies?.find((q) => q.id === id);
+      if (!a) continue;
+      if ((a.tauntCd || 0) > L.cd + 0.3) this.pulse(a.x, a.z, a.tauntRadius || 5, 0.7);
+      L.cd = a.tauntCd || 0; L.x = a.x; L.z = a.z;
+    }
+    for (const q of this.pulses) {
+      if (q.t >= q.dur) { q.m.visible = false; continue; }
+      q.t += dt; const u = q.t / q.dur;
+      place(q.m, q.x, 0.04, q.z); q.m.scale.setScalar(q.R * 2 + 0.2);
+      q.m.material.uniforms.uPulse.value = 0.15 + 0.85 * (1 - Math.pow(1 - u, 2)); q.m.material.uniforms.uA.value = 1 - u * u;
+    }
     const cam = this.camera.quaternion;
     let k = 0;
     for (const p of this.plates) {
@@ -254,12 +301,20 @@ export class TrapFx {
         sw = 0.04; this.glow.strip(two, lineGlowW, 0.8 * (1 - u), WARM); this.core.strip(two, lineW, 1 - u, WHITE);
       }
     }
+    // amber tethers from each monster the dummy has drawn to its chest, sagging and swaying
+    if (monsters && this.lures.size) for (const m of monsters) {
+      if (m.dead || !(m.tauntT > 0)) continue;
+      const L = this.lures.get(m.forcedTargetId); if (!L) continue;
+      const n = this.tether.length, fade = Math.min(1, m.tauntT * 2) * (0.7 + 0.3 * Math.sin(this.time * 9 + m.x));
+      for (let i = 0; i < n; i++) { const u = i / (n - 1), sag = Math.sin(Math.PI * u) * 0.35, wob = Math.sin(this.time * 7 + u * 6 + m.z) * 0.05 * Math.sin(Math.PI * u); this.tether[i].set(m.x + (L.x - m.x) * u, 1.0 + 0.25 * u - sag + wob, m.z + (L.z - m.z) * u); }
+      sw = 0.09; this.glow.strip(this.tether, lineGlowW, 0.55 * fade, WARM); sw = 0.035; this.core.strip(this.tether, lineW, 0.8 * fade, [1.0, 0.85, 0.5]);
+    }
     // blood drops: arcing down, thinning out
     for (const q of this.drops) {
       if (q.t >= q.life) continue;
       q.t += dt; const u = q.t / q.life; q.v.y -= 12 * dt; q.p.addScaledVector(q.v, dt);
       const three = this.three; three[0].copy(q.p).addScaledVector(q.v, -0.035); three[1].copy(q.p).lerp(three[0], 0.5); three[2].copy(q.p);
-      sw = 0.11 * (1 - u * 0.5); this.glow.strip(three, dropW, 0.5 * (1 - u), BLOOD_GLOW); this.core.strip(three, dropW, 1 - u * 0.6, BLOOD);
+      q.v.y += (12 - q.g) * dt; sw = q.w * (1 - u * 0.5); this.glow.strip(three, dropW, 0.5 * (1 - u), q.glow); this.core.strip(three, dropW, 1 - u * 0.6, q.col);
     }
     this.core.end(); this.glow.end();
     for (const q of this.dusts) {
@@ -280,6 +335,7 @@ export class TrapFx {
     for (let i = 0; i < this.spikes.count; i++) { this.spikes.setMatrixAt(i, ZERO); this.spikeEdges.setMatrixAt(i, ZERO); }
     this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
     for (const q of this.dusts) { q.t = 9; q.m.visible = false; } for (const g of this.glints) { g.t = 9; g.s.visible = false; }
+    this.lures.clear(); for (const q of this.pulses) { q.t = 9; q.m.visible = false; }
     for (const n of this.nets) { n.t = 99; n.m.visible = false; } for (let i = 0; i < this.weights.count; i++) this.weights.setMatrixAt(i, ZERO); this.weights.instanceMatrix.needsUpdate = true;
     for (const q of this.drops) q.t = 9; this.core.begin(); this.core.end(); this.glow.begin(); this.glow.end();
     this.light.intensity = 0; this.lightT = 9;

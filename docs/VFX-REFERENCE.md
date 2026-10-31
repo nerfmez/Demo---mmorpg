@@ -633,3 +633,10 @@ it is armed. When a monster steps in, the plate is gone at once and the burst is
 one (`FlameRainFx.boom`: a dome of Firebolt's fire that tears into tongues and burns away, embers, a toon
 pit cooling), sized to the trap's 2.6 m, with dust thrown out, a harder shake and a clean glint - not the
 ragged flash (the owner disliked those bursts on Thunder Lance).
+
+Lure Dummy, round 1 (`trap-fx.js` with the game's straw-dummy model, `monsters.js` lure_dummy). The hero
+throws it down (`sow`); it thumps into the ground at the aim point with a ring of dust, straw thrown up and
+a glint. Each time it draws them (the rules' taunt, every 1.5 s) a thin ring of amber light runs out to its
+5 m lure range; an amber tether sags and sways from each monster it has drawn to its chest (Provoke's
+tether, warm instead of red, to the dummy instead of the hero); it wobbles when struck; when its time is up
+it falls apart in a burst of straw. The bench now draws static summons and walks drawn dummies up to it.

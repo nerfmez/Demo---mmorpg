@@ -170,6 +170,7 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     g.updateProjectiles(dt);
     g.updateAreas(dt);
     for (const m of g.monsters) g.tickStatuses(m, dt);
+    g.updateAllies(dt); // summons live their life (a Lure Dummy stands and draws them)
     g.player.mp = g.player.maxMp; // cooldowns run for real; MP and arrows never block a test
     if (g.ch.arrows?.stock && Object.values(g.ch.arrows.stock).reduce((a, n) => a + n, 0) < 50) g.ch.arrows.stock.feather_arrow = 200;
     g.player.movement.charges = Math.max(g.player.movement.charges, 1);
@@ -204,6 +205,18 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
         for (const a of set) { const d = Math.hypot(a.x - m.x, a.z - m.z); if (d < best) { best = d; to = a; } }
         const tx = to ? to.x : m.homeX, tz = to ? to.z : m.homeZ, d = Math.hypot(tx - m.x, tz - m.z);
         if (d > 0.05) { const k = Math.min(1, SPEED * (to ? 1 : 0.6) * dt / d); m.x += (tx - m.x) * k; m.z += (tz - m.z) * k; m.moving = true; m.facing = Math.atan2(tx - m.x, tz - m.z); } else m.moving = false;
+      }
+    };
+  }
+  // Lure Dummy: bench dummies run no AI, so a monster it has drawn (tauntT, forcedTargetId) walks up to it
+  if (data.skills.combat[skill]?.summon?.static) {
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      for (const m of this.monsters) {
+        const a = m.tauntT > 0 && this.allies.find((q) => q.id === m.forcedTargetId);
+        const tx = a ? a.x : m.homeX, tz = a ? a.z : m.homeZ, d = Math.hypot(tx - m.x, tz - m.z), stop = a ? 1.3 : 0.05;
+        if (d > stop) { const step = Math.min(d - stop, 2.2 * (a ? 1 : 0.6) * dt); m.x += (tx - m.x) / d * step; m.z += (tz - m.z) / d * step; m.moving = true; } else m.moving = false;
       }
     };
   }

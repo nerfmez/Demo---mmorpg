@@ -13,6 +13,7 @@ import HOLDS from '../../data/weapon-holds.json';
 import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
+import { buildMonster } from '../render/monsters.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
 import { fusionRecipe, benchData } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
@@ -104,6 +105,7 @@ function makeDummy() {
   return { g, mats, orig: mats.map((m) => m.color.clone()), pop: 0, popColor: new THREE.Color(), shake: 0, x: 0, z: 0, center: new THREE.Vector3() };
 }
 const dummies = Array.from({ length: 6 }, makeDummy);
+const benchAllies = new Map(); // static summons drawn on the bench (Lure Dummy)
 
 // errors on screen (the owner tests on a tablet, with no console): the banner shows what failed
 function notify(text) { try { showBanner(text); } catch { /* before the banner exists */ } }
@@ -172,6 +174,7 @@ const skipSets = new Map();
 const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_PROJECTILES])).get(k);
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
+  for (const r of benchAllies.values()) { r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); // the old bench's summons
   if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, haste: state.haste ?? null });
   game.aimAt(aimAngle);
@@ -581,6 +584,17 @@ function tick(real, draw = true) {
     d.g.rotation.z = sh * 1.2;
   });
 
+  // static summons (Lure Dummy) stand where the rules set them, the game's own model (view.js draws them in
+  // the game; the bench draws only these)
+  for (const a of game.allies) {
+    if (!a.static) continue;
+    let r = benchAllies.get(a.id);
+    if (!r) { r = buildMonster(a.type, 1, false); scene.add(r.root); benchAllies.set(a.id, r); r.state = { hurt: 0 }; r.lastHp = a.hp; }
+    r.root.position.set(a.x, 0, a.z); r.root.rotation.y = a.facing;
+    if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
+    r.animate?.(r, r.state, dt, simTime);
+  }
+  for (const [id, r] of benchAllies) if (!game.allies.some((a) => a.id === id)) { r.root.removeFromParent(); disposeObject(r.root); benchAllies.delete(id); }
   fx.update(dt);
   castBtn.classList.toggle('ready', fx.counterReady);
   const recipeKind = skillDef().recipe?.id;

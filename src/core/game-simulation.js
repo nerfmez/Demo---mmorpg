@@ -1904,6 +1904,9 @@ export class Game {
       if(a.wallHp!==undefined){a.t+=dt;if(a.wallHp>0&&a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.lightWall){a.t+=dt;if(a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.follow){if(this.player.dead)continue;a.x=this.player.x;a.z=this.player.z;}
+      // a monster's attack marked at its wind-up waits while that monster twitches from shock (ai.js pauses
+      // the wind-up), so the hit still lands with the strike; one already launched (a rock in flight) does not
+      if (a.owner === 'monster' && a.t < a.delay) { const src = this.monsterById(a.sourceId); if (src && src.twitchT > 0 && src.state === 'windup') { keep.push(a); continue; } }
       a.t += dt;
       if (a.t < a.delay) {
         keep.push(a);

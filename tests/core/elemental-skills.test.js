@@ -293,3 +293,19 @@ test('Ice Ball: a basic cold spell beside Firebolt - a main skill whose hit slow
   assert.ok(near.statuses.chill?.slow === D.chill.slow && Math.abs(near.statuses.chill.t - D.chill.duration) < 0.5, 'the struck one is slowed');
   assert.ok(!behind.statuses.chill, 'nothing else is');
 });
+
+test('Shock: an attack marked at a wind-up waits with it, so it never lands before the strike', () => {
+  const S = data.progression.combat.shock;
+  const { g, mk } = fixture('thunder_lance');
+  const m = mk('m', 3, 0); g.monsters = [m];
+  Object.assign(m, { state: 'windup', stateT: 0, stateDur: 1, windup: { attack: 'pound', total: 1 } });
+  const area = g.spawnArea({ owner: 'monster', sourceId: 'm', kind: 'pound', x: 0, z: 0, radius: 2, delay: 1, duration: 0.3, damage: 50 });
+  m.twitchT = S.twitch;
+  g.updateAreas(S.twitch * 0.5);
+  assert.equal(area.t, 0, 'the marked attack waits while its monster twitches in its wind-up');
+  m.twitchT = 0; g.updateAreas(0.1);
+  assert.ok(Math.abs(area.t - 0.1) < 1e-9, 'and carries on with it');
+  // launched already (the monster is past its wind-up): it flies on
+  m.state = 'recover'; m.twitchT = S.twitch; g.updateAreas(0.1);
+  assert.ok(Math.abs(area.t - 0.2) < 1e-9, 'a launched attack is not held back');
+});

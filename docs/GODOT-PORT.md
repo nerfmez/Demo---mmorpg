@@ -1438,7 +1438,8 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
   sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns
   at once while `twitchT` > 0, so movement, attacks, wind-ups and cooldowns pause and then carry on (a
-  wind-up is delayed, never cancelled). Thunder Lance's after-shock gives it (`afterShock.shock` s); the
+  wind-up is delayed, never cancelled). `updateAreas` holds a monster's attack area still in its delay while
+  its source twitches in its wind-up, so the hit lands with the strike; one already launched flies on. Thunder Lance's after-shock gives it (`afterShock.shock` s); the
   build profile counts it as stun time twitch / interval of its length.
 - Status display (`core/statuses.js statusList(data, unit, heroId)`): what a unit has now - stun (state
   stunned), shock, chill, burn, poison (stacks), bleed, exposure, hex, charged, taunt (on the hero) - with

@@ -1,7 +1,7 @@
 // Original pieces for Crag Highlands: the brazier shrine on the high shelf (a stone fire bowl on a
 // stepped plinth with its flame, weathered pillars round a paved court), the ruined dressed-stone wall
-// by the east path and white-barked birches. Shared helpers from Greyfang Den: coloured parts,
-// bark-style trunks and roots.
+// by the east path. Shared helpers from Greyfang Den: coloured parts, bark-style trunks and rooted
+// trees (the scene's trees are all the game's own, owner 31 October 2026).
 let BRAZIER=null;
 function coloredPart(g,color,matrix){
  if(g.index)g=g.toNonIndexed();if(g.attributes.uv)g.deleteAttribute('uv');
@@ -97,20 +97,4 @@ function ruinedWall(){
  }
  // fallen blocks at its foot
  for(let k=0;k<5;k++){const p=curve.getPoint(R(.2,1));block(p.x+R(-1,1)*M(.8),height(p.x,p.z)-.1,p.z+M(R(.4,1)),M(.48),M(.36),M(.6),R(0,3),.4,{base:pick(DRESSED)});}
-}
-// a birch: the game's tree (its crown reads as a tree, not the shrubs behind it) in a white bark
-// sleeve with dark marks along the trunk's own bent spine, as the concept's birches
-const birchParts=[];
-function birch(u,v,s,seed=5){
- const[x,y,z]=onGround(u,v);broadleaf(x,z,s,seed);const it=treeItems.at(-1),c=Math.cos(it.ry),si=Math.sin(it.ry),y0=it.y;
- const sp=ANIME.trunk.spine.slice(0,-1).map(([sx,sy,sz,r])=>({p:new V3(x+(sx*c+sz*si)*s,y0+sy*s,z+(-sx*si+sz*c)*s),r:r*s*1.18}));
- for(let j=0;j<sp.length-1;j++){
-  const A=sp[j],B=sp[j+1],n=4;
-  for(let k=0;k<n;k++){
-   const a0=A.p.clone().lerp(B.p,k/n),a1=A.p.clone().lerp(B.p,(k+1)/n),r0=A.r+(B.r-A.r)*k/n,r1=A.r+(B.r-A.r)*(k+1)/n,g=new THREE.CylinderGeometry(r1,r0,a0.distanceTo(a1)+.02,9);
-   const dark=(j*n+k)%3===1&&rand()<.75;
-   birchParts.push(coloredPart(g,dark?'#3d3833':pick(['#f2efe6','#e8e4da','#f7f4ec']),new THREE.Matrix4().compose(a0.clone().add(a1).multiplyScalar(.5),new THREE.Quaternion().setFromUnitVectors(new V3(0,1,0),a1.clone().sub(a0).normalize()),new V3(1,1,1))));
-  }
- }
- COLLIDERS.push({x,z,r:s*.3});
 }

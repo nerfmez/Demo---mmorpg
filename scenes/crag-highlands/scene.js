@@ -1,6 +1,6 @@
 // Crag Highlands (Greenhollow Frontier): a grassy clearing with an earth path among tall columned crags;
 // a path climbs north-west up the gully, a stone stair climbs to the brazier shrine on the high shelf
-// with its weathered pillars, the east path runs past a ruined wall, a path leaves west. Birches on
+// with its weathered pillars, the east path runs past a ruined wall, a path leaves west. Trees on
 // the crags, shrubs, white and yellow flowers, mossy rocks.
 function onGround(u,v){
  let hi=M(9),lo=hi;
@@ -26,7 +26,7 @@ function cragRocks(){
  }
 }
 function plantCrags(){
- birch(.065,.27,2.2,3);birch(.42,.17,2.3,9);birch(.95,.43,2.2,5);
+ rootTree(.065,.27,2.0,3);rootTree(.42,.17,2.0,9);rootTree(.95,.43,2.0,5);
  for(const[u,v,s,seed]of[[.13,.02,3.0,5],[.03,.10,2.8,9],[.33,.0,2.6,3],[.90,.04,3.0,9],[.99,.22,2.6,5],[.23,.17,2.2,5],[.85,.20,2.2,3]]){
   const[x,,z]=onGround(u,v);
   if(!offPath(x,z,M(.6))||nearShrine(x,z,M(1)))continue;
@@ -60,7 +60,6 @@ function build(){
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();
  shrine(.69,.165);ruinedWall();cragRocks();plantCrags();
  if(rootParts.length){const roots=new THREE.Mesh(mergeGeometries(rootParts),barkPaint());roots.castShadow=roots.receiveShadow=true;scene.add(roots);}
- if(birchParts.length){const b=new THREE.Mesh(mergeGeometries(birchParts),paint({vertexColors:true,shade:[.62,.62,.7],mid:[.88,.88,.9]}));b.castShadow=b.receiveShadow=true;scene.add(b);}
  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
  for(let i=0;i<woodParts.length;i++){let g=woodParts[i];if(g.index)g=g.toNonIndexed();if(g.attributes.uv)g.deleteAttribute('uv');woodParts[i]=g;}
  clearPaths();placeCoastPlants();scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));setStatus();

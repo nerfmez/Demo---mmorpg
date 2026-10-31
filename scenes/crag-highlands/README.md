@@ -1,6 +1,9 @@
 # Crag Highlands — standalone scene for owner review
 
-**Owner status: v1 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/HxUNnCdrbyDT74z5eschgz).
+**Owner status: v2 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/HxUNnCdrbyDT74z5eschgz).
+
+Owner, on version 1 (circling a birch): "ไม่ต้องมีต้นสีแปลกเอาต้นปกติเหมือนกันหมด" (no odd-coloured trees; the
+normal tree everywhere). The three birches are now the game's own rooted tree, like the rest.
 
 Concept: `crag-highlands.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
 (branch `docs/landscape-concepts-40deg-20261022`), retained without recompression as `concept.png`.
@@ -12,8 +15,7 @@ gully between the left crag and the shrine's rock (stone steps where it is steep
 path a stone stair climbs to the shrine on the high shelf: a paved court, a stepped plinth with a
 stone fire bowl and its flickering flame and warm glow, weathered pillars round it. The east path
 runs on past a ruined wall of dressed blocks (a taller pier at its end, fallen blocks at its foot);
-a path leaves west between the crags. White-barked birches on the crags (the game's tree in a white
-bark sleeve with dark marks), old rooted trees, shrubs, white and yellow flowers, rounded mossy rocks.
+a path leaves west between the crags. Old rooted trees (the game's own, all alike; owner), shrubs, white and yellow flowers, rounded mossy rocks.
 
 All routes (`south`, `northwest`, `east`, `stair`, `west`) are walkable (checked by sampling
 `blocked` and the ground height along each: no blocked rows, no jumps). The north-west path climbs
@@ -30,8 +32,7 @@ python3 scenes/crag-highlands/assemble.py
 Built from the Greyfang Den pipeline (`../greyfang-den/`): `prepare.py` (the shrine shelf, the left
 crag, the low step, the right crag, the front corner crags, the clearing), `fill.js`, `routes.js`
 (ports `south`, `northwest`, `east`, `west`), `paving.js` (the shrine stair whole, other paths where
-steep), `crag.js` (the shrine with its brazier and flame, the ruined wall, birches; shared rooted
-trees) and `scene.js`. `window.__scene.crag` exposes `ports`, `junctions`, `routes`, `brazier`,
+steep), `crag.js` (the shrine with its brazier and flame, the ruined wall; shared rooted trees) and `scene.js`. `window.__scene.crag` exposes `ports`, `junctions`, `routes`, `brazier`,
 `blocked` and `height`.
 
 ## When it goes into the map

@@ -587,3 +587,10 @@ middle; Frost Nova's crystal shape and cel ice, a white point), ice chips and gl
 cel frost crust spreading along the lane; they hold 0.75 s, crack apart from the near end (chips flung
 out, each spike sinking and shrinking away), cold mist rises and the crust melts inward. First try:
 the spikes were short and wide and read as a pile of crystals: thinner and taller spikes read as stabs.
+Round 2 (owner: "the effect is still not pretty"). Rebuilt on the pixelfx bar: the spikes are translucent
+ice lit from within (deep blue at the root to cyan and a white point, see-through where they face the
+camera and solid at the rim, light streaks running up inside, bright facet edges), in a clear left-right
+rhythm instead of a random thicket; the opaque crust with its outline became frost light (a glowing vein
+down the lane with fern branches slanting forward and sparkles, additive, no fill); a cold light runs ahead
+of the spikes; each spike flashes white before it cracks into slender shards with a glint. Bug found on
+the way: unused instance slots must start at a zero matrix, or they draw a full-size crystal at the origin.

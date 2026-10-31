@@ -1,6 +1,6 @@
 # Crag Highlands — standalone scene for owner review
 
-**Owner status: v2 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/HxUNnCdrbyDT74z5eschgz).
+**Owner status: ผ่าน — approved, 31 October 2026** ("โอเคต่อไป", artifact version 2, https://claude.ai/artifact/HxUNnCdrbyDT74z5eschgz).
 
 Owner, on version 1 (circling a birch): "ไม่ต้องมีต้นสีแปลกเอาต้นปกติเหมือนกันหมด" (no odd-coloured trees; the
 normal tree everywhere). The three birches are now the game's own rooted tree, like the rest.

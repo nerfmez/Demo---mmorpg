@@ -12,7 +12,7 @@ import { Ribbon, mulberry32, lookOf } from './fx-common.js';
 import { CRACKLE_FS, BOLT_GLOW_FS, Rng, zig } from './chain-fx.js';
 
 const LOOK = lookOf('lightning'), WHITE = [1, 1, 1];
-const LANCE = 0.28, LANCE_FADE = 0.12;        // the lance holds, then fades
+const LANCE = 0.4, LANCE_FADE = 0.16;         // the lance holds, then fades (owner: round 3 felt too light)
 const SNAP = 0.22;                             // the after-shock's bolts
 const FLASHES = 5;
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
@@ -52,6 +52,8 @@ export class LanceFx {
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.line = Array.from({ length: LINE }, () => new THREE.Vector3());
     this.twitches = Array.from({ length: 12 }, () => ({ id: 0, t: 9, dur: 0.15, seed: 0 })); this.twitchI = 0;
+    this.pierces = Array.from({ length: 8 }, () => ({ t: 9, x: 0, y: 0, z: 0, seed: 0 })); this.pierceI = 0;
+    this.q0 = new THREE.Vector3(); this.q1 = new THREE.Vector3();
     this.locate = null; // set by the director: id -> a monster's centre {x, y, z} or null
   }
   // LINE points from a to b (a straight strip that can taper)
@@ -93,7 +95,11 @@ export class LanceFx {
     q.id = id; q.t = 0; q.dur = Math.max(0.12, dur + 0.05); q.seed = Math.floor(this.rnd() * 999);
   }
   // a struck target: a sharp burst of sparks off it
-  hit(c) { this.spark(c.x, c.y, c.z, 5, 3.5); }
+  hit(c) {
+    this.spark(c.x, c.y, c.z, 10, 4.5);
+    // a bolt runs down through the struck body into the ground
+    const q = this.pierces[this.pierceI++ % this.pierces.length]; q.t = 0; q.x = c.x; q.y = c.y; q.z = c.z; q.seed = Math.floor(this.rnd() * 999);
+  }
   bolt(a, b, seed, amp, segs, w, alpha) {
     zig(a, b, R, seed, amp, segs, this.pts, this.ws);
     sw = w; swk = this.ws;
@@ -127,23 +133,44 @@ export class LanceFx {
         const fade = l.t < LANCE ? 1 : 1 - (l.t - LANCE) / LANCE_FADE, reach = Math.min(1, l.t / 0.07);
         A.set(sx, 1.1, sz); B.set(sx + (ex - sx) * reach, 1.0, sz + (ez - sz) * reach);
         const pts = this.fill(A, B);
-        sw = 0.16 * fade; this.halo.strip(pts, lanceGlowW, fade, LOOK.glow);
-        sw = 0.15 * (0.6 + 0.4 * fade); this.beam.strip(pts, lanceW, fade, LOOK.edge);
-        for (let i = 0; i < 2; i++) this.bolt(A, B, l.seed * 17 + flick * 7 + i * 101, 0.02, 14, 0.05, fade);
+        // it surges as it is loosed and flickers while it holds
+        const surge = 1 + 0.6 * Math.max(0, 1 - l.t / 0.1), flk = 0.85 + 0.15 * Math.sin(this.t * 190 + l.seed);
+        sw = 0.3 * fade * surge; this.halo.strip(pts, lanceGlowW, fade * flk, LOOK.glow);
+        sw = 0.24 * (0.6 + 0.4 * fade) * surge; this.beam.strip(pts, lanceW, fade, LOOK.edge);
+        for (let i = 0; i < 3; i++) this.bolt(A, B, l.seed * 17 + flick * 7 + i * 101, 0.028, 16, 0.07, fade);
+        // forks: short branches leaping off the lance
+        const rf = R2.seed(l.seed * 3 + flick * 17);
+        for (let i = 0; i < 3; i++) {
+          const u = 0.15 + rf.next() * 0.8 * reach, side = rf.next() < 0.5 ? -1 : 1, len = 0.9 + rf.next() * 1.1;
+          this.q0.copy(A).lerp(B, u);
+          this.q1.set(this.q0.x + (l.dx * 0.5 - l.dz * side) * len, this.q0.y + (rf.next() - 0.3) * 0.8, this.q0.z + (l.dz * 0.5 + l.dx * side) * len);
+          this.bolt(this.q0, this.q1, l.seed * 41 + flick * 13 + i, 0.3, 4, 0.04, fade * 0.9);
+        }
+        // the loose kicks back: speed lines thrown back from the bow
+        if (l.t < 0.16) {
+          const k = 1 - l.t / 0.16, rk = R2.seed(l.seed * 5);
+          for (let i = 0; i < 6; i++) {
+            const off = (rk.next() - 0.5) * 0.8, up = (rk.next() - 0.5) * 0.6, len = 0.6 + rk.next() * 0.9, back = 0.3 + (1 - k) * 1.2;
+            this.three[0].set(sx - l.dx * back - l.dz * off, 1.1 + up, sz - l.dz * back + l.dx * off);
+            this.three[1].copy(this.three[0]).addScaledVector(this.q0.set(-l.dx, 0, -l.dz), len * 0.5);
+            this.three[2].copy(this.three[0]).addScaledVector(this.q0, len);
+            sw = 0.05 * k; this.beam.strip(this.three, tipW, k, LOOK.edge);
+          }
+        }
       }
       // the charged lane: a faint line on the ground and small arcs crackling along it, faster as the
       // after-shock nears
       const charged = l.snapT < 0 && l.t > 0.12 && l.t < 0.75;
       if (charged || (l.snapT >= 0 && l.snapT < SNAP)) {
         const glowK = l.snapT >= 0 ? 1 - l.snapT / SNAP : Math.min(1, (l.t - 0.12) / 0.15);
-        sw = 0.06; this.halo.strip(this.fill(A.set(sx, 0.05, sz), B.set(ex, 0.05, ez)), softW, 0.45 * glowK, LOOK.glow);
+        sw = 0.11; this.halo.strip(this.fill(A.set(sx, 0.05, sz), B.set(ex, 0.05, ez)), softW, 0.7 * glowK, LOOK.glow);
         if (charged) {
-          const r = R2.seed(l.seed * 7 + flick), n = 1 + Math.floor(Math.min(1, (l.t - 0.12) / 0.33) * 3);
+          const r = R2.seed(l.seed * 7 + flick), n = 2 + Math.floor(Math.min(1, (l.t - 0.12) / 0.33) * 4);
           for (let i = 0; i < n; i++) {
-            const u = r.next(), len = 0.4 + r.next() * 0.6, side = (r.next() - 0.5) * 0.5;
+            const u = r.next(), len = 0.6 + r.next() * 0.9, side = (r.next() - 0.5) * 0.6;
             A.set(sx + (ex - sx) * u - l.dz * side, 0.08, sz + (ez - sz) * u + l.dx * side);
             B.set(A.x + l.dx * len + (r.next() - 0.5) * 0.3, 0.1 + r.next() * 0.3, A.z + l.dz * len + (r.next() - 0.5) * 0.3);
-            this.bolt(A, B, l.seed + flick * 11 + i * 7, 0.3, 3, 0.025, 0.9);
+            this.bolt(A, B, l.seed + flick * 11 + i * 7, 0.3, 3, 0.035, 1);
           }
         }
       }
@@ -153,7 +180,7 @@ export class LanceFx {
         if (l.snapT < SNAP) {
           const fade = l.snapT < SNAP * 0.6 ? 1 : 1 - (l.snapT - SNAP * 0.6) / (SNAP * 0.4);
           A.set(sx, 0.35, sz); B.set(ex, 0.35, ez);
-          for (let i = 0; i < 2; i++) this.bolt(A, B, l.seed * 23 + flick * 5 + i * 59, 0.026, 16, 0.07, fade);
+          for (let i = 0; i < 3; i++) this.bolt(A, B, l.seed * 23 + flick * 5 + i * 59, 0.028, 16, 0.09, fade);
         }
       }
       if (l.t < 0.9 || (l.snapT >= 0 && l.snapT < SNAP)) this.lanes[w++] = l; else { l.snapT = -1; this.free.push(l); }
@@ -171,6 +198,13 @@ export class LanceFx {
         B.set(c.x + Math.cos(a2) * 0.45, c.y + h2, c.z + Math.sin(a2) * 0.45);
         this.bolt(A, B, q.seed * 7 + flick * 13 + i, 0.3, 4, 0.03, fade);
       }
+    }
+    // pierces: a bolt from above the struck body down into the ground, 0.14 s
+    for (const q of this.pierces) {
+      if (q.t >= 0.14) continue;
+      q.t += dt; const fade = 1 - q.t / 0.14;
+      A.set(q.x, q.y + 1.0, q.z); B.set(q.x, 0.02, q.z);
+      this.bolt(A, B, q.seed + flick * 9, 0.12, 6, 0.06, fade);
     }
     // sparks
     let sw2 = 0;
@@ -200,6 +234,7 @@ export class LanceFx {
   clear() {
     this.charge = null;
     for (const q of this.twitches) q.t = 9;
+    for (const q of this.pierces) q.t = 9;
     for (const l of this.lanes) { l.snapT = -1; this.free.push(l); } this.lanes.length = 0;
     for (const s of this.sparks) this.sparkFree.push(s); this.sparks.length = 0;
     for (const f of this.glints) f.t = 9;

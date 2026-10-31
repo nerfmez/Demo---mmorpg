@@ -538,3 +538,4 @@ get MaceFx's stun stars. The hero plays the bow shot (`shoot`); Shatter Arrow do
 Round 2 (owner: does not like the bursts): the ragged blue flashes at the bow, the lane's end and the
 after-shock are gone; the loose and the spearhead only pop a small clean four-point glint with sparks.
 Round 3 (owner: its head and tail were too square): the lance and its glow are now strips of 28 points, the tail rounding in from nothing at the bow and the head drawn out into a long point; the charged lane's line on the ground fades in and out at its ends.
+Round 4 (owner: the effect felt too light): a thicker lance that surges as it is loosed and flickers while it holds (0.4 s), three bolts wound round it and short forks leaping off it, speed lines kicking back from the bow, a bolt running down through each struck body into the ground, a brighter charged lane with more arcs, three heavier bolts on the after-shock and a harder shake; still no ragged bursts.

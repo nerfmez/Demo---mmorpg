@@ -315,7 +315,7 @@ export class SkillFx {
       case 'lineStrike':
         if (e.skill === 'draw_cut') { this.draw.strike(e); host.shake(0.22, 0.2); return true; }
         if (e.skill === 'earth_rend') { this.split.clear(); this.rend.strike(e); return true; }
-        if (e.skill === 'thunder_lance') { this.lance.strike(e); host.shake(e.after ? 0.12 : 0.08, 0.1); return true; }
+        if (e.skill === 'thunder_lance') { this.lance.strike(e); host.shake(e.after ? 0.18 : 0.16, 0.14); return true; }
         this.split.strike(e); return true;
       // Iron Body: the steel shell, glint and ring, then the sheen while it lasts (skillfx/iron-fx.js)
       case 'buff': {

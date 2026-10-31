@@ -22,7 +22,13 @@ const GLOW_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); float a=pow(1.0-d,2.2)*0.65; gl_FragColor=vec4(vT*a*vA, 1.0); }`;
 const R = new Rng(), R2 = new Rng();
 let sw = 0, swk = null;
-const flatW = () => sw, glowFlatW = () => sw * 3.2;
+const smooth = (e0, e1, x) => { const k = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return k * k * (3 - 2 * k); };
+// the lance (x 0 at the bow .. 1 at its head): a soft rounded tail, a long pointed spearhead (owner: its
+// head and tail were cut square)
+const lanceW = (x) => sw * Math.sqrt(smooth(0, 0.08, x)) * (x > 0.86 ? Math.pow((1 - x) / 0.14, 0.8) : 1);
+const lanceGlowW = (x) => sw * 3.2 * Math.sqrt(smooth(0, 0.1, x)) * (x > 0.8 ? Math.pow((1 - x) / 0.2, 0.6) : 1);
+const softW = (x) => sw * 3.2 * Math.sqrt(smooth(0, 0.06, x) * smooth(1, 0.94, x));
+const LINE = 28;
 const boltW = (x, k) => sw * swk[k] * Math.min(1, x * 8, (1 - x) * 8), boltGlowW = (x, k) => sw * 2.6 * (0.5 + 0.5 * swk[k]);
 const tipW = (x) => sw * Math.sin(Math.PI * x);
 
@@ -44,7 +50,10 @@ export class LanceFx {
     this.rnd = mulberry32(91); this.t = 0;
     this.a = new THREE.Vector3(); this.b = new THREE.Vector3(); this.pts = []; this.ws = []; this.two = [new THREE.Vector3(), new THREE.Vector3()];
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    this.line = Array.from({ length: LINE }, () => new THREE.Vector3());
   }
+  // LINE points from a to b (a straight strip that can taper)
+  fill(a, b) { for (let i = 0; i < LINE; i++) this.line[i].copy(a).lerp(b, i / (LINE - 1)); return this.line; }
   flash(x, y, z, size) { const f = this.glints[this.glintI++ % FLASHES]; f.t = 0; f.size = size * 0.45; f.p.set(x, y, z); }
   spark(x, y, z, n, speed = 4) {
     const r = this.rnd;
@@ -100,8 +109,6 @@ export class LanceFx {
         B.set(hx + Math.cos(a2) * rad, 1.25 + Math.sin(a2) * rad, hz + Math.cos(a2) * rad * 0.3);
         this.bolt(A, B, flick * 31 + i, 0.35, 3, 0.025, 0.9);
       }
-      two[0].set(hx, 1.25, hz); two[1].set(hx + 0.01, 1.25, hz);
-      sw = 0.25 * k; this.halo.strip(two, glowFlatW, 0.6 + 0.4 * Math.sin(this.t * 40), LOOK.glow);
       if (c.t > c.total + 0.3) this.charge = null;
     }
     let w = 0;
@@ -112,22 +119,17 @@ export class LanceFx {
       if (l.t < LANCE + LANCE_FADE) {
         const fade = l.t < LANCE ? 1 : 1 - (l.t - LANCE) / LANCE_FADE, reach = Math.min(1, l.t / 0.07);
         A.set(sx, 1.1, sz); B.set(sx + (ex - sx) * reach, 1.0, sz + (ez - sz) * reach);
-        two[0].copy(A); two[1].copy(B);
-        sw = 0.16 * fade; this.halo.strip(two, glowFlatW, fade, LOOK.glow);
-        sw = 0.13 * (0.6 + 0.4 * fade); this.beam.strip(two, flatW, fade, LOOK.edge);
-        // the spearhead: a glint at the head
-        two[0].copy(B).addScaledVector(A.set(l.dx, 0, l.dz), -0.45); two[1].copy(B).addScaledVector(A, 0.15);
-        sw = 0.42 * fade; this.beam.strip(two, tipW, fade, WHITE);
-        A.set(sx, 1.1, sz);
+        const pts = this.fill(A, B);
+        sw = 0.16 * fade; this.halo.strip(pts, lanceGlowW, fade, LOOK.glow);
+        sw = 0.15 * (0.6 + 0.4 * fade); this.beam.strip(pts, lanceW, fade, LOOK.edge);
         for (let i = 0; i < 2; i++) this.bolt(A, B, l.seed * 17 + flick * 7 + i * 101, 0.02, 14, 0.05, fade);
       }
       // the charged lane: a faint line on the ground and small arcs crackling along it, faster as the
       // after-shock nears
       const charged = l.snapT < 0 && l.t > 0.12 && l.t < 0.75;
       if (charged || (l.snapT >= 0 && l.snapT < SNAP)) {
-        two[0].set(sx, 0.05, sz); two[1].set(ex, 0.05, ez);
         const glowK = l.snapT >= 0 ? 1 - l.snapT / SNAP : Math.min(1, (l.t - 0.12) / 0.15);
-        sw = 0.06; this.halo.strip(two, glowFlatW, 0.45 * glowK, LOOK.glow);
+        sw = 0.06; this.halo.strip(this.fill(A.set(sx, 0.05, sz), B.set(ex, 0.05, ez)), softW, 0.45 * glowK, LOOK.glow);
         if (charged) {
           const r = R2.seed(l.seed * 7 + flick), n = 1 + Math.floor(Math.min(1, (l.t - 0.12) / 0.33) * 3);
           for (let i = 0; i < n; i++) {

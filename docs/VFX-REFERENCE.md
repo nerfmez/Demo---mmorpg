@@ -537,3 +537,4 @@ the after-shock nears); the after-shock snaps two bolts along the whole lane at 
 get MaceFx's stun stars. The hero plays the bow shot (`shoot`); Shatter Arrow does too, Miasma Arrow the sky shot.
 Round 2 (owner: does not like the bursts): the ragged blue flashes at the bow, the lane's end and the
 after-shock are gone; the loose and the spearhead only pop a small clean four-point glint with sparks.
+Round 3 (owner: its head and tail were too square): the lance and its glow are now strips of 28 points, the tail rounding in from nothing at the bow and the head drawn out into a long point; the charged lane's line on the ground fades in and out at its ends.

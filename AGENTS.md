@@ -19,6 +19,7 @@ A playable web demo (one fixed-coordinate open world: Azure Coast, Greenhollow F
 - MMORPG feel first. Monsters have readable patterns with a visible wind-up. It is not a screen-clearing race.
 - Soft targeting: auto-lock only in range, switch by aim, release out of range, never auto-chase.
 - Basic attack is a normal, removable skill. The movement skill has its own slot.
+- A cooldown skill must answer why a player would stop pressing the main skill for it (owner, 2026-10-31): much stronger, lasting, a debuff or control, a buff, a combo or special ability, or mobility; its cooldown follows from that reason. An element never fixes a skill's role.
 - Mods change behaviour (split, pierce, chain, ground, echo, element, trigger), not just damage, and are limited by tags.
 - Character Level gives Stat Points. Job Level gives Job Points for the Job Tree. The Job is chosen later, not at creation. Respec costs in-game gold only.
 - Monsters drop their own parts, and every material must have a use (tested in `tests/core/data.test.js`).

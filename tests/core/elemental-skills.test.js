@@ -1,6 +1,6 @@
 // Elemental job skills (owner, 2026-10-31): plain skills, one per element, for the spell archer (bow) and
 // the spellblade (sword). Skills stay easy to understand; harder rules belong in the Job Tree or PvP
-// skills. Rules: core/frontier-content.js (melee_line afterShock, melee_arc discharge, endProjectile
+// skills. Rules: core/frontier-content.js (melee_line afterShock, a hit's shockCharge and chargeShock, endProjectile
 // shatter), core/game-simulation.js (zone ticks stack a skill's poison); numbers in data/skills.json.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -153,17 +153,46 @@ test('Flame Slash cuts a wide arc in front and burns; Ice Spikes runs a lane and
   }
 });
 
-test('Thunder Slash: the cut, then its charge bursts ahead a beat later and reaches past the blade', () => {
+test('Thunder Slash leaves a charge on what it cuts: each main-skill hit on it shocks once more, until the shocks or the time run out', () => {
+  const D = C.thunder_slash, Q = D.shockCharge, mainCd = data.progression.combat.mainSkillCooldown;
+  assert.ok(D.cooldown > mainCd && C.slash.cooldown <= mainCd && C.flame_slash.cooldown > mainCd);
   const { g, mk, s } = fixture('thunder_slash');
-  const D = C.thunder_slash, X = D.discharge;
-  const front = mk('front', 1.5, 0), reach = mk('reach', X.ahead + X.radius - 0.3, 0), behind = mk('behind', -3.5, 0);
-  g.monsters = [front, reach, behind];
+  const cut = mk('cut', 1.5, 0), away = mk('away', 6, 0);
+  g.monsters = [cut, away];
   g.executeSkill(s, aim);
-  assert.deepEqual(Object.keys(hitsOn(g)), ['front'], 'the cut reaches only its own range');
-  run(g, X.delay - 0.04);
-  assert.deepEqual(hitsOn(g), {}, 'the charge waits its beat');
-  run(g, 0.08);
-  const ev = g.drainEvents();
-  assert.deepEqual(ev.filter((e) => e.type === 'hit').map((e) => e.id).sort(), ['front', 'reach'], 'the burst ahead, not behind');
-  assert.ok(ev.some((e) => e.type === 'burst' && e.kind === 'discharge' && e.element === 'lightning'));
+  const cutDmg = 1e6 - cut.hp;
+  assert.ok(cut.statuses.charged && !away.statuses.charged, 'only what the cut reached');
+  g.drainEvents();
+  const hit = (m, skill) => { g.hitMonster(m, 100, { skill, element: 'physical' }); return g.drainEvents(); };
+  // a cooldown skill's hit does not spend it; an ally's hit or a damage-over-time tick does not either
+  assert.ok(!hit(cut, 'flame_slash').some((e) => e.type === 'chargeShock'));
+  g.hitMonster(cut, 100, { skill: 'slash', byAlly: true }); g.hitMonster(cut, 100, { dot: true, element: 'fire' });
+  assert.ok(!g.drainEvents().some((e) => e.type === 'chargeShock'));
+  for (let k = 0; k < Q.shocks; k++) {
+    const before = cut.hp, ev = hit(cut, 'slash');
+    const shock = ev.find((e) => e.type === 'hit' && e.element === 'lightning');
+    assert.ok(ev.some((e) => e.type === 'chargeShock') && shock, `shock ${k + 1}`);
+    assert.ok(Math.abs(shock.amount - cutDmg * Q.mult) <= 1, 'each shock is its share of the cut');
+    assert.ok(before - cut.hp > 100, 'on top of the main hit');
+  }
+  assert.ok(!cut.statuses.charged && !hit(cut, 'slash').some((e) => e.type === 'chargeShock'), 'spent after its shocks');
+  // the charge runs out with time
+  const f = fixture('thunder_slash'), m = f.mk('m', 1.5, 0); f.g.monsters = [m];
+  f.g.executeSkill(f.s, aim);
+  f.g.tickStatuses(m, Q.duration + 0.1);
+  f.g.drainEvents(); f.g.hitMonster(m, 100, { skill: 'slash', element: 'physical' });
+  assert.ok(!f.g.drainEvents().some((e) => e.type === 'chargeShock'), 'gone after its time');
+});
+
+test('every one of the seven is worth pressing over the main attack: several main hits per target, or control, or a lasting effect', () => {
+  const per = (id) => { const d = C[id]; return d.damage.base * (d.waves || 1) * (1 + (d.afterShock?.mult || 0)) * (1 + (d.shockCharge ? d.shockCharge.mult * d.shockCharge.shocks : 0)); };
+  const main = { bow: C.hunter_shot.damage.base, sword: C.slash.damage.base };
+  for (const id of ['fire_arrow_rain', 'thunder_lance', 'flame_slash', 'thunder_slash']) {
+    const w = C[id].requiresWeapon[0];
+    assert.ok(per(id) >= 2.5 * main[w], `${id}: ${(per(id) / main[w]).toFixed(1)} main hits per target`);
+  }
+  for (const id of ['frost_shatter_arrow', 'ice_spikes']) assert.ok(C[id].chill.slow >= 0.45 && C[id].chill.duration >= 2.5, `${id} controls`);
+  assert.ok(C.thunder_lance.afterShock.stun >= 0.5, 'Thunder Lance stuns long enough to break a wind-up');
+  assert.ok(C.poison_mist_arrow.duration >= 3, 'Miasma Arrow keeps working while the hero shoots');
+  for (const id of Object.keys(SKILLS)) assert.ok(C[id].cooldown >= 6, `${id}: a cooldown skill`);
 });

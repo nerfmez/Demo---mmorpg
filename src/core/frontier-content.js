@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','discharge'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -123,12 +123,6 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     if(A&&!triggered)g.later(A.delay,()=>strikeLane(g,s,x,z,a,s.range,mult*A.mult,{stun:{duration:A.stun,bossDuration:0}},true));
     return true;
   }
-  // Thunder Slash (s.discharge): the cut's charge bursts ahead of the hero a moment after the swing
-  // (the swing itself is the usual melee_arc below)
-  if(s.discharge&&s.kind==='melee_arc'&&!triggered){
-    const D=s.discharge,x=p.x+Math.sin(aim.angle)*D.ahead,z=p.z+Math.cos(aim.angle)*D.ahead;
-    g.later(D.delay,()=>!p.dead&&secondaryBurst(g,x,z,D.radius,s.damage*mult*D.mult,s.element,s.id,'discharge'));
-  }
   // Blink Draw (dash_line): the hero dashes along the aim (walls and cliffs stop it, no
   // invulnerability); the lane it crossed is cut when it arrives (Game.updatePlayer, strikeLane)
   if(s.kind==='dash_line'){
@@ -210,6 +204,18 @@ export function strikeLane(g,s,x,z,angle,range,mult,extra=null,after=false) {
   g.emit({type:'lineStrike',skill:s.id,x,z,angle,range,width:s.width,element:s.element,after});
 }
 
+/** Thunder Slash's charge: a hit from one of the hero's main skills (a base cooldown of at most
+ * progression.combat.mainSkillCooldown) on a charged monster shocks it once more in lightning, until its
+ * shocks or its time run out. */
+export function chargeShock(g,m,opts){
+  const c=m.statuses.charged;
+  if(!c||m.dead||opts.byAlly||opts.secondary||opts.dot||!opts.skill)return;
+  const def=g.data.skills.combat[opts.skill];
+  if(!def||def.cooldown>g.data.progression.combat.mainSkillCooldown)return;
+  c.shocks--;if(c.shocks<=0)delete m.statuses.charged;
+  g.emit({type:'chargeShock',id:m.id,x:m.x,z:m.z,left:Math.max(0,c.shocks)});
+  g.hitMonster(m,c.damage,{element:'lightning',secondary:true,skill:'thunder_slash'});
+}
 /** One more poison stack (up to pz.maxStacks), refreshed; every stack poisons for pz.stackDps x amount a second
  * (Venom Arrow's direct hits, Miasma Arrow's mist ticks). */
 export function stackPoison(g,m,pz,amount){
@@ -234,6 +240,8 @@ export function adjustFrontierHit(g,m,amount,opts) {
   // Venom Arrow: each direct hit adds a poison stack (up to maxStacks) and refreshes it; every stack
   // poisons for stackDps x this hit per second.
   if(opts.poison&&!opts.byAlly)stackPoison(g,m,opts.poison,amount);
+  // Thunder Slash: what it cuts keeps a charge (shocks, each a share of this hit) for the hero's main skills
+  if(opts.shockCharge&&!opts.byAlly){const C=opts.shockCharge;m.statuses.charged={t:C.duration,shocks:C.shocks,damage:amount*C.mult};g.emit({type:'charged',id:m.id,x:m.x,z:m.z,duration:C.duration});}
   if(opts.taunt){m.forcedTargetId=g.player.id;m.tauntT=Math.max(m.tauntT||0,opts.taunt.duration);}
   if(e.pull&&!m.boss){const a=angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z),d=Math.min(e.pull,dist(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z));g.moveEntity(m,Math.sin(a)*d,Math.cos(a)*d);}
   if(e.poisonFraction){const source=amount/(1-e.poisonFraction),old=m.statuses.poison;const next={dps:source*e.poisonFraction/e.poisonDuration,t:e.poisonDuration,acc:0,owner:'player'};if(!old||next.dps>=old.dps)m.statuses.poison=next;}

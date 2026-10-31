@@ -1418,8 +1418,12 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   - `afterShock` {delay, mult, stun} on a `melee_line` (Thunder Lance): `strikeLane` again after `delay`
     on the same lane (fixed where it was cast) at `mult`, every hit stunning `stun` s (bosses 0);
     `lineStrike` carries `after: true` for the second.
-  - `discharge` {delay, ahead, radius, mult} on a `melee_arc` (Thunder Slash): `delay` s after the swing a
-    `secondaryBurst` (kind `discharge`) of `radius` centred `ahead` m along the aim, at `mult`.
+  - `shockCharge` {duration, shocks, mult} on a hit (Thunder Slash, through `hitOpts`): each monster it hits
+    gets `statuses.charged` {t, shocks, damage: the hit's amount x mult} (event `charged`). `chargeShock`
+    (called from `Game.hitMonster` after a direct hit) spends one shock when the hit's skill is one of the
+    hero's main skills (base cooldown at most `progression.combat.mainSkillCooldown`, 1.5 s; not an ally,
+    a DoT tick or a secondary hit): event `chargeShock`, then a secondary lightning hit of that damage.
+    The status runs out with its time (`tickStatuses`) or its shocks.
   The build profile counts them (`build-rules.js` castDamage and the per-cast burst).
 - Melee arc swings in a row alternate `step` 0/1 within `comboWindow` (animation side only).
   Every swing is the same strike: there is no third-hit finisher, bonus or knockback.

@@ -165,9 +165,10 @@ export function buildProfile(data, spec) {
       const hits = hitsOf(s), perTarget = scen === 'pack' ? Math.min(pct('perTargetDamagePct') * hits, pct('perTargetCap') || Infinity) : 0;
       // a burst where a shot ends (a mod) and a free cast each time we dodge (a trigger mod)
       let burst = s.modEffects?.terminalBurst ? s.modEffects.terminalBurst * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.modEffects.burstRadius }, R.pack) : 1) / Math.max(1, hits) : 0;
-      // a skill's own second hits: Thunder Slash's discharge ahead, Shatter Arrow's shards (they fly on
+      // a skill's own second hits: Thunder Slash's charge (its shocks come with the main skill's hits on
+      // what it cut: all of them on a lone target, on one of a pack), Shatter Arrow's shards (they fly on
       // past the target the arrow struck, so only the rest of a pack takes them; a shot that never stops never breaks)
-      if (s.discharge) burst += s.discharge.mult * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.discharge.radius }, R.pack) : 1) / Math.max(1, hits);
+      if (s.shockCharge) burst += s.shockCharge.mult * s.shockCharge.shocks / (scen === 'pack' ? Math.max(1, hits) : 1);
       if (s.shatter && scen === 'pack' && s.pierce !== Infinity) burst += s.shatter.mult * Math.min(s.shatter.count, R.pack.size - 1) / Math.max(1, hits);
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
       // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there

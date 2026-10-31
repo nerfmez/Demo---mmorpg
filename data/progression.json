@@ -422,6 +422,7 @@
         "mods": {
           "release_burst": "its MP cost outweighs the measured gain on a Flame Stream that already drains its supply; awaiting the skill growth rebalance",
           "split": "over the mod band on venom_mire: awaiting a decision",
+          "pierce": "over the band only on ice_ball (2.1; 1.4 without its chill, as on frost_shatter_arrow): the team axis is scored as a ratio of two near-zero control shares (content-budget scoreGain), so a slow that reaches the pack reads as a fivefold team gain; awaiting a fix of that scoring, which moves the control and aura mods too",
           "chain_return": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "mana_siphon": "its stat sits off the side of the wheel of the skills it fits: the points the measured hero moves into it cost more than it adds; awaiting the mod review (phase 5)",
           "advancing_edge": "adds less than it costs on every skill it fits once its top-rank stat (AGI) is paid for; awaiting the mod review (phase 5)",

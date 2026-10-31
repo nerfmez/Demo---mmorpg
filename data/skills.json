@@ -169,6 +169,37 @@
       "icon": "fire",
       "upgradeStat": "INT"
     },
+    "ice_ball": {
+      "name": "Ice Ball",
+      "nameTh": "บอลน้ำแข็ง",
+      "desc": "ยิงบอลน้ำแข็งตรงไปข้างหน้า ตัวที่โดนช้าลง 30% นาน 2 วินาที",
+      "growth": "projectile",
+      "gradeMaterial": "sea_pearl",
+      "tags": [
+        "Spell",
+        "Projectile",
+        "Cold",
+        "Damage"
+      ],
+      "kind": "projectile",
+      "power": "spell",
+      "damage": {
+        "base": 250,
+        "scale": 2.7
+      },
+      "range": 13,
+      "speed": 11,
+      "projectileRadius": 0.35,
+      "cooldown": 1.6,
+      "castTime": 0.22,
+      "cost": 80,
+      "element": "cold",
+      "chill": { "slow": 0.3, "duration": 2 },
+      "requires": { "INT": 3, "VIT": 1 },
+      "upgradeMaterial": "glow_dust",
+      "upgradeStat": "INT",
+      "iconPending": true
+    },
     "chain_spark": {
       "name": "Chain Spark",
       "nameTh": "สายฟ้าโซ่",

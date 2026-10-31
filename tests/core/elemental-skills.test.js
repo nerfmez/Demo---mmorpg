@@ -275,3 +275,21 @@ test('the HUD status list: what a monster has now, in the display order, with ti
   assert.ok(Math.abs(L.find((s) => s.id === 'stun').left - 0.8) < 1e-9);
   for (const [id, d] of Object.entries(data.progression.combat.statusDisplay)) assert.ok(d.nameTh && /^#[0-9a-f]{6}$/i.test(d.color) && d.icon, id);
 });
+
+test('Ice Ball: a basic cold spell beside Firebolt - a main skill whose hit slows the one it strikes, learned at the workbench', () => {
+  const D = C.ice_ball, mainCd = data.progression.combat.mainSkillCooldown;
+  assert.ok(D.kind === 'projectile' && D.power === 'spell' && D.element === 'cold' && !D.job && D.iconPending, 'a plain spell, no job');
+  assert.ok(D.cooldown <= mainCd, 'a main skill: pressed again and again');
+  const r = data.recipes.recipes.learn_ice_ball, drops = new Set(Object.values(data.monsters.monsters).flatMap((m) => m.drops.map((d) => d.item)));
+  assert.ok(r?.result === 'ice_ball' && Object.keys(r.cost).every((k) => k === 'gold' || drops.has(k)), 'learned from real drops');
+  const { g, mk, s } = fixture('ice_ball');
+  const near = mk('near', 4, 0), behind = mk('behind', 6, 0);
+  g.monsters = [near, behind];
+  g.executeSkill(s, aim);
+  run(g, 1.2);
+  const by = hitsOn(g);
+  assert.equal(by.near, 1, 'it strikes the first in its path');
+  assert.ok(!by.behind, 'and stops there');
+  assert.ok(near.statuses.chill?.slow === D.chill.slow && Math.abs(near.statuses.chill.t - D.chill.duration) < 0.5, 'the struck one is slowed');
+  assert.ok(!behind.statuses.chill, 'nothing else is');
+});

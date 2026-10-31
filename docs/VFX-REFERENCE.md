@@ -603,3 +603,11 @@ short forks, held a beat and gone; each charged monster carries one small comet 
 shock left (the count reads at a glance) with an occasional crackle; each shock drops a bolt from above
 through the body into the ground. The sky bolt starts 2.6 m up and leans toward the camera so its top stays
 on screen under the high game camera.
+
+Ice Ball, round 1 (`iceball-fx.js`; a basic cold spell, a main skill beside Firebolt: a projectile that
+slows what it strikes). Its own identity apart from Firebolt's fire and Shatter Arrow's needles: a faceted
+crystal heart of see-through ice lit from within, inside a frost shell whose light streaks stream back
+along the flight, a soft cold glow, three small shards circling it, a misty trail and snow sparkles left
+twinkling along the path; motes spiral into the staff head as it is cast; on impact the heart is gone at
+once (it shatters), shards fly out and fall, a thin ring of frost light races out over the ground, a glint
+and a puff of mist.

@@ -1,6 +1,6 @@
 # Glimmer Wetland — standalone scene for owner review
 
-**Owner status: v2 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/LtzZcuBoJvjAwyF5D5YfZB).
+**Owner status: ผ่าน — approved, 31 October 2026** ("ผ่าน ต่อไป", artifact version 3, https://claude.ai/artifact/LtzZcuBoJvjAwyF5D5YfZB).
 
 Owner, on version 1: "กรวดใต้น้ำยังมองเห็นไม่ชัดเท่าในคอนเซป หินเป็นเหลี่ยมไม่ธรรมชาติ" (the pebbles under
 the water do not show as clearly as the concept's; the stones are boxy and unnatural). Version 2: the

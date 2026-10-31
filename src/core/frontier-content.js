@@ -1,7 +1,8 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
+import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -78,6 +79,7 @@ export function healUnit(g,u,amount,s,mult=1) {
 }
 export function executeFrontier(g,s,aim,mult,triggered) {
   const p=g.player,e=s.modEffects || {};
+  if(executeRogue(g,s,aim,mult))return true;
   if(s.channel){if(!p.channeling)startChannel(g,s);return true;}
   if(s.kind==='heal_target'){
     g.emit({type:'healCast',skill:s.id,x:p.x,z:p.z,radius:1.2});
@@ -310,6 +312,7 @@ export function wallBlocked(g,e,x,z){
 }
 export function tickFrontier(g,dt){
   const p=g.player;
+  tickRogue(g,dt);
   tickLightWalls(g);
   if(p.riposte&&g.time>Math.max(p.riposte.guardUntil,p.riposte.readyUntil))p.riposte=null;
   for(const [key,a] of Object.entries(p.auras||{})){
@@ -317,7 +320,13 @@ export function tickFrontier(g,dt){
     a.next-=dt;if(a.next>0)continue;a.next+=a.tick;
     for(const u of units(g))if(dist(p.x,p.z,u.x,u.z)<=a.skill.radius+u.r){
       if(a.skill.aura&&u===p)p.mp=Math.min(manaLimit(g),p.mp+a.skill.aura.mpRegen*a.tick);
-      if(a.skill.modEffects.buffAura){const k=a.skill.modEffects.buffAura;if(!u.buffs.war_cry||u.buffs.war_cry.damage<=a.skill.damageBuff*k)u.buffs.war_cry={t:a.tick*2,damage:a.skill.damageBuff*k,speed:a.skill.speedBuff*k};}
+      if(a.skill.modEffects.buffAura){
+        // Following Aura: the buff's own effects at k of their strength, kept topped up (its own entry, like a cast buff)
+        const k=a.skill.modEffects.buffAura,s=a.skill,old=u.buffs[s.id];
+        if(!old||(old.damage||0)<=(s.damageBuff||0)*k)u.buffs[s.id]={t:a.tick*2,damage:(s.damageBuff||0)*k,speed:(s.speedBuff||0)*k,
+          taken:s.takenMult&&s.takenMult!==1?1+(s.takenMult-1)*k:undefined,steady:s.steady,rage:s.rage?{max:s.rage.max*k,atHp:s.rage.atHp}:undefined,
+          leech:s.spirit?s.spirit.leech*k:undefined,mpHit:s.spirit?s.spirit.mp*k:undefined};
+      }
     }
   }
   p.mp=Math.min(p.mp,manaLimit(g));

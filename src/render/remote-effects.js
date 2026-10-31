@@ -13,6 +13,7 @@ export class RemoteEffects {
   spawn(id, action, rig) {
     if (this.active.length >= 24) return; // at most one short cue per accepted action
     const s = this.data.skills.combat[action.skill], p = rig.root.position;
+    if (s.kind === 'stealth' || s.kind === 'decoy') return; // a cue over the head would give the hidden player (or the real one) away
     let obj, duration = .6, frame, travel = false, texture;
     if (s.kind.startsWith('melee') || s.kind === 'counter_stance') {
       const cfg = FX.skills[action.skill]?.renderer === 'melee' ? FX.skills[action.skill] : FX.meleeDefaults;

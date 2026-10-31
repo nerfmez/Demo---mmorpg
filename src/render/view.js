@@ -936,7 +936,7 @@ export class View {
     this.heroAnim.update(dt, state);
     this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash, p);
-    r.root.visible = !(p.dash && p.dash.kind === 'blink' && p.dash.moved); // seen through the blink's gather, gone once it jumps
+    r.root.visible = !(p.dash && p.dash.kind === 'blink' && p.dash.moved) && !(p.stealthT > 0); // seen through the blink's gather, gone once it jumps; Stealth: SkillFx draws its ghost
     this.heroFlash = Math.max(0, (this.heroFlash || 0) - dt);
     setFlash(r.material, this.heroFlash > 0 ? 0.5 : 0, 0, p.statuses?.chill ? 0.25 : 0);
     updateScarf(r, dt, p.moving || p.dash ? 8 : 0);

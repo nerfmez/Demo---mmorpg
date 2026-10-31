@@ -34,6 +34,8 @@ import { StormFx } from './skillfx/storm-fx.js';
 import { ShadowFx } from './skillfx/shadow-fx.js';
 import { IronFx } from './skillfx/iron-fx.js';
 import { BuffFx, LOOKS as BUFF_LOOKS } from './skillfx/buff-fx.js';
+import { AuraFx, AURA_SHOUTS, AURA_LINGER, MOTE_GOLD } from './skillfx/aura-fx.js';
+import { copyRig, syncCopy, dropCopy, cloakMaterial } from './hero-copy.js';
 import { BlessFx } from './skillfx/bless-fx.js';
 import { AscendFx } from './skillfx/ascend-fx.js';
 import { VolleyFx } from './skillfx/volley-fx.js';
@@ -48,7 +50,7 @@ const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -57,7 +59,7 @@ const SWING_LEAD = 0.12;
 // the follow-through after the contact, seconds (default 0.28): a pose the owner wants time to read
 // a spinning skill's later spins (rules: each repeat follows repeatDelay + 0.1 s)
 const stormSpan = (s) => (s.repeats || 0) * ((s.repeatDelay || 0) + 0.1);
-const POST = { shield_rush: 0.6, faith_wall: 0.5, draw_cut: 0.95, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
+const POST = { shield_rush: 0.6, faith_wall: 0.5, stealth: 0.45, steal: 0.4, decoy: 0.5, draw_cut: 0.95, sky_shatter: 0.6, earth_rend: 0.5, blade_storm: 0.45, rapid_volley: 0.88, killing_arrow: 0.6 };
 export const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 
 /**
@@ -74,6 +76,7 @@ export class SkillFx {
   constructor(host) {
     this.host = host;
     const { scene, camera, renderer } = host;
+    this.scene = scene;
     this.slash = new SlashFx(scene, camera);
     this.fire = new FireExtras(scene, camera);
     this.chain = new ChainFx(scene, camera);
@@ -100,6 +103,9 @@ export class SkillFx {
     this.shadow = new ShadowFx(scene, camera);
     this.iron = new IronFx(scene, camera);
     this.buff = new BuffFx(scene, camera); this.buffBodies = [];
+    this.aura = new AuraFx(scene, camera); this.auraBodies = []; this.auraBlade = [new THREE.Vector3(), new THREE.Vector3()]; this.headV = new THREE.Vector3(); // each buff's own signature (skillfx/aura-fx.js)
+    // Stealth's ghost (only its own player sees the hidden hero) and Decoy's copies, by decoy id
+    this.ghost = null; this.ghostMat = cloakMaterial(THREE); this.decoyCopies = new Map();
     this.bless = new BlessFx(scene, camera);
     this.ascend = new AscendFx(scene, camera); // warp arrival and level-ups
     this.volley = new VolleyFx(scene, camera);
@@ -111,7 +117,7 @@ export class SkillFx {
     this.gs = new GreatshieldFx(scene, camera); // the guardian's greatshield skills
     this.lchain.locate = (id) => { for (const m of this.game.monsters) if (m.id === id) return m; return null; };
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs]) fx.onShake = shake;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
@@ -146,6 +152,27 @@ export class SkillFx {
     this.bladeTip.copy(this.bladeBase).addScaledVector(this.bladeDir, 1.0);
     this.bladeBase.addScaledVector(this.bladeDir, 0.25);
     this.rel(this.bladeBase); this.rel(this.bladeTip);
+  }
+  // Fighting Spirit: a mote of life from the struck monster to the one who hit (the hero, or the nearest buffed ally)
+  spiritMote(e) {
+    const g = this.game; let by = null;
+    if (!e.byAlly) by = g.player.buffs?.fighting_spirit ? g.player : null;
+    else { let bd = 1.5; for (const a of g.allies || []) { const d = Math.hypot(a.x - e.fromX, a.z - e.fromZ); if (!a.dead && a.buffs?.fighting_spirit && d < bd) { bd = d; by = a; } } }
+    const c = by && this.centerOf(e.id); if (c) this.aura.mote(c, by);
+  }
+  // the buffs' lasting signatures: the hero and its allies, its weapon (Rally's burning blade), its head (Berserk's eyes)
+  updateAuras(dt) {
+    const g = this.game, p = g.player, bodies = this.auraBodies; bodies.length = 0;
+    if (!p.dead) bodies.push(p);
+    for (const a of g.allies || []) if (!a.dead && a.buffs && Object.keys(a.buffs).length) bodies.push(a);
+    const rb = p.buffs?.blood_boil?.rage, rage = rb ? Math.min(1, Math.max(0, (1 - p.hp / p.maxHp) / (1 - rb.atHp))) : 0;
+    let blade = null, head = null;
+    if (p.buffs?.rally || p.buffs?.war_cry) { this.bladePoints(); blade = this.auraBlade; blade[0].copy(this.bladeBase); blade[1].copy(this.bladeTip); }
+    const hb = p.buffs?.berserk && this.host.rig()?.bones?.head;
+    if (hb) { hb.updateWorldMatrix(true, false); head = this.rel(hb.getWorldPosition(this.headV)); }
+    this.aura.update(dt, bodies, g.monsters, p, rage, blade, head);
+    // the hidden hero's ghost follows its pose (the real body is hidden by the view while p.stealthT > 0)
+    if (this.ghost) { this.ghostMat.userData.cloak.uTime.value += dt; if ((p.stealthT || 0) > 0 && !p.dead) syncCopy(this.ghost); else { dropCopy(this.ghost); this.ghost = null; } }
   }
   centerOf(id) { const b = this.host.body(id); return b ? this.center.set(b.x, b.h * 0.55, b.z) : null; }
   nextSwingStep() { this.swingStep = this.time - this.lastSwingAt < 1.2 ? (this.swingStep + 1) % 2 : 0; this.lastSwingAt = this.time; return this.swingStep; }
@@ -286,11 +313,38 @@ export class SkillFx {
       case 'buff': {
         if (e.kind === 'iron_body') { this.iron.harden(e.x, e.z, this.skillOf(e.kind)?.duration ?? 6); return true; }
         if (e.kind === 'blessing') { this.bless.bestow(e.x, e.z, e.radius); return true; }
-        if (!BUFF_LOOKS[e.kind]) return false;
+        if (!BUFF_LOOKS[e.kind] && !AURA_SHOUTS.has(e.kind)) return false;
         // party shouts (Rally): the ring to the true radius, and a mark over every body the buff reached
         const bodies = this.buffBodies; bodies.length = 0; bodies.push(g.player);
         for (const a of g.allies || []) if (!a.dead && Math.hypot(a.x - e.x, a.z - e.z) < e.radius) bodies.push(a);
+        // the buffs with their own signature (fire, wind, blood steam, a crimson aura): skillfx/aura-fx.js
+        if (AURA_SHOUTS.has(e.kind)) { this.aura.shout(e.kind, e.x, e.z, e.radius, bodies); return true; }
+        // Provoke: its marks go over the monsters it turned (the hero first only for the facing)
+        if (BUFF_LOOKS[e.kind].vein) for (const m of g.monsters) if (!m.dead && m.forcedTargetId === g.player.id && m.tauntT > 0) bodies.push(m);
         this.buff.shout(e.kind, e.x, e.z, e.radius, bodies);
+        if (BUFF_LOOKS[e.kind].vein) this.buff.marks[0].t = 9; // no mark over the hero
+        return true;
+      }
+      // the blade's trickery (core/rogue.js): Stealth, Decoy, Steal
+      case 'stealth': {
+        this.aura.shout('stealth', e.x, e.z, 0, this.buffBodies);
+        const rig = host.rig?.();
+        if (e.on && rig && !this.ghost) { this.ghost = copyRig(rig.root, this.ghostMat); this.scene.add(this.ghost.obj); }
+        if (!e.on && this.ghost) { dropCopy(this.ghost); this.ghost = null; }
+        return true;
+      }
+      case 'decoy': {
+        const rig = host.rig?.(); if (!rig) return true;
+        const c = copyRig(rig.root); this.scene.add(c.obj); this.decoyCopies.set(e.id, c); // the hero's own look, held in the pose it left
+        return true;
+      }
+      case 'decoyEnd': { const c = this.decoyCopies.get(e.id); if (c) { dropCopy(c); this.decoyCopies.delete(e.id); } this.aura.shout('stealth', e.x, e.z, 0, this.buffBodies); return true; }
+      case 'steal': this.aura.swipe(e.x, e.z, e.angle); return true;
+      case 'stealResult': {
+        if (e.empty) { host.banner?.('ขโมยไปแล้ว'); return true; }
+        const c = this.centerOf(e.id); if (c) for (let i = 0; i < 3; i++) this.aura.mote(c, g.player, MOTE_GOLD);
+        const name = e.item ? g.data.items.materials[e.item]?.nameTh || e.item : null;
+        host.banner?.(`ขโมย +${e.gold} ทอง${name ? ` · ${name}` : ''}`);
         return true;
       }
       // warp and level-ups (skillfx/ascend-fx.js)
@@ -299,6 +353,8 @@ export class SkillFx {
       case 'joblevelup': this.ascend.levelUp(g.player.x, g.player.z, true); return true;
       case 'guardStance': { const s = this.skillOf('riposte') || g.player.riposte?.skill; this.riposte.guard(e.duration, s?.guard?.arc || 110); return true; }
       case 'playerHit': {
+        // Stand Firm: the blow ripples the skin of light from the nearest monster's side
+        if (g.player.buffs?.stand_firm && !e.dot) { let near = null, nd = 9; for (const m of g.monsters) { const d = m.dead ? 9 : Math.hypot(m.x - g.player.x, m.z - g.player.z); if (d < nd) { nd = d; near = m; } } if (near) this.aura.ripple(g.player, near.x, near.z); }
         const r = g.player.riposte;
         if (!r || e.dot) return false;
         // the monster that struck: the nearest one in front within reach
@@ -379,6 +435,7 @@ export class SkillFx {
       }
       case 'poisonStack': { const b = host.body(e.id); if (b) host.float(b.x, b.h + 0.4, b.z, 'พิษ ×' + e.stacks, ELEMENT_COLOR.poison, e.stacks >= 5); return true; }
       case 'hit': {
+        if (!e.dot) this.spiritMote(e);
         if (e.dot || !SKILL_FX.has(e.skill)) return false;
         const c = this.centerOf(e.id); if (!c) return true;
         if (e.skill === 'flame_stream') this.flame.lick(c);
@@ -489,12 +546,14 @@ export class SkillFx {
     // party shouts: follow the hero through the shout, then a glow off every body still buffed
     this.buff.follow(p.x, p.z);
     for (const k of BUFF_KEYS) {
+      if (AURA_LINGER.has(k)) continue; // drawn by the auras below
       const bodies = this.buffBodies; bodies.length = 0;
       if (p.buffs?.[k] && !p.dead) bodies.push(p);
       for (const a of g.allies || []) if (!a.dead && a.buffs?.[k]) bodies.push(a);
       if (bodies.length) this.buff.linger(k, dt, bodies);
     }
     this.buff.update(dt);
+    this.updateAuras(dt);
     // Blessing of Light: a halo over every body holding it (skillfx/bless-fx.js)
     const blessed = this.bless.halos; blessed.length = 0;
     if (p.buffs?.blessing && !p.dead) blessed.push(p);
@@ -511,7 +570,9 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.ascend, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.ascend, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
+    for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;
   }
 }

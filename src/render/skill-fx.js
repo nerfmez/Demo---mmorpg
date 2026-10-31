@@ -45,6 +45,7 @@ import { BuffFx, LOOKS as BUFF_LOOKS } from './skillfx/buff-fx.js';
 import { AuraFx, AURA_SHOUTS, AURA_LINGER, MOTE_GOLD } from './skillfx/aura-fx.js';
 import { copyRig, syncCopy, dropCopy, cloakMaterial } from './hero-copy.js';
 import { BlessFx } from './skillfx/bless-fx.js';
+import { AscendFx } from './skillfx/ascend-fx.js';
 import { VolleyFx } from './skillfx/volley-fx.js';
 import { KillFx } from './skillfx/kill-fx.js';
 import { BellFx } from './skillfx/bell-fx.js';
@@ -122,6 +123,7 @@ export class SkillFx {
     // Stealth's ghost (only its own player sees the hidden hero) and Decoy's copies, by decoy id
     this.ghost = null; this.ghostMat = cloakMaterial(THREE); this.decoyCopies = new Map();
     this.bless = new BlessFx(scene, camera);
+    this.ascend = new AscendFx(scene, camera); // warp arrival and level-ups
     this.volley = new VolleyFx(scene, camera);
     this.kill = new KillFx(scene, camera);
     this.bell = new BellFx(scene, camera);
@@ -372,6 +374,10 @@ export class SkillFx {
         host.banner?.(`ขโมย +${e.gold} ทอง${name ? ` · ${name}` : ''}`);
         return true;
       }
+      // warp and level-ups (skillfx/ascend-fx.js)
+      case 'teleport': this.ascend.warp(g.player.x, g.player.z); return true;
+      case 'levelup': this.ascend.levelUp(g.player.x, g.player.z, false); return true;
+      case 'joblevelup': this.ascend.levelUp(g.player.x, g.player.z, true); return true;
       case 'guardStance': { const s = this.skillOf('riposte') || g.player.riposte?.skill; this.riposte.guard(e.duration, s?.guard?.arc || 110); return true; }
       case 'playerHit': {
         // Stand Firm: the blow ripples the skin of light from the nearest monster's side
@@ -608,6 +614,8 @@ export class SkillFx {
     for (const a of g.allies || []) if (!a.dead && a.buffs?.blessing) blessed.push(a);
     this.bless.follow(p.x, p.z);
     this.bless.update(dt);
+    this.ascend.follow(p.x, p.z);
+    this.ascend.update(dt);
     this.shadow.update(dt);
     this.gs.update(dt, p);
   }
@@ -616,7 +624,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.ascend, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

@@ -7,6 +7,7 @@ import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders,
 import {outsideClearingWeight,sceneKeep,seamBandAt} from './ground-regions.js';
 import {edgeCliffColliders} from './edge-cliffs.js';
 import { createRng } from './rng.js';
+export const WAYPOINT_SOLID = 1.5;
 import { pondEdgeDistance } from './ponds.js';
 import { clamp, dist, distToPolyline, distToPolylineBounds, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
@@ -286,7 +287,9 @@ export function createWorld(worldData) {
 
   // ---------- waypoints ----------
   const waypoints = (worldData.waypoints || []).map((wp) => ({ ...wp, x: wp.pos[0], z: wp.pos[1] }));
-  for (const wp of waypoints) addCircle({ x: wp.x, z: wp.z, r: 0.7, type: 'waypoint', id: wp.id, scale: 1, rot: 0 });
+  // the warp pillar's heap and broken stone ring are solid (render/waypoint-ruin.js, data/art.json
+  // waypointRuin: ring stones about 1.7-2 m out); arrival stands 2.2 m in front of the centre
+  for (const wp of waypoints) addCircle({ x: wp.x, z: wp.z, r: WAYPOINT_SOLID, type: 'waypoint', id: wp.id, scale: 1, rot: 0 });
   // Travel points to linked maps (data/maps). They sit on roads, so they add no collider.
   const exits = (worldData.exits || []).map((e) => ({ ...e, x: e.pos[0], z: e.pos[1] }));
   // Open edges shared with a neighbouring map: walking off one continues on the other.
@@ -688,6 +691,22 @@ export function createWorld(worldData) {
         }
       }
       decor.sceneShrubs.push(...shrubs);
+      // Flowers carry on from the scene into the map in small clumps over a wider ring, thinning
+      // outward, in the zone's own colours (owner, 31 October 2026: flowers all round a scene, not in
+      // one patch). Their own seed: the trees and shrubs above keep their places.
+      if (!cfg.flowers) continue;
+      const fl = { ...cfg.flowers, ...own.flowers }, fr = createRng((cfg.seed ^ hash(s.id) ^ 0x51f15) >>> 0), bloom = [];
+      for (let placed = 0, tries = 0; placed < fl.perScene && tries < fl.perScene * 6; tries++) {
+        const centre = pick(fr, s, fl);
+        if (!centre) continue;
+        for (let k = 0, n = fr.int(fl.clump[0], fl.clump[1]); k < n && placed < fl.perScene; k++) {
+          const a = fr.range(0, 6.28), d = k ? fr.range(0.3, fl.clumpRadius) : 0, x = centre[0] + Math.sin(a) * d, z = centre[1] + Math.cos(a) * d;
+          if (!inBounds(x, z, 1) || scenes.some((o) => sceneWeight(o, x, z) > 0.1) || isWater(x, z, 0.6) || isBeach(x, z, 0.5) || nearRoad(x, z, 0.4) || nearWaypoint(x, z, 2) || connectorClear(worldData, x, z, 0.6)) continue;
+          if (hf.slopeAt(x, z) > fl.slope || nearTown(x, z, 1) || bloom.some((o) => dist(x, z, o.x, o.z) < fl.spacing) || overlaps(x, z, 0.2)) continue;
+          bloom.push({ x, z, color: fr.pick(zoneDecor(zoneAt(x, z)).flowers), s: fr.range(fl.size[0], fl.size[1]) }); placed++;
+        }
+      }
+      decor.flowers.push(...bloom);
     }
   }
 

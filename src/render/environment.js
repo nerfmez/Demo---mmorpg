@@ -11,6 +11,7 @@ import {leafTexture,needleTexture,palmFrondTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
 import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell,palmTrunk,palmFrond} from './nature.js';
 import { inArtStudy, cloudCrownSteps, studyLeafTexture, lowShrubSteps, studyShrubTexture } from './art-study.js';
+import { waypointRuin } from './waypoint-ruin.js';
 import { attachGrassSurfaceSteps, grassMaterial } from './grass.js';
 import { meadowPlantSteps } from './meadow.js';
 import { walkSurfaceMaterial } from './walk-surface.js';
@@ -539,10 +540,10 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   for (const bn of d.banners) root.add(banner(bn.x, gy(bn.x, bn.z), bn.z, bn.color));
 
   yield;
-  // waypoint stones (the view lights them up once discovered)
+  // waypoints: the arrival beach's warp pillar, a heap of carved blocks until unlocked (the view rebuilds it)
   const waypoints = new Map();
   for (const wp of world.waypoints) {
-    const g = waypointStone();
+    const g = waypointRuin([...String(wp.id)].reduce((h, c) => Math.imul(h, 31) + c.charCodeAt(0) >>> 0, 7));
     g.position.set(wp.x, gy(wp.x, wp.z), wp.z);
     root.add(g);
     waypoints.set(wp.id, g);
@@ -734,25 +735,6 @@ function banner(x, y, z, color) {
   m.castShadow = true;
   g.add(m);
   return g;
-}
-
-function waypointStone() {
-  const g = new THREE.Group();
-  const base = outlined(new THREE.CylinderGeometry(1.1, 1.3, 0.35, 8), toon('#a7a2b4'), { outline: '#4e4760', width: 0.03 });
-  base.position.y = 0.17;
-  g.add(base);
-  const stone = new THREE.CylinderGeometry(0.28, 0.42, 2.2, 6);
-  stone.translate(0, 1.4, 0);
-  const obelisk = outlined(stone, toon('#bdb6cc'), { outline: '#4e4760', width: 0.03 });
-  g.add(obelisk);
-  const crystalMat = new THREE.MeshToonMaterial({ color: new THREE.Color('#9fb4c8'), gradientMap: toon('#ffffff').gradientMap, emissive: new THREE.Color('#223344'), emissiveIntensity: 1 });
-  const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), crystalMat);
-  crystal.scale.set(0.8, 1.4, 0.8);
-  crystal.position.y = 2.95;
-  crystal.castShadow = true;
-  g.add(crystal);
-  g.userData.crystal = crystal;
-  return outlineStructure(g);
 }
 
 function* townSteps(world,rng,{adopt}={}) {

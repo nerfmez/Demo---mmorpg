@@ -611,3 +611,16 @@ along the flight, a soft cold glow, three small shards circling it, a misty trai
 twinkling along the path; motes spiral into the staff head as it is cast; on impact the heart is gone at
 once (it shatters), shards fly out and fall, a thin ring of frost light races out over the ground, a glint
 and a puff of mist.
+
+## Warp and level-up, round 1 (2026-10-31)
+
+Owner: "ปรับปรุงเอฟเฟค วาปกับเลเวลอัป" (the old ones were a flat additive cylinder and a puff of sparks).
+Built in `skillfx/ascend-fx.js` with Blessing of Light's techniques: a column of light carved from
+flowing noise (two-way: dropping for the warp, rising for a level), tapered helix ribbons, a rune
+circle on the ground like the warp pillar's, a flare, star sprites and spark streaks. Colours: the
+pillar's cyan for the warp, gold for a character level, violet for a job level. First frames on sand
+read washed out (additive disc, hot-white mix) and the rising front was a straight cut: the disc now
+draws with normal blending, the column mixes more of its tint, and the front is torn by the noise and
+faded in. Still to judge on the owner's review: the white ring cores, and whether the level-up wants
+a bigger finish.
+

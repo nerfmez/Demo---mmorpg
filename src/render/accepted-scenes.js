@@ -14,6 +14,13 @@ import {createAcceptedScene as camp} from './accepted-scenes/moonstone-camp.js';
 import {createAcceptedScene as pond} from './accepted-scenes/mirror-pond.js';
 import {createAcceptedScene as fern} from './accepted-scenes/fern-rise.js';
 import {createAcceptedScene as ring} from './accepted-scenes/stone-ring.js';
+import {createAcceptedScene as sunnyMeadow} from './accepted-scenes/sunny-meadow.js';
+import {createAcceptedScene as brambleGlade} from './accepted-scenes/bramble-glade.js';
+import {createAcceptedScene as greyfangDen} from './accepted-scenes/greyfang-den.js';
+import {createAcceptedScene as glimmerWetland} from './accepted-scenes/glimmer-wetland.js';
+import {createAcceptedScene as cragHighlands} from './accepted-scenes/crag-highlands.js';
+import {createAcceptedScene as frontierSettlement} from './accepted-scenes/frontier-settlement.js';
+import {createAcceptedScene as sunfallCoast} from './accepted-scenes/sunfall-coast.js';
 import {acceptedScenes,connectorClear,sceneWeight,sceneSample,sceneLift} from '../core/accepted-scenes.js';
 import {distToPolyline} from '../core/math.js';
 import {timeUniform} from './patch.js';
@@ -25,7 +32,7 @@ import {edgeCliffGeometry} from './edge-cliffs.js';
 import {animeConfig,animeFoliageMaterial,animeTrunkMaterial} from './anime-study.js';
 import {hullMaterial} from './patch.js';
 import {grassMaterial,attachGrassSurfaceSteps} from './grass.js';
-const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose,'ranger-forest':ranger,'gull-headland':headland,'root-warren':warren,'moonstone-camp':camp,'mirror-pond':pond,'fern-rise':fern,'stone-ring':ring};
+const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose,'ranger-forest':ranger,'gull-headland':headland,'root-warren':warren,'moonstone-camp':camp,'mirror-pond':pond,'fern-rise':fern,'stone-ring':ring,'sunny-meadow':sunnyMeadow,'bramble-glade':brambleGlade,'greyfang-den':greyfangDen,'glimmer-wetland':glimmerWetland,'crag-highlands':cragHighlands,'frontier-settlement':frontierSettlement,'sunfall-coast':sunfallCoast};
 export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  const root=new THREE.Group();root.name='accepted-concept-scenes';adopt?.(root);
  const animations=[],waypoints=new Map(),textures=new Set(),depthMaterials=new Set();let cliffLook=null;
@@ -49,6 +56,9 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
   // Animated parts are not baked: they move whole with the ground edit under them (lift).
   for(const o of [result.landmark?.rotor,result.waypoint?.root])if(o)seatWhole(world,spec,o);
   const meshes=[];source.traverse(o=>{if(o.isMesh||o.isPoints)meshes.push(o);});
+  // the map's warp pillars (render/waypoint-ruin.js) stand clear of the scene's plants; a scene that
+  // draws its own pillar keeps its authored planting round it
+  const own=result.waypoint?spec.waypoint?.id||'landing':null,pillars=(world.waypoints||[]).filter(w=>w.id!==own);
   // repair connectors pruned by their boxes (the check runs for every vertex)
   const repairs=world.data.acceptedScenes.connectors.filter(r=>r.repair).map(r=>{const pad=r.width/2+2.5,xs=r.points.map(p=>p[0]),zs=r.points.map(p=>p[1]);return {r,box:[Math.min(...xs)-pad,Math.max(...xs)+pad,Math.min(...zs)-pad,Math.max(...zs)+pad]};});
   const nearRepair=(x,z)=>repairs.some(({r,box})=>x>=box[0]&&x<=box[1]&&z>=box[2]&&z<=box[3]&&distToPolyline(x,z,r.points)<r.width/2+2.5);
@@ -73,7 +83,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
      // Every instance stands on the ground the player walks on (feather, seams,
      // connectors and shore all move it); only those at the very edge are left out,
      // and ground cover where the game's sea runs over the scene's old shore.
-     if(sceneWeight(spec,p.x,p.z)<.1||connectorClear(world.data,p.x,p.z,1.2)||edgeCliffCover(world.data,p.x,p.z,1.6))continue;
+     if(sceneWeight(spec,p.x,p.z)<.1||connectorClear(world.data,p.x,p.z,1.2)||edgeCliffCover(world.data,p.x,p.z,1.6)||pillars.some(w=>Math.hypot(p.x-w.x,p.z-w.z)<3.2))continue;
      if(cover&&spec.shore&&p.y-sceneSample(spec,'heights',p.x,p.z)<1&&world.inSea(p.x,p.z))continue;
      m.elements[13]+=world.groundY(p.x,p.z)-sceneSample(spec,'heights',p.x,p.z);
      mesh.setMatrixAt(count,m);if(mesh.instanceColor){mesh.getColorAt(i,color);mesh.setColorAt(count,color);}count++;
@@ -81,7 +91,8 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
     mesh.count=count;mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;
     // As the map's own plants: one piece per chunk, so a camera or the sun's shadow
     // box draws only the pieces it reaches (grass keeps its own per-clump culling).
-    placed=kind==='grass'||!foliage?.chunk?[mesh]:splitInstances(mesh,foliage.chunk);
+    // A set under chunkMin instances (a scene's few trees) stays one piece: one draw call.
+    placed=kind==='grass'||!foliage?.chunk||mesh.count<(foliage.chunkMin||0)?[mesh]:splitInstances(mesh,foliage.chunk);
     if(kind)for(const part of placed)yield* gameFoliageSteps(world,part,kind,gameMaterial,foliage,root);
    }else{
     // Copy before baking: hulls may share a geometry with their visible surface.

@@ -28,6 +28,7 @@ import { startRegion, regionSteps, placeRegion, disposeRegion } from './region.j
 import { prepareResidentWorld, updateResidentVisibility, restoreResidentVisibility } from './resident-world.js';
 import { prepareSpatialRegion } from './spatial-region.js';
 import { cachedHeroLook } from './hero-look-cache.js';
+import { updateWaypointRuin } from './waypoint-ruin.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 import { GAME_CAMERA_OFFSET, cameraOffset } from './game-camera.js';
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
@@ -705,7 +706,7 @@ export class View {
         if (e.boss) this.addShake(0.6);
         break;
       case 'levelup':
-        v.levelUp(g.player.x, g.player.z);
+        if (!drawn) v.levelUp(g.player.x, g.player.z); // else skillfx/ascend-fx.js
         break;
       case 'playerHit':
         if (!e.dot && e.amount > 0) {
@@ -737,7 +738,7 @@ export class View {
         v.waypointUnlock(e.x, e.z);
         break;
       case 'teleport':
-        v.teleport(e.x, e.z);
+        if (!drawn) v.teleport(e.x, e.z); // else skillfx/ascend-fx.js
         this.snapCamera();
         break;
       case 'respawn':
@@ -1025,18 +1026,14 @@ export class View {
       this.vfx.syncAreas(g, dt, time);
       this.frontierFx.sync(g,dt,time);
       this.vfx.syncTelegraphs(g);
-      // waypoint stones glow once discovered
+      // waypoints rebuild themselves from their heap once discovered (render/waypoint-ruin.js)
       for (const [key, stone] of this.waypointStones) {
         stone.visible = visibility.intersectsObject(stone, 5, 1.5);
         if (!stone.visible) continue;
         const id = stone.userData.waypointId ?? key;
         const on = g.isWaypointUnlocked?.(id, stone.userData.worldId);
         if(stone.userData.updateAccepted){stone.userData.updateAccepted(dt,time,on,g.player.x,g.player.z);continue;}
-        const c = stone.userData.crystal;
-        c.material.emissive.set(on ? '#3fb8e8' : '#223344');
-        c.material.emissiveIntensity = on ? 0.9 + Math.sin(time * 3) * 0.25 : 1;
-        c.position.y = 2.95 + (on ? Math.sin(time * 2) * 0.12 : 0);
-        c.rotation.y = on ? time : 0;
+        updateWaypointRuin(stone, !!on, dt, time);
       }
       for(const region of this.regions.values())for(const a of region.acceptedAnimations||[])a.update(dt,time,false);
       // target ring (while a drag on Backstab picks its target, the one it points at)

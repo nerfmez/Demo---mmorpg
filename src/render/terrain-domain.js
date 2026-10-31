@@ -16,9 +16,10 @@ export function sceneBeach(data) {
   if (!cfg) return () => base;
   const scenes = acceptedScenes(data);
   return (x, z) => {
-    let w = 0;
-    for (const s of scenes) { const q = s.bounds; w = Math.max(w, 1 - smooth(0, cfg.fade, Math.hypot(Math.max(q[0] - x, 0, x - q[1]), Math.max(q[2] - z, 0, z - q[3])))); }
-    return base + (cfg.width - base) * w;
+    // beach.scene[id] is one scene's own width (Sunfall Coast's narrow strip by its bay); the nearest scene's counts
+    let w = 0, width = cfg.width;
+    for (const s of scenes) { const q = s.bounds, k = 1 - smooth(0, cfg.fade, Math.hypot(Math.max(q[0] - x, 0, x - q[1]), Math.max(q[2] - z, 0, z - q[3]))); if (k > w) { w = k; width = cfg.scene?.[s.id] ?? cfg.width; } }
+    return base + (width - base) * w;
   };
 }
 export function terrainDomain(world, lookup) {

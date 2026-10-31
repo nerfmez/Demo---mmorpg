@@ -1,14 +1,17 @@
 // Breakbeat Slam (mace; bench trial: it stuns whatever it hits), in the bench's light-and-ribbon
 // language. The slam lands on the rules' 'slash' contact: a heavy ground impact in front (a glow
 // that pops, upward rays, two shock rings racing out over the 65 degree cone) and a hard burst on
-// each struck target, which is then stunned: little stars of light circle its head for the stun.
+// each struck target, which is then stunned. Every stun in the game (the rules' 'stunned') is drawn here:
+// swirling lines circle its head for the stun (owner, 2026-10-31: the earlier little stars read as something
+// else) - three comet-like strokes of light, thick at their head and thinning behind, orbiting on a tilted ring.
 // (windup()/the red "!" warning remain for monsters that wind up an attack; a stunned target's
 // warning shatters.) Cosmetic only.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 const EDGE = [1.0, 0.93, 0.7], GLOW = [0.95, 0.65, 0.25], WARN = [1.0, 0.25, 0.15], WARN_GLOW = [0.9, 0.12, 0.05];
-const BURSTS = 6, RAYS = 10, RING_PTS = 25, ICONS = 6, STARS = 4;
+const BURSTS = 6, RAYS = 10, RING_PTS = 25, ICONS = 6, SWIRLS = 3, SWIRL_PTS = 14, SPAN = 1.45;
+const DAZE = [1.0, 0.95, 0.62], DAZE_GLOW = [0.95, 0.72, 0.3];
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.9) discard;
     vec3 c = d < 0.4 ? mix(vT, vec3(1.0,0.98,0.92), 0.8) : vT; gl_FragColor=vec4(c, vA); }`;
@@ -34,12 +37,8 @@ const warnTex = () => canvasTexture((g) => {
   g.fillStyle = '#fff4e8'; g.beginPath(); g.moveTo(54, 30); g.lineTo(74, 30); g.lineTo(69, 76); g.lineTo(59, 76); g.closePath(); g.fill();
   g.beginPath(); g.arc(64, 92, 9, 0, 6.283); g.fill();
 });
-// a small four-point star for the stun
-const starTex = () => canvasTexture((g) => {
-  g.beginPath();
-  for (let i = 0; i < 8; i++) { const a = (i / 8) * 6.283 - Math.PI / 2, r = i % 2 ? 18 : 56; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); }
-  g.closePath(); g.fillStyle = '#fff1a0'; g.fill(); g.lineWidth = 7; g.strokeStyle = '#8a5a00'; g.stroke();
-});
+// a swirl stroke: thin at its tail (x 0), thick at its head (x 1), with a rounded-off tip
+const swirlW = (x) => stripW * (0.15 + 0.85 * x) * Math.min(1, (1 - x) * 8 + 0.35), swirlGlowW = (x) => swirlW(x) * 2.6;
 
 export class MaceFx {
   constructor(scene, camera) {
@@ -47,10 +46,10 @@ export class MaceFx {
     this.glow = new Ribbon(scene, camera, 4000, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
     const sprite = (map, opts, order) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthWrite: false, transparent: true, ...opts })); sp.visible = false; sp.renderOrder = order; scene.add(sp); return sp; };
-    const g = glowTex(), w = warnTex(), st = starTex();
+    const g = glowTex(), w = warnTex();
     this.bursts = Array.from({ length: BURSTS }, () => ({ sp: sprite(g, { blending: THREE.AdditiveBlending }, 9), t: 9, life: 0.3, size: 1, pos: new THREE.Vector3(), rays: Array.from({ length: RAYS }, () => ({ d: new THREE.Vector3(), len: 1 })) }));
     this.icons = Array.from({ length: ICONS }, () => ({ sp: sprite(w, { depthTest: false, toneMapped: false }, 10), id: null, t: 0, total: 1 }));
-    this.stars = Array.from({ length: ICONS * STARS }, () => sprite(st, { depthTest: false, toneMapped: false }, 10));
+    this.swirl = Array.from({ length: SWIRL_PTS }, () => new THREE.Vector3());
     this.stunned = []; this.rings = []; this.shards = [];
     this.burstI = 0; this.rnd = mulberry32(47); this.t = 0;
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
@@ -154,25 +153,27 @@ export class MaceFx {
       for (let i = 0; i < RING_PTS; i++) { const a = (i / (RING_PTS - 1)) * 6.283 * u; this.pts[i].set(head.x + Math.sin(a) * 0.55, 0.05, head.z + Math.cos(a) * 0.55); sub.push(this.pts[i]); }
       stripW = 0.05; this.glow.strip(sub, lineGlowW, 0.7, WARN_GLOW); this.core.strip(sub, lineW, 0.9, WARN);
     }
-    // stun: stars circling the head
-    let n = 0;
+    // stun: swirling strokes circling the head on a tilted ring (each from its tail up to its leading head)
     for (const s of this.stunned) {
       s.t += dt;
-      const head = headOf(s.id) || s.head, fade = Math.min(1, (s.duration - s.t) / 0.15);
-      for (let k = 0; k < STARS && n < this.stars.length; k++) {
-        const sp = this.stars[n++], a = s.t * 7 + k * (6.283 / STARS);
-        sp.visible = true; place(sp, head.x + Math.cos(a) * 0.38, head.y + 0.22 + Math.sin(a * 2) * 0.04, head.z + Math.sin(a) * 0.38);
-        sp.scale.setScalar(0.3 * Math.min(1, s.t / 0.1) * (0.85 + 0.15 * Math.sin(this.t * 20 + k))); sp.material.opacity = Math.max(0, fade);
+      const head = headOf(s.id) || s.head; if (!head) continue;
+      const fade = Math.max(0, Math.min(1, (s.duration - s.t) / 0.15)) * Math.min(1, s.t / 0.1), R = 0.4 * (0.7 + 0.3 * Math.min(1, s.t / 0.12));
+      const tilt = 0.24 + 0.05 * Math.sin(this.t * 3 + s.duration), y0 = head.y + 0.12;
+      for (let k = 0; k < SWIRLS; k++) {
+        const lead = s.t * 7.5 + k * (6.283 / SWIRLS);
+        for (let i = 0; i < SWIRL_PTS; i++) {
+          const a = lead - SPAN * (1 - i / (SWIRL_PTS - 1));
+          this.swirl[i].set(head.x + Math.cos(a) * R, y0 + Math.sin(a) * R * tilt + 0.03 * Math.sin(a * 2), head.z + Math.sin(a) * R);
+        }
+        stripW = 0.065; this.glow.strip(this.swirl, swirlGlowW, 0.75 * fade, DAZE_GLOW); this.core.strip(this.swirl, swirlW, fade, DAZE);
       }
     }
-    for (let i = n; i < this.stars.length; i++) this.stars[i].visible = false;
     compact(this.stunned, this.stunAlive);
     this.core.end(); this.glow.end();
   }
   clear() {
     for (const b of this.bursts) { b.t = 9; b.sp.visible = false; }
     for (const ic of this.icons) { ic.id = null; ic.sp.visible = false; }
-    for (const sp of this.stars) sp.visible = false;
     this.stunned.length = 0; this.rings.length = 0; for (const q of this.shards) this.free.push(q); this.shards.length = 0;
   }
 }

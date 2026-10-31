@@ -6,7 +6,7 @@
 // 15 times a second) wound round it - then fades, leaving the lane charged: a faint line on the ground
 // with small arcs crackling along it, faster as the after-shock nears. On the second 'lineStrike'
 // (after: true) the lane snaps again at once at knee height, harder, and what it stuns gets the stun
-// stars (MaceFx, from 'stunned'). Cosmetic only.
+// stun swirl (MaceFx, from 'stunned'). Cosmetic only.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, lookOf } from './fx-common.js';
 import { CRACKLE_FS, BOLT_GLOW_FS, Rng, zig } from './chain-fx.js';

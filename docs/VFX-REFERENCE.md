@@ -670,3 +670,8 @@ over the fangs), and the bench's walking dummies now stay put while stunned or r
 snowflake?" - the frost under the jaw is now a six-armed snowflake of frost light (each arm with three
 pairs of branches at 60 degrees, a small fork at its tip, a hexagon at the heart, thin lines in a soft
 halo) drawn out from the middle to the true radius, turned at random each time.
+
+Stun mark (every stun in the game, `mace-fx.js` on the rules' `stunned`). Owner: the little stars over a
+stunned head read as something else; make it swirling lines. Now three short comet-like strokes of warm
+light (thick at their leading head, thinning behind) orbit the head on a tilted ring for the stun, fading
+in and out; no sprites.

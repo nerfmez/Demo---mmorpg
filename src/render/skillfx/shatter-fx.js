@@ -7,7 +7,7 @@
 //   ground over the hit's fan sinks into a fan-shaped pit; blunt slabs of ground are pried up row after
 //   row over the true arc and range, tilted outward, each row a beat later, dust rolling off them (a stun is blunt force:
 //   no sharp spikes, owner review); the pebbles are thrown up and forward with the blade and fall;
-//   a warm light; a heavy shake (the director). Struck monsters get Breakbeat Slam's stun stars
+//   a warm light; a heavy shake (the director). Struck monsters get Breakbeat Slam's stun swirl
 //   (MaceFx.hit). Cosmetic only.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, flashMaterial, tintFlash, place, placeV, conformPlane, addLight, BILLBOARD_VS } from './fx-common.js';

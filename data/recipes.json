@@ -1993,7 +1993,7 @@
     "learn_thunder_lance": {"type":"skill","result":"thunder_lance","cost":{"storm_quill":3,"hawk_feather":1,"gold":60}},
     "learn_poison_mist_arrow": {"type":"skill","result":"poison_mist_arrow","cost":{"spore_sac":3,"venom_gland":2,"gold":55}},
     "learn_flame_slash": {"type":"skill","result":"flame_slash","cost":{"wisp_core":2,"glow_dust":3,"gold":50}},
-    "learn_ice_blade_thrust": {"type":"skill","result":"ice_blade_thrust","cost":{"sea_pearl":2,"crab_shell":3,"gold":55}},
+    "learn_ice_spikes": {"type":"skill","result":"ice_spikes","cost":{"sea_pearl":2,"crab_shell":3,"gold":55}},
     "learn_thunder_slash": {"type":"skill","result":"thunder_slash","cost":{"storm_quill":2,"rune_core":1,"gold":60}},
     "learn_blessing": {"type":"skill","result":"blessing","cost":{"sea_pearl":3,"glow_dust":3,"gold":55}},
     "learn_rapid_volley": {"type":"skill","result":"rapid_volley","cost":{"storm_quill":3,"hawk_feather":2,"gold":50}},

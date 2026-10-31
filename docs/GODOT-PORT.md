@@ -1409,7 +1409,7 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
 - Elemental job skills (2026-10-31, `tests/core/elemental-skills.test.js`; plain skills, one element
   each, for the spell archer `spellarcher` and the spellblade): Flame Arrow Rain (`ground_area` with
   `waves`, `burnChance`), Miasma Arrow (`dot_zone` + `poison`), Flame Slash (a wide `melee_arc`),
-  Ice Blade Thrust (`melee_line` + `chill`), and three new fields:
+  Ice Spikes (`melee_line` + `chill`), and three new fields:
   - `shatter` {count, arc, range, mult, speed} on a projectile (Shatter Arrow): when a monster stops the
     arrow (`pr.stopOn`, set in `updateProjectiles`), `endProjectile` fans `count` shard projectiles
     (`shard: true`, same kind, `damage × mult`, their `hit` set copied so the struck monster is never hit

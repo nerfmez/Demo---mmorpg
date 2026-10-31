@@ -2023,14 +2023,14 @@
       "job": "spellblade",
       "iconPending": true
     },
-    "ice_blade_thrust": {
-      "name": "Ice Blade Thrust",
-      "nameTh": "ดาบน้ำแข็งแทง",
-      "desc": "แทงไปข้างหน้า ใบดาบน้ำแข็งยาวยื่นออกไป 6 ม. โดนทุกตัวในแนว ช้าลง 45% นาน 2.5 วินาที ต้องถือดาบ",
+    "ice_spikes": {
+      "name": "Ice Spikes",
+      "nameTh": "หนามน้ำแข็ง",
+      "desc": "ปักดาบลงพื้น หนามน้ำแข็งแทงขึ้นจากดินเป็นแนวตรงไปข้างหน้า 6 ม. โดนทุกตัวในแนว ช้าลง 45% นาน 2.5 วินาที ต้องถือดาบ",
       "tags": [
         "Attack",
         "Melee",
-        "Strike",
+        "Slam",
         "Line",
         "Cold",
         "Damage",

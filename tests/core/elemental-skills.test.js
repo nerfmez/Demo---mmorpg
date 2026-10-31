@@ -12,7 +12,7 @@ import { craft } from '../../src/core/crafting.js';
 
 const SKILLS = {
   fire_arrow_rain: ['spellarcher', 'fire'], frost_shatter_arrow: ['spellarcher', 'cold'], thunder_lance: ['spellarcher', 'lightning'], poison_mist_arrow: ['spellarcher', 'poison'],
-  flame_slash: ['spellblade', 'fire'], ice_blade_thrust: ['spellblade', 'cold'], thunder_slash: ['spellblade', 'lightning'],
+  flame_slash: ['spellblade', 'fire'], ice_spikes: ['spellblade', 'cold'], thunder_slash: ['spellblade', 'lightning'],
 };
 const C = data.skills.combat;
 
@@ -133,7 +133,7 @@ test('Miasma Arrow: the mist poisons on each tick and its poison stacks up to th
   assert.ok(g.drainEvents().some((e) => e.type === 'hit' && e.element === 'poison'));
 });
 
-test('Flame Slash cuts a wide arc in front and burns; Ice Blade Thrust runs a lane and chills', () => {
+test('Flame Slash cuts a wide arc in front and burns; Ice Spikes runs a lane and chills', () => {
   {
     const { g, mk, s } = fixture('flame_slash');
     const D = C.flame_slash, half = D.arc / 2 - 8, r = D.range - 0.6;
@@ -143,8 +143,8 @@ test('Flame Slash cuts a wide arc in front and burns; Ice Blade Thrust runs a la
     assert.deepEqual(Object.keys(hitsOn(g)).sort(), ['front', 'wide', 'wideR'], 'the whole wide arc, nothing behind or past it');
   }
   {
-    const { g, mk, s } = fixture('ice_blade_thrust');
-    const D = C.ice_blade_thrust;
+    const { g, mk, s } = fixture('ice_spikes');
+    const D = C.ice_spikes;
     const a = mk('a', 1.5, 0), b = mk('b', D.range - 0.4, 0.3);
     g.monsters = [a, b, mk('past', D.range + 1.5, 0), mk('beside', 3, D.width / 2 + 1.5)];
     g.executeSkill(s, aim);

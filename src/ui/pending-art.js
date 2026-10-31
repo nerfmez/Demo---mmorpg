@@ -38,7 +38,7 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   thunder_lance: 'ศรอัสนีทะลวง',
   poison_mist_arrow: 'ศรหมอกพิษ',
   flame_slash: 'ฟันเพลิง',
-  ice_blade_thrust: 'ดาบน้ำแข็งแทง',
+  ice_spikes: 'หนามน้ำแข็ง',
   thunder_slash: 'ฟันสายฟ้า',
 });
 

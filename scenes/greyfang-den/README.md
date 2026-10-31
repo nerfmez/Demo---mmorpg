@@ -1,6 +1,6 @@
 # Greyfang Den — standalone scene for owner review
 
-**Owner status: v2 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/AnnrDso4qWxFxenA6KNvf4).
+**Owner status: ผ่าน — approved, 31 October 2026** ("โอเคอต่อ", artifact version 2, https://claude.ai/artifact/AnnrDso4qWxFxenA6KNvf4).
 
 Owner, on version 1: "ถ้าทำเป็นถ้ำเลยไม่ต้องอิงตามเรฟมาก" (make it a real cave, the reference need not be
 followed closely), choosing a real cave mouth that can be walked into. The painted dark mouth is now

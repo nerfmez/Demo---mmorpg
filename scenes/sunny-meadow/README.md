@@ -32,3 +32,15 @@ earth apron, the ruins' warm colours), `fill.js`, `routes.js` (`south`, `west`, 
 `dial.js` (the sundial and its dais, the posts, and the shared bark-style rooted trees) and `scene.js`
 (loose boulders and pebbles, oaks, shrubs, grass and flowers).
 `window.__scene.meadow` exposes `ports`, `junctions`, `routes` and `dial`.
+
+## When it goes into the map (owner, 31 October 2026)
+
+"พวกดอกไม้ถ้าเอาไปใส่ในแมพบริเวณรอบๆต้องมีดอกไม้บ้างไม่ใช่มีแค่จุดเดียว": the flowers must not stop at
+the scene's bounds. When a Frontier scene is integrated, the map round it gets its flowers too:
+- the scene-surround planting (`core/world.js` `plantSceneSurrounds`, `acceptedScenes.surround.plant`)
+  gains a flower kind for that scene (`plant.scene[id]`): this glade's flowering bramble (bushes with
+  wild roses), Sunny Meadow's white and yellow flowers;
+- they stay thick near the scene and thin out over the ring, in clumps, off roads and waypoints, so
+  the zone fades into the map instead of ending as one patch;
+- the zone's own native ground cover (the map's `glade`/`meadow` zones) gets the same flowers at a
+  lower density, so the whole zone reads as flowering, not only round the scene.

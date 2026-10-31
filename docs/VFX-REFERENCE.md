@@ -572,3 +572,9 @@ embers on the ground cools from orange to dull red. A first try with one upright
 thin paper shards from the high camera: camera-facing tongues (one instanced draw) read as a burning arc
 from any side. Tongues are drawn at their root's depth plus 0.3 m only, so a body behind the arc stays
 in front of the fire behind it. The hero still plays the sword's usual cut.
+Round 2 (owner: "this is not a flame slash any more, it is like setting fire to things"). The flames standing
+along the arc and the embers left on the ground went: the cut is now one crescent of fire (Firebolt's noise
+and heat ramp), swept with the blade, its head a point running along the outer edge, white-hot at the outer
+edge (the blade's path), orange inside, its inner edge torn into flame streaks drawn out along the cut and
+carried back against the sweep; it burns away from the inner edge and rises a little, gone in half a
+second. Lesson: a cut must read as one fast stroke; fire that stays standing reads as burning, not slashing.

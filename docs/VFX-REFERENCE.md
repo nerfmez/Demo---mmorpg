@@ -562,3 +562,13 @@ Round 3 (owner: "the spot in the middle still looks odd"). The tar pool went: th
 upright with dark-green fletching, a soft glow at its foot pulses with the beats, and two thin vapour
 ribbons curl up from it. A camera-facing glow sprite that sits low is cut by the ground in a straight line:
 the foot glow and the landing flash keep their centre half their size above the ground.
+
+Flame Slash, round 1 (`flameslash-fx.js`; spellblade, a wide `melee_arc`: 160 degrees, 3.2 m; owner: a
+spellblade's effect follows its blade). Firebolt's fire, three beats: through the wind-up the sword
+burns (flame tongues running to the tip); the cut raises flame tongues along the true arc, revealed the
+way the blade tip really travels (measured from the posed weapon; the action's sweep side alone ran the
+wrong way), hottest where just swept; then they leap up and burn away from their tips while a band of
+embers on the ground cools from orange to dull red. A first try with one upright curtain of fire read as
+thin paper shards from the high camera: camera-facing tongues (one instanced draw) read as a burning arc
+from any side. Tongues are drawn at their root's depth plus 0.3 m only, so a body behind the arc stays
+in front of the fire behind it. The hero still plays the sword's usual cut.

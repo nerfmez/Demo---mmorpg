@@ -8,7 +8,23 @@ import { RemoteEffects } from './remote-effects.js';
 // Cosmetic actors only: never monsters, targets, allies, colliders or save state.
 export class RemotePlayers {
   constructor(view, data) { this.view = view; this.data = data; this.actors = new Map(); this.effects = new RemoteEffects(view, data); this.refreshT = 0; }
-  remove(id, a) { this.effects.clear(id); disposeObject(a.rig.root); disposeObject(a.rig.scarf?.mesh); this.actors.delete(id); }
+  remove(id, a) { this.effects.clear(id); this.dropDecoy(a); disposeObject(a.rig.root); disposeObject(a.rig.scarf?.mesh); this.actors.delete(id); }
+  // a Decoy (core/rogue.js): a copy of that player standing where it was left, looking the same
+  dropDecoy(a) { if (!a.decoy) return; disposeObject(a.decoy.rig.root); disposeObject(a.decoy.rig.scarf?.mesh); a.decoy = null; }
+  syncDecoy(a, target) {
+    const d = target.decoy;
+    if (!d) { this.dropDecoy(a); return; }
+    if (!a.decoy || a.decoy.key !== a.key) {
+      this.dropDecoy(a);
+      const rig = buildHumanoid(a.look, a.gear);
+      const marker = new THREE.Mesh(new THREE.RingGeometry(.38, .46, 32), new THREE.MeshBasicMaterial({ color: 0x71e3ef, side: THREE.DoubleSide, depthWrite: false }));
+      marker.rotation.x = -Math.PI / 2; marker.position.y = .04; rig.root.add(marker);
+      this.view.scene.add(rig.root); if (rig.scarf) this.view.scene.add(rig.scarf.mesh);
+      a.decoy = { rig, key: a.key, animator: new HumanoidAnimator(rig), state: { speed: 0, facing: d.facing, moving: false, time: 0 } };
+    }
+    const [ox, oz] = this.view.game.coordinateOrigin || [0, 0], x = d.x - (target.region ? ox : 0), z = d.z - (target.region ? oz : 0);
+    a.decoy.rig.root.position.set(x, this.view.world.groundY(x, z), z); a.decoy.rig.root.rotation.y = d.facing; a.decoy.state.facing = d.facing;
+  }
   target(pose) {
     const [x, z] = this.view.game.coordinateOrigin || [0, 0];
     return { ...pose, x: pose.x - (pose.region ? x : 0), z: pose.z - (pose.region ? z : 0) };
@@ -35,10 +51,11 @@ export class RemotePlayers {
           rig.root.position.set(target.x, this.view.world.groundY(target.x, target.z), target.z); rig.root.rotation.y = target.facing;
         }
         this.view.scene.add(rig.root); if (rig.scarf) this.view.scene.add(rig.scarf.mesh);
-        a = { rig, key, gear, animator: old?.animator || new HumanoidAnimator(rig), target, state: old?.state || { speed: 0, facing: target.facing, moving: false, time: 0 }, pending: old?.pending || null };
+        a = { rig, key, gear, look: p.look, decoy: old?.decoy || null, animator: old?.animator || new HumanoidAnimator(rig), target, state: old?.state || { speed: 0, facing: target.facing, moving: false, time: 0 }, pending: old?.pending || null };
         this.actors.set(id, a);
       }
       a.target = target;
+      this.syncDecoy(a, target);
     }
   }
   action(id, action) {
@@ -60,9 +77,12 @@ export class RemotePlayers {
     if (this.refreshT >= .5 && this.players) { this.refreshT = 0; this.sync(this.players); }
     for (const [id, a] of this.actors) {
       const { root } = a.rig, p = a.target, pos = root.position, local = this.view.game.player;
-      root.visible = Math.hypot(p.x - local.x, p.z - local.z) < 58;
+      const near = Math.hypot(p.x - local.x, p.z - local.z) < 58;
+      if (a.decoy) { a.decoy.rig.root.visible = near; if (a.decoy.rig.scarf) a.decoy.rig.scarf.mesh.visible = near; a.decoy.state.time = time; a.decoy.animator.update(dt, a.decoy.state); updateScarf(a.decoy.rig, dt, 0); }
+      // Stealth: a hidden player is drawn nowhere (its pose still moves, so it shows where it is when it comes out)
+      root.visible = near && !p.hidden;
       if (a.rig.scarf) a.rig.scarf.mesh.visible = root.visible;
-      if (!root.visible) { a.pending = null; a.animator.action = null; this.effects.clear(id); continue; }
+      if (!root.visible) { a.pending = null; a.animator.action = null; this.effects.clear(id); if (near) { pos.x = p.x; pos.z = p.z; } continue; }
       const distance = Math.hypot(p.x - pos.x, p.z - pos.z), k = distance > 12 ? 1 : 1 - Math.exp(-15 * dt);
       pos.x += (p.x - pos.x) * k; pos.z += (p.z - pos.z) * k; pos.y = this.view.world.groundY(pos.x, pos.z);
       if (!a.animator.action) root.rotation.y += Math.atan2(Math.sin(p.facing - root.rotation.y), Math.cos(p.facing - root.rotation.y)) * k;

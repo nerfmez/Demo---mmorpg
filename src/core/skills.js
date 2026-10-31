@@ -164,7 +164,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
     s.damageBuff = (def.damageBuff || 0) * levelMult;
     s.speedBuff = def.speedBuff || 0;
     // takenMult: damage taken while buffed (0.8 = 20% less); a higher skill level cuts a little more
-    s.takenMult = def.takenMult ? Math.max(0.5, 1 - (1 - def.takenMult) * levelMult) : 1;
+    // (a buff's price, takenMult > 1 like Berserk's, does not grow with the level)
+    s.takenMult = !def.takenMult ? 1 : def.takenMult > 1 ? def.takenMult : Math.max(0.5, 1 - (1 - def.takenMult) * levelMult);
     s.steady = !!def.steady; // no knockback while buffed
   }
   if (def.summon) {

@@ -12,6 +12,7 @@ import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
 import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
+import { reveal } from './rogue.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
@@ -61,6 +62,7 @@ export class Game {
     this.projectiles = [];
     this.areas = [];
     this.drops = [];
+    this.decoys = []; // Decoy copies of the hero (core/rogue.js): cosmetic, they draw nothing
     this.spawnPoints = [];
     this.pending = [];
     this.input = { moveX: 0, moveZ: 0, aimAngle: 0, aimPoint: null, aimFromPointer: false, manualAim: false };
@@ -478,7 +480,7 @@ export class Game {
       this.emit({ type: 'fail', reason: 'target', slot: i });
       return false;
     }
-    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'light_wall'].includes(s.kind);
+    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'light_wall', 'steal'].includes(s.kind);
     // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
     // Pointer aim and touch drag are explicit overrides.
     if (!point && directional && !this.input.manualAim && !s.shadowStep) { // a shadow step already chose its target
@@ -544,7 +546,7 @@ export class Game {
     const p = this.player;
     const t = this.target;
     let angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'guard_hold', 'light_wall'].includes(s.kind)) {
+    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'dash_line', 'channel_cone', 'counter_stance', 'guard_hold', 'light_wall', 'steal'].includes(s.kind)) {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
@@ -779,6 +781,7 @@ export class Game {
     this.projectiles = [];
     this.areas = [];
     this.drops = [];
+    this.decoys = [];
     this.spawnPoints = [];
     this.zoneId = world.zoneAt(p.x, p.z).id;
     this.spawnMonsters();
@@ -904,7 +907,11 @@ export class Game {
   }
 
   playerDamageMult() {
-    return 1 + buffSum(this.player.buffs, 'damage');
+    const p = this.player;
+    let rage = 0;
+    // Boiling Blood: from nothing at full HP up to rage.max at rage.atHp of max HP or below
+    for (const k in p.buffs) { const r = p.buffs[k].rage; if (r) rage += r.max * Math.min(1, Math.max(0, (1 - p.hp / p.maxHp) / (1 - r.atHp))); }
+    return 1 + buffSum(p.buffs, 'damage') + rage;
   }
 
   /** Damage to a monster from the player, an ally or a damage-over-time effect. */
@@ -914,6 +921,8 @@ export class Game {
     let dmg = adjustFrontierHit(this,m,amount,opts);
     if(m.dead)return 0;
     let crit = opts.crit ?? false;
+    // Stealth: the first hit out of hiding is a sure critical, and it ends the hiding (core/rogue.js)
+    if (!opts.byAlly && !opts.dot && this.player.stealthT > 0) { crit = true; reveal(this, 'attack'); }
     // stat perks (core/stat-perks.js) on the hero's own skill hits
     const perk = this.derived.perks && opts.skill && !opts.dot && !opts.byAlly ? perkHit(this, m, opts, crit) : null;
     if (perk) { dmg *= perk.mult; crit = perk.crit; }
@@ -954,6 +963,10 @@ export class Game {
         if (!m.boss && m.state === 'windup') m.stateT = Math.max(0, m.stateT - 0.25); // knocks the rhythm back a little
       }
       if (opts.leech && !opts.byAlly) this.healPlayer((Math.min(dmg, hpBefore) * opts.leech) / 100, true);
+      // Fighting Spirit: HP (a share of the damage) and MP back on each hit, for the hero and for an ally
+      const by = opts.byAlly ? opts.by : this.player, spiritLeech = by?.buffs ? buffSum(by.buffs, 'leech') : 0;
+      if (spiritLeech > 0) { const back = (Math.min(dmg, hpBefore) * spiritLeech) / 100; if (opts.byAlly) by.hp = Math.min(by.maxHp, by.hp + back); else this.healPlayer(back, true); }
+      if (!opts.byAlly && buffSum(this.player.buffs, 'mpHit') > 0) this.player.mp = Math.min(manaLimit(this), this.player.mp + buffSum(this.player.buffs, 'mpHit'));
       // an attack gains MP for each enemy it hits (s.mpOnHit: gear, the MP line, a mod)
       if (opts.mpOnHit && !opts.byAlly) this.player.mp = Math.min(manaLimit(this), this.player.mp + opts.mpOnHit);
       if (perk) perkAfterHit(this, m, dmg, opts, crit);
@@ -1087,6 +1100,7 @@ export class Game {
     const shielded = this.drainShield(dmg);
     dmg -= shielded;
     p.hp -= dmg;
+    if (dmg > 0) reveal(this, 'hit');
     perkAfterTaken(this, dmg); // VIT's barrier; a lethal hit may be survived
     if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;
@@ -1348,9 +1362,12 @@ export class Game {
       }
       case 'buff': {
         // each buff skill keeps its own entry, so different buffs stack and the same one refreshes
-        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff, taken: s.takenMult, steady: s.steady };
+        // rage: more damage the lower the hero's HP (Boiling Blood); leech/mpHit: HP and MP back on each hit (Fighting Spirit)
+        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff, taken: s.takenMult, steady: s.steady, rage: s.rage, leech: s.spirit?.leech, mpHit: s.spirit?.mp };
         p.buffs[s.id] = { ...buff };
         for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.buffs[s.id] = { ...buff };
+        // Provoke: the monsters round the hero turn on it
+        if (s.taunt?.radius) for (const m of this.monsters) if (!m.dead && dist(p.x, p.z, m.x, m.z) - m.r <= s.taunt.radius) { m.forcedTargetId = p.id; m.tauntT = Math.max(m.tauntT || 0, s.taunt.duration); setAggro(this, m, p, true); }
         this.emit({ type: 'buff', kind: s.id, x: p.x, z: p.z, radius: s.radius });
         return;
       }

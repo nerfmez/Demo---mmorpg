@@ -26,9 +26,17 @@ export const LOOKS = {
   frenzy_roar: { edge: [1.0, 0.3, 0.32], glow: [1.0, 0.04, 0.12], roar: true, trail: 'back' },
   stand_firm: { edge: [0.62, 0.86, 1.0], glow: [0.12, 0.42, 1.0], flare: 'cold', symbol: 'shield', trail: 'orbit' },
   team_stand: { edge: [1.0, 0.88, 0.5], glow: [1.0, 0.55, 0.08], symbol: 'shield', double: true, wall: true, trail: 'orbit' },
+  // batch 2 (2026-10-30). reach: how far the rings go when the buff itself is the hero's own (radius 0);
+  // vein: an anime anger mark pops over each monster it provoked (the bodies are those monsters)
+  provoke: { edge: [1.0, 0.6, 0.25], glow: [1.0, 0.18, 0.04], roar: true, reach: 8, vein: true },
+  blood_boil: { edge: [1.0, 0.32, 0.3], glow: [0.85, 0.0, 0.06], symbol: 'up' },
+  fighting_spirit: { edge: [0.82, 1.0, 0.55], glow: [0.25, 0.85, 0.15], symbol: 'up', trail: 'orbit' },
+  berserk: { edge: [1.0, 0.42, 0.34], glow: [0.95, 0.0, 0.28], roar: true, reach: 3.5, symbol: 'up', trail: 'back' },
 };
 const RING = 49, STREAKS = 10, STREAK_PTS = 6, SPARKS = 140, MARKS = 6, CHEV = 3, RAYS = 16, ARC = 13;
 const RING_LIFE = 0.45, STREAK_LIFE = 0.55, MARK_LIFE = 1.0, AURA_EVERY = 0.16, RAY_LIFE = 0.3;
+// the anime anger mark: four short strokes bowed toward the middle, one per quadrant (screen units)
+const VEIN = [[0.14, 0.62], [0.24, 0.24], [0.62, 0.14]], VEIN_LIFE = 2.2;
 // a heater shield's outline (screen units: x right, y up), closed
 const SHIELD = [[-1, 1], [-0.33, 1.08], [0.33, 1.08], [1, 1], [1, 0.25], [0.8, -0.35], [0.45, -0.8], [0, -1.15], [-0.45, -0.8], [-0.8, -0.35], [-1, 0.25], [-1, 1]];
 const WALL = 8, WALL_R = 1.7, WALL_LIFE = 0.95;
@@ -78,7 +86,7 @@ export class BuffFx {
   }
   // the shout: bodies [{x, z, facing}] the buff reached (the hero first)
   shout(skill, x, z, radius, bodies) {
-    this.look = LOOKS[skill] || LOOKS.rally; this.x = x; this.z = z; this.f = bodies[0]?.facing || 0; this.radius = radius || 1.5; this.t = 0;
+    this.look = LOOKS[skill] || LOOKS.rally; this.x = x; this.z = z; this.f = bodies[0]?.facing || 0; this.radius = radius || this.look.reach || 1.5; this.t = 0;
     this.flare.material.map = flareTexture(this.look.flare || 'fire');
     const r = this.rnd;
     this.streaks.forEach((s, i) => { s.a = (i / STREAKS) * 6.283 + r() * 0.4; s.r = 0.35 + r() * 0.35; s.h = 2.2 + r() * 1.2; s.delay = r() * 0.08; });
@@ -168,7 +176,18 @@ export class BuffFx {
       this.flare.visible = fk < 1;
       if (this.flare.visible) { this.flare.position.set(x, 1.5, z); this.flare.scale.setScalar(2.4 * (0.5 + 0.5 * out2(Math.min(1, fk * 4))) * (1 - 0.4 * fk)); this.flare.material.opacity = 1 - fk * fk; }
     } else this.flare.visible = false;
-    if (L.symbol) { this.right.set(1, 0, 0).applyQuaternion(this.camera.quaternion); this.up.set(0, 1, 0).applyQuaternion(this.camera.quaternion); }
+    if (L.symbol || L.vein) { this.right.set(1, 0, 0).applyQuaternion(this.camera.quaternion); this.up.set(0, 1, 0).applyQuaternion(this.camera.quaternion); }
+    // Provoke: an anger mark pops over each monster it turned (with an overshoot), throbs, fades
+    if (L.vein) for (const m of this.marks) {
+      if (m.t >= VEIN_LIFE) continue;
+      m.t += dt; if (m.t < 0) continue;
+      const k = m.t / VEIN_LIFE, pop = Math.min(1, k * 12), sc = 0.7 * (pop < 1 ? pop * 1.25 : 1 + 0.08 * Math.sin(m.t * 14)), al = Math.min(1, k * 10) * (k > 0.75 ? 1 - (k - 0.75) / 0.25 : 1);
+      this.p.set(m.x, 2.6, m.z);
+      for (const [sx, sy] of [[1, 1], [-1, 1], [-1, -1], [1, -1]]) {
+        for (let i = 0; i < 3; i++) this.three[i].copy(this.p).addScaledVector(this.right, VEIN[i][0] * sx * sc).addScaledVector(this.up, VEIN[i][1] * sy * sc);
+        W.v = 0.18; this.glow.strip(this.three, lineGlowW, 0.8 * al, L.glow); this.core.strip(this.three, lineW, al, L.edge);
+      }
+    }
     // a shield emblem over each body the buff reached: pops up (with an overshoot), holds, fades
     if (L.symbol === 'shield') for (const m of this.marks) {
       if (m.t >= MARK_LIFE) continue;

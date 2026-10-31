@@ -6,11 +6,11 @@
 //   A poisoned arrow arcs from the bow and pins at the centre with a white-green flash. A miasma hugs the
 //   floor over the true radius: soft see-through puffs of gas rolling out from the arrow (no outline), lit
 //   lime low down and darkening to violet higher up, swelling and thinning. The arrow
-//   stands in a small pool of black tar lit from inside by chartreuse veins and a glowing rim, bubbles
+//   stands nearly upright with a soft glow round its foot and thin vapour curling up off it, bubbles
 //   doming and popping, and pumps on every beat (the rules' half-second ticks): a thin ring of light runs
 //   out over the floor and the glow under the gas swells. Plumes lift off the gas and twist up as thin
 //   ribbons; specks drift out through it, twinkling; soft pockets of light wander inside it. At the end the
-//   gas sinks and thins, the tar dries into the ground. Cosmetic only: the rules' 'area'/'areaEnd'.
+//   gas sinks and thins, the glow fades. Cosmetic only: the rules' 'area'/'areaEnd'.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, place, placeV, conformPlane, fxGround, NOISE } from './fx-common.js';
 import { glowTexture, lightSprite } from './light-kit.js';
@@ -62,22 +62,6 @@ const FLOOR_FS = `varying vec2 vP; uniform float uA; uniform float uBeat; unifor
     float edge = (1.0 - smoothstep(0.0, 0.02, abs(r - 0.97)))*0.35;
     vec3 c = uLime*glow + uPale*(ring + edge);
     gl_FragColor = vec4(c*uA, 1.0); }`;
-// the arrow's tar: black, lit from inside by chartreuse veins and a glowing rim, bubbles doming and popping
-const TAR_FS = `varying vec2 vP; uniform float uT; uniform float uA; uniform float uSeed;` + NOISE + `
-  void main(){ float r = length(vP), a = atan(vP.y, vP.x);
-    float edge = 0.86 + 0.08*sin(a*5.0 + uSeed) + 0.05*sin(a*9.0 + uSeed*2.0);
-    if (r > edge*uA) discard;
-    float vein = abs(fbm(vP*3.0 + uSeed + vec2(uT*0.12, 0.0)) - 0.5);
-    vec3 c = vec3(0.05, 0.04, 0.07);
-    if (vein < 0.035) c = vec3(0.6, 0.85, 0.15);
-    float e = edge*uA - r;
-    if (e < 0.07) c = vec3(0.8, 0.95, 0.3);
-    // bubbles: a few cells dome up as bright rings and pop
-    vec2 g = vP*3.2 + uSeed; vec2 id = floor(g), f = fract(g) - 0.5;
-    float hsh = fract(sin(dot(id, vec2(41.3, 289.1)))*43758.5), ph = fract(uT*0.9 + hsh);
-    if (hsh > 0.5 && abs(length(f) - (0.1 + 0.25*ph)) < 0.04*(1.0 - ph) && r < edge*uA - 0.1) c = vec3(0.9, 1.0, 0.55);
-    gl_FragColor = vec4(c, 0.92); }`;
-
 let sw = 0;
 const shaftW = () => sw, glowW = (x) => sw * (0.6 + 2.4 * x * x), plumeW = (x) => sw * Math.sin(Math.PI * Math.min(1, x * 1.15)), dotW = (x) => sw * Math.sin(Math.PI * x);
 
@@ -103,13 +87,11 @@ export class MiasmaFx {
       const floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 12, 12), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uBeat: { value: 0 }, uRing: { value: 0 }, uLime: ramp.uLime, uPale: ramp.uPale },
         vertexShader: decalVS, fragmentShader: FLOOR_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
       floor.rotation.x = -Math.PI / 2; floor.visible = false; floor.renderOrder = 1; scene.add(floor);
-      const tar = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 6, 6), new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uA: { value: 0 }, uSeed: { value: k * 2.3 } },
-        vertexShader: decalVS, fragmentShader: TAR_FS, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 }));
-      tar.rotation.x = -Math.PI / 2; tar.visible = false; tar.renderOrder = 2; scene.add(tar);
+      const base = lightSprite(scene, glowTexture('poison'), true, 7); // the soft glow at the arrow's foot
       const pockets = Array.from({ length: POCKETS }, () => lightSprite(scene, glowTexture('poison'), true, 6));
-      return { floor, tar, pockets, puffAt: 0, live: false, id: 0, x: 0, z: 0, r: 3, t: 0, endT: -1, fx: 0, fz: 0, dir: new THREE.Vector3(), landed: false };
+      return { floor, base, pockets, puffAt: 0, live: false, id: 0, x: 0, z: 0, r: 3, t: 0, endT: -1, fx: 0, fz: 0, dir: new THREE.Vector3(), landed: false };
     });
-    this.flash = lightSprite(scene, glowTexture('poison'), true, 10); this.flashT = 9;
+    this.flash = lightSprite(scene, glowTexture('poison'), true, 10); this.flashT = 9; this.flashY = 0;
     this.plumes = Array.from({ length: PLUMES * ZONES }, () => ({ t: 9, life: 3, x: 0, z: 0, zone: null, ph: 0, amp: 0.3, rise: 0.6, len: 1.6 }));
     this.specks = Array.from({ length: SPECKS }, () => ({ t: 9, life: 2, p: new THREE.Vector3(), v: new THREE.Vector3(), ph: 0 }));
     this.rnd = mulberry32(47); this.t = 0;
@@ -120,9 +102,9 @@ export class MiasmaFx {
   begin(e, from) {
     const z = this.zones.find((q) => !q.live) || this.zones[0];
     Object.assign(z, { live: true, id: e.id, x: e.x, z: e.z, r: e.radius, t: 0, endT: -1, fx: from.x, fz: from.z, landed: false });
-    z.dir.set(e.x - from.x, -1.6, e.z - from.z).normalize();
+    // pinned nearly upright, leaning back a little the way it came (a clear arrow, not a stick on the ground)
+    z.dir.set(e.x - from.x, 0, e.z - from.z).normalize().multiplyScalar(0.45); z.dir.y = -1; z.dir.normalize();
     z.floor.scale.setScalar(e.radius * 2.2); place(z.floor, e.x, 0.05, e.z); conformPlane(z.floor);
-    z.tar.scale.setScalar(1.5); place(z.tar, e.x, 0.04, e.z); conformPlane(z.tar);
     z.puffAt = FLIGHT;
   }
   puff(z, big, kick = 1) {
@@ -135,7 +117,7 @@ export class MiasmaFx {
   }
   // the rules' 'areaEnd': the gas sinks and thins
   end(id) { const z = this.zones.find((q) => q.live && q.id === id); if (z && z.endT < 0) z.endT = z.t; }
-  hide(z) { for (const m of [z.floor, z.tar, ...z.pockets]) m.visible = false; }
+  hide(z) { for (const m of [z.floor, z.base, ...z.pockets]) m.visible = false; }
   update(dt) {
     this.t += dt;
     this.shaft.begin(); this.soft.begin(); this.glow.begin();
@@ -155,7 +137,7 @@ export class MiasmaFx {
         continue;
       }
       if (!z.landed) { // the hero frame: a white-green flash, and a burst of gas rolling out at once
-        z.landed = true; this.flashT = 0; placeV(this.flash, this.p.set(z.x, 0.4, z.z));
+        z.landed = true; this.flashT = 0; placeV(this.flash, this.p.set(z.x, 0, z.z)); this.flashY = this.flash.position.y;
         for (let i = 0; i < 12; i++) this.puff(z, i % 3 === 0, 1.5);
       }
       const live = t - FLIGHT, ending = z.endT >= 0 ? Math.min(1, (t - z.endT) / 0.8) : 0;
@@ -167,14 +149,24 @@ export class MiasmaFx {
       // floor glow, its beat ring and rim
       z.floor.visible = true; const F = z.floor.material.uniforms;
       F.uA.value = grow * (1 - ending); F.uBeat.value = beatK; F.uRing.value = z.endT < 0 ? Math.min(1, ((live % BEAT) / BEAT) * 1.2) : 0;
-      // the tar pool round the arrow
-      z.tar.visible = true; z.tar.material.uniforms.uT.value = this.t; z.tar.material.uniforms.uA.value = Math.min(1, live / 0.2) * (1 - ending * 0.8);
-      // the pinned arrow, glowing at its head on the beat
-      const d = z.dir;
-      two[0].set(z.x, 0.03, z.z); two[1].set(z.x - d.x * SHAFT * 0.6, -d.y * SHAFT * 0.6, z.z - d.z * SHAFT * 0.6);
-      sw = 0.055; this.shaft.strip(two, shaftW, 1 - ending, [0.24, 0.18, 0.1]);
-      two[0].set(z.x, 0.06, z.z); two[1].set(z.x, 0.35, z.z);
-      sw = 0.22 + 0.25 * beatK; this.glow.strip(two, glowW, (0.45 + 0.55 * beatK) * (1 - ending), BRIGHT);
+      // the pinned arrow: its shaft up out of the ground, dark fletching at the top, a soft glow round its
+      // foot that swells on the beat, and thin vapour curling up off it (the gas comes out of the arrow)
+      const d = z.dir, top = this.side.set(z.x - d.x * SHAFT * 0.75, -d.y * SHAFT * 0.75, z.z - d.z * SHAFT * 0.75);
+      two[0].set(z.x, 0.02, z.z); two[1].copy(top);
+      sw = 0.06; this.shaft.strip(two, shaftW, 1 - ending, [0.26, 0.2, 0.11]);
+      for (const sg of [1, -1]) {
+        two[0].copy(top).addScaledVector(d, 0.22); two[1].copy(top).addScaledVector(d, -0.02); two[1].x += -d.z * 0.09 * sg; two[1].z += d.x * 0.09 * sg; two[1].y += 0.04;
+        sw = 0.055; this.shaft.strip(two, shaftW, 1 - ending, [0.32, 0.5, 0.16]);
+      }
+      // a camera-facing glow cut by the ground shows a straight edge: keep its centre half its size up
+      const bs = 0.7 + 0.5 * beatK;
+      z.base.visible = true; placeV(z.base, this.p.set(z.x, 0.5 * bs, z.z));
+      z.base.scale.setScalar(bs); z.base.material.opacity = (0.4 + 0.35 * beatK) * grow * (1 - ending);
+      if (z.endT < 0) for (let i = 0; i < 2; i++) {
+        const ph = this.t * 1.4 + i * 3.1, k = (this.t * 0.9 + i * 0.5) % 1;
+        for (let j = 0; j < this.pts.length; j++) { const s = j / (this.pts.length - 1), h = 0.1 + (0.4 + 0.9 * k) * s; this.pts[j].set(z.x + 0.12 * Math.sin(h * 5 + ph) * s, h, z.z + 0.12 * Math.cos(h * 4 + ph) * s); }
+        sw = 0.07; this.soft.strip(this.pts, plumeW, 0.45 * (1 - k), BRIGHT);
+      }
       // pockets of light wandering inside the gas, low down
       z.pockets.forEach((s, i) => {
         const a = this.t * (0.4 + 0.15 * i) + i * 1.9, rr = z.r * (0.25 + 0.4 * (0.5 + 0.5 * Math.sin(this.t * 0.7 + i * 2.3)));
@@ -229,7 +221,7 @@ export class MiasmaFx {
     this.puffMesh.visible = any;
     // the landing's flash
     this.flashT += dt; const fk = this.flashT / 0.2;
-    this.flash.visible = fk < 1; if (this.flash.visible) { this.flash.scale.setScalar(1.2 + fk * 1.6); this.flash.material.opacity = 1 - fk; }
+    this.flash.visible = fk < 1; if (this.flash.visible) { const fs = 1.2 + fk * 1.6; this.flash.scale.setScalar(fs); this.flash.position.y = this.flashY + 0.5 * fs; this.flash.material.opacity = 1 - fk; }
     this.shaft.end(); this.soft.end(); this.glow.end();
   }
   clear() {

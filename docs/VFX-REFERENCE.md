@@ -558,3 +558,7 @@ line runs across, every quad drawn at a depth nearer than the ground under it so
 light everywhere (pockets of glow wandering low in the gas, twinkling specks drifting out, a white-green flash
 as the arrow lands); small varied events (plumes twisting up as thin ribbons). The arrow stands in a small
 pool of black tar lit by chartreuse veins with doming bubbles. The puffs stay within the true area.
+Round 3 (owner: "the spot in the middle still looks odd"). The tar pool went: the arrow now stands almost
+upright with dark-green fletching, a soft glow at its foot pulses with the beats, and two thin vapour
+ribbons curl up from it. A camera-facing glow sprite that sits low is cut by the ground in a straight line:
+the foot glow and the landing flash keep their centre half their size above the ground.

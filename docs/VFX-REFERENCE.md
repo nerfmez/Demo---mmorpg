@@ -535,3 +535,5 @@ glint racing to the far end, two of Chain Spark's low-jag bolts wound round it, 
 end); the lane stays charged (a faint line on the ground with small arcs crackling along it, more of them as
 the after-shock nears); the after-shock snaps two bolts along the whole lane at knee height, and the stunned
 get MaceFx's stun stars. The hero plays the bow shot (`shoot`); Shatter Arrow does too, Miasma Arrow the sky shot.
+Round 2 (owner: does not like the bursts): the ragged blue flashes at the bow, the lane's end and the
+after-shock are gone; the loose and the spearhead only pop a small clean four-point glint with sparks.

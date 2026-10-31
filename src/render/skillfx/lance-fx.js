@@ -8,7 +8,7 @@
 // (after: true) the lane snaps again at once at knee height, harder, and what it stuns gets the stun
 // stars (MaceFx, from 'stunned'). Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, flashMaterial, tintFlash, place, lookOf } from './fx-common.js';
+import { Ribbon, mulberry32, lookOf } from './fx-common.js';
 import { CRACKLE_FS, BOLT_GLOW_FS, Rng, zig } from './chain-fx.js';
 
 const LOOK = lookOf('lightning'), WHITE = [1, 1, 1];
@@ -34,13 +34,9 @@ export class LanceFx {
     this.beam = new Ribbon(scene, camera, 200, CORE_FS, THREE.NormalBlending);
     this.halo = new Ribbon(scene, camera, 200, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 9; this.glow.mesh.renderOrder = 8; this.beam.mesh.renderOrder = 9; this.halo.mesh.renderOrder = 7;
-    const quad = new THREE.PlaneGeometry(1, 1);
-    this.flashes = Array.from({ length: FLASHES }, (_, k) => {
-      const m = new THREE.Mesh(quad, flashMaterial(13 + k * 3.3)); tintFlash(m.material, 'lightning');
-      m.visible = false; m.renderOrder = 10; m.frustumCulled = false; scene.add(m);
-      return { m, t: 9, size: 1 };
-    });
-    this.flashI = 0;
+    // glints (owner: no ragged bursts): a clean four-point star with a soft round glow, camera-facing
+    this.glints = Array.from({ length: FLASHES }, () => ({ t: 9, p: new THREE.Vector3(), size: 1 })); this.glintI = 0;
+    this.right = new THREE.Vector3(); this.upV = new THREE.Vector3();
     this.charge = null;                                   // { t, total, x, z, angle }
     this.lanes = [];                                      // { t, x, z, dx, dz, range, after, snapT }
     this.free = Array.from({ length: 4 }, () => ({ t: 9, x: 0, z: 0, dx: 0, dz: 1, range: 12, snapT: -1, seed: 0 }));
@@ -49,7 +45,7 @@ export class LanceFx {
     this.a = new THREE.Vector3(); this.b = new THREE.Vector3(); this.pts = []; this.ws = []; this.two = [new THREE.Vector3(), new THREE.Vector3()];
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
   }
-  flash(x, y, z, size) { const f = this.flashes[this.flashI++ % FLASHES]; f.t = 0; f.size = size; place(f.m, x, y, z); }
+  flash(x, y, z, size) { const f = this.glints[this.glintI++ % FLASHES]; f.t = 0; f.size = size * 0.45; f.p.set(x, y, z); }
   spark(x, y, z, n, speed = 4) {
     const r = this.rnd;
     for (let i = 0; i < n; i++) {
@@ -70,7 +66,6 @@ export class LanceFx {
       let l = this.lanes.find((q) => Math.hypot(q.x - e.x, q.z - e.z) < 0.05);
       if (!l) { l = this.free.pop(); if (!l) return; Object.assign(l, { t: LANCE + LANCE_FADE, x: e.x, z: e.z, dx, dz, range: e.range }); this.lanes.push(l); }
       l.snapT = 0;
-      this.flash(e.x + dx * e.range * 0.5, 0.5, e.z + dz * e.range * 0.5, 2.2);
       for (let i = 0; i < 6; i++) { const u = (i + this.rnd()) / 6; this.spark(e.x + dx * e.range * u, 0.3, e.z + dz * e.range * u, 3, 3); }
       return;
     }
@@ -166,10 +161,17 @@ export class LanceFx {
       this.sparks[sw2++] = s;
     }
     this.sparks.length = sw2;
-    for (const f of this.flashes) {
-      f.t += dt; const u = f.t / 0.2;
-      f.m.visible = u < 1; if (!f.m.visible) continue;
-      f.m.quaternion.copy(this.camera.quaternion); f.m.scale.setScalar(f.size * (0.6 + u * 0.7)); f.m.material.uniforms.uT.value = u;
+    // glints: a four-point star that pops and shrinks in 0.18 s, over a soft glow
+    this.right.set(1, 0, 0).applyQuaternion(this.camera.quaternion); this.upV.set(0, 1, 0).applyQuaternion(this.camera.quaternion);
+    for (const f of this.glints) {
+      if (f.t >= 0.18) continue;
+      f.t += dt; const u = Math.min(1, f.t / 0.18), s = f.size * (u < 0.25 ? u / 0.25 : 1 - (u - 0.25) / 0.75 * 0.85);
+      for (const ax of [this.right, this.upV]) {
+        const len = ax === this.upV ? 1.35 : 1;
+        two[0].copy(f.p).addScaledVector(ax, -s * len); two[1].copy(f.p).addScaledVector(ax, s * len);
+        sw = s * 0.3; this.halo.strip(two, tipW, (1 - u) * 0.9, LOOK.glow);
+        sw = s * 0.16; this.beam.strip(two, tipW, 1 - u * 0.5, WHITE);
+      }
     }
     this.core.end(); this.glow.end(); this.beam.end(); this.halo.end();
   }
@@ -177,7 +179,7 @@ export class LanceFx {
     this.charge = null;
     for (const l of this.lanes) { l.snapT = -1; this.free.push(l); } this.lanes.length = 0;
     for (const s of this.sparks) this.sparkFree.push(s); this.sparks.length = 0;
-    for (const f of this.flashes) { f.t = 9; f.m.visible = false; }
+    for (const f of this.glints) f.t = 9;
   }
   get busy() { return this.lanes.length > 0 || this.sparks.length > 0 || !!this.charge; }
 }

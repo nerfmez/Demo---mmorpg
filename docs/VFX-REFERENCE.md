@@ -548,3 +548,13 @@ half-second beat (the rules' ticks) while the arrow's glow pulses; cel puffs of 
 shadows roll out from the arrow and rise, a big one on each beat; when it ends the gas thins and the pool
 dries inward. Puffs are one instanced draw (camera-facing quads cut from noise). The floating "พิษ ×N" text
 is gone everywhere: the status icons carry the stacks.
+Round 2 (owner: disliked round 1 and pointed to github.com/patch-gg/pixelfx, MIT, to study; its
+docs/AUTHORING.md quality bar and its "Poison cloud" were read for their rules, nothing copied). What it taught,
+and what changed: lines and light, not fills (the flat violet pool went: the floor is now a soft additive glow
+lit from within that swells on each beat, a thin ring of light running out and a faint rim at the true
+radius); translucent volumes (the solid outlined cel puffs went: soft see-through puffs with no outline, lime
+low down, olive and violet only in the high wisps, the band moving with each puff's noise so no straight
+line runs across, every quad drawn at a depth nearer than the ground under it so the floor never cuts it);
+light everywhere (pockets of glow wandering low in the gas, twinkling specks drifting out, a white-green flash
+as the arrow lands); small varied events (plumes twisting up as thin ribbons). The arrow stands in a small
+pool of black tar lit by chartreuse veins with doming bubbles. The puffs stay within the true area.

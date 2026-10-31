@@ -507,3 +507,8 @@ a fan of fire arrows flies low arcs from the bow (no burst in the sky, nothing r
 together, each burns down its fuse (its flame tongue swelling and flickering faster, an ember ring closing
 from its blast edge onto the arrow) and bursts on its own beat with a flash, a fire puff and embers, a ring of
 fire out to its blast radius and a scorch.
+Round 3 (owner: the bursts and the ground looked poor). Each burst is now a small dome of Firebolt's fire
+(Meteor's dome from `meteor-flame.js` at an arrow's size: bursting up in 0.12 s, tearing into tongues as its
+cut-off rises, gone by 0.75 s) with a flash and embers, and the ground keeps a small round pit in the game's
+toon steps whose molten floor cools (`ground-kit.js` craterMesh, lip 0.32 of the blast radius, gone by
+1.8 s), instead of the flat billboard puff and the dark ragged scorch.

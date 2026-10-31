@@ -4,14 +4,18 @@
 // point, wrapped in a comet of Firebolt's fire: meteor-flame.js, V5_FIELD) and pin into the ground across
 // the circle together. Each pinned arrow then burns down its own fuse - its flame tongue swelling and
 // flickering faster, a ring of embers under it closing in on the arrow to show its blast and how soon -
-// and bursts on its own time (the rules' 'burst' at its spot): a flash, a puff of fire and embers, a ring
-// of fire out to its blast radius and a scorch. Nothing falls from the sky (that is Arrow Rain and
+// and bursts on its own time (the rules' 'burst' at its spot): a flash, a small dome of Firebolt's fire that
+// bursts up and tears into tongues as it burns away (Meteor's dome, meteor-flame.js, at an arrow's size),
+// embers, a thin ring of fire out to its blast radius, and a small round pit in the game's toon steps
+// whose molten floor cools (ground-kit.js craterMesh, Meteor's crater shader). Nothing falls from the sky (that is Arrow Rain and
 // Meteor). Cosmetic only; driven by the rules' arrowPin and burst events.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, flashMaterial, tintFlash, placeV, conformPlane, fxGround } from './fx-common.js';
-import { flameMaterial, cometShell } from './meteor-flame.js';
+import { Ribbon, mulberry32, flashMaterial, tintFlash, placeV, conformPlane } from './fx-common.js';
+import { flameMaterial, cometShell, domeShell } from './meteor-flame.js';
+import { craterMesh } from './ground-kit.js';
 
-const ARROWS = 24, SCORCH = 24, FLASHES = 8;
+const ARROWS = 24, BURSTS = 10, FLASHES = 8;
+const DOME_T = 0.75, PIT_T = 1.8;             // the fire dome burns away in DOME_T s, the little pit fades by PIT_T
 const SHAFT = 0.95;                           // shaft length (once pinned, 0.58 of it stands out of the ground)
 const SHAFT_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.95) discard; vec3 c = vT*(1.0 - 0.35*d*d); gl_FragColor=vec4(c, vA); }`;
@@ -40,21 +44,6 @@ const FUSE_FS = `varying vec2 vP; uniform float uFuse; uniform float uBlast; uni
     }
     if (a < 0.01) discard;
     gl_FragColor = vec4(c, min(1.0, a)); }`;
-// a scorch under each burst: a soft dark burn with a ragged ember edge that cools
-const SCORCH_VS = `attribute vec2 aLife; varying vec2 vP; varying vec2 vLife;
-  void main(){ vP = uv*2.0-1.0; vLife = aLife; gl_Position = projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.0); }`;
-const SCORCH_FS = `varying vec2 vP; varying vec2 vLife;
-  void main(){
-    float age = vLife.x, seed = vLife.y; if (age < 0.0 || age > 1.0) discard;
-    float a = atan(vP.y, vP.x), r = length(vP);
-    float rag = 0.88 + 0.06*sin(a*5.0 + seed*6.0) + 0.04*sin(a*9.0 + seed*13.0);
-    if (r > rag) discard;
-    float fade = 1.0 - smoothstep(0.6, 1.0, age);
-    float edge = smoothstep(rag - 0.22, rag, r);
-    float glow = edge*(1.0 - smoothstep(0.0, 0.55, age));
-    vec3 c = mix(vec3(0.16,0.09,0.05), vec3(1.0,0.45,0.12), glow);
-    gl_FragColor = vec4(c, (0.55 - 0.45*r*r)*fade + glow*0.5); }`;
-
 const UPV = new THREE.Vector3(0, 1, 0), X = new THREE.Vector3(1, 0, 0), DOWN = new THREE.Vector3(0, -1, 0);
 let sw = 0;
 const shaftW = () => sw, glowW = (x) => sw * (0.8 + 2.6 * x * x), coreW = (x) => sw * (0.3 + 0.7 * x * x * x), tipW = (x) => sw * Math.sin(Math.PI * x);
@@ -85,16 +74,18 @@ export class FlameRainFx {
       return { m, t: 9, size: 1 };
     });
     this.flashI = 0;
-    const sg = new THREE.PlaneGeometry(1, 1); sg.rotateX(-Math.PI / 2);
-    this.life = new Float32Array(SCORCH * 2).fill(-1);
-    sg.setAttribute('aLife', new THREE.InstancedBufferAttribute(this.life, 2));
-    this.scorch = new THREE.InstancedMesh(sg, new THREE.ShaderMaterial({ vertexShader: SCORCH_VS, fragmentShader: SCORCH_FS, transparent: true, depthWrite: false,
-      polygonOffset: true, polygonOffsetFactor: -2 }), SCORCH);
-    this.scorch.frustumCulled = false; this.scorch.renderOrder = 1; this.scorch.visible = false; scene.add(this.scorch);
-    this.scorches = Array.from({ length: SCORCH }, () => ({ t: 9, x: 0, z: 0, s: 1, seed: 0 })); this.scorchI = 0;
+    const shell = (mode, layer, filled, order, k) => { const m = new THREE.Mesh(domeShell(), flameMaterial(mode, layer, filled)); m.renderOrder = order; m.frustumCulled = false; m.material.uniforms.uSeed.value = k * 2.3 + layer; return m; };
+    this.bursts = Array.from({ length: BURSTS }, (_, k) => {
+      const dome = new THREE.Group();
+      dome.add(shell(1, 0, false, 7, k), shell(1, 1, false, 6, k));
+      const core = shell(1, 1, true, 5, k); core.scale.setScalar(0.62); dome.add(core);
+      dome.visible = false; scene.add(dome);
+      return { dome, pit: craterMesh(scene, 3 + k * 4.1), live: false, t: 0, x: 0, z: 0, size: 1 };
+    });
+    this.burstI = 0;
     this.rnd = mulberry32(57); this.t = 0;
     this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
-    this.dir = new THREE.Vector3(); this.p = new THREE.Vector3(); this.q = new THREE.Vector3(); this.side = new THREE.Vector3(); this.tail = new THREE.Vector3(); this.mtx = new THREE.Matrix4();
+    this.dir = new THREE.Vector3(); this.p = new THREE.Vector3(); this.q = new THREE.Vector3(); this.side = new THREE.Vector3(); this.tail = new THREE.Vector3();
   }
   flash(v, size) { const f = this.flashes[this.flashI++ % FLASHES]; f.t = 0; f.size = size; placeV(f.m, v); }
   // the rules' 'arrowPin': one arrow of the volley, from the hero (fromX, fromZ) to (x, z); it lands at
@@ -112,10 +103,12 @@ export class FlameRainFx {
     const a = this.arrows.find((q) => q.live && q.id === e.id) || this.arrows.find((q) => q.live && q.burst < 0 && Math.hypot(q.x - e.x, q.z - e.z) < 0.05);
     if (!a) return;
     a.burst = a.t;
-    this.p.set(a.x, 0.35, a.z); this.flash(this.p, 1.7);
-    this.fire?.impact(a.x, 0.3, a.z, false, 0.75);
-    this.fire?.burst(a.x, 0.2, a.z, 6, 0.7);
-    const s = this.scorches[this.scorchI++ % SCORCH]; s.t = 0; s.x = a.x; s.z = a.z; s.s = a.blast * 1.05; s.seed = this.rnd();
+    this.p.set(a.x, 0.45, a.z); this.flash(this.p, 2.0);
+    this.fire?.impact(a.x, 0.4, a.z, true, 0.8);   // embers only: the dome is the fire
+    const b = this.bursts[this.burstI++ % BURSTS];
+    Object.assign(b, { live: true, t: 0, x: a.x, z: a.z, size: a.blast * 0.62 });
+    b.dome.visible = true; placeV(b.dome, this.p.set(a.x, 0, a.z)); b.dome.scale.setScalar(0.01);
+    const lip = a.blast * 0.32; b.pit.visible = true; placeV(b.pit, this.p.set(a.x, 0.05, a.z)); b.pit.scale.setScalar(lip * 1.7 * 2); conformPlane(b.pit);
     a.flame.visible = false;
   }
   // red fletching: two short vanes splayed back from the shaft's end (tail: the end, dir: the flight)
@@ -192,25 +185,25 @@ export class FlameRainFx {
       two[0].set(a.x, 0.05, a.z); two[1].set(a.x, 0.25 + 0.25 * fuse, a.z);
       sw = 0.18 + 0.2 * fuse; this.glow.strip(two, glowW, 0.35 + 0.5 * fuse, [1.0, 0.45, 0.1]);
     }
-    let any = false;
-    for (let i = 0; i < SCORCH; i++) {
-      const s = this.scorches[i]; s.t += dt;
-      const age = s.t / 2.6, on = age < 1;
-      this.life[i * 2] = on ? age : -1; this.life[i * 2 + 1] = s.seed;
-      if (!on) continue;
-      any = true;
-      this.mtx.makeScale(s.s, 1, s.s); this.mtx.setPosition(s.x, 0.02 + fxGround.y(s.x, s.z), s.z);
-      this.scorch.setMatrixAt(i, this.mtx);
+    for (const b of this.bursts) {
+      if (!b.live) continue;
+      b.t += dt; const t = b.t;
+      // the dome bursts up out of the ground in a few frames, then tears into tongues and burns away
+      const grow = 1 - Math.pow(1 - Math.min(1, t / 0.12), 3), size = b.size * (0.35 + 0.65 * grow) * (1 + 0.15 * Math.min(1, t / DOME_T));
+      const cut = Math.max(0, t - 0.14) / (DOME_T - 0.2), fade = Math.max(0, Math.min(1, (DOME_T - t) / 0.18));
+      b.dome.visible = fade > 0; b.dome.scale.set(size, size * 1.35, size);
+      for (const m of b.dome.children) { const u = m.material.uniforms; u.uTime.value = this.t; u.uCut.value = 0.07 + 0.45 * cut * cut; u.uCool.value = 0.07 + 0.2 * Math.min(1, cut); u.uAlpha.value = fade; }
+      b.dome.children[2].material.uniforms.uAlpha.value = Math.max(0, 1 - t / 0.25);
+      // the pit: its molten floor cools, then it fades away
+      const C = b.pit.material.uniforms; C.uGlow.value = Math.max(0, 1 - t / 1.1); C.uA.value = Math.min(1, t / 0.05) * Math.max(0, Math.min(1, (PIT_T - t) / 0.7));
+      if (t > PIT_T) { b.live = false; b.dome.visible = false; b.pit.visible = false; }
     }
-    if (any || this.scorch.visible) { this.scorch.instanceMatrix.needsUpdate = true; this.scorch.geometry.attributes.aLife.needsUpdate = true; }
-    this.scorch.visible = any;
     this.shaft.end(); this.core.end(); this.glow.end();
   }
   clear() {
     for (const a of this.arrows) { a.live = false; a.flame.visible = false; a.ring.visible = false; a.landedFx = false; }
     for (const f of this.flashes) { f.t = 9; f.m.visible = false; }
-    for (const s of this.scorches) s.t = 9;
-    this.scorch.visible = false;
+    for (const b of this.bursts) { b.live = false; b.dome.visible = false; b.pit.visible = false; }
   }
-  get busy() { return this.arrows.some((a) => a.live); }
+  get busy() { return this.arrows.some((a) => a.live) || this.bursts.some((b) => b.live); }
 }

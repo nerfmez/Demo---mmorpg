@@ -36,7 +36,9 @@ sea=sea.replace('float rockNear=min(length(q-uRocks[0].xy)-uRocks[0].z,length(q-
 # Small pools: the wash runs up a quarter as far and the light web is fainter; the concept's clear
 # bright turquoise stays (Greenhollow's warm tone, not Moonroot's deep teal).
 for a_,b_ in[('float dz=w.z-zShoreG(w.x);','float dz=pondIn(w.xz);'),('  vec2 q=vW.xz;\n  float dz=q.y-zShoreG(q.x);','  vec2 q=vW.xz;\n  float dz=pondIn(q);'),('float edge=dz+runup(q.x,t);','float edge=dz+.25*runup(q.x,t);'),
-  ('col=mix(col,${L(\'#e8ffd2\')},line*mix(.26,.36,near));','col=mix(col,${L(\'#e8ffd2\')},line*mix(.14,.2,near));')]:
+  ('col=mix(col,${L(\'#e8ffd2\')},line*mix(.26,.36,near));','col=mix(col,${L(\'#e8ffd2\')},line*mix(.14,.2,near));'),
+  # clear shallow water (owner: the pebbles on the floor must show, as the concept's)
+  ('float alpha=mix(.46,.56,smoothstep(.0,1.,depth));','float alpha=mix(.2,.28,smoothstep(.0,1.,depth));'),('alpha=mix(alpha,.78,smoothstep(1.2,2.6,depth));','alpha=mix(alpha,.32,smoothstep(1.2,2.6,depth));')]:
  assert a_ in sea,a_;sea=sea.replace(a_,b_)
 runtime=r[r.index('function resize()'):].replace('  updatePetals(timeU.value);','').replace('ready: true','wetland: {ports:WETLAND_PORTS,junctions:ROAD_JUNCTIONS,routes:ROUTES,crystal:CRYSTAL,blocked,hero:HERO,colliders:COLLIDERS,height,pondIn}, ready: true')
 plantSource=(here.parent/'shell-beach/scene.js').read_text()

@@ -99,19 +99,23 @@ function shoreBlocks(){
    const a=-Math.PI+(i+R(-.2,.2))/n*2*Math.PI,r=poolRadius(P0,a)+M(.2),x=P0.cx+Math.cos(a)*r,z=P0.cz+Math.sin(a)*r;
    const st=stairsAt(x,z);if(st.s<st.half+M(.35)||field(x,z).rock>.3||rand()<.3)continue;
    const w=M(R(.5,.85)),h=M(R(.3,.55)),y=Math.min(height(x,z),M(.1));
-   block(x,y-M(.25),z,w,h+M(.2),w*R(.65,.9),-a+R(-.3,.3),.6,{base:pick(SHORE_STONE)});
+   fieldStone(x,y-M(.3),z,w,h+M(.25),w*R(.7,.95),{ry:-a+R(-.3,.3),moss:.6,chamfer:R(.4,.6),base:pick(SHORE_STONE)});
    COLLIDERS.push({x,z,r:w*.42});
    if(rand()<.45)addBush(x+R(-.3,.3),y+h-M(.2),z+R(-.3,.3),M(R(.2,.34)),{sy:.6,tint:R(-.15,.2)});
   }
  }
 }
-// pebbles on the pools' floors, seen through the clear water
+// pebbles on the pools' floors, seen through the clear water: warm brown stones in their own warm-lit
+// material, so the water's teal does not turn them grey-blue (owner: they must show, as the concept's)
 function poolPebbles(){
- for(let i=0;i<900;i++){
+ const from=stoneParts.length;
+ for(let i=0;i<700;i++){
   const P0=pick(POOLS),a=R(-Math.PI,Math.PI),r=poolRadius(P0,a)*Math.sqrt(R(0,.9)),x=P0.cx+Math.cos(a)*r,z=P0.cz+Math.sin(a)*r;
-  if(pondIn(x,z)<M(.3))continue;
-  const s=R(.15,.55);addStone(x,height(x,z)-.05,z,s*1.5,s*.7,s*1.2,{extra:5,chamfer:.3,noLine:true,moss:.25,base:pick(['#8a8f86','#9a9a8e','#7d857e','#a3a094'])});
+  if(pondIn(x,z)<M(.2))continue;
+  const s=R(.45,1.1);addStone(x,height(x,z)-.08,z,s*1.4,s*.6,s*1.15,{extra:12,chamfer:.55,noLine:true,moss:.25,base:pick(['#a06e40','#8e6240','#b07e4e','#7e5a38','#727048'])});
  }
+ const parts=stoneParts.splice(from);
+ if(parts.length){const m=new THREE.Mesh(mergeGeometries(parts),paint({vertexColors:true,shade:[.62,.5,.4],mid:[.86,.76,.64]}));m.receiveShadow=true;scene.add(m);}
 }
 const lilyItems=[];
 function lilyPads(){
@@ -166,7 +170,7 @@ function crystal(u,v){
   }
  }
  const mesh=new THREE.Mesh(mergeGeometries(parts),paint({vertexColors:true,shade:[.62,.8,.92],mid:[.85,.95,1.05],lit:[1.15,1.2,1.25]}));mesh.castShadow=true;scene.add(mesh);
- for(let k=0;k<6;k++){const a=k/6*6.28;block(x+Math.cos(a)*M(.75),y-M(.2),z+Math.sin(a)*M(.6),M(R(.45,.7)),M(R(.3,.5)),M(R(.4,.6)),R(0,3),.7,{base:pick(SHORE_STONE)});}
+ for(let k=0;k<7;k++){const a=k/7*6.28+R(-.2,.2);fieldStone(x+Math.cos(a)*M(.8),y-M(.35),z+Math.sin(a)*M(.65),M(R(.6,.9)),M(R(.45,.75)),M(R(.5,.75)),{ry:R(0,3),moss:.7,chamfer:.5,base:pick(SHORE_STONE)});}
  COLLIDERS.push({x,z,r:M(.9)});
 }
 // glints: little four-point stars twinkling over the water and round the crystal

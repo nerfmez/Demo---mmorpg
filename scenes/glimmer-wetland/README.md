@@ -1,6 +1,14 @@
 # Glimmer Wetland — standalone scene for owner review
 
-**Owner status: v1 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/LtzZcuBoJvjAwyF5D5YfZB).
+**Owner status: v2 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/LtzZcuBoJvjAwyF5D5YfZB).
+
+Owner, on version 1: "กรวดใต้น้ำยังมองเห็นไม่ชัดเท่าในคอนเซป หินเป็นเหลี่ยมไม่ธรรมชาติ" (the pebbles under
+the water do not show as clearly as the concept's; the stones are boxy and unnatural). Version 2: the
+pools are shallower and their water clearer, over a pale teal-sand bed; the pebbles are bigger,
+rounded and warm brown, in their own warm-lit material so the water's teal does not turn them
+grey-blue. Every stone is now a rounded mossy field stone (`fieldStone`): round the pools, along the
+paths, round the crystal; the raised banks lost their column rock faces and are ringed with rounded
+stones instead.
 
 Concept: `glimmer-wetland.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`
 (branch `docs/landscape-concepts-40deg-20261022`), retained without recompression as `concept.png`.

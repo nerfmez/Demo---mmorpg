@@ -28,7 +28,7 @@ const K = 3.12;   // world scale: the concept's layout, K times bigger, seen fro
 const M = v => v * K;   // concept metres to world metres
 const PL = M(1.1);
 // The pools lie a little below the paths: their surface and their floor.
-const SEA_Y = -M(.35), SEA_FLOOR = -M(1.0);   // the plaza and the ruins
+const SEA_Y = -M(.35), SEA_FLOOR = -M(.7);   // the plaza and the ruins
 const T1 = M(3.6);   // the rock ridge between the path and the plaza, at its highest
 const T2B = M(3.3), T2 = M(5.1);   // the high tier on the ridge's left: its foot and its top
 const inFrame = (u, v) => u > -0.08 && u < 1.08 && v > -0.06 && v < 1.06;
@@ -41,15 +41,15 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES=[
  // the mossy rock the great willow stands on, between the small pool and the middle one
- {top:PL,base:0,ledge:true,soft:M(1.0),lean:M(.28),pts:[[.375,.245,'b'],[.43,.232,'b'],[.50,.24,'b'],[.555,.25,'b'],[.575,.18,'n'],[.565,.08,'n'],[.53,-.4,'t'],[.37,-.4,'t'],[.36,.05,'n'],[.375,.13,'n']]},
+ {top:PL,base:0,ledge:true,soft:M(1.0),lean:M(.28),pts:[[.375,.245,'n'],[.43,.232,'n'],[.50,.24,'n'],[.555,.25,'n'],[.575,.18,'n'],[.565,.08,'n'],[.53,-.4,'t'],[.37,-.4,'t'],[.36,.05,'n'],[.375,.13,'n']]},
  // the crystal's rock, a block of stone with the crystal on its top
- {top:M(1.4),base:0,ledge:true,soft:M(1.0),lean:M(.3),pts:[[.655,.175,'b'],[.70,.205,'b'],[.76,.215,'b'],[.81,.20,'b'],[.835,.13,'n'],[.825,.02,'n'],[.80,-.4,'t'],[.66,-.4,'t'],[.645,.08,'n']]},
+ {top:M(1.4),base:0,ledge:true,soft:M(1.0),lean:M(.3),pts:[[.655,.175,'n'],[.70,.205,'n'],[.76,.215,'n'],[.81,.20,'n'],[.835,.13,'n'],[.825,.02,'n'],[.80,-.4,'t'],[.66,-.4,'t'],[.645,.08,'n']]},
  // willow banks at the top left and top right and on the right
- {top:M(.9),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[-.3,.34,'t'],[.03,.335,'b'],[.09,.315,'b'],[.12,.26,'n'],[.125,.10,'n'],[.12,-.4,'t'],[-.3,-.4,'t']]},
- {top:M(.9),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[.845,.245,'b'],[.90,.265,'b'],[.97,.265,'b'],[1.3,.26,'t'],[1.3,-.4,'t'],[.85,-.4,'t'],[.835,.12,'n']]},
- {top:M(.8),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[1.3,.96,'t'],[.93,.93,'b'],[.885,.83,'b'],[.89,.71,'b'],[.92,.625,'b'],[.98,.59,'n'],[1.3,.58,'t']]},
+ {top:M(.9),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[-.3,.34,'t'],[.03,.335,'n'],[.09,.315,'n'],[.12,.26,'n'],[.125,.10,'n'],[.12,-.4,'t'],[-.3,-.4,'t']]},
+ {top:M(.9),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[.845,.245,'n'],[.90,.265,'n'],[.97,.265,'n'],[1.3,.26,'t'],[1.3,-.4,'t'],[.85,-.4,'t'],[.835,.12,'n']]},
+ {top:M(.8),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[1.3,.96,'t'],[.93,.93,'n'],[.885,.83,'n'],[.89,.71,'n'],[.92,.625,'n'],[.98,.59,'n'],[1.3,.58,'t']]},
  // the low rock rise at the front left
- {top:M(.8),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[-.3,1.1,'t'],[.18,1.06,'n'],[.24,.95,'b'],[.205,.85,'b'],[.13,.76,'b'],[.05,.71,'b'],[-.3,.69,'t']]}
+ {top:M(.8),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[-.3,1.1,'t'],[.18,1.06,'n'],[.24,.95,'n'],[.205,.85,'n'],[.13,.76,'n'],[.05,.71,'n'],[-.3,.69,'t']]}
 ].map(T => {
   let pts = T.pts.map(([u, v, k, h]) => { const [x, z] = P(u, v, h ?? (k === 't' ? T.top : T.base)); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
   // a smooth closed outline through the authored points, sampled about every 1.3 m; a sample's
@@ -377,6 +377,10 @@ function buildGround() {
   // a ragged grass edge spilling over the dirt
   float tuft=step(.5,vnoise(q*5.))*(1.-smoothstep(-.9,-.1,dd))*smoothstep(-1.6,-.6,dd);
   vec3 col=mix(trail,grass,clamp(wgt.x+tuft*.6,0.,1.));
+  float pin=pondIn(q);
+  vec3 bed=mix(${L('#8fd3c4')},${L('#a6dcc6')},smoothstep(.3,.7,n1));
+  bed=mix(bed,${L('#c2d6a8')},smoothstep(.6,.85,fbm(q*.7+9.))*.45);
+  col=mix(col,bed,smoothstep(-.4,.5,pin));
   // the steep faces behind the stones
   float steep=1.-smoothstep(.45,.75,normalize(vWN).y);
   col=mix(col,${L('#9a958d')},max(steep,vCliffRock));

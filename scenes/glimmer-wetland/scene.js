@@ -15,13 +15,26 @@ function wetRocks(){
  for(const[u,v,w,h]of[[.03,.33,.05,.30],[.09,.31,.04,.285],[.26,.48,.03,.46],[.30,.49,.025,.47],[.375,.62,.03,.60],[.41,.66,.025,.645],[.66,.62,.04,.595],[.72,.585,.035,.56],[.78,.61,.04,.585],[.755,.70,.035,.675],[.83,.69,.03,.665],[.15,.68,.035,.655],[.08,.66,.04,.63],[.25,.84,.04,.81],[.30,.88,.035,.855],[.70,.95,.045,.915],[.78,.92,.035,.89],[.86,.97,.045,.935],[.60,.17,.03,.145],[.38,.06,.035,.03],[.25,.07,.03,.045],[.68,.36,.02,.345]]){
   const[x,y,z]=onGround(u,v),width=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,h);
   {const st=stairsAt(x,z);if(st.s<st.half+width*.3||pondIn(x,z)>-width*.3)continue;}
-  block(x,y-M(.25),z,width*R(.9,1.05),hh+M(.25),width*R(.6,.8),R(-.4,.4),.65,{base:pick(SHORE_STONE)});COLLIDERS.push({x,z,r:width*.42});
+  fieldStone(x,y-M(.3),z,width*R(.9,1.05),hh+M(.3),width*R(.7,.9),{ry:R(-.4,.4),moss:.65,chamfer:R(.4,.6),base:pick(SHORE_STONE)});COLLIDERS.push({x,z,r:width*.42});
   if(rand()<.6)addBush(x+R(-.4,.4)*width,y+hh*.3,z+R(.3,.6)*width,M(R(.25,.4)),{sy:.6,tint:R(-.1,.2)});
  }
  for(let i=0;i<200;i++){
   const[x,y,z]=onGround(R(.02,.98),R(.08,1.04)),f=field(x,z),st=stairsAt(x,z);
   if(f.rock>.2||pondIn(x,z)>-M(.3))continue;
   const r=R(.08,.3);addStone(x,y-.06,z,r*1.6,r,r*1.1,{extra:5,chamfer:.26,noLine:true,moss:.1});
+ }
+}
+const BANK_EDGES=[[[.375,.245],[.43,.232],[.50,.24],[.555,.25]],[[.655,.175],[.70,.205],[.76,.215],[.81,.20]],[[-.02,.338],[.03,.335],[.09,.315]],[[.845,.245],[.90,.265],[.97,.265],[1.02,.262]],[[.93,.93],[.885,.83],[.89,.71],[.92,.625]],[[.24,.95],[.205,.85],[.13,.76],[.05,.71],[-.02,.69]]];
+function bankStones(){
+ for(const edge of BANK_EDGES){
+  const pts=edge.map(([u,v])=>{const[x,z]=P(u,v,0);return new V3(x,0,z);}),curve=new THREE.CatmullRomCurve3(pts,false,'centripetal'),n=Math.max(2,Math.round(curve.getLength()/M(1.25)));
+  for(let i=0;i<=n;i++){
+   const q=curve.getPoint(i/n),x=q.x+R(-.4,.4),z=q.z+R(-.4,.4),st=stairsAt(x,z);
+   if(st.s<st.half+M(.6)||pondIn(x,z)>-M(.3))continue;
+   const y=height(x,z),w=M(R(.8,1.3));
+   fieldStone(x,y-M(.45),z,w,M(R(.7,1.1)),w*R(.7,.9),{ry:R(0,3),moss:.7,chamfer:R(.4,.6),base:pick(SHORE_STONE)});COLLIDERS.push({x,z,r:w*.42});
+   if(rand()<.5)addBush(x+R(-.4,.4),y+M(.3),z+M(.3),M(R(.25,.4)),{sy:.6,tint:R(-.1,.2)});
+  }
  }
 }
 function plantWetland(){
@@ -61,7 +74,7 @@ function build(){
  const[x,z]=P(.50,.78);HERO.x=x;HERO.z=z;HERO.face=-2.9;
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();
  shoreBlocks();poolPebbles();while(seaRocks.length<8)seaRocks.push([0,-999,0]);
- scene.add(buildSea());lilyPads();crystal(.715,.12);wetRocks();plantWetland();reeds();sparkles();
+ scene.add(buildSea());lilyPads();crystal(.715,.12);bankStones();wetRocks();plantWetland();reeds();sparkles();
  if(rootParts.length){const roots=new THREE.Mesh(mergeGeometries(rootParts),barkPaint());roots.castShadow=roots.receiveShadow=true;scene.add(roots);}
  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
  for(let i=0;i<woodParts.length;i++){let g=woodParts[i];if(g.index)g=g.toNonIndexed();if(g.attributes.uv)g.deleteAttribute('uv');woodParts[i]=g;}

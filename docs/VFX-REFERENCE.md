@@ -521,3 +521,9 @@ needles, each with its streak) fan out along the shot. Behind each shard runs a 
 the ground and a row of small ice spikes leaning back along its path (the same needle, standing), only
 over the fan's true arc and reach; they hold a second and melt away. A struck target sprays ice chips.
 Instanced needles, spikes and chips (three draws), two ribbons, a fan decal. No gallery access.
+Round 2 (owner: "odd, hard to say why"; the frost fan and the evenly spaced spike rows on the ground read as a
+diagram, the shards in the air were too small, and the marks were on the ground while the shards flew in the
+air). Nothing is drawn on the ground now but chips. The crack is bigger (a white flash, a puff of cold mist,
+short crack streaks bursting forward, more chips); the shards are bigger needles with brighter streaks; each
+shard that strikes a monster stays stuck in it, pointing back along its flight, for the chill's 3 s, then
+melts.

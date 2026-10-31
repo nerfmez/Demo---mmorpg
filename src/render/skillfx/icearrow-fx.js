@@ -1,15 +1,16 @@
-// Shatter Arrow (the spell archer's cold skill, 2026-10-31). Its own look, apart from the mage's frost
-// (Frost Nova's round scalloped ground frost and crystal clusters, Blizzard's storm): it is made of an
-// arrow. A crystal arrow of ice (a long six-sided needle in Frost Nova's cel ice shading) flies with a
-// thin frost trail that sheds glints; when a monster stops it, it cracks with a white flash and bursts
-// forward into the rules' fan of shards - small ice needles that fly on, each with its own streak - over a
-// fan of frost that races along the ground behind them (frost lines along the shard paths, only in the
-// fan's true arc and reach) and then melts. A struck target sprays ice chips. Cosmetic only: the arrow and
-// shards are the rules' projectiles (kind frost_shatter_arrow, shard: true), the burst its 'shatter' event.
+// Shatter Arrow (the spell archer's cold skill, 2026-10-31, round 2). Its own look, apart from the mage's
+// frost (Frost Nova's round ground frost and crystal clusters, Blizzard's storm): it is made of an arrow.
+// A crystal arrow of ice (a long six-sided needle in Frost Nova's cel ice shading) flies with a frost trail
+// that sheds glints; when a monster stops it, it cracks - a white flash, a puff of cold mist, short crack
+// streaks bursting forward and a spray of ice chips - and bursts into the rules' fan of shards, bigger ice
+// needles that fly on with bright streaks. Every shard that strikes a monster stays stuck in it, pointing
+// back along its flight, for as long as the chill lasts, then melts. Owner, round 1: the frost fan and rows
+// of spikes on the ground looked odd (a diagram, not ice); nothing is drawn on the ground now but the chips.
+// Cosmetic only: the arrow and shards are the rules' projectiles (kind frost_shatter_arrow, shard: true).
 import * as THREE from 'three';
-import { Ribbon, mulberry32, flashMaterial, tintFlash, placeV, place, conformPlane, fxGround } from './fx-common.js';
+import { Ribbon, mulberry32, flashMaterial, tintFlash, place, fxGround, NOISE, BILLBOARD_VS } from './fx-common.js';
 
-const NEEDLES = 16, FANS = 2, FLASHES = 4, CHIPS = 90, HIST = 7, SPIKES = 48, SPIKE_STEP = 0.55;
+const NEEDLES = 16, MISTS = 3, FLASHES = 4, CHIPS = 90, HIST = 7, STUCK = 24, CRACKS = 9;
 const KIND = 'frost_shatter_arrow';
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.9) discard;
@@ -35,25 +36,14 @@ const ICE_FS = `varying vec3 vB; varying vec3 vN; varying vec3 vV; varying vec3 
     float rim = 1.0 - max(dot(N, normalize(vV)), 0.0);
     c = mix(c, vec3(0.9,0.98,1.0), smoothstep(0.5, 0.95, rim) * 0.6);
     gl_FragColor = vec4(c, 0.92); }`;
-// the frost fan on the ground behind the shards: plane centred on the burst, +x along the shot; uArc half
-// its angle, uFront how far the frost has run (of the reach), uMelt 0..1, uSeed; cel tones, frost lines
-// along the shard paths (uLines of them), a bright rim at the front
-const FAN_FS = `varying vec2 vP; uniform float uArc; uniform float uFront; uniform float uMelt; uniform float uLines; uniform float uSeed;
-  void main(){
-    float r = length(vP), a = atan(vP.y, vP.x);
-    if (r > uFront || abs(a) > uArc + 0.1 || r < 0.02) discard;
-    float k = (uLines - 1.0)*0.5, gap = uArc/max(k, 0.5);
-    float line = abs(fract(a/gap + k + 0.5) - 0.5)*gap*r;     // distance across to the nearest shard path
-    float w = (0.012 + 0.014*(1.0 - r))*(1.0 - 0.7*uMelt);                  // a frost streak, tapering out
-    float frost = 1.0 - smoothstep(w*0.5, w, line);
-    float halo = (1.0 - smoothstep(w, w*5.0, line))*0.25;
-    float far = 1.0 - smoothstep(uFront - 0.08, uFront, r);
-    float fade = (1.0 - uMelt)*(1.0 - smoothstep(0.7, 1.0, r));
-    float al = (frost*0.95 + halo)*far*fade + 0.06*(1.0 - uMelt)*(1.0 - r)*step(abs(a), uArc);
-    if (uFront < 1.0 && uFront - r < 0.04) al = max(al, 0.5*step(abs(a), uArc));   // the running front
-    if (al < 0.01) discard;
-    vec3 c = mix(vec3(0.62, 0.86, 0.98), vec3(0.96, 1.0, 1.0), frost);
-    gl_FragColor = vec4(c, min(1.0, al)); }`;
+// a puff of cold mist at the crack (a billboard: fbm cut by its own fading)
+const MIST_FS = `varying vec2 vUv; uniform float uT; uniform float uSeed;` + NOISE + `
+  void main(){ float r = length(vUv);
+    float n = fbm(vUv*2.0 + uSeed + vec2(uT*0.6, -uT*0.9));
+    float body = n*1.2 - r*0.95 - uT*0.8;
+    if (body < 0.04) discard;
+    vec3 c = body > 0.3 ? vec3(0.97, 1.0, 1.0) : vec3(0.74, 0.9, 0.99);
+    gl_FragColor = vec4(c, body > 0.3 ? 0.85 : 0.5); }`;
 
 /** A long six-sided needle of ice along +x (from -0.5 to 0.5, widest a little behind the point), with a
  *  barycentric attribute for its bright facet edges. */
@@ -87,11 +77,12 @@ export class IceArrowFx {
     this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
     this.needles = new THREE.InstancedMesh(needleGeometry(), new THREE.ShaderMaterial({ vertexShader: ICE_VS, fragmentShader: ICE_FS, transparent: true }), NEEDLES);
     this.needles.frustumCulled = false; this.needles.renderOrder = 6; this.needles.count = 0; scene.add(this.needles);
-    // frost spikes the shards leave on the ground under their paths (the same ice needles, standing)
-    this.spikes = new THREE.InstancedMesh(this.needles.geometry, this.needles.material, SPIKES);
-    this.spikes.frustumCulled = false; this.spikes.renderOrder = 5; this.spikes.count = 0; scene.add(this.spikes);
-    this.spikeList = Array.from({ length: SPIKES }, () => ({ t: 9, x: 0, z: 0, s: 1, lean: new THREE.Quaternion() })); this.spikeI = 0;
-    this.up = new THREE.Vector3(0, 1, 0); this.axis = new THREE.Vector3();
+    // shards stuck in what they struck (the same ice needles)
+    this.stuck = new THREE.InstancedMesh(this.needles.geometry, this.needles.material, STUCK);
+    this.stuck.frustumCulled = false; this.stuck.renderOrder = 6; this.stuck.count = 0; scene.add(this.stuck);
+    this.stuckList = Array.from({ length: STUCK }, () => ({ t: 9, life: 3, id: 0, ox: 0, oy: 0, oz: 0, s: 1, q: new THREE.Quaternion() })); this.stuckI = 0;
+    this.locate = null; // set by the director: id -> {x, y, z} of a monster's centre, or null
+    this.cracks = Array.from({ length: CRACKS }, () => ({ t: 9, a: new THREE.Vector3(), d: new THREE.Vector3(), len: 1 }));
     const chipGeo = new THREE.TetrahedronGeometry(0.07);
     this.chips = new THREE.InstancedMesh(chipGeo, new THREE.MeshToonMaterial({ color: '#d8f3ff', emissive: '#25506f' }), CHIPS);
     this.chips.frustumCulled = false; this.chips.count = 0; scene.add(this.chips);
@@ -103,14 +94,12 @@ export class IceArrowFx {
       return { m, t: 9, size: 1 };
     });
     this.flashI = 0;
-    const fanVS = `varying vec2 vP; void main(){ vP = (uv*2.0 - 1.0); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);} `;
-    this.fans = Array.from({ length: FANS }, (_, k) => {
-      const mat = new THREE.ShaderMaterial({ uniforms: { uArc: { value: 0.6 }, uFront: { value: 0 }, uMelt: { value: 0 }, uLines: { value: 5 }, uSeed: { value: k * 3.7 } },
-        vertexShader: fanVS, fragmentShader: FAN_FS, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 8, 8), mat); m.visible = false; m.renderOrder = 1; scene.add(m);
-      return { m, mat, t: 9, reach: 5 };
+    this.mists = Array.from({ length: MISTS }, (_, k) => {
+      const m = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: k * 5.1 } }, vertexShader: BILLBOARD_VS, fragmentShader: MIST_FS, transparent: true, depthWrite: false }));
+      m.visible = false; m.renderOrder = 8; m.frustumCulled = false; scene.add(m);
+      return { m, t: 9 };
     });
-    this.fanI = 0;
+    this.mistI = 0;
     // flying needles by projectile id: a short position history for the trail
     this.live = new Map(); this.pool = Array.from({ length: NEEDLES + 4 }, () => ({ id: 0, shard: false, hist: Array.from({ length: HIST }, () => new THREE.Vector3()), n: 0, dir: new THREE.Vector3(), pos: new THREE.Vector3(), seen: false, fade: 0, glintAt: 0 }));
     this.dying = [];
@@ -129,29 +118,31 @@ export class IceArrowFx {
     }
   }
   // the rules' 'shatter': the arrow cracks at (x, z) and its shards fan out along `angle` over `arc` degrees
-  shatter(e, reach) {
-    const dx = Math.sin(e.angle), dz = Math.cos(e.angle);
-    this.flash(e.x, 1.0, e.z, 1.6);
-    this.chipBurst(e.x, 1.0, e.z, 14, dx, dz, 3.5);
-    const f = this.fans[this.fanI++ % FANS];
-    f.t = 0; f.reach = reach;
-    f.mat.uniforms.uArc.value = (e.arc * Math.PI) / 360; f.mat.uniforms.uLines.value = e.count || 5; f.mat.uniforms.uSeed.value = this.rnd() * 10;
-    f.m.visible = true; f.m.scale.set(reach * 2, reach * 2, 1);
-    place(f.m, e.x, 0.04, e.z); f.m.rotation.set(-Math.PI / 2, 0, e.angle - Math.PI / 2); conformPlane(f.m);
-    for (let i = 0; i < 8; i++) this.glint(e.x, 0.9 + this.rnd() * 0.4, e.z, 0.5);
+  shatter(e) {
+    const dx = Math.sin(e.angle), dz = Math.cos(e.angle), r = this.rnd;
+    this.flash(e.x, 1.05, e.z, 2.4);
+    this.chipBurst(e.x, 1.05, e.z, 20, dx, dz, 4);
+    const m = this.mists[this.mistI++ % MISTS]; m.t = 0; m.m.visible = true; place(m.m, e.x + dx * 0.3, 1.0, e.z + dz * 0.3);
+    // crack streaks: short white lines bursting out forward from the crack, a little wider than the fan
+    const half = ((e.arc || 70) * Math.PI) / 360 * 1.4;
+    for (const c of this.cracks) {
+      const a = e.angle + (r() * 2 - 1) * half, up = (r() - 0.3) * 0.6;
+      c.t = 0; c.len = 0.6 + r() * 0.7; c.a.set(e.x, 1.05, e.z); c.d.set(Math.sin(a), up, Math.cos(a)).normalize();
+    }
+    for (let i = 0; i < 10; i++) this.glint(e.x + dx * r(), 0.9 + r() * 0.5, e.z + dz * r(), 0.6);
   }
-  // a struck target: ice chips off it, a cold glint
-  hit(c, dx, dz) {
-    const l = Math.hypot(dx, dz) || 1;
-    this.chipBurst(c.x, c.y, c.z, 6, dx / l, dz / l, 2.2);
+  // a struck target (id, its centre c, struck from dx, dz): ice chips off it, a cold glint, and the needle
+  // stays stuck in it, pointing back the way it came, for `life` s (the chill)
+  hit(id, c, dx, dz, life) {
+    const l = Math.hypot(dx, dz) || 1, ux = dx / l, uz = dz / l, r = this.rnd;
+    this.chipBurst(c.x, c.y, c.z, 7, ux, uz, 2.2);
     this.glint(c.x, c.y + 0.2, c.z, 0.7);
-  }
-  spike(x, z, dir) {
-    const s = this.spikeList[this.spikeI++ % SPIKES], r = this.rnd;
-    s.t = 0; s.x = x + (r() - 0.5) * 0.2; s.z = z + (r() - 0.5) * 0.2; s.s = 0.55 + r() * 0.45;
-    // stand up (+x of the needle to world up), then lean back against the flight a little
-    this.axis.set(dir.z, 0, -dir.x).normalize();
-    s.lean.setFromUnitVectors(X, this.up).premultiply(this.q.setFromAxisAngle(this.axis, -0.35 - r() * 0.3));
+    const s = this.stuckList[this.stuckI++ % STUCK];
+    s.t = 0; s.life = life; s.id = id; s.s = 1.1 + r() * 0.3;
+    // embedded a little way into the near side, at a slightly random height and slant
+    s.ox = -ux * 0.28 + (r() - 0.5) * 0.15; s.oy = (r() - 0.4) * 0.35; s.oz = -uz * 0.28 + (r() - 0.5) * 0.15;
+    this.p.set(ux, -0.25 - r() * 0.2, uz).normalize();
+    s.q.setFromUnitVectors(X, this.p);
   }
   glint(x, y, z, life) {
     const g = this.glintFree.pop(); if (!g) return;
@@ -184,7 +175,7 @@ export class IceArrowFx {
       // keep a short history for the trail
       const h = rec.hist;
       if (alpha >= 1) { for (let i = HIST - 1; i > 0; i--) h[i].copy(h[i - 1]); h[0].copy(rec.pos); rec.n = Math.min(HIST, rec.n + 1); }
-      const len = rec.shard ? 0.62 : 1.45, thick = rec.shard ? 1.3 : 2.0;
+      const len = rec.shard ? 0.85 : 1.45, thick = rec.shard ? 1.7 : 2.0;
       if (alpha >= 1 && k < NEEDLES) {
         this.q.setFromUnitVectors(X, rec.dir); this.s3.set(len, thick, thick);
         this.p.copy(rec.pos); this.p.y += fxGround.y(this.p.x, this.p.z);
@@ -193,13 +184,8 @@ export class IceArrowFx {
       if (rec.n >= 2) {
         const pts = this.trail; pts.length = rec.n;
         for (let i = 0; i < rec.n; i++) pts[i] = h[rec.n - 1 - i];
-        sw = rec.shard ? 0.07 : 0.12; this.glow.strip(pts, trailGlowW, 0.7 * alpha, ICE_GLOW);
-        sw = rec.shard ? 0.025 : 0.04; this.core.strip(pts, trailCoreW, 0.9 * alpha, ICE_EDGE);
-      }
-      // a shard leaves frost spikes behind it, a little apart, leaning back along its path
-      if (rec.shard && alpha >= 1) {
-        if (rec.n === 1) { rec.sx = rec.pos.x; rec.sz = rec.pos.z; }
-        if (Math.hypot(rec.pos.x - rec.sx, rec.pos.z - rec.sz) >= SPIKE_STEP) { rec.sx = rec.pos.x; rec.sz = rec.pos.z; this.spike(rec.pos.x, rec.pos.z, rec.dir); }
+        sw = rec.shard ? 0.12 : 0.12; this.glow.strip(pts, trailGlowW, (rec.shard ? 0.9 : 0.7) * alpha, ICE_GLOW);
+        sw = rec.shard ? 0.04 : 0.04; this.core.strip(pts, trailCoreW, 0.95 * alpha, ICE_EDGE);
       }
       // glints shed along the way
       rec.glintAt -= dt;
@@ -242,30 +228,37 @@ export class IceArrowFx {
       this.m4.compose(this.p, this.q, this.s3); this.chips.setMatrixAt(c++, this.m4);
     }
     this.chips.count = c; this.chips.instanceMatrix.needsUpdate = true;
-    // spikes: shoot up, hold, sink and shrink away
-    let sp = 0;
-    for (const s of this.spikeList) {
-      if (s.t >= 1.5) continue;
+    // stuck shards: follow their monster, melt (shrink) over their last 0.4 s, gone if it is
+    let st = 0;
+    for (const s of this.stuckList) {
+      if (s.t >= s.life) continue;
       s.t += dt;
-      const grow = Math.min(1, s.t / 0.08), out = Math.max(0, (s.t - 1.0) / 0.5), k3 = s.s * grow * (1 - out);
+      const c = this.locate?.(s.id);
+      if (!c) { s.t = s.life; continue; }
+      const k3 = s.s * Math.min(1, s.t / 0.05) * Math.min(1, (s.life - s.t) / 0.4);
       if (k3 <= 0) continue;
-      this.s3.set(0.62 * k3, 1.3 * k3, 1.3 * k3);
-      this.p.set(s.x, 0.62 * k3 * 0.35 + fxGround.y(s.x, s.z), s.z);
-      this.m4.compose(this.p, s.lean, this.s3); this.spikes.setMatrixAt(sp++, this.m4);
+      this.s3.set(0.75 * k3, 1.8 * k3, 1.8 * k3);
+      this.p.set(c.x + s.ox, c.y + s.oy + fxGround.y(c.x, c.z), c.z + s.oz);
+      this.m4.compose(this.p, s.q, this.s3); this.stuck.setMatrixAt(st++, this.m4);
     }
-    this.spikes.count = sp; this.spikes.instanceMatrix.needsUpdate = true;
+    this.stuck.count = st; this.stuck.instanceMatrix.needsUpdate = true;
+    // crack streaks: shoot out and thin away in 0.18 s
+    for (const c of this.cracks) {
+      if (c.t >= 0.18) continue;
+      c.t += dt; const u = Math.min(1, c.t / 0.18);
+      two[0].copy(c.a).addScaledVector(c.d, c.len * (0.15 + 0.55 * u)); two[1].copy(c.a).addScaledVector(c.d, c.len * (0.35 + 0.65 * u));
+      sw = 0.05 * (1 - u); this.glow.strip(two, glintGlowW, 0.8, ICE_GLOW); this.core.strip(two, glintW, 1, WHITE);
+    }
+    for (const m of this.mists) {
+      if (!m.m.visible) continue;
+      m.t += dt; const u = m.t / 0.55;
+      if (u >= 1) { m.m.visible = false; continue; }
+      m.m.quaternion.copy(this.camera.quaternion); m.m.scale.setScalar(1.0 + u * 1.2); m.m.material.uniforms.uT.value = u;
+    }
     for (const f of this.flashes) {
       f.t += dt; const u = f.t / 0.22;
       f.m.visible = u < 1; if (!f.m.visible) continue;
       f.m.quaternion.copy(this.camera.quaternion); f.m.scale.setScalar(f.size * (0.6 + u * 0.7)); f.m.material.uniforms.uT.value = u;
-    }
-    // the frost fan: runs out with the shards (0.25 s), holds, melts back
-    for (const f of this.fans) {
-      if (!f.m.visible) continue;
-      f.t += dt; const U = f.mat.uniforms;
-      U.uFront.value = Math.min(1, f.t / 0.25);
-      U.uMelt.value = Math.max(0, Math.min(1, (f.t - 1.0) / 0.8));
-      if (f.t > 1.8) f.m.visible = false;
     }
     this.core.end(); this.glow.end();
   }
@@ -273,10 +266,10 @@ export class IceArrowFx {
     for (const rec of this.pool) rec.id = 0;
     this.live.clear(); this.dying.length = 0; for (const g of this.glints) this.glintFree.push(g); this.glints.length = 0;
     for (const ch of this.chipList) ch.t = 9;
-    for (const s of this.spikeList) s.t = 9; this.spikes.count = 0;
+    for (const s of this.stuckList) s.t = 9; this.stuck.count = 0; for (const c of this.cracks) c.t = 9;
     this.needles.count = 0; this.chips.count = 0;
     for (const f of this.flashes) { f.t = 9; f.m.visible = false; }
-    for (const f of this.fans) f.m.visible = false;
+    for (const m of this.mists) m.m.visible = false;
   }
-  get busy() { return this.live.size > 0 || this.dying.length > 0 || this.fans.some((f) => f.m.visible); }
+  get busy() { return this.live.size > 0 || this.dying.length > 0 || this.stuckList.some((s) => s.t < s.life); }
 }

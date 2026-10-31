@@ -118,6 +118,7 @@ export class SkillFx {
     this.draw = new DrawFx(scene, camera);
     this.gs = new GreatshieldFx(scene, camera); // the guardian's greatshield skills
     this.lchain.locate = (id) => { for (const m of this.game.monsters) if (m.id === id) return m; return null; };
+    this.iarrow.locate = (id) => this.centerOf(id);
     const shake = (amp, time) => host.shake(amp, time);
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
@@ -387,7 +388,7 @@ export class SkillFx {
         return true;
       }
       case 'blinkPlayer': this.move.jump(e.fromX, e.fromZ, e.x, e.z); host.vfx.blinkEcho(e.fromX, e.fromZ, host.rig()); return true;
-      case 'shatter': if (e.skill !== 'frost_shatter_arrow') return false; this.iarrow.shatter(e, this.skillOf(e.skill)?.shatter?.range || 5); host.shake(0.06, 0.08); return true;
+      case 'shatter': if (e.skill !== 'frost_shatter_arrow') return false; this.iarrow.shatter(e); host.shake(0.06, 0.08); return true;
       case 'arrowPin': this.frain.pin(e, this.skillOf(e.skill)?.arrows?.blast || 1.4); return true;
       case 'area': {
         if (e.owner !== 'player') return false;
@@ -446,7 +447,7 @@ export class SkillFx {
         if (e.skill === 'killing_arrow') this.kill.hit(c, c.x - e.fromX, c.z - e.fromZ);
         if (e.skill === 'holy_bell') this.bell.hit(c);
         if (e.skill === 'spell_wave') this.wave.hit(c);
-        if (e.skill === 'frost_shatter_arrow') this.iarrow.hit(c, c.x - e.fromX, c.z - e.fromZ);
+        if (e.skill === 'frost_shatter_arrow') this.iarrow.hit(e.id, c, c.x - e.fromX, c.z - e.fromZ, this.skillOf(e.skill)?.chill?.duration || 3);
         if (e.skill === 'draw_cut') this.draw.hit(c);
         if (e.skill === 'shield_rush') this.gs.rushHit(c, e.fromX, e.fromZ);
         if (e.skill === 'light_chain') this.lchain.hit(e.id, c, g.monsters.find((q) => q.id === e.id)?.r);

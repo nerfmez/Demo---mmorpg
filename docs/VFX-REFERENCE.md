@@ -512,3 +512,12 @@ Round 3 (owner: the bursts and the ground looked poor). Each burst is now a smal
 cut-off rises, gone by 0.75 s) with a flash and embers, and the ground keeps a small round pit in the game's
 toon steps whose molten floor cools (`ground-kit.js` craterMesh, lip 0.32 of the blast radius, gone by
 1.8 s), instead of the flat billboard puff and the dark ragged scorch.
+
+Shatter Arrow, round 1 (`icearrow-fx.js`; the rules' arrow and shards are its own projectiles, the burst
+its 'shatter' event). Made of an arrow, apart from Frost Nova's round frost and crystal clusters: a long
+six-sided ice needle in Frost Nova's cel ice shading flies with a thin frost trail shedding glints; on
+the monster that stops it, a white-cyan ragged flash and a spray of ice chips, then the shards (small
+needles, each with its streak) fan out along the shot. Behind each shard runs a straight frost streak on
+the ground and a row of small ice spikes leaning back along its path (the same needle, standing), only
+over the fan's true arc and reach; they hold a second and melt away. A struck target sprays ice chips.
+Instanced needles, spikes and chips (three draws), two ribbons, a fan decal. No gallery access.

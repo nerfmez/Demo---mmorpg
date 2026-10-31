@@ -627,3 +627,9 @@ spreads out and down over the whole circle with a little bounce, iron weights on
 held for the root's length over what it caught, then thins away. The net is drawn as lines, not a fill: a
 rope grid on the dome (tan cords with a dark same-hue edge, lit from above, brighter knots where they
 cross); the meridians thin toward the top so the cells stay even.
+
+Blast Trap, round 1 (`trap-fx.js`). Its plate carries a round black bomb with a short fuse that sparks once
+it is armed. When a monster steps in, the plate is gone at once and the burst is Flame Arrow Rain's approved
+one (`FlameRainFx.boom`: a dome of Firebolt's fire that tears into tongues and burns away, embers, a toon
+pit cooling), sized to the trap's 2.6 m, with dust thrown out, a harder shake and a clean glint - not the
+ragged flash (the owner disliked those bursts on Thunder Lance).

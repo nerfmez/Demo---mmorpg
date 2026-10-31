@@ -189,6 +189,24 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
       for (const m of this.monsters) if (m.state === 'stunned' && (m.stateT += dt) >= m.stateDur) { m.state = 'idle'; this.emit({ type: 'benchStunEnd', id: m.id }); }
     };
   }
+  // Traps: bench dummies run no AI, so the first ones walk into a trap once it is armed (and wander back
+  // home after it springs), so it springs on the bench as in the game
+  const T = data.skills.combat[skill]?.trap;
+  if (T) {
+    const WALKERS = Math.min(g.monsters.length, T.count > 1 ? 2 : 1), SPEED = 2.4;
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      const set = this.areas.filter((a) => a.trap && !a.sprung && a.t >= a.trap.arm + 0.3);
+      for (let i = 0; i < WALKERS; i++) {
+        const m = this.monsters[i];
+        let to = null, best = Infinity;
+        for (const a of set) { const d = Math.hypot(a.x - m.x, a.z - m.z); if (d < best) { best = d; to = a; } }
+        const tx = to ? to.x : m.homeX, tz = to ? to.z : m.homeZ, d = Math.hypot(tx - m.x, tz - m.z);
+        if (d > 0.05) { const k = Math.min(1, SPEED * (to ? 1 : 0.6) * dt / d); m.x += (tx - m.x) * k; m.z += (tz - m.z) * k; m.moving = true; m.facing = Math.atan2(tx - m.x, tz - m.z); } else m.moving = false;
+      }
+    };
+  }
   // Measured Riposte: something to block. The first dummy winds up (1 s, the rules' windup state)
   // and then strikes the hero through the rules' damagePlayer, so a guard can catch it.
   if (data.skills.combat[skill]?.kind === 'counter_stance') {

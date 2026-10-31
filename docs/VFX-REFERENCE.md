@@ -611,3 +611,12 @@ along the flight, a soft cold glow, three small shards circling it, a misty trai
 twinkling along the path; motes spiral into the staff head as it is cast; on impact the heart is gone at
 once (it shatters), shards fly out and fall, a thin ring of frost light races out over the ground, a glint
 and a puff of mist.
+
+Spike Trap, round 1 (`trap-fx.js`; the trapper's traps are made objects, not spells). The hero tosses a
+round trap plate (a wooden disc in an iron rim with teeth, cel-shaded like the world with same-hue outlines)
+from the hand onto the aim point; it lands with a puff of dust and settles; when it arms its teeth click up
+with a glint and a thin amber ring of light shows its trigger range, a soft ring running out to it now and
+then (light only where it helps reading). When a monster steps in, steel spikes (white-hot at their points)
+punch up in two rings over the true radius with speed lines, a dust burst, a glint and a warm light; what
+they strike bleeds a spray of drops; they hold, sink back, and the plate is gone. The bench walks a dummy
+into an armed trap so it springs there as in the game.

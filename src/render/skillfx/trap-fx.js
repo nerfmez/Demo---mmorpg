@@ -1,0 +1,205 @@
+// The trapper's traps (core: frontier-content.js placeTraps, game-simulation.js updateAreas; events trapSet,
+// trapSprung, areaEnd). Made objects, not spells: a round iron trap plate tossed from the hand, set on the
+// ground, and what it does when a monster steps in. Cel-shaded like the world (the toon ramp and same-hue
+// outlines), with light only where it helps reading: an amber ring at the trigger range while it waits,
+// speed lines and white-hot points on the spikes as they punch, and blood drops off what they strike.
+//   toss (trapSet): the plate arcs from the hand to the aim point, spinning, and lands with a puff of dust;
+//   armed (arm s): its teeth click up with a glint; a thin amber ring pulses at the trigger range;
+//   Spike Trap springs (trapSprung): steel spikes punch up in two rings over the trap's radius with a
+//     glint and dust, hold, then sink back and the plate is gone;
+//   unsprung at the end of its life (areaEnd): the plate sinks away.
+// Cosmetic only; pooled (8 plates, one instanced spike mesh with its outline), no per-frame allocation.
+import * as THREE from 'three';
+import { Ribbon, mulberry32, BILLBOARD_VS, addLight, fxGround, place } from './fx-common.js';
+import { DUST_FS } from './ground-kit.js';
+import { lightSprite, starTexture, CORE_FS, GLOW_FS } from './light-kit.js';
+import { toon, outlineMaterial } from '../toon.js';
+
+const PLATES = 8, TEETH = 8, SPIKES_PER = 14, DUSTS = 24;
+const TOSS = 0.32, SPRING = 0.07, HOLD = 0.42, SINK = 0.28; // seconds
+const STEEL = '#8a95a6', IRON = '#4a4f5a', WOOD = '#7a5434', EDGE = '#262a33';
+
+// a thin ring of light on the ground (additive), pulsing outward from the trap: where it will spring
+const RING_VS = `varying vec2 vUv; void main(){ vUv = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const RING_FS = `varying vec2 vUv; uniform float uA, uPulse;
+  void main(){ float r = length(vUv);
+    float edge = exp(-pow((r - 0.96)/0.02, 2.0));                       // the trigger range, steady
+    float pulse = exp(-pow((r - uPulse)/0.035, 2.0))*(1.0 - uPulse);     // a soft ring running out to it
+    float k = (edge*0.55 + pulse*0.5)*uA;
+    if (k < 0.01) discard;
+    gl_FragColor = vec4(vec3(1.0, 0.72, 0.32)*k, 1.0); }`;
+
+/** A spike: a four-sided steel blade from 0 (base) to 1 (tip) along +y, steel below and catching the light
+ *  white at its point (vertex colours under a white toon material). */
+function spikeGeometry() {
+  const g = new THREE.ConeGeometry(0.08, 1, 4, 3).translate(0, 0.5, 0), pos = g.attributes.position, col = [];
+  const steel = new THREE.Color(STEEL), hot = new THREE.Color('#f4f8ff'), c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) { c.copy(steel).lerp(hot, Math.max(0, (pos.getY(i) - 0.6) / 0.4)); col.push(c.r, c.g, c.b); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.userData.shared = true; return g;
+}
+let sw = 0;
+const lineW = (x) => sw * Math.sin(Math.PI * x), lineGlowW = (x) => sw * 2.6 * Math.sin(Math.PI * x), dropW = (x) => sw * (1 - x * 0.6);
+const WHITE = [1, 0.97, 0.9], WARM = [1, 0.75, 0.4], BLOOD = [0.85, 0.08, 0.1], BLOOD_GLOW = [0.5, 0.02, 0.04];
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
+const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
+const easeBack = (k) => { const c = 2.4; k -= 1; return 1 + (c + 1) * k * k * k + c * k * k; };
+
+export class TrapFx {
+  constructor(scene, camera) {
+    this.camera = camera; this.rnd = mulberry32(83); this.time = 0;
+    // plates: a wooden disc in an iron rim with teeth round it (toon + outline hulls)
+    const disc = new THREE.CylinderGeometry(0.4, 0.44, 0.08, 18), rim = new THREE.TorusGeometry(0.42, 0.045, 6, 22).rotateX(Math.PI / 2), tooth = new THREE.ConeGeometry(0.045, 0.14, 4).translate(0, 0.07, 0), hub = new THREE.CylinderGeometry(0.1, 0.12, 0.07, 10);
+    for (const g of [disc, rim, tooth, hub]) g.userData.shared = true;
+    const edge = outlineMaterial(EDGE, 0.02);
+    this.plates = Array.from({ length: PLATES }, () => {
+      const g = new THREE.Group(), add = (geo, color, y = 0) => { const m = new THREE.Mesh(geo, toon(color)); m.position.y = y; const o = new THREE.Mesh(geo, edge); m.add(o); g.add(m); return m; };
+      add(disc, WOOD, 0.04); add(rim, IRON, 0.07); add(hub, IRON, 0.1);
+      const teeth = [];
+      for (let i = 0; i < TEETH; i++) { const a = i / TEETH * Math.PI * 2, t = add(tooth, STEEL, 0.06); t.position.x = Math.cos(a) * 0.3; t.position.z = Math.sin(a) * 0.3; teeth.push(t); }
+      g.visible = false; scene.add(g);
+      const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uPulse: { value: 0 } }, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+      ring.rotation.x = -Math.PI / 2; ring.renderOrder = 2; ring.visible = false; scene.add(ring);
+      return { g, teeth, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
+    });
+    // spikes: one instanced draw for all plates, and its outline
+    const sg = spikeGeometry();
+    this.spikes = new THREE.InstancedMesh(sg, toon('#ffffff', { vertexColors: true }), PLATES * SPIKES_PER);
+    this.spikeEdges = new THREE.InstancedMesh(sg, outlineMaterial(EDGE, 0.02), PLATES * SPIKES_PER);
+    for (const m of [this.spikes, this.spikeEdges]) { m.frustumCulled = false; for (let i = 0; i < m.count; i++) m.setMatrixAt(i, ZERO); scene.add(m); }
+    for (const p of this.plates) p.spikes = Array.from({ length: SPIKES_PER }, () => ({ x: 0, z: 0, h: 1, w: 1, lean: 0, yaw: 0, delay: 0 }));
+    const quad = new THREE.PlaneGeometry(1, 1);
+    this.dusts = Array.from({ length: DUSTS }, () => { const m = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: 0 } }, vertexShader: BILLBOARD_VS, fragmentShader: DUST_FS, transparent: true, depthWrite: false })); m.visible = false; m.renderOrder = 6; m.frustumCulled = false; scene.add(m); return { m, p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, life: 0.6, size: 0.6 }; });
+    this.dustI = 0;
+    this.glints = Array.from({ length: 6 }, () => ({ s: lightSprite(scene, starTexture('holy'), false, 10), p: new THREE.Vector3(), t: 9, size: 0.6, life: 0.3 })); this.glintI = 0;
+    this.light = addLight(scene, new THREE.PointLight('#ffd8a0', 0, 6, 1.6)); this.lightT = 9;
+    // speed lines up the spikes as they punch, and blood drops off what they strike (light strips)
+    this.core = new Ribbon(scene, camera, 600, CORE_FS, THREE.NormalBlending); this.glow = new Ribbon(scene, camera, 600, GLOW_FS, THREE.AdditiveBlending);
+    this.core.mesh.renderOrder = 9; this.glow.mesh.renderOrder = 8;
+    this.drops = Array.from({ length: 40 }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, life: 0.5 })); this.dropI = 0;
+    this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+  }
+  /** The rules' trapSet: toss a plate from the hand (from: a ground-relative point) to (e.x, e.z). */
+  set(e, def, from) {
+    const p = this.plates.find((q) => q.state === 'off') || this.plates.reduce((a, b) => (a.t > b.t ? a : b));
+    Object.assign(p, { id: e.id, skill: e.skill, t: 0, state: 'toss', x: e.x, z: e.z, arm: e.arm ?? 0.6, trigger: def?.trap?.trigger ?? 1, radius: def?.radius ?? 1.4, seed: this.rnd() * 10, spin: (this.rnd() - 0.5) * 12 });
+    p.from.copy(from);
+    p.g.visible = true; p.ring.visible = false;
+    for (const t of p.teeth) t.scale.set(1, 0.3, 1);
+  }
+  /** The rules' trapSprung. */
+  spring(e) {
+    const p = this.plates.find((q) => q.id === e.id && q.state !== 'off'); if (!p) return;
+    p.state = 'spring'; p.springT = 0; p.ring.visible = false;
+    const r = this.rnd, R = p.radius;
+    p.spikes.forEach((k, i) => {
+      const inner = i < 5, a = (i / (inner ? 5 : SPIKES_PER - 5)) * Math.PI * 2 + r() * 0.5, d = inner ? R * (0.12 + 0.25 * r()) : R * (0.45 + 0.4 * r());
+      Object.assign(k, { x: p.x + Math.cos(a) * d, z: p.z + Math.sin(a) * d, h: inner ? 1.0 + 0.35 * r() : 0.55 + 0.3 * r(), w: inner ? 1.7 : 1.25, lean: (inner ? 0.12 : 0.35) + r() * 0.12, yaw: -a + Math.PI / 2, delay: (inner ? 0 : 0.03) + r() * 0.03 });
+    });
+    for (let i = 0; i < 8; i++) { const a = r() * 6.283, sp = 1.4 + r() * 1.6; this.dust(p.x + Math.cos(a) * R * 0.5, 0.15, p.z + Math.sin(a) * R * 0.5, Math.cos(a) * sp, 0.5 + r() * 0.6, Math.sin(a) * sp, 0.7 + r() * 0.5, 0.55); }
+    this.glint(p.x, 0.9, p.z, 1.0, 0.28);
+    place(this.light, p.x, 1, p.z); this.lightT = 0;
+  }
+  /** The rules' areaEnd: a trap that ran out its life unsprung sinks away (a sprung one is already ending). */
+  end(id) { const p = this.plates.find((q) => q.id === id && (q.state === 'set' || q.state === 'toss')); if (p) { p.state = 'sink'; p.springT = 0; p.ring.visible = false; } }
+  /** A struck body bleeds: a spray of drops off it (c: its centre, ground-relative). */
+  bleed(c) {
+    const r = this.rnd;
+    for (let i = 0; i < 11; i++) { const q = this.drops[this.dropI++ % this.drops.length], a = r() * 6.283, sp = 1.2 + r() * 1.8; q.p.set(c.x, c.y, c.z); q.v.set(Math.cos(a) * sp, 1.5 + r() * 2, Math.sin(a) * sp); q.t = 0; q.life = 0.35 + r() * 0.25; }
+  }
+  dust(x, y, z, vx, vy, vz, size, life) { const q = this.dusts[this.dustI++ % DUSTS]; q.p.set(x, y, z); q.v.set(vx, vy, vz); q.t = 0; q.size = size; q.life = life; q.m.material.uniforms.uSeed.value = this.rnd() * 40; }
+  glint(x, y, z, size, life) { const g = this.glints[this.glintI++ % this.glints.length]; g.p.set(x, y, z); g.t = 0; g.size = size; g.life = life; }
+
+  update(dt) {
+    this.time += dt;
+    const cam = this.camera.quaternion;
+    let k = 0;
+    for (const p of this.plates) {
+      if (p.state === 'off') { for (let j = 0; j < SPIKES_PER; j++, k++) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); } continue; }
+      p.t += dt;
+      const gy = fxGround.y(p.x, p.z);
+      if (p.state === 'toss') {
+        const u = Math.min(1, p.t / TOSS), h = Math.sin(Math.PI * u) * 1.1;
+        _p.copy(p.from).lerp(_p.set(p.x, 0, p.z), u);
+        p.g.position.set(p.from.x + (p.x - p.from.x) * u, fxGround.y(_p.x, _p.z) + p.from.y * (1 - u) + h, p.from.z + (p.z - p.from.z) * u);
+        p.g.rotation.set(p.spin * u * 0.5, p.spin * u, 0);
+        if (u >= 1) {
+          p.state = 'set'; p.g.position.set(p.x, gy, p.z); p.g.rotation.set(0, p.seed, 0);
+          for (let i = 0; i < 4; i++) { const a = i * 1.57 + p.seed; this.dust(p.x + Math.cos(a) * 0.3, 0.1, p.z + Math.sin(a) * 0.3, Math.cos(a) * 0.7, 0.3, Math.sin(a) * 0.7, 0.45, 0.45); }
+        }
+      } else if (p.state === 'set') {
+        // a little settle after landing, then the teeth click up when it arms
+        const land = p.t - TOSS, settle = land < 0.15 ? Math.sin(land / 0.15 * Math.PI) * 0.05 : 0;
+        p.g.position.y = gy + settle;
+        const armed = p.t >= p.arm, ak = armed ? Math.min(1, (p.t - p.arm) / 0.08) : 0;
+        for (const t of p.teeth) t.scale.set(1, 0.3 + 0.7 * easeBack(ak), 1);
+        if (armed && !p.clicked) { p.clicked = true; this.glint(p.x, gy + 0.35, p.z, 0.45, 0.22); }
+        // the trigger range, steady, with a soft ring running out to it every 1.4 s
+        p.ring.visible = armed;
+        if (armed) {
+          place(p.ring, p.x, 0.03, p.z); p.ring.scale.setScalar(p.trigger * 2 + 0.2);
+          const ph = ((p.t - p.arm) % 1.4) / 1.4;
+          p.ring.material.uniforms.uPulse.value = ph; p.ring.material.uniforms.uA.value = Math.min(1, (p.t - p.arm) * 4) * (0.85 + 0.15 * Math.sin(this.time * 3));
+        }
+      } else if (p.state === 'spring' || p.state === 'sink') {
+        p.springT += dt;
+        const st = p.springT, gone = p.state === 'sink' ? st / SINK : Math.max(0, (st - SPRING - HOLD) / SINK);
+        p.g.position.y = gy - 0.12 * Math.min(1, gone);
+        p.g.scale.setScalar(Math.max(0.001, 1 - Math.max(0, gone - 0.3) / 0.7));
+        if (gone >= 1) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.g.scale.setScalar(1); }
+      }
+      // the spikes of a sprung trap: punch up fast with an overshoot, hold, sink back into the ground
+      for (let j = 0; j < SPIKES_PER; j++, k++) {
+        const s = p.spikes[j];
+        if (p.state !== 'spring') { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
+        const u = (p.springT - s.delay) / SPRING;
+        if (u <= 0) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
+        const out = Math.max(0, (p.springT - SPRING - HOLD - s.delay) / SINK), hk = easeBack(Math.min(1, u)) * (1 - Math.min(1, out));
+        if (hk <= 0.001) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
+        _e.set(0, s.yaw, s.lean, 'YXZ'); _q.setFromEuler(_e);
+        _p.set(s.x, fxGround.y(s.x, s.z) - 0.05, s.z); _m.compose(_p, _q, _s.set(s.w, s.h * hk, s.w));
+        this.spikes.setMatrixAt(k, _m); this.spikeEdges.setMatrixAt(k, _m);
+      }
+    }
+    this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
+    // speed lines: thin streaks shooting up beside the tall spikes as they punch (the first 0.16 s)
+    this.core.begin(); this.glow.begin();
+    for (const p of this.plates) {
+      if (p.state !== 'spring' || p.springT > 0.16) continue;
+      const u = p.springT / 0.16, two = this.two;
+      for (let j = 0; j < 7; j++) {
+        const s = p.spikes[j], ox = Math.cos(j * 2.4 + p.seed) * 0.18, oz = Math.sin(j * 2.4 + p.seed) * 0.18;
+        two[0].set(s.x + ox, 0.2 + 1.4 * u, s.z + oz); two[1].set(s.x + ox, 0.2 + 1.4 * u + 0.7 * (1 - u), s.z + oz);
+        sw = 0.04; this.glow.strip(two, lineGlowW, 0.8 * (1 - u), WARM); this.core.strip(two, lineW, 1 - u, WHITE);
+      }
+    }
+    // blood drops: arcing down, thinning out
+    for (const q of this.drops) {
+      if (q.t >= q.life) continue;
+      q.t += dt; const u = q.t / q.life; q.v.y -= 12 * dt; q.p.addScaledVector(q.v, dt);
+      const three = this.three; three[0].copy(q.p).addScaledVector(q.v, -0.035); three[1].copy(q.p).lerp(three[0], 0.5); three[2].copy(q.p);
+      sw = 0.11 * (1 - u * 0.5); this.glow.strip(three, dropW, 0.5 * (1 - u), BLOOD_GLOW); this.core.strip(three, dropW, 1 - u * 0.6, BLOOD);
+    }
+    this.core.end(); this.glow.end();
+    for (const q of this.dusts) {
+      if (q.t >= q.life) { q.m.visible = false; continue; }
+      q.t += dt; const u = q.t / q.life; q.m.visible = true;
+      q.v.multiplyScalar(Math.max(0, 1 - dt * 3)); q.p.addScaledVector(q.v, dt);
+      q.m.material.uniforms.uT.value = u; place(q.m, q.p.x, q.p.y, q.p.z); q.m.quaternion.copy(cam); q.m.scale.setScalar(q.size * (0.6 + 0.8 * u));
+    }
+    for (const g of this.glints) {
+      if (g.t >= g.life) { g.s.visible = false; continue; }
+      g.t += dt; const u = g.t / g.life; g.s.visible = true; place(g.s, g.p.x, g.p.y, g.p.z);
+      g.s.scale.setScalar(g.size * (u < 0.2 ? u / 0.2 : 1 - (u - 0.2) / 0.8)); g.s.material.rotation = u * 1.2;
+    }
+    if (this.lightT < 0.35) { this.lightT += dt; this.light.intensity = 3 * (1 - this.lightT / 0.35); } else this.light.intensity = 0;
+  }
+  clear() {
+    for (const p of this.plates) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.ring.visible = false; p.g.scale.setScalar(1); }
+    for (let i = 0; i < this.spikes.count; i++) { this.spikes.setMatrixAt(i, ZERO); this.spikeEdges.setMatrixAt(i, ZERO); }
+    this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
+    for (const q of this.dusts) { q.t = 9; q.m.visible = false; } for (const g of this.glints) { g.t = 9; g.s.visible = false; }
+    for (const q of this.drops) q.t = 9; this.core.begin(); this.core.end(); this.glow.begin(); this.glow.end();
+    this.light.intensity = 0; this.lightT = 9;
+  }
+}

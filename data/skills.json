@@ -207,7 +207,6 @@
       ],
       "job": "trapper",
       "iconPending": true,
-      "fxPending": true,
       "upgradeStat": "DEX"
     },
     "net_trap": {

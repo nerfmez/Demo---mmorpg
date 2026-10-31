@@ -1,6 +1,7 @@
 # Sunny Meadow — standalone scene for owner review
 
-**Owner status: v2 sent for review, 31 October 2026** (artifact https://claude.ai/artifact/ULSj8QMektw5PWnv14ZCVA).
+**Owner status: ผ่าน — approved, 31 October 2026** ("ผ่านแล้ว ทำโซนต่อไปเลย"), artifact version 2:
+https://claude.ai/artifact/ULSj8QMektw5PWnv14ZCVA.
 
 Owner, on version 1 (circling the blocks in front of the big oak): "เอาหินออก". The big square blocks and
 the boulder beside the oak's trunk are gone; the oak stands in the grass between the paths.

@@ -35,6 +35,7 @@ import { ShadowFx } from './skillfx/shadow-fx.js';
 import { IronFx } from './skillfx/iron-fx.js';
 import { BuffFx, LOOKS as BUFF_LOOKS } from './skillfx/buff-fx.js';
 import { BlessFx } from './skillfx/bless-fx.js';
+import { AscendFx } from './skillfx/ascend-fx.js';
 import { VolleyFx } from './skillfx/volley-fx.js';
 import { KillFx } from './skillfx/kill-fx.js';
 import { BellFx } from './skillfx/bell-fx.js';
@@ -100,6 +101,7 @@ export class SkillFx {
     this.iron = new IronFx(scene, camera);
     this.buff = new BuffFx(scene, camera); this.buffBodies = [];
     this.bless = new BlessFx(scene, camera);
+    this.ascend = new AscendFx(scene, camera); // warp arrival and level-ups
     this.volley = new VolleyFx(scene, camera);
     this.kill = new KillFx(scene, camera);
     this.bell = new BellFx(scene, camera);
@@ -291,6 +293,10 @@ export class SkillFx {
         this.buff.shout(e.kind, e.x, e.z, e.radius, bodies);
         return true;
       }
+      // warp and level-ups (skillfx/ascend-fx.js)
+      case 'teleport': this.ascend.warp(g.player.x, g.player.z); return true;
+      case 'levelup': this.ascend.levelUp(g.player.x, g.player.z, false); return true;
+      case 'joblevelup': this.ascend.levelUp(g.player.x, g.player.z, true); return true;
       case 'guardStance': { const s = this.skillOf('riposte') || g.player.riposte?.skill; this.riposte.guard(e.duration, s?.guard?.arc || 110); return true; }
       case 'playerHit': {
         const r = g.player.riposte;
@@ -495,6 +501,8 @@ export class SkillFx {
     for (const a of g.allies || []) if (!a.dead && a.buffs?.blessing) blessed.push(a);
     this.bless.follow(p.x, p.z);
     this.bless.update(dt);
+    this.ascend.follow(p.x, p.z);
+    this.ascend.update(dt);
     this.shadow.update(dt);
     this.gs.update(dt, p);
   }
@@ -503,7 +511,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.ascend, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs]) fx.clear();
     this.timers.length = 0;
   }
 }

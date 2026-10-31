@@ -701,7 +701,7 @@ export class View {
         if (e.boss) this.addShake(0.6);
         break;
       case 'levelup':
-        v.levelUp(g.player.x, g.player.z);
+        if (!drawn) v.levelUp(g.player.x, g.player.z); // else skillfx/ascend-fx.js
         break;
       case 'playerHit':
         if (!e.dot && e.amount > 0) {
@@ -733,7 +733,7 @@ export class View {
         v.waypointUnlock(e.x, e.z);
         break;
       case 'teleport':
-        v.teleport(e.x, e.z);
+        if (!drawn) v.teleport(e.x, e.z); // else skillfx/ascend-fx.js
         this.snapCamera();
         break;
       case 'respawn':

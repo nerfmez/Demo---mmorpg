@@ -193,10 +193,12 @@ test('Thunder Slash leaves a charge on what it cuts: each main-skill hit on it s
 
 test('every one of the seven is worth pressing over the main attack: several main hits per target, or control, or a lasting effect', () => {
   const per = (id) => { const d = C[id], A = d.arrows; return d.damage.base * (A ? A.count * (A.blast / d.radius) ** 2 : 1) * (1 + (d.afterShock?.mult || 0)) * (1 + (d.shockCharge ? d.shockCharge.mult * d.shockCharge.shocks : 0)); };
-  const main = { bow: C.hunter_shot.damage.base, sword: C.slash.damage.base };
+  // worth at least 2.5 s of the main attack on each target (the main attack per second: its hit over its
+  // cooldown; since 2026-10-31 a main attack is slow enough that a cast fits between two swings)
+  const main = { bow: C.hunter_shot.damage.base / C.hunter_shot.cooldown, sword: C.slash.damage.base / C.slash.cooldown };
   for (const id of ['fire_arrow_rain', 'thunder_lance', 'flame_slash', 'thunder_slash']) {
     const w = C[id].requiresWeapon[0];
-    assert.ok(per(id) >= 2.5 * main[w], `${id}: ${(per(id) / main[w]).toFixed(1)} main hits per target`);
+    assert.ok(per(id) >= 2.5 * main[w], `${id}: ${(per(id) / main[w]).toFixed(1)} s of the main attack per target`);
   }
   for (const id of ['frost_shatter_arrow', 'ice_spikes']) assert.ok(C[id].chill.slow >= 0.45 && C[id].chill.duration >= 2.5, `${id} controls`);
   assert.ok(C.thunder_lance.afterShock.stun >= 0.5, 'Thunder Lance stuns long enough to break a wind-up');
@@ -220,4 +222,19 @@ test('Stone Burst stuns what its rocks hit (not a boss), a control skill on a co
   assert.equal(m.state, 'stunned'); assert.equal(m.stateDur, D.stun.duration);
   assert.notEqual(boss.state, 'stunned');
   assert.ok(D.cooldown > data.progression.combat.mainSkillCooldown && D.tags.includes('Control'));
+});
+
+// Main attacks at an MMORPG pace (owner, 2026-10-31): a 0.8 s basic swing was too fast. Heavy weapons
+// swing their main attacks slower and harder (weapon weight), the same per second.
+test('main attacks start slow, the dagger quickest and heavy weapons slowest; weight keeps the damage per second', () => {
+  assert.ok(C.weakpoint.cooldown < C.slash.cooldown && C.slash.cooldown < C.hunter_shot.cooldown);
+  assert.ok(C.slash.cooldown >= 1.2 && C.whirl_blade.cooldown < C.chain_spark.cooldown && C.chain_spark.cooldown <= data.progression.combat.mainSkillCooldown);
+  const W = data.progression.combat.weaponTempo;
+  const with_ = (weapon) => { const f = fixture('slash'); f.g.derived.weaponType = weapon; return computeSkill(f.g.ch, data, f.g.derived, 0); };
+  const sword = with_('sword'), axe = with_('axe');
+  assert.ok(Math.abs(axe.cooldown / sword.cooldown - W.axe) < 1e-9 && W.axe > 1);
+  assert.ok(Math.abs(axe.damage / axe.cooldown - sword.damage / sword.cooldown) < 1e-6, 'the same damage per second');
+  assert.ok(Math.abs(axe.cost / axe.cooldown - sword.cost / sword.cooldown) < 1e-6, 'the same MP per second');
+  const f = fixture('flame_slash'), cd = (w) => { f.g.derived.weaponType = w; return computeSkill(f.g.ch, data, f.g.derived, 0).cooldown; };
+  assert.equal(cd('greatblade'), cd('sword'), 'a cooldown skill keeps its own cooldown');
 });

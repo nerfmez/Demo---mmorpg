@@ -848,7 +848,7 @@
     "arrows_tusk": {
       "type": "arrow",
       "result": "tusk_arrow",
-      "qty": 50,
+      "qty": 35,
       "cost": {
         "boar_tusk": 2,
         "gold": 5
@@ -1286,7 +1286,7 @@
     "arrows_hunter": {
       "type": "arrow",
       "result": "hunter_arrow",
-      "qty": 60,
+      "qty": 42,
       "cost": {
         "wolf_fang": 2,
         "hawk_feather": 2,

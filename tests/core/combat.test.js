@@ -136,6 +136,7 @@ test('a press just before the cooldown ends is remembered and cast once it is re
   assert.ok(buffer > 0 && buffer <= 0.3, 'a short window');
   const at = { x: m.x, z: m.z };
   m.x += 40; // swings at the air: the golem stays out of the fight
+  g.monsters = [m]; // and nothing else nearby joins in (the drill outlasts a few slow swings)
   const casts = () => g.drainEvents().filter((e) => e.type === 'castStart').length;
   const runUntil = (left) => { while (g.player.cast || g.player.cooldowns[0] > left) g.update(0.01); };
   g.player.mp = g.player.maxMp;

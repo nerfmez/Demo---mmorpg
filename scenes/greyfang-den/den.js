@@ -53,24 +53,61 @@ function rootTree(u,v,s,seed){
 }
 
 const BONE='#e9e3d3';
-// the cave: a dark opening in the rock face between foot points u0 and u1 at screen v, its top at vt
-function caveMouth(u0,u1,v,vt){
- const[ax,az]=P(u0,v,0),[bx,bz]=P(u1,v,0),mx=(ax+bx)/2,mz=(az+bz)/2,w=Math.hypot(bx-ax,bz-az),y=height(mx,mz),h=tall(mx,mz,y,vt);
- // the dark: a half-oval of deep shadow, darkest in its heart, standing just proud of the face
- const shape=new THREE.Shape(),n=24;
- shape.moveTo(-w/2,0);for(let i=0;i<=n;i++){const a=Math.PI*(1-i/n);shape.lineTo(Math.cos(a)*w/2*(1+.06*Math.sin(i*1.7)),Math.sin(a)*h*(1+.05*Math.sin(i*2.3)));}shape.lineTo(w/2,0);
- const g=new THREE.ShapeGeometry(shape,6),pos=g.attributes.position,col=new Float32Array(pos.count*3),deep=new THREE.Color('#141a18'),rim=new THREE.Color('#3b4440');
- for(let i=0;i<pos.count;i++){const k=Math.min(1,Math.hypot(pos.getX(i)/(w/2),pos.getY(i)/h));const c=deep.clone().lerp(rim,Math.pow(k,3));col.set([c.r,c.g,c.b],i*3);}
- g.setAttribute('color',new THREE.BufferAttribute(col,3));g.translate(mx,y-.05,mz+M(.45));
- const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true}));m.name='den-cave';scene.add(m);
- // the floor runs dark into it
- const f=new THREE.CircleGeometry(1,24,0,Math.PI);f.rotateX(-Math.PI/2);f.scale(w*.5,1,w*.45);f.translate(mx,y+.03,mz+M(.45));
- const fm=new THREE.Mesh(f,new THREE.MeshBasicMaterial({color:'#2a2f2a',transparent:true,opacity:.55,depthWrite:false}));scene.add(fm);
- // a heavy lintel of rock over it and boulders at its sides
- fieldStone(mx,y+h*.92,mz+M(.55),w*1.15,h*.3,M(1.3),{ry:R(-.05,.05),moss:.35,chamfer:.25,base:'#b9b6ae'});
- for(const s of[-1,1]){const x=mx+s*w*.62,z=mz+M(.7);fieldStone(x,y-M(.3),z,w*.42,h*.95+M(.3),M(1.5),{ry:R(-.2,.2),moss:.6,chamfer:.3});COLLIDERS.push({x,z,r:w*.22});}
- COLLIDERS.push({x:mx,z:mz,r:w*.42});
- CAVE={x:mx,z:mz,y,w,h};
+// the cave (owner, 31 October 2026: a real cave that can be walked into, not a painted mouth): the
+// cave path runs into the rock mass under an arched tunnel whose walls and roof are rock, darker the
+// deeper they go, closed at the back. Above the tunnel the rock mass is filled back to its top, an arch
+// of big stones frames the mouth, and the tunnel's floor darkens inwards.
+function caveTunnel(u0,v0,u1,v1,width,roofH){
+ const[ax,az]=P(u0,v0,0),[bx,bz]=P(u1,v1,0),len=Math.hypot(bx-ax,bz-az),dir=new V3((bx-ax)/len,0,(bz-az)/len),side=new V3(-dir.z,0,dir.x);
+ const N=12,K=14,pos=[],col=[],idx=[],rim=new THREE.Color('#6b675e'),mid=new THREE.Color('#2e2f2b'),deep=new THREE.Color('#0b0d0c');
+ const ring=t=>{const x=ax+(bx-ax)*t,z=az+(bz-az)*t;return{x,z,y:height(x,z),rw:width/2*(1-.18*t),h:roofH*(1-.22*t)};};
+ for(let j=0;j<=N;j++){
+  const t=j/N,R0=ring(t);
+  for(let k=0;k<=K;k++){
+   const a=Math.PI*k/K,wob=1+.06*Math.sin(j*1.9+k*2.3);
+   const p=new V3(R0.x,R0.y-.15,R0.z).addScaledVector(side,Math.cos(a)*R0.rw*wob).add(new V3(0,Math.sin(a)*R0.h*wob,0));
+   pos.push(p.x,p.y,p.z);
+   const c=t<.18?rim.clone().lerp(mid,t/.18):mid.clone().lerp(deep,Math.min(1,(t-.18)/.4));c.multiplyScalar(.72+.28*Math.pow(Math.sin(a),.5)*(1-t));col.push(c.r,c.g,c.b);
+  }
+ }
+ for(let j=0;j<N;j++)for(let k=0;k<K;k++){const a=j*(K+1)+k,b=a+K+1;idx.push(a,b,a+1,a+1,b,b+1);}
+ // the back of the den: a dark wall closing the tunnel
+ const end=ring(1),c0=pos.length/3;pos.push(end.x+dir.x*.2,end.y+end.h*.35,end.z+dir.z*.2);col.push(deep.r*.6,deep.g*.6,deep.b*.6);
+ for(let k=0;k<=K;k++){const v=N*(K+1)+k;if(k<K)idx.push(c0,v,v+1);}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);
+ const tunnel=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}));tunnel.name='den-tunnel';scene.add(tunnel);
+ // the floor darkens inwards
+ const fl=[],fc=[],fi=[];
+ for(let j=0;j<=N;j++){const R0=ring(j/N);for(const s of[-1,1]){const p=new V3(R0.x,height(R0.x,R0.z)+.04,R0.z).addScaledVector(side,s*R0.rw*.98);fl.push(p.x,p.y,p.z);fc.push(0,0,0,Math.min(.95,.35+j/N*1.2));}}
+ for(let j=0;j<N;j++){const a=j*2;fi.push(a,a+2,a+1,a+1,a+2,a+3);}
+ const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.Float32BufferAttribute(fl,3));fg.setAttribute('color',new THREE.Float32BufferAttribute(fc,4));fg.setIndex(fi);
+ const floor=new THREE.Mesh(fg,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,side:THREE.DoubleSide}));floor.renderOrder=2;scene.add(floor);
+ // the rock over the tunnel, filled back up to the mass's top, moss and shrubs on it
+ const top=M(5.6);
+ for(let j=0;j<N;j++){
+  const t=(j+.5)/N,R0=ring(t),y0=R0.y+R0.h*.8,ry=Math.atan2(dir.x,dir.z);
+  // mossy boulders heaped over the roof, their tops as ragged as the rock round them
+  for(const s of[-.45,.45]){const p=new V3(R0.x,0,R0.z).addScaledVector(side,s*width*.55),hh=Math.max(.6,top-y0+M(R(-.3,.5)));
+   fieldStone(p.x,y0,p.z,width*R(.85,1.05),hh,len/N*R(1.6,2),{ry:ry+R(-.4,.4),moss:.85,chamfer:.35});}
+  for(let k=0;k<5;k++)addBush(R0.x+R(-.7,.7)*width,top-M(.2),R0.z+R(-.5,.5)*len/N,M(R(.4,.65)),{sy:.7,tint:R(-.1,.15)});
+ }
+ // the arch of big mossy stones round the mouth
+ const m=ring(0);
+ for(let k=0;k<=8;k++){
+  const a=Math.PI*k/8,p=new V3(m.x,m.y,m.z).addScaledVector(side,Math.cos(a)*(m.rw+M(.55))).add(new V3(0,Math.sin(a)*(m.h+M(.45)),0)).addScaledVector(dir,-M(.35));
+  const s=M(R(1.2,1.6));fieldStone(p.x,p.y-s*.55,p.z,s,s*1.05,s*.9,{ry:R(-.3,.3),moss:k>2&&k<6?.8:.5,chamfer:.3});
+ }
+ // walls: the tunnel's sides and back are solid, the floor between them walkable
+ for(let j=0;j<=N;j++){const R0=ring(j/N);for(const s of[-1,1]){const p=new V3(R0.x,0,R0.z).addScaledVector(side,s*(R0.rw+M(.2)));COLLIDERS.push({x:p.x,z:p.z,r:M(.5)});}}
+ COLLIDERS.push({x:end.x+dir.x*M(.4),z:end.z+dir.z*M(.4),r:end.rw});
+ CAVE={x:(ax+bx)/2,z:(az+bz)/2,ax,az,bx,bz,w:width,h:roofH,len};
+ return{ring,dir,side};
+}
+// the den's keepers: two pale eyes shining in the dark at the back, and bones on its floor
+function denInside(t){
+ const e=t.ring(.92);
+ for(const s of[-1,1]){const p=new V3(e.x,e.y+e.h*.32,e.z).addScaledVector(t.side,s*M(.32)).addScaledVector(t.dir,-M(.3));const g=new THREE.SphereGeometry(M(.09),8,6);g.scale(1.4,.8,1);const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:'#ffe9a6'}));m.position.copy(p);m.name='den-eyes';scene.add(m);}
+ for(const[t0,off,len,ry]of[[.25,-.5,.6,.5],[.4,.4,.5,-.8],[.55,-.3,.55,1.2],[.7,.35,.45,.2]]){const p=t.ring(t0),q=new V3(p.x,0,p.z).addScaledVector(t.side,off*p.rw);bone(q.x,q.z,M(len),ry);}
 }
 // a fallen log, its bark the game trunk's, broken off at both ends
 function fallenLog(u0,v0,u1,v1){

@@ -1,5 +1,5 @@
 // Greyfang Den (Greenhollow Frontier): a wide earth clearing in front of a tall mass of mossy rock
-// with the wolf den's cave in its face; a fallen log, a skull and bones by the mouth; tall
+// with the wolf den's cave in its face, a tunnel that can be walked into; a fallen log, a skull and bones by the mouth; tall
 // weathered rock pillars round the clearing; a stone stair up the left bank. Paths leave west,
 // north-west up the stair, north-east round the rock mass and south-east.
 function onGround(u,v){
@@ -10,7 +10,7 @@ function onGround(u,v){
  const[x,z]=P(u,v,(hi+lo)/2);return[x,height(x,z),z];
 }
 const offPath=(x,z,pad)=>{const st=stairsAt(x,z);return st.s>st.half+pad&&(polyAt(PLAZA,x,z)??Infinity)>pad;};
-const nearCave=(x,z,pad)=>CAVE&&Math.hypot(x-CAVE.x,z-CAVE.z)<CAVE.w*.75+pad;
+const nearCave=(x,z,pad)=>{if(!CAVE)return false;const dx=CAVE.bx-CAVE.ax,dz=CAVE.bz-CAVE.az,t=Math.max(0,Math.min(1,((x-CAVE.ax)*dx+(z-CAVE.az)*dz)/(dx*dx+dz*dz)));return Math.hypot(x-CAVE.ax-dx*t,z-CAVE.az-dz*t)<CAVE.w*.75+pad;};
 function denRocks(){
  // tall weathered pillars and boulders, the concept's: [u, foot v, width, top v]
  for(const[u,v,w,h]of[[.235,.575,.065,.115],[.31,.57,.05,.07],[.385,.405,.05,.08],[.265,.39,.045,.085],[.345,.255,.06,.13],[.16,.21,.045,.075],[.035,.19,.04,.07],[.585,.385,.03,.03],[.665,.43,.025,.025],[.69,.60,.045,.045],[.655,.615,.03,.025],[.73,.40,.04,.05],[.795,.415,.03,.03],[.765,.385,.035,.04],[.705,.385,.025,.025],[.11,.70,.06,.08],[.19,.87,.06,.09],[.27,.80,.05,.07],[.73,.86,.07,.09],[.86,.80,.06,.08],[.96,.66,.05,.08],[.95,.55,.04,.05]]){
@@ -69,7 +69,7 @@ function clearPaths(){
 function build(){
  const[x,z]=P(.50,.84);HERO.x=x;HERO.z=z;HERO.face=-2.9;
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();
- caveMouth(.545,.655,.33,.20);fallenLog(.40,.37,.52,.335);bones();denCrown();
+ denInside(caveTunnel(.60,.325,.61,.17,M(4.4),M(3.4)));fallenLog(.40,.37,.52,.335);bones();denCrown();
  denRocks();plantDen();
  if(rootParts.length){const roots=new THREE.Mesh(mergeGeometries(rootParts),barkPaint());roots.castShadow=roots.receiveShadow=true;scene.add(roots);}
  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));

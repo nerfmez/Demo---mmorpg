@@ -38,6 +38,8 @@ w=w[:a]+'''  const fill=fillAt(x,z);if(fill>y+.01){y=fill;rock=0;}
     const ry=Math.max(st.y,fillAt(x,z));y=ry+(y-ry)*k;
     if(st.inside)rock=0;
   }
+  // the den's tunnel: the cave path runs level into the rock mass (its roof is den.js's tunnel)
+  if(st.route==='cave'&&st.s<st.half+M(.5)){const k=smooth(st.half-.1,st.half+M(.5),st.s);y=st.y+(y-st.y)*k;top*=k;rock=0;}
 ''' +w[b:]
 w=w.replace('const trailEdge = (x, z) => trailAt(x, z) + edgeWob(x, z);','const trailEdge=(x,z)=>{const st=stairsAt(x,z);return Math.min(trailAt(x,z)+edgeWob(x,z),st.a>-.025&&st.a<1.035?st.s-st.half:Infinity);};')
 # Rock faces stand everywhere but across a path.

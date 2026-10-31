@@ -83,7 +83,7 @@ const ROAD_NODES={
 };
 const ROUTE_SPECS=[
  {id:'south',pts:[[.52,1.18,0,.13],[.51,1.0,0,.13],[.50,.84,0,.14],[.52,.68,0,.18],ROAD_NODES.den]},
- {id:'cave',pts:[ROAD_NODES.den,[.58,.42,0,.14],[.60,.36,0,.10],[.60,.32,0,.08]]},
+ {id:'cave',pts:[ROAD_NODES.den,[.58,.42,0,.14],[.60,.36,0,.11],[.60,.31,0,.10],[.603,.25,0,.09],[.606,.19,0,.085],[.61,.15,0,.08]]},
  {id:'west',pts:[ROAD_NODES.den,[.40,.53,0,.11],[.28,.54,0,.09],[.17,.53,0,.08],[.07,.52,0,.075],[-.15,.51,0,.07]]},
  {id:'stair',pts:[[.34,.47,0,.075],[.28,.445,0,.07],[.23,.415,.4,.066],[.19,.375,1.0,.064],[.16,.33,1.6,.062],[.14,.29,2.1,.06],[.13,.25,2.4,.06]]},
  {id:'northwest',pts:[[.13,.25,2.4,.06],[.15,.18,2.4,.055],[.20,.11,2.4,.054],[.26,.05,2.4,.052],[.30,-.12,2.4,.05]]},
@@ -249,6 +249,8 @@ function field(x, z) {
     const ry=Math.max(st.y,fillAt(x,z));y=ry+(y-ry)*k;
     if(st.inside)rock=0;
   }
+  // the den's tunnel: the cave path runs level into the rock mass (its roof is den.js's tunnel)
+  if(st.route==='cave'&&st.s<st.half+M(.5)){const k=smooth(st.half-.1,st.half+M(.5),st.s);y=st.y+(y-st.y)*k;top*=k;rock=0;}
   return { y, top, rock };
 }
 function height(x, z) {

@@ -1250,6 +1250,18 @@ textarea {
 .st.cold { color: #aee6ff; }
 .st.buff { color: #ffc860; }
 .st.ally { color: #9fd8ff; }
+.sti { display: inline-flex; align-items: center; gap: 2px; color: var(--c); position: relative; line-height: 1; font-style: normal; }
+.sti svg { width: 14px; height: 14px; filter: drop-shadow(0 1px 1px #000) drop-shadow(0 0 2px #000a); }
+.sti .stn { position: absolute; right: -4px; bottom: -3px; font-size: 9px; font-weight: 700; color: #fff; text-shadow: 0 0 2px #000, 0 1px 2px #000; }
+.sti .stl { font-size: 11px; font-weight: 600; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+.sti .stl small { font-size: 10px; font-weight: 400; color: #e6ecf4; opacity: 0.85; }
+.mbar .mst { display: flex; justify-content: center; gap: 3px; margin-bottom: 1px; }
+.mbar .mst .sti svg { width: 13px; height: 13px; }
+.bossbar .bst { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+.bossbar .bst .sti { background: #0b1222cc; border-radius: 8px; padding: 2px 7px 2px 4px; }
+.bossbar .bst .sti svg { width: 16px; height: 16px; }
+.st-icons { display: inline-flex; gap: 6px; align-items: center; }
+.statusline .st-icons .sti { background: #0b1222aa; border-radius: 6px; padding: 1px 5px 1px 3px; }
 .questtrack {
   width: 220px;
   text-align: left;

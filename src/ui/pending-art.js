@@ -33,6 +33,14 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   stealth: 'ซ่อนตัว',
   steal: 'ขโมย',
   decoy: 'ร่างแยกหลอก',
+  fire_arrow_rain: 'ฝนศรเพลิง',
+  frost_shatter_arrow: 'ศรน้ำแข็งแตก',
+  thunder_lance: 'ศรอัสนีทะลวง',
+  poison_mist_arrow: 'ศรหมอกพิษ',
+  flame_slash: 'ฟันเพลิง',
+  ice_spikes: 'หนามน้ำแข็ง',
+  thunder_slash: 'ฟันสายฟ้า',
+  ice_ball: 'บอลน้ำแข็ง',
 });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

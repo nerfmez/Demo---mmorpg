@@ -25,9 +25,10 @@ test('one speed stat: cooldown and cast time divide by 1 + speed/100; the old bo
     assert.ok(Math.abs(s.cooldown - combat.slash.cooldown / (1 + h / 100)) < 1e-9);
     assert.ok(Math.abs(s.castTime - combat.slash.castTime / (1 + h / 100)) < 1e-9);
   }
-  // at the cap the fastest swing is what it was before the change (0.5 s x 0.75 / 1.4)
+  // at the cap the sword's swing is a third of its base (owner, 2026-10-31: it starts at 1.2 s, an MMORPG's
+  // pace, and speed brings it down to 0.4 s)
   const fastest = computeSkill(ch, data, { ...d, hastePct: caps.hastePct }, 0).cooldown;
-  assert.ok(Math.abs(fastest - 0.5 * 0.75 / 1.4) < 0.01, `fastest swing ${fastest.toFixed(3)} s`);
+  assert.ok(Math.abs(fastest - combat.slash.cooldown / 3) < 0.01 && fastest >= 0.35, `fastest swing ${fastest.toFixed(3)} s`);
   // AGI gives speed
   ch.stats.AGI += 10;
   assert.ok(derive(ch, data).hastePct > d.hastePct);
@@ -44,7 +45,7 @@ test('speed follows the damage soft cap: past the threshold each point counts ha
 });
 
 test('base cooldowns are 1.6x longer and damage per cast grew alike; a speed node is worth about a damage node', () => {
-  assert.equal(combat.slash.cooldown, 0.8);
+  assert.equal(combat.slash.cooldown, 1.2, 'main attacks slowed again to an MMORPG pace (owner, 2026-10-31)');
   assert.equal(combat.meteor.cooldown, 16);
   const nodes = Object.values(data.jobtree.nodes).map((n) => n.effects || {});
   const median = (a) => a.sort((x, y) => x - y)[Math.floor(a.length / 2)];

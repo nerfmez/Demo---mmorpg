@@ -52,6 +52,12 @@ export function castDamage(s) {
   if (s.charge) dmg *= s.charge.maxDamageMult || 1;
   if (s.echo) dmg *= 1 + s.echo.mult; // the echo strikes again
   if (s.modEffects?.returnMult) dmg *= 1 + s.modEffects.returnMult; // a returning shot's way back
+  if (s.afterShock) dmg *= 1 + s.afterShock.mult; // Thunder Lance: the lane strikes again
+  // Flame Arrow Rain: arrows burst over the circle, so a target there is in about count x (blast / radius)^2 of them
+  if (s.arrows) dmg *= s.arrows.count * Math.min(1, (s.arrows.blast / Math.max(0.1, s.radius || 1)) ** 2);
+  // a zone that stacks poison on each tick (Miasma Arrow): the stacks poison on top of the ticks, on
+  // average about two thirds of the way to the most stacks
+  if (s.kind === 'dot_zone' && s.poison) dmg *= 1 + s.poison.stackDps * s.poison.maxStacks * (2 / 3) * (s.tick || 0.5);
   return dmg;
 }
 
@@ -160,7 +166,12 @@ export function buildProfile(data, spec) {
     return attacks.reduce((a, s, i) => {
       const hits = hitsOf(s), perTarget = scen === 'pack' ? Math.min(pct('perTargetDamagePct') * hits, pct('perTargetCap') || Infinity) : 0;
       // a burst where a shot ends (a mod) and a free cast each time we dodge (a trigger mod)
-      const burst = s.modEffects?.terminalBurst ? s.modEffects.terminalBurst * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.modEffects.burstRadius }, R.pack) : 1) / Math.max(1, hits) : 0;
+      let burst = s.modEffects?.terminalBurst ? s.modEffects.terminalBurst * (scen === 'pack' ? packTargets({ kind: 'nova', radius: s.modEffects.burstRadius }, R.pack) : 1) / Math.max(1, hits) : 0;
+      // a skill's own second hits: Thunder Slash's charge (its shocks come with the main skill's hits on
+      // what it cut: all of them on a lone target, on one of a pack), Shatter Arrow's shards (they fly on
+      // past the target the arrow struck, so only the rest of a pack takes them; a shot that never stops never breaks)
+      if (s.shockCharge) burst += s.shockCharge.mult * s.shockCharge.shocks / (scen === 'pack' ? Math.max(1, hits) : 1);
+      if (s.shatter && scen === 'pack' && s.pierce !== Infinity) burst += s.shatter.mult * Math.min(s.shatter.count, R.pack.size - 1) / Math.max(1, hits);
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
       // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there
       const e = s.modEffects || {}, tip = e.tipMult ? (scen === 'pack' ? 1 + e.tipShare * (e.tipMult - 1) : e.tipMult) : 1;
@@ -189,8 +200,19 @@ export function buildProfile(data, spec) {
   attacks.concat(helpers).forEach((s, i) => {
     const rate = i < attacks.length ? rf[i] : share(s) / s.cooldown, reach = Math.min(1, packHits(s, R.pack) / R.pack.size);
     const e = s.modEffects || {}, stun = s.stun || s.def.stun, chill = s.chill || (s.slow ? { slow: s.slow, duration: s.duration } : null);
-    if (stun) free *= 1 - Math.min(C.cap, rate * stun.duration * reach);
+    if (stun) {
+      free *= 1 - Math.min(C.cap, rate * stun.duration * reach);
+      // interrupts: a stun cancels the attack a monster is winding up (core/ai.js cancelWindup). The player
+      // times a cast into a wind-up (interruptTiming of them; most often the monster's big attack); the
+      // others it reaches are cancelled when they happen to be winding up. Each cancelled attack is a
+      // hit the pack never lands, on top of the time the stun holds them.
+      const n = reach * R.pack.size, cancelled = C.interruptTiming * m.bigMult + Math.max(0, n - 1) * m.windupShare;
+      free *= 1 - Math.min(C.cap, rate * m.hitInterval * cancelled / R.pack.size);
+    }
     if (e.chainStun) free *= 1 - Math.min(C.cap, rate * e.chainStun / R.pack.size); // one monster, the chain's last
+    // shock: its twitches stop the monster for twitch / interval of the time it lasts
+    const SH = s.def.afterShock?.shock, SHK = data.progression.combat.shock;
+    if (SH && SHK) free *= 1 - Math.min(C.cap, rate * SH * (SHK.twitch / SHK.interval) * reach);
     if (s.knock) free *= 1 - Math.min(C.cap, rate * s.knock / C.monsterSpeed * reach);
     if (chill) free *= 1 - Math.min(C.cap, chill.slow * C.slowShare * Math.min(1, rate * chill.duration) * reach);
     if (s.kind === 'curse_zone' && s.dealtMult) free *= 1 - (1 - s.dealtMult) * Math.min(1, s.duration / s.cooldown) * share(s);

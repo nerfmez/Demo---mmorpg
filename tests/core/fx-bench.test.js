@@ -54,8 +54,8 @@ import { fusionPayloads, fusionRecipe, benchData } from '../../src/fxtest/fusion
 const FUSION = JSON.parse(readFileSync(new URL('../../data/fusion.json', import.meta.url)));
 
 test('fusion pairs: physical fast carriers with fast damage spells only', () => {
-  assert.deepEqual(fusionPayloads(data, FUSION, 'slash').sort(), ['arcane_bolt', 'chain_spark', 'firebolt']);
-  assert.deepEqual(fusionPayloads(data, FUSION, 'hunter_shot').sort(), ['arcane_bolt', 'chain_spark', 'firebolt'], 'the bow carries the same fast spells');
+  assert.deepEqual(fusionPayloads(data, FUSION, 'slash').sort(), ['arcane_bolt', 'chain_spark', 'firebolt', 'ice_ball']);
+  assert.deepEqual(fusionPayloads(data, FUSION, 'hunter_shot').sort(), ['arcane_bolt', 'chain_spark', 'firebolt', 'ice_ball'], 'the bow carries the same fast spells');
   assert.deepEqual(fusionPayloads(data, FUSION, 'chain_spark'), [], 'a spell is not a carrier');
   assert.ok(!fusionPayloads(data, FUSION, 'slash').includes('frost_nova'), 'long cooldown spells are not payloads');
   assert.deepEqual(fusionPayloads(data, FUSION, 'armor_cleave'), [], 'long cooldown attacks are not carriers');

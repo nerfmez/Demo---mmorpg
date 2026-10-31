@@ -27,8 +27,8 @@ export function referenceFor(data, def) {
 }
 
 /** main (a quick attack), burst (a damage skill on a cooldown), or the support kind. */
-export function skillClass(def) {
-  if (def.damage && def.kind !== 'counter_stance') return def.cooldown <= 1.6 ? 'main' : 'burst';
+export function skillClass(def, data = null) {
+  if (def.damage && def.kind !== 'counter_stance') return def.cooldown <= (data?.progression.combat.mainSkillCooldown ?? 2.4) ? 'main' : 'burst';
   if (def.kind === 'buff' || def.kind === 'aura') return 'buff';
   if (def.heal) return 'heal';
   if (def.barrier) return 'barrier';
@@ -40,7 +40,9 @@ export function skillClass(def) {
  * a cap cannot swamp the rest. */
 export function scoreGain(data, p, b) {
   const w = data.progression.balance.rules.budgetWeights, clamp = (x) => Math.max(-1, Math.min(1, x));
-  return AXES.reduce((a, k) => a + (w[k] || 0) * clamp(b[k] > 0 ? (p[k] > 0 ? Math.log(p[k] / b[k]) : -1) : p[k] - b[k]), 0);
+  // team help is absolute, as above: a build's tiny team share (its control spares allies a little) must
+  // not turn a ratio of two near-zero numbers into a doubling
+  return AXES.reduce((a, k) => a + (w[k] || 0) * clamp(k !== 'team' && b[k] > 0 ? (p[k] > 0 ? Math.log(p[k] / b[k]) : -1) : p[k] - b[k]), 0);
 }
 
 const run = (data, ref, level, extra) => buildProfile(data, { kit: ref.kit, build: ref.build, level, gear: 'mixed', mpFree: true, ...extra });
@@ -100,7 +102,7 @@ export function pricedGain(data, ref, level, p, b) {
 
 /** What one skill adds: { id, cls, ref, score, gain (per axis) }. */
 export function skillValue(data, id, level) {
-  const def = data.skills.combat[id], ref = referenceFor(data, def), cls = skillClass(def), main = ref.build.skill;
+  const def = data.skills.combat[id], ref = referenceFor(data, def), cls = skillClass(def, data), main = ref.build.skill;
   const base = run(data, ref, level, { loadout: [main] });
   const withIt = cls === 'main' ? run(data, ref, level, { loadout: [id] })
     : def.damage ? run(data, ref, level, { loadout: [main, id] })
@@ -117,7 +119,7 @@ export function modValue(data, modId, level, fits) {
   for (const id of Object.keys(data.skills.combat)) {
     const def = data.skills.combat[id];
     if (!fits(def, data.mods.mods[modId])) continue;
-    const ref = referenceFor(data, def), cls = skillClass(def), main = ref.build.skill;
+    const ref = referenceFor(data, def), cls = skillClass(def, data), main = ref.build.skill;
     const lo = cls === 'main' ? [id] : def.damage ? [main, id] : [main];
     const sup = !def.damage ? [id] : [];
     const slot = cls === 'main' ? 0 : def.damage ? 1 : 1;

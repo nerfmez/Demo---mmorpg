@@ -21,14 +21,14 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 128,
-        "scale": 1.6
+        "base": 192,
+        "scale": 2.4
       },
       "range": 2.4,
       "arc": 120,
-      "cooldown": 0.8,
+      "cooldown": 1.2,
       "castTime": 0.18,
-      "cost": 22,
+      "cost": 33,
       "element": "physical",
       "requires": { "STR": 3, "AGI": 2 },
       "upgradeMaterial": "boar_tusk",
@@ -51,14 +51,14 @@
       "kind": "melee_nova",
       "power": "attack",
       "damage": {
-        "base": 112,
-        "scale": 1.36
+        "base": 128,
+        "scale": 1.56
       },
       "range": 2.8,
       "radius": 2.8,
-      "cooldown": 1.92,
+      "cooldown": 2.2,
       "castTime": 0.24,
-      "cost": 96,
+      "cost": 66,
       "element": "physical",
       "requires": { "STR": 3, "AGI": 2 },
       "upgradeMaterial": "wolf_fang",
@@ -88,15 +88,15 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 144,
-        "scale": 1.52
+        "base": 213,
+        "scale": 2.25
       },
       "range": 10,
       "speed": 24,
       "projectileRadius": 0.3,
-      "cooldown": 0.88,
+      "cooldown": 1.3,
       "castTime": 0.2,
-      "cost": 22,
+      "cost": 32,
       "element": "physical",
       "requires": { "DEX": 3, "AGI": 2 },
       "upgradeMaterial": "boar_tusk",
@@ -119,15 +119,15 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 128,
-        "scale": 1.44
+        "base": 192,
+        "scale": 2.16
       },
       "range": 13,
       "speed": 16,
       "projectileRadius": 0.3,
-      "cooldown": 0.8,
+      "cooldown": 1.2,
       "castTime": 0.2,
-      "cost": 26,
+      "cost": 39,
       "element": "arcane",
       "requires": { "INT": 3, "DEX": 2 },
       "upgradeMaterial": "glow_dust",
@@ -153,21 +153,52 @@
       "kind": "projectile",
       "power": "spell",
       "damage": {
-        "base": 160,
-        "scale": 1.76
+        "base": 214,
+        "scale": 2.36
       },
       "range": 13,
       "speed": 9,
       "projectileRadius": 0.35,
-      "cooldown": 1.12,
+      "cooldown": 1.5,
       "castTime": 0.22,
-      "cost": 56,
+      "cost": 75,
       "element": "fire",
       "burnChance": 0.25,
       "requires": { "INT": 3 },
       "upgradeMaterial": "glow_dust",
       "icon": "fire",
       "upgradeStat": "INT"
+    },
+    "ice_ball": {
+      "name": "Ice Ball",
+      "nameTh": "บอลน้ำแข็ง",
+      "desc": "ยิงบอลน้ำแข็งตรงไปข้างหน้า ตัวที่โดนช้าลง 30% นาน 2 วินาที",
+      "growth": "projectile",
+      "gradeMaterial": "sea_pearl",
+      "tags": [
+        "Spell",
+        "Projectile",
+        "Cold",
+        "Damage"
+      ],
+      "kind": "projectile",
+      "power": "spell",
+      "damage": {
+        "base": 250,
+        "scale": 2.7
+      },
+      "range": 13,
+      "speed": 11,
+      "projectileRadius": 0.35,
+      "cooldown": 1.6,
+      "castTime": 0.22,
+      "cost": 80,
+      "element": "cold",
+      "chill": { "slow": 0.3, "duration": 2 },
+      "requires": { "INT": 3, "VIT": 1 },
+      "upgradeMaterial": "glow_dust",
+      "upgradeStat": "INT",
+      "iconPending": true
     },
     "chain_spark": {
       "name": "Chain Spark",
@@ -182,16 +213,16 @@
       "kind": "chain",
       "power": "spell",
       "damage": {
-        "base": 176,
-        "scale": 1.6
+        "base": 195,
+        "scale": 1.77
       },
       "range": 11,
       "chain": 3,
       "chainRange": 6,
       "chainFalloff": 0.85,
-      "cooldown": 2.08,
+      "cooldown": 2.3,
       "castTime": 0.24,
-      "cost": 160,
+      "cost": 124,
       "element": "lightning",
       "requires": { "INT": 4, "LUK": 2 },
       "upgradeMaterial": "wisp_core",
@@ -201,25 +232,27 @@
     "stone_burst": {
       "name": "Stone Burst",
       "nameTh": "หินปะทุ",
-      "desc": "เล็งจุดบนพื้น หินจะปะทุขึ้นมาหลังดีเลย์สั้น ๆ ไม่ต้องล็อกเป้า",
+      "desc": "เล็งจุดบนพื้น หินปะทุขึ้นมาหลังดีเลย์สั้น ๆ กระแทกศัตรูในวงลอยจนมึน 0.5 วินาที (บอสไม่มึน) ตัดท่าเงื้อได้ ไม่ต้องล็อกเป้า",
       "tags": [
         "Spell",
         "Area",
         "Earth",
         "Damage",
         "Physical",
+        "Control",
         "Ground"
       ],
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 288,
-        "scale": 2.4
+        "base": 210,
+        "scale": 1.75
       },
       "range": 10,
       "radius": 2.3,
       "delay": 0.55,
-      "cooldown": 3.84,
+      "stun": { "duration": 0.5, "bossDuration": 0 },
+      "cooldown": 6,
       "castTime": 0.3,
       "cost": 224,
       "element": "physical",
@@ -274,15 +307,15 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 64,
-        "scale": 0.64
+        "base": 87,
+        "scale": 0.87
       },
       "range": 10,
       "speed": 26,
       "projectileRadius": 0.2,
-      "cooldown": 0.96,
+      "cooldown": 1.3,
       "castTime": 0.2,
-      "cost": 19,
+      "cost": 26,
       "element": "poison",
       "requires": { "DEX": 4, "LUK": 2 },
       "upgradeMaterial": "spore_sac",
@@ -538,9 +571,9 @@
       "kind": "melee_arc",
       "power": "attack",
       "range": 2.5,
-      "cooldown": 0.8,
+      "cooldown": 1,
       "castTime": 0.18,
-      "cost": 19,
+      "cost": 24,
       "element": "physical",
       "requires": { "AGI": 3, "DEX": 2 },
       "upgradeStat": "AGI",
@@ -550,8 +583,8 @@
         "dagger"
       ],
       "damage": {
-        "base": 96,
-        "scale": 0.96
+        "base": 120,
+        "scale": 1.2
       },
       "arc": 45,
       "positionalMult": 1.6,
@@ -1028,17 +1061,17 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 96,
-        "scale": 1.12
+        "base": 128,
+        "scale": 1.49
       },
       "range": 2.2,
       "arc": 100,
       "repeats": 1,
       "repeatMult": 1,
       "repeatDelay": 0.14,
-      "cooldown": 1.2,
+      "cooldown": 1.6,
       "castTime": 0.22,
-      "cost": 38,
+      "cost": 51,
       "element": "physical",
       "requires": { "STR": 5, "AGI": 3 },
       "requiresWeapon": [
@@ -1065,17 +1098,17 @@
       "kind": "melee_nova",
       "power": "attack",
       "damage": {
-        "base": 80,
-        "scale": 0.88
+        "base": 100,
+        "scale": 1.1
       },
       "range": 1.8,
       "radius": 1.8,
       "repeats": 1,
       "repeatMult": 1,
       "repeatDelay": 0.05,
-      "cooldown": 1.44,
+      "cooldown": 1.8,
       "castTime": 0.15,
-      "cost": 35,
+      "cost": 44,
       "element": "physical",
       "requires": { "STR": 5, "AGI": 3 },
       "requiresWeapon": [
@@ -1692,15 +1725,15 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 144,
-        "scale": 1.44
+        "base": 180,
+        "scale": 1.8
       },
       "range": 10,
       "speed": 16,
       "projectileRadius": 0.5,
-      "cooldown": 1.28,
+      "cooldown": 1.6,
       "castTime": 0.24,
-      "cost": 38,
+      "cost": 48,
       "element": "arcane",
       "requires": { "STR": 10, "AGI": 6 },
       "requiresWeapon": [
@@ -1842,6 +1875,253 @@
       "upgradeMaterial": "crag_stone",
       "upgradeStat": "VIT",
       "job": "guardian",
+      "iconPending": true
+    },
+    "fire_arrow_rain": {
+      "name": "Flame Arrow Rain",
+      "nameTh": "ฝนศรเพลิง",
+      "desc": "ยิงศรไฟ 8 ดอกโค้งขึ้นไปตกปักกระจายทั่ววง 3.2 ม. ศรแต่ละดอกลุกไฟแล้วระเบิดเองในเวลาไม่เท่ากัน (วงละ 1.4 ม.) ติดไหม้ 50% ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Area",
+        "Fire",
+        "Damage",
+        "Ground"
+      ],
+      "kind": "ground_area",
+      "power": "attack",
+      "damage": {
+        "base": 280,
+        "scale": 2.27
+      },
+      "range": 13,
+      "radius": 3.2,
+      "arrows": { "count": 8, "land": 0.45, "fuseMin": 0.25, "fuseMax": 1.5, "blast": 1.4 },
+      "burnChance": 0.5,
+      "cooldown": 10,
+      "castTime": 0.3,
+      "cost": 224,
+      "element": "fire",
+      "requires": { "DEX": 6, "INT": 4 },
+      "requiresWeapon": [
+        "bow"
+      ],
+      "upgradeMaterial": "wisp_core",
+      "upgradeStat": "DEX",
+      "job": "spellarcher",
+      "iconPending": true
+    },
+    "frost_shatter_arrow": {
+      "name": "Shatter Arrow",
+      "nameTh": "ศรน้ำแข็งแตก",
+      "desc": "ยิงศรน้ำแข็ง โดนศัตรูแล้วแตกเป็นเข็มน้ำแข็ง 5 เล่มพุ่งต่อเป็นพัดใส่ฝูงข้างหลัง 5 ม. (เล่มละ 70%) ทุกตัวที่โดนช้าลง 50% นาน 3 วินาที ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Projectile",
+        "Cold",
+        "Damage",
+        "Control"
+      ],
+      "kind": "projectile",
+      "power": "attack",
+      "damage": {
+        "base": 176,
+        "scale": 1.44
+      },
+      "range": 11,
+      "speed": 24,
+      "projectileRadius": 0.3,
+      "shatter": { "count": 5, "arc": 70, "range": 5, "mult": 0.7, "speed": 20 },
+      "chill": { "slow": 0.5, "duration": 3 },
+      "cooldown": 6,
+      "castTime": 0.22,
+      "cost": 96,
+      "element": "cold",
+      "requires": { "DEX": 5, "INT": 3 },
+      "requiresWeapon": [
+        "bow"
+      ],
+      "upgradeMaterial": "sea_pearl",
+      "upgradeStat": "DEX",
+      "job": "spellarcher",
+      "iconPending": true
+    },
+    "thunder_lance": {
+      "name": "Thunder Lance",
+      "nameTh": "ศรอัสนีทะลวง",
+      "desc": "ยิงหอกสายฟ้าเป็นแนวตรง 12 ม. ทะลุทุกตัวในแนว แล้ว 0.45 วิต่อมารอยแนวนั้นช็อตซ้ำ 50% และทำให้ชา 2 วินาที (กระตุกหยุดสั้น ๆ เป็นระยะ บอสกระตุกสั้นกว่า) ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Line",
+        "Lightning",
+        "Damage",
+        "Control"
+      ],
+      "kind": "melee_line",
+      "power": "attack",
+      "damage": {
+        "base": 288,
+        "scale": 2.4
+      },
+      "range": 12,
+      "width": 1.2,
+      "afterShock": { "delay": 0.45, "mult": 0.5, "shock": 2 },
+      "cooldown": 8,
+      "castTime": 0.3,
+      "cost": 160,
+      "element": "lightning",
+      "requires": { "DEX": 7, "INT": 5 },
+      "requiresWeapon": [
+        "bow"
+      ],
+      "upgradeMaterial": "storm_quill",
+      "upgradeStat": "DEX",
+      "job": "spellarcher",
+      "iconPending": true
+    },
+    "poison_mist_arrow": {
+      "name": "Miasma Arrow",
+      "nameTh": "ศรหมอกพิษ",
+      "desc": "ยิงศรปักพื้น ศรพ่นหมอกพิษวง 2.8 ม. นาน 3 วินาที ศัตรูในหมอกโดนดาเมจพิษและติดพิษซ้อนได้ถึง 5 ชั้น ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Area",
+        "Poison",
+        "Damage",
+        "DoT",
+        "Persistent",
+        "Zone",
+        "Ground",
+        "Duration"
+      ],
+      "kind": "dot_zone",
+      "power": "attack",
+      "damage": {
+        "base": 44,
+        "scale": 0.38
+      },
+      "range": 12,
+      "radius": 2.8,
+      "duration": 3,
+      "tick": 0.5,
+      "poison": { "maxStacks": 5, "duration": 3, "stackDps": 0.25 },
+      "cooldown": 11.2,
+      "castTime": 0.3,
+      "cost": 224,
+      "element": "poison",
+      "requires": { "DEX": 6, "INT": 4 },
+      "requiresWeapon": [
+        "bow"
+      ],
+      "upgradeMaterial": "spore_sac",
+      "upgradeStat": "DEX",
+      "job": "spellarcher",
+      "iconPending": true
+    },
+    "flame_slash": {
+      "name": "Flame Slash",
+      "nameTh": "ฟันเพลิง",
+      "desc": "ฟันโค้งกว้างด้านหน้า 3.2 ม. ไฟลุกตามรอยดาบ ติดไหม้ 60% ต้องถือดาบ",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Fire",
+        "Damage",
+        "Arc"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "damage": {
+        "base": 448,
+        "scale": 3.68
+      },
+      "range": 3.2,
+      "arc": 160,
+      "burnChance": 0.6,
+      "cooldown": 8,
+      "castTime": 0.3,
+      "cost": 112,
+      "element": "fire",
+      "requires": { "STR": 6, "AGI": 4 },
+      "requiresWeapon": [
+        "sword",
+        "greatblade"
+      ],
+      "upgradeMaterial": "wisp_core",
+      "upgradeStat": "STR",
+      "job": "spellblade",
+      "iconPending": true
+    },
+    "ice_spikes": {
+      "name": "Ice Spikes",
+      "nameTh": "หนามน้ำแข็ง",
+      "desc": "ปักดาบลงพื้น หนามน้ำแข็งแทงขึ้นจากดินเป็นแนวตรงไปข้างหน้า 6 ม. โดนทุกตัวในแนว ช้าลง 45% นาน 2.5 วินาที ต้องถือดาบ",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Slam",
+        "Line",
+        "Cold",
+        "Damage",
+        "Control"
+      ],
+      "kind": "melee_line",
+      "power": "attack",
+      "damage": {
+        "base": 320,
+        "scale": 2.6
+      },
+      "range": 6,
+      "width": 1.3,
+      "chill": { "slow": 0.45, "duration": 2.5 },
+      "cooldown": 7,
+      "castTime": 0.3,
+      "cost": 128,
+      "element": "cold",
+      "requires": { "STR": 6, "AGI": 4 },
+      "requiresWeapon": [
+        "sword",
+        "greatblade"
+      ],
+      "upgradeMaterial": "sea_pearl",
+      "upgradeStat": "STR",
+      "job": "spellblade",
+      "iconPending": true
+    },
+    "thunder_slash": {
+      "name": "Thunder Slash",
+      "nameTh": "ฟันสายฟ้า",
+      "desc": "ฟันด้านหน้า 2.8 ม. ทิ้งประจุสายฟ้าไว้บนทุกตัวที่โดน 4 วินาที สกิลหลักของเราโดนตัวนั้นจะช็อตเพิ่มครั้งละ 40% ของฟันนี้ ได้ 4 ครั้ง ต้องถือดาบ",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Strike",
+        "Lightning",
+        "Damage",
+        "Arc"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "damage": {
+        "base": 240,
+        "scale": 2.0
+      },
+      "range": 2.8,
+      "arc": 120,
+      "shockCharge": { "duration": 4, "shocks": 4, "mult": 0.4 },
+      "cooldown": 8,
+      "castTime": 0.28,
+      "cost": 128,
+      "element": "lightning",
+      "requires": { "STR": 7, "AGI": 5 },
+      "requiresWeapon": [
+        "sword",
+        "greatblade"
+      ],
+      "upgradeMaterial": "storm_quill",
+      "upgradeStat": "STR",
+      "job": "spellblade",
       "iconPending": true
     }
   },

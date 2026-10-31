@@ -486,3 +486,128 @@ shimmer round it was dropped: owner, it looked like a shield). Decoy: a copy of 
 a violet swipe of a shadow hand across the front and gold motes arcing back from the monster. No gallery access.
 Owner: the plain purple ghost was too flat. The hidden hero is now a cloak: its body nearly clear, a bright pale rim round
 its outline and light bands sweeping over it like heat haze (`hero-copy.js` `cloakMaterial`).
+
+## Elemental job skills, group 4 (2026-10-31)
+
+Owner: normal skills stay easy to understand (one element each); their effects must not look like the
+elemental mage's spells, each needs its own identity. The rule we keep: the mage's spells are raw element
+from the sky, the ground or the hand; the spell archer's effects are always made of arrows (shafts,
+fletching, arrows pinned in the ground); the spellblade's follow the blade (crescents, the blade's line).
+
+Flame Arrow Rain (`flamerain-fx.js`, round 1): a burning arrow climbs from the bow and blooms in fire above
+the circle; each wave brings down seven heavy fire arrows (a dark shaft with red fletching and a hot point,
+wrapped in a comet of Firebolt's fire from `meteor-flame.js`) that pin into the ground at their slant and
+burn there as small tongues of the same fire over a round scorch, then burn away and leave the charred
+shafts a moment. A thin ember circle marks the area and pulses with each wave. Unlike Meteor: no rock, no
+crater, no dome; unlike Arrow Rain: few heavy arrows, not a rain of light. No gallery access.
+
+Flame Arrow Rain, round 2 (owner: round 1 looked too much like Arrow Rain; each arrow should burst on its own
+time). The rules now pin eight arrows across the circle and burst each on its own fuse (`arrows`). The look:
+a fan of fire arrows flies low arcs from the bow (no burst in the sky, nothing raining down), they pin
+together, each burns down its fuse (its flame tongue swelling and flickering faster, an ember ring closing
+from its blast edge onto the arrow) and bursts on its own beat with a flash, a fire puff and embers, a ring of
+fire out to its blast radius and a scorch.
+Round 3 (owner: the bursts and the ground looked poor). Each burst is now a small dome of Firebolt's fire
+(Meteor's dome from `meteor-flame.js` at an arrow's size: bursting up in 0.12 s, tearing into tongues as its
+cut-off rises, gone by 0.75 s) with a flash and embers, and the ground keeps a small round pit in the game's
+toon steps whose molten floor cools (`ground-kit.js` craterMesh, lip 0.32 of the blast radius, gone by
+1.8 s), instead of the flat billboard puff and the dark ragged scorch.
+
+Shatter Arrow, round 1 (`icearrow-fx.js`; the rules' arrow and shards are its own projectiles, the burst
+its 'shatter' event). Made of an arrow, apart from Frost Nova's round frost and crystal clusters: a long
+six-sided ice needle in Frost Nova's cel ice shading flies with a thin frost trail shedding glints; on
+the monster that stops it, a white-cyan ragged flash and a spray of ice chips, then the shards (small
+needles, each with its streak) fan out along the shot. Behind each shard runs a straight frost streak on
+the ground and a row of small ice spikes leaning back along its path (the same needle, standing), only
+over the fan's true arc and reach; they hold a second and melt away. A struck target sprays ice chips.
+Instanced needles, spikes and chips (three draws), two ribbons, a fan decal. No gallery access.
+Round 2 (owner: "odd, hard to say why"; the frost fan and the evenly spaced spike rows on the ground read as a
+diagram, the shards in the air were too small, and the marks were on the ground while the shards flew in the
+air). Nothing is drawn on the ground now but chips. The crack is bigger (a white flash, a puff of cold mist,
+short crack streaks bursting forward, more chips); the shards are bigger needles with brighter streaks; each
+shard that strikes a monster stays stuck in it, pointing back along its flight, for the chill's 3 s, then
+melts.
+
+Thunder Lance, round 1 (`lance-fx.js`; the rules' two 'lineStrike' events, the second with `after`). An arrow,
+not the mage's lightning (no bolt from the sky, no hops): small arcs crackle round the arrow's head through
+the draw; the loose shoots a straight white-hot lance down the whole lane at once (a thick shaft, a spearhead
+glint racing to the far end, two of Chain Spark's low-jag bolts wound round it, a flash at the bow and at the
+end); the lane stays charged (a faint line on the ground with small arcs crackling along it, more of them as
+the after-shock nears); the after-shock snaps two bolts along the whole lane at knee height, and the stunned
+get MaceFx's stun stars. The hero plays the bow shot (`shoot`); Shatter Arrow does too, Miasma Arrow the sky shot.
+Round 2 (owner: does not like the bursts): the ragged blue flashes at the bow, the lane's end and the
+after-shock are gone; the loose and the spearhead only pop a small clean four-point glint with sparks.
+Round 3 (owner: its head and tail were too square): the lance and its glow are now strips of 28 points, the tail rounding in from nothing at the bow and the head drawn out into a long point; the charged lane's line on the ground fades in and out at its ends.
+Round 4 (owner: the effect felt too light): a thicker lance that surges as it is loosed and flickers while it holds (0.4 s), three bolts wound round it and short forks leaping off it, speed lines kicking back from the bow, a bolt running down through each struck body into the ground, a brighter charged lane with more arcs, three heavier bolts on the after-shock and a harder shake; still no ragged bursts.
+
+Miasma Arrow, round 1 (`miasma-fx.js`; the rules' 'area' and 'areaEnd' of kind poison_mist_arrow). The
+mist comes out of an arrow, apart from Venom Arrow's needle and the mage's zones: a poisoned arrow arcs
+from the bow and pins at the centre; a murky violet pool (it must read on green grass) with thin lime
+swirls, welling bubbles and a clear lime rim at the true radius; a ring runs out over it on every
+half-second beat (the rules' ticks) while the arrow's glow pulses; cel puffs of sickly lime gas with violet
+shadows roll out from the arrow and rise, a big one on each beat; when it ends the gas thins and the pool
+dries inward. Puffs are one instanced draw (camera-facing quads cut from noise). The floating "พิษ ×N" text
+is gone everywhere: the status icons carry the stacks.
+Round 2 (owner: disliked round 1 and pointed to github.com/patch-gg/pixelfx, MIT, to study; its
+docs/AUTHORING.md quality bar and its "Poison cloud" were read for their rules, nothing copied). What it taught,
+and what changed: lines and light, not fills (the flat violet pool went: the floor is now a soft additive glow
+lit from within that swells on each beat, a thin ring of light running out and a faint rim at the true
+radius); translucent volumes (the solid outlined cel puffs went: soft see-through puffs with no outline, lime
+low down, olive and violet only in the high wisps, the band moving with each puff's noise so no straight
+line runs across, every quad drawn at a depth nearer than the ground under it so the floor never cuts it);
+light everywhere (pockets of glow wandering low in the gas, twinkling specks drifting out, a white-green flash
+as the arrow lands); small varied events (plumes twisting up as thin ribbons). The arrow stands in a small
+pool of black tar lit by chartreuse veins with doming bubbles. The puffs stay within the true area.
+Round 3 (owner: "the spot in the middle still looks odd"). The tar pool went: the arrow now stands almost
+upright with dark-green fletching, a soft glow at its foot pulses with the beats, and two thin vapour
+ribbons curl up from it. A camera-facing glow sprite that sits low is cut by the ground in a straight line:
+the foot glow and the landing flash keep their centre half their size above the ground.
+
+Flame Slash, round 1 (`flameslash-fx.js`; spellblade, a wide `melee_arc`: 160 degrees, 3.2 m; owner: a
+spellblade's effect follows its blade). Firebolt's fire, three beats: through the wind-up the sword
+burns (flame tongues running to the tip); the cut raises flame tongues along the true arc, revealed the
+way the blade tip really travels (measured from the posed weapon; the action's sweep side alone ran the
+wrong way), hottest where just swept; then they leap up and burn away from their tips while a band of
+embers on the ground cools from orange to dull red. A first try with one upright curtain of fire read as
+thin paper shards from the high camera: camera-facing tongues (one instanced draw) read as a burning arc
+from any side. Tongues are drawn at their root's depth plus 0.3 m only, so a body behind the arc stays
+in front of the fire behind it. The hero still plays the sword's usual cut.
+Round 2 (owner: "this is not a flame slash any more, it is like setting fire to things"). The flames standing
+along the arc and the embers left on the ground went: the cut is now one crescent of fire (Firebolt's noise
+and heat ramp), swept with the blade, its head a point running along the outer edge, white-hot at the outer
+edge (the blade's path), orange inside, its inner edge torn into flame streaks drawn out along the cut and
+carried back against the sweep; it burns away from the inner edge and rises a little, gone in half a
+second. Lesson: a cut must read as one fast stroke; fire that stays standing reads as burning, not slashing.
+
+Ice Spikes, round 1 (`icespike-fx.js`; spellblade `melee_line`, 6 m x 1.3 m; owner: spikes stabbing up out
+of the ground in a line, like the earth skills, but ice). The hero drives the sword down (`splitChop`) as
+a cold star blooms at its tip; a front runs down the lane in 0.22 s and behind it clusters of crystal
+spikes stab up with an overshoot (a tall one leaning forward, small ones leaning out; tallest past the
+middle; Frost Nova's crystal shape and cel ice, a white point), ice chips and glints, over Frost Nova's
+cel frost crust spreading along the lane; they hold 0.75 s, crack apart from the near end (chips flung
+out, each spike sinking and shrinking away), cold mist rises and the crust melts inward. First try:
+the spikes were short and wide and read as a pile of crystals: thinner and taller spikes read as stabs.
+Round 2 (owner: "the effect is still not pretty"). Rebuilt on the pixelfx bar: the spikes are translucent
+ice lit from within (deep blue at the root to cyan and a white point, see-through where they face the
+camera and solid at the rim, light streaks running up inside, bright facet edges), in a clear left-right
+rhythm instead of a random thicket; the opaque crust with its outline became frost light (a glowing vein
+down the lane with fern branches slanting forward and sparkles, additive, no fill); a cold light runs ahead
+of the spikes; each spike flashes white before it cracks into slender shards with a glint. Bug found on
+the way: unused instance slots must start at a zero matrix, or they draw a full-size crystal at the origin.
+
+Thunder Slash, round 1 (`tslash-fx.js`; spellblade `melee_arc` 120 degrees, 2.8 m, leaving a charge of 4
+shocks for 4 s that the hero's main skills set off). Chain Spark's clean angular lightning, following the
+blade: arcs crackle along the sword through the wind-up; the cut is a jagged arc of lightning swept with the
+blade (the blade tip's real travel, as Flame Slash), a thinner arc inside, a soft glow band behind and two
+short forks, held a beat and gone; each charged monster carries one small comet of light circling it per
+shock left (the count reads at a glance) with an occasional crackle; each shock drops a bolt from above
+through the body into the ground. The sky bolt starts 2.6 m up and leans toward the camera so its top stays
+on screen under the high game camera.
+
+Ice Ball, round 1 (`iceball-fx.js`; a basic cold spell, a main skill beside Firebolt: a projectile that
+slows what it strikes). Its own identity apart from Firebolt's fire and Shatter Arrow's needles: a faceted
+crystal heart of see-through ice lit from within, inside a frost shell whose light streaks stream back
+along the flight, a soft cold glow, three small shards circling it, a misty trail and snow sparkles left
+twinkling along the path; motes spiral into the staff head as it is cast; on impact the heart is gone at
+once (it shatters), shards fly out and fall, a thin ring of frost light races out over the ground, a glint
+and a puff of mist.

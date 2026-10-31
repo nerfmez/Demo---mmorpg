@@ -59,3 +59,18 @@ test('the Job Tree as it is: no build is overpowered and every build has a weakn
     for (const role of ['survival', 'mobility', 'income']) assert.ok(!a.roleMisses.some((m) => m.role === role), `${kit}: the ${role} line leads it`);
   }
 });
+
+test('a stun counts the wind-ups it cancels, not only the time it holds; team help scores as a difference', async () => {
+  const { referenceMonster } = await import('../../src/core/balance.js');
+  const { scoreGain } = await import('../../src/core/content-budget.js');
+  const m = referenceMonster(data, cap);
+  assert.ok(m.windupShare > 0 && m.windupShare < 1 && m.bigMult >= 1, 'every monster attack is telegraphed: a share of its time winds up, its big attack hits harder');
+  // the same stunning skill with timed interrupts and without them (interruptTiming 0)
+  const run = (d) => buildProfile(d, { kit: 'staff', level: cap, gear: 'mixed', loadout: ['firebolt', 'stone_burst'] }).axes;
+  const off = structuredClone(data); off.progression.balance.rules.control.interruptTiming = 0;
+  const with_ = run(data), without = run(off);
+  assert.ok(with_.survival > without.survival && with_.team > without.team, 'cancelled attacks spare us and our allies');
+  // a tiny team share must not read as a doubling (it once made pierce on Ice Ball look fivefold)
+  const base = { single: 100, pack: 100, survival: 10, sustain: 90, mobility: 6, team: 2e-6, income: 1000 };
+  assert.ok(Math.abs(scoreGain(data, { ...base, team: 1e-5 }, base)) < 1e-4);
+});

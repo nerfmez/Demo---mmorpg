@@ -5,13 +5,13 @@
 //   bite: two rows of ice fangs break out of the ground on opposite sides of the circle, leaning out like an
 //     open jaw, then snap in over the middle in a few frames with an overshoot so their points almost meet
 //     above whatever stepped in - a cage of fangs; a white glint where they meet, chips, a cold light;
-//   frost: thin lines of frost light run out from the middle to the circle's edge (spokes with fern
-//     branches) under the jaw, the true radius as a faint ring;
+//   frost: a snowflake of frost light drawn out from the middle to the circle's edge under the jaw (six
+//     arms with branches), the true radius as a faint ring;
 //   hold: the jaw stays shut while it stuns (the skill's stun), its fangs breathing a little light;
 //   break: the fangs flash white and crack apart into chips, cold mist rises, the frost fades.
 // Cosmetic only; pooled (one instanced fang mesh, one instanced chip mesh), no per-frame allocation.
 import * as THREE from 'three';
-import { mulberry32, NOISE, BILLBOARD_VS, addLight, fxGround, place, conformPlane } from './fx-common.js';
+import { mulberry32, BILLBOARD_VS, addLight, fxGround, place, conformPlane } from './fx-common.js';
 import { crystalGeo } from './frost-fx.js';
 import { ICE_VS, ICE_FS, MIST_FS } from './icespike-fx.js';
 import { lightSprite, starTexture } from './light-kit.js';
@@ -20,24 +20,30 @@ const JAWS = 3, SIDE = 7, FANGS = SIDE * 2, CHIPS = 60, MISTS = 6;
 const RISE = 0.06, SNAP = 0.1, BREAK = 0.2, FADE = 0.6;           // seconds
 const OPEN = -0.9, SHUT = 0.82;                                    // fang lean (rad, + toward the middle)
 
-// frost light on the ground (additive, uv -1..1 over the radius): spokes of frost with fern branches
-// running out from the middle behind uGrow (0..1), a faint ring at the edge, fading with uA
 const RIME_VS = `varying vec2 vP; void main(){ vP = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
-const RIME_FS = `varying vec2 vP; uniform float uGrow, uA, uSeed;` + NOISE + `
+// a snowflake of frost light on the ground (owner, round 1: "can the ground be a snowflake?"; additive, uv
+// -1..1 over the radius): six arms, each with three pairs of branches at 60 degrees and a small hexagon at
+// the heart, thin bright lines in a soft cold halo, drawn out from the middle behind uGrow (0..1); the true
+// radius a faint ring at the edge; uA fades it, uSeed turns it
+const RIME_FS = `varying vec2 vP; uniform float uGrow, uA, uSeed;
+  float seg(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba)/dot(ba, ba), 0.0, 1.0); return length(pa - ba*h); }
   void main(){
     float r = length(vP); if (r > 1.0) discard;
-    float ang = atan(vP.y, vP.x) + (fbm(vec2(r*3.0, uSeed)) - 0.5)*0.35;
-    float sp = 7.0, cell = ang/6.2832*sp + uSeed, f = fract(cell) - 0.5;
-    float d = abs(f)*6.2832/sp*r;                                      // distance to the nearest spoke (m-ish)
-    float vein = 1.0 - smoothstep(0.008, 0.022, d);
-    // fern branches leaving each spoke, slanting outward
-    float along = r*7.0, fy = fract(along), side = sign(f);
-    float branch = (abs(f)*6.2832/sp*r < 0.16) ? 1.0 - smoothstep(0.03, 0.08, abs(fy - 0.5 - abs(f)*3.0)) : 0.0;
-    branch *= smoothstep(0.15, 0.3, r);
-    float lead = smoothstep(uGrow + 0.02, uGrow - 0.12, r);
+    // fold into one half-arm: angle measured from the nearest arm, mirrored
+    float a = atan(vP.y, vP.x) + uSeed, w = 1.0471976;
+    a = mod(a + w*0.5, w) - w*0.5;
+    vec2 q = r*vec2(cos(a), abs(sin(a)));
+    const vec2 B = vec2(0.5, 0.8660254);                                  // a branch, 60 degrees off its arm
+    float d = seg(q, vec2(0.0), vec2(0.9, 0.0));                          // the arm
+    d = min(d, seg(q, vec2(0.28, 0.0), vec2(0.28, 0.0) + B*0.24));        // three pairs of branches
+    d = min(d, seg(q, vec2(0.5, 0.0), vec2(0.5, 0.0) + B*0.19));
+    d = min(d, seg(q, vec2(0.7, 0.0), vec2(0.7, 0.0) + B*0.12));
+    d = min(d, seg(q, vec2(0.9, 0.0), vec2(0.9, 0.0) + B*0.06));          // a small fork at the tip
+    d = min(d, seg(q, vec2(0.16, 0.0), vec2(0.08, 0.1385641)));           // the hexagon at the heart
+    float line = 1.0 - smoothstep(0.008, 0.02, d), halo = exp(-d*d*700.0)*0.35;
+    float lead = smoothstep(uGrow + 0.02, uGrow - 0.1, r);
     float ring = exp(-pow((r - 0.97)/0.02, 2.0))*0.5;
-    float glow = (1.0 - r)*0.18;
-    float k = (max(vein*0.42, branch*0.26)*lead + ring*step(0.9, uGrow) + glow*lead)*uA;
+    float k = ((line*0.6 + halo)*lead + ring*step(0.9, uGrow) + (1.0 - r)*0.1*lead)*uA;
     if (k < 0.004) discard;
     gl_FragColor = vec4(vec3(0.45, 0.8, 1.0)*k + vec3(0.5, 0.6, 0.6)*k*k, 1.0); }`;
 
@@ -81,7 +87,7 @@ export class JawFx {
         at: Math.abs(k - 0.5) * 0.03, brk: hold + 0.05 + r() * 0.12, broke: false, lean: SHUT * (0.85 + 0.25 * mid) * (rb > 0 ? 1 : 0) });
     });
     J.rime.visible = true; place(J.rime, x, 0.03, z); J.rime.scale.setScalar(R * 2); conformPlane(J.rime, 0.03);
-    J.rime.material.uniforms.uSeed.value = r() * 30;
+    J.rime.material.uniforms.uSeed.value = r() * 6.283;
     place(this.light, x, 1.0, z); this.lightT = 0;
     this.chipBurst(x, z, 8, R * 1.2, 0.04);
   }

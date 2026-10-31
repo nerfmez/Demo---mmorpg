@@ -666,4 +666,7 @@ trap's true radius under it. The jaw stays shut for the stun, its fangs breathin
 white and cracks into chips with cold mist. Changes during the round: the fangs close on the nearest
 monster rather than the plate's middle (the rules hit the whole circle; the cage shows who is held), the
 trap's trigger went to 0.4 m so it bites what steps on it, the frost lines were made fainter (they drew
-over the fangs), and the bench's walking dummies now stay put while stunned or rooted.
+over the fangs), and the bench's walking dummies now stay put while stunned or rooted. Owner: "can the ground be a
+snowflake?" - the frost under the jaw is now a six-armed snowflake of frost light (each arm with three
+pairs of branches at 60 degrees, a small fork at its tip, a hexagon at the heart, thin lines in a soft
+halo) drawn out from the middle to the true radius, turned at random each time.

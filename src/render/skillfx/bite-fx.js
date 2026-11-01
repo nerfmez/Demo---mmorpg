@@ -10,33 +10,52 @@
 //   impact: held shut for a moment with a tremble; a white star flash, lines bursting out from the bite and
 //           a few chips (the caller's strokes and glint);
 //   break:  the halves spring a little apart, shrink and fade.
-// Original shapes (no copied art); built once, pooled (4 jaws, 2 shared geometries, 2 materials per jaw).
+// Round 5 (owner: "not pretty yet, and too big"): smaller, curved two-tone fangs on a slim pointed crescent,
+// a warm maroon outline, a soft glow behind it, squash and stretch on the snap, lighter impact lines.
+// Original shapes (no copied art); built once, pooled (4 jaws, 4 shared geometries, 3 materials per jaw).
 import * as THREE from 'three';
+import { glowTexture } from './light-kit.js';
 
 const JAWS = 4;
 export const BITE_OPEN = 0.05, BITE_SNAP = 0.06, BITE_HOLD = 0.11, BITE_BREAK = 0.16;
 export const BITE_SHUT = BITE_OPEN + BITE_SNAP; // when the teeth meet (the impact)
-const IVORY = new THREE.Color('#fffaf0'), CREAM = new THREE.Color('#f1dcc0'), INK = new THREE.Color('#33232b');
+const IVORY = new THREE.Color('#fffaf2'), SHADE = new THREE.Color('#ecd9c6'), TIP = new THREE.Color('#fff4dc'), INK = new THREE.Color('#5a2329');
 
-// One half-jaw (the upper; the lower is the same mirrored and narrower), in units of the jaw's half-width:
-// an arched gum band and its teeth hanging from the band's lower edge. inflate grows every edge (the outline).
+// One half-jaw (the upper; the lower is the same mirrored, narrower and with fewer teeth), in units of the
+// jaw's half-width: a slim crescent of gum, pointed at both ends, and curved fangs hanging from its lower edge,
+// each fang lit on its outer half and shaded on its inner half (two toon tones). inflate grows every edge
+// (the outline drawn behind it).
 function halfJaw(inflate, lower) {
-  const pos = [], col = [], N = 14, W = lower ? 0.9 : 1, d = inflate;
-  const inner = (x) => 0.32 * (x / W) * (x / W), thick = (x) => 0.2 * (1 - 0.55 * (x / W) * (x / W));
-  const push = (x, y, c) => { pos.push(x, y, 0); col.push(c.r, c.g, c.b); };
-  // the gum: a band from inner(x) up to inner(x) + thick(x)
+  const pos = [], col = [], d = inflate, W = lower ? 0.84 : 1;
+  const inner = (x) => 0.3 * (x / W) * (x / W), thick = (x) => 0.13 * Math.pow(Math.max(0, 1 - (x / W) * (x / W)), 0.6);
+  const tri = (ax, ay, ca, bx, by, cb, cx, cy, cc) => { pos.push(ax, ay, 0, bx, by, 0, cx, cy, 0); col.push(ca.r, ca.g, ca.b, cb.r, cb.g, cb.b, cc.r, cc.g, cc.b); };
+  // the gum: a crescent from inner(x) up to inner(x) + thick(x), its ends pointed
+  const N = 16;
   for (let i = 0; i < N; i++) {
-    const x0 = -W - d + (i / N) * 2 * (W + d), x1 = -W - d + ((i + 1) / N) * 2 * (W + d);
+    const x0 = -W + (i / N) * 2 * W, x1 = -W + ((i + 1) / N) * 2 * W;
     const a0 = inner(x0) - d, a1 = inner(x1) - d, b0 = inner(x0) + thick(x0) + d, b1 = inner(x1) + thick(x1) + d;
-    push(x0, a0, IVORY); push(x1, a1, IVORY); push(x1, b1, CREAM);
-    push(x0, a0, IVORY); push(x1, b1, CREAM); push(x0, b0, CREAM);
+    const e0 = x0 - (i === 0 ? d * 2 : 0), e1 = x1 + (i === N - 1 ? d * 2 : 0);
+    tri(e0, a0, IVORY, e1, a1, IVORY, e1, b1, SHADE); tri(e0, a0, IVORY, e1, b1, SHADE, e0, b0, SHADE);
   }
-  // the teeth: [x, length, half-width]; the canines outside and longest, set apart from the other jaw's
-  const teeth = lower ? [[-0.66, 0.55, 0.13], [-0.22, 0.24, 0.09], [0.22, 0.24, 0.09], [0.66, 0.55, 0.13]]
-    : [[-0.8, 0.66, 0.15], [-0.4, 0.28, 0.1], [0, 0.24, 0.09], [0.4, 0.28, 0.1], [0.8, 0.66, 0.15]];
+  // the fangs: [x, length, half-width]; long canines outside, set apart from the other jaw's so they pass
+  const teeth = lower ? [[-0.6, 0.5, 0.12], [-0.2, 0.2, 0.075], [0.2, 0.2, 0.075], [0.6, 0.5, 0.12]]
+    : [[-0.76, 0.62, 0.13], [-0.4, 0.24, 0.085], [-0.13, 0.19, 0.07], [0.13, 0.19, 0.07], [0.4, 0.24, 0.085], [0.76, 0.62, 0.13]];
+  const S = 6; // segments down each fang
   for (const [x, L, w] of teeth) {
-    const y = inner(x) + 0.03, tipX = x * 0.9;
-    push(x - w - d, y + d, IVORY); push(x + w + d, y + d, IVORY); push(tipX, y - L - d * 1.6, CREAM);
+    const y0 = inner(x) + 0.04, lean = -Math.sign(x) * 0.18 * L; // the tip curves in toward the middle
+    // a fang's two edges, from the base to the tip, bowed outward and narrowing to a point
+    const edge = (side, k) => {
+      const wk = (w + d) * Math.pow(1 - k, 0.85) * (1 + 0.25 * Math.sin(Math.PI * k));
+      return [x + side * wk + lean * k * k, y0 + d - (L + d * 1.8) * k];
+    };
+    for (let i = 0; i < S; i++) {
+      const k0 = i / S, k1 = (i + 1) / S, [l0x, l0y] = edge(-1, k0), [l1x, l1y] = edge(-1, k1), [r0x, r0y] = edge(1, k0), [r1x, r1y] = edge(1, k1);
+      const m0x = (l0x + r0x) / 2, m1x = (l1x + r1x) / 2, c0 = k0 > 0.7 ? TIP : IVORY, c1 = k1 > 0.7 ? TIP : IVORY;
+      // the outer half lit, the inner half (toward the jaw's middle) shaded
+      const outerL = x < 0, litL = outerL ? c0 : SHADE, litL1 = outerL ? c1 : SHADE, litR = outerL ? SHADE : c0, litR1 = outerL ? SHADE : c1;
+      tri(l0x, l0y, litL, m0x, l0y, litL, l1x, l1y, litL1); tri(m0x, l0y, litL, m1x, l1y, litL1, l1x, l1y, litL1);
+      tri(m0x, r0y, litR, r0x, r0y, litR, r1x, r1y, litR1); tri(m0x, r0y, litR, r1x, r1y, litR1, m1x, r1y, litR1);
+    }
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
@@ -47,7 +66,8 @@ function halfJaw(inflate, lower) {
 export class BiteFx {
   constructor(scene, camera) {
     this.camera = camera;
-    const geo = { up: halfJaw(0, false), upLine: halfJaw(0.06, false), dn: halfJaw(0, true), dnLine: halfJaw(0.06, true) };
+    const geo = { up: halfJaw(0, false), upLine: halfJaw(0.045, false), dn: halfJaw(0, true), dnLine: halfJaw(0.045, true) };
+    const halo = glowTexture('fire');
     this.jaws = Array.from({ length: JAWS }, () => {
       const fill = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
       const line = new THREE.MeshBasicMaterial({ color: INK, transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
@@ -56,8 +76,11 @@ export class BiteFx {
       dn.scale.y = -1; // the lower jaw: mirrored, teeth up
       up.children[0].renderOrder = dn.children[0].renderOrder = 12; up.children[1].renderOrder = dn.children[1].renderOrder = 13;
       for (const m of [...up.children, ...dn.children]) m.frustumCulled = false;
-      root.add(up, dn); root.visible = false; scene.add(root);
-      return { root, up, dn, fill, line, t: 9, size: 1, tilt: 0 };
+      // a soft warm glow behind the jaw, brightest as it shuts
+      const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+      glow.renderOrder = 11; glow.scale.setScalar(2.4);
+      root.add(glow, up, dn); root.visible = false; scene.add(root);
+      return { root, up, dn, fill, line, glow, t: 9, size: 1, tilt: 0 };
     });
     this.jawI = 0;
   }
@@ -73,15 +96,17 @@ export class BiteFx {
       j.t += dt; const t = j.t;
       if (t >= BITE_SHUT + BITE_HOLD + BITE_BREAK) { j.root.visible = false; continue; }
       // the gap between the halves (in half-widths): wide open, then slammed shut past the middle, then apart
-      let gap, scale = 1, a = 1, shake = 0;
-      if (t < BITE_OPEN) { const k = t / BITE_OPEN; gap = 0.95; scale = 0.55 + 0.45 * k * (2 - k); a = Math.min(1, k * 2); }
-      else if (t < BITE_SHUT) { const k = (t - BITE_OPEN) / BITE_SNAP; gap = 0.95 * (1 - k * k) - 0.12 * k * k; }
-      else if (t < BITE_SHUT + BITE_HOLD) { const k = (t - BITE_SHUT) / BITE_HOLD; gap = -0.12 + 0.08 * k; shake = 0.03 * (1 - k) * Math.sin(t * 160); }
-      else { const k = (t - BITE_SHUT - BITE_HOLD) / BITE_BREAK; gap = -0.04 + 0.3 * k; scale = 1 + 0.15 * k; a = 1 - k * k; }
+      // squash and stretch: the halves stretch tall as they slam, squash flat on the impact, settle
+      let gap, scale = 1, a = 1, shake = 0, sy = 1, glow = 0;
+      if (t < BITE_OPEN) { const k = t / BITE_OPEN; gap = 0.95; scale = 0.55 + 0.45 * k * (2 - k); a = Math.min(1, k * 2); glow = 0.2 * k; }
+      else if (t < BITE_SHUT) { const k = (t - BITE_OPEN) / BITE_SNAP; gap = 0.95 * (1 - k * k) - 0.12 * k * k; sy = 1 + 0.3 * Math.sin(Math.PI * k); glow = 0.2 + 0.5 * k; }
+      else if (t < BITE_SHUT + BITE_HOLD) { const k = (t - BITE_SHUT) / BITE_HOLD; gap = -0.12 + 0.08 * k; shake = 0.03 * (1 - k) * Math.sin(t * 160); sy = 0.82 + 0.18 * Math.min(1, k * 2.5); glow = 0.8 * (1 - k * 0.5); }
+      else { const k = (t - BITE_SHUT - BITE_HOLD) / BITE_BREAK; gap = -0.04 + 0.3 * k; scale = 1 + 0.12 * k; a = 1 - k * k; glow = 0.4 * (1 - k); }
       j.root.quaternion.copy(q); j.root.rotateZ(j.tilt);
       j.root.scale.setScalar(j.size * scale);
-      j.up.position.set(shake, 0.36 + gap * 0.5, 0); j.dn.position.set(-shake, -0.36 - gap * 0.5, 0);
-      j.fill.opacity = a; j.line.opacity = a;
+      j.up.position.set(shake, 0.32 + gap * 0.5, 0); j.dn.position.set(-shake, -0.32 - gap * 0.5, 0);
+      j.up.scale.set(1, sy, 1); j.dn.scale.set(1, -sy, 1);
+      j.fill.opacity = a; j.line.opacity = a; j.glow.material.opacity = 0.5 * glow * a; // (additive: kept low so it stays warm on green grass)
     }
   }
   clear() { for (const j of this.jaws) { j.t = 9; j.root.visible = false; } }

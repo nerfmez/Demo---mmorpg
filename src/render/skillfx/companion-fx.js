@@ -99,14 +99,14 @@ export class CompanionFx {
     } else {
       // the bite (skillfx/bite-fx.js): a solid jaw opens wide over the prey and slams shut on it; as the teeth
       // meet, the impact: a white star flash, lines bursting out from the bite, a few chips, a short shake
-      const size = (big ? 0.95 : 0.7);
+      const size = (big ? 0.56 : 0.42);
       this.biteFx.bite(_c.x, _c.y + 0.05, _c.z, size, -0.18 * side);
-      this.glint(_c.x, _c.y, _c.z, big ? 2.0 : 1.4, BITE_SHUT);
-      const n = big ? 10 : 8;
+      this.glint(_c.x, _c.y, _c.z, big ? 1.2 : 0.85, BITE_SHUT);
+      const n = big ? 8 : 6;
       for (let i = 0; i < n; i++) {
         const a = (i / n) * 6.283 + r() * 0.3, cx = Math.cos(a), cy = Math.sin(a), r0 = size * (0.75 + r() * 0.15), r1 = size * (1.25 + r() * 0.35);
         _d1.copy(_r).multiplyScalar(cx * size * 0.4).addScaledVector(_u, cy * size * 0.4);
-        this.stroke(_c, cx * r0, cy * r0, cx * r1, cy * r1, 0, big ? 0.07 : 0.055, WOLF, 0.17, 0.035, BITE_SHUT, _d1);
+        this.stroke(_c, cx * r0, cy * r0, cx * r1, cy * r1, 0, big ? 0.045 : 0.035, WOLF, 0.16, 0.035, BITE_SHUT, _d1);
       }
       this.onShake?.(big ? 0.1 : 0.05, 0.08);
       if (big) {

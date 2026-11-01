@@ -754,4 +754,9 @@ teeth, a flash, sparks), with anime impact-frame habits (a held high-contrast mo
 from the contact, a white flash). Round 4 (`bite-fx.js`, the owner chose this direction): solid ivory teeth
 with long interlocking canines and a dark outline pop in wide open over the prey, slam shut with an
 overshoot, tremble shut a moment with a star flash and burst lines, then spring apart and fade.
+Round 5 (owner: "not pretty yet, and too big"): about the prey's body width (0.42 m half-width, 0.56 sent in);
+curved fangs that narrow to a point and lean in, lit on the outer half and shaded on the inner (two toon
+tones), on a slim crescent of gum pointed at both ends; a warm maroon outline instead of near-black; a soft
+warm glow behind it as it shuts; squash and stretch (tall as it slams, flat on the impact); thinner, fewer
+burst lines and a smaller star.
 

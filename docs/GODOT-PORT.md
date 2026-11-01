@@ -1485,7 +1485,9 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   taunt? {radius, duration}}: Sic 'Em uses the companion's pounce (the hawk's dive bleeds and its short stun
   cuts a wind-up; the bear's roar sets `forcedTargetId`/`tauntT` on the monsters round it). The renderer draws
   the hound and the bear from the wolf rig (`buildWolf('hound' | 'bear')`) and the hawk from the gale hawk's,
-  moving with their base beast's motion settings (`MOTION_LIKE`).
+  moving with their base beast's motion settings (`MOTION_LIKE`). The owner's Meshy wolf, bear and eagle
+  (data/models.json `hunt_hound`, `pack_hound`, `hunt_bear`, `hunt_hawk`) are skinned onto those rigs like the other
+  monster models (bones and segments placed from the mesh; the eagle leaned forward by `pitch`).
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}
   sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
   sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns

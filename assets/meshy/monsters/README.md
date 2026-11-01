@@ -54,3 +54,5 @@ skin lines in `data/models.json` (the wolves stood turned about 19 degrees, henc
 decimated a little harder so that Greyfang plus the two wolves it summons stay inside the encounter budget
 (`tests/core/presentation.test.js`). The viper's bone chain follows the traced centreline of the coil, and its
 `wave` value (data/models.json) damps the slither of the long-body animator for the coiled model.
+
+- **Hunter companions (2026-11-01):** the owner's Meshy wolf, bear and eagle (concept `hunter_companions_concept.png`), prepared with `scripts/prep-monster-glb.py` (no decimation: about 4,000 triangles each, 512 px colour map) to `public/models/monsters/hunt_hound.glb`, `hunt_bear.glb`, `hunt_hawk.glb`; the raw GLBs are not kept in the repository.

@@ -51,7 +51,7 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   lightning_rod: 'เสาล่อฟ้า',
   spore_pod: 'ฝักสปอร์',
   gravity_rune: 'วงเวทดูด',
-  call_companion: 'เรียกหมาล่าเนื้อ',
+  call_companion: 'เรียกหมาป่า',
   call_hawk: 'เรียกเหยี่ยว',
   call_bear: 'เรียกหมี',
   sic_em: 'สั่งคู่หูจู่โจม',

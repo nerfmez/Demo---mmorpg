@@ -18,6 +18,7 @@ import { Ribbon, mulberry32 } from './fx-common.js';
 import { CORE_FS, GLOW_FS, lightSprite, starTexture } from './light-kit.js';
 import { BiteFx, BITE_SHUT } from './bite-fx.js';
 import { ClawFx } from './claw-fx.js';
+import { SicFx } from './sic-fx.js';
 
 const STROKES = 36, GLINTS = 6;
 const WOLF = { core: [1.0, 0.97, 0.9], glow: [1.0, 0.72, 0.42] };
@@ -27,6 +28,7 @@ const HAWK_HALO = new THREE.Color('#7fb6ff'), HAWK_RIM = new THREE.Color('#eef6f
 const GASH_HALO = new THREE.Color('#ff2a2a'), GASH_RIM = new THREE.Color('#ffd0c8');
 const HEIGHT = { hunt_hound: 0.6, pack_hound: 0.5, hunt_bear: 0.9, hunt_hawk: 0.8 };
 let sw = 0;
+const rushW = (x) => sw * (1 - x), rushGlowW = (x) => sw * 2.4 * (1 - x);
 const slashW = (x) => sw * Math.pow(Math.sin(Math.PI * x), 0.8), slashGlowW = (x) => sw * 2.6 * Math.sin(Math.PI * x);
 const _r = new THREE.Vector3(), _u = new THREE.Vector3(), _c = new THREE.Vector3(), _d1 = new THREE.Vector3(), _d2 = new THREE.Vector3();
 
@@ -36,6 +38,7 @@ export class CompanionFx {
     this.camera = camera; this.call = call; this.rnd = mulberry32(83); this.onShake = null;
     this.biteFx = new BiteFx(scene, camera); // the wolf's jaw of teeth
     this.clawFx = new ClawFx(scene, camera); // the bear's and the eagle's claw marks of light
+    this.sic = new SicFx(scene, camera, this); // Sic 'Em: the marker over the prey, the lock, the rush
     this.core = new Ribbon(scene, camera, 700, CORE_FS, THREE.NormalBlending); this.glow = new Ribbon(scene, camera, 700, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 11; this.glow.mesh.renderOrder = 10;
     this.core.mesh.material.depthTest = false; this.glow.mesh.material.depthTest = false; // marks over the prey's body, as hit marks are drawn
@@ -45,7 +48,7 @@ export class CompanionFx {
     this.glints = Array.from({ length: GLINTS }, () => ({ s: lightSprite(scene, starTexture('steel'), true, 12), t: 9, life: 0.18, size: 0.8, delay: 0 }));
     for (const g of this.glints) g.s.material.depthTest = false;
     this.glintI = 0;
-    this.pts = Array.from({ length: 10 }, () => new THREE.Vector3());
+    this.pts = Array.from({ length: 10 }, () => new THREE.Vector3()); this.rushPts = Array.from({ length: 8 }, () => new THREE.Vector3());
   }
   // the camera's right and up at this moment (strokes are drawn on the screen's plane)
   axes() { const m = this.camera.matrixWorld.elements; _r.set(m[0], m[1], m[2]).normalize(); _u.set(m[4], m[5], m[6]).normalize(); }
@@ -126,6 +129,15 @@ export class CompanionFx {
       this.clawFx.mark(_d1.x, _d1.y, _d1.z, len * (1 - Math.abs(i - (n - 1) / 2) * 0.12), wid, a, side, halo, rim, i * stagger, 0.36);
     }
   }
+  // a streak of light along a path of points (newest first), set off to one side by off (m): the rush
+  rush(path, off, look, core, glow) {
+    const P = this.rushPts, n = P.length;
+    for (let i = 0; i < n; i++) {
+      const a = path[Math.min(path.length - 1, i)], b = path[Math.min(path.length - 1, i + 1)], dx = a.x - b.x, dz = a.z - b.z, L = Math.hypot(dx, dz) || 1;
+      P[i].set(a.x - (dz / L) * off, a.y + 0.08 * Math.sign(off), a.z + (dx / L) * off);
+    }
+    sw = 0.06; glow.strip(P, rushGlowW, 0.5, look.glow); core.strip(P, rushW, 0.7, look.core);
+  }
   /** The bear's Sic 'Em roar (companionPounce with roar: its taunt radius): sound rings out to that radius. */
   roar(x, z, R) {
     for (let i = 0; i < 3; i++) this.call.ring(x, 0.06, z, R, ROAR, 0.55, i * 0.13);
@@ -151,6 +163,7 @@ export class CompanionFx {
       const a = 1 - Math.max(0, (k - 0.6) / 0.4);
       sw = s.w * (1 - 0.3 * k); this.glow.strip(P, slashGlowW, 0.75 * a, s.look.glow); this.core.strip(P, slashW, a, s.look.core);
     }
+    this.sic.update(dt, this.core, this.glow);
     this.core.end(); this.glow.end();
     for (const g of this.glints) {
       if (g.t >= g.life) { g.s.visible = false; continue; }
@@ -158,5 +171,5 @@ export class CompanionFx {
       const u = g.t / g.life; g.s.scale.setScalar(g.size * Math.sin(Math.PI * Math.min(1, u * 1.3 + 0.1))); g.s.material.rotation = u * 1.2; g.s.material.opacity = 1 - u * 0.5;
     }
   }
-  clear() { this.biteFx.clear(); this.clawFx.clear(); for (const s of this.strokes) s.t = 9; for (const g of this.glints) { g.t = 9; g.s.visible = false; } }
+  clear() { this.biteFx.clear(); this.clawFx.clear(); this.sic.clear(); for (const s of this.strokes) s.t = 9; for (const g of this.glints) { g.t = 9; g.s.visible = false; } }
 }

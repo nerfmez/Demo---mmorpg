@@ -768,3 +768,12 @@ wipes in along its length, swells a little on the impact and lets its tail follo
 three with an orange-red halo, the eagle crosses two with a pale blue halo, its Sic 'Em dive three with a
 red one.
 
+Sic 'Em, round 1 (`sic-fx.js`; owner: "passed, do the Sic 'Em effect"). Web search only (pages blocked): orders
+are marked with a head marker over the target (FFXIV headmarkers, a red reticle above the target in Sonic and
+the Black Knight), in a colour that reads on any monster - bright over a dark shadow (Monster Hunter Now
+suggestion) - and a lock that animates as it takes. So: the hero whistles toward the prey; a red chevron of
+see-through light drops in over its head with a squash, over a soft dark shadow, bobbing and pulsing; three
+red-orange brackets close in on the ground round it and turn; two streaks of light trail the companion as it
+runs in; when the pounce lands the chevron snaps down and bursts (the strike's own bite, rakes or gashes play
+with it); a lapsed order fades.
+

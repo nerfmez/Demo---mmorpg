@@ -1488,6 +1488,9 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   moving with their base beast's motion settings (`MOTION_LIKE`). The owner's Meshy wolf, bear and eagle
   (data/models.json `hunt_hound`, `pack_hound`, `hunt_bear`, `hunt_hawk`) are skinned onto those rigs like the other
   monster models (bones and segments placed from the mesh; the eagle leaned forward by `pitch`).
+  The bear's roar (`pounce.taunt.stand` s: the ally's `roarT`, during which it does not move) shows the owner's
+  standing bear, the model's second form (`hunt_bear.ball`, as the warden's boulder): `animBear` hides the
+  skinned quadruped and rears the rigid standing mesh up from a forward tilt, shaking, then drops back.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}
   sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
   sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns

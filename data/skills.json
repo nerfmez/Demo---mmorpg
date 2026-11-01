@@ -757,7 +757,8 @@
           "mult": 1.6,
           "taunt": {
             "radius": 5,
-            "duration": 3
+            "duration": 3,
+            "stand": 1.2
           },
           "stun": {
             "duration": 0.6,

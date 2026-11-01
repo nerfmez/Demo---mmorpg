@@ -7845,6 +7845,13 @@
             -0.66
           ]
         ]
+      },
+      "ball": {
+        "file": "models/monsters/hunt_bear_stand.glb",
+        "tris": 3915,
+        "scale": 1.25,
+        "glow": 0,
+        "source": "Meshy (owner-supplied GLB, 2026-11-01): the bear standing on its hind legs, shown while it roars (Sic 'Em); prepared with scripts/prep-monster-glb.py"
       }
     },
     "hunt_hawk": {

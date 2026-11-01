@@ -1122,6 +1122,21 @@ function animLureDummy(r, s, dt, time) {
   b.top.rotation.x = damp(b.top.rotation.x, -0.15 * hit, 10, dt);
 }
 
+/** The hunter's bear: on all fours as a quadruped; when it roars (s.standT: the seconds of its roar left,
+ *  s.standTotal) its standing model (the second form, data/models.json hunt_bear.ball) rears up in its place
+ *  from a forward tilt, shakes with the roar, and drops back down. */
+function animBear(r, s, dt, time) {
+  animQuad(r, s, dt, time, { bodyY: 0.72, gallop: false });
+  const F = r.ballForm; if (!F || !r.modelMeshes) return;
+  const total = s.standTotal || 1.2, left = s.standT || 0, up = left > 0 ? clamp01((total - left) / 0.18) * clamp01(left / 0.2) : 0;
+  F.visible = up > 0.02;
+  for (const m of r.modelMeshes) m.visible = !F.visible;
+  if (!F.visible) return;
+  const e = 1 - up, rad = F.userData.radius || 1;
+  F.rotation.set(1.15 * e * e, 0, Math.sin(time * 34) * 0.025 * up);
+  F.position.set(0, rad * (0.62 + 0.38 * up), 0.25 * e);
+}
+
 const BUILDERS = {
   lure_dummy: [buildLureDummy, animLureDummy],
   tusk_boar: [buildBoar, (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.62, paw: true })],
@@ -1130,7 +1145,7 @@ const BUILDERS = {
   spirit_wolf: [() => buildWolf('spirit'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   hunt_hound: [() => buildWolf('hound'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   pack_hound: [() => buildWolf('hound'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
-  hunt_bear: [() => buildWolf('bear'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: false })],
+  hunt_bear: [() => buildWolf('bear'), animBear],
   hunt_hawk: [buildHawk, animHawk],
   moss_beetle: [buildBeetle, animBeetle],
   reef_crab: [buildCrab, animCrab],

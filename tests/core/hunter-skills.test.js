@@ -130,12 +130,18 @@ test('three companions, one at a time: calling another kind sends the old one aw
   assert.ok(hawk.range > H.range * 2 && hawk.hp.base < H.hp.base && hawk.speed > H.speed, 'the hawk strikes from afar, fast and frail');
 });
 
+let g0 = null;
 test('Sic \'Em is each companion\'s own: the hawk\'s dive bleeds and cuts a wind-up, the bear\'s roar turns the monsters round it onto the bear', () => {
   for (const [call, check] of [
     ['call_hawk', (m, ms, a) => { assert.ok(m.statuses.bleed?.t > 0, 'the dive bleeds'); assert.equal(m.state, 'stunned', 'a short stun cuts its wind-up'); }],
-    ['call_bear', (m, ms, a) => { for (const q of ms) assert.equal(q.forcedTargetId, a.id, 'turned onto the bear'); }],
+    ['call_bear', (m, ms, a) => {
+      for (const q of ms) assert.equal(q.forcedTargetId, a.id, 'turned onto the bear');
+      assert.equal(a.roarT, C.call_bear.summon.pounce.taunt.stand, 'it stands up to roar');
+      const x0 = a.x, z0 = a.z; a.state = 'follow'; g0.player.x += 6; for (let i = 0; i < 10; i++) g0.updateAllies(0.05);
+      assert.ok(a.x === x0 && a.z === z0, 'standing its ground while it roars');
+    }],
   ]) {
-    const { g, mk } = fixture(['sic_em', call]);
+    const { g, mk } = fixture(['sic_em', call]); g0 = g;
     g.executeSkill(g.skills[slotOf(g, call)], { angle: 0, x: 0, z: 0 });
     const a = g.allies.find((q) => q.companion);
     const m = mk('m', 4, 0, { defense: 0 }), others = [mk('o1', 5, 1.5), mk('o2', 5, -1.5)];

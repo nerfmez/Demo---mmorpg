@@ -592,7 +592,7 @@ function tick(real, draw = true) {
     // its speed from how far it moved (the game's view measures it the same way), its bite from its state
     const sp = r.px === undefined ? 0 : Math.hypot(a.x - r.px, a.z - r.pz) / Math.max(1e-3, dt); r.px = a.x; r.pz = a.z;
     r.root.position.set(a.x, 0, a.z); r.root.rotation.y = a.facing;
-    Object.assign(r.state, { moving: a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0 });
+    Object.assign(r.state, { moving: a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.pounce?.taunt?.stand || 1.2 });
     if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
     r.animate?.(r, r.state, dt, simTime);
   }

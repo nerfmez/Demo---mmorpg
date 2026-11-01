@@ -792,7 +792,7 @@ export class View {
       r.root.position.set(a.x, av.y, a.z);
       measureMotion(av, a.x, a.z, r.root.rotation.y, dt);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
+      r.animate(r, { moving: a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.pounce?.taunt?.stand || 1.2 }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);

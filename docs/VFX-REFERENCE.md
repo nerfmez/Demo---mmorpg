@@ -690,4 +690,14 @@ the ball to each of our traps it sets off (the rules' trapRelay), a glint where 
 small arcs keep crackling off the ball and its glow breathes; each strike (trapZap) is a bolt from the ball
 into the monster with a glint and sparks on the body; at the end it sinks back. Every bolt leaves the rod,
 so it is not Chain Spark's hop from body to body. The bench sets a Blast Trap and a Net Trap beside the rod
-so the relay shows.
+so the relay shows. The owner passed it ("โอเค").
+
+Spore Pod, round 1 (`spore-fx.js`, the pod in `trap-fx.js`). The plate carries a fleshy green bulb with
+yellow bumps and a dark mouth; it breathes while it waits, squeezes hard on each puff and shrinks as it
+empties (three puffs). Each puff is a puffball bursting, not Miasma Arrow's lime-and-violet floor gas:
+golden spores (specks of light, white-gold at the heart) thrown up out of the mouth and out to the true
+2 m radius, slowed by the air and drifting down with a flutter; soft ochre puffs swelling low round it and
+a small plume rising from the mouth; a thin ring of spore light running out to the radius; a warm light.
+When a monster dies poisoned by it (poisonSpread), a stream of pale spores arcs from the body to the next
+one with a little puff where it lands. Round-1 fixes: the first spores were fine glitter and the clouds
+hardly showed (spores doubled in size and thrown further, clouds firmer, the ring thinner).

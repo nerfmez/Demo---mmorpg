@@ -31,6 +31,7 @@ import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 import { GAME_CAMERA_OFFSET, cameraOffset } from './game-camera.js';
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
+import { arrives, arrivalFrom, arrivalAt, arrivalTime } from './companion-arrival.js';
 import { fxGround, fxConfig, cachedGround } from './skillfx/fx-common.js';
 
 // The game camera (game-camera.js, 40 degrees above the horizon); `?pitch=` (15-80) previews
@@ -618,7 +619,7 @@ export class View {
         v.bite(e);
         break;
       case 'summon':
-        v.summon(e);
+        if (!drawn) v.summon(e); // the hunter's companions come in to a whistle (skill-fx.js), no puff
         break;
       case 'buff':
         if (!drawn) v.warcry(e); // a buff skill without its own look (skill-fx.js) uses the roar ring
@@ -780,20 +781,24 @@ export class View {
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
         av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: a.type==='spirit_wolf'?installSpiritReveal(rig):null };
+        // a hunter's companion comes in from the wild along its arrival path (companion-arrival.js)
+        if (arrives(a.type)) av.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, g.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
         this.allyViews.set(a.id, av);
       }
       const r = av.rig;
       av.spawnT += dt || 1 / 60;
-      let d = a.facing - r.root.rotation.y;
+      const arr = av.arr && av.spawnT < arrivalTime(a.type) + 0.05 ? arrivalAt(a.type, av.spawnT, av.arr.from, a.x, a.z, av.arr.at) : null;
+      let d = (arr ? arr.facing : a.facing) - r.root.rotation.y;
       d = Math.atan2(Math.sin(d), Math.cos(d));
-      r.root.rotation.y += d * Math.min(1, dt * 12);
-      const gy = this.world.groundY(a.x, a.z);
-      av.y = damp(av.y, gy, 16, dt);
-      r.root.position.set(a.x, av.y, a.z);
-      measureMotion(av, a.x, a.z, r.root.rotation.y, dt);
+      r.root.rotation.y += arr ? d : d * Math.min(1, dt * 12);
+      const ax = arr ? arr.x : a.x, az = arr ? arr.z : a.z;
+      const gy = this.world.groundY(ax, az);
+      av.y = arr ? gy : damp(av.y, gy, 16, dt);
+      r.root.position.set(ax, av.y + (arr ? arr.y : 0), az);
+      measureMotion(av, ax, az, r.root.rotation.y, dt);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.pounce?.taunt?.stand || 1.2 }, dt, time);
-      const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
+      r.animate(r, { moving: arr ? arr.k < 1 : a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.pounce?.taunt?.stand || 1.2 }, dt, time);
+      const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : av.arr ? 1 : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
       // spirit motes off a conjured summon (not a hunter's hounds or a straw dummy: they are flesh and straw)
@@ -801,7 +806,7 @@ export class View {
     }
     for (const [id, av] of this.allyViews) {
       if (!seen.has(id)) {
-        this.vfx.summon({ x: av.rig.root.position.x, z: av.rig.root.position.z });
+        if (!av.arr) this.vfx.summon({ x: av.rig.root.position.x, z: av.rig.root.position.z }); // a companion has no magic puff
         removeSpiritReveal(av.reveal);
         this.releaseRig(av.rig);
         this.allyViews.delete(id);

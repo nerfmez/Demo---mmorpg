@@ -14,6 +14,7 @@ import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
 import { buildMonster } from '../render/monsters.js';
+import { arrives, arrivalFrom, arrivalAt, arrivalTime } from '../render/companion-arrival.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
 import { fusionRecipe, benchData } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
@@ -588,11 +589,18 @@ function tick(real, draw = true) {
   // the game; the bench draws only these)
   for (const a of game.allies) {
     let r = benchAllies.get(a.id);
-    if (!r) { r = buildMonster(a.type, 1, false); scene.add(r.root); benchAllies.set(a.id, r); r.state = { hurt: 0 }; r.lastHp = a.hp; }
+    if (!r) {
+      r = buildMonster(a.type, 1, false); scene.add(r.root); benchAllies.set(a.id, r); r.state = { hurt: 0 }; r.lastHp = a.hp; r.age = 0;
+      // a hunter's companion comes in from the wild as in the game (view.js syncAllies)
+      if (arrives(a.type)) r.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, game.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
+    }
+    r.age += dt;
+    const arr = r.arr && r.age < arrivalTime(a.type) + 0.05 ? arrivalAt(a.type, r.age, r.arr.from, a.x, a.z, r.arr.at) : null;
+    const ax = arr ? arr.x : a.x, az = arr ? arr.z : a.z;
     // its speed from how far it moved (the game's view measures it the same way), its bite from its state
-    const sp = r.px === undefined ? 0 : Math.hypot(a.x - r.px, a.z - r.pz) / Math.max(1e-3, dt); r.px = a.x; r.pz = a.z;
-    r.root.position.set(a.x, 0, a.z); r.root.rotation.y = a.facing;
-    Object.assign(r.state, { moving: a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.pounce?.taunt?.stand || 1.2 });
+    const sp = r.px === undefined ? 0 : Math.hypot(ax - r.px, az - r.pz) / Math.max(1e-3, dt); r.px = ax; r.pz = az;
+    r.root.position.set(ax, arr ? arr.y : 0, az); r.root.rotation.y = arr ? arr.facing : a.facing;
+    Object.assign(r.state, { moving: arr ? arr.k < 1 : a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.pounce?.taunt?.stand || 1.2 });
     if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
     r.animate?.(r, r.state, dt, simTime);
   }

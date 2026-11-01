@@ -1498,6 +1498,12 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   math on Skeleton3D bones, or retarget the clips in Godot's importer. The bear's roar (`pounce.taunt.stand`
   s: the ally's `roarT`, during which it does not move) rears the same model onto its hind legs (fixed part
   directions posed after the owner's standing bear, `assets/meshy/monsters/hunt_bear_standing_reference.glb`).
+  A companion is called to the hero's side, a little behind (facing + 0.62 pi, 1.9 m, if that spot is free),
+  and comes in from the wild first: `summon.arrive` s (the ally's `arriveT`), during which it stands and does
+  nothing. The view draws its run along `render/companion-arrival.js` for the same time (a test keeps the two
+  equal): from behind the hero, to a side picked from its id, the wolf leaping the last stretch, the bear
+  landing heavy, the eagle diving down out of the sky; `skillfx/call-fx.js` draws the whistle, the dust and
+  feathers instead of the magic puff of a conjured summon. In Godot: a Path or a tween of the same curve.
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

@@ -87,7 +87,7 @@ test('Sic \'Em fails without a companion or a target; with them it sends the com
 test('Mark Prey lowers armour, draws the companion to the marked one first, and a marked death may drop one more part', () => {
   const { g, mk } = fixture(['mark_prey', 'call_companion']);
   g.executeSkill(g.skills[slotOf(g, 'call_companion')], { angle: 0, x: 0, z: 0 });
-  const a = g.allies.find((q) => q.type === 'hunt_hound');
+  const a = g.allies.find((q) => q.type === 'hunt_hound'); a.arriveT = 0; // already here
   const near = mk('near', 2, 1), prey = mk('prey', 8, -2);
   g.monsters = [near, prey];
   g.hitMonster(prey, 10, g.hitOpts(g.skills[slotOf(g, 'mark_prey')], {}));
@@ -152,4 +152,22 @@ test('Sic \'Em is each companion\'s own: the hawk\'s dive bleeds and cuts a wind
     assert.ok(pounce, `${call}: it pounces`);
     check(m, call === 'call_bear' ? [m, ...others] : [], a);
   }
+});
+
+test('a called companion runs in from the wild first: it does nothing until it is here, as long as the view draws its run', async () => {
+  const { arrivalTime } = await import('../../src/render/companion-arrival.js');
+  for (const id of ['call_companion', 'call_hawk', 'call_bear', 'pack_hunt']) {
+    const sm = C[id].summon;
+    assert.ok(sm.arrive > 0 && sm.arrive < 1.2, id);
+    assert.equal(arrivalTime(sm.type), sm.arrive, id + ': the run in (render/companion-arrival.js) is as long as the rules wait');
+  }
+  const { g, mk } = fixture(['call_companion']);
+  g.monsters = [mk(901, 2, 0)];
+  g.executeSkill(g.skills[slotOf(g, 'call_companion')], { angle: 0, x: 0, z: 0 });
+  const a = g.allies[0]; assert.ok(a, 'called');
+  const x0 = a.x, z0 = a.z, hp0 = g.monsters[0].hp;
+  run(g, C.call_companion.summon.arrive - 0.06);
+  assert.equal(a.x, x0); assert.equal(a.z, z0); assert.equal(g.monsters[0].hp, hp0, 'no bite while it is still coming');
+  run(g, 1.6);
+  assert.ok(g.monsters[0].hp < hp0, 'then it goes in and bites');
 });

@@ -367,6 +367,7 @@ export class Game {
         type: sm.type,
         static: !!sm.static,
         companion: !!sm.companion, pounce: sm.pounce,
+        arriveT: sm.arrive || 0, // a hunter's companion runs in from the wild first (it acts once it is here)
         effects: sm.effects, skill: s.id, tauntRadius:sm.tauntRadius, tauntInterval:sm.tauntInterval, tauntDuration:sm.tauntDuration,
         x: ax,
         z: az,
@@ -1387,6 +1388,8 @@ export class Game {
       case 'summon': {
         // a summon set at the aim point (Lure Dummy) stands where it is put, within the skill's range
         if (s.summon.placeAt === 'aim') { const d = Math.min(s.range || 0, dist(p.x, p.z, aim.x, aim.z)), a = angleTo(p.x, p.z, aim.x, aim.z); this.spawnAllies(s, p.x + Math.sin(a) * d, p.z + Math.cos(a) * d, true); return; }
+        // a hunter's companion comes to the hero's side, a little behind, clear of the hero's body
+        if (s.summon.companion) { const a = p.facing + Math.PI * 0.62, cx = p.x + Math.sin(a) * 1.9, cz = p.z + Math.cos(a) * 1.9; if (this.world.isFree(cx, cz, 0.6)) { this.spawnAllies(s, cx, cz, true); return; } }
         this.spawnAllies(s, p.x - Math.sin(p.facing) * 1.2, p.z - Math.cos(p.facing) * 1.2);
         return;
       }
@@ -1725,6 +1728,8 @@ export class Game {
       keep.push(a);
       // a static one (Lure Dummy) stands where it was set: it only draws monsters (tickFrontier taunts)
       if (a.static) { a.moving = false; continue; }
+      // a companion still coming in from the wild (summon.arrive; the view draws its run in) does nothing yet
+      if (a.arriveT > 0) { a.arriveT -= dt; a.moving = false; continue; }
       // a bear that has just roared (Sic 'Em) stands its ground on its hind legs a moment
       if (a.roarT > 0) { a.roarT -= dt; a.moving = false; continue; }
       // pick a target: what we are fighting, else the player's target, else something threatening the player

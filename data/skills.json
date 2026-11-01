@@ -623,6 +623,7 @@
       "range": 0,
       "summon": {
         "type": "hunt_hound",
+        "arrive": 0.6,
         "count": 1,
         "permanent": true,
         "hp": {
@@ -678,6 +679,7 @@
       "range": 0,
       "summon": {
         "type": "hunt_hawk",
+        "arrive": 0.8,
         "count": 1,
         "permanent": true,
         "companion": true,
@@ -737,6 +739,7 @@
       "range": 0,
       "summon": {
         "type": "hunt_bear",
+        "arrive": 0.9,
         "count": 1,
         "permanent": true,
         "companion": true,
@@ -874,6 +877,7 @@
       "range": 0,
       "summon": {
         "type": "pack_hound",
+        "arrive": 0.65,
         "count": 3,
         "life": 8,
         "hp": {

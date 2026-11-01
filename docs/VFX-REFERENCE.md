@@ -718,3 +718,13 @@ Quaternius wolf's clips (CC0: walk, gallop, idle, attack, flinch) retargeted by 
 when it roars. No CC0 bird clip was reachable, so the eagle flaps by a real bird's cycle (fast downstroke,
 folded upstroke, glides). The FX bench's call buttons send the companion in (Sic 'Em) on the second press.
 
+Calling a companion, round 1 (`call-fx.js`, path in `companion-arrival.js`; owner: "make the call effect").
+No magic: the hero whistles (three thin warm arcs toward where it comes from) and the animal comes in from the
+wild behind the hero. The wolf gallops in kicking dust and leaps the last stretch, landing in a small ring of
+dust; the bear lumbers in and lands heavy (a bigger dust ring and a short shake); the eagle dives down out of
+the sky with a thin streak of wind, flares with a ring of air round it and a few feathers drift down. The
+rules hold it still until it is here, so the hawk no longer struck a dummy while still in the sky. Round-1
+fixes: the landing dust first showed where it was called while it already ran at a dummy (the rules now wait);
+the eagle's first streak drew from stale points across the screen (now sampled back along its own path, at
+most 1.8 m).
+

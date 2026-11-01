@@ -2004,6 +2004,8 @@
     "learn_spore_pod": {"type": "skill", "result": "spore_pod", "cost": {"spore_sac": 3, "venom_gland": 1, "gold": 50}},
     "learn_gravity_rune": {"type": "skill", "result": "gravity_rune", "cost": {"rune_core": 2, "wisp_core": 2, "gold": 60}},
     "learn_call_companion": {"type": "skill", "result": "call_companion", "cost": {"wolf_fang": 3, "wolf_pelt": 2, "gold": 45}},
+    "learn_call_hawk": {"type": "skill", "result": "call_hawk", "cost": {"hawk_feather": 3, "shore_feather": 2, "gold": 45}},
+    "learn_call_bear": {"type": "skill", "result": "call_bear", "cost": {"boar_hide": 3, "boar_tusk": 2, "gold": 50}},
     "learn_sic_em": {"type": "skill", "result": "sic_em", "cost": {"greyfang_mane": 2, "wolf_fang": 2, "gold": 55}},
     "learn_mark_prey": {"type": "skill", "result": "mark_prey", "cost": {"hawk_feather": 3, "boar_tusk": 1, "gold": 50}},
     "learn_pack_hunt": {"type": "skill", "result": "pack_hunt", "cost": {"dusk_pelt": 3, "greyfang_mane": 2, "gold": 70}},

@@ -11,7 +11,7 @@ import { createCharacter } from '../../src/core/character.js';
 import { computeSkill } from '../../src/core/skills.js';
 import { craft } from '../../src/core/crafting.js';
 
-const C = data.skills.combat, HUNTER = ['call_companion', 'sic_em', 'mark_prey', 'pack_hunt'];
+const C = data.skills.combat, HUNTER = ['call_companion', 'call_hawk', 'call_bear', 'sic_em', 'mark_prey', 'pack_hunt'];
 
 const fixture = (ids) => {
   const ch = createCharacter(data, { kit: 'bow' });
@@ -116,4 +116,34 @@ test('Pack Hunt brings three hounds for a while and makes our companion bite har
   run(g, C.pack_hunt.summon.life + 0.5);
   assert.equal(g.allies.filter((q) => q.type === 'pack_hound').length, 0, 'the pack is gone after its life');
   assert.ok(!a.buffs.pack && g.allies.includes(a), 'the companion stays, its rousing worn off');
+});
+
+test('three companions, one at a time: calling another kind sends the old one away; each has its own part', () => {
+  const { g } = fixture(['call_companion', 'call_hawk', 'call_bear']);
+  const call = (id) => g.executeSkill(g.skills[slotOf(g, id)], { angle: 0, x: 0, z: 0 });
+  call('call_companion'); call('call_hawk'); g.updateAllies(0.05);
+  assert.deepEqual(g.allies.filter((a) => a.companion && a.life > 0).map((a) => a.type), ['hunt_hawk'], 'the hound went when the hawk came');
+  call('call_bear'); g.updateAllies(0.05);
+  const bear = g.allies.find((a) => a.type === 'hunt_bear'), hawk = C.call_hawk.summon, B = C.call_bear.summon, H = C.call_companion.summon;
+  assert.ok(bear && !g.allies.some((a) => a.type === 'hunt_hawk' && a.life > 0), 'one at a time');
+  assert.ok(B.hp.base > H.hp.base && B.speed < H.speed, 'the bear is the tough, slow one');
+  assert.ok(hawk.range > H.range * 2 && hawk.hp.base < H.hp.base && hawk.speed > H.speed, 'the hawk strikes from afar, fast and frail');
+});
+
+test('Sic \'Em is each companion\'s own: the hawk\'s dive bleeds and cuts a wind-up, the bear\'s roar turns the monsters round it onto the bear', () => {
+  for (const [call, check] of [
+    ['call_hawk', (m, ms, a) => { assert.ok(m.statuses.bleed?.t > 0, 'the dive bleeds'); assert.equal(m.state, 'stunned', 'a short stun cuts its wind-up'); }],
+    ['call_bear', (m, ms, a) => { for (const q of ms) assert.equal(q.forcedTargetId, a.id, 'turned onto the bear'); }],
+  ]) {
+    const { g, mk } = fixture(['sic_em', call]);
+    g.executeSkill(g.skills[slotOf(g, call)], { angle: 0, x: 0, z: 0 });
+    const a = g.allies.find((q) => q.companion);
+    const m = mk('m', 4, 0, { defense: 0 }), others = [mk('o1', 5, 1.5), mk('o2', 5, -1.5)];
+    g.monsters = [m, ...others]; g.player.targetId = 'm'; g.drainEvents();
+    g.executeSkill(g.skills[slotOf(g, 'sic_em')], { angle: Math.PI / 2, x: 4, z: 0 });
+    let pounce = null;
+    for (let i = 0; i < 120 && !pounce; i++) { g.time += 0.05; g.updateAllies(0.05); pounce = g.drainEvents().find((e) => e.type === 'companionPounce'); }
+    assert.ok(pounce, `${call}: it pounces`);
+    check(m, call === 'call_bear' ? [m, ...others] : [], a);
+  }
 });

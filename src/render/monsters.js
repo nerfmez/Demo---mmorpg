@@ -65,7 +65,11 @@ function buildWolf(kind = 'wolf') {
   const alpha = kind === 'greyfang';
   const spirit = kind === 'spirit';
   // the hunter's hounds (call_companion, pack_hunt): a warm brown hunting dog, its back ridge the same brown
-  const C = kind === 'hound'
+  // the hunter's bear (call_bear): the same body, built heavier: round ears, a short snout, thick legs
+  const bear = kind === 'bear', hound = kind === 'hound';
+  const C = bear
+    ? { fur: '#6a4a32', dark: '#45301f', light: '#b8936a', thorn: '#45301f', eye: '#1e140c', nose: '#1a120c', fang: '#fffaf0' }
+    : kind === 'hound'
     ? { fur: '#a8743e', dark: '#6e4524', light: '#f0dcb4', thorn: '#7a4e2a', eye: '#2a1a10', nose: '#1e1410', fang: '#fffaf0' }
     : spirit
     ? { fur: '#8fc8ff', dark: '#5a8ad8', light: '#d8f0ff', thorn: '#bfe6ff', eye: '#ffffff', nose: '#3a5a9a', fang: '#ffffff' }
@@ -78,42 +82,44 @@ function buildWolf(kind = 'wolf') {
   rb.bone('neck', 'chest', [0, 0.12, 0.22]);
   rb.bone('head', 'neck', [0, 0.1, 0.16]);
   rb.bone('jaw', 'head', [0, -0.08, 0.1]);
-  rb.add('body', sph(0.36, 12, 10).scale(0.85, 0.8, 1.35), C.fur, { pos: [0, 0, -0.12] });
+  rb.add('body', sph(0.36, 12, 10).scale(bear ? 1.15 : 0.85, bear ? 1.0 : 0.8, bear ? 1.25 : 1.35), C.fur, { pos: [0, bear ? 0.04 : 0, -0.12] });
   rb.add('body', sph(0.3, 10, 8).scale(0.8, 0.6, 1.2), C.light, { pos: [0, -0.12, -0.05], plain: true });
-  rb.add('chest', sph(0.36, 12, 10).scale(0.95, 1.0, 0.9), C.fur);
+  rb.add('chest', sph(0.36, 12, 10).scale(bear ? 1.2 : 0.95, bear ? 1.2 : 1.0, 0.9), C.fur, bear ? { pos: [0, 0.06, 0] } : undefined);
   rb.add('chest', sph(0.3, 10, 8).scale(1.0, 0.9, 0.7), C.light, { pos: [0, -0.08, 0.16] }); // ruff (the pelt)
   // thorny back: the "thornback" look
-  for (let i = 0; i < 6; i++) rb.add('body', cone(0.05 + (alpha ? 0.02 : 0), alpha ? 0.3 : 0.22, 4), C.thorn, { pos: [(i % 2 ? 0.06 : -0.06), 0.27 - Math.abs(i - 2) * 0.015, 0.25 - i * 0.14], rot: [-0.6, 0, i % 2 ? -0.3 : 0.3] });
+  if (!bear && !hound) for (let i = 0; i < 6; i++) rb.add('body', cone(0.05 + (alpha ? 0.02 : 0), alpha ? 0.3 : 0.22, 4), C.thorn, { pos: [(i % 2 ? 0.06 : -0.06), 0.27 - Math.abs(i - 2) * 0.015, 0.25 - i * 0.14], rot: [-0.6, 0, i % 2 ? -0.3 : 0.3] });
   rb.add('neck', sph(0.2, 10, 8).scale(0.9, 1, 1.1), C.fur);
   rb.add('head', sph(0.2, 12, 10).scale(0.95, 0.85, 1.05), C.fur, { pos: [0, 0.02, 0] });
-  rb.add('head', new THREE.CylinderGeometry(0.08, 0.12, 0.26, 8).rotateX(Math.PI / 2), C.fur, { pos: [0, -0.04, 0.2] });
-  rb.add('head', sph(0.04, 6, 5), C.nose, { pos: [0, -0.01, 0.34], plain: true });
+  rb.add('head', new THREE.CylinderGeometry(bear ? 0.1 : 0.08, bear ? 0.13 : 0.12, bear ? 0.16 : 0.26, 8).rotateX(Math.PI / 2), bear ? C.light : C.fur, { pos: [0, -0.04, bear ? 0.17 : 0.2] });
+  rb.add('head', sph(0.04, 6, 5), C.nose, { pos: [0, -0.01, bear ? 0.26 : 0.34], plain: true });
   rb.add('jaw', new THREE.CylinderGeometry(0.06, 0.09, 0.2, 8).rotateX(Math.PI / 2), C.light, { pos: [0, -0.02, 0.14] });
   for (const s of [1, -1]) {
     rb.add('head', sph(0.032, 6, 5), C.eye, { pos: [s * 0.1, 0.07, 0.14], glow: true });
     rb.add('jaw', cone(0.018, 0.07, 4), C.fang, { pos: [s * 0.045, 0.03, 0.2], rot: [Math.PI, 0, 0], plain: true });
     rb.bone(`ear${s > 0 ? 'L' : 'R'}`, 'head', [s * 0.1, 0.16, -0.03]);
-    rb.add(`ear${s > 0 ? 'L' : 'R'}`, cone(0.055, 0.17, 4).translate(0, 0.08, 0), C.dark, { rot: [-0.2, 0, -s * 0.25] });
+    if (bear) rb.add(`ear${s > 0 ? 'L' : 'R'}`, sph(0.06, 8, 6).scale(1, 1, 0.6), C.dark);
+    else rb.add(`ear${s > 0 ? 'L' : 'R'}`, cone(0.055, 0.17, 4).translate(0, 0.08, 0), C.dark, { rot: [-0.2, 0, -s * 0.25] });
   }
   const legs = [];
   for (const [x, z, parent] of [[0.17, 0.05, 'chest'], [-0.17, 0.05, 'chest'], [0.17, -0.42, 'body'], [-0.17, -0.42, 'body']]) {
     const n = `leg${legs.length}`;
     rb.bone(n, parent, [x, -0.1, z]);
-    rb.add(n, cylDown(0.07, 0.055, 0.34, 7), C.fur);
+    rb.add(n, cylDown(bear ? 0.1 : 0.07, bear ? 0.085 : 0.055, 0.34, 7), C.fur);
     rb.bone(`${n}k`, n, [0, -0.33, 0]);
-    rb.add(`${n}k`, cylDown(0.05, 0.04, 0.3, 6), C.dark);
-    rb.add(`${n}k`, sph(0.05, 6, 5).scale(1, 0.6, 1.5), C.dark, { pos: [0, -0.3, 0.03] });
+    rb.add(`${n}k`, cylDown(bear ? 0.08 : 0.05, bear ? 0.075 : 0.04, 0.3, 6), C.dark);
+    rb.add(`${n}k`, sph(bear ? 0.08 : 0.05, 6, 5).scale(1, 0.6, 1.5), C.dark, { pos: [0, -0.3, 0.03] });
     legs.push(n);
   }
   rb.bone('tail', 'body', [0, 0.12, -0.55]);
-  rb.add('tail', new THREE.CylinderGeometry(0.03, 0.09, 0.55, 7).translate(0, -0.26, 0), C.fur, { rot: [-0.9, 0, 0] });
+  if (bear) rb.add('tail', sph(0.07, 6, 5), C.fur);
+  else rb.add('tail', new THREE.CylinderGeometry(0.03, 0.09, 0.55, 7).translate(0, -0.26, 0), C.fur, { rot: [-0.9, 0, 0] });
   if (alpha) {
     rb.add('neck', sph(0.26, 10, 8).scale(1.1, 1, 1.2), C.light, { pos: [0, 0.02, -0.04] });
     rb.add('head', new THREE.BoxGeometry(0.03, 0.12, 0.02), '#d8483a', { pos: [0.1, 0.1, 0.1], rot: [0, 0, 0.5], plain: true }); // scar
   }
   const rig = rb.build();
   rig.legs = legs;
-  rig.height = alpha ? 1.4 : 1.2;
+  rig.height = alpha ? 1.4 : bear ? 1.5 : 1.2;
   if (spirit) rig.material.userData.flash.value.set(0, 0, 0.35);
   return rig;
 }
@@ -1124,6 +1130,8 @@ const BUILDERS = {
   spirit_wolf: [() => buildWolf('spirit'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   hunt_hound: [() => buildWolf('hound'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   pack_hound: [() => buildWolf('hound'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
+  hunt_bear: [() => buildWolf('bear'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: false })],
+  hunt_hawk: [buildHawk, animHawk],
   moss_beetle: [buildBeetle, animBeetle],
   reef_crab: [buildCrab, animCrab],
   salt_slime: [buildSaltSlime, animSaltSlime],
@@ -1138,8 +1146,9 @@ const BUILDERS = {
   ...GROVE_BUILDERS,
 };
 
-export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, hunt_hound: 1.05, pack_hound: 0.85, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
+export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.45, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
 
+const MOTION_LIKE = { hunt_hawk: 'gale_hawk', hunt_hound: 'thornback_wolf', pack_hound: 'thornback_wolf', hunt_bear: 'thornback_wolf' };
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;
   const rig = build();
@@ -1147,7 +1156,8 @@ export function buildMonster(type, level = 1, boss = false) {
   const model = monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type);
   if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
   rig.animate = anim;
-  rig.motion = motionConfig(MOTION, type);
+  // the hunter's companions move like the beasts they are drawn from (data/monster-motion.json)
+  rig.motion = motionConfig(MOTION, MOTION_LIKE[type] || type);
   rig.seed = Math.random() * 10;
   const s = monsterScale(type, level, boss);
   rig.root.scale.setScalar(s);

@@ -345,6 +345,8 @@ export class Game {
 
   spawnAllies(s, x, z, exact = false) {
     const sm = s.summon;
+    // a hunter keeps one companion: calling another kind sends the old one away
+    if (sm.companion) for (const a of this.allies) if (a.companion && a.type !== sm.type) a.life = 0;
     const mine = this.allies.filter((a) => a.type === sm.type && !a.dead);
     while (mine.length >= sm.count) {
       const old = mine.shift();
@@ -364,6 +366,7 @@ export class Game {
         team: 'player',
         type: sm.type,
         static: !!sm.static,
+        companion: !!sm.companion, pounce: sm.pounce,
         effects: sm.effects, skill: s.id, tauntRadius:sm.tauntRadius, tauntInterval:sm.tauntInterval, tauntDuration:sm.tauntDuration,
         x: ax,
         z: az,
@@ -1756,8 +1759,13 @@ export class Game {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
             const k = 1 + buffSum(a.buffs, 'damage'), sic = a.sic && a.sic.targetId === tt.id ? a.sic : null;
-            this.hitMonster(tt, a.damage * k * (sic ? sic.mult : 1) * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z, stun: sic?.stun });
-            if (sic) { a.sic = null; this.emit({ type: 'companionPounce', id: a.id, target: tt.id, x: tt.x, z: tt.z }); }
+            this.hitMonster(tt, a.damage * k * (sic ? sic.mult : 1) * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z, stun: sic?.stun, bleed: sic?.bleed });
+            if (sic) {
+              a.sic = null;
+              // a bear's roar turns the monsters round it onto the bear
+              if (sic.taunt) for (const m of this.monsters) if (!m.dead && dist(a.x, a.z, m.x, m.z) <= sic.taunt.radius) { m.forcedTargetId = a.id; m.tauntT = Math.max(m.tauntT || 0, sic.taunt.duration); }
+              this.emit({ type: 'companionPounce', id: a.id, kind: a.type, target: tt.id, x: tt.x, z: tt.z, roar: sic.taunt?.radius || 0 });
+            }
             this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
           a.cd = a.attackCooldown;

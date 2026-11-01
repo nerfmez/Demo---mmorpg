@@ -1480,6 +1480,12 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   otherwise goes for the nearest prey within 14 m of the player; `killMonster` gives a monster dying marked
   that chance of one more of its own non-gold drops (`preyDrop`). Pack Hunt is a summon of 3 `pack_hound`s for
   8 s with `packBuff` {damage, duration}: a `pack` buff on the companion (`buffSum(a.buffs, 'damage')`).
+  Three companions (Call Hound `call_companion`, `call_hawk`, `call_bear`) share `summon.companion`: one at a
+  time (spawnAllies sends any other companion kind away). Each carries `summon.pounce` {mult, stun?, bleed?,
+  taunt? {radius, duration}}: Sic 'Em uses the companion's pounce (the hawk's dive bleeds and its short stun
+  cuts a wind-up; the bear's roar sets `forcedTargetId`/`tauntT` on the monsters round it). The renderer draws
+  the hound and the bear from the wolf rig (`buildWolf('hound' | 'bear')`) and the hawk from the gale hawk's,
+  moving with their base beast's motion settings (`MOTION_LIKE`).
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}
   sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
   sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns

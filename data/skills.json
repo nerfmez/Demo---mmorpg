@@ -611,9 +611,9 @@
       "castTime": 0.25
     },
     "call_companion": {
-      "name": "Call Companion",
-      "nameTh": "เรียกคู่หู",
-      "desc": "เรียกหมาล่าเนื้อคู่หูมาอยู่ข้างตัวจนกว่ามันจะตาย กัดตามพลังโจมตีของเรา เรียกซ้ำเพื่อเรียกตัวใหม่เต็ม HP ต้องใช้ธนู",
+      "name": "Call Hound",
+      "nameTh": "เรียกหมาล่าเนื้อ",
+      "desc": "เรียกหมาล่าเนื้อคู่หูมาอยู่ข้างตัวจนกว่ามันจะตาย กัดเร็ว ไล่ทัน กัดตามพลังโจมตีของเรา มีคู่หูได้ทีละตัว เรียกซ้ำได้ตัวใหม่เต็ม HP ต้องใช้ธนู",
       "tags": [
         "Attack",
         "Summon",
@@ -637,7 +637,15 @@
         },
         "speed": 7.5,
         "range": 1.6,
-        "attackCooldown": 1.1
+        "attackCooldown": 1.1,
+        "companion": true,
+        "pounce": {
+          "mult": 3,
+          "stun": {
+            "duration": 1.0,
+            "bossDuration": 0.3
+          }
+        }
       },
       "cooldown": 20,
       "castTime": 0.4,
@@ -657,10 +665,128 @@
       "fxPending": true,
       "upgradeStat": "DEX"
     },
+    "call_hawk": {
+      "name": "Call Hawk",
+      "nameTh": "เรียกเหยี่ยว",
+      "desc": "เรียกเหยี่ยวคู่หูมาบินอยู่เหนือตัวจนกว่ามันจะตาย จิกจากระยะ 5 ม. เร็วแต่เลือดน้อย กัดตามพลังโจมตีของเรา มีคู่หูได้ทีละตัว ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "range": 0,
+      "summon": {
+        "type": "hunt_hawk",
+        "count": 1,
+        "permanent": true,
+        "companion": true,
+        "hp": {
+          "base": 700,
+          "vit": 25,
+          "level": 30
+        },
+        "damage": {
+          "base": 50,
+          "scale": 0.5,
+          "stat": "attack"
+        },
+        "speed": 10,
+        "range": 5,
+        "attackCooldown": 0.8,
+        "pounce": {
+          "mult": 2.2,
+          "bleed": {
+            "fraction": 0.5,
+            "duration": 4
+          },
+          "stun": {
+            "duration": 0.25,
+            "bossDuration": 0.15
+          }
+        }
+      },
+      "cooldown": 20,
+      "castTime": 0.4,
+      "cost": 160,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "STR": 2
+      },
+      "upgradeMaterial": "hawk_feather",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "call_bear": {
+      "name": "Call Bear",
+      "nameTh": "เรียกหมี",
+      "desc": "เรียกหมีคู่หูมาอยู่ข้างตัวจนกว่ามันจะตาย ตัวถึก เดินช้า ตบแรงแต่ช้า กัดตามพลังโจมตีของเรา มีคู่หูได้ทีละตัว ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "range": 0,
+      "summon": {
+        "type": "hunt_bear",
+        "count": 1,
+        "permanent": true,
+        "companion": true,
+        "hp": {
+          "base": 2600,
+          "vit": 80,
+          "level": 90
+        },
+        "damage": {
+          "base": 95,
+          "scale": 0.75,
+          "stat": "attack"
+        },
+        "speed": 5,
+        "range": 1.9,
+        "attackCooldown": 1.6,
+        "pounce": {
+          "mult": 1.6,
+          "taunt": {
+            "radius": 5,
+            "duration": 3
+          },
+          "stun": {
+            "duration": 0.6,
+            "bossDuration": 0.2
+          }
+        }
+      },
+      "cooldown": 20,
+      "castTime": 0.4,
+      "cost": 160,
+      "element": "physical",
+      "requires": {
+        "DEX": 3,
+        "STR": 5
+      },
+      "upgradeMaterial": "boar_hide",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
     "sic_em": {
       "name": "Sic 'Em",
       "nameTh": "สั่งคู่หูจู่โจม",
-      "desc": "สั่งคู่หูพุ่งใส่เป้าหมาย กัดแรง 3 เท่าและทำให้มึน 1 วินาที (บอส 0.3) ต้องมีคู่หูอยู่และมีเป้าในระยะ 12 ม. ต้องใช้ธนู",
+      "desc": "สั่งคู่หูพุ่งใส่เป้าหมาย หมากัดแรง 3 เท่าและทำให้มึน เหยี่ยวดิ่งจิกให้เลือดไหลและตัดท่าเงื้อ หมีคำรามให้มอนรอบ ๆ หันมาตีมัน ต้องมีคู่หูและมีเป้าในระยะ 12 ม. ต้องใช้ธนู",
       "tags": [
         "Attack",
         "Minion",
@@ -669,8 +795,8 @@
       "kind": "command",
       "range": 12,
       "sic": {
-        "mult": 3,
         "speed": 2.5,
+        "mult": 3,
         "stun": {
           "duration": 1.0,
           "bossDuration": 0.3

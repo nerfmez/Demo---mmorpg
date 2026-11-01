@@ -157,7 +157,7 @@ export function executeFrontier(g,s,aim,mult,triggered) {
   // skill keeps at most max traps set (the oldest goes); a field (count) scatters its traps over spread m.
   if(s.trap){placeTraps(g,s,aim,mult);return true;}
   if(s.sic){commandCompanion(g,s);return true;}
-  if(s.packBuff)for(const a of g.allies)if(a.type==='hunt_hound'&&!a.dead){a.buffs.pack={damage:s.packBuff.damage,t:s.packBuff.duration};g.emit({type:'packBuff',id:a.id,duration:s.packBuff.duration});}
+  if(s.packBuff)for(const a of g.allies)if(a.companion&&!a.dead){a.buffs.pack={damage:s.packBuff.damage,t:s.packBuff.duration};g.emit({type:'packBuff',id:a.id,duration:s.packBuff.duration});}
   // Flame Arrow Rain (s.arrows): count arrows pin across the circle at land s, one near its middle, the rest
   // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
   if(s.arrows){
@@ -271,7 +271,8 @@ export function adjustFrontierHit(g,m,amount,opts) {
   // Net Trap: rooted, it cannot walk (core/ai.js) but still strikes what is in reach
   if(opts.root&&!opts.byAlly){const d=m.boss?opts.root.bossDuration:opts.root.duration;if(d>0){m.statuses.root={t:Math.max(m.statuses.root?.t||0,d)};g.emit({type:'rooted',id:m.id,x:m.x,z:m.z,duration:d});}}
   // Spike Trap: the wound bleeds a share of the hit over its duration
-  if(opts.bleed&&!opts.byAlly&&amount>0){const next={dps:amount*opts.bleed.fraction/opts.bleed.duration,t:opts.bleed.duration,acc:0},old=m.statuses.bleed;if(!old||next.dps>=old.dps)m.statuses.bleed=next;}
+  // (a hawk's dive bleeds too: a companion's pounce, core/game-simulation.js updateAllies)
+  if(opts.bleed&&amount>0){const next={dps:amount*opts.bleed.fraction/opts.bleed.duration,t:opts.bleed.duration,acc:0},old=m.statuses.bleed;if(!old||next.dps>=old.dps)m.statuses.bleed=next;}
   if(e.pull&&!m.boss){const a=angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z),d=Math.min(e.pull,dist(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z));g.moveEntity(m,Math.sin(a)*d,Math.cos(a)*d);}
   if(e.poisonFraction){const source=amount/(1-e.poisonFraction),old=m.statuses.poison;const next={dps:source*e.poisonFraction/e.poisonDuration,t:e.poisonDuration,acc:0,owner:'player'};if(!old||next.dps>=old.dps)m.statuses.poison=next;}
   if(e.bleedFraction){const source=amount/(1-e.bleedFraction),old=m.statuses.bleed;const next={dps:source*e.bleedFraction/e.bleedDuration,t:e.bleedDuration,acc:0};if(!old||next.dps>=old.dps)m.statuses.bleed=next;}
@@ -476,7 +477,7 @@ export function endProjectile(g,pr){
 }
 
 /** The hunter's companion (call_companion's hunt_hound), living, or null. */
-export const companionOf=(g)=>g.allies.find(a=>a.type==='hunt_hound'&&!a.dead&&a.life>0)||null;
+export const companionOf=(g)=>g.allies.find(a=>a.companion&&!a.dead&&a.life>0)||null;
 /** Sic 'Em's target: the locked one in range, else the nearest in range; null with none. */
 export function sicTarget(g,s){
   const p=g.player,t=p.targetId&&g.monsterById(p.targetId);
@@ -490,7 +491,9 @@ export function sicTarget(g,s){
 export function commandCompanion(g,s){
   const a=companionOf(g),t=a&&sicTarget(g,s);if(!t)return false;
   a.command='attack';a.targetId=t.id;a.state='follow';a.stateT=0;
-  a.sic={targetId:t.id,mult:s.sic.mult,speed:s.sic.speed,stun:s.sic.stun,t:4};
+  // what it does there is its own (the companion's pounce), else the skill's
+  const P=a.pounce||s.sic;
+  a.sic={targetId:t.id,mult:P.mult,speed:s.sic.speed,stun:P.stun,bleed:P.bleed,taunt:P.taunt,t:4};
   g.emit({type:'sicEm',id:a.id,target:t.id,x:a.x,z:a.z,tx:t.x,tz:t.z});
   return true;
 }

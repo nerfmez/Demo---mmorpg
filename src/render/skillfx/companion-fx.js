@@ -19,7 +19,7 @@ const STROKES = 36, GLINTS = 6;
 const WOLF = { core: [1.0, 0.97, 0.9], glow: [1.0, 0.72, 0.42] };
 const BEAR = { core: [1.0, 0.92, 0.82], glow: [0.95, 0.3, 0.14] };
 const HAWK = { core: [0.96, 0.99, 1.0], glow: [0.5, 0.72, 1.0] };
-const GASH = { core: [1.0, 0.86, 0.82], glow: [0.9, 0.12, 0.12] };
+const GASH = { core: [1.0, 0.72, 0.66], glow: [0.95, 0.08, 0.06] };
 const ROAR = new THREE.Color(1.0, 0.62, 0.3);
 const HEIGHT = { hunt_hound: 0.6, pack_hound: 0.5, hunt_bear: 0.9, hunt_hawk: 0.8 };
 let sw = 0;
@@ -70,10 +70,10 @@ export class CompanionFx {
     const side = Math.sin(ang) * _r.x + Math.cos(ang) * _r.z >= 0 ? 1 : -1; // which way across the screen it struck
     if (k === 'hunt_bear') {
       // three rakes torn down and across the prey, the far claw a beat behind
-      const S = (big ? 1.35 : 1) * Z;
+      const S = (big ? 1.25 : 1) * Z * 0.62; // shorter, thicker rakes: three claws, not three long cuts
       for (let i = 0; i < 3; i++) {
         const o = (i - 1) * 0.2 * S;
-        this.stroke(_c, (-0.55 + o * 0.6) * side * S, (0.55 + o) * S, (0.5 + o * 0.6) * side * S, (-0.45 + o) * S, 0.12 * side * S, (big ? 0.26 : 0.2) * (1 - Math.abs(i - 1) * 0.15), BEAR, 0.42, 0.08, i * 0.02);
+        this.stroke(_c, (-0.55 + o * 0.6) * side * S, (0.55 + o) * S, (0.5 + o * 0.6) * side * S, (-0.45 + o) * S, 0.12 * side * S, (big ? 0.3 : 0.24) * (1 - Math.abs(i - 1) * 0.15), BEAR, 0.42, 0.08, i * 0.02);
       }
       this.glint(_c.x, _c.y, _c.z, big ? 2.2 : 1.6, 0.06);
       this.call.dust(e.x, 0.15, e.z, Math.sin(ang) * 1.2, 0.4, Math.cos(ang) * 1.2, 0.7, 0.45);
@@ -81,7 +81,7 @@ export class CompanionFx {
     } else if (k === 'hunt_hawk') {
       if (big) {
         // the dive's three deep gashes (it bleeds), a ring of air, a burst of feathers
-        for (let i = 0; i < 3; i++) { const o = (i - 1) * 0.22 * Z; this.stroke(_c, (-0.6 * Z + o * 0.4) * side, 0.5 * Z + o, (0.55 * Z + o * 0.4) * side, -0.5 * Z + o, 0.12 * side * Z, 0.22, GASH, 0.5, 0.07, i * 0.02); }
+        for (let i = 0; i < 3; i++) { const Q = Z * 0.7, o = (i - 1) * 0.22 * Q; this.stroke(_c, (-0.6 * Q + o * 0.4) * side, 0.5 * Q + o, (0.55 * Q + o * 0.4) * side, -0.5 * Q + o, 0.12 * side * Q, 0.24, GASH, 0.5, 0.07, i * 0.02); }
         this.glint(_c.x, _c.y, _c.z, 2.2, 0.04);
         this.call.ring(e.x, 0.9, e.z, 1.6, undefined, 0.4);
         this.call.feathersAt(_c.x, _c.y + 0.2, _c.z, 8);

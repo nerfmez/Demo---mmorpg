@@ -1518,6 +1518,15 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   roar taunts (no stun). `allyStrike` carries `kind` (the ally's type) and `sic` (Sic 'Em's strike); the view
   draws each companion's strike (`skillfx/companion-fx.js`: a fang snap, claw rakes, talon slashes; bigger on
   Sic 'Em) and the bear's roar as rings out to the taunt radius.
+  The summoner (job `summoner`, 2026-11-01): Spirit Swarm and Call Alpha are summons from our magic for a
+  while (`spirit_wisp` x3, `spirit_alpha`); an alpha carries `summon.aura` {radius, damage} (the ally's
+  `alphaAura`), and `alphaBonus(a)` adds the strongest aura within reach to every other ally's hit. Assault
+  (kind `command`, field `assault` {speed, mult, knock, time}) needs our own summons (`summonsOf`: not a
+  companion, not a set dummy) and a target in range, else `fail` with reason `summon` or `target`; it gives
+  every summon the same `a.sic` order as Sic 'Em, with `knock` passed to its hit. Soul Swap is a movement
+  skill (kind `swap`): it needs a summon within `distance` (the one nearest the aim), else nothing is spent;
+  after `delay` (invulnerable) `swapPlayer` trades the hero's and the summon's places and heals it by `heal`
+  of its HP (`soulSwap` event).
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

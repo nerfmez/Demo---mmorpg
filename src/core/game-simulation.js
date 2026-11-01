@@ -10,7 +10,7 @@ import { computeSkill, movementSkill, aimsAtGround } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
-import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock, springTrap, tickTrap, companionOf, sicTarget } from './frontier-content.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock, springTrap, tickTrap, companionOf, sicTarget, summonsOf } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
@@ -367,7 +367,8 @@ export class Game {
         type: sm.type,
         static: !!sm.static,
         companion: !!sm.companion, pounce: sm.pounce,
-        arriveT: sm.arrive || 0, // a hunter's companion runs in from the wild first (it acts once it is here)
+        arriveT: sm.arrive || 0,
+        alphaAura: sm.aura || null, // Call Alpha: the other summons near it hit harder // a hunter's companion runs in from the wild first (it acts once it is here)
         effects: sm.effects, skill: s.id, tauntRadius:sm.tauntRadius, tauntInterval:sm.tauntInterval, tauntDuration:sm.tauntDuration,
         x: ax,
         z: az,
@@ -480,6 +481,11 @@ export class Game {
     // Backstab (s.shadowStep): the hero steps through the shadows to behind its target, then strikes.
     // It needs a target within shadowStep.range (the locked one, else on a tap the nearest); with none it
     // fails before anything is spent.
+    // Assault needs our summons and a target in reach; without either it fails before anything is spent
+    if (s.assault && (!summonsOf(this).length || !sicTarget(this, s))) {
+      this.emit({ type: 'fail', reason: summonsOf(this).length ? 'target' : 'summon', slot: i });
+      return false;
+    }
     // Sic 'Em needs our companion and a target in reach; without either it fails before anything is spent
     if (s.sic && (!companionOf(this) || !sicTarget(this, s))) {
       this.emit({ type: 'fail', reason: companionOf(this) ? 'target' : 'companion', slot: i });
@@ -587,6 +593,15 @@ export class Game {
     if (p.dead || p.dash) return false;
     if (p.movement.charges < 1) return false;
     const mv = this.move;
+    // Soul Swap (kind swap) needs one of our summons within its reach: the one nearest the aimed point (else
+    // the nearest one); without it nothing is spent
+    let swapWith = null;
+    if (mv.kind === 'swap') {
+      const aimAt = point || (this.input.aimFromPointer ? this.input.aimPoint : null), ox = aimAt ? aimAt.x : p.x, oz = aimAt ? aimAt.z : p.z;
+      let bd = Infinity;
+      for (const a of summonsOf(this)) { if (dist(a.x, a.z, p.x, p.z) > mv.distance) continue; const d = dist(a.x, a.z, ox, oz); if (d < bd) { bd = d; swapWith = a; } }
+      if (!swapWith) { this.emit({ type: 'fail', reason: 'summon', slot: 'movement' }); return false; }
+    }
     this.cancelCharge();
     this.cancelChannel();
     p.queued = null;
@@ -596,7 +611,12 @@ export class Game {
     const moving = Math.hypot(this.input.moveX, this.input.moveZ) > 0.2;
     if (moving) angle = Math.atan2(this.input.moveX, this.input.moveZ);
     else angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (mv.kind === 'blink' || mv.kind === 'leap') {
+    if (mv.kind === 'swap') {
+      // a short gather in place (invulnerable), then the hero and the summon trade places (swapPlayer)
+      angle = angleTo(p.x, p.z, swapWith.x, swapWith.z); p.facing = angle;
+      p.dash = { t: 0, dur: (mv.delay || 0) + mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'swap', delay: mv.delay || 0, allyId: swapWith.id, heal: mv.heal || 0, moved: false };
+      if (!mv.delay) this.swapPlayer(p);
+    } else if (mv.kind === 'blink' || mv.kind === 'leap') {
       const dest = point || (this.input.aimFromPointer && !moving ? this.input.aimPoint : null);
       let d = mv.distance;
       if (dest) {
@@ -644,6 +664,18 @@ export class Game {
     p.x = d.toX;
     p.z = d.toZ;
     d.moved = true;
+  }
+
+  /** Soul Swap's trade: the hero and the summon change places; the summon is healed (dash.heal of its HP).
+   *  A summon gone by now leaves the hero where it stood. */
+  swapPlayer(p) {
+    const d = p.dash, a = this.allies.find((q) => q.id === d.allyId && !q.dead && q.life > 0);
+    d.moved = true;
+    if (!a) return;
+    const fx = p.x, fz = p.z;
+    this.emit({ type: 'soulSwap', id: a.id, fromX: fx, fromZ: fz, x: a.x, z: a.z });
+    p.x = a.x; p.z = a.z; a.x = fx; a.z = fz;
+    a.hp = Math.min(a.maxHp, a.hp + a.maxHp * d.heal);
   }
 
   /** What the player can interact with right now. */
@@ -1545,6 +1577,7 @@ export class Game {
     if (p.dash) {
       p.dash.t += dt;
       if (p.dash.kind === 'blink' && !p.dash.moved && p.dash.t >= p.dash.delay) this.blinkPlayer(p);
+      if (p.dash.kind === 'swap' && !p.dash.moved && p.dash.t >= p.dash.delay) this.swapPlayer(p);
       if (p.dash.kind === 'leap') {
         const k = Math.min(1, p.dash.t / p.dash.dur);
         p.x = p.dash.fromX + (p.dash.toX - p.dash.fromX) * k;
@@ -1710,6 +1743,13 @@ export class Game {
     }
   }
 
+  /** Call Alpha: an alpha's aura makes the other summons within its radius hit harder (the strongest one). */
+  alphaBonus(a) {
+    let b = 0;
+    for (const o of this.allies) if (o !== a && o.alphaAura && !o.dead && o.life > 0 && dist(o.x, o.z, a.x, a.z) <= o.alphaAura.radius) b = Math.max(b, o.alphaAura.damage);
+    return b;
+  }
+
   updateAllies(dt) {
     const p = this.player;
     const keep = [];
@@ -1766,8 +1806,8 @@ export class Game {
         if (a.stateT >= 0.25) {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
-            const k = 1 + buffSum(a.buffs, 'damage'), sic = a.sic && a.sic.targetId === tt.id ? a.sic : null;
-            this.hitMonster(tt, a.damage * k * (sic ? sic.mult : 1) * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z, stun: sic?.stun, bleed: sic?.bleed, stagger: sic?.stagger });
+            const k = 1 + buffSum(a.buffs, 'damage') + this.alphaBonus(a), sic = a.sic && a.sic.targetId === tt.id ? a.sic : null;
+            this.hitMonster(tt, a.damage * k * (sic ? sic.mult : 1) * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z, stun: sic?.stun, bleed: sic?.bleed, stagger: sic?.stagger, knock: sic?.knock });
             if (sic) {
               a.sic = null;
               // a bear's roar turns the monsters round it onto the bear

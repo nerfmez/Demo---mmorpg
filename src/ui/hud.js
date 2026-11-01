@@ -434,6 +434,7 @@ export class Hud {
         if (e.reason === 'potion_full') this.toast((d.items.consumables.types[e.item]?.group === 'mp' ? 'MP' : 'HP') + ' เต็มอยู่แล้ว', '#c8b8a0');
         if (e.reason === 'target') this.toast('ไม่มีเป้าหมายในระยะ', '#c8b8a0');
         if (e.reason === 'companion') this.toast('ยังไม่มีคู่หู เรียกคู่หูก่อน', '#c8b8a0');
+        if (e.reason === 'summon') this.toast('ยังไม่มีสัตว์อัญเชิญ เรียกสัตว์ก่อน', '#c8b8a0');
         if (e.reason === 'arrows') this.toast('ลูกธนูหมด · คราฟต์ได้ทุกที่นอกการต่อสู้ (กระเป๋า → มือซ้าย)', '#e08a3a');
         break;
       case 'playerDeath':

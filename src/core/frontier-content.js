@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock','sic','packBuff'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock','sic','packBuff','assault'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -157,6 +157,7 @@ export function executeFrontier(g,s,aim,mult,triggered) {
   // skill keeps at most max traps set (the oldest goes); a field (count) scatters its traps over spread m.
   if(s.trap){placeTraps(g,s,aim,mult);return true;}
   if(s.sic){commandCompanion(g,s);return true;}
+  if(s.assault){commandSummons(g,s);return true;}
   if(s.packBuff)for(const a of g.allies)if(a.companion&&!a.dead){a.buffs.pack={damage:s.packBuff.damage,t:s.packBuff.duration};if(s.packBuff.howl){a.roarT=Math.max(a.roarT||0,s.packBuff.howl);a.roarTotal=s.packBuff.howl;}g.emit({type:'packBuff',id:a.id,duration:s.packBuff.duration});} // it stands to howl the pack in (packBuff.howl s; a bear roars)
   // Flame Arrow Rain (s.arrows): count arrows pin across the circle at land s, one near its middle, the rest
   // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
@@ -488,6 +489,18 @@ export function sicTarget(g,s){
 /** Sic 'Em (s.sic): the companion runs at the target, faster, and its next bite there is mult x with a stun
  *  (core/game-simulation.js updateAllies); it stays on that target. Pack Hunt (s.packBuff): the companion's
  *  bites are stronger for a while (a buff, like a summon's damage buffs). */
+/** The summoner's own summons (not a hunter's companion, not a set dummy): what Assault and Soul Swap use. */
+export const summonsOf=(g)=>g.allies.filter(a=>!a.dead&&a.life>0&&!a.static&&!a.companion);
+/** Assault (s.assault): every summon runs at the target, faster (speed x), and its next hit there is mult x and
+ *  knocks it back (knock m); the order lasts time s (core/game-simulation.js updateAllies, the same path as
+ *  Sic 'Em's). */
+export function commandSummons(g,s){
+  const all=summonsOf(g),t=all.length&&sicTarget(g,s);if(!t)return false;
+  const A=s.assault;
+  for(const a of all){a.command='attack';a.targetId=t.id;a.state='follow';a.stateT=0;a.sic={targetId:t.id,mult:A.mult,speed:A.speed,knock:A.knock,t:A.time};}
+  g.emit({type:'summonAssault',ids:all.map(a=>a.id),target:t.id,tx:t.x,tz:t.z});
+  return true;
+}
 export function commandCompanion(g,s){
   const a=companionOf(g),t=a&&sicTarget(g,s);if(!t)return false;
   a.command='attack';a.targetId=t.id;a.state='follow';a.stateT=0;

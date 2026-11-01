@@ -57,6 +57,10 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   sic_em: 'สั่งคู่หูจู่โจม',
   mark_prey: 'ทำเครื่องหมายเหยื่อ',
   pack_hunt: 'ฝูงล่า',
+  spirit_swarm: 'เรียกฝูงภูต',
+  call_alpha: 'เรียกจ่าฝูง',
+  summon_assault: 'สั่งบุก',
+  soul_swap: 'สลับวิญญาณ',
 });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

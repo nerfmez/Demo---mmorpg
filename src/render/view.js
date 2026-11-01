@@ -780,7 +780,7 @@ export class View {
         rig.root.position.set(a.x, this.groundAt(a.x, a.z), a.z);
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
-        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: a.type==='spirit_wolf'?installSpiritReveal(rig):null };
+        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: a.type==='spirit_wolf'||a.type==='spirit_alpha'?installSpiritReveal(rig):null };
         // a hunter's companion comes in from the wild along its arrival path (companion-arrival.js)
         if (arrives(a.type) && a.arriveT > 0) av.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, g.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
         this.allyViews.set(a.id, av);
@@ -806,7 +806,7 @@ export class View {
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
       // spirit motes off a conjured summon (not a hunter's hounds or a straw dummy: they are flesh and straw)
-      if ((av.reveal || a.type === 'stone_guardian') && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
+      if ((av.reveal || a.type === 'stone_guardian' || a.type === 'spirit_wisp') && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
     }
     for (const [id, av] of this.allyViews) {
       if (!seen.has(id)) {

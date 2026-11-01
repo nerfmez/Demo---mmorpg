@@ -1191,6 +1191,9 @@ const BUILDERS = {
   shore_gull: [buildShoreGull, animShoreGull],
   hermit_crab: [() => buildCrab(true), animCrab],
   marsh_wisp: [buildWisp, animWisp],
+  // the summoner's spirits (stand-ins until their own look): a wisp's body, and a spirit wolf grown into an alpha
+  spirit_wisp: [buildWisp, animWisp],
+  spirit_alpha: [() => buildWolf('spirit'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   sporecap: [buildSporecap, animSporecap],
   crag_golem: [buildGolem, animGolem],
   gale_hawk: [buildHawk, animHawk],
@@ -1199,15 +1202,16 @@ const BUILDERS = {
   ...GROVE_BUILDERS,
 };
 
-export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.15, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
+export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, spirit_alpha: 1.75, spirit_wisp: 0.6, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.15, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
 
-const MOTION_LIKE = { hunt_hawk: 'gale_hawk', hunt_hound: 'thornback_wolf', pack_hound: 'thornback_wolf', hunt_bear: 'thornback_wolf' };
+const MOTION_LIKE = { spirit_wisp: 'marsh_wisp', spirit_alpha: 'spirit_wolf', hunt_hawk: 'gale_hawk', hunt_hound: 'thornback_wolf', pack_hound: 'thornback_wolf', hunt_bear: 'thornback_wolf' };
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;
   const rig = build();
   // an imported model, once loaded, replaces the procedural parts on the same bones
-  const model = monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type);
-  if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
+  const spiritWolf = type === 'spirit_wolf' || type === 'spirit_alpha';
+  const model = monsterModel(spiritWolf ? 'thornback_wolf' : type === 'spirit_wisp' ? 'marsh_wisp' : type);
+  if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = spiritWolf ? 'thornback_wolf' : type === 'spirit_wisp' ? 'marsh_wisp' : type; if(spiritWolf) rig.material.userData.flash.value.z = .08; }
   rig.animate = anim;
   // the hunter's companions move like the beasts they are drawn from (data/monster-motion.json)
   rig.motion = motionConfig(MOTION, MOTION_LIKE[type] || type);
@@ -1223,7 +1227,7 @@ export function buildMonster(type, level = 1, boss = false) {
 /** Model scale for a monster (higher levels are a little bigger; bosses fixed). */
 export function monsterScale(type, level = 1, boss = false) {
   // an imported model may be drawn at its own size (rootScale in data/models.json)
-  const base = (MONSTER_SCALE[type] || 1) * (monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type)?.cfg.rootScale ?? 1);
+  const base = (MONSTER_SCALE[type] || 1) * (monsterModel(type === 'spirit_wolf' || type === 'spirit_alpha' ? 'thornback_wolf' : type === 'spirit_wisp' ? 'marsh_wisp' : type)?.cfg.rootScale ?? 1);
   return boss ? base : base * (1 + Math.min(0.25, (level - 1) * 0.03));
 }
 

@@ -186,6 +186,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
       companion: !!sm.companion, // a hunter's companion: one at a time, whatever its kind
       pounce: sm.pounce,         // what Sic 'Em does with it (its own bite, bleed, stun or roar)
       arrive: sm.arrive || 0,    // a companion's run in from the wild (it acts once it is here)
+      aura: sm.aura,             // a summoner's alpha: other summons within aura.radius hit aura.damage harder
     };
     if (sm.permanent) s.summon.life = Infinity;
   }

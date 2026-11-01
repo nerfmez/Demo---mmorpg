@@ -12,6 +12,7 @@ import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './he
 import { buildMonster, monsterScale } from './monsters.js';
 import { monsterModel } from './models.js';
 import { syncMonsterViews, measureMotion, fadeRig, VIEW_RADIUS } from './monster-views.js';
+import { MonsterTrails } from './monster-trails.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms, toonRamp } from './toon.js';
@@ -805,6 +806,9 @@ export class View {
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : av.arr ? 1 : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
+      // a companion's own jaws light as they snap (data/combat-fx.json companions; monster-trails.js)
+      const look = r.restInverse ? this.vfx.config.companions?.[a.type] : null;
+      if (look) { r.trails ||= new MonsterTrails(this.scene); r.trails.update(dt, r, look, a.state === 'recover' ? a.stateT < 0.3 : a.state === 'windup' && a.stateT > 0.12); }
       // spirit motes off a conjured summon (not a hunter's hounds or a straw dummy: they are flesh and straw)
       if ((av.reveal || a.type === 'stone_guardian') && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
     }
@@ -812,6 +816,7 @@ export class View {
       if (!seen.has(id)) {
         if (!av.arr) this.vfx.summon({ x: av.rig.root.position.x, z: av.rig.root.position.z }); // a companion has no magic puff
         removeSpiritReveal(av.reveal);
+        av.rig.trails?.clear();
         this.releaseRig(av.rig);
         this.allyViews.delete(id);
       }

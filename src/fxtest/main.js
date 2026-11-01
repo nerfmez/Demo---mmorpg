@@ -14,6 +14,7 @@ import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
 import { buildMonster } from '../render/monsters.js';
+import { MonsterTrails } from '../render/monster-trails.js';
 import { arrives, arrivalFrom, arrivalAt, arrivalTime } from '../render/companion-arrival.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
 import { fusionRecipe, benchData } from './fusion.js';
@@ -131,7 +132,7 @@ function buildHero(weapon = heroWeapon, offhand = heroOffhand) {
 buildHero();
 // the game's hero: the chibi body and its hair (hero_base stays as the fallback rig)
 const { hero_base, hero_chibi, hero_chibi_hair } = MODELS.characters;
-loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair }, weapons: MODELS.weapons, monsters: { hunt_hound: MODELS.monsters.hunt_hound, pack_hound: MODELS.monsters.pack_hound, hunt_bear: MODELS.monsters.hunt_bear, hunt_hawk: MODELS.monsters.hunt_hawk } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); for (const r of benchAllies.values()) { r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); /* summons set before the models came are rebuilt in them */ }).catch(() => {});
+loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair }, weapons: MODELS.weapons, monsters: { hunt_hound: MODELS.monsters.hunt_hound, pack_hound: MODELS.monsters.pack_hound, hunt_bear: MODELS.monsters.hunt_bear, hunt_hawk: MODELS.monsters.hunt_hawk } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); for (const r of benchAllies.values()) { r.trails?.dispose(); r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); /* summons set before the models came are rebuilt in them */ }).catch(() => {});
 const tip = new THREE.Vector3();
 function staffTip() {
   const w = hero.bones?.weapon;
@@ -175,7 +176,7 @@ const skipSets = new Map();
 const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_PROJECTILES])).get(k);
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
-  for (const r of benchAllies.values()) { r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); // the old bench's summons
+  for (const r of benchAllies.values()) { r.trails?.dispose(); r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); // the old bench's summons
   if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, haste: state.haste ?? null });
   game.aimAt(aimAngle);
@@ -604,8 +605,11 @@ function tick(real, draw = true) {
     Object.assign(r.state, { reach: r.reach || 0, moving: arr ? arr.k < 1 : a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic });
     if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
     r.animate?.(r, r.state, dt, simTime);
+    // its jaws light as they snap, as in the game (view.js)
+    const look = r.restInverse ? vfx.config.companions?.[a.type] : null;
+    if (look) { r.trails ||= new MonsterTrails(scene); r.trails.update(dt, r, look, a.state === 'recover' ? a.stateT < 0.3 : a.state === 'windup' && a.stateT > 0.12); }
   }
-  for (const [id, r] of benchAllies) if (!game.allies.some((a) => a.id === id)) { r.root.removeFromParent(); disposeObject(r.root); benchAllies.delete(id); }
+  for (const [id, r] of benchAllies) if (!game.allies.some((a) => a.id === id)) { r.trails?.dispose(); r.root.removeFromParent(); disposeObject(r.root); benchAllies.delete(id); }
   fx.update(dt);
   castBtn.classList.toggle('ready', fx.counterReady);
   const recipeKind = skillDef().recipe?.id;

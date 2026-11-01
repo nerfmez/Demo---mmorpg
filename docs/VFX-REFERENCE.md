@@ -745,4 +745,10 @@ bear's taunts and hits harder.
 Round 2 (owner: "the rest is fine but the wolf is not good"): the wolf's two crescents became a jaw of white
 fangs, the long canines outside, growing from a bowed jaw line, snapping shut on the prey with an
 overshoot so the upper and lower fangs interlock, held a moment, then fading as it opens a little.
+Round 3 (owner: "research first"). The Cartoon FX gallery host was blocked from this session (DNS refused
+by the network policy); web searches found asset packs but no bite breakdown. The useful finding was our own
+history: the owner rejected claw/fang shapes pasted on the target for monsters (2026-10-08) and approved
+light from the creature's own striking limb. So the wolf's bite is now an amber trail from its own jaw as it
+snaps (monster-trails.js, `data/combat-fx.json` `companions`, the view and the bench), and on the prey only
+a compact contact: a small flash and a few chips thrown away from the wolf (bigger, with dust, on Sic 'Em).
 

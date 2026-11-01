@@ -1080,5 +1080,44 @@
     "dustColor": "#c9b48c",
     "dustOpacity": 0.4,
     "dustLength": 4
+  },
+  "companions": {
+    "_note": "The hunter's companions' strikes drawn the way monsters' are (monster-trails.js): light from the animal's own jaws as they snap, not a shape pasted on the prey (owner, 2026-11-01: research first; the 2026-10-08 rule for monster claws/fangs).",
+    "hunt_hound": {
+      "limbs": [
+        "jaw"
+      ],
+      "color": "#ffc35a",
+      "coreColor": "#ffffff",
+      "trail": {
+        "streaks": 3,
+        "spread": 0.1,
+        "width": 0.1,
+        "reach": 0.24,
+        "life": 0.32,
+        "minSpeed": 0.6,
+        "fullSpeed": 2.6,
+        "opacity": 1,
+        "core": 0.55
+      }
+    },
+    "pack_hound": {
+      "limbs": [
+        "jaw"
+      ],
+      "color": "#ffc35a",
+      "coreColor": "#ffffff",
+      "trail": {
+        "streaks": 3,
+        "spread": 0.1,
+        "width": 0.1,
+        "reach": 0.24,
+        "life": 0.32,
+        "minSpeed": 0.6,
+        "fullSpeed": 2.6,
+        "opacity": 1,
+        "core": 0.55
+      }
+    }
   }
 }

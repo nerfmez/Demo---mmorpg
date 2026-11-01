@@ -2,10 +2,10 @@
 // daze"). Each animal's hit is drawn as its own weapon, lines and light on the game camera's plane (camera
 // right and up at the hit), never pictures; the dust, feathers and rings come from the call effect
 // (skillfx/call-fx.js) so the companions share one look:
-//   wolf (allyStrike kind hunt_hound / pack_hound): a bite, a jaw of white fangs (long canines outside)
-//     snapping shut on the prey with an overshoot, upper and lower fangs interlocking, a glint as it shuts;
-//     (round 2: the owner did not like the first two crescents) sent in (Sic 'Em: the pounce, which stuns) it is bigger and
-//     the landing throws a ring of dust;
+//   wolf (allyStrike kind hunt_hound / pack_hound): a bite (skillfx/bite-fx.js, built from outside references
+//     after the owner turned down crescents, line fangs and a jaw trail): a solid jaw of teeth opens wide over
+//     the prey and slams shut; as it shuts, a white star flash, lines bursting out and a short shake; sent in
+//     (Sic 'Em: the pounce, which stuns) it is bigger and the landing throws a ring of dust;
 //   bear: three claw rakes torn diagonally across the prey (warm red glow), a dust puff and a short shake;
 //     its Sic 'Em roar (companionPounce with roar) sends three warm sound rings out to the taunt's true
 //     radius on the ground, dust round the bear and a hard shake;
@@ -15,13 +15,9 @@
 import * as THREE from 'three';
 import { Ribbon, mulberry32 } from './fx-common.js';
 import { CORE_FS, GLOW_FS, lightSprite, starTexture } from './light-kit.js';
+import { BiteFx, BITE_SHUT } from './bite-fx.js';
 
 const STROKES = 36, GLINTS = 6;
-// the wolf's jaw: closes over JAW_CLOSE s with an overshoot, holds shut, then fades and opens a little
-const JAW_CLOSE = 0.07, JAW_HOLD = 0.12, JAW_FADE = 0.2;
-// fangs as [x across the jaw, length]: the canines outside and longest (in units of the jaw's size)
-const UPPER = [[-0.44, 1], [-0.17, 0.55], [0.17, 0.55], [0.44, 1]], LOWER = [[-0.31, 0.85], [0, 0.45], [0.31, 0.85]];
-const easeBack = (k) => { const c = 2.2; k -= 1; return 1 + (c + 1) * k * k * k + c * k * k; };
 const WOLF = { core: [1.0, 0.97, 0.9], glow: [1.0, 0.72, 0.42] };
 const BEAR = { core: [1.0, 0.92, 0.82], glow: [0.95, 0.3, 0.14] };
 const HAWK = { core: [0.96, 0.99, 1.0], glow: [0.5, 0.72, 1.0] };
@@ -29,8 +25,6 @@ const GASH = { core: [1.0, 0.72, 0.66], glow: [0.95, 0.08, 0.06] };
 const ROAR = new THREE.Color(1.0, 0.62, 0.3);
 const HEIGHT = { hunt_hound: 0.6, pack_hound: 0.5, hunt_bear: 0.9, hunt_hawk: 0.8 };
 let sw = 0;
-const gumW = (x) => sw * Math.pow(Math.sin(Math.PI * x), 0.5), gumGlowW = (x) => sw * 2.4 * Math.sin(Math.PI * x);
-const fangW = (x) => sw * (1 - x) * (0.55 + 0.45 * (1 - x)), fangGlowW = (x) => sw * 2.4 * (1 - 0.6 * x);
 const slashW = (x) => sw * Math.pow(Math.sin(Math.PI * x), 0.8), slashGlowW = (x) => sw * 2.6 * Math.sin(Math.PI * x);
 const _r = new THREE.Vector3(), _u = new THREE.Vector3(), _c = new THREE.Vector3(), _d1 = new THREE.Vector3(), _d2 = new THREE.Vector3();
 
@@ -38,6 +32,7 @@ export class CompanionFx {
   /** call: the CallFx whose dust, feathers and rings these share. */
   constructor(scene, camera, call) {
     this.camera = camera; this.call = call; this.rnd = mulberry32(83); this.onShake = null;
+    this.biteFx = new BiteFx(scene, camera); // the wolf's jaw of teeth
     this.core = new Ribbon(scene, camera, 700, CORE_FS, THREE.NormalBlending); this.glow = new Ribbon(scene, camera, 700, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 11; this.glow.mesh.renderOrder = 10;
     this.core.mesh.material.depthTest = false; this.glow.mesh.material.depthTest = false; // marks over the prey's body, as hit marks are drawn
@@ -48,8 +43,6 @@ export class CompanionFx {
     for (const g of this.glints) g.s.material.depthTest = false;
     this.glintI = 0;
     this.pts = Array.from({ length: 10 }, () => new THREE.Vector3());
-    this.jaws = Array.from({ length: 6 }, () => ({ t: 9, S: 1, c: new THREE.Vector3(), r: new THREE.Vector3(), u: new THREE.Vector3() }));
-    this.jawI = 0; this.fang = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]; this.gum = Array.from({ length: 7 }, () => new THREE.Vector3());
   }
   // the camera's right and up at this moment (strokes are drawn on the screen's plane)
   axes() { const m = this.camera.matrixWorld.elements; _r.set(m[0], m[1], m[2]).normalize(); _u.set(m[4], m[5], m[6]).normalize(); }
@@ -104,10 +97,18 @@ export class CompanionFx {
         if (r() < 0.6) this.call.feathersAt(_c.x, _c.y + 0.15, _c.z, 2);
       }
     } else {
-      // the bite: a jaw of fangs snapping shut on the prey (upper fangs down, lower fangs up, interlocking)
-      const j = this.jaws[this.jawI++ % this.jaws.length];
-      j.c.copy(_c); j.r.copy(_r); j.u.copy(_u); j.S = (big ? 1.35 : 1) * Z * 0.82; j.t = 0;
-      this.glint(_c.x, _c.y, _c.z, big ? 1.8 : 1.2, JAW_CLOSE);
+      // the bite (skillfx/bite-fx.js): a solid jaw opens wide over the prey and slams shut on it; as the teeth
+      // meet, the impact: a white star flash, lines bursting out from the bite, a few chips, a short shake
+      const size = (big ? 0.95 : 0.7);
+      this.biteFx.bite(_c.x, _c.y + 0.05, _c.z, size, -0.18 * side);
+      this.glint(_c.x, _c.y, _c.z, big ? 2.0 : 1.4, BITE_SHUT);
+      const n = big ? 10 : 8;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * 6.283 + r() * 0.3, cx = Math.cos(a), cy = Math.sin(a), r0 = size * (0.75 + r() * 0.15), r1 = size * (1.25 + r() * 0.35);
+        _d1.copy(_r).multiplyScalar(cx * size * 0.4).addScaledVector(_u, cy * size * 0.4);
+        this.stroke(_c, cx * r0, cy * r0, cx * r1, cy * r1, 0, big ? 0.07 : 0.055, WOLF, 0.17, 0.035, BITE_SHUT, _d1);
+      }
+      this.onShake?.(big ? 0.1 : 0.05, 0.08);
       if (big) {
         // the pounce lands: dust thrown out round the prey
         for (let i = 0; i < 7; i++) { const a = (i / 7) * 6.283 + r() * 0.4; this.call.dust(e.x + Math.cos(a) * 0.35, 0.12, e.z + Math.sin(a) * 0.35, Math.cos(a) * 1.5, 0.35, Math.sin(a) * 1.5, 0.65, 0.5); }
@@ -124,6 +125,7 @@ export class CompanionFx {
   }
 
   update(dt) {
+    this.biteFx.update(dt);
     this.core.begin(); this.glow.begin();
     const P = this.pts, n = P.length;
     for (const s of this.strokes) {
@@ -140,34 +142,6 @@ export class CompanionFx {
       const a = 1 - Math.max(0, (k - 0.6) / 0.4);
       sw = s.w * (1 - 0.3 * k); this.glow.strip(P, slashGlowW, 0.75 * a, s.look.glow); this.core.strip(P, slashW, a, s.look.core);
     }
-    // the wolf's jaws
-    const F = this.fang;
-    for (const j of this.jaws) {
-      if (j.t >= JAW_CLOSE + JAW_HOLD + JAW_FADE) continue;
-      j.t += dt;
-      const close = easeBack(Math.min(1, j.t / JAW_CLOSE)), fade = Math.max(0, (j.t - JAW_CLOSE - JAW_HOLD) / JAW_FADE);
-      const S = j.S, L = 0.34 * S, gap = 0.55 * S * (1 - close) + 0.1 * S * fade, a = j.t < JAW_CLOSE ? 0.6 + 0.4 * close : 1 - fade;
-      for (let half = 0; half < 2; half++) {
-        const row = half ? LOWER : UPPER, dir = half ? 1 : -1; // upper fangs point down, lower up
-        for (const [fx, len] of row) {
-          // the gum line bows: higher at the sides for the upper jaw, lower for the lower
-          const bx = fx * S, by = -dir * (gap + 0.62 * L + 0.18 * S * fx * fx * 4);
-          const tl = L * len, tx = bx * 0.86, ty = by + dir * tl;
-          for (let i = 0; i < 3; i++) {
-            const u = i / 2, x = bx + (tx - bx) * u, y = by + (ty - by) * u + dir * -0.05 * S * Math.sin(Math.PI * u); // a slight hook
-            F[i].copy(j.c).addScaledVector(j.r, x).addScaledVector(j.u, y);
-          }
-          sw = 0.24 * S * (0.7 + 0.3 * len); this.glow.strip(F, fangGlowW, 0.7 * a, WOLF.glow); this.core.strip(F, fangW, a, WOLF.core);
-        }
-        // the jaw line the fangs grow from, so the whole reads as a mouth
-        const G = this.gum;
-        for (let i = 0; i < G.length; i++) {
-          const x = (i / (G.length - 1) - 0.5) * 1.12 * S, xx = x / S;
-          G[i].copy(j.c).addScaledVector(j.r, x).addScaledVector(j.u, -dir * (gap + 0.62 * L + 0.18 * S * xx * xx * 4 + 0.02 * S));
-        }
-        sw = 0.07 * S; this.glow.strip(G, gumGlowW, 0.6 * a, WOLF.glow); this.core.strip(G, gumW, a, WOLF.core);
-      }
-    }
     this.core.end(); this.glow.end();
     for (const g of this.glints) {
       if (g.t >= g.life) { g.s.visible = false; continue; }
@@ -175,5 +149,5 @@ export class CompanionFx {
       const u = g.t / g.life; g.s.scale.setScalar(g.size * Math.sin(Math.PI * Math.min(1, u * 1.3 + 0.1))); g.s.material.rotation = u * 1.2; g.s.material.opacity = 1 - u * 0.5;
     }
   }
-  clear() { for (const j of this.jaws) j.t = 9; for (const s of this.strokes) s.t = 9; for (const g of this.glints) { g.t = 9; g.s.visible = false; } }
+  clear() { this.biteFx.clear(); for (const s of this.strokes) s.t = 9; for (const g of this.glints) { g.t = 9; g.s.visible = false; } }
 }

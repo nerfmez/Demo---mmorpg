@@ -745,4 +745,13 @@ bear's taunts and hits harder.
 Round 2 (owner: "the rest is fine but the wolf is not good"): the wolf's two crescents became a jaw of white
 fangs, the long canines outside, growing from a bowed jaw line, snapping shut on the prey with an
 overshoot so the upper and lower fangs interlock, held a moment, then fading as it opens a little.
+Round 3 tried light from the wolf's own jaw (the monster-trail rule); the owner turned it down, does not
+like the monster trails either (they will be redone), and asked for outside research. Web search only (the
+pages - Real Time VFX, ArtStation, CGHOW, the Cartoon FX gallery - were blocked by the session's network):
+the common bite is the Pokémon "Bite" kind, a solid jaw of teeth opening wide over the target and slamming
+shut (Gabriel Aguiar's and a Real Time VFX forum recreation; CGHOW's Niagara animal bite: one jaw mesh with
+teeth, a flash, sparks), with anime impact-frame habits (a held high-contrast moment, lines bursting out
+from the contact, a white flash). Round 4 (`bite-fx.js`, the owner chose this direction): solid ivory teeth
+with long interlocking canines and a dark outline pop in wide open over the prey, slam shut with an
+overshoot, tremble shut a moment with a star flash and burst lines, then spring apart and fade.
 

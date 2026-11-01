@@ -777,3 +777,11 @@ red-orange brackets close in on the ground round it and turn; two streaks of lig
 runs in; when the pounce lands the chevron snaps down and bursts (the strike's own bite, rakes or gashes play
 with it); a lapsed order fades.
 
+Mark Prey, round 1 (`prey-fx.js`; owner: "passed, do Mark Prey"). Web search (pages blocked): a hunter's mark is
+an indicator hovering over the target that everyone sees (WoW's Hunter's Mark); GW2 wraps the target instead.
+Ours must read apart from Sic 'Em's red chevron: an amber sigil of see-through light, a crosshair ring with
+four ticks round a paw print, stamped down big and faint onto the prey's head with a flash and a ring round
+the prey, then hovering, turning and breathing for the mark's time, fading over its last second. Sunder's
+broken shield no longer shows for this exposure. A marked kill's extra part (preyDrop) rises in a gold star
+and sparkles.
+

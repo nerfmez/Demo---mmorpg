@@ -30,6 +30,7 @@ import { SporeFx } from './skillfx/spore-fx.js';
 import { RuneFx } from './skillfx/rune-fx.js';
 import { CallFx } from './skillfx/call-fx.js';
 import { CompanionFx } from './skillfx/companion-fx.js';
+import { PreyFx } from './skillfx/prey-fx.js';
 import { arrives } from './companion-arrival.js';
 import { IceArrowFx } from './skillfx/icearrow-fx.js';
 import { LanceFx } from './skillfx/lance-fx.js';
@@ -116,6 +117,7 @@ export class SkillFx {
     this.rune = new RuneFx(scene, camera); // the trapper's Gravity Rune circle and pull
     this.call = new CallFx(scene, camera); // the hunter's whistle and a companion coming in from the wild
     this.companion = new CompanionFx(scene, camera, this.call); // the companions' own strikes and the bear's roar
+    this.prey = new PreyFx(scene, camera); // Mark Prey's sigil over the prey and the extra part's gold
     this.spore = new SporeFx(scene, camera); // the trapper's Spore Pod puffs and its poison passing on
     this.iarrow = new IceArrowFx(scene, camera); // the spell archer's Shatter Arrow
     this.lance = new LanceFx(scene, camera); // the spell archer's Thunder Lance
@@ -164,6 +166,7 @@ export class SkillFx {
     this.echoSpots = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
     this.markBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, facing: 0 })); this.marks = [];
     this.exposedBuf = Array.from({ length: 12 }, () => ({ x: 0, z: 0, t: 0, full: 5 })); this.exposed = [];
+    this.preyBuf = Array.from({ length: 8 }, () => ({ id: 0, x: 0, y: 0, z: 0, t: 0 })); this.preyed = [];
     this.headOf = (id) => { const b = host.body(id); return b ? this.head.set(b.x, b.h + 0.4, b.z) : null; };
     this.posOf = (id) => host.body(id);
     this.timerDone = (t) => !t.done || this.time - t.at < 2;
@@ -324,6 +327,7 @@ export class SkillFx {
       case 'allyStrike': return this.companion.strike(e);
       // Sic 'Em: the marker over the prey and the rush (skillfx/sic-fx.js)
       case 'sicEm': this.companion.sic.order(e, g.player); return true;
+      case 'preyDrop': this.prey.prize(e.x, e.z); return true; // a marked kill's extra part
       case 'companionPounce': { this.companion.sic.pounced(e.id); if (e.roar) { const b = this.call.locate?.(e.id); if (b) this.companion.roar(b.x, b.z, e.roar); } return false; }
       case 'trapSprung': { if (!TRAP_FX.has(e.skill)) return false; this.traps.spring(e);
         const look = e.look || e.skill;
@@ -632,13 +636,16 @@ export class SkillFx {
     // Blink Draw: afterimages of the body along the dash (the game's posed echoes, in its violet)
     if (p.dash?.kind === 'draw_cut' && this.drawEchoes < 3 && p.dash.t >= p.dash.dur * (0.15 + 0.3 * this.drawEchoes)) { host.vfx?.drawCutEcho?.(host.rig?.()); this.drawEchoes++; }
     // Sunder Cut's open armour on what it struck
-    this.exposed.length = 0;
+    this.exposed.length = 0; this.preyed.length = 0;
     for (const m of g.monsters) {
       const ex = m.statuses?.exposure;
-      if (!ex || m.dead || this.exposed.length >= this.exposedBuf.length) continue;
+      if (!ex || m.dead) continue;
+      // Mark Prey's exposure has its own sigil (skillfx/prey-fx.js), not the broken shield
+      if (ex.prey) { if (this.preyed.length < this.preyBuf.length) { const o = this.preyBuf[this.preyed.length], h = this.headOf(m.id); o.id = m.id; o.x = m.x; o.z = m.z; o.y = h ? h.y + 0.6 : 2.4; o.t = ex.t; this.preyed.push(o); } continue; }
+      if (this.exposed.length >= this.exposedBuf.length) continue;
       const o = this.exposedBuf[this.exposed.length]; o.x = m.x; o.z = m.z; o.t = ex.t; o.full = this.skillOf('armor_cleave')?.exposure?.duration || 5; this.exposed.push(o);
     }
-    this.sunder.update(dt, this.exposed);
+    this.sunder.update(dt, this.exposed); this.prey.update(dt, this.preyed);
     this.mace.update(dt, this.headOf);
     // Flank Thrust: the weak side of the monsters it is aimed at
     this.marks.length = 0;
@@ -682,7 +689,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.companion, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.companion, this.prey, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

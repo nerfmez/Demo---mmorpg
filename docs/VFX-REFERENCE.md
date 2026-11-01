@@ -785,3 +785,10 @@ the prey, then hovering, turning and breathing for the mark's time, fading over 
 broken shield no longer shows for this exposure. A marked kill's extra part (preyDrop) rises in a gold star
 and sparkles.
 
+Pack Hunt, round 1 (`pack-fx.js`; owner: "passed, do Pack Hunt"). Web search (pages blocked): howls are sound
+waves from the animal (ESO's werewolf howls, GW2), buffs a glowing ground circle with rings rising on
+activation and then a fainter aura for the buff's time. So, in a cool moon colour apart from the bear's
+orange roar: three arcs of moonlight rise and widen from the companion's muzzle as it stands to howl, two
+rings of moonlight run out over the ground, and the pack's wolves run in to it (the call's run-in); while the
+pack buff lasts a warm ring breathes under the companion and embers rise off its back, fading with it.
+

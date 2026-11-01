@@ -19,6 +19,7 @@ import { CORE_FS, GLOW_FS, lightSprite, starTexture } from './light-kit.js';
 import { BiteFx, BITE_SHUT } from './bite-fx.js';
 import { ClawFx } from './claw-fx.js';
 import { SicFx } from './sic-fx.js';
+import { PackFx } from './pack-fx.js';
 
 const STROKES = 36, GLINTS = 6;
 const WOLF = { core: [1.0, 0.97, 0.9], glow: [1.0, 0.72, 0.42] };
@@ -39,6 +40,7 @@ export class CompanionFx {
     this.biteFx = new BiteFx(scene, camera); // the wolf's jaw of teeth
     this.clawFx = new ClawFx(scene, camera); // the bear's and the eagle's claw marks of light
     this.sic = new SicFx(scene, camera, this); // Sic 'Em: the marker over the prey, the lock, the rush
+    this.pack = new PackFx(scene, camera, this); // Pack Hunt: the howl and the frenzy aura
     this.core = new Ribbon(scene, camera, 700, CORE_FS, THREE.NormalBlending); this.glow = new Ribbon(scene, camera, 700, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 11; this.glow.mesh.renderOrder = 10;
     this.core.mesh.material.depthTest = false; this.glow.mesh.material.depthTest = false; // marks over the prey's body, as hit marks are drawn
@@ -50,6 +52,7 @@ export class CompanionFx {
     this.glintI = 0;
     this.pts = Array.from({ length: 10 }, () => new THREE.Vector3()); this.rushPts = Array.from({ length: 8 }, () => new THREE.Vector3());
   }
+  upAxis() { return _u; } // the camera's up as last read by axes()
   // the camera's right and up at this moment (strokes are drawn on the screen's plane)
   axes() { const m = this.camera.matrixWorld.elements; _r.set(m[0], m[1], m[2]).normalize(); _u.set(m[4], m[5], m[6]).normalize(); }
   // a stroke centred on c: from c + (x0, y0) to c + (x1, y1) in camera units, bowed by bow; drift moves both ends
@@ -146,7 +149,7 @@ export class CompanionFx {
   }
 
   update(dt) {
-    this.biteFx.update(dt); this.clawFx.update(dt);
+    this.biteFx.update(dt); this.clawFx.update(dt); this.pack.update(dt);
     this.core.begin(); this.glow.begin();
     const P = this.pts, n = P.length;
     for (const s of this.strokes) {
@@ -171,5 +174,5 @@ export class CompanionFx {
       const u = g.t / g.life; g.s.scale.setScalar(g.size * Math.sin(Math.PI * Math.min(1, u * 1.3 + 0.1))); g.s.material.rotation = u * 1.2; g.s.material.opacity = 1 - u * 0.5;
     }
   }
-  clear() { this.biteFx.clear(); this.clawFx.clear(); this.sic.clear(); for (const s of this.strokes) s.t = 9; for (const g of this.glints) { g.t = 9; g.s.visible = false; } }
+  clear() { this.biteFx.clear(); this.clawFx.clear(); this.sic.clear(); this.pack.clear(); for (const s of this.strokes) s.t = 9; for (const g of this.glints) { g.t = 9; g.s.visible = false; } }
 }

@@ -328,6 +328,7 @@ export class SkillFx {
       // Sic 'Em: the marker over the prey and the rush (skillfx/sic-fx.js)
       case 'sicEm': this.companion.sic.order(e, g.player); return true;
       case 'preyDrop': this.prey.prize(e.x, e.z); return true; // a marked kill's extra part
+      case 'packBuff': this.companion.pack.howl(e); return true; // Pack Hunt: the howl and the frenzy (skillfx/pack-fx.js)
       case 'companionPounce': { this.companion.sic.pounced(e.id); if (e.roar) { const b = this.call.locate?.(e.id); if (b) this.companion.roar(b.x, b.z, e.roar); } return false; }
       case 'trapSprung': { if (!TRAP_FX.has(e.skill)) return false; this.traps.spring(e);
         const look = e.look || e.skill;

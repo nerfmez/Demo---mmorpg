@@ -27,6 +27,7 @@ import { GeyserFx } from './skillfx/geyser-fx.js';
 import { JawFx } from './skillfx/jaw-fx.js';
 import { RodFx } from './skillfx/rod-fx.js';
 import { SporeFx } from './skillfx/spore-fx.js';
+import { RuneFx } from './skillfx/rune-fx.js';
 import { IceArrowFx } from './skillfx/icearrow-fx.js';
 import { LanceFx } from './skillfx/lance-fx.js';
 import { MiasmaFx } from './skillfx/miasma-fx.js';
@@ -62,9 +63,9 @@ const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap', 'blast_trap', 'lure_dummy', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap', 'blast_trap', 'lure_dummy', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
-const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod']);
+const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -109,6 +110,7 @@ export class SkillFx {
     this.geyser = new GeyserFx(scene, camera, this.fire); // the trapper's Flame Geyser eruptions
     this.jaw = new JawFx(scene, camera); // the trapper's Frost Jaw bite
     this.rod = new RodFx(scene, camera); // the trapper's Lightning Rod
+    this.rune = new RuneFx(scene, camera); // the trapper's Gravity Rune circle and pull
     this.spore = new SporeFx(scene, camera); // the trapper's Spore Pod puffs and its poison passing on
     this.iarrow = new IceArrowFx(scene, camera); // the spell archer's Shatter Arrow
     this.lance = new LanceFx(scene, camera); // the spell archer's Thunder Lance
@@ -314,6 +316,7 @@ export class SkillFx {
           this.jaw.bite(e.x, e.z, e.radius || 1.8, this.skillOf(look)?.stun?.duration || g.data.skills.combat.frost_jaw.stun.duration, cx, cz); host.shake(0.16, 0.12); return true;
         }
         if (look === 'lightning_rod') { this.rod.raise(e); host.shake(0.12, 0.1); return true; }
+        if (look === 'gravity_rune') { const P = this.skillOf(look)?.pull || g.data.skills.combat.gravity_rune.pull; this.rune.open(e.x, e.z, P.radius, e.radius || 1.6, P.time); host.shake(0.1, 0.1); return true; }
         if (look === 'spore_pod') { this.spore.puff(e.x, e.z, e.radius || 2, e.puffsLeft ?? 2); return true; }
         if (look === 'blast_trap') host.shake(0.3, 0.25); else host.shake(0.1, 0.1); return true; }
       // Lightning Rod: a bolt to each trap it sets off, and one into each body it strikes (skillfx/rod-fx.js)
@@ -575,7 +578,7 @@ export class SkillFx {
     }
     this.venom.update(dt, tip);
     this.rain.update(dt);
-    this.frain.update(dt); this.geyser.update(dt); this.jaw.update(dt); this.rod.update(dt); this.spore.update(dt);
+    this.frain.update(dt); this.geyser.update(dt); this.jaw.update(dt); this.rod.update(dt); this.spore.update(dt); this.rune.update(dt);
     this.iarrow.update(dt);
     this.lance.update(dt);
     this.miasma.update(dt);
@@ -661,7 +664,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

@@ -700,4 +700,13 @@ golden spores (specks of light, white-gold at the heart) thrown up out of the mo
 a small plume rising from the mouth; a thin ring of spore light running out to the radius; a warm light.
 When a monster dies poisoned by it (poisonSpread), a stream of pale spores arcs from the body to the next
 one with a little puff where it lands. Round-1 fixes: the first spores were fine glitter and the clouds
-hardly showed (spores doubled in size and thrown further, clouds firmer, the ring thinner).
+hardly showed (spores doubled in size and thrown further, clouds firmer, the ring thinner). The owner passed it.
+
+Gravity Rune, round 1 (`rune-fx.js`, plate in `trap-fx.js`). The plate is the disc with violet rune rings
+and a violet star once armed. When it springs, a rune circle of violet light opens on the ground out to the
+pull's true 4.5 m reach: an outer and an inner ring with glyph ticks and small diamonds between them,
+turning, and five spiral arms winding in, flowing toward the middle while it pulls. Streaks of light are
+drawn in along the spiral, faster as they near the middle. At the end of the pull the circle shrinks into
+the middle, a ring snaps in to the burst's radius and a star glints where they meet. Lines only, no fill.
+Round-1 fix: the first lines were thick and came out near white on grass; thinner, fainter and more
+violet now.

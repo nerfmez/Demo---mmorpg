@@ -88,7 +88,8 @@ export class TrapFx {
     const bombGeo = new THREE.SphereGeometry(0.24, 14, 10), fuseGeo = new THREE.CylinderGeometry(0.025, 0.03, 0.14, 6);
     const nozzleGeo = new THREE.CylinderGeometry(0.16, 0.22, 0.2, 12, 1, true), lipGeo = new THREE.TorusGeometry(0.16, 0.035, 6, 14).rotateX(Math.PI / 2);
     const podGeo = new THREE.SphereGeometry(0.22, 14, 10), bumpGeo = new THREE.SphereGeometry(0.06, 8, 6), mouthGeo = new THREE.TorusGeometry(0.07, 0.03, 6, 12).rotateX(Math.PI / 2);
-    for (const g of [podGeo, bumpGeo, mouthGeo]) g.userData.shared = true;
+    const runeGeo = new THREE.TorusGeometry(0.27, 0.025, 5, 24).rotateX(Math.PI / 2), runeGeo2 = new THREE.TorusGeometry(0.15, 0.018, 5, 18).rotateX(Math.PI / 2);
+    for (const g of [podGeo, bumpGeo, mouthGeo, runeGeo, runeGeo2]) g.userData.shared = true;
     const stubGeo = new THREE.CylinderGeometry(0.045, 0.06, 0.34, 8), knobGeo = new THREE.SphereGeometry(0.09, 10, 8), ringGeo = new THREE.TorusGeometry(0.075, 0.02, 5, 12).rotateX(Math.PI / 2);
     for (const g of [disc, rim, tooth, hub, bombGeo, fuseGeo, nozzleGeo, lipGeo, stubGeo, knobGeo, ringGeo, ...coilGeos]) g.userData.shared = true;
     const edge = outlineMaterial(EDGE, 0.02);
@@ -111,11 +112,14 @@ export class TrapFx {
       addP(podGeo, '#7c8f36', 0, 0.26, 0).scale.y = 1.15; addP(mouthGeo, '#4c3a5a', 0, 0.5, 0);
       for (let i = 0; i < 5; i++) { const a = i * 1.257; addP(bumpGeo, '#d8c25a', Math.cos(a) * 0.17, 0.2 + (i % 2) * 0.12, Math.sin(a) * 0.17); }
       pod.visible = false;
+      // a Gravity Rune's plate: violet rune rings laid on the disc, a violet star over it once armed
+      const rune = [add(runeGeo, '#7a5cff', 0.09), add(runeGeo2, '#a58cff', 0.09)]; for (const m of rune) m.visible = false;
+      const arc = lightSprite(scene, starTexture('arcane'), true, 10); arc.visible = false;
       const spark = lightSprite(scene, starTexture('fire'), true, 10), cold = lightSprite(scene, starTexture('cold'), true, 10); cold.visible = false;
       g.visible = false; scene.add(g);
       const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uPulse: { value: 0 } }, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
       ring.rotation.x = -Math.PI / 2; ring.renderOrder = 2; ring.visible = false; scene.add(ring);
-      return { g, teeth, coil, bomb, vent, stub, pod, spark, cold, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
+      return { g, teeth, coil, bomb, vent, stub, pod, rune, arc, spark, cold, ring, id: 0, skill: '', t: 0, state: 'off', from: new THREE.Vector3(), x: 0, z: 0, arm: 0.6, trigger: 1, radius: 1.4, springT: 0, spikes: [], seed: 0, spin: 0 };
     });
     // nets (Net Trap): a dome of rope that bursts up off the plate and drapes over the circle, with iron
     // weights on its rim flung out to pin it
@@ -160,8 +164,9 @@ export class TrapFx {
     p.frost = look === 'frost_jaw'; // a Frost Jaw: the iron trap with a cold light in its middle once armed
     p.rod = look === 'lightning_rod';
     for (const m of p.stub) m.visible = p.rod;
+    p.grav = look === 'gravity_rune'; for (const m of p.rune) m.visible = p.grav;
     p.spore = look === 'spore_pod'; p.pod.visible = p.spore; p.squeeze = 9; p.fill = 1; p.pod.scale.setScalar(1);
-    for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net && !p.blast && !p.geyser && !p.rod && !p.spore; }
+    for (const t of p.teeth) { t.scale.set(1, 0.3, 1); t.visible = !p.net && !p.blast && !p.geyser && !p.rod && !p.spore && !p.grav; }
     for (const m of p.vent) m.visible = p.geyser;
     for (const c of p.coil) c.visible = p.net;
     for (const m of p.bomb) m.visible = p.blast;
@@ -175,6 +180,7 @@ export class TrapFx {
     const r = this.rnd, R = p.radius;
     if (p.geyser) { this.glint(p.x, 0.5, p.z, 0.6, 0.2); return; }
     if (p.frost) { p.cold.visible = false; return; }
+    if (p.grav) { p.arc.visible = false; return; } // RuneFx opens its circle; the plate sinks under it
     if (p.rod) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.cold.visible = false; return; } // RodFx's rod rises in its place
     if (p.blast) {
       // the bomb goes off: the plate is gone at once, the burst is Flame Arrow Rain's (onBlast)
@@ -203,7 +209,7 @@ export class TrapFx {
     place(this.light, p.x, 1, p.z); this.lightT = 0;
   }
   /** The rules' areaEnd: a trap that ran out its life unsprung sinks away (a sprung one is already ending). */
-  end(id) { const p = this.plates.find((q) => q.id === id && (q.state === 'set' || q.state === 'toss')); if (p) { p.state = 'sink'; p.springT = 0; p.ring.visible = false; p.cold.visible = false; } }
+  end(id) { const p = this.plates.find((q) => q.id === id && (q.state === 'set' || q.state === 'toss')); if (p) { p.state = 'sink'; p.springT = 0; p.ring.visible = false; p.cold.visible = false; p.arc.visible = false; } }
   /** A struck body bleeds: a spray of drops off it (c: its centre, ground-relative). */
   bleed(c) {
     const r = this.rnd;
@@ -273,6 +279,8 @@ export class TrapFx {
         // a bomb's fuse sparks once armed, flickering
         p.spark.visible = (p.blast || p.geyser) && armed;
         p.cold.visible = (p.frost || p.rod) && armed;
+        p.arc.visible = p.grav && armed;
+        if (p.arc.visible) { place(p.arc, p.x, 0.25, p.z); p.arc.scale.setScalar(0.45 + 0.06 * Math.sin(this.time * 5 + p.seed)); p.arc.material.rotation = this.time * 1.2; }
         // the pod breathes while it waits, and squeezes hard on a puff
         if (p.spore) { p.squeeze += dt; const q = p.squeeze < 0.25 ? Math.sin(p.squeeze / 0.25 * Math.PI) : 0, br = 1 + 0.04 * Math.sin(this.time * 3 + p.seed); p.pod.scale.set(p.fill * br * (1 + 0.25 * q), p.fill * br * (1 - 0.35 * q), p.fill * br * (1 + 0.25 * q)); }
         if (p.cold.visible) { place(p.cold, p.x, p.rod ? 0.5 : 0.22, p.z); p.cold.scale.setScalar(0.38 + 0.06 * Math.sin(this.time * 7 + p.seed)); p.cold.material.rotation = this.time * 0.8; }
@@ -368,7 +376,7 @@ export class TrapFx {
     if (this.lightT < 0.35) { this.lightT += dt; this.light.intensity = 3 * (1 - this.lightT / 0.35); } else this.light.intensity = 0;
   }
   clear() {
-    for (const p of this.plates) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.ring.visible = false; p.spark.visible = false; p.cold.visible = false; p.g.scale.setScalar(1); }
+    for (const p of this.plates) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.ring.visible = false; p.spark.visible = false; p.cold.visible = false; p.arc.visible = false; p.g.scale.setScalar(1); }
     for (let i = 0; i < this.spikes.count; i++) { this.spikes.setMatrixAt(i, ZERO); this.spikeEdges.setMatrixAt(i, ZERO); }
     this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
     for (const q of this.dusts) { q.t = 9; q.m.visible = false; } for (const g of this.glints) { g.t = 9; g.s.visible = false; }

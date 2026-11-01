@@ -1504,6 +1504,15 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   equal): from behind the hero, to a side picked from its id, the wolf leaping the last stretch, the bear
   landing heavy, the eagle diving down out of the sky; `skillfx/call-fx.js` draws the whistle, the dust and
   feathers instead of the magic puff of a conjured summon. In Godot: a Path or a tween of the same curve.
+  Each companion has its own moves. The bear's attack is a paw swipe: the clip `swipe` in beast-clips.json
+  holds whole poses (`absolute: true`: directions, not turns from the wolf's standing pose; `hit` where the
+  paw moves fastest) taken from a CC0 humanoid claw swipe (UAL2 `Zombie_Scratch`,
+  `scripts/beast-clips/extract-swipe.mjs`), the bear's head, tail and hind legs kept as in its rear pose.
+  Sent in by Sic 'Em (`a.sic` during its wind-up) the wolf pounces: the wolf's own `jump` clip (Gallop_Jump)
+  up to the bite at 0.68 of it, an added leap arc and a lunge onto its prey. Pack Hunt's `packBuff.howl` s
+  set the companion's `roarT`/`roarTotal` (it stands): a wolf howls (head thrown back), the bear rears and
+  roars. The eagle's strike is a swoop from its height down onto its prey (the view passes `reach`, its
+  distance to the target), climbing back after; under Sic 'Em it climbs higher and stoops.
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

@@ -728,3 +728,9 @@ fixes: the landing dust first showed where it was called while it already ran at
 the eagle's first streak drew from stale points across the screen (now sampled back along its own path, at
 most 1.8 m).
 
+Companions' own moves (owner: "each one must have its own attack and skill moves"). The bear swipes with a
+paw (rearing, the paw raised, raked down: spine and forelegs from a CC0 humanoid claw swipe, UAL2
+Zombie_Scratch); the wolf sent in by Sic 'Em crouches and leaps onto its prey (the wolf clip's own
+Gallop_Jump with a leap arc and a lunge); Pack Hunt makes the wolf stand and howl, the bear rear and roar; the
+eagle swoops from its height onto its prey and beats back up, and stoops from higher when sent in.
+

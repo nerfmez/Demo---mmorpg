@@ -782,12 +782,14 @@ export class View {
         this.scene.add(rig.root);
         av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: a.type==='spirit_wolf'?installSpiritReveal(rig):null };
         // a hunter's companion comes in from the wild along its arrival path (companion-arrival.js)
-        if (arrives(a.type)) av.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, g.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
+        if (arrives(a.type) && a.arriveT > 0) av.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, g.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
         this.allyViews.set(a.id, av);
       }
       const r = av.rig;
       av.spawnT += dt || 1 / 60;
-      const arr = av.arr && av.spawnT < arrivalTime(a.type) + 0.05 ? arrivalAt(a.type, av.spawnT, av.arr.from, a.x, a.z, av.arr.at) : null;
+      // (on its way while the rules still hold it: arriveT counts down the same time)
+      const arrT = arrivalTime(a.type) - (a.arriveT || 0);
+      const arr = av.arr && a.arriveT > 0 ? arrivalAt(a.type, arrT, av.arr.from, a.x, a.z, av.arr.at) : null;
       let d = (arr ? arr.facing : a.facing) - r.root.rotation.y;
       d = Math.atan2(Math.sin(d), Math.cos(d));
       r.root.rotation.y += arr ? d : d * Math.min(1, dt * 12);
@@ -797,7 +799,9 @@ export class View {
       r.root.position.set(ax, av.y + (arr ? arr.y : 0), az);
       measureMotion(av, ax, az, r.root.rotation.y, dt);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: arr ? arr.k < 1 : a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.pounce?.taunt?.stand || 1.2 }, dt, time);
+      // how far its strike reaches (the eagle swoops onto its prey from up to its range away)
+      if (a.state === 'windup') { const tg = g.monsters.find((m) => m.id === a.targetId); av.reach = tg ? Math.max(0, Math.hypot(tg.x - a.x, tg.z - a.z) - 0.5) : 0; }
+      r.animate(r, { reach: av.reach || 0, moving: arr ? arr.k < 1 : a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : av.arr ? 1 : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);

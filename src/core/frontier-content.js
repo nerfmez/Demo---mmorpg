@@ -157,7 +157,7 @@ export function executeFrontier(g,s,aim,mult,triggered) {
   // skill keeps at most max traps set (the oldest goes); a field (count) scatters its traps over spread m.
   if(s.trap){placeTraps(g,s,aim,mult);return true;}
   if(s.sic){commandCompanion(g,s);return true;}
-  if(s.packBuff)for(const a of g.allies)if(a.companion&&!a.dead){a.buffs.pack={damage:s.packBuff.damage,t:s.packBuff.duration};g.emit({type:'packBuff',id:a.id,duration:s.packBuff.duration});}
+  if(s.packBuff)for(const a of g.allies)if(a.companion&&!a.dead){a.buffs.pack={damage:s.packBuff.damage,t:s.packBuff.duration};if(s.packBuff.howl){a.roarT=Math.max(a.roarT||0,s.packBuff.howl);a.roarTotal=s.packBuff.howl;}g.emit({type:'packBuff',id:a.id,duration:s.packBuff.duration});} // it stands to howl the pack in (packBuff.howl s; a bear roars)
   // Flame Arrow Rain (s.arrows): count arrows pin across the circle at land s, one near its middle, the rest
   // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
   if(s.arrows){

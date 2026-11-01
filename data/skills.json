@@ -896,7 +896,8 @@
       },
       "packBuff": {
         "damage": 0.3,
-        "duration": 8
+        "duration": 8,
+        "howl": 0.9
       },
       "cooldown": 16,
       "castTime": 0.4,

@@ -23,3 +23,19 @@ test('the companion clips: a CC0 source, a standing pose and every clip the anim
   const zs = C.clips.walk.frames.map((f) => f.leg0[2]);
   assert.ok(Math.max(...zs) - Math.min(...zs) > 0.4, 'the front leg swings');
 });
+
+test('each companion has its own moves: the wolf leaps (Gallop_Jump), the bear swipes from a CC0 claw clip', () => {
+  const jump = C.clips.jump;
+  assert.ok(jump && jump.frames.length >= 8, 'the pounce clip');
+  const lifts = jump.frames.map((f) => f.lift);
+  assert.ok(Math.min(...lifts) < -0.1 && Math.max(...lifts) > 0.3, 'it crouches, then leaps');
+  const sw = C.clips.swipe;
+  assert.match(sw.from, /CC0/);
+  assert.ok(sw.absolute && sw.hit > 0.15 && sw.hit < 0.6 && sw.duration > 0, 'a pose clip with its strike inside');
+  for (const f of sw.frames) for (const p of PARTS) assert.ok(unit(f[p]), `swipe ${p}`);
+  // reared: the spine near upright through the swipe, and a foreleg comes from high to low across the strike
+  const at = (u) => sw.frames[Math.min(sw.frames.length - 1, Math.round(u * sw.frames.length))];
+  assert.ok(sw.frames.every((f) => f.body[1] > 0.5), 'it stands to swipe');
+  const paw = (f) => Math.max(f.leg0k[1], f.leg1k[1]);
+  assert.ok(paw(at(sw.hit - 0.06)) > paw(at(sw.hit + 0.1)) + 0.3, 'the raised paw comes down through the strike');
+});

@@ -1730,7 +1730,8 @@ export class Game {
       if (a.static) { a.moving = false; continue; }
       // a companion still coming in from the wild (summon.arrive; the view draws its run in) does nothing yet
       if (a.arriveT > 0) { a.arriveT -= dt; a.moving = false; continue; }
-      // a bear that has just roared (Sic 'Em) stands its ground on its hind legs a moment
+      // a bear that has just roared (Sic 'Em) stands its ground on its hind legs a moment; a companion howling
+      // the pack in (Pack Hunt) stands to howl
       if (a.roarT > 0) { a.roarT -= dt; a.moving = false; continue; }
       // pick a target: what we are fighting, else the player's target, else something threatening the player
       if(a.command==='follow'){a.targetId=null;}
@@ -1770,7 +1771,7 @@ export class Game {
             if (sic) {
               a.sic = null;
               // a bear's roar turns the monsters round it onto the bear
-              if (sic.taunt) { for (const m of this.monsters) if (!m.dead && dist(a.x, a.z, m.x, m.z) <= sic.taunt.radius) { m.forcedTargetId = a.id; m.tauntT = Math.max(m.tauntT || 0, sic.taunt.duration); } a.roarT = sic.taunt.stand || 0; }
+              if (sic.taunt) { for (const m of this.monsters) if (!m.dead && dist(a.x, a.z, m.x, m.z) <= sic.taunt.radius) { m.forcedTargetId = a.id; m.tauntT = Math.max(m.tauntT || 0, sic.taunt.duration); } a.roarT = sic.taunt.stand || 0; a.roarTotal = a.roarT; }
               this.emit({ type: 'companionPounce', id: a.id, kind: a.type, target: tt.id, x: tt.x, z: tt.z, roar: sic.taunt?.radius || 0 });
             }
             this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });

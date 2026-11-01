@@ -29,6 +29,7 @@ import { RodFx } from './skillfx/rod-fx.js';
 import { SporeFx } from './skillfx/spore-fx.js';
 import { RuneFx } from './skillfx/rune-fx.js';
 import { CallFx } from './skillfx/call-fx.js';
+import { CompanionFx } from './skillfx/companion-fx.js';
 import { arrives } from './companion-arrival.js';
 import { IceArrowFx } from './skillfx/icearrow-fx.js';
 import { LanceFx } from './skillfx/lance-fx.js';
@@ -114,6 +115,7 @@ export class SkillFx {
     this.rod = new RodFx(scene, camera); // the trapper's Lightning Rod
     this.rune = new RuneFx(scene, camera); // the trapper's Gravity Rune circle and pull
     this.call = new CallFx(scene, camera); // the hunter's whistle and a companion coming in from the wild
+    this.companion = new CompanionFx(scene, camera, this.call); // the companions' own strikes and the bear's roar
     this.spore = new SporeFx(scene, camera); // the trapper's Spore Pod puffs and its poison passing on
     this.iarrow = new IceArrowFx(scene, camera); // the spell archer's Shatter Arrow
     this.lance = new LanceFx(scene, camera); // the spell archer's Thunder Lance
@@ -153,7 +155,7 @@ export class SkillFx {
     this.lance.locate = (id) => this.centerOf(id);
     this.tslash.locate = (id) => this.centerOf(id);
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura, this.call]) fx.onShake = shake;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura, this.call, this.companion]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
@@ -317,6 +319,9 @@ export class SkillFx {
         this.call.call(e, a.type, g.player); return true;
       }
       case 'allyGone': this.traps.gone(e); return false;
+      // the hunter's companions' strikes: a fang snap, claw rakes, talon slashes (skillfx/companion-fx.js)
+      case 'allyStrike': return this.companion.strike(e);
+      case 'companionPounce': { if (e.roar) { const b = this.call.locate?.(e.id); if (b) this.companion.roar(b.x, b.z, e.roar); } return false; }
       case 'trapSprung': { if (!TRAP_FX.has(e.skill)) return false; this.traps.spring(e);
         const look = e.look || e.skill;
         if (look === 'frost_jaw') {
@@ -588,7 +593,7 @@ export class SkillFx {
     }
     this.venom.update(dt, tip);
     this.rain.update(dt);
-    this.frain.update(dt); this.geyser.update(dt); this.jaw.update(dt); this.rod.update(dt); this.spore.update(dt); this.rune.update(dt); this.call.update(dt);
+    this.frain.update(dt); this.geyser.update(dt); this.jaw.update(dt); this.rod.update(dt); this.spore.update(dt); this.rune.update(dt); this.call.update(dt); this.companion.update(dt);
     this.iarrow.update(dt);
     this.lance.update(dt);
     this.miasma.update(dt);
@@ -674,7 +679,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.companion, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

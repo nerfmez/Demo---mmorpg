@@ -1513,6 +1513,11 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   set the companion's `roarT`/`roarTotal` (it stands): a wolf howls (head thrown back), the bear rears and
   roars. The eagle's strike is a swoop from its height down onto its prey (the view passes `reach`, its
   distance to the target), climbing back after; under Sic 'Em it climbs higher and stoops.
+  Sic 'Em is each companion's own, and only the wolf's dazes: the wolf's pounce stuns, the hawk's dive bleeds
+  (`pounce.bleed`) and staggers hard (`pounce.stagger` s, a heavy flinch passed to `hitMonster`), the bear's
+  roar taunts (no stun). `allyStrike` carries `kind` (the ally's type) and `sic` (Sic 'Em's strike); the view
+  draws each companion's strike (`skillfx/companion-fx.js`: a fang snap, claw rakes, talon slashes; bigger on
+  Sic 'Em) and the bear's roar as rings out to the taunt radius.
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

@@ -1767,14 +1767,14 @@ export class Game {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
             const k = 1 + buffSum(a.buffs, 'damage'), sic = a.sic && a.sic.targetId === tt.id ? a.sic : null;
-            this.hitMonster(tt, a.damage * k * (sic ? sic.mult : 1) * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z, stun: sic?.stun, bleed: sic?.bleed });
+            this.hitMonster(tt, a.damage * k * (sic ? sic.mult : 1) * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z, stun: sic?.stun, bleed: sic?.bleed, stagger: sic?.stagger });
             if (sic) {
               a.sic = null;
               // a bear's roar turns the monsters round it onto the bear
               if (sic.taunt) { for (const m of this.monsters) if (!m.dead && dist(a.x, a.z, m.x, m.z) <= sic.taunt.radius) { m.forcedTargetId = a.id; m.tauntT = Math.max(m.tauntT || 0, sic.taunt.duration); } a.roarT = sic.taunt.stand || 0; a.roarTotal = a.roarT; }
               this.emit({ type: 'companionPounce', id: a.id, kind: a.type, target: tt.id, x: tt.x, z: tt.z, roar: sic.taunt?.radius || 0 });
             }
-            this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
+            this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', kind: a.type, sic: !!sic, x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
           a.cd = a.attackCooldown;
           a.state = 'recover';

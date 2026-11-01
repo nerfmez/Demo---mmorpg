@@ -131,10 +131,11 @@ test('three companions, one at a time: calling another kind sends the old one aw
 });
 
 let g0 = null;
-test('Sic \'Em is each companion\'s own: the hawk\'s dive bleeds and cuts a wind-up, the bear\'s roar turns the monsters round it onto the bear', () => {
+test('Sic \'Em is each companion\'s own (only the wolf\'s pounce dazes): the hawk\'s dive bleeds and staggers, the bear\'s roar turns the monsters round it onto the bear', () => {
   for (const [call, check] of [
-    ['call_hawk', (m, ms, a) => { assert.ok(m.statuses.bleed?.t > 0, 'the dive bleeds'); assert.equal(m.state, 'stunned', 'a short stun cuts its wind-up'); }],
+    ['call_hawk', (m, ms, a) => { assert.ok(m.statuses.bleed?.t > 0, 'the dive bleeds'); assert.notEqual(m.state, 'stunned', 'no daze: its own is the bleed'); assert.ok(m.staggerT > 0.3, 'and a hard flinch'); }],
     ['call_bear', (m, ms, a) => {
+      assert.notEqual(m.state, 'stunned', 'no daze: its own is the roar');
       for (const q of ms) assert.equal(q.forcedTargetId, a.id, 'turned onto the bear');
       assert.equal(a.roarT, C.call_bear.summon.pounce.taunt.stand, 'it stands up to roar');
       const x0 = a.x, z0 = a.z; a.state = 'follow'; g0.player.x += 6; for (let i = 0; i < 10; i++) g0.updateAllies(0.05);

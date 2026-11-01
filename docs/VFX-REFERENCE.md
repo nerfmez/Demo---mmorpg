@@ -734,3 +734,12 @@ Zombie_Scratch); the wolf sent in by Sic 'Em crouches and leaps onto its prey (t
 Gallop_Jump with a leap arc and a lunge); Pack Hunt makes the wolf stand and howl, the bear rear and roar; the
 eagle swoops from its height onto its prey and beats back up, and stoops from higher when sent in.
 
+Companions' strikes, round 1 (`companion-fx.js`; owner: "no attack effect at all, and every Sic 'Em shows
+the same daze"). Each hit is the animal's own weapon drawn as light on the screen's plane: the wolf a fang
+snap (an upper and a lower crescent closing, a glint), the bear three warm-red claw rakes torn across the
+prey, the eagle two crossed talon slashes and a feather or two. Sic 'Em: the wolf's snap is bigger and its
+landing throws dust (its pounce keeps the stun), the bear's roar sends three warm rings out to the taunt's
+5 m and shakes the screen, the eagle's dive tears three red gashes (bleed) with a ring of air and feathers.
+The rules changed with it: only the wolf's pounce stuns now; the hawk's bleeds harder and staggers, the
+bear's taunts and hits harder.
+

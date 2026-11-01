@@ -699,13 +699,10 @@
         "pounce": {
           "mult": 2.2,
           "bleed": {
-            "fraction": 0.5,
-            "duration": 4
+            "fraction": 0.8,
+            "duration": 5
           },
-          "stun": {
-            "duration": 0.25,
-            "bossDuration": 0.15
-          }
+          "stagger": 0.45
         }
       },
       "cooldown": 20,
@@ -757,15 +754,11 @@
         "range": 1.4,
         "attackCooldown": 1.6,
         "pounce": {
-          "mult": 1.6,
+          "mult": 2.0,
           "taunt": {
             "radius": 5,
             "duration": 3,
             "stand": 1.2
-          },
-          "stun": {
-            "duration": 0.6,
-            "bossDuration": 0.2
           }
         }
       },

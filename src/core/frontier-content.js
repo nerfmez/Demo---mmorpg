@@ -493,7 +493,7 @@ export function commandCompanion(g,s){
   a.command='attack';a.targetId=t.id;a.state='follow';a.stateT=0;
   // what it does there is its own (the companion's pounce), else the skill's
   const P=a.pounce||s.sic;
-  a.sic={targetId:t.id,mult:P.mult,speed:s.sic.speed,stun:P.stun,bleed:P.bleed,taunt:P.taunt,t:4};
+  a.sic={targetId:t.id,mult:P.mult,speed:s.sic.speed,stun:P.stun,bleed:P.bleed,stagger:P.stagger,taunt:P.taunt,t:4}; // the wolf's pins it (stun), the hawk's tears (bleed, a hard flinch), the bear's roars (taunt)
   g.emit({type:'sicEm',id:a.id,target:t.id,x:a.x,z:a.z,tx:t.x,tz:t.z});
   return true;
 }

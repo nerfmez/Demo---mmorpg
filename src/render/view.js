@@ -616,7 +616,7 @@ export class View {
         if (!drawn) v.chain(e);
         break;
       case 'allyStrike':
-        v.bite(e);
+        if (!drawn) v.bite(e); // the hunter's companions draw their own (skill-fx.js)
         break;
       case 'summon':
         if (!drawn) v.summon(e); // the hunter's companions come in to a whistle (skill-fx.js), no puff

@@ -19,10 +19,11 @@ const DUSTS = 40, CALLS = 6, ARCS = 9, FEATHERS = 24, TRAIL = 7, STREAK = 1.8, H
 const WARM = [1.0, 0.95, 0.82], WARM_GLOW = [1.0, 0.78, 0.4], WIND = [0.92, 0.97, 1.0], WIND_GLOW = [0.55, 0.75, 1.0];
 const FEATHER_COLS = [[0.62, 0.42, 0.24], [0.27, 0.32, 0.55], [0.93, 0.88, 0.78]];
 const RING_VS = `varying vec2 vP; void main(){ vP = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
-const RING_FS = `varying vec2 vP; uniform float uK;
+const RING_FS = `varying vec2 vP; uniform float uK; uniform vec3 uC;
   void main(){ float r = length(vP); if (r > 1.0) discard;
     float front = 0.2 + 0.8*sqrt(uK), a = exp(-pow((r - front)/0.025, 2.0))*(1.0 - uK)*0.7;
-    if (a < 0.01) discard; gl_FragColor = vec4(vec3(0.85, 0.93, 1.0)*a, 1.0); }`;
+    if (a < 0.01) discard; gl_FragColor = vec4(uC*a, 1.0); }`;
+const AIR = new THREE.Color(0.85, 0.93, 1.0);
 const FEATHER_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d = abs(vUv.y), x = vUv.x; float w = sin(3.1416*x)*(0.6 + 0.4*x); if (d > w) discard;
     vec3 c = d > w*0.75 ? vT*0.55 : (d < 0.08 ? vT*1.25 : vT); gl_FragColor = vec4(c, vA); }`;
@@ -38,7 +39,7 @@ export class CallFx {
     const quad = new THREE.PlaneGeometry(1, 1);
     this.dusts = Array.from({ length: DUSTS }, () => { const m = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: 0 } }, vertexShader: BILLBOARD_VS, fragmentShader: DUST_FS, transparent: true, depthWrite: false })); m.visible = false; m.renderOrder = 6; m.frustumCulled = false; scene.add(m); return { m, p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, life: 0.6, size: 0.6 }; });
     this.dustI = 0;
-    this.rings = Array.from({ length: 3 }, () => { const m = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uK: { value: 1 } }, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); m.rotation.x = -Math.PI / 2; m.visible = false; m.renderOrder = 2; scene.add(m); return { m, t: 9 }; });
+    this.rings = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uK: { value: 1 }, uC: { value: new THREE.Color() } }, vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); m.rotation.x = -Math.PI / 2; m.visible = false; m.renderOrder = 2; scene.add(m); return { m, t: 9, life: 0.45 }; });
     this.ringI = 0;
     this.calls = Array.from({ length: CALLS }, () => ({ type: '', t: 99, from: { x: 0, z: 0 }, toX: 0, toZ: 0, landed: true, nextDust: 0, trail: Array.from({ length: TRAIL }, () => new THREE.Vector3()), tn: 0 }));
     this.arcs = Array.from({ length: ARCS }, () => ({ t: 99, x: 0, y: 0, z: 0, dir: 0 }));
@@ -60,7 +61,8 @@ export class CallFx {
     }
   }
   dust(x, y, z, vx, vy, vz, size, life) { const q = this.dusts[this.dustI++ % DUSTS]; q.p.set(x, y, z); q.v.set(vx, vy, vz); q.t = 0; q.size = size; q.life = life; q.m.material.uniforms.uSeed.value = this.rnd() * 40; }
-  ring(x, y, z, R) { const g = this.rings[this.ringI++ % this.rings.length]; g.t = 0; g.m.visible = true; place(g.m, x, y, z); g.m.scale.setScalar(R * 2); }
+  /** A thin ring running out to R round (x, y, z) over life s (delay: starts later), colour col (a THREE.Color). */
+  ring(x, y, z, R, col = AIR, life = 0.45, delay = 0) { const g = this.rings[this.ringI++ % this.rings.length]; g.t = -delay; g.life = life; g.m.visible = false; place(g.m, x, y, z); g.m.scale.setScalar(R * 2); g.m.material.uniforms.uC.value.copy(col); }
   feathersAt(x, y, z, n) {
     for (let i = 0; i < n; i++) {
       const f = this.feathers[this.featherI++ % FEATHERS], a = this.rnd() * 6.283, sp = 0.6 + this.rnd() * 1.2;
@@ -136,7 +138,7 @@ export class CallFx {
       q.v.multiplyScalar(Math.max(0, 1 - dt * 3)); q.p.addScaledVector(q.v, dt);
       q.m.material.uniforms.uT.value = u; place(q.m, q.p.x, q.p.y, q.p.z); q.m.quaternion.copy(cam); q.m.scale.setScalar(q.size * (0.6 + 0.8 * u));
     }
-    for (const g of this.rings) { if (g.t >= 0.45) { g.m.visible = false; continue; } g.t += dt; g.m.material.uniforms.uK.value = Math.min(1, g.t / 0.45); }
+    for (const g of this.rings) { if (g.t >= g.life) { g.m.visible = false; continue; } g.t += dt; g.m.visible = g.t >= 0; g.m.material.uniforms.uK.value = Math.min(1, Math.max(0, g.t) / g.life); }
   }
   clear() {
     for (const c of this.calls) c.t = 99; for (const a of this.arcs) a.t = 99; for (const f of this.feathers) f.t = 9;

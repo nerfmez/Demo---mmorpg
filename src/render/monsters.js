@@ -12,6 +12,7 @@ import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
 import MOTION from '../../data/monster-motion.json';
 import FX from '../../data/combat-fx.json';
 import { createRollFx } from './roll-fx.js';
+import { animBeast } from './beast-clips.js';
 import { motionConfig, advanceGait, poseLegs, poseSplayedLegs, legCycle, wander, breath } from './monster-motion.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
@@ -736,6 +737,47 @@ function animHawk(r, s, dt, time) {
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.7 + Math.round(wander(time * 0.7, r.seed) * 3) * 0.12 * (s.aggro ? 0 : 1), 12, dt);
 }
 
+/**
+ * The hunter's eagle (the owner's model on the hawk rig), flapping the way a big bird does: a strong
+ * downstroke (55% of the beat, the wings swept from above the back to below the body), then an upstroke
+ * with the wing folded at the wrist (the tip bone folds in and back) so it does not push air back up; the
+ * body lifts on each downstroke. Between bouts of beats it glides on spread wings, banking with its turns.
+ * Its strike (a wind-up 'dive') folds the wings back, pitches it down and reaches the talons forward; the
+ * recovery flares the wings wide. The model rests with its wings raised: angles are from that rest.
+ */
+function animEagle(r, s, dt, time) {
+  const b = r.bones, c = r.motion;
+  advanceGait(r, s, dt, c);
+  const moving = (s.speed || 0) > 0.6;
+  // flap in bouts, glide between them (more flapping while it is moving fast)
+  const want = moving ? (s.speed > 6 ? 1 : 0.65 + 0.35 * Math.sin(time * 0.9 + r.seed)) : 0.55 + 0.45 * Math.sin(time * 0.6 + r.seed);
+  r.flapAmt = damp(r.flapAmt ?? 1, want > 0.5 ? 1 : 0, 2.5, dt);
+  r.beat = ((r.beat || 0) + dt * 3.1) % 1;
+  const u = r.beat, down = u < 0.55, k = down ? u / 0.55 : (u - 0.55) / 0.45;
+  const e = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x);
+  // the wing's angle (+ raises it from its rest) and the tip's fold (- folds it in) over the beat
+  let wing = down ? 0.15 - 1.25 * e(k) : -1.1 + 1.25 * e(k);
+  let fold = down ? -0.1 * (1 - k) : -0.85 * Math.sin(Math.PI * k);
+  let sweep = down ? 0 : -0.35 * Math.sin(Math.PI * k);
+  // a glide: spread a little below the rest, tips open, a slow breathing of the wings
+  const glide = { wing: -0.5 + 0.05 * Math.sin(time * 2 + r.seed), fold: 0.05, sweep: 0 };
+  wing = glide.wing + (wing - glide.wing) * r.flapAmt; fold = glide.fold + (fold - glide.fold) * r.flapAmt; sweep *= r.flapAmt;
+  let pitch = 0.08 + clampAbs(r.accel || 0, 3) * 0.03, lift = (down ? 0.07 * Math.sin(Math.PI * k) : -0.04 * Math.sin(Math.PI * k)) * r.flapAmt;
+  let kk = 22;
+  const kw = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  if (s.windup) { wing = 0.5 * kw + wing * (1 - kw); fold = -1.0 * kw + fold * (1 - kw); sweep = -0.9 * kw; pitch = 0.08 + 0.55 * kw; kk = 18; }
+  else if (s.state === 'act') { wing = 0.3; fold = -0.6; sweep = -0.6; pitch = 0.7; kk = 26; }
+  else if (s.state === 'recover') { wing = -0.2 + 0.25 * Math.sin(time * 18); fold = 0.15; sweep = 0.1; pitch = -0.2; kk = 16; }
+  b.wingL.rotation.z = damp(b.wingL.rotation.z, wing, kk, dt); b.wingR.rotation.z = damp(b.wingR.rotation.z, -wing, kk, dt);
+  b.wingL.rotation.y = damp(b.wingL.rotation.y, sweep, kk, dt); b.wingR.rotation.y = damp(b.wingR.rotation.y, -sweep, kk, dt);
+  b.wingLt.rotation.z = damp(b.wingLt.rotation.z, fold, kk, dt); b.wingRt.rotation.z = damp(b.wingRt.rotation.z, -fold, kk, dt);
+  b.body.rotation.x = damp(b.body.rotation.x, pitch, 8, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-(s.turn || 0) * 0.25, 0.5), 5, dt); // bank into its turns
+  b.body.position.y = damp(b.body.position.y, 0.3 + (s.alt ?? 2.6) + Math.sin(time * 1.3 + r.seed) * 0.06 + lift, 10, dt);
+  b.head.rotation.x = -b.body.rotation.x * 0.7;
+  b.head.rotation.y = damp(b.head.rotation.y, (s.lookYaw || 0) * 0.7 + Math.round(wander(time * 0.7, r.seed) * 3) * 0.1, 12, dt);
+}
+
 // ---------- horned warden (boss) ----------
 
 function buildWarden() {
@@ -1122,31 +1164,17 @@ function animLureDummy(r, s, dt, time) {
   b.top.rotation.x = damp(b.top.rotation.x, -0.15 * hit, 10, dt);
 }
 
-/** The hunter's bear: on all fours as a quadruped; when it roars (s.standT: the seconds of its roar left,
- *  s.standTotal) its standing model (the second form, data/models.json hunt_bear.ball) rears up in its place
- *  from a forward tilt, shakes with the roar, and drops back down. */
-function animBear(r, s, dt, time) {
-  animQuad(r, s, dt, time, { bodyY: 0.72, gallop: false });
-  const F = r.ballForm; if (!F || !r.modelMeshes) return;
-  const total = s.standTotal || 1.2, left = s.standT || 0, up = left > 0 ? clamp01((total - left) / 0.18) * clamp01(left / 0.2) : 0;
-  F.visible = up > 0.02;
-  for (const m of r.modelMeshes) m.visible = !F.visible;
-  if (!F.visible) return;
-  const e = 1 - up, rad = F.userData.radius || 1;
-  F.rotation.set(1.15 * e * e, 0, Math.sin(time * 34) * 0.025 * up);
-  F.position.set(0, rad * (0.62 + 0.38 * up), 0.25 * e);
-}
-
 const BUILDERS = {
   lure_dummy: [buildLureDummy, animLureDummy],
   tusk_boar: [buildBoar, (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.62, paw: true })],
   thornback_wolf: [() => buildWolf('wolf'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   greyfang: [() => buildWolf('greyfang'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   spirit_wolf: [() => buildWolf('spirit'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
-  hunt_hound: [() => buildWolf('hound'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
-  pack_hound: [() => buildWolf('hound'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
-  hunt_bear: [() => buildWolf('bear'), animBear],
-  hunt_hawk: [buildHawk, animHawk],
+  // the hunter's companions move by the Quaternius wolf's clips (beast-clips.js); the bear heavier and slower
+  hunt_hound: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)],
+  pack_hound: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)],
+  hunt_bear: [() => buildWolf('bear'), (r, s, dt, t) => animBeast(r, s, dt, t, { rate: 0.8, stride: 1.6, gallopFrom: 4.4, gallopFull: 7 })],
+  hunt_hawk: [buildHawk, animEagle],
   moss_beetle: [buildBeetle, animBeetle],
   reef_crab: [buildCrab, animCrab],
   salt_slime: [buildSaltSlime, animSaltSlime],

@@ -2,7 +2,7 @@
 // few training dummies on an isolated flat floor. Nothing is saved; nothing here changes rules.
 import { Game } from '../core/game.js';
 import { createCharacter, equip } from '../core/character.js';
-import { tickFrontier } from '../core/frontier-content.js';
+import { tickFrontier, sicTarget } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
@@ -145,6 +145,9 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   // the hunter's companion skills need the companion: the bench calls it at the start (slot 1)
   const hound = ['sic_em', 'mark_prey', 'pack_hunt'].includes(skill);
   if (hound) { ch.skills.call_companion = 1; helpers.push('call_companion'); }
+  // a call bench: the first press calls the companion, the next ones send it in (Sic 'Em, slot 1)
+  const caller = ['call_companion', 'call_hawk', 'call_bear'].includes(skill);
+  if (caller) { ch.skills.sic_em = 1; helpers.push('sic_em'); }
   for (const h of helpers) ch.skills[h] = 1;
   ch.slots = ch.slots.map((_, i) => ({ skill: i === 0 ? skill : i === 1 && fusion ? fusion : helpers[i - 1] || null, mods: i === 0 ? ch.mods.map((m) => m.uid) : [] }));
   const mv = data.skills.movement[movement] ? movement : 'dash'; // the dodge button's move (the bench's หลบ picker)
@@ -173,7 +176,15 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   if (hound) { const cs = g.skills.find((q) => q?.id === 'call_companion'); g.runSkill(cs, { angle: 0, x: 0, z: 0 }); }
   // hounds go for what is near, so the bench's dummies count as foes for them
   if (hound || ['call_companion', 'call_hawk', 'call_bear'].includes(skill)) for (const m of g.monsters) m.aggro = true;
-  if (helpers.length && !hound) {
+  if (caller) {
+    const run = g.runSkill.bind(g);
+    g.runSkill = (s, aim, opts) => {
+      const sic = g.skills.find((q) => q?.id === 'sic_em');
+      if (s.id === skill && sic && g.allies.some((a) => a.companion && a.life > 0) && sicTarget(g, sic)) return run(sic, aim, opts);
+      run(s, aim, opts);
+    };
+  }
+  if (helpers.length && !hound && !caller) {
     const run = g.runSkill.bind(g);
     g.runSkill = (s, aim, opts) => {
       run(s, aim, opts);

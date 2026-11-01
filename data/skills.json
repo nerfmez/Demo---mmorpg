@@ -636,7 +636,7 @@
           "stat": "attack"
         },
         "speed": 7.5,
-        "range": 1.6,
+        "range": 1.1,
         "attackCooldown": 1.1,
         "companion": true,
         "pounce": {
@@ -751,7 +751,7 @@
           "stat": "attack"
         },
         "speed": 5,
-        "range": 1.9,
+        "range": 1.4,
         "attackCooldown": 1.6,
         "pounce": {
           "mult": 1.6,

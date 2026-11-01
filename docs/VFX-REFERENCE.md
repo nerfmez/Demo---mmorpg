@@ -710,3 +710,11 @@ drawn in along the spiral, faster as they near the middle. At the end of the pul
 the middle, a ring snaps in to the burst's radius and a star glints where they meet. Lines only, no fill.
 Round-1 fix: the first lines were thick and came out near white on grass; thinner, fainter and more
 violet now.
+
+Hunter companions' motion (2026-11-01). Owner: "the animation is not natural on any of them; make the bear go
+from four legs to two in one model, the standing pose as the reference". The wolf and the bear now play the
+Quaternius wolf's clips (CC0: walk, gallop, idle, attack, flinch) retargeted by direction onto their rigs
+(src/render/beast-clips.js), the bear slower and heavier; the bear rears onto its hind legs in its own model
+when it roars. No CC0 bird clip was reachable, so the eagle flaps by a real bird's cycle (fast downstroke,
+folded upstroke, glides). The FX bench's call buttons send the companion in (Sic 'Em) on the second press.
+

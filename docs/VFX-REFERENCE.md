@@ -762,4 +762,9 @@ burst lines and a smaller star.
 Round 6 (owner: "should it not be a see-through effect, not solid colour?"): the jaw is light now, not paint:
 additive translucent teeth (two tones kept), a thin bright rim and a wider soft amber halo round each tooth,
 no dark outline; it adds light over the prey and the grass behind it.
+The owner then asked for the bear and the eagle "like this" (`claw-fx.js`): each claw mark is a solid curved
+slash shape of added light (pointed at both ends, two toon tones, a thin bright rim and a coloured halo) that
+wipes in along its length, swells a little on the impact and lets its tail follow it out. The bear rakes
+three with an orange-red halo, the eagle crosses two with a pale blue halo, its Sic 'Em dive three with a
+red one.
 

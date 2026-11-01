@@ -11,7 +11,7 @@
 //           a few chips (the caller's strokes and glint);
 //   break:  the halves spring a little apart, shrink and fade.
 // Round 5 (owner: "not pretty yet, and too big"): smaller, curved two-tone fangs on a slim pointed crescent,
-// a warm maroon outline, a soft glow behind it, squash and stretch on the snap, lighter impact lines.
+// a warm maroon outline (round 6: see-through light instead, no ink), a soft glow behind it, squash and stretch on the snap, lighter impact lines.
 // Original shapes (no copied art); built once, pooled (4 jaws, 4 shared geometries, 3 materials per jaw).
 import * as THREE from 'three';
 import { glowTexture } from './light-kit.js';
@@ -19,7 +19,7 @@ import { glowTexture } from './light-kit.js';
 const JAWS = 4;
 export const BITE_OPEN = 0.05, BITE_SNAP = 0.06, BITE_HOLD = 0.11, BITE_BREAK = 0.16;
 export const BITE_SHUT = BITE_OPEN + BITE_SNAP; // when the teeth meet (the impact)
-const IVORY = new THREE.Color('#fffaf2'), SHADE = new THREE.Color('#ecd9c6'), TIP = new THREE.Color('#fff4dc'), INK = new THREE.Color('#5a2329');
+const IVORY = new THREE.Color('#fffaf2'), SHADE = new THREE.Color('#ecd9c6'), TIP = new THREE.Color('#fff4dc'), HALO = new THREE.Color('#ffa64d'), RIM = new THREE.Color('#fff0cc');
 
 // One half-jaw (the upper; the lower is the same mirrored, narrower and with fewer teeth), in units of the
 // jaw's half-width: a slim crescent of gum, pointed at both ends, and curved fangs hanging from its lower edge,
@@ -66,21 +66,23 @@ function halfJaw(inflate, lower) {
 export class BiteFx {
   constructor(scene, camera) {
     this.camera = camera;
-    const geo = { up: halfJaw(0, false), upLine: halfJaw(0.045, false), dn: halfJaw(0, true), dnLine: halfJaw(0.045, true) };
+    // see-through light, not paint (owner, round 6): the teeth add light over what is behind them, a thin
+    // bright rim round each, and a wider soft warm halo
+    const geo = { up: halfJaw(0, false), upRim: halfJaw(0.025, false), upHalo: halfJaw(0.09, false), dn: halfJaw(0, true), dnRim: halfJaw(0.025, true), dnHalo: halfJaw(0.09, true) };
     const halo = glowTexture('fire');
     this.jaws = Array.from({ length: JAWS }, () => {
-      const fill = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
-      const line = new THREE.MeshBasicMaterial({ color: INK, transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+      const add = { transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, blending: THREE.AdditiveBlending };
+      const fill = new THREE.MeshBasicMaterial({ vertexColors: true, ...add }), rim = new THREE.MeshBasicMaterial({ color: RIM, ...add }), line = new THREE.MeshBasicMaterial({ color: HALO, ...add });
       const root = new THREE.Group(), up = new THREE.Group(), dn = new THREE.Group();
-      up.add(new THREE.Mesh(geo.upLine, line), new THREE.Mesh(geo.up, fill)); dn.add(new THREE.Mesh(geo.dnLine, line), new THREE.Mesh(geo.dn, fill));
+      up.add(new THREE.Mesh(geo.upHalo, line), new THREE.Mesh(geo.upRim, rim), new THREE.Mesh(geo.up, fill)); dn.add(new THREE.Mesh(geo.dnHalo, line), new THREE.Mesh(geo.dnRim, rim), new THREE.Mesh(geo.dn, fill));
       dn.scale.y = -1; // the lower jaw: mirrored, teeth up
-      up.children[0].renderOrder = dn.children[0].renderOrder = 12; up.children[1].renderOrder = dn.children[1].renderOrder = 13;
+      for (const h of [up, dn]) h.children.forEach((m, i) => { m.renderOrder = 12 + i; });
       for (const m of [...up.children, ...dn.children]) m.frustumCulled = false;
       // a soft warm glow behind the jaw, brightest as it shuts
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
       glow.renderOrder = 11; glow.scale.setScalar(2.4);
       root.add(glow, up, dn); root.visible = false; scene.add(root);
-      return { root, up, dn, fill, line, glow, t: 9, size: 1, tilt: 0 };
+      return { root, up, dn, fill, rim, line, glow, t: 9, size: 1, tilt: 0 };
     });
     this.jawI = 0;
   }
@@ -106,7 +108,7 @@ export class BiteFx {
       j.root.scale.setScalar(j.size * scale);
       j.up.position.set(shake, 0.32 + gap * 0.5, 0); j.dn.position.set(-shake, -0.32 - gap * 0.5, 0);
       j.up.scale.set(1, sy, 1); j.dn.scale.set(1, -sy, 1);
-      j.fill.opacity = a; j.line.opacity = a; j.glow.material.opacity = 0.5 * glow * a; // (additive: kept low so it stays warm on green grass)
+      j.fill.opacity = 0.55 * a; j.rim.opacity = 0.45 * a; j.line.opacity = 0.25 * a; j.glow.material.opacity = 0.5 * glow * a; // (additive: kept low so it stays warm on green grass)
     }
   }
   clear() { for (const j of this.jaws) { j.t = 9; j.root.visible = false; } }

@@ -759,4 +759,7 @@ curved fangs that narrow to a point and lean in, lit on the outer half and shade
 tones), on a slim crescent of gum pointed at both ends; a warm maroon outline instead of near-black; a soft
 warm glow behind it as it shuts; squash and stretch (tall as it slams, flat on the impact); thinner, fewer
 burst lines and a smaller star.
+Round 6 (owner: "should it not be a see-through effect, not solid colour?"): the jaw is light now, not paint:
+additive translucent teeth (two tones kept), a thin bright rim and a wider soft amber halo round each tooth,
+no dark outline; it adds light over the prey and the grass behind it.
 

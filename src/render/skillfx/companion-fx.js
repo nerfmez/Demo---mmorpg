@@ -29,6 +29,7 @@ const GASH = { core: [1.0, 0.72, 0.66], glow: [0.95, 0.08, 0.06] };
 const ROAR = new THREE.Color(1.0, 0.62, 0.3);
 const HEIGHT = { hunt_hound: 0.6, pack_hound: 0.5, hunt_bear: 0.9, hunt_hawk: 0.8 };
 let sw = 0;
+const gumW = (x) => sw * Math.pow(Math.sin(Math.PI * x), 0.5), gumGlowW = (x) => sw * 2.4 * Math.sin(Math.PI * x);
 const fangW = (x) => sw * (1 - x) * (0.55 + 0.45 * (1 - x)), fangGlowW = (x) => sw * 2.4 * (1 - 0.6 * x);
 const slashW = (x) => sw * Math.pow(Math.sin(Math.PI * x), 0.8), slashGlowW = (x) => sw * 2.6 * Math.sin(Math.PI * x);
 const _r = new THREE.Vector3(), _u = new THREE.Vector3(), _c = new THREE.Vector3(), _d1 = new THREE.Vector3(), _d2 = new THREE.Vector3();
@@ -48,7 +49,7 @@ export class CompanionFx {
     this.glintI = 0;
     this.pts = Array.from({ length: 10 }, () => new THREE.Vector3());
     this.jaws = Array.from({ length: 6 }, () => ({ t: 9, S: 1, c: new THREE.Vector3(), r: new THREE.Vector3(), u: new THREE.Vector3() }));
-    this.jawI = 0; this.fang = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    this.jawI = 0; this.fang = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]; this.gum = Array.from({ length: 7 }, () => new THREE.Vector3());
   }
   // the camera's right and up at this moment (strokes are drawn on the screen's plane)
   axes() { const m = this.camera.matrixWorld.elements; _r.set(m[0], m[1], m[2]).normalize(); _u.set(m[4], m[5], m[6]).normalize(); }
@@ -105,7 +106,7 @@ export class CompanionFx {
     } else {
       // the bite: a jaw of fangs snapping shut on the prey (upper fangs down, lower fangs up, interlocking)
       const j = this.jaws[this.jawI++ % this.jaws.length];
-      j.c.copy(_c); j.r.copy(_r); j.u.copy(_u); j.S = (big ? 1.45 : 1) * Z * 0.5; j.t = 0;
+      j.c.copy(_c); j.r.copy(_r); j.u.copy(_u); j.S = (big ? 1.35 : 1) * Z * 0.82; j.t = 0;
       this.glint(_c.x, _c.y, _c.z, big ? 1.8 : 1.2, JAW_CLOSE);
       if (big) {
         // the pounce lands: dust thrown out round the prey
@@ -156,8 +157,15 @@ export class CompanionFx {
             const u = i / 2, x = bx + (tx - bx) * u, y = by + (ty - by) * u + dir * -0.05 * S * Math.sin(Math.PI * u); // a slight hook
             F[i].copy(j.c).addScaledVector(j.r, x).addScaledVector(j.u, y);
           }
-          sw = 0.15 * S * (0.75 + 0.25 * len); this.glow.strip(F, fangGlowW, 0.7 * a, WOLF.glow); this.core.strip(F, fangW, a, WOLF.core);
+          sw = 0.24 * S * (0.7 + 0.3 * len); this.glow.strip(F, fangGlowW, 0.7 * a, WOLF.glow); this.core.strip(F, fangW, a, WOLF.core);
         }
+        // the jaw line the fangs grow from, so the whole reads as a mouth
+        const G = this.gum;
+        for (let i = 0; i < G.length; i++) {
+          const x = (i / (G.length - 1) - 0.5) * 1.12 * S, xx = x / S;
+          G[i].copy(j.c).addScaledVector(j.r, x).addScaledVector(j.u, -dir * (gap + 0.62 * L + 0.18 * S * xx * xx * 4 + 0.02 * S));
+        }
+        sw = 0.07 * S; this.glow.strip(G, gumGlowW, 0.6 * a, WOLF.glow); this.core.strip(G, gumW, a, WOLF.core);
       }
     }
     this.core.end(); this.glow.end();

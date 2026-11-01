@@ -742,4 +742,7 @@ landing throws dust (its pounce keeps the stun), the bear's roar sends three war
 5 m and shakes the screen, the eagle's dive tears three red gashes (bleed) with a ring of air and feathers.
 The rules changed with it: only the wolf's pounce stuns now; the hawk's bleeds harder and staggers, the
 bear's taunts and hits harder.
+Round 2 (owner: "the rest is fine but the wolf is not good"): the wolf's two crescents became a jaw of white
+fangs, the long canines outside, growing from a bowed jaw line, snapping shut on the prey with an
+overshoot so the upper and lower fangs interlock, held a moment, then fading as it opens a little.
 

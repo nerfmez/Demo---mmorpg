@@ -892,7 +892,7 @@ function describeSkill(s) {
   if (s.damage !== undefined) parts.push(s.kind === 'dot_zone' ? `ดาเมจ ${Math.round(s.damage)}/วิ × ${s.duration.toFixed(1)} วิ` : `ดาเมจ ${Math.round(s.damage)}`);
   if (s.heal !== undefined) parts.push(`ฮีล ${Math.round(s.heal)}/วิ × ${s.duration.toFixed(1)} วิ`);
   if (s.barrier !== undefined) parts.push(`เกราะ ${Math.round(s.barrier)} (${number(s.duration)} วิ)`);
-  if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${number(s.summon.hp)} · ${number(s.summon.life)} วิ`);
+  if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${number(s.summon.hp)} · ${s.summon.permanent ? 'อยู่จนตาย' : number(s.summon.life) + ' วิ'}`);
   if (s.takenMult) parts.push(`รับดาเมจ +${Math.round((s.takenMult - 1) * 100)}% · ตีเบาลง ${Math.round((1 - s.dealtMult) * 100)}% · ${number(s.duration)} วิ`);
   if (s.damageBuff) parts.push(`ดาเมจ +${Math.round(s.damageBuff * 100)}% · เร็ว +${Math.round(s.speedBuff * 100)}% · ${number(s.duration)} วิ`);
   if (s.charge) parts.push(`กดค้าง ${s.charge.duration} วิ · ดาเมจ ${Math.round(s.damage)}–${Math.round(s.damage * s.charge.maxDamageMult)}`);

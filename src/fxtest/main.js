@@ -105,7 +105,7 @@ function makeDummy() {
   return { g, mats, orig: mats.map((m) => m.color.clone()), pop: 0, popColor: new THREE.Color(), shake: 0, x: 0, z: 0, center: new THREE.Vector3() };
 }
 const dummies = Array.from({ length: 6 }, makeDummy);
-const benchAllies = new Map(); // static summons drawn on the bench (Lure Dummy)
+const benchAllies = new Map(); // summons drawn on the bench (Lure Dummy, the hunter's hounds)
 
 // errors on screen (the owner tests on a tablet, with no console): the banner shows what failed
 function notify(text) { try { showBanner(text); } catch { /* before the banner exists */ } }
@@ -587,10 +587,12 @@ function tick(real, draw = true) {
   // static summons (Lure Dummy) stand where the rules set them, the game's own model (view.js draws them in
   // the game; the bench draws only these)
   for (const a of game.allies) {
-    if (!a.static) continue;
     let r = benchAllies.get(a.id);
     if (!r) { r = buildMonster(a.type, 1, false); scene.add(r.root); benchAllies.set(a.id, r); r.state = { hurt: 0 }; r.lastHp = a.hp; }
+    // its speed from how far it moved (the game's view measures it the same way), its bite from its state
+    const sp = r.px === undefined ? 0 : Math.hypot(a.x - r.px, a.z - r.pz) / Math.max(1e-3, dt); r.px = a.x; r.pz = a.z;
     r.root.position.set(a.x, 0, a.z); r.root.rotation.y = a.facing;
+    Object.assign(r.state, { moving: a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0 });
     if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
     r.animate?.(r, r.state, dt, simTime);
   }

@@ -51,6 +51,10 @@ export const PENDING_SKILL_ICONS = Object.freeze({
   lightning_rod: 'เสาล่อฟ้า',
   spore_pod: 'ฝักสปอร์',
   gravity_rune: 'วงเวทดูด',
+  call_companion: 'เรียกคู่หู',
+  sic_em: 'สั่งคู่หูจู่โจม',
+  mark_prey: 'ทำเครื่องหมายเหยื่อ',
+  pack_hunt: 'ฝูงล่า',
 });
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

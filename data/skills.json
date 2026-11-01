@@ -610,6 +610,181 @@
             "upgradeStat": "DEX",
       "castTime": 0.25
     },
+    "call_companion": {
+      "name": "Call Companion",
+      "nameTh": "เรียกคู่หู",
+      "desc": "เรียกหมาล่าเนื้อคู่หูมาอยู่ข้างตัวจนกว่ามันจะตาย กัดตามพลังโจมตีของเรา เรียกซ้ำเพื่อเรียกตัวใหม่เต็ม HP ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "range": 0,
+      "summon": {
+        "type": "hunt_hound",
+        "count": 1,
+        "permanent": true,
+        "hp": {
+          "base": 1300,
+          "vit": 45,
+          "level": 50
+        },
+        "damage": {
+          "base": 70,
+          "scale": 0.6,
+          "stat": "attack"
+        },
+        "speed": 7.5,
+        "range": 1.6,
+        "attackCooldown": 1.1
+      },
+      "cooldown": 20,
+      "castTime": 0.4,
+      "cost": 160,
+      "element": "physical",
+      "requires": {
+        "DEX": 4,
+        "STR": 3
+      },
+      "upgradeMaterial": "wolf_fang",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "sic_em": {
+      "name": "Sic 'Em",
+      "nameTh": "สั่งคู่หูจู่โจม",
+      "desc": "สั่งคู่หูพุ่งใส่เป้าหมาย กัดแรง 3 เท่าและทำให้มึน 1 วินาที (บอส 0.3) ต้องมีคู่หูอยู่และมีเป้าในระยะ 12 ม. ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Minion",
+        "Control"
+      ],
+      "kind": "command",
+      "range": 12,
+      "sic": {
+        "mult": 3,
+        "speed": 2.5,
+        "stun": {
+          "duration": 1.0,
+          "bossDuration": 0.3
+        }
+      },
+      "cooldown": 8,
+      "castTime": 0.15,
+      "cost": 96,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "STR": 3
+      },
+      "upgradeMaterial": "greyfang_mane",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "mark_prey": {
+      "name": "Mark Prey",
+      "nameTh": "ทำเครื่องหมายเหยื่อ",
+      "desc": "ยิงศรตามรอยใส่เป้าหมาย เกราะลดลง 20% 10 วินาที คู่หูไล่กัดเหยื่อตัวนี้ก่อน ถ้าเหยื่อตายระหว่างนั้นมีโอกาส 35% ดรอปชิ้นส่วนเพิ่ม ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Projectile",
+        "Debuff"
+      ],
+      "kind": "projectile",
+      "range": 14,
+      "speed": 26,
+      "projectileRadius": 0.3,
+      "damage": {
+        "base": 110,
+        "scale": 0.9
+      },
+      "exposure": {
+        "fraction": 0.2,
+        "duration": 10,
+        "prey": 0.35
+      },
+      "cooldown": 10,
+      "castTime": 0.25,
+      "cost": 88,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "STR": 2
+      },
+      "upgradeMaterial": "hawk_feather",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "pack_hunt": {
+      "name": "Pack Hunt",
+      "nameTh": "ฝูงล่า",
+      "desc": "ผิวปากเรียกหมาล่าเนื้อ 3 ตัวมาช่วยไล่กัด 8 วินาที และคู่หูของเราดุขึ้น กัดแรงขึ้น 30% ช่วงเดียวกัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "range": 0,
+      "summon": {
+        "type": "pack_hound",
+        "count": 3,
+        "life": 8,
+        "hp": {
+          "base": 500,
+          "vit": 20,
+          "level": 20
+        },
+        "damage": {
+          "base": 55,
+          "scale": 0.45,
+          "stat": "attack"
+        },
+        "speed": 9,
+        "range": 1.5,
+        "attackCooldown": 0.9
+      },
+      "packBuff": {
+        "damage": 0.3,
+        "duration": 8
+      },
+      "cooldown": 16,
+      "castTime": 0.4,
+      "cost": 224,
+      "element": "physical",
+      "requires": {
+        "DEX": 7,
+        "STR": 4
+      },
+      "upgradeMaterial": "dusk_pelt",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
     "ice_ball": {
       "name": "Ice Ball",
       "nameTh": "บอลน้ำแข็ง",

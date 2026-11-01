@@ -436,8 +436,6 @@
           "healing_barrier": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "breaking_ward": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "spreading_hex": "adds less than it costs on every skill it fits, or its effect is not measured yet",
-          "focused_pack": "adds less than it costs on every skill it fits, or its effect is not measured yet",
-          "guardian_bond": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "cast_on_guard": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "poison_shift": "adds less than it costs on every skill it fits, or its effect is not measured yet",
           "stun_arc": "its MP cost outweighs the measured gain on an MP-bound reference build; its reach, stun or extra targets are under-measured"

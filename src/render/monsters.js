@@ -64,7 +64,10 @@ function buildBoar() {
 function buildWolf(kind = 'wolf') {
   const alpha = kind === 'greyfang';
   const spirit = kind === 'spirit';
-  const C = spirit
+  // the hunter's hounds (call_companion, pack_hunt): a warm brown hunting dog, its back ridge the same brown
+  const C = kind === 'hound'
+    ? { fur: '#a8743e', dark: '#6e4524', light: '#f0dcb4', thorn: '#7a4e2a', eye: '#2a1a10', nose: '#1e1410', fang: '#fffaf0' }
+    : spirit
     ? { fur: '#8fc8ff', dark: '#5a8ad8', light: '#d8f0ff', thorn: '#bfe6ff', eye: '#ffffff', nose: '#3a5a9a', fang: '#ffffff' }
     : alpha
     ? { fur: '#5f6168', dark: '#3a3b42', light: '#b9b6ae', thorn: '#d8d0c0', eye: '#ffcf40', nose: '#1e1e22', fang: '#f4efe0' }
@@ -1119,6 +1122,8 @@ const BUILDERS = {
   thornback_wolf: [() => buildWolf('wolf'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   greyfang: [() => buildWolf('greyfang'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   spirit_wolf: [() => buildWolf('spirit'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
+  hunt_hound: [() => buildWolf('hound'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
+  pack_hound: [() => buildWolf('hound'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   moss_beetle: [buildBeetle, animBeetle],
   reef_crab: [buildCrab, animCrab],
   salt_slime: [buildSaltSlime, animSaltSlime],
@@ -1133,7 +1138,7 @@ const BUILDERS = {
   ...GROVE_BUILDERS,
 };
 
-export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
+export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, hunt_hound: 1.05, pack_hound: 0.85, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
 
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;

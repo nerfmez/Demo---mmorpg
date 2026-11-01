@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock','sic','packBuff'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -156,6 +156,8 @@ export function executeFrontier(g,s,aim,mult,triggered) {
   // monster comes within trigger m, then springs: one burst of the skill over its radius (updateAreas). A
   // skill keeps at most max traps set (the oldest goes); a field (count) scatters its traps over spread m.
   if(s.trap){placeTraps(g,s,aim,mult);return true;}
+  if(s.sic){commandCompanion(g,s);return true;}
+  if(s.packBuff)for(const a of g.allies)if(a.type==='hunt_hound'&&!a.dead){a.buffs.pack={damage:s.packBuff.damage,t:s.packBuff.duration};g.emit({type:'packBuff',id:a.id,duration:s.packBuff.duration});}
   // Flame Arrow Rain (s.arrows): count arrows pin across the circle at land s, one near its middle, the rest
   // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
   if(s.arrows){
@@ -250,7 +252,8 @@ export function adjustFrontierHit(g,m,amount,opts) {
   const behind=Math.abs(angleDiff(m.facing,angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z)))>Math.PI/2;
   if(s?.positionalMult&&behind)amount*=s.positionalMult;
   if(s?.frontMult&&!behind)amount*=s.frontMult;
-  if(opts.exposure)m.statuses.exposure={fraction:Math.max(m.statuses.exposure?.fraction||0,opts.exposure.fraction),t:Math.max(m.statuses.exposure?.t||0,opts.exposure.duration),spread:Math.max(m.statuses.exposure?.spread||0,e.curseSpread||0)};
+  // Mark Prey (exposure.prey: the extra part's chance when it dies marked) keeps the mark on the exposure
+  if(opts.exposure)m.statuses.exposure={fraction:Math.max(m.statuses.exposure?.fraction||0,opts.exposure.fraction),t:Math.max(m.statuses.exposure?.t||0,opts.exposure.duration),spread:Math.max(m.statuses.exposure?.spread||0,e.curseSpread||0),prey:Math.max(m.statuses.exposure?.prey||0,opts.exposure.prey||0)};
   // Breakbeat Slam: every direct hit stuns (bosses only briefly); a started wind-up is cancelled and
   // a shelled monster is knocked out of its shell.
   if(opts.stun){
@@ -472,6 +475,25 @@ export function endProjectile(g,pr){
   return false;
 }
 
+/** The hunter's companion (call_companion's hunt_hound), living, or null. */
+export const companionOf=(g)=>g.allies.find(a=>a.type==='hunt_hound'&&!a.dead&&a.life>0)||null;
+/** Sic 'Em's target: the locked one in range, else the nearest in range; null with none. */
+export function sicTarget(g,s){
+  const p=g.player,t=p.targetId&&g.monsterById(p.targetId);
+  if(t&&!t.dead&&dist(t.x,t.z,p.x,p.z)<=s.range)return t;
+  let best=null,bd=s.range;for(const m of g.monsters){if(m.dead)continue;const d=dist(m.x,m.z,p.x,p.z);if(d<=bd){bd=d;best=m;}}
+  return best;
+}
+/** Sic 'Em (s.sic): the companion runs at the target, faster, and its next bite there is mult x with a stun
+ *  (core/game-simulation.js updateAllies); it stays on that target. Pack Hunt (s.packBuff): the companion's
+ *  bites are stronger for a while (a buff, like a summon's damage buffs). */
+export function commandCompanion(g,s){
+  const a=companionOf(g),t=a&&sicTarget(g,s);if(!t)return false;
+  a.command='attack';a.targetId=t.id;a.state='follow';a.stateT=0;
+  a.sic={targetId:t.id,mult:s.sic.mult,speed:s.sic.speed,stun:s.sic.stun,t:4};
+  g.emit({type:'sicEm',id:a.id,target:t.id,x:a.x,z:a.z,tx:t.x,tz:t.z});
+  return true;
+}
 /** A set trap's moment (core/game-simulation.js updateAreas): a monster came within its trigger, or a
  *  Lightning Rod relayed to it. Returns true when it springs into its burst; false when it waits again
  *  (a Spore Pod with puffs left) or is spent (a.spent).

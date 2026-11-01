@@ -796,7 +796,8 @@ export class View {
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
-      if (Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
+      // spirit motes off a conjured summon (not a hunter's hounds or a straw dummy: they are flesh and straw)
+      if ((av.reveal || a.type === 'stone_guardian') && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
     }
     for (const [id, av] of this.allyViews) {
       if (!seen.has(id)) {

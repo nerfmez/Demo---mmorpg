@@ -10,7 +10,7 @@ import { computeSkill, movementSkill, aimsAtGround } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
-import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock, springTrap, tickTrap } from './frontier-content.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock, springTrap, tickTrap, companionOf, sicTarget } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
@@ -376,7 +376,7 @@ export class Game {
         range: sm.range,
         attackCooldown: sm.attackCooldown,
         cd: 0,
-        life: sm.life,
+        life: sm.permanent ? Infinity : sm.life,
         state: 'follow',
         stateT: 0,
         targetId: null,
@@ -476,6 +476,11 @@ export class Game {
     // Backstab (s.shadowStep): the hero steps through the shadows to behind its target, then strikes.
     // It needs a target within shadowStep.range (the locked one, else on a tap the nearest); with none it
     // fails before anything is spent.
+    // Sic 'Em needs our companion and a target in reach; without either it fails before anything is spent
+    if (s.sic && (!companionOf(this) || !sicTarget(this, s))) {
+      this.emit({ type: 'fail', reason: companionOf(this) ? 'target' : 'companion', slot: i });
+      return false;
+    }
     if (s.shadowStep && !this.shadowStep(s)) {
       if (!this.input.aimFromPointer) this.input.manualAim = false; // a drag's aim lasts one press
       this.emit({ type: 'fail', reason: 'target', slot: i });
@@ -1001,6 +1006,9 @@ export class Game {
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
     const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng, {}, m.worldId).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId);
+    // Mark Prey: a monster dying marked may drop one more of its own parts
+    const prey = m.statuses?.exposure?.t > 0 ? m.statuses.exposure.prey : 0;
+    if (prey && !m.minion && this.rng.chance(prey)) { const parts = (this.data.monsters.monsters[m.type]?.drops || []).filter((x) => x.item !== 'gold'); if (parts.length) { drops.push({ item: this.rng.pick(parts).item, qty: 1 }); this.emit({ type: 'preyDrop', id: m.id, x: m.x, z: m.z }); } }
     if (this.derived.perks) {
       perkKill(this, m);
       drops.push(...perkDrops(this, m));
@@ -1738,13 +1746,18 @@ export class Game {
         }
         a.targetId = t ? t.id : null;
       }
-      const haste = 1 + buffSum(a.buffs, 'speed');
+      // Sic 'Em: it runs at its target faster and bites it hard (below); it gives up after a while
+      if (a.sic) { a.sic.t -= dt; const st = this.monsterById(a.sic.targetId); if (a.sic.t <= 0 || !st || st.dead) a.sic = null; else { t = st; a.targetId = st.id; } }
+      // Mark Prey: unless told otherwise it goes for marked prey near us first
+      else if (a.command !== 'attack' && !commandFollow) { let bd = 14, prey = null; for (const m of this.monsters) { if (m.dead || !m.statuses.exposure?.prey) continue; const d = dist(m.x, m.z, p.x, p.z); if (d < bd) { bd = d; prey = m; } } if (prey) { t = prey; a.targetId = prey.id; } }
+      const haste = (1 + buffSum(a.buffs, 'speed')) * (a.sic ? a.sic.speed : 1);
       if (a.state === 'windup') {
         if (a.stateT >= 0.25) {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
-            const k = 1 + buffSum(a.buffs, 'damage');
-            this.hitMonster(tt, a.damage * k * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z });
+            const k = 1 + buffSum(a.buffs, 'damage'), sic = a.sic && a.sic.targetId === tt.id ? a.sic : null;
+            this.hitMonster(tt, a.damage * k * (sic ? sic.mult : 1) * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z, stun: sic?.stun });
+            if (sic) { a.sic = null; this.emit({ type: 'companionPounce', id: a.id, target: tt.id, x: tt.x, z: tt.z }); }
             this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
           a.cd = a.attackCooldown;

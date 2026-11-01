@@ -1469,6 +1469,17 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   bosses) within radius are moved toward the middle over `time` with `moveEntity`. The build profile
   counts pulses as hits, zaps as a per-cast burst, puffs like a field's traps and the shock as control;
   the pull is not measured (budgets.known).
+- Hunter skills (2026-11-01, `tests/core/hunter-skills.test.js`; bow, job `hunter`). Call Companion is a
+  `summon` with `permanent` (the ally's `life` is Infinity: it stays until its hp runs out; a new call replaces
+  it at full hp) and `damage.stat: 'attack'` (computeSkill scales its bite with `derived.attack`, not magic).
+  Sic 'Em (kind `command`, field `sic` {mult, speed, stun}): `castSlot` fails with reason `companion` (no
+  living `hunt_hound`) or `target` (none in `range`) before anything is spent; otherwise `commandCompanion`
+  sets the companion on the target (`command: 'attack'`) with `a.sic` (4 s to reach it): it runs `speed` times
+  faster and its next bite on that target is `mult` times with the `stun` (`companionPounce`). Mark Prey is a
+  projectile whose `exposure` carries `prey` (a chance): the exposure keeps `prey`; a companion not told
+  otherwise goes for the nearest prey within 14 m of the player; `killMonster` gives a monster dying marked
+  that chance of one more of its own non-gold drops (`preyDrop`). Pack Hunt is a summon of 3 `pack_hound`s for
+  8 s with `packBuff` {damage, duration}: a `pack` buff on the companion (`buffSum(a.buffs, 'damage')`).
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}
   sets `statuses.shock` {t, next} (event `shocked`); `tickStatuses` counts `next` down and on each interval
   sets `m.twitchT` (`twitch`, `bossTwitch` for a boss) with a `twitch` event; `ai.js updateMonster` returns

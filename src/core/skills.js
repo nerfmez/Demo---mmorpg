@@ -175,13 +175,16 @@ export function computeSkill(ch, data, derived, slotIndex) {
       count: sm.count,
       life: sm.life,
       hp: Math.round(sm.hp.base + sm.hp.vit * stats.VIT + sm.hp.level * ch.level),
-      damage: (sm.damage.base + sm.damage.scale * derived.magic) * levelMult * (1 + derived.summonDamagePct / 100),
+      // a summon bites from our magic power, a hunter's companion (damage.stat 'attack') from our attack
+      damage: (sm.damage.base + sm.damage.scale * (sm.damage.stat === 'attack' ? derived.attack : derived.magic)) * levelMult * (1 + derived.summonDamagePct / 100),
       speed: sm.speed,
       range: sm.range,
       attackCooldown: sm.attackCooldown,
       placeAt: sm.placeAt,
       static: !!sm.static,
+      permanent: !!sm.permanent, // stays until it dies (a hunter's companion)
     };
+    if (sm.permanent) s.summon.life = Infinity;
   }
   if (tags.has('Area') && s.radius) s.radius *= 1 + derived.areaRadiusPct / 100;
   if (tags.has('Melee')) s.arc += derived.meleeArcAdd;

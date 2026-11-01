@@ -7576,13 +7576,13 @@
     },
     "hunt_bear": {
       "file": "models/monsters/hunt_bear.glb",
-      "tris": 4046,
+      "tris": 3100,
       "scale": 1,
       "yaw": 0,
       "sharpness": 5,
       "outline": "#2a1c16",
       "outlineWidth": 0.014,
-      "source": "Meshy (owner-supplied GLB, 2026-11-01; concept: assets/meshy/monsters/hunter_companions_concept.png); prepared with scripts/prep-monster-glb.py (the hunter's bear companion; joints placed from the mesh)",
+      "source": "Meshy (owner-supplied GLB, 2026-11-01; concept: assets/meshy/monsters/hunter_companions_concept.png); prepared with scripts/prep-monster-glb.py --tris 3100 (the hunter's bear companion; joints placed from the mesh)",
       "bones": {
         "chest": [
           0,
@@ -7848,10 +7848,10 @@
       },
       "ball": {
         "file": "models/monsters/hunt_bear_stand.glb",
-        "tris": 3915,
+        "tris": 2850,
         "scale": 1.25,
         "glow": 0,
-        "source": "Meshy (owner-supplied GLB, 2026-11-01): the bear standing on its hind legs, shown while it roars (Sic 'Em); prepared with scripts/prep-monster-glb.py"
+        "source": "Meshy (owner-supplied GLB, 2026-11-01): the bear standing on its hind legs, shown while it roars (Sic 'Em); prepared with scripts/prep-monster-glb.py --tris 2850 (both forms within 6,000)"
       }
     },
     "hunt_hawk": {

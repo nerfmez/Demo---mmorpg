@@ -10,6 +10,8 @@ import { Game } from '../../src/core/game.js';
 import { createCharacter } from '../../src/core/character.js';
 import { computeSkill } from '../../src/core/skills.js';
 import { craft } from '../../src/core/crafting.js';
+import { dist as d2 } from '../../src/core/math.js';
+const dist = (p, q) => d2(p.x, p.z, q.x, q.z);
 
 const C = data.skills.combat, HUNTER = ['call_companion', 'call_hawk', 'call_bear', 'sic_em', 'mark_prey', 'pack_hunt'];
 
@@ -171,4 +173,40 @@ test('a called companion runs in from the wild first: it does nothing until it i
   assert.equal(a.x, x0); assert.equal(a.z, z0); assert.equal(g.monsters[0].hp, hp0, 'no bite while it is still coming');
   run(g, 1.6);
   assert.ok(g.monsters[0].hp < hp0, 'then it goes in and bites');
+});
+
+test('Companion fetch (the Ranger trunk node): an idle companion brings the drops lying round the hero, never while fighting', () => {
+  const { g, mk } = fixture(['call_companion']);
+  g.executeSkill(g.skills[0], { angle: 0, x: 0, z: 0 });
+  const a = g.allies.find((q) => q.type === 'hunt_hound');
+  a.arriveT = 0;
+  const F = data.progression.combat.companionFetch;
+  const drop = { id: 'd1', item: 'gold', qty: 5, x: 9, z: 0, t: 5 };
+  // without the node it stays at heel
+  g.derived.companionFetch = 0; g.drops = [drop];
+  run(g, 2);
+  assert.equal(drop.carrier, undefined); assert.ok(dist(drop, { x: 9, z: 0 }) < 1e-9, 'untouched');
+  // the Ranger's job node carries it
+  assert.ok(data.jobtree.nodes.rj.effects.companionFetch > 0);
+  g.derived.companionFetch = data.jobtree.nodes.rj.effects.companionFetch;
+  const gold0 = g.ch.gold;
+  let took = false;
+  for (let t = 0; t < 12 && g.drops.length; t += 0.05) {
+    g.time += 0.05; g.updateAllies(0.05); g.updateDrops(0.05);
+    if (drop.carrier === a.id) { took = true; assert.ok(dist(drop, a) < F.mouth + 1e-6, 'in its mouth'); }
+  }
+  assert.ok(took, 'it took the drop in its mouth');
+  assert.equal(g.drops.length, 0, 'brought in and picked up');
+  assert.equal(g.ch.gold, gold0 + 5);
+  // a drop too far away or a fight: no fetching; a fight makes it let go where it stands
+  const far = { id: 'd2', item: 'gold', qty: 1, x: 40, z: 0, t: 5 };
+  g.drops = [far]; run(g, 2);
+  assert.equal(far.carrier, undefined, 'outside the node\'s radius');
+  const near = { id: 'd3', item: 'gold', qty: 1, x: 8, z: 0, t: 5 };
+  g.drops = [near];
+  for (let t = 0; t < 4 && near.carrier !== a.id; t += 0.05) { g.time += 0.05; g.updateAllies(0.05); }
+  assert.equal(near.carrier, a.id);
+  g.monsters = [mk('m', a.x + 2, a.z)];
+  g.time += 0.05; g.updateAllies(0.05);
+  assert.equal(near.carrier, null, 'dropped to fight'); assert.equal(a.fetchId, null);
 });

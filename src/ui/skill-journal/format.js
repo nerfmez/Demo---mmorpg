@@ -53,7 +53,13 @@ export const EFFECT_TH = {
   healGrantsBarrierPct: 'ฮีลให้เกราะ %',
   meleeArcAdd: 'มุมฟัน°',
   poisonChancePct: 'โอกาสติดพิษ %',
-  leechPct: 'ดูดเลือด %',
+  leechPct: 'ดูดเลือด %',  resistAllPct: 'ต้านทุกธาตุ %',
+  resistFirePct: 'ต้านไฟ %',
+  resistColdPct: 'ต้านน้ำแข็ง %',
+  resistLightningPct: 'ต้านสายฟ้า %',
+  resistPoisonPct: 'ต้านพิษ %',
+  tenacityPct: 'ทนทาน (ดีบัฟสั้นลง) %',
+  companionFetch: 'คู่หูคาบของ (ม.)',
 };
 export function effectLabel(key) {return (EFFECT_TH[key] || key).replace(' %','');}
 export function effectValue(key,value) {return `${value>0?'+':''}${Math.round(value*10)/10}${key.endsWith('Pct')?'%':''}`;}

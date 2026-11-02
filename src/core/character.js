@@ -1,6 +1,7 @@
 // Character progression: Character Level -> Stat Points, Job Level -> Job Points (Job Tree),
 // equipment (two hands + armour slots, items.slots), arrows, appearance, and derived combat stats. The character object is plain
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
+import { foldResists } from './defense.js';
 import { enterMap } from './maps.js';
 import { migrateQuestJournal } from './quests.js';
 import { normalizeSkillGrowth } from './skill-growth.js';
@@ -869,6 +870,12 @@ export function derive(ch, data) {
     manaCostReductionPct: 0,
     mpOnHit: 0,
     dodgeChancePct: 0,
+    resistAllPct: 0,
+    resistFirePct: 0,
+    resistColdPct: 0,
+    resistLightningPct: 0,
+    resistPoisonPct: 0,
+    tenacityPct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
@@ -908,6 +915,7 @@ export function derive(ch, data) {
     const eff = data.jobtree.nodes[n]?.effects || {};
     for (const k in eff) if (!STATS.includes(k) && k !== 'finesse') add(k, eff[k]);
   }
+  foldResists(d); // element resistance and tenacity (core/defense.js), before the caps
   const base = pc.base;
   const soft = pc.softCaps;
   for (const stat of soft?.stats || []) if (d[stat] > soft.threshold)

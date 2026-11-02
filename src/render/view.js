@@ -849,7 +849,10 @@ export class View {
       if (!v.visible) continue;
       const age = time - v.userData.born;
       const hop = age < 0.45 ? Math.sin((age / 0.45) * Math.PI) * 1.2 : 0;
-      v.position.set(d.x, ground + 0.35 + hop + Math.sin(time * 3 + d.id) * 0.06, d.z);
+      // in a companion's mouth (core companionFetch): held at its head, no bob; a hawk carries it in flight
+      let lift = 0;
+      if (d.carrier != null) for (const a of g.allies) if (a.id === d.carrier) lift = a.type === 'hunt_hawk' ? 1.25 : 0.3;
+      v.position.set(d.x, ground + 0.35 + hop + lift + (lift ? 0 : Math.sin(time * 3 + d.id) * 0.06), d.z);
       if (!v.children[0].isSprite) v.children[0].rotation.y = time * 2 + d.id;
     }
     for (const [id, v] of this.dropViews) {

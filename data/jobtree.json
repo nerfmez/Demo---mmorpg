@@ -372,9 +372,10 @@
       ],
       "effects": {
         "extraMovementCharges": 1,
-        "projectileSpeedPct": 20
+        "projectileSpeedPct": 20,
+        "companionFetch": 14
       },
-      "descTh": "สายยิง/คล่องตัว: ชาร์จสกิลเคลื่อนที่ +1",
+      "descTh": "สายยิง/คล่องตัว: ชาร์จสกิลเคลื่อนที่ +1 · คู่หูคาบของ: คู่หูที่ว่างจากการสู้วิ่งไปคาบของที่ดรอปในระยะ 14 ม. มาให้",
       "group": "ranger",
       "category": "specialist",
       "clusterPos": [
@@ -2246,14 +2247,14 @@
     },
     "vanguard_t2_3": {
       "name": "Vanguard Practice 2.3",
-      "nameTh": "ตั้งรับ 1",
+      "nameTh": "ทนทาน 1",
       "type": "minor",
       "group": "vanguard",
       "category": "specialist",
       "requiresJob": "vanguard",
       "section": "vanguard-2",
       "effects": {
-        "defense": 12
+        "tenacityPct": 4
       },
       "links": [
         "vanguard_t2_1",
@@ -2392,14 +2393,14 @@
     },
     "vanguard_t3_3": {
       "name": "Vanguard Practice 3.3",
-      "nameTh": "ตั้งรับ 2",
+      "nameTh": "ทนทาน 2",
       "type": "minor",
       "group": "vanguard",
       "category": "specialist",
       "requiresJob": "vanguard",
       "section": "vanguard-3",
       "effects": {
-        "defense": 12
+        "tenacityPct": 4
       },
       "links": [
         "vanguard_t3_1",
@@ -2538,14 +2539,14 @@
     },
     "vanguard_t4_3": {
       "name": "Vanguard Practice 4.3",
-      "nameTh": "ตั้งรับ 3",
+      "nameTh": "ทนทาน 3",
       "type": "minor",
       "group": "vanguard",
       "category": "specialist",
       "requiresJob": "vanguard",
       "section": "vanguard-4",
       "effects": {
-        "defense": 12
+        "tenacityPct": 4
       },
       "links": [
         "vanguard_t4_1",
@@ -2684,14 +2685,14 @@
     },
     "vanguard_t5_3": {
       "name": "Vanguard Practice 5.3",
-      "nameTh": "ตั้งรับ 4",
+      "nameTh": "ทนทาน 4",
       "type": "minor",
       "group": "vanguard",
       "category": "specialist",
       "requiresJob": "vanguard",
       "section": "vanguard-5",
       "effects": {
-        "defense": 12
+        "tenacityPct": 4
       },
       "links": [
         "vanguard_t5_1",
@@ -2830,14 +2831,14 @@
     },
     "vanguard_t6_3": {
       "name": "Vanguard Practice 6.3",
-      "nameTh": "ตั้งรับ 5",
+      "nameTh": "ทนทาน 5",
       "type": "minor",
       "group": "vanguard",
       "category": "specialist",
       "requiresJob": "vanguard",
       "section": "vanguard-6",
       "effects": {
-        "defense": 12
+        "tenacityPct": 4
       },
       "links": [
         "vanguard_t6_1",
@@ -3047,14 +3048,14 @@
     },
     "arcanist_t2_6": {
       "name": "Arcanist Practice 2.6",
-      "nameTh": "ตั้งรับ 1",
+      "nameTh": "ต้านธาตุ 1",
       "type": "minor",
       "group": "arcanist",
       "category": "specialist",
       "requiresJob": "arcanist",
       "section": "arcanist-2",
       "effects": {
-        "defense": 12
+        "resistAllPct": 3
       },
       "links": [
         "arcanist_t2_5",
@@ -3193,14 +3194,14 @@
     },
     "arcanist_t3_6": {
       "name": "Arcanist Practice 3.6",
-      "nameTh": "ตั้งรับ 2",
+      "nameTh": "ต้านธาตุ 2",
       "type": "minor",
       "group": "arcanist",
       "category": "specialist",
       "requiresJob": "arcanist",
       "section": "arcanist-3",
       "effects": {
-        "defense": 12
+        "resistAllPct": 3
       },
       "links": [
         "arcanist_t3_5",
@@ -3339,14 +3340,14 @@
     },
     "arcanist_t4_6": {
       "name": "Arcanist Practice 4.6",
-      "nameTh": "ตั้งรับ 3",
+      "nameTh": "ต้านธาตุ 3",
       "type": "minor",
       "group": "arcanist",
       "category": "specialist",
       "requiresJob": "arcanist",
       "section": "arcanist-4",
       "effects": {
-        "defense": 12
+        "resistAllPct": 3
       },
       "links": [
         "arcanist_t4_5",
@@ -3485,14 +3486,14 @@
     },
     "arcanist_t5_6": {
       "name": "Arcanist Practice 5.6",
-      "nameTh": "ตั้งรับ 4",
+      "nameTh": "ต้านธาตุ 4",
       "type": "minor",
       "group": "arcanist",
       "category": "specialist",
       "requiresJob": "arcanist",
       "section": "arcanist-5",
       "effects": {
-        "defense": 12
+        "resistAllPct": 3
       },
       "links": [
         "arcanist_t5_5",
@@ -3631,14 +3632,14 @@
     },
     "arcanist_t6_6": {
       "name": "Arcanist Practice 6.6",
-      "nameTh": "ตั้งรับ 5",
+      "nameTh": "ต้านธาตุ 5",
       "type": "minor",
       "group": "arcanist",
       "category": "specialist",
       "requiresJob": "arcanist",
       "section": "arcanist-6",
       "effects": {
-        "defense": 12
+        "resistAllPct": 3
       },
       "links": [
         "arcanist_t6_5"
@@ -4478,14 +4479,14 @@
     },
     "ranger_t2_5": {
       "name": "Ranger Practice 2.5",
-      "nameTh": "ยืนหยัด 1",
+      "nameTh": "ต้านธาตุ 1",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-2",
       "effects": {
-        "maxHpPct": 2
+        "resistAllPct": 3
       },
       "links": [
         "ranger_t2_3",
@@ -4624,14 +4625,14 @@
     },
     "ranger_t3_5": {
       "name": "Ranger Practice 3.5",
-      "nameTh": "ยืนหยัด 2",
+      "nameTh": "ต้านธาตุ 2",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-3",
       "effects": {
-        "maxHpPct": 2
+        "resistAllPct": 3
       },
       "links": [
         "ranger_t3_3",
@@ -4770,14 +4771,14 @@
     },
     "ranger_t4_5": {
       "name": "Ranger Practice 4.5",
-      "nameTh": "ยืนหยัด 3",
+      "nameTh": "ต้านธาตุ 3",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-4",
       "effects": {
-        "maxHpPct": 2
+        "resistAllPct": 3
       },
       "links": [
         "ranger_t4_3",
@@ -4916,14 +4917,14 @@
     },
     "ranger_t5_5": {
       "name": "Ranger Practice 5.5",
-      "nameTh": "ยืนหยัด 4",
+      "nameTh": "ต้านธาตุ 4",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-5",
       "effects": {
-        "maxHpPct": 2
+        "resistAllPct": 3
       },
       "links": [
         "ranger_t5_3",
@@ -5062,14 +5063,14 @@
     },
     "ranger_t6_5": {
       "name": "Ranger Practice 6.5",
-      "nameTh": "ยืนหยัด 5",
+      "nameTh": "ต้านธาตุ 5",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-6",
       "effects": {
-        "maxHpPct": 2
+        "resistAllPct": 3
       },
       "links": [
         "ranger_t6_3",

@@ -47,7 +47,7 @@ export function skillCraftGuide(data, recipe) {
     case 'wall':
       stage = 2; role = 'control'; condition = 'วางแนวกั้นชั่วคราว · ต้องมีทางอ้อมและไม่ทับตัวละคร'; break;
     case 'heal_target':
-      stage = 0; role = 'heal'; condition = 'ฮีลเพื่อนที่บาดเจ็บหรือตนเอง · ล้างพิษหรือความเย็นหนึ่งอย่าง'; break;
+      stage = 0; role = 'heal'; condition = 'ฮีลเพื่อนที่บาดเจ็บหรือตนเอง · ล้างดีบัฟหนึ่งอย่าง (ตรึง ชา ไหม้ พิษ เลือดไหล ช้า)'; break;
     case 'aura':
       stage = 1; role = 'support'; condition = 'เปิด/ปิดวงฟื้น MP · สำรอง MP สูงสุด 20% ขณะเปิด'; break;
     case 'self_barrier':

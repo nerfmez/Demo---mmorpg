@@ -10,9 +10,10 @@ import { computeSkill, movementSkill, aimsAtGround } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
-import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock, springTrap, tickTrap, companionOf, sicTarget, summonsOf } from './frontier-content.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock, springTrap, tickTrap, companionOf, sicTarget, summonsOf, companionFetch } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
+import { monsterHit, resistOf, inflictHero, statusTaken, statusWalk, DOTS } from './defense.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
@@ -1119,6 +1120,9 @@ export class Game {
       perkDodge(this, false);
       return 0;
     }
+    // the defensive line (core/defense.js): the attack's element is resisted
+    const hit = monsterHit(source, opts.attack);
+    amount *= (1 - resistOf(this.derived, hit.element)) * statusTaken(this);
     const guard=applyGuard(this,amount,source,opts);
     // Shield Fortress takes the whole hit on the shield: no damage, no knockback
     if (guard.full) {
@@ -1154,7 +1158,9 @@ export class Game {
     if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;
     this.emit({ type: 'playerHit', amount: dmg, absorbed, shielded, blocked, x: p.x, z: p.z });
-    if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
+    // a status the attack puts on the hero: resisted by its element, shortened by tenacity
+    if (opts.poison) inflictHero(this, { status: 'poison', duration: opts.poison.duration, dps: opts.poison.dps }, amount, 'poison', this.rng);
+    if (hit.inflict && p.hp > 0) inflictHero(this, hit.inflict, amount, hit.element, this.rng);
     if (opts.knock && dmg > 0 && !perkSteady(this) && !Object.values(p.buffs).some((b) => b.steady)) {
       this.cancelCharge();
       this.cancelChannel();
@@ -1634,7 +1640,7 @@ export class Game {
     const mx = this.input.moveX;
     const mz = this.input.moveZ;
     const mlen = Math.hypot(mx, mz);
-    const chill = p.statuses.chill ? 1 - p.statuses.chill.slow : 1;
+    const chill = statusWalk(p); // chill slows, root stops (core/defense.js)
     const haste = 1 + buffSum(p.buffs, 'speed');
     const speed = this.derived.moveSpeed * (p.charging ? p.charging.skill.charge.moveMult : p.channeling ? p.channeling.skill.channel.moveMult : p.cast ? 0.4 : 1) * chill * haste;
     p.moving = mlen > 0.08;
@@ -1741,8 +1747,10 @@ export class Game {
 
   tickPlayerStatuses(dt) {
     const p = this.player;
-    const st = p.statuses.poison;
-    if (st) {
+    // poison, burn and bleed (core/defense.js): damage over time that never kills
+    for (const id of DOTS) {
+      const st = p.statuses[id];
+      if (!st) continue;
       st.t -= dt;
       st.acc += st.dps * dt;
       if (st.acc >= 2) {
@@ -1750,14 +1758,15 @@ export class Game {
         st.acc -= n;
         const shielded = this.drainShield(n);
         p.hp -= n - shielded;
-        this.emit({ type: 'playerHit', amount: n - shielded, absorbed: 0, shielded, dot: true, x: p.x, z: p.z });
-        if (p.hp <= 0) p.hp = 1; // poison alone never kills
+        this.emit({ type: 'playerHit', amount: n - shielded, absorbed: 0, shielded, dot: true, status: id, x: p.x, z: p.z });
+        if (p.hp <= 0) p.hp = 1; // a dot alone never kills
       }
-      if (st.t <= 0) delete p.statuses.poison;
+      if (st.t <= 0) delete p.statuses[id];
     }
-    if (p.statuses.chill) {
-      p.statuses.chill.t -= dt;
-      if (p.statuses.chill.t <= 0) delete p.statuses.chill;
+    // chill, shock and root only last
+    for (const id of ['chill', 'shock', 'root']) {
+      const st = p.statuses[id];
+      if (st && (st.t -= dt) <= 0) delete p.statuses[id];
     }
   }
 
@@ -1845,6 +1854,8 @@ export class Game {
         a.moving = false;
         continue;
       }
+      // Companion fetch (a Job Tree node): with nothing to fight it brings the drops lying round the hero
+      if (a.companion && companionFetch(this, a, this.derived.companionFetch || 0, dt, !!t)) continue;
       a.state = t ? 'chase' : 'follow';
       if (t) {
         const d = dist(a.x, a.z, t.x, t.z) - t.r - a.r;
@@ -1972,7 +1983,7 @@ export class Game {
         for (const u of this.units()) {
           if (dist(pr.x, pr.z, u.x, u.z) < u.r + pr.radius) {
             const src = this.monsterById(pr.sourceId);
-            this.damageUnit(u, pr.damage, src, { poison: pr.poison });
+            this.damageUnit(u, pr.damage, src, { poison: pr.poison, attack: pr.attack });
             this.emit({ type: 'impact', kind: pr.kind, element: pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane'), x: pr.x, z: pr.z });
             dead = true;
             break;
@@ -2019,14 +2030,14 @@ export class Game {
           const d = dist(a.x, a.z, u.x, u.z);
           if (!a.hit.has(u.id) && Math.abs(d - a.radius) < 0.7) {
             a.hit.add(u.id);
-            this.damageUnit(u, a.damage, this.monsterById(a.sourceId));
+            this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { attack: a.attack });
           }
         }
       } else if (a.tick) {
         if (live >= a.nextTick) {
           a.nextTick += a.tick;
           if (a.owner === 'monster') {
-            for (const u of this.units()) if (dist(a.x, a.z, u.x, u.z) <= a.radius + u.r) this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { dot: true });
+            for (const u of this.units()) if (dist(a.x, a.z, u.x, u.z) <= a.radius + u.r) this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { dot: true, attack: a.attack });
           } else if (a.heal) {
             const p = this.player;
             if (!p.dead && dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) healUnit(this,this.player,a.heal,a.skill);
@@ -2058,7 +2069,7 @@ export class Game {
           // a ring (a.inner) leaves its middle safe
           for (const u of this.units()) {
             const d = dist(a.x, a.z, u.x, u.z);
-            if (d <= a.radius + u.r && !(a.inner && d < a.inner)) this.damageUnit(u, a.damage, src);
+            if (d <= a.radius + u.r && !(a.inner && d < a.inner)) this.damageUnit(u, a.damage, src, { attack: a.attack });
           }
           this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner });
         }
@@ -2077,6 +2088,7 @@ export class Game {
     const keep = [];
     for (const d of this.drops) {
       d.t += dt;
+      if (d.carrier != null) { keep.push(d); continue; } // in a companion's mouth (companionFetch)
       if (!p.dead && d.t > 0.45) {
         const dd = dist(p.x, p.z, d.x, d.z);
         if (dd < MAGNET_RADIUS) {

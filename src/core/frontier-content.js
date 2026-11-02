@@ -579,3 +579,34 @@ export function placeTraps(g,s,aim,mult){
     g.emit({type:'trapSet',skill:s.id,look,id:area.id,x,z,arm:T.arm,life:T.life,radius,trigger,hold:use.root?.duration,fromX:g.player.x,fromZ:g.player.z,i});
   }
 }
+
+/** Companion fetch (คู่หูคาบของ, the hunter's trunk node; owner 2026-10-25, docs/SKILL-TREE-WHEEL-DRAFT-TH.md
+ *  job 10): with the node's companionFetch (a radius in metres round the hero) a hunter's companion that has
+ *  nothing to fight runs to a drop lying within that radius but past the hero's own pull, takes it in its
+ *  mouth and brings it back; near the hero it lets go and the drop flies in as usual (updateDrops). A fight
+ *  makes it drop what it carries where it stands. Tunables: progression.combat.companionFetch. Returns true
+ *  when the companion was busy fetching this step (it then skips its heel). */
+export function companionFetch(g,a,radius,dt,busy){
+  const F=g.data.progression.combat.companionFetch,p=g.player;
+  let d=a.fetchId!=null?g.drops.find(q=>q.id===a.fetchId):null;
+  if(a.fetchId!=null&&!d){a.fetchId=null;}
+  if(busy||!radius){if(d&&d.carrier===a.id)d.carrier=null;a.fetchId=null;return false;}
+  if(!d){
+    let bd=Infinity;
+    for(const q of g.drops){
+      if(q.t<F.settle||q.carrier!=null||g.allies.some(o=>o!==a&&o.fetchId===q.id))continue;
+      const dp=dist(q.x,q.z,p.x,p.z);if(dp>radius||dp<=F.release)continue;
+      const da=dist(q.x,q.z,a.x,a.z);if(da<bd){bd=da;d=q;}
+    }
+    if(!d)return false;
+    a.fetchId=d.id;
+  }
+  const carrying=d.carrier===a.id,tx=carrying?p.x:d.x,tz=carrying?p.z:d.z,gap=dist(a.x,a.z,tx,tz);
+  if(carrying&&gap<=F.release){d.carrier=null;a.fetchId=null;g.emit({type:'companionFetch',id:a.id,drop:d.id,done:true,x:a.x,z:a.z});return false;}
+  if(!carrying&&gap<=F.grab){d.carrier=a.id;g.emit({type:'companionFetch',id:a.id,drop:d.id,x:d.x,z:d.z});}
+  const ang=angleTo(a.x,a.z,tx,tz),step=Math.min(gap,a.speed*F.speedMult*dt);
+  g.moveEntity(a,Math.sin(ang)*step,Math.cos(ang)*step);
+  a.facing=ang;a.moving=true;a.state='follow';
+  if(d.carrier===a.id){d.x=a.x+Math.sin(a.facing)*F.mouth;d.z=a.z+Math.cos(a.facing)*F.mouth;}
+  return true;
+}

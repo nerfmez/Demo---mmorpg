@@ -368,7 +368,7 @@ export class Panels {
       </section>
       <section class="pg-col">
         <h4>การโจมตี</h4>${kv([['พลังโจมตี', d.attack], ['พลังเวท', d.magic], ['โอกาสคริ', `${Math.round(d.critChance * 100)}%`], ['แรงคริ', `×${d.critMult.toFixed(2)}`], d.dodgeChancePct ? ['โอกาสหลบ', `${d.dodgeChancePct.toFixed(1)}%`] : null, pct('ดาเมจประชิด', d.meleeDamagePct), pct('ดาเมจยิง', d.projectileDamagePct), pct('ดาเมจเวท', d.spellDamagePct), pct('ดาเมจวงกว้าง', d.areaDamagePct), pct('ดาเมจอัญเชิญ', d.summonDamagePct), d.poisonChancePct ? ['โอกาสติดพิษ', `${d.poisonChancePct.toFixed(0)}%`] : null])}
-        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], d.maxShield ? ['เกราะเวท', d.maxShield] : null, pct('บาเรีย', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null])}
+        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], d.maxShield ? ['เกราะเวท', d.maxShield] : null, pct('บาเรีย', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null, pct('ต้านไฟ', d.resistFirePct), pct('ต้านน้ำแข็ง', d.resistColdPct), pct('ต้านสายฟ้า', d.resistLightningPct), pct('ต้านพิษ', d.resistPoisonPct), pct('ทนทาน (ดีบัฟสั้นลง)', d.tenacityPct)])}
         <h4>อื่น ๆ</h4>${kv([['ความเร็วเดิน', `${d.moveSpeed.toFixed(1)} m/s`], ['ความเร็ว', `${Math.round(d.hastePct)}% / ${g.data.progression.character.caps.hastePct}%`], ['Gold', ch.gold.toLocaleString()]])}
       </section></div>`;
   }
@@ -874,7 +874,13 @@ const EFFECT_TH = {
   blockChancePct: 'โอกาสบล็อก %',
   goldFindPct: 'ทองที่ได้ %',
   materialFindPct: 'โอกาสได้วัตถุดิบ %',
-  gearFindPct: 'โอกาสดรอปอุปกรณ์ %',
+  gearFindPct: 'โอกาสดรอปอุปกรณ์ %',  resistAllPct: 'ต้านทุกธาตุ %',
+  resistFirePct: 'ต้านไฟ %',
+  resistColdPct: 'ต้านน้ำแข็ง %',
+  resistLightningPct: 'ต้านสายฟ้า %',
+  resistPoisonPct: 'ต้านพิษ %',
+  tenacityPct: 'ทนทาน (ดีบัฟสั้นลง) %',
+  companionFetch: 'คู่หูคาบของ (ม.)',
 };
 
 function effectText(k, v) {

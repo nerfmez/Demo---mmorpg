@@ -1527,6 +1527,10 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   skill (kind `swap`): it needs a summon within `distance` (the one nearest the aim), else nothing is spent;
   after `delay` (invulnerable) `swapPlayer` trades the hero's and the summon's places and heals it by `heal`
   of its HP (`soulSwap` event).
+  The summoner's summons have the owner's own models (data/models.json `spirit_wisp`, `spirit_alpha`,
+  `spirit_wolf`, `stone_guardian`): the wolves on the wolf rig moving by the beast clips (animBeast), the
+  fox on the wisp rig, the golem on the crag golem's rig. They keep their own colours (no spirit recolour)
+  and shed spirit motes.
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

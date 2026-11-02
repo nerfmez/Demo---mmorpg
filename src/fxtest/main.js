@@ -131,7 +131,7 @@ function buildHero(weapon = heroWeapon, offhand = heroOffhand) {
 buildHero();
 // the game's hero: the chibi body and its hair (hero_base stays as the fallback rig)
 const { hero_base, hero_chibi, hero_chibi_hair } = MODELS.characters;
-loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair }, weapons: MODELS.weapons, monsters: { hunt_hound: MODELS.monsters.hunt_hound, pack_hound: MODELS.monsters.pack_hound, hunt_bear: MODELS.monsters.hunt_bear, hunt_hawk: MODELS.monsters.hunt_hawk } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); for (const r of benchAllies.values()) { r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); /* summons set before the models came are rebuilt in them */ }).catch(() => {});
+loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair }, weapons: MODELS.weapons, monsters: { hunt_hound: MODELS.monsters.hunt_hound, pack_hound: MODELS.monsters.pack_hound, hunt_bear: MODELS.monsters.hunt_bear, hunt_hawk: MODELS.monsters.hunt_hawk, spirit_wolf: MODELS.monsters.spirit_wolf, spirit_alpha: MODELS.monsters.spirit_alpha, spirit_wisp: MODELS.monsters.spirit_wisp, stone_guardian: MODELS.monsters.stone_guardian } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); for (const r of benchAllies.values()) { r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); /* summons set before the models came are rebuilt in them */ }).catch(() => {});
 const tip = new THREE.Vector3();
 function staffTip() {
   const w = hero.bones?.weapon;

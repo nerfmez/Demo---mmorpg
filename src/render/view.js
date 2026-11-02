@@ -32,6 +32,7 @@ import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js
 import { GAME_CAMERA_OFFSET, cameraOffset } from './game-camera.js';
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
 import { arrives, arrivalFrom, arrivalAt, arrivalTime } from './companion-arrival.js';
+const SPIRITS = new Set(['spirit_wolf', 'spirit_alpha', 'spirit_wisp', 'stone_guardian']); // conjured summons: spirit motes off them
 import { fxGround, fxConfig, cachedGround } from './skillfx/fx-common.js';
 
 // The game camera (game-camera.js, 40 degrees above the horizon); `?pitch=` (15-80) previews
@@ -776,11 +777,11 @@ export class View {
       seen.add(a.id);
       let av = this.allyViews.get(a.id);
       if (!av) {
-        const rig = this.takeRig(a.type==='stone_guardian'?'crag_golem':a.type, 1, false);
+        const rig = this.takeRig(a.type, 1, false);
         rig.root.position.set(a.x, this.groundAt(a.x, a.z), a.z);
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
-        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: a.type==='spirit_wolf'||a.type==='spirit_alpha'?installSpiritReveal(rig):null };
+        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: null /* the summoner's spirits are the owner's own models now (no recolour) */ };
         // a hunter's companion comes in from the wild along its arrival path (companion-arrival.js)
         if (arrives(a.type) && a.arriveT > 0) av.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, g.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
         this.allyViews.set(a.id, av);
@@ -806,7 +807,7 @@ export class View {
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
       // spirit motes off a conjured summon (not a hunter's hounds or a straw dummy: they are flesh and straw)
-      if ((av.reveal || a.type === 'stone_guardian' || a.type === 'spirit_wisp') && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
+      if ((SPIRITS.has(a.type)) && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
     }
     for (const [id, av] of this.allyViews) {
       if (!seen.has(id)) {

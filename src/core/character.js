@@ -876,6 +876,7 @@ export function derive(ch, data) {
     resistLightningPct: 0,
     resistPoisonPct: 0,
     tenacityPct: 0,
+    trapDamagePct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;

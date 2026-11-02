@@ -417,18 +417,10 @@
           "whirl_blade": "a main skill since the main line moved to 2.4 s (its MP now lasts on regeneration), it scores under its weapon's reference main; awaiting the skill growth rebalance (phase 3)",
           "thunderstorm": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
           "stone_guardian": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
-          "meteor": "over its class band: awaiting a decision on its numbers",
-          "healing_spring": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
-          "venom_mire": "weaker than its weapon's reference main attack",
           "charged_shot": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "interrupt_slam": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "frontline_split": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
-          "shield_bash": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
-          "flame_stream": "weaker than its weapon's reference main attack",
-          "cross_cut": "over its class band: awaiting a decision on its numbers",
-          "blade_storm": "over its class band: awaiting a decision on its numbers",
-          "blizzard": "over its class band: awaiting a decision on its numbers",
-          "spell_wave": "weaker than its weapon's reference main attack"
+          "shield_bash": "costs more cast time and MP than it adds (control or positioning may be under-measured)"
         },
         "mods": {
           "release_burst": "its MP cost outweighs the measured gain on a Flame Stream that already drains its supply; awaiting the skill growth rebalance",

@@ -107,10 +107,13 @@ export function buildProfile(data, spec) {
     ch.slots[slot].mods.push(uid);
     asks.push(modRequires(data, data.mods.mods[id], level));
   }
-  const needs = new Set(asks.flatMap((r) => Object.keys(r))), start = data.progression.character.startingStats;
-  const spare = ['VIT', 'LUK', 'AGI', 'INT', 'DEX', 'STR'].filter((k) => !needs.has(k));
-  for (const r of asks) for (const [stat, need] of Object.entries(r)) for (const k of spare) {
-    const move = Math.min(need - ch.stats[stat], ch.stats[k] - start[k]);
+  // a stat gives up only what is above the most any skill or mod asks of it (2026-11-02: a support buff that
+  // asked for a little VIT used to lock all of it, so STR fell short of the main attack's need)
+  const start = data.progression.character.startingStats, keep = {};
+  for (const r of asks) for (const [k, v] of Object.entries(r)) keep[k] = Math.max(keep[k] || 0, v);
+  for (const r of asks) for (const [stat, need] of Object.entries(r)) for (const k of ['VIT', 'LUK', 'AGI', 'INT', 'DEX', 'STR']) {
+    if (k === stat) continue;
+    const move = Math.min(need - ch.stats[stat], ch.stats[k] - Math.max(start[k], keep[k] || 0));
     if (move > 0) { ch.stats[k] -= move; ch.stats[stat] += move; }
   }
   d.stats = statTotals(ch, data).stats; // the moved points meet the requirements (HP and power stay as measured)

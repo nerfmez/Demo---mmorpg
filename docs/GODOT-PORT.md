@@ -350,6 +350,8 @@ that do not lead their axis and same-role gaps (`tests/core/build-rules.test.js`
 damage per MP first (`fit`, 2026-11-02); survival is s0 / (1 - h) (s0 the seconds to fall unhealed, h the share of the
 hits our healing covers) up to `healStretch`, then grows on a log curve to `survivalCap`, so a healer who outheals the
 pack still gains from every node.
+A support skill's stat ask keeps only that much of the stat: the reference hero moves points above every ask into
+what a skill still lacks. `trapDamagePct` (Job Tree) raises skills tagged Trap (`skills.js computeSkill`).
 `core/skill-growth.js` holds skill bars (docs/SKILL-GROWTH-TH.md): a skill's `growth` type (data
 `progression.skillGrowth.types`) gives it 2-3 bars; casting it with an enemy within `combatRange` adds
 its pace (the longer of cooldown, cast time, 0.35 s) to proficiency, and each `secondsPerPoint` earns a

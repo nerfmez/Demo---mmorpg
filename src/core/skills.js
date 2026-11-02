@@ -146,6 +146,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Projectile')) inc += derived.projectileDamagePct;
   if (tags.has('Area') && tags.has('Damage')) inc += derived.areaDamagePct;
   if (tags.has('Spell') && tags.has('Damage')) inc += derived.spellDamagePct;
+  if (tags.has('Trap')) inc += derived.trapDamagePct || 0; // the trapper's line (Job Tree)
   // Journal-line increases read the final tags (after mods), so an element-changing mod counts.
   const lineInc = (t, element) => (ELEMENTS.some((e) => t.has(e) || e.toLowerCase() === element) ? derived.elementalDamagePct || 0 : 0)
     + (t.has('Damage') ? derived.damagePct || 0 : 0) + (t.has('Attack') ? derived.attackDamagePct || 0 : 0);

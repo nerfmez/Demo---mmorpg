@@ -69,6 +69,8 @@ const round = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Ma
 const out = {
   builds: builds.length, axes: AXES, best: round(audit.best),
   groups: Object.entries(byGroup).map(([g, v]) => ({ group: g, role: v.role, best: v.best.id, axes: round(v.best.profile.axes) })),
+  // per role: the best value any build of another role reaches on that axis (a role's lines must lead it)
+  outside: Object.fromEntries([...new Set(builds.map((x) => x.role))].map((r) => [r, Math.max(...builds.filter((x) => x.role !== r).map((x) => x.profile.axes[r]))])),
   overpowered: audit.overpowered, noWeakness: audit.noWeakness, roleMisses: audit.roleMisses,
   roleGaps: audit.roleGaps.map((r) => ({ ...r, gap: Math.round(r.gap * 100) / 100 })),
   traps: audit.traps.length,

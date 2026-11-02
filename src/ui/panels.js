@@ -881,6 +881,7 @@ const EFFECT_TH = {
   resistPoisonPct: 'ต้านพิษ %',
   tenacityPct: 'ทนทาน (ดีบัฟสั้นลง) %',
   companionFetch: 'คู่หูคาบของ (ม.)',
+  trapDamagePct: 'ดาเมจกับดัก %',
 };
 
 function effectText(k, v) {

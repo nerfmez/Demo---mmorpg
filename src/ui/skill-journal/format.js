@@ -60,6 +60,7 @@ export const EFFECT_TH = {
   resistPoisonPct: 'ต้านพิษ %',
   tenacityPct: 'ทนทาน (ดีบัฟสั้นลง) %',
   companionFetch: 'คู่หูคาบของ (ม.)',
+  trapDamagePct: 'ดาเมจกับดัก %',
 };
 export function effectLabel(key) {return (EFFECT_TH[key] || key).replace(' %','');}
 export function effectValue(key,value) {return `${value>0?'+':''}${Math.round(value*10)/10}${key.endsWith('Pct')?'%':''}`;}

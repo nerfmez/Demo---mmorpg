@@ -20,7 +20,7 @@ test('every monster has locomotion tuning that makes sense', () => {
     assert.equal(c.walk.length, 4);
     assert.equal(c.run.length, 4);
   }
-  for (const type of Object.keys(MOTION.monsters)) assert.ok(MONSTERS[type] || type === 'spirit_wolf', `${type} is a real monster`);
+  for (const type of Object.keys(MOTION.monsters)) assert.ok(MONSTERS[type] || ['spirit_wolf', 'stone_guardian'].includes(type), `${type} is a real monster or a summon`);
 });
 
 test('legs plant: stance sweeps linearly, swing returns, and the cycle has no jumps', () => {

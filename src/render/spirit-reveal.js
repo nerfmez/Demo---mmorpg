@@ -11,15 +11,15 @@ export function installSpiritReveal(rig){
   const originals=o.material;const convert=original=>{
    const m=original.clone();m.userData={...m.userData,shared:false,rig:true};
    const spiritBody=!!original.map;
-   if(spiritBody)m.userData.spiritBody=true;
+   if(spiritBody){m.userData.spiritBody=true;if((cfg.alpha??1)<1){m.transparent=true;m.depthWrite=true;}}
    const prior=original.onBeforeCompile;
    m.onBeforeCompile=shader=>{
     prior?.call(original,shader);
     if(spiritBody){
-     Object.assign(shader.uniforms,{uSpiritDark:{value:new THREE.Color(cfg.shadow)},uSpiritLight:{value:new THREE.Color(cfg.light)},uSpiritRim:{value:new THREE.Color(cfg.rim)},uSpiritEmission:{value:cfg.emission},uSpiritRimStrength:{value:cfg.rimStrength}});
-     shader.fragmentShader='uniform vec3 uSpiritDark,uSpiritLight,uSpiritRim;uniform float uSpiritEmission,uSpiritRimStrength;\n'+shader.fragmentShader;
-     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat spiritDetail=sqrt(clamp(dot(diffuseColor.rgb,vec3(.2126,.7152,.0722)),0.,1.));diffuseColor.rgb=mix(uSpiritDark,uSpiritLight,spiritDetail);');
-     shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','float spiritEdge=pow(1.-clamp(dot(normal,normalize(vViewPosition)),0.,1.),3.);outgoingLight+=diffuseColor.rgb*uSpiritEmission+uSpiritRim*spiritEdge*uSpiritRimStrength;\n#include <opaque_fragment>');
+     Object.assign(shader.uniforms,{uSpiritDark:{value:new THREE.Color(cfg.shadow)},uSpiritLight:{value:new THREE.Color(cfg.light)},uSpiritRim:{value:new THREE.Color(cfg.rim)},uSpiritEmission:{value:cfg.emission},uSpiritRimStrength:{value:cfg.rimStrength},uSpiritContrast:{value:cfg.contrast??1},uSpiritAlpha:{value:cfg.alpha??1},uSpiritEdgeAlpha:{value:cfg.edgeAlpha??0}});
+     shader.fragmentShader='uniform vec3 uSpiritDark,uSpiritLight,uSpiritRim;uniform float uSpiritEmission,uSpiritRimStrength,uSpiritContrast,uSpiritAlpha,uSpiritEdgeAlpha;\n'+shader.fragmentShader;
+     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nvec3 spiritSrc=diffuseColor.rgb;float spiritDetail=sqrt(clamp(dot(spiritSrc,vec3(.2126,.7152,.0722)),0.,1.));spiritDetail=clamp((spiritDetail-.5)*uSpiritContrast+.5,0.,1.);diffuseColor.rgb=mix(uSpiritDark,uSpiritLight,spiritDetail)*(.85+.3*(spiritSrc-dot(spiritSrc,vec3(.333))));');
+     shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','float spiritEdge=pow(1.-clamp(dot(normal,normalize(vViewPosition)),0.,1.),3.);outgoingLight+=diffuseColor.rgb*uSpiritEmission+uSpiritRim*spiritEdge*uSpiritRimStrength;diffuseColor.a*=uSpiritAlpha+uSpiritEdgeAlpha*spiritEdge; /* see-through in the middle, firmer at the edges: a ghost */\n#include <opaque_fragment>');
     }
     shader.uniforms.uSpiritHeight=state.height;shader.uniforms.uSpiritBase=state.base;
     shader.vertexShader='varying float vSpiritY;\n'+shader.vertexShader;
@@ -27,7 +27,7 @@ export function installSpiritReveal(rig){
     shader.fragmentShader='varying float vSpiritY;uniform float uSpiritHeight,uSpiritBase;\n'+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nfloat edgeNoise=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)*.08;if(vSpiritY-uSpiritBase>uSpiritHeight+edgeNoise)discard;');
    };
-   m.customProgramCacheKey=()=>original.customProgramCacheKey()+'-approved-spirit-reveal-cyan-v2';return m;
+   m.customProgramCacheKey=()=>original.customProgramCacheKey()+'-approved-spirit-reveal-cyan-v3';return m;
   };
   o.material=Array.isArray(originals)?originals.map(convert):convert(originals);state.parts.push({o,originals,materials:Array.isArray(o.material)?o.material:[o.material]});
  });

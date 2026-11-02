@@ -8092,6 +8092,7 @@
       "outline": "#20242c",
       "outlineWidth": 0.02,
       "minWeight": 0.2,
+      "rigid": true,
       "source": "Meshy (owner-supplied GLB, 2026-11-02; the summoner's spirits); prepared with scripts/prep-monster-glb.py (Stone Guardian's rune golem, --scale in data 1.36 so it stands as tall as the crag golem; joints placed from the mesh)",
       "bones": {
         "hips": [0, 0.9, 0],
@@ -8099,9 +8100,11 @@
         "armL": [0.75, 1.09, 0],
         "fistL": [0.09, -0.61, 0],
         "legL": [0.34, -0.08, 0],
+        "kneeL": [0, -0.38, 0],
         "armR": [-0.75, 1.09, 0],
         "fistR": [-0.09, -0.61, 0],
-        "legR": [-0.34, -0.08, 0]
+        "legR": [-0.34, -0.08, 0],
+        "kneeR": [0, -0.38, 0]
       },
       "segments": {
         "hips": [[-0.34, 0.88, 0], [0.34, 0.88, 0]],
@@ -8109,10 +8112,12 @@
         "head": [[0, 2.04, 0.07], [0, 2.52, 0.07]],
         "armL": [[0.75, 2.04, 0], [0.84, 1.43, 0]],
         "fistL": [[0.84, 1.43, 0], [0.87, 0.95, 0]],
-        "legL": [[0.34, 0.82, 0], [0.34, 0.07, 0]],
+        "legL": [[0.34, 0.82, 0], [0.34, 0.46, 0]],
+        "kneeL": [[0.34, 0.42, 0], [0.36, 0.04, 0.05]],
         "armR": [[-0.75, 2.04, 0], [-0.84, 1.43, 0]],
         "fistR": [[-0.84, 1.43, 0], [-0.87, 0.95, 0]],
-        "legR": [[-0.34, 0.82, 0], [-0.34, 0.07, 0]]
+        "legR": [[-0.34, 0.82, 0], [-0.34, 0.46, 0]],
+        "kneeR": [[-0.34, 0.42, 0], [-0.36, 0.04, 0.05]]
       }
     }
   }

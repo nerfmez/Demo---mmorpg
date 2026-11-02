@@ -1538,6 +1538,11 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   at the model's height (not the crag golem's 1.05), and a summoned golem strikes with `pound`
   (view.js ALLY_STRIKE): on its short 0.25 s wind-up both arms go up overhead fast and slam down with the
   body leaning in.
+  The rune golem is `rigid` (each of its stone pieces moves whole with its nearest bone, so an arm never
+  stretches onto a leg) and has knees (the golem rig's `kneeL`/`kneeR`, bent by poseLegs as each foot lifts);
+  its own motion config (data/monster-motion.json `stone_guardian`) walks it with long, slow, heavy strides
+  that never break into a run. The spirit look is see-through (spirit body `alpha`, firmer at the edges by
+  `edgeAlpha`) with more of the painted detail kept (`contrast` around the middle tone).
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

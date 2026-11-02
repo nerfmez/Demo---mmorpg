@@ -656,6 +656,7 @@ function buildGolem() {
     rb.bone(`fist${n}`, `arm${n}`, [0, -1.05, 0]);
     rb.add(`fist${n}`, new THREE.DodecahedronGeometry(0.42, 0), C.rock);
     rb.bone(`leg${n}`, 'hips', [s * 0.45, -0.1, 0]);
+    rb.bone(`knee${n}`, `leg${n}`, [0, -0.45, 0]); // bends the shin of a model with one (the rune golem); the crag golem's legs are one piece
     rb.add(`leg${n}`, cylDown(0.3, 0.34, 0.9, 7), C.rockD);
     rb.add(`leg${n}`, new THREE.BoxGeometry(0.6, 0.2, 0.75), C.rock, { pos: [0, -0.9, 0.1] });
   }
@@ -671,10 +672,11 @@ function animGolem(r, s, dt, time) {
   const ph = r.phase;
   // heavy biped: each footfall lands hard (the hips drop sharply), the torso rolls over the planted
   // leg and twists against the stride, the arms swing behind with weight
-  const drop = poseLegs(r, c, BIPED_LEGS);
+  const drop = poseLegs(r, c, BIPED_LEGS, (n) => n.replace('leg', 'knee')); // knees bend where the model has them
   const thud = (0.5 + 0.5 * Math.cos(2 * ph)) ** 3 * w;
-  let armL = [-Math.sin(ph) * 0.35 * w, 0, 0.12 + 0.06 * thud];
-  let armR = [Math.sin(ph) * 0.35 * w, 0, -0.12 - 0.06 * thud];
+  const lag = ph - 0.5; // the arms swing a beat behind the legs, with weight
+  let armL = [-Math.sin(lag) * 0.35 * w, 0, 0.12 + 0.06 * thud];
+  let armR = [Math.sin(lag) * 0.35 * w, 0, -0.12 - 0.06 * thud];
   let torsoX = 0.1 + Math.sin(time * 1.1 + r.seed) * 0.02 + 0.06 * w;
   const hip0 = b.hips.userData.rest?.pos.y ?? 1.05; // the hips' rest height (a model may move them: the rune golem's)
   let hipsY = hip0 - drop - c.bob * thud;
@@ -1257,7 +1259,7 @@ const BUILDERS = {
 
 export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, spirit_alpha: 1.6, spirit_wisp: 0.6, stone_guardian: 0.85, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.15, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
 
-const MOTION_LIKE = { spirit_wisp: 'marsh_wisp', spirit_wolf: 'thornback_wolf', spirit_alpha: 'thornback_wolf', stone_guardian: 'crag_golem', hunt_hawk: 'gale_hawk', hunt_hound: 'thornback_wolf', pack_hound: 'thornback_wolf', hunt_bear: 'thornback_wolf' };
+const MOTION_LIKE = { spirit_wisp: 'marsh_wisp', spirit_wolf: 'thornback_wolf', spirit_alpha: 'thornback_wolf', hunt_hawk: 'gale_hawk', hunt_hound: 'thornback_wolf', pack_hound: 'thornback_wolf', hunt_bear: 'thornback_wolf' };
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;
   const rig = build();

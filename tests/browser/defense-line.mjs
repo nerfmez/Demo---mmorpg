@@ -34,7 +34,7 @@ try {
     const pr = g.projectiles.find((q) => q.owner === 'monster');
     return pr ? { element: pr.element, attack: pr.attack, state: w.state } : { none: true, state: w.state };
   });
-  await page.screenshot({ path: `${S}/shots/1-wisp-fire-orb.png` }); console.log('orb', JSON.stringify(orb));
+  await page.screenshot({ path: `${S}/shots/1-wisp-fire-orb.png`, timeout: 120000 }); console.log('orb', JSON.stringify(orb));
   // 2) statuses on the hero: burn from the orb, shock from a rune sentinel beam, root from the mole
   const st = await page.evaluate(() => {
     const f = window.__frontier, g = f.game, p = g.player;
@@ -47,7 +47,7 @@ try {
     f.step(0.2);
     return Object.keys(p.statuses);
   });
-  await page.screenshot({ path: `${S}/shots/2-hero-statuses.png` }); console.log('statuses', JSON.stringify(st));
+  await page.screenshot({ path: `${S}/shots/2-hero-statuses.png`, timeout: 120000 }); console.log('statuses', JSON.stringify(st));
   // 3) companion fetch: call the hound, drop gold away from the hero, watch it carry
   const carry = await page.evaluate(() => {
     const f = window.__frontier, g = f.game, p = g.player;
@@ -64,6 +64,6 @@ try {
     f.step(0.5);
     return { companion: !!a, carried, frames, carrying: g.drops.some((d) => d.carrier != null) };
   });
-  await page.screenshot({ path: `${S}/shots/3-companion-carry.png` });
+  await page.screenshot({ path: `${S}/shots/3-companion-carry.png`, timeout: 120000 });
   console.log(JSON.stringify({ orb, st, carry, errors: errors.slice(0, 5) }));
 } finally { await browser?.close(); try { process.kill(-server.pid); } catch {} }

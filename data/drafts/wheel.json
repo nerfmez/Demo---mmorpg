@@ -119,11 +119,11 @@
           "name": "ผู้กวาดล้าง", "role": "pack",
           "pass": [{ "areaDamagePct": 4 }, { "areaDamagePct": 2, "maxHpPct": 2 }, { "areaDamagePct": 4 }],
           "keys": [
-            { "name": "ดาเมจต่อศัตรูที่โดน", "effects": { "perTargetDamagePct": 5, "perTargetCap": 25 } },
+            { "name": "ดาเมจต่อศัตรูที่โดน", "effects": { "perTargetDamagePct": 6, "perTargetCap": 30 } },
             { "name": "ดูดเลือดหมู่", "effects": { "leechPct": 3 } },
             { "name": "กวาดแรงขึ้น", "effects": { "packDamagePct": 12 } }
           ],
-          "cap": { "name": "แรงส่ง", "effects": { "packDamagePct": 40 }, "uptime": 0.5 }
+          "cap": { "name": "แรงส่ง", "effects": { "packDamagePct": 50 }, "uptime": 0.7 }
         },
         "crusher": {
           "name": "ผู้บดขยี้", "role": "single",
@@ -132,7 +132,7 @@
             { "forks": {
               "charge": { "name": "ชาร์จ", "effects": { "singleDamagePct": 20 } },
               "debuff": { "name": "ดีบัฟ", "effects": { "singleDamagePct": 12, "teamDamagePct": 6 } },
-              "heavy": { "name": "แรงสุด", "effects": { "meleeDamagePct": 30, "hastePct": -15 } }
+              "heavy": { "name": "แรงสุด", "effects": { "meleeDamagePct": 44, "hastePct": -15 } }
             } },
             { "name": "ทุบเกราะ", "effects": { "singleDamagePct": 15 }, "uptime": 0.9 },
             { "name": "คริหนัก", "effects": { "critChancePct": 6 } }
@@ -147,25 +147,25 @@
       "loadout": ["hunter_shot", "charged_shot", "rapid_volley", "killing_arrow"],
       "support": [],
       "inner": { "own": ["center", "dex", "strdex"], "tank": ["center", "dex", "str"], "crit": ["center", "strdex", "dex"] },
-      "entry": { "name": "ยิงเป้าเดิมต่อเนื่อง", "effects": { "singleDamagePct": 10 } },
+      "entry": { "name": "ยิงเป้าเดิมต่อเนื่อง", "effects": { "singleDamagePct": 15 } },
       "trunk": [
         { "name": "ดาเมจยิง", "effects": { "projectileDamagePct": 4 } },
         { "name": "ความเร็วลูกที่ยิง", "effects": { "projectileSpeedPct": 6 } },
-        { "name": "ลำต้น (เด่น)", "cost": 2, "effects": { "projectileDamagePct": 8 } }
+        { "name": "ลำต้น (เด่น)", "cost": 2, "effects": { "projectileDamagePct": 14 } }
       ],
       "branches": {
         "dps": {
           "name": "สาย DPS", "role": "single",
-          "pass": [{ "projectileDamagePct": 4 }, { "hastePct": 4, "mpOnHit": 1 }, { "projectileDamagePct": 4 }],
+          "pass": [{ "projectileDamagePct": 6 }, { "hastePct": 4, "mpOnHit": 1 }, { "projectileDamagePct": 6 }],
           "keys": [
             { "forks": {
-              "power": { "name": "แรง", "effects": { "projectileDamagePct": 18 } },
+              "power": { "name": "แรง", "effects": { "projectileDamagePct": 24 } },
               "speed": { "name": "เร็ว", "effects": { "hastePct": 10, "mpOnHit": 4, "projectileDamagePct": 10 } },
-              "crit": { "name": "คริ", "effects": { "critChancePct": 8, "critMultPct": 22 } },
+              "crit": { "name": "คริ", "effects": { "critChancePct": 9, "critMultPct": 28 } },
               "pierce": { "name": "เจาะเกราะ", "effects": { "penetrationPct": 20 } }
             } },
-            { "name": "ยืนนิ่ง", "effects": { "projectileDamagePct": 15 }, "uptime": 0.6 },
-            { "name": "ยิงแม่น", "effects": { "critChancePct": 4 } }
+            { "name": "ยืนนิ่ง", "effects": { "projectileDamagePct": 22 }, "uptime": 0.7 },
+            { "name": "ยิงแม่น", "effects": { "critChancePct": 4, "singleDamagePct": 8 } }
           ],
           "cap": { "forks": {
             "power": { "name": "ลูกตัดสิน", "effects": { "singleDamagePct": 17 } },
@@ -211,7 +211,7 @@
           "cap": { "name": "แตกเป็นเสี่ยง", "effects": { "singleDamagePct": 15, "packDamagePct": 15, "selfTakenPct": 8 }, "uptime": 0.6 }
         },
         "lightning": {
-          "name": "สายฟ้า", "role": "single",
+          "name": "สายฟ้า", "role": "pack",
           "stats": { "INT": 0.55, "AGI": 0.1 },
           "loadout": ["chain_spark", "thunderstorm", "meteor", "blizzard"],
           "pass": [{ "elementalDamagePct": 4 }, { "hastePct": 5 }, { "manaCostReductionPct": 3 }],
@@ -263,13 +263,13 @@
           "stats": { "INT": 0.55, "AGI": 0.1 },
           "loadout": ["arcane_bolt", "holy_bell", "light_chain"],
           "support": ["hex"],
-          "pass": [{ "controlDurationPct": 5, "teamDamagePct": 1 }, { "spellDamagePct": 3 }, { "teamDamagePct": 2 }],
+          "pass": [{ "controlDurationPct": 5, "teamDamagePct": 3 }, { "spellDamagePct": 3, "teamDamagePct": 2 }, { "teamDamagePct": 4 }],
           "keys": [
-            { "name": "ศัตรูติดดีบัฟรับดาเมจ", "effects": { "teamDamagePct": 10 } },
-            { "name": "ตราบาป", "effects": { "teamTakenPct": 5 } },
-            { "name": "ดีบัฟนานขึ้น", "effects": { "controlDurationPct": 20 } }
+            { "name": "ศัตรูติดดีบัฟรับดาเมจ", "effects": { "teamDamagePct": 12 } },
+            { "name": "ตราบาป", "effects": { "teamTakenPct": 9 } },
+            { "name": "ดีบัฟนานขึ้น", "effects": { "controlDurationPct": 20, "teamDamagePct": 6 } }
           ],
-          "cap": { "name": "คำพิพากษา", "effects": { "teamDamagePct": 15, "singleDamagePct": 15 }, "uptime": 0.5 }
+          "cap": { "name": "คำพิพากษา", "effects": { "teamDamagePct": 45, "singleDamagePct": 15 }, "uptime": 0.7 }
         },
         "protector": {
           "name": "ผู้ปกป้อง", "role": "survival",

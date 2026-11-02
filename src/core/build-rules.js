@@ -139,7 +139,7 @@ export function buildProfile(data, spec) {
   const armourOf = (s) => s.modEffects?.penetrate ? defenseFactor(m.defense * (1 - (d.penetrationPct || 0) / 100) * (1 - s.modEffects.penetrate / 100), data) / armour : 1;
   const pct = (k) => (d[k] || 0) / 100;
   // rotation: cooldown skills whenever ready, each holding the hero for its cast and a short recovery;
-  // the main attack fills the rest of the fighting time; MP cuts the main attack first
+  // the main attack fills the rest of the fighting time; MP cuts the least damage per MP first (fit)
   const lock = (s) => s.castTime + (s.charge ? s.charge.duration : 0) + R.recover;
   const busy = attacks.slice(1).reduce((a, s) => a + lock(s) / s.cooldown, 0);
   const main = attacks[0], interval = main.channel ? main.cooldown : Math.max(main.cooldown, main.castTime, 0.35);
@@ -150,13 +150,19 @@ export function buildProfile(data, spec) {
   const helperCost = helpers.reduce((a, s) => a + s.cost / s.cooldown, 0), helperShare = helperCost > supply && !spec.mpFree ? supply / helperCost : 1;
   // each attack hands back its own MP on hit (gear, the Job Tree and a mod are already in it)
   const spend = (hitsOf) => attacks.reduce((a, s, i) => a + rates[i] * (s.cost - (s.mpOnHit || 0) * hitsOf(s)), 0) + helperCost * helperShare;
-  const fit = (hitsOf) => { // scale the main attack down until the MP lasts the fight
-    const over = spend(hitsOf) - supply;
+  // short of MP the player drops what gives the least damage for its MP first (owner, 2026-11-02: cutting
+  // the cheap main attack first made a melee build with costly big skills weaker than its main attack alone)
+  const fit = (hitsOf) => {
+    let over = spend(hitsOf) - supply;
     if (over <= 0 || spec.mpFree) return rates;
-    const r = [...rates], cut = Math.min(r[0], over / Math.max(1e-6, main.cost - (main.mpOnHit || 0) * hitsOf(main)));
-    r[0] -= cut;
-    const left = over - cut * (main.cost - (main.mpOnHit || 0) * hitsOf(main));
-    if (left > 1e-9) { const rest = attacks.slice(1).reduce((a, s, i) => a + r[i + 1] * s.cost, 0); for (let i = 1; i < r.length; i++) r[i] *= Math.max(0, 1 - left / Math.max(1e-6, rest)); }
+    const r = [...rates], net = (s) => s.cost - (s.mpOnHit || 0) * hitsOf(s);
+    const worth = (i) => castDamage(attacks[i]) * fanShots(attacks[i], data) * hitsOf(attacks[i]) / net(attacks[i]);
+    const order = attacks.map((_, i) => i).filter((i) => net(attacks[i]) > 0).sort((x, y) => worth(x) - worth(y));
+    for (const i of order) {
+      if (over <= 1e-9) break;
+      const c = net(attacks[i]), cut = Math.min(r[i], over / c);
+      r[i] -= cut; over -= cut * c;
+    }
     return r;
   };
   // our own buffs: damage with their uptime (they last duration, come back every cooldown; a support
@@ -245,7 +251,12 @@ export function buildProfile(data, spec) {
   // our heals land on us too (a spring at our feet, a cleanse on ourselves)
   const selfHeal = [...attacks, ...helpers].reduce((a, s) => a + (s.heal ? s.heal * (s.kind === 'heal_zone' ? s.duration / s.tick : 1) / s.cooldown * (helpers.includes(s) ? helperShare : 1) : 0), 0);
   const net = incoming - (d.hpRegen || 0) - pct('leechPct') * single - skillLeech - shield - selfHeal;
-  const survival = net <= 0 ? R.survivalCap : Math.min(R.survivalCap, (d.maxHp + (d.maxShield || 0)) / net);
+  // seconds to fall without healing (s0) and the share of the incoming damage our healing covers (h):
+  // s0 / (1 - h) while the hits win; past healStretch the curve goes on gently (a log of the rest) so a
+  // healer who outheals the pack still gains from every heal, HP or shield node instead of sitting at
+  // the cap (owner, 2026-11-02)
+  const s0 = (d.maxHp + (d.maxShield || 0)) / Math.max(1e-9, incoming), h = (incoming - net) / Math.max(1e-9, incoming), H = R.healStretch;
+  const survival = Math.min(R.survivalCap, h < H ? s0 / (1 - h) : s0 / (1 - H) * (1 + Math.log(1 + (h - H) / (1 - H))));
   const mobility = d.moveSpeed * (1 + selfSpeed * helperShare) + (mv.charges ? mv.distance / Math.max(0.1, mv.recharge) : 0) + attacks.reduce((a, s, i) => a + (s.kind === 'dash_line' ? s.range * rf[i] : 0), 0); // a dash cut moves the hero too
   // team: what the build gives allies (buff share x uptime; healing and barriers per second measured
   // against the pack's damage per second; an aura that cuts allies' damage taken)

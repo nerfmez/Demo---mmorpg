@@ -2456,8 +2456,8 @@
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 832,
-        "scale": 6.72
+        "base": 499,
+        "scale": 4.03
       },
       "range": 12,
       "radius": 3.5,
@@ -2493,8 +2493,8 @@
       "kind": "dot_zone",
       "power": "spell",
       "damage": {
-        "base": 144,
-        "scale": 1.28
+        "base": 94,
+        "scale": 0.83
       },
       "range": 11,
       "radius": 3.8,
@@ -2526,8 +2526,8 @@
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 208,
-        "scale": 1.6
+        "base": 177,
+        "scale": 1.36
       },
       "range": 12,
       "radius": 3.2,

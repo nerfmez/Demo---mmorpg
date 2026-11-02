@@ -29,6 +29,8 @@ for (let r = 0; r < rounds; r++) {
   execFileSync('node', [new URL('./wheel-sim.mjs', import.meta.url).pathname, OUT], { stdio: 'ignore' });
   const out = JSON.parse(readFileSync(OUT, 'utf8')), W = JSON.parse(readFileSync(FILE, 'utf8'));
   const byRole = {};
+  // a line is judged on its best build (the balance audits judge that one; scripts/wheel-feel.mjs looks after
+  // the line's own branch)
   for (const g of out.groups) (byRole[g.role] ||= []).push(g.axes[g.role]);
   // a role's target: its lines' median, but at least lead over every build of another role on that axis
   const median = Object.fromEntries(Object.entries(byRole).map(([k, v]) => [k, Math.max([...v].sort((a, b) => a - b)[Math.floor(v.length / 2)], (out.outside[k] || 0) * 1.08)]));

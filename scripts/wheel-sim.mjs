@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { loadData } from '../src/core/data-node.js';
 import { buildProfile, auditBuilds, AXES } from '../src/core/build-rules.js';
+import { modFits } from '../src/core/skills.js';
 
 const data = loadData();
 const W = JSON.parse(readFileSync(new URL('../data/drafts/wheel.json', import.meta.url), 'utf8'));
@@ -35,12 +36,16 @@ function branchNodes(job, bid, fork) {
 }
 const forksOf = (job, bid) => { const b = W.jobs[job].branches[bid], f = b.keys.find((k) => k.forks); return f ? Object.keys(f.forks) : [null]; };
 
+// every line plays its main attack with the mod its role calls for (2026-11-02: a pack player splits or widens
+// the main attack, a single-target player makes it hit harder): the first of these that fits it
+const ROLE_MODS = { pack: ['split', 'wide_arc', 'bounce'], single: ['heavy_blow', 'vicious_shot', 'focused_spell'] };
+const mainMod = (role, skill) => { const m = (ROLE_MODS[role] || []).find((id) => data.mods.mods[id] && !data.mods.mods[id].retired && modFits(data.skills.combat[skill], data.mods.mods[id]).ok); return m ? { 0: [m] } : undefined; };
 const builds = [], ladders = [];
 for (const [job, J] of Object.entries(W.jobs)) {
   const entry = add(`w.${job}.entry`, J.entry, 0), trunk = J.trunk.map((n, i) => add(`w.${job}.trunk${i}`, n, n.cost || 1));
   for (const bid of Object.keys(J.branches)) for (const fork of forksOf(job, bid)) {
     const B = J.branches[bid], path = branchNodes(job, bid, fork);
-    const spec0 = { kit: job, level: W.level, build: { ...J.build, stats: B.stats || J.build.stats }, loadout: B.loadout || J.loadout, support: B.support || J.support };
+    const spec0 = { kit: job, level: W.level, build: { ...J.build, stats: B.stats || J.build.stats }, loadout: B.loadout || J.loadout, support: B.support || J.support, mods: mainMod(B.role, (B.loadout || J.loadout)[0]) };
     const jobBase = [entry, ...trunk, ...path];
     const spareOptions = { inner: null };
     for (const other of Object.keys(J.branches)) if (other !== bid) spareOptions['side:' + other] = branchNodes(job, other, forksOf(job, other)[0]).slice(0, 4).concat(branchNodes(job, other, forksOf(job, other)[0]).slice(4, 8));
@@ -71,7 +76,7 @@ for (const x of builds) { const g = byGroup[x.group] ||= { role: x.role, best: n
 const round = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round(v * (k === 'team' ? 1000 : 10)) / (k === 'team' ? 1000 : 10)]));
 const out = {
   builds: builds.length, axes: AXES, best: round(audit.best),
-  groups: Object.entries(byGroup).map(([g, v]) => ({ group: g, role: v.role, best: v.best.id, axes: round(v.best.profile.axes) })),
+  groups: Object.entries(byGroup).map(([g, v]) => { const pure = builds.filter((x) => x.group === g && x.spare === 'inner').reduce((a, x) => (!a || x.profile.axes[v.role] > a.profile.axes[v.role] ? x : a), null); return { group: g, role: v.role, best: v.best.id, axes: round(v.best.profile.axes), pure: round(pure.profile.axes) }; }),
   // per role: the best value any build of another role reaches on that axis (a role's lines must lead it)
   outside: Object.fromEntries([...new Set(builds.map((x) => x.role))].map((r) => [r, Math.max(...builds.filter((x) => x.role !== r).map((x) => x.profile.axes[r]))])),
   overpowered: audit.overpowered, noWeakness: audit.noWeakness, roleMisses: audit.roleMisses,

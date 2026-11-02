@@ -22,11 +22,11 @@ try {
     g.spawnPoints = []; g.monsters = []; g.isSafe = () => false;
     const p = g.player;
     // outside the safe settlement, on open ground (monsters never attack inside it)
-    for (let r = 6; r < 200; r += 4) { let done = false; for (let a = 0; a < 6.28 && !done; a += 0.4) { const x = p.x + Math.sin(a) * r, z = p.z + Math.cos(a) * r; if (!g.world.isSafe(x, z) && g.world.isFree(x, z, 1.5) && !g.world.isSafe(x + 7, z + 1) && g.world.isFree(x + 7, z + 1, 1)) { p.x = x; p.z = z; done = true; } } if (done) break; }
+    for (let r = 6; r < 200; r += 4) { let done = false; for (let a = 0; a < 6.28 && !done; a += 0.4) { const x = p.x + Math.sin(a) * r, z = p.z + Math.cos(a) * r; if (!g.world.isSafe(x, z) && [[0, 0], [7, 1], [-6, 4], [5, -6], [-7, -3], [0, 9]].every(([ox, oz]) => g.world.isFree(x + ox, z + oz, 2.5) && !g.world.isSafe(x + ox, z + oz))) { p.x = x; p.z = z; done = true; } } if (done) break; }
     p.hp = p.maxHp = 1e6;
     f.snap = () => { f.view.heroY = f.view.world.groundY(p.x, p.z); f.view.camTarget.set(p.x, f.view.heroY, p.z); };
     f.snap();
-    f.step = (sec) => { for (let t = 0; t < sec - 1e-8; t += 1 / 60) { g.update(1 / 60); for (const e of g.drainEvents()) f.view.handleEvent(e); f.view.syncMonsters?.(1 / 60, g.time); f.view.vfx?.update?.(1 / 60); } f.view.render(0, g.time, {}); f.hud?.update(0, { interact() {} }); };
+    f.step = (sec) => { for (let t = 0; t < sec - 1e-8; t += 1 / 60) { g.update(1 / 60); for (const e of g.drainEvents()) f.view.handleEvent(e); f.view.syncMonsters?.(1 / 60, g.time); f.view.vfx?.update?.(1 / 60); } f.view.render(Math.min(1, sec), g.time, {}); f.hud?.update(0, { interact() {} }); }; // the view turns and eases by the time stepped
     f.step(0.1);
   });
   console.log('ready');

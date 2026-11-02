@@ -321,7 +321,7 @@ export class SkillFx {
       case 'summon': {
         if (e.skill === 'lure_dummy') { this.traps.plant(e); return false; }
         const a = g.allies?.find((q) => q.id === e.id);
-        if (a && SPIRIT_ARRIVE[a.type]) { this.spiritCall.summon(e, a.type, this.castTip()); return true; }
+        if (a && SPIRIT_ARRIVE[a.type]) { this.spiritCall.summon(e, a.type, this.castTip(), a.alphaAura?.radius || 0); return true; }
         if (!a || !arrives(a.type)) return false;
         this.call.call(e, a.type, g.player); return true;
       }

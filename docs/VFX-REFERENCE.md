@@ -799,3 +799,8 @@ motion per layer in the spirits' see-through blue: a spirit flame per fox arcs f
 spot (the three a beat apart), a small rune circle (two rings, six ticks, a three-line star) opens there
 with a soft flash and turns slowly while motes rise, and the fox forms out of the ground once its flame has
 landed (its reveal waits SPIRIT_ARRIVE; the rules hold it still for summon.arrive 0.5 s) before it runs in.
+
+Call Alpha, round 1 (same file; owner: Spirit Swarm "passed"). One bigger spirit flame arcs from the staff,
+a circle twice the size opens with a pillar of spirit fire rising round its edge while the alpha forms
+(the rules hold it 0.75 s), then its howl: one ring of blue light running out over the ground to the aura's
+true 8 m reach, where the other summons hit harder.

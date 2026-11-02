@@ -915,6 +915,7 @@
       "range": 0,
       "summon": {
         "type": "spirit_alpha",
+        "arrive": 0.75,
         "count": 1,
         "life": 20,
         "hp": {

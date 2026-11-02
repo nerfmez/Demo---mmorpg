@@ -21,10 +21,11 @@ try {
     const f = window.__frontier, g = f.game; window.__freeze = true; f.paused = true; f.input?.reset?.(); if (f.input) f.input.disabled = true;
     g.spawnPoints = []; g.monsters = []; g.isSafe = () => false;
     const p = g.player;
-    // outside the safe settlement, on open ground (monsters never attack inside it), on the start map (a
+    // outside the safe settlement, on open beach sand (no canopy over the hero; monsters never attack inside the
+    // settlement), on the start map (a
     // development load draws only that one)
     const region = (x, z) => g.unifiedWorld?.regionAt(x, z)?.id ?? 'one', start = region(p.x, p.z), home = (x, z) => region(x, z) === start;
-    for (let r = 6; r < 200; r += 4) { let done = false; for (let a = 0; a < 6.28 && !done; a += 0.4) { const x = p.x + Math.sin(a) * r, z = p.z + Math.cos(a) * r; if (!g.world.isSafe(x, z) && [[0, 0], [7, 1], [-6, 4], [5, -6], [-7, -3], [0, 9]].every(([ox, oz]) => g.world.isFree(x + ox, z + oz, 2.5) && !g.world.isSafe(x + ox, z + oz) && home(x + ox, z + oz))) { p.x = x; p.z = z; done = true; } } if (done) break; }
+    for (let r = 6; r < 200; r += 4) { let done = false; for (let a = 0; a < 6.28 && !done; a += 0.4) { const x = p.x + Math.sin(a) * r, z = p.z + Math.cos(a) * r; if (!g.world.isSafe(x, z) && [[0, 0], [7, 1], [-6, 4], [5, -6], [-7, -3], [0, 9]].every(([ox, oz]) => g.world.isFree(x + ox, z + oz, 2.5) && !g.world.isSafe(x + ox, z + oz) && home(x + ox, z + oz) && (g.world.isBeach?.(x + ox, z + oz) ?? true))) { p.x = x; p.z = z; done = true; } } if (done) break; }
     p.hp = p.maxHp = 1e6;
     f.snap = () => { f.view.heroY = f.view.world.groundY(p.x, p.z); f.view.camTarget.set(p.x, f.view.heroY, p.z); };
     f.snap();

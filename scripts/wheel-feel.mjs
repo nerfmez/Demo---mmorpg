@@ -16,7 +16,7 @@ const round = (v, base) => (base ? Math.round(v) : Math.round(v * 100) / 100);
 for (let r = 0; r < rounds; r++) {
   run('./wheel-sim.mjs', [OUT]);
   const out = JSON.parse(readFileSync(OUT, 'utf8')), W = JSON.parse(readFileSync(WHEEL, 'utf8'));
-  const C = JSON.parse(readFileSync(SKILLS, 'utf8')).combat, asks = {};
+  const C = JSON.parse(readFileSync(SKILLS, 'utf8')).combat, asks = {}, jobAsks = {};
   for (const l of out.ladders) {
     if (!['single', 'pack', 'income'].includes(l.role)) continue;
     const v = l.steps.map((s) => s.value), grow = v[v.length - 1] / v[0];
@@ -24,6 +24,7 @@ for (let r = 0; r < rounds; r++) {
     const [job, rest] = l.group.split('/'), J = W.jobs[job], B = J.branches[rest.split(':')[0]];
     const want = (v[v.length - 1] / target) / v[0];
     for (const id of [...(B.loadout || J.loadout), ...(B.support || J.support || [])]) if (C[id]?.job) (asks[id] ||= []).push(want);
+    (jobAsks[job] ||= []).push(want);
   }
   let text = readFileSync(SKILLS, 'utf8'), moved = [];
   for (const [id, list] of Object.entries(asks)) {
@@ -52,6 +53,17 @@ for (let r = 0; r < rounds; r++) {
     moved.push(`${id} back to its band x${k.toFixed(2)}`);
   }
   writeFileSync(SKILLS, text);
+  // the job's own entry and trunk (bought before any branch): a job whose skills carry little starts
+  // stronger, one whose skills carry much starts plainer, so its branches grow alike
+  const DMG = new Set(['damagePct', 'meleeDamagePct', 'projectileDamagePct', 'spellDamagePct', 'elementalDamagePct', 'trapDamagePct', 'summonDamagePct', 'singleDamagePct', 'critChancePct', 'critMultPct', 'goldFindPct', 'materialFindPct', 'gearFindPct']);
+  for (const [job, list] of Object.entries(jobAsks)) {
+    const k = Math.min(1.4, Math.max(0.7, Math.exp(list.reduce((a, x) => a + Math.log(x), 0) / list.length) ** 0.7));
+    if (Math.abs(k - 1) < 0.03) continue;
+    const J = W.jobs[job];
+    for (const node of [J.entry, ...J.trunk]) for (const key of Object.keys(node.effects)) if (DMG.has(key) && node.effects[key] > 0) node.effects[key] = Math.round(node.effects[key] * k * 10) / 10;
+    moved.push(`${job} entry/trunk x${k.toFixed(2)}`);
+  }
+  writeFileSync(WHEEL, JSON.stringify(W, null, 2) + '\n');
   run('./wheel-tune.mjs', ['25', '0.05']);
   console.log(`round ${r + 1}: ${moved.join(', ') || 'nothing to move'}`);
   if (!moved.length) break;

@@ -20,8 +20,11 @@ try {
   await page.evaluate(() => {
     const f = window.__frontier, g = f.game; window.__freeze = true; f.paused = true; f.input?.reset?.(); if (f.input) f.input.disabled = true;
     g.spawnPoints = []; g.monsters = []; g.isSafe = () => false;
-    const p = g.player; p.hp = p.maxHp = 1e6;
-    f.step = (sec) => { for (let t = 0; t < sec - 1e-8; t += 1 / 60) { g.update(1 / 60); for (const e of g.drainEvents()) f.view.handleEvent(e); f.view.syncMonsters?.(1 / 60, g.time); f.view.vfx?.update?.(1 / 60); } f.view.render(0, g.time, {}); };
+    const p = g.player;
+    // outside the safe settlement, on open ground (monsters never attack inside it)
+    for (let r = 6; r < 200; r += 4) { let done = false; for (let a = 0; a < 6.28 && !done; a += 0.4) { const x = p.x + Math.sin(a) * r, z = p.z + Math.cos(a) * r; if (!g.world.isSafe(x, z) && g.world.isFree(x, z, 1.5) && !g.world.isSafe(x + 7, z + 1) && g.world.isFree(x + 7, z + 1, 1)) { p.x = x; p.z = z; done = true; } } if (done) break; }
+    p.hp = p.maxHp = 1e6;
+    f.step = (sec) => { for (let t = 0; t < sec - 1e-8; t += 1 / 60) { g.update(1 / 60); for (const e of g.drainEvents()) f.view.handleEvent(e); f.view.syncMonsters?.(1 / 60, g.time); f.view.vfx?.update?.(1 / 60); } f.view.render(0, g.time, {}); f.hud?.update(0, { interact() {} }); };
     f.step(0.1);
   });
   console.log('ready');
@@ -55,7 +58,7 @@ try {
     const def = g.data.skills.combat.call_companion;
     g.ch.skills.call_companion = 1; g.ch.slots[1] = { skill: 'call_companion', mods: [] };
     g.derived.weaponType = 'bow'; g.refreshSkills();
-    g.derived.companionFetch = 14;
+    g.ch.jobNodes = [...g.ch.jobNodes, 'rj']; g.refresh(); g.derived.weaponType = 'bow'; g.refreshSkills();
     g.spawnAllies(g.skills[1], p.x + 1.5, p.z);
     const a = g.allies.find((q) => q.companion); if (a) a.arriveT = 0;
     g.drops.push({ id: g.newId(), item: 'gold', qty: 25, x: p.x - 8, z: p.z + 5, t: 5 });

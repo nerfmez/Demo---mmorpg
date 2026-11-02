@@ -308,7 +308,7 @@
       "exposure": { "nameTh": "เกราะแตก", "color": "#ffb36a", "icon": "exposure" },
       "hex": { "nameTh": "คำสาป", "color": "#c99bff", "icon": "hex" },
       "charged": { "nameTh": "ประจุ", "color": "#ffe56a", "icon": "charged" },
-      "root": { "nameTh": "ติดตาข่าย", "color": "#d8c08a", "icon": "root" },
+      "root": { "nameTh": "ตรึง", "color": "#d8c08a", "icon": "root" },
       "taunt": { "nameTh": "ยั่วยุ", "color": "#ff6a4a", "icon": "taunt" }
     },
     "_weaponTempoDoc": "Weapon weight (owner, 2026-10-31): a main attack (power attack, base cooldown at most mainSkillCooldown) used with one of these weapons has its cooldown, damage and MP per press multiplied by the value: heavy weapons swing slower and harder, the same per second (core/skills.js computeSkill). Main attacks start slow (owner: a 0.8 s basic swing was too fast for an MMORPG): sword 1.2 s, dagger 1.0 s, bow 1.3 s; comboWindow covers the slowest so swings in a row still alternate the arm.",

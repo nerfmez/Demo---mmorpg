@@ -24,6 +24,8 @@ try {
     // outside the safe settlement, on open ground (monsters never attack inside it)
     for (let r = 6; r < 200; r += 4) { let done = false; for (let a = 0; a < 6.28 && !done; a += 0.4) { const x = p.x + Math.sin(a) * r, z = p.z + Math.cos(a) * r; if (!g.world.isSafe(x, z) && g.world.isFree(x, z, 1.5) && !g.world.isSafe(x + 7, z + 1) && g.world.isFree(x + 7, z + 1, 1)) { p.x = x; p.z = z; done = true; } } if (done) break; }
     p.hp = p.maxHp = 1e6;
+    f.snap = () => { f.view.heroY = f.view.world.groundY(p.x, p.z); f.view.camTarget.set(p.x, f.view.heroY, p.z); };
+    f.snap();
     f.step = (sec) => { for (let t = 0; t < sec - 1e-8; t += 1 / 60) { g.update(1 / 60); for (const e of g.drainEvents()) f.view.handleEvent(e); f.view.syncMonsters?.(1 / 60, g.time); f.view.vfx?.update?.(1 / 60); } f.view.render(0, g.time, {}); f.hud?.update(0, { interact() {} }); };
     f.step(0.1);
   });
@@ -31,7 +33,7 @@ try {
   // 1) the marsh wisp's fire orb
   const orb = await page.evaluate(() => {
     const f = window.__frontier, g = f.game, p = g.player;
-    const w = g.spawnMinion('marsh_wisp', 8, p.x + 6.5, p.z + 1); w.aggro = true; w.cd.orb = 0; w.cd.blink = 99; w.damage = 1;
+    const w = g.spawnMinion('marsh_wisp', 8, p.x + 6.5, p.z + 1); w.aggro = true; w.state = 'chase'; w.targetUnit = p; w.cd.orb = 0; w.cd.blink = 99; w.damage = 1;
     for (let i = 0; i < 400 && !g.projectiles.some((q) => q.owner === 'monster'); i++) f.step(1 / 60);
     f.step(0.12);
     const pr = g.projectiles.find((q) => q.owner === 'monster');
@@ -61,7 +63,10 @@ try {
     g.ch.jobNodes = [...g.ch.jobNodes, 'rj']; g.refresh(); g.derived.weaponType = 'bow'; g.refreshSkills();
     g.spawnAllies(g.skills[1], p.x + 1.5, p.z);
     const a = g.allies.find((q) => q.companion); if (a) a.arriveT = 0;
-    g.drops.push({ id: g.newId(), item: 'gold', qty: 25, x: p.x - 8, z: p.z + 5, t: 5 });
+    // a drop on open ground the companion can run to: 7-10 m from the hero, free and outside the settlement
+    let dx = 0, dz = 0;
+    for (let a = 0; a < 6.28 && !dx; a += 0.3) for (const r of [8, 7, 9, 10]) { const x = p.x + Math.sin(a) * r, z = p.z + Math.cos(a) * r; let ok = !g.world.isSafe(x, z); for (let k = 1; k <= 8 && ok; k++) ok = g.world.isFree(p.x + (x - p.x) * k / 8, p.z + (z - p.z) * k / 8, 0.7); if (ok) { dx = x; dz = z; break; } }
+    g.drops.push({ id: g.newId(), item: 'gold', qty: 25, x: dx || p.x + 7, z: dz || p.z, t: 5 });
     let carried = false, frames = 0;
     for (; frames < 600; frames++) { f.step(1 / 60); if (g.drops.some((d) => d.carrier != null)) { carried = true; break; } }
     f.step(0.5);

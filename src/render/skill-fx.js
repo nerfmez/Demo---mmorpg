@@ -31,6 +31,7 @@ import { RuneFx } from './skillfx/rune-fx.js';
 import { CallFx } from './skillfx/call-fx.js';
 import { CompanionFx } from './skillfx/companion-fx.js';
 import { PreyFx } from './skillfx/prey-fx.js';
+import { SpiritCallFx, SPIRIT_ARRIVE } from './skillfx/spirit-call-fx.js';
 import { arrives } from './companion-arrival.js';
 import { IceArrowFx } from './skillfx/icearrow-fx.js';
 import { LanceFx } from './skillfx/lance-fx.js';
@@ -117,6 +118,7 @@ export class SkillFx {
     this.rune = new RuneFx(scene, camera); // the trapper's Gravity Rune circle and pull
     this.call = new CallFx(scene, camera); // the hunter's whistle and a companion coming in from the wild
     this.companion = new CompanionFx(scene, camera, this.call); // the companions' own strikes and the bear's roar
+    this.spiritCall = new SpiritCallFx(scene, camera); // the summoner's spirits called: a flame from the staff, a rune circle
     this.prey = new PreyFx(scene, camera); // Mark Prey's sigil over the prey and the extra part's gold
     this.spore = new SporeFx(scene, camera); // the trapper's Spore Pod puffs and its poison passing on
     this.iarrow = new IceArrowFx(scene, camera); // the spell archer's Shatter Arrow
@@ -319,6 +321,7 @@ export class SkillFx {
       case 'summon': {
         if (e.skill === 'lure_dummy') { this.traps.plant(e); return false; }
         const a = g.allies?.find((q) => q.id === e.id);
+        if (a && SPIRIT_ARRIVE[a.type]) { this.spiritCall.summon(e, a.type, this.castTip()); return true; }
         if (!a || !arrives(a.type)) return false;
         this.call.call(e, a.type, g.player); return true;
       }
@@ -601,7 +604,7 @@ export class SkillFx {
     }
     this.venom.update(dt, tip);
     this.rain.update(dt);
-    this.frain.update(dt); this.geyser.update(dt); this.jaw.update(dt); this.rod.update(dt); this.spore.update(dt); this.rune.update(dt); this.call.update(dt); this.companion.update(dt);
+    this.frain.update(dt); this.geyser.update(dt); this.jaw.update(dt); this.rod.update(dt); this.spore.update(dt); this.rune.update(dt); this.call.update(dt); this.companion.update(dt); this.spiritCall.update(dt);
     this.iarrow.update(dt);
     this.lance.update(dt);
     this.miasma.update(dt);
@@ -690,7 +693,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.companion, this.prey, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.companion, this.prey, this.spiritCall, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

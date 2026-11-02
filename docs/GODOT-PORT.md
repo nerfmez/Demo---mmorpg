@@ -1543,6 +1543,9 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   its own motion config (data/monster-motion.json `stone_guardian`) walks it with long, slow, heavy strides
   that never break into a run. The spirit look is see-through (spirit body `alpha`, firmer at the edges by
   `edgeAlpha`) with more of the painted detail kept (`contrast` around the middle tone).
+  Spirit Swarm's wisps hold still for `summon.arrive` (0.5 s) while they form: the view draws a spirit flame
+  from the staff to each, a rune circle where it lands, and starts each fox's reveal when its flame lands
+  (skillfx/spirit-call-fx.js `SPIRIT_ARRIVE`).
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

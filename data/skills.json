@@ -871,6 +871,7 @@
       "range": 0,
       "summon": {
         "type": "spirit_wisp",
+        "arrive": 0.5,
         "count": 3,
         "life": 14,
         "hp": {

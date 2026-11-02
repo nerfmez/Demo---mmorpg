@@ -31,6 +31,7 @@ import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 import { GAME_CAMERA_OFFSET, cameraOffset } from './game-camera.js';
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
+import { SPIRIT_ARRIVE } from './skillfx/spirit-call-fx.js';
 import { arrives, arrivalFrom, arrivalAt, arrivalTime } from './companion-arrival.js';
 const SPIRITS = new Set(['spirit_wolf', 'spirit_alpha', 'spirit_wisp', 'stone_guardian']); // conjured summons: spirit motes off them
 const ALLY_STRIKE = { stone_guardian: 'pound' }; // a summon's strike by its rig's own attack (the golem pounds with both fists)
@@ -806,7 +807,7 @@ export class View {
       r.animate(r, { reach: av.reach || 0, moving: arr ? arr.k < 1 : a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: ALLY_STRIKE[a.type] || 'bite', windup: a.state === 'windup' ? ALLY_STRIKE[a.type] || 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : av.arr ? 1 : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
-      if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y,r.baseScale);
+      if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT-(SPIRIT_ARRIVE[a.type]||0),a.life,av.y,r.baseScale); // it forms once its flame lands (skillfx/spirit-call-fx.js)
       // spirit motes off a conjured summon (not a hunter's hounds or a straw dummy: they are flesh and straw)
       if ((SPIRITS.has(a.type)) && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
     }

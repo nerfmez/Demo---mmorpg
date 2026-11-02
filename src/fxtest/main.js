@@ -25,6 +25,7 @@ import { ThunderArrowFx } from './thunder-arrow-fx.js';
 import { mulberry32 } from '../render/skillfx/fx-common.js';
 import { OCCLUDER_LAYER } from '../render/skillfx/flame-fx.js';
 import { SkillFx, OWN_PROJECTILES, ELEMENT_COLOR } from '../render/skill-fx.js';
+import { SPIRIT_ARRIVE } from '../render/skillfx/spirit-call-fx.js';
 import { GAME_CAMERA_OFFSET } from '../render/game-camera.js';
 import { FrontierFx } from '../render/frontier-fx.js';
 
@@ -608,7 +609,7 @@ function tick(real, draw = true) {
     Object.assign(r.state, { reach: r.reach || 0, moving: arr ? arr.k < 1 : a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: ALLY_STRIKE[a.type] || 'bite', windup: a.state === 'windup' ? ALLY_STRIKE[a.type] || 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic });
     if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
     r.animate?.(r, r.state, dt, simTime);
-    if (r.reveal) updateSpiritReveal(r.reveal, r.age, a.life, 0, r.baseScale || 1);
+    if (r.reveal) updateSpiritReveal(r.reveal, r.age - (SPIRIT_ARRIVE[a.type] || 0), a.life, 0, r.baseScale || 1);
   }
   for (const [id, r] of benchAllies) if (!game.allies.some((a) => a.id === id)) { removeSpiritReveal(r.reveal); r.root.removeFromParent(); disposeObject(r.root); benchAllies.delete(id); }
   fx.update(dt);

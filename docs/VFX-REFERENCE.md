@@ -792,3 +792,10 @@ orange roar: three arcs of moonlight rise and widen from the companion's muzzle 
 rings of moonlight run out over the ground, and the pack's wolves run in to it (the call's run-in); while the
 pack buff lasts a warm ring breathes under the companion and embers rise off its back, fading with it.
 
+Spirit Swarm, round 1 (`spirit-call-fx.js`; owner: "passed, go on" - the summoner's effects one at a time).
+Web search (pages blocked): summons are built in layers - a ground circle and motes rising from it - in
+phases from a still circle to a release; a critique warns that too many motions at once stop reading. So one
+motion per layer in the spirits' see-through blue: a spirit flame per fox arcs from the staff's tip to its
+spot (the three a beat apart), a small rune circle (two rings, six ticks, a three-line star) opens there
+with a soft flash and turns slowly while motes rise, and the fox forms out of the ground once its flame has
+landed (its reveal waits SPIRIT_ARRIVE; the rules hold it still for summon.arrive 0.5 s) before it runs in.

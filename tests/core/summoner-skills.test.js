@@ -47,6 +47,8 @@ test('Spirit Swarm brings three fast frail wisps; Call Alpha one big wolf whose 
   g.executeSkill(g.skills[slotOf(g, 'spirit_swarm')], { angle: 0, x: 0, z: 0 });
   const wisps = g.allies.filter((a) => a.type === 'spirit_wisp');
   assert.equal(wisps.length, 3);
+  assert.ok(wisps.every((w) => w.arriveT === C.spirit_swarm.summon.arrive), 'they hold still while they form');
+  for (const w of wisps) w.arriveT = 0; // formed
   const W = C.spirit_swarm.summon, A = C.call_alpha.summon;
   assert.ok(W.speed > A.speed && W.attackCooldown < A.attackCooldown && W.hp.base < A.hp.base / 4, 'the wisps are quick and frail');
   // a wisp's bite, without and then with the alpha near
@@ -76,7 +78,7 @@ test('Assault fails without summons or a target; with them every summon runs in 
   const m = mk('m', 6, 0); g.monsters = [m]; g.drainEvents();
   g.executeSkill(g.skills[slot], { angle: 0, x: 6, z: 0 });
   const ev = g.drainEvents().find((e) => e.type === 'summonAssault');
-  const wisps = g.allies.filter((a) => a.type === 'spirit_wisp');
+  const wisps = g.allies.filter((a) => a.type === 'spirit_wisp'); for (const w of wisps) w.arriveT = 0; // formed
   assert.ok(ev && ev.ids.length === 3 && wisps.every((a) => a.sic && a.sic.targetId === 'm' && a.sic.knock === C.summon_assault.assault.knock));
   // the charged hit: mult x and a knock back
   const w = wisps[0]; w.x = 4.8; w.z = 0; w.cd = 0; w.state = 'windup'; w.stateT = 0.3; w.targetId = 'm';

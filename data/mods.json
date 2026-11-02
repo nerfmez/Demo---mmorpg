@@ -912,7 +912,7 @@
           0.25
         ],
         "focusSwitchDelay": 0.6,
-        "costMult": 1.15
+        "costMult": 1.05
       },
       "requires": {
         "VIT": 5
@@ -923,7 +923,7 @@
     "guardian_bond": {
       "name": "Guardian Bond",
       "nameTh": "พันธะคุ้มกัน",
-      "desc": "อัญเชิญในระยะ 4 ม. แบ่งรับฮิตเจ้าของ 15/20/25% แลกกับดาเมจอัญเชิญลด 25% มีเพดานรวม ไม่แบ่งซ้ำหลายตัว",
+      "desc": "อัญเชิญในระยะ 4 ม. แบ่งรับฮิตเจ้าของ 15/20/25% แลกกับดาเมจอัญเชิญลด 15% มีเพดานรวม ไม่แบ่งซ้ำหลายตัว",
       "tags": [
         "Summon"
       ],
@@ -937,8 +937,8 @@
           0.25
         ],
         "guardShareRange": 4,
-        "summonDamage": -0.25,
-        "costMult": 1.15
+        "summonDamage": -0.15,
+        "costMult": 1.05
       },
       "requires": {
         "VIT": 6
@@ -1390,7 +1390,7 @@
           1.5
         ],
         "widthMult": 0.85,
-        "costMult": 1.2
+        "costMult": 1.1
       },
       "requires": {
         "STR": 6
@@ -1569,7 +1569,7 @@
           30,
           40
         ],
-        "costMult": 1.2
+        "costMult": 1.1
       },
       "requires": {
         "STR": 6

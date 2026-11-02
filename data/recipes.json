@@ -2017,6 +2017,7 @@
     "learn_ice_spikes": {"type":"skill","result":"ice_spikes","cost":{"sea_pearl":2,"crab_shell":3,"gold":55}},
     "learn_thunder_slash": {"type":"skill","result":"thunder_slash","cost":{"storm_quill":2,"rune_core":1,"gold":60}},
     "learn_blessing": {"type":"skill","result":"blessing","cost":{"sea_pearl":3,"glow_dust":3,"gold":55}},
+    "learn_revive": {"type": "skill", "result": "revive", "cost": {"golden_pearl": 1, "sea_pearl": 4, "glow_dust": 3, "gold": 120}},
     "learn_rapid_volley": {"type":"skill","result":"rapid_volley","cost":{"storm_quill":3,"hawk_feather":2,"gold":50}},
     "learn_killing_arrow": {"type":"skill","result":"killing_arrow","cost":{"hawk_feather":4,"storm_quill":2,"gold":60}},
     "learn_meteor": {"type":"skill","result":"meteor","cost":{"rune_core":2,"golem_heart":1,"gold":70}},

@@ -1547,6 +1547,11 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   from the staff to each, a rune circle where it lands, and starts each fox's reveal when its flame lands
   (skillfx/spirit-call-fx.js `SPIRIT_ARRIVE`).
   `allyStrike` also carries the ally's `id` and the `target` (Assault's marker follows which summons have struck).
+  The priest's Revive (ชุบชีวิต) is a `buff` with `revive` {hp, invulnerable} on the hero and the allies within
+  its radius for its duration (the demo has no party yet, so it is cast before the danger): `reviveFrom(u)` in
+  damagePlayer and damageAlly catches a lethal hit - the unit rises with revive.hp of its HP, is untouchable
+  (`reviveInv`) for revive.invulnerable s, the light is spent and a `revive` event is emitted. With a party it
+  will also target a fallen teammate (the online protocol).
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

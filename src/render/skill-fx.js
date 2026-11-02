@@ -31,6 +31,7 @@ import { RuneFx } from './skillfx/rune-fx.js';
 import { CallFx } from './skillfx/call-fx.js';
 import { CompanionFx } from './skillfx/companion-fx.js';
 import { PreyFx } from './skillfx/prey-fx.js';
+import { ReviveFx } from './skillfx/revive-fx.js';
 import { SpiritCallFx, SPIRIT_ARRIVE } from './skillfx/spirit-call-fx.js';
 import { arrives } from './companion-arrival.js';
 import { IceArrowFx } from './skillfx/icearrow-fx.js';
@@ -119,6 +120,8 @@ export class SkillFx {
     this.call = new CallFx(scene, camera); // the hunter's whistle and a companion coming in from the wild
     this.companion = new CompanionFx(scene, camera, this.call); // the companions' own strikes and the bear's roar
     this.spiritCall = new SpiritCallFx(scene, camera); // the summoner's spirits called: a flame from the staff, a rune circle
+    this.revive = new ReviveFx(scene, camera, this.call); // the priest's guardian light: halos, the rising
+    this.reviveBodies = Array.from({ length: 12 }, () => ({ x: 0, z: 0, type: '', t: 0 })); this.revived = [];
     this.prey = new PreyFx(scene, camera); // Mark Prey's sigil over the prey and the extra part's gold
     this.spore = new SporeFx(scene, camera); // the trapper's Spore Pod puffs and its poison passing on
     this.iarrow = new IceArrowFx(scene, camera); // the spell archer's Shatter Arrow
@@ -160,7 +163,7 @@ export class SkillFx {
     this.lance.locate = (id) => this.centerOf(id);
     this.tslash.locate = (id) => this.centerOf(id);
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura, this.call, this.companion]) fx.onShake = shake;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura, this.call, this.companion, this.revive]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
@@ -331,6 +334,7 @@ export class SkillFx {
       // Sic 'Em: the marker over the prey and the rush (skillfx/sic-fx.js)
       case 'sicEm': this.companion.sic.order(e, g.player); return true;
       case 'summonAssault': this.companion.assault.order(e); return true; // the summoner's Assault (skillfx/assault-fx.js)
+      case 'revive': { const a = e.id === 'player' ? null : g.allies.find((q) => q.id === e.id); this.revive.rise(e.x, e.z, a ? a.type : 'player'); return true; }
       case 'preyDrop': this.prey.prize(e.x, e.z); return true; // a marked kill's extra part
       case 'packBuff': this.companion.pack.howl(e); return true; // Pack Hunt: the howl and the frenzy (skillfx/pack-fx.js)
       case 'companionPounce': { this.companion.sic.pounced(e.id); if (e.roar) { const b = this.call.locate?.(e.id); if (b) this.companion.roar(b.x, b.z, e.roar); } return false; }
@@ -408,6 +412,7 @@ export class SkillFx {
       case 'buff': {
         if (e.kind === 'iron_body') { this.iron.harden(e.x, e.z, this.skillOf(e.kind)?.duration ?? 6); return true; }
         if (e.kind === 'blessing') { this.bless.bestow(e.x, e.z, e.radius); return true; }
+        if (e.kind === 'revive') { this.revive.bestow(e.x, e.z, e.radius); return true; } // skillfx/revive-fx.js
         if (!BUFF_LOOKS[e.kind] && !AURA_SHOUTS.has(e.kind)) return false;
         // party shouts (Rally): the ring to the true radius, and a mark over every body the buff reached
         const bodies = this.buffBodies; bodies.length = 0; bodies.push(g.player);
@@ -609,6 +614,10 @@ export class SkillFx {
     this.venom.update(dt, tip);
     this.rain.update(dt);
     this.frain.update(dt); this.geyser.update(dt); this.jaw.update(dt); this.rod.update(dt); this.spore.update(dt); this.rune.update(dt); this.call.update(dt); this.companion.update(dt); this.spiritCall.update(dt);
+    // the bodies that carry Revive's light (its halos)
+    this.revived.length = 0;
+    for (const u of [p, ...g.allies]) { if (this.revived.length >= this.reviveBodies.length || u.dead) continue; const b = u.buffs && Object.values(u.buffs).find((q) => q.revive); if (!b) continue; const o = this.reviveBodies[this.revived.length]; o.x = u.x; o.z = u.z; o.t = b.t; o.type = u === p ? 'player' : u.type; this.revived.push(o); }
+    this.revive.update(dt, this.revived);
     this.iarrow.update(dt);
     this.lance.update(dt);
     this.miasma.update(dt);
@@ -697,7 +706,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.companion, this.prey, this.spiritCall, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.companion, this.prey, this.spiritCall, this.revive, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

@@ -1091,11 +1091,13 @@ export class Game {
 
   damageAlly(a, amount, source) {
     if (a.dead) return 0;
+    if (this.time < (a.reviveInv || 0)) return 0; // just risen by Revive
     let dmg = Math.max(1, Math.round(amount * 0.85 * buffTaken(a.buffs)));
     if(a.barrier>0){const absorbed=Math.min(a.barrier,dmg);a.barrier-=absorbed;dmg-=absorbed;if(a.barrier<=0)breakBarrier(this,a);}
     a.hp -= dmg;
     this.emit({ type: 'allyHit', id: a.id, amount: dmg, x: a.x, z: a.z });
     if (source && !source.dead && source.kind === 'monster') a.targetId = source.id;
+    if (a.hp <= 0) this.reviveFrom(a);
     if (a.hp <= 0) a.life = 0;
     return dmg;
   }
@@ -1110,6 +1112,7 @@ export class Game {
       return 0;
     }
     if (perkInvulnerable(this)) return 0; // LUK's narrow escape
+    if (this.time < (p.reviveInv || 0)) return 0; // just risen by Revive
     // LUK: a lucky dodge, a monster hit that misses entirely (never damage over time)
     if (!opts.dot && this.derived.dodgeChancePct > 0 && this.luckRng.chance(this.derived.dodgeChancePct / 100)) {
       this.emit({ type: 'dodge', x: p.x, z: p.z, lucky: true });
@@ -1158,6 +1161,7 @@ export class Game {
       const d = dirFromAngle(opts.knock.angle);
       this.moveEntity(p, d.x * opts.knock.force * 0.3, d.z * opts.knock.force * 0.3);
     }
+    if (p.hp <= 0) this.reviveFrom(p); // Revive's guardian light catches a lethal hit
     if (p.hp <= 0) {
       p.hp = 0;
       p.dead = true;
@@ -1172,6 +1176,20 @@ export class Game {
       this.emit({ type: 'playerDeath' });
     }
     return dmg;
+  }
+
+  /** Revive (a buff with `revive` {hp, invulnerable}): a unit (the hero or an ally) whose HP has just reached 0
+   *  while it carries the guardian light rises at once with revive.hp of its HP and is untouchable for
+   *  revive.invulnerable s; the light is spent. */
+  reviveFrom(u) {
+    const id = Object.keys(u.buffs || {}).find((k) => u.buffs[k].revive);
+    if (!id) return false;
+    const R = u.buffs[id].revive;
+    delete u.buffs[id];
+    u.hp = Math.max(1, Math.round(u.maxHp * R.hp));
+    u.reviveInv = this.time + (R.invulnerable || 0);
+    this.emit({ type: 'revive', id: u === this.player ? 'player' : u.id, x: u.x, z: u.z });
+    return true;
   }
 
   /** The spell shield takes what it can of `amount` (after armour and barrier) and stops recharging for a while. */
@@ -1409,7 +1427,7 @@ export class Game {
       case 'buff': {
         // each buff skill keeps its own entry, so different buffs stack and the same one refreshes
         // rage: more damage the lower the hero's HP (Boiling Blood); leech/mpHit: HP and MP back on each hit (Fighting Spirit)
-        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff, taken: s.takenMult, steady: s.steady, rage: s.rage, leech: s.spirit?.leech, mpHit: s.spirit?.mp };
+        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff, taken: s.takenMult, steady: s.steady, rage: s.rage, leech: s.spirit?.leech, mpHit: s.spirit?.mp, revive: s.revive };
         p.buffs[s.id] = { ...buff };
         for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.buffs[s.id] = { ...buff };
         // Provoke: the monsters round the hero turn on it

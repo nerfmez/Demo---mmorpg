@@ -2311,6 +2311,38 @@
       "job": "blade",
       "iconPending": true
     },
+    "revive": {
+      "name": "Revive",
+      "nameTh": "ชุบชีวิต",
+      "desc": "ห่มแสงคุ้มชีวิตให้ตัวเองและพวกรอบตัว 9 ม. นาน 30 วินาที ใครโดนดาเมจถึงตายระหว่างนั้นจะลุกขึ้นทันทีด้วย HP ครึ่งหลอดและอมตะ 1.5 วินาที (แสงหายไปเมื่อใช้แล้ว)",
+      "tags": [
+        "Spell",
+        "Buff",
+        "Area",
+        "Duration"
+      ],
+      "kind": "buff",
+      "power": "spell",
+      "radius": 9,
+      "duration": 30,
+      "revive": {
+        "hp": 0.5,
+        "invulnerable": 1.5
+      },
+      "cooldown": 180,
+      "castTime": 0.6,
+      "cost": 400,
+      "element": "none",
+      "requires": {
+        "VIT": 7,
+        "INT": 5
+      },
+      "upgradeMaterial": "golden_pearl",
+      "upgradeStat": "VIT",
+      "job": "priest",
+      "iconPending": true,
+      "fxPending": true
+    },
     "blessing": {
       "name": "Blessing of Light",
       "nameTh": "พรแห่งแสง",

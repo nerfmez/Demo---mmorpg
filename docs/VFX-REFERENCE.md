@@ -818,3 +818,10 @@ spirit language as the calls: on the gather a small rune circle opens under the 
 will trade with; at the trade two spirit flames cross between the two spots, landing in fresh circles, the
 summon's with the rising pillar of spirit fire that marks its heal; a light shake. The FX bench's dodge picker
 has Soul Swap (with a non-summon skill the bench calls a Spirit Swarm first to trade with).
+
+Revive, round 1 (`revive-fx.js`; owner: "do the priest group"). In the holy gold of Blessing and the Bell: on the
+cast a gold ring runs out to the true 9 m and strokes of light fall round the hero; while the light lasts a thin
+gold halo turns over the head of every body that carries it (fading over its last 3 s); when a lethal hit is
+caught, a star flash, a gold ring on the ground and a column of light strokes rising round the body, a short
+shake, and the halo is gone. Fix in the round: a 2-point ribbon has no middle to be wide in (the streaks drew
+nothing); they are 5 points now.

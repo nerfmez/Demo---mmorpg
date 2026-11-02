@@ -2,7 +2,7 @@
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock','sic','packBuff','assault'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock','sic','packBuff','assault','revive'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};

@@ -184,6 +184,8 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   g.nearby = () => ({ inTown: false });
   if (hound) { const cs = g.skills.find((q) => q?.id === 'call_companion'); g.runSkill(cs, { angle: 0, x: 0, z: 0 }); }
   if (swarm) { const cs = g.skills.find((q) => q?.id === 'spirit_swarm'); g.runSkill(cs, { angle: 0, x: 0, z: 0 }); }
+  // Revive's bench: 1.5 s after the cast a lethal blow falls on the hero, so the rising shows
+  if (skill === 'revive') { const run = g.runSkill.bind(g); g.runSkill = (s, aim, opts) => { run(s, aim, opts); if (s.id === 'revive') g.pending.push({ t: 1.5, fn: () => { if (!g.player.dead) g.damagePlayer(g.player.maxHp * 50, null, { unblockable: true }); if (g.player.dead) { g.player.dead = false; g.player.hp = g.player.maxHp; } } }); }; }
   // hounds go for what is near, so the bench's dummies count as foes for them
   if (hound || swarm || ['call_companion', 'call_hawk', 'call_bear', 'spirit_swarm', 'call_alpha', 'spirit_wolf', 'stone_guardian'].includes(skill)) for (const m of g.monsters) m.aggro = true;
   if (caller) {

@@ -1814,7 +1814,7 @@ export class Game {
               if (sic.taunt) { for (const m of this.monsters) if (!m.dead && dist(a.x, a.z, m.x, m.z) <= sic.taunt.radius) { m.forcedTargetId = a.id; m.tauntT = Math.max(m.tauntT || 0, sic.taunt.duration); } a.roarT = sic.taunt.stand || 0; a.roarTotal = a.roarT; }
               this.emit({ type: 'companionPounce', id: a.id, kind: a.type, target: tt.id, x: tt.x, z: tt.z, roar: sic.taunt?.radius || 0 });
             }
-            this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', kind: a.type, sic: !!sic, x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
+            this.emit({ type: 'allyStrike', id: a.id, target: tt.id, skill: a.skill || 'spirit_wolf', kind: a.type, sic: !!sic, x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
           a.cd = a.attackCooldown;
           a.state = 'recover';

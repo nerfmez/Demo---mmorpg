@@ -154,7 +154,7 @@ export class SkillFx {
     this.draw = new DrawFx(scene, camera);
     this.gs = new GreatshieldFx(scene, camera); // the guardian's greatshield skills
     this.lchain.locate = (id) => { for (const m of this.game.monsters) if (m.id === id) return m; return null; };
-    this.companion.sic.preyOf = this.lchain.locate;
+    this.companion.sic.preyOf = this.lchain.locate; this.companion.assault.preyOf = this.lchain.locate;
     this.call.locate = (id) => { for (const a of this.game.allies || []) if (a.id === id) return a; return null; };
     this.iarrow.locate = (id) => this.centerOf(id);
     this.lance.locate = (id) => this.centerOf(id);
@@ -330,6 +330,7 @@ export class SkillFx {
       case 'allyStrike': return this.companion.strike(e);
       // Sic 'Em: the marker over the prey and the rush (skillfx/sic-fx.js)
       case 'sicEm': this.companion.sic.order(e, g.player); return true;
+      case 'summonAssault': this.companion.assault.order(e); return true; // the summoner's Assault (skillfx/assault-fx.js)
       case 'preyDrop': this.prey.prize(e.x, e.z); return true; // a marked kill's extra part
       case 'packBuff': this.companion.pack.howl(e); return true; // Pack Hunt: the howl and the frenzy (skillfx/pack-fx.js)
       case 'companionPounce': { this.companion.sic.pounced(e.id); if (e.roar) { const b = this.call.locate?.(e.id); if (b) this.companion.roar(b.x, b.z, e.roar); } return false; }

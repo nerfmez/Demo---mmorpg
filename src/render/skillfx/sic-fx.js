@@ -20,7 +20,7 @@ const CORE = new THREE.Color('#ff9a7a'), RIM = new THREE.Color('#ffe8de'), HALO 
 const RUSH = { core: [1.0, 0.86, 0.78], glow: [1.0, 0.3, 0.18] };
 
 // the chevron (pointing down), as two arms from the tip; inflate grows every edge
-function chevron(inflate) {
+export function chevron(inflate) {
   const pos = [], d = inflate, T = 0.17 + 2 * d;
   const arm = (sx) => {
     const ax = 0, ay = -0.32 - d * 1.6, bx = sx * (0.5 + d), by = 0.32 + d, L = Math.hypot(bx - ax, by - ay), nx = -(by - ay) / L * T / 2, ny = (bx - ax) / L * T / 2;
@@ -30,9 +30,9 @@ function chevron(inflate) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.userData.shared = true;
   return g;
 }
-const RET_VS = `varying vec2 vP; void main(){ vP = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+export const RET_VS = `varying vec2 vP; void main(){ vP = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 // three bracket arcs at the reticle's radius (uR, 0..1 of the plane), turning (uRot), with a soft halo
-const RET_FS = `varying vec2 vP; uniform float uR, uRot, uA; uniform vec3 uC;
+export const RET_FS = `varying vec2 vP; uniform float uR, uRot, uA; uniform vec3 uC;
   void main(){ float r = length(vP); if (r > 1.0) discard;
     float a = atan(vP.y, vP.x) + uRot, seg = fract(a / 2.0944);
     float on = smoothstep(0.0, 0.04, seg) * (1.0 - smoothstep(0.62, 0.66, seg));

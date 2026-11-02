@@ -19,6 +19,7 @@ import { CORE_FS, GLOW_FS, lightSprite, starTexture } from './light-kit.js';
 import { BiteFx, BITE_SHUT } from './bite-fx.js';
 import { ClawFx } from './claw-fx.js';
 import { SicFx } from './sic-fx.js';
+import { AssaultFx } from './assault-fx.js';
 import { PackFx } from './pack-fx.js';
 
 const STROKES = 36, GLINTS = 6;
@@ -39,6 +40,7 @@ export class CompanionFx {
     this.camera = camera; this.call = call; this.rnd = mulberry32(83); this.onShake = null;
     this.biteFx = new BiteFx(scene, camera); // the wolf's jaw of teeth
     this.clawFx = new ClawFx(scene, camera); // the bear's and the eagle's claw marks of light
+    this.assault = new AssaultFx(scene, camera, this); // the summoner's Assault: the blue charge marker, the rush, the knocks
     this.sic = new SicFx(scene, camera, this); // Sic 'Em: the marker over the prey, the lock, the rush
     this.pack = new PackFx(scene, camera, this); // Pack Hunt: the howl and the frenzy aura
     this.core = new Ribbon(scene, camera, 700, CORE_FS, THREE.NormalBlending); this.glow = new Ribbon(scene, camera, 700, GLOW_FS, THREE.AdditiveBlending);
@@ -73,6 +75,9 @@ export class CompanionFx {
   /** The rules' allyStrike of a companion (e.kind its type, e.sic: Sic 'Em's strike): true when drawn here. */
   strike(e) {
     const k = e.kind;
+    // a summoner's spirit sent in by Assault: its charged hit knocks the target back (skillfx/assault-fx.js); the
+    // spirit's own strike look still draws (the view's)
+    if (e.sic && !HEIGHT[k]) { this.assault.strike(e); return false; }
     if (!HEIGHT[k]) return false;
     this.axes();
     const big = e.sic ? 1 : 0, r = this.rnd;
@@ -141,6 +146,8 @@ export class CompanionFx {
     }
     sw = 0.06; glow.strip(P, rushGlowW, 0.5, look.glow); core.strip(P, rushW, 0.7, look.core);
   }
+  // a line of light along path (world points), thickest in its middle: a tether, a crescent, a speed line
+  line(path, look, core, glow, w, a) { sw = w; glow.strip(path, slashGlowW, 0.75 * a, look.glow); core.strip(path, slashW, a, look.core); }
   /** The bear's Sic 'Em roar (companionPounce with roar: its taunt radius): sound rings out to that radius. */
   roar(x, z, R) {
     for (let i = 0; i < 3; i++) this.call.ring(x, 0.06, z, R, ROAR, 0.55, i * 0.13);
@@ -166,7 +173,7 @@ export class CompanionFx {
       const a = 1 - Math.max(0, (k - 0.6) / 0.4);
       sw = s.w * (1 - 0.3 * k); this.glow.strip(P, slashGlowW, 0.75 * a, s.look.glow); this.core.strip(P, slashW, a, s.look.core);
     }
-    this.sic.update(dt, this.core, this.glow);
+    this.sic.update(dt, this.core, this.glow); this.assault.update(dt, this.core, this.glow);
     this.core.end(); this.glow.end();
     for (const g of this.glints) {
       if (g.t >= g.life) { g.s.visible = false; continue; }
@@ -174,5 +181,5 @@ export class CompanionFx {
       const u = g.t / g.life; g.s.scale.setScalar(g.size * Math.sin(Math.PI * Math.min(1, u * 1.3 + 0.1))); g.s.material.rotation = u * 1.2; g.s.material.opacity = 1 - u * 0.5;
     }
   }
-  clear() { this.biteFx.clear(); this.clawFx.clear(); this.sic.clear(); this.pack.clear(); for (const s of this.strokes) s.t = 9; for (const g of this.glints) { g.t = 9; g.s.visible = false; } }
+  clear() { this.biteFx.clear(); this.clawFx.clear(); this.sic.clear(); this.assault.clear(); this.pack.clear(); for (const s of this.strokes) s.t = 9; for (const g of this.glints) { g.t = 9; g.s.visible = false; } }
 }

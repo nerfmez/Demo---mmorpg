@@ -1546,6 +1546,7 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   Spirit Swarm's wisps hold still for `summon.arrive` (0.5 s) while they form: the view draws a spirit flame
   from the staff to each, a rune circle where it lands, and starts each fox's reveal when its flame lands
   (skillfx/spirit-call-fx.js `SPIRIT_ARRIVE`).
+  `allyStrike` also carries the ally's `id` and the `target` (Assault's marker follows which summons have struck).
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

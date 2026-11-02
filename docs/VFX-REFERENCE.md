@@ -804,3 +804,11 @@ Call Alpha, round 1 (same file; owner: Spirit Swarm "passed"). One bigger spirit
 a circle twice the size opens with a pillar of spirit fire rising round its edge while the alpha forms
 (the rules hold it 0.75 s), then its howl: one ring of blue light running out over the ground to the aura's
 true 8 m reach, where the other summons hit harder.
+
+Assault, round 1 (`assault-fx.js`; owner: Call Alpha "passed, do Assault"). Built on Sic 'Em's research and
+language (a head marker that reads on any monster, a ground reticle that locks) in the summoner's blue, so
+the two orders read apart: three blue chevrons stack down over the target (a charge sign) and three brackets
+close in round it turning the other way; a tether of light runs from each sent summon to the target for a
+moment; each summon trails two streaks as it runs in; every charged hit jolts the stack, breaks a crescent of
+light on the target facing the blow with speed lines thrown the way it is pushed, a star and a short shake;
+the marker bursts and fades when the last one has struck or the order lapses.

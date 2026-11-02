@@ -388,7 +388,7 @@ function renderPanel() {
   const W = [[null, 'ของสกิล'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์'], ['axe', 'ขวาน'], ['mace', 'กระบอง'], ['greatblade', 'ดาบใหญ่'], ['greatshield', 'โล่ใหญ่'], ['staff', 'คทา'], ['bow', 'ธนู']];
   pick('มือขวา', W, state.weapon || null, (id) => { state.weapon = id; });
   pick('มือซ้าย', [[null, 'ว่าง'], ['shield', 'โล่'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์']], state.offhand || null, (id) => { state.offhand = id; });
-  pick('หลบ', [['dash', 'พุ่ง'], ['roll', 'กลิ้ง'], ['blink', 'วาร์ป'], ['leap', 'กระโดด']], state.movement || 'dash', (id) => { state.movement = id; });
+  pick('หลบ', [['dash', 'พุ่ง'], ['roll', 'กลิ้ง'], ['blink', 'วาร์ป'], ['leap', 'กระโดด'], ['soul_swap', 'สลับวิญญาณ']], state.movement || 'dash', (id) => { state.movement = id; });
   panel.append(wb);
 
   // speed trial: the one speed value, up to its cap

@@ -471,7 +471,10 @@ export class SkillFx {
         return true;
       }
       // dodges: the blink's gather and jump, the leap's landing (skillfx/move-fx.js)
-      case 'movement': if (e.kind === 'blink' && g.player.dash?.kind === 'blink') this.move.gather(g.player.x, g.player.z, g.player.dash.delay || 0.08); return false;
+      // Soul Swap: circles open under the hero and the summon, then two spirit flames cross (skillfx/spirit-call-fx.js)
+      case 'soulSwap': this.spiritCall.swap(e); host.shake(0.05, 0.06); return true;
+      case 'movement': if (e.kind === 'soul_swap' && g.player.dash?.kind === 'swap') { const a = g.allies.find((q) => q.id === g.player.dash.allyId); if (a) this.spiritCall.swapGather(g.player.x, g.player.z, a.x, a.z); return true; }
+        if (e.kind === 'blink' && g.player.dash?.kind === 'blink') this.move.gather(g.player.x, g.player.z, g.player.dash.delay || 0.08); return false;
       // Backstab: the hero leaves in shards and appears behind its target (skillfx/shadow-fx.js)
       case 'shadowStep': {
         const t = g.monsters.find((m) => m.id === e.id), sh = this.shadow;

@@ -149,7 +149,7 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   const helpers = skill === 'lightning_rod' ? ['blast_trap', 'net_trap'] : [];
   // the hunter's companion skills need the companion: the bench calls it at the start (slot 1)
   // the summoner's Assault needs summons: the bench calls a swarm at the start (slot 1)
-  const swarm = skill === 'summon_assault';
+  const swarm = skill === 'summon_assault' || (movement === 'soul_swap' && !data.skills.combat[skill]?.summon); // Soul Swap needs a summon to trade with
   if (swarm) { ch.skills.spirit_swarm = 1; helpers.push('spirit_swarm'); }
   const hound = ['sic_em', 'mark_prey', 'pack_hunt'].includes(skill);
   if (hound) { ch.skills.call_companion = 1; helpers.push('call_companion'); }

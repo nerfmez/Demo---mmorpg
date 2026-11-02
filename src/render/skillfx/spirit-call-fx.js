@@ -73,6 +73,24 @@ export class SpiritCallFx {
     Object.assign(f, { t: -delay, delay, dur: Math.max(0.12, dur), lift: big ? 1.1 : 0.5 + 0.2 * this.order, landed: false, n: 0, size: type === 'spirit_wisp' ? 0.75 : big ? 2.0 : 1.2, big, ring });
     f.a.copy(tip); f.b.set(e.x, 0.35, e.z);
   }
+  /** Soul Swap's gather (the 'movement' event of kind swap): a small circle opens under the hero and under the
+   *  summon it will trade with, for the gather's time (the rules' dash.delay). */
+  swapGather(hx, hz, ax, az) {
+    for (const [x, z] of [[hx, hz], [ax, az]]) {
+      const c = this.circles[this.ci++ % N];
+      Object.assign(c, { t: 0, x, z, size: 0.9, life: 0.5 });
+      c.m.visible = true; place(c.m, x, 0.04, z); c.m.scale.setScalar(2 * CIRCLE * c.size);
+    }
+  }
+  /** Soul Swap's trade (the rules' soulSwap: the hero from fromX/Z to x/z, the summon the other way): two spirit
+   *  flames cross between the spots, a flash at each end, and spirit light rises round the healed summon. */
+  swap(e) {
+    for (const [ax, az, bx, bz, heal] of [[e.fromX, e.fromZ, e.x, e.z, 0], [e.x, e.z, e.fromX, e.fromZ, 1]]) {
+      const f = this.flights[this.fi++ % N];
+      Object.assign(f, { t: 0, delay: 0, dur: 0.16, lift: 0.45, landed: false, n: 0, size: 0.9, big: !!heal, ring: 0 });
+      f.a.set(ax, 0.9, az); f.b.set(bx, 0.6, bz);
+    }
+  }
   land(f) {
     const c = this.circles[this.ci++ % N];
     Object.assign(c, { t: 0, x: f.b.x, z: f.b.z, size: f.size, life: f.big ? CIRCLE * 1.7 : CIRCLE });

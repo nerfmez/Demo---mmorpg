@@ -812,3 +812,9 @@ close in round it turning the other way; a tether of light runs from each sent s
 moment; each summon trails two streaks as it runs in; every charged hit jolts the stack, breaks a crescent of
 light on the target facing the blow with speed lines thrown the way it is pushed, a star and a short shake;
 the marker bursts and fades when the last one has struck or the order lapses.
+
+Soul Swap, round 1 (spirit-call-fx.js `swapGather`/`swap`; owner: Assault "passed, do Soul Swap"). In the same
+spirit language as the calls: on the gather a small rune circle opens under the hero and under the summon it
+will trade with; at the trade two spirit flames cross between the two spots, landing in fresh circles, the
+summon's with the rising pillar of spirit fire that marks its heal; a light shake. The FX bench's dodge picker
+has Soul Swap (with a non-summon skill the bench calls a Spirit Swarm first to trade with).

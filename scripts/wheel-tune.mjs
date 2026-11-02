@@ -20,7 +20,9 @@ const ROLE = {
   team: new Set(['teamTakenPct', 'teamDamagePct', 'teamBuffPct', 'healPct', 'controlDurationPct']),
   income: new Set(['goldFindPct', 'gearFindPct', 'materialFindPct']),
 };
-const CAP = { selfTakenPct: 25, teamTakenPct: 25, critChancePct: 15, hpRegenPct: 3, leechPct: 4, defense: 400, maxShield: 400, hpRegen: 60 }, CAP_PCT = 60;
+// find stats are capped on the character (progression character.caps: gold 60, material 50, gear 40): a node
+// stays a small step so a full income branch reaches the cap only at its end
+const CAP = { selfTakenPct: 25, teamTakenPct: 25, critChancePct: 15, hpRegenPct: 3, leechPct: 4, defense: 400, maxShield: 400, hpRegen: 60, goldFindPct: 20, materialFindPct: 16, gearFindPct: 12 }, CAP_PCT = 60;
 const round = (v) => (Math.abs(v) >= 20 ? Math.round(v) : Math.round(v * 10) / 10);
 let role = null;
 const scaleEffects = (e, f) => { for (const k of Object.keys(e)) if (ROLE[role].has(k) && e[k] > 0) e[k] = round(Math.min(CAP[k] ?? CAP_PCT, e[k] * f)); };

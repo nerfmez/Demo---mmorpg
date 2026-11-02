@@ -632,8 +632,8 @@
           "level": 50
         },
         "damage": {
-          "base": 30,
-          "scale": 0.26,
+          "base": 23,
+          "scale": 0.2,
           "stat": "attack"
         },
         "speed": 7.5,
@@ -831,8 +831,8 @@
       "speed": 26,
       "projectileRadius": 0.3,
       "damage": {
-        "base": 49,
-        "scale": 0.38
+        "base": 37,
+        "scale": 0.29
       },
       "exposure": {
         "fraction": 0.2,
@@ -880,8 +880,8 @@
           "level": 7
         },
         "damage": {
-          "base": 8,
-          "scale": 0.08
+          "base": 6,
+          "scale": 0.06
         },
         "speed": 8.5,
         "range": 1.4,
@@ -924,8 +924,8 @@
           "level": 60
         },
         "damage": {
-          "base": 50,
-          "scale": 0.39
+          "base": 38,
+          "scale": 0.3
         },
         "speed": 7,
         "range": 2.0,
@@ -1003,8 +1003,8 @@
           "level": 20
         },
         "damage": {
-          "base": 24,
-          "scale": 0.2,
+          "base": 18,
+          "scale": 0.15,
           "stat": "attack"
         },
         "speed": 9,
@@ -1827,8 +1827,8 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 760,
-        "scale": 5.79
+        "base": 575,
+        "scale": 4.38
       },
       "range": 3.2,
       "arc": 140,
@@ -1868,8 +1868,8 @@
       "kind": "melee_line",
       "power": "attack",
       "damage": {
-        "base": 639,
-        "scale": 5.26
+        "base": 484,
+        "scale": 3.98
       },
       "range": 8,
       "width": 1.8,
@@ -1930,8 +1930,8 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 92,
-        "scale": 1.08
+        "base": 82,
+        "scale": 0.96
       },
       "range": 2.2,
       "arc": 100,
@@ -1967,8 +1967,8 @@
       "kind": "melee_nova",
       "power": "attack",
       "damage": {
-        "base": 74,
-        "scale": 0.8
+        "base": 66,
+        "scale": 0.71
       },
       "range": 1.8,
       "radius": 1.8,
@@ -2004,8 +2004,8 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 373,
-        "scale": 3.06
+        "base": 332,
+        "scale": 2.73
       },
       "positionalMult": 1.5,
       "range": 1.8,
@@ -2272,7 +2272,7 @@
       ],
       "kind": "steal",
       "power": "attack",
-      "damage": { "base": 76, "scale": 0.76 },
+      "damage": { "base": 85, "scale": 0.85 },
       "range": 1.8,
       "steal": { "arc": 100, "gold": 4, "goldPerLevel": 2, "itemChance": 0.3, "bossItemChance": 0.1 },
       "cooldown": 8,
@@ -2456,8 +2456,8 @@
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 355,
-        "scale": 2.87
+        "base": 405,
+        "scale": 3.28
       },
       "range": 12,
       "radius": 3.5,
@@ -2493,8 +2493,8 @@
       "kind": "dot_zone",
       "power": "spell",
       "damage": {
-        "base": 43,
-        "scale": 0.38
+        "base": 49,
+        "scale": 0.44
       },
       "range": 11,
       "radius": 3.8,
@@ -2935,7 +2935,7 @@
       "power": "attack",
       "damage": {
         "base": 454,
-        "scale": 3.73
+        "scale": 3.74
       },
       "range": 3.2,
       "arc": 160,

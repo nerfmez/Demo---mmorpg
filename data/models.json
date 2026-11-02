@@ -8076,7 +8076,10 @@
       "rim": 0.6,
       "source": "Meshy (owner-supplied GLB, 2026-11-02; the summoner's spirits); prepared with scripts/prep-monster-glb.py (Spirit Swarm's spirit fox; joints placed from the mesh)",
       "segments": {
-        "body": [[0, 0.5, 0], [0, 1.5, 0]]
+        "body": [[0, 0.62, -0.08], [0, 0.82, 0.22]],
+        "head": [[0, 0.95, 0.3], [0, 1.0, 0.56]],
+        "tail": [[0, 0.75, -0.12], [0, 1.15, -0.32]],
+        "tail2": [[0, 1.2, -0.36], [0, 1.55, -0.5]]
       },
       "bones": []
     },

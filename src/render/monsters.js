@@ -490,6 +490,52 @@ function buildWisp() {
   return rig;
 }
 
+// The summoner's spirit fox (the owner's model, a fox of blue flame floating, its tail a curl of fire): a body,
+// a head and a two-part tail. It floats and weaves (so a swarm of three spreads out), leans into its travel,
+// its tail waves like a flame (the tip a beat behind the base) and its head looks about. Its strike: it pulls
+// back and rears its head (the wind-up), darts forward with the head snapping down (the hit), then settles.
+function buildSpiritFox() {
+  const rb = new RigBuilder({ outline: 0, rim: 0.6 });
+  rb.bone('body', 'root', [0, 0.75, 0.05]);
+  rb.bone('head', 'body', [0, 0.2, 0.25]);
+  rb.bone('tail', 'body', [0, 0, -0.17]);
+  rb.bone('tail2', 'tail', [0, 0.45, -0.23]);
+  rb.add('body', sph(0.22, 12, 8), '#bdf3ff', { glow: true }); // the stand-in before the model comes
+  rb.add('head', sph(0.14, 10, 8), '#bdf3ff', { glow: true, pos: [0, 0.03, 0.12] });
+  rb.add('tail', cone(0.12, 0.45, 6).translate(0, 0.22, 0), '#5fd0ff', { rot: [-0.5, 0, 0] });
+  rb.add('tail2', cone(0.1, 0.35, 6).translate(0, 0.17, 0), '#5fd0ff', { rot: [-0.3, 0, 0] });
+  const rig = rb.build();
+  rig.height = 1.6;
+  rig.halo = true;
+  return rig;
+}
+
+function animSpiritFox(r, s, dt, time) {
+  const b = r.bones, c = r.motion, R = (n) => b[n].userData.rest.pos;
+  advanceGait(r, s, dt, c);
+  const sp = Math.min(1, (r.speed || 0) / 5), sd = r.seed;
+  // the strike: wind-up (0..1), then the dart (act) and the settle (recover)
+  const k = s.state === 'windup' ? clamp01((s.windupT || 0) / (s.windupTotal || 0.25)) : 0;
+  const act = s.state === 'act' ? 1 : 0;
+  r.dart = damp(r.dart || 0, act ? 1 : 0, act ? 40 : 6, dt);
+  const back = 0.22 * k * k, fwd = 0.5 * r.dart;
+  // float and weave: a slow figure of eight about where it is, its own phase so three spread apart
+  const wx = Math.sin(time * 1.7 + sd) * 0.28 * (1 - 0.6 * (k + r.dart)), wy = Math.sin(time * 2.6 + sd * 1.3) * 0.08;
+  b.body.position.set(R('body').x + wx, R('body').y + wy + 0.08 * k, R('body').z - back + fwd);
+  b.body.rotation.x = damp(b.body.rotation.x, 0.22 * sp - 0.3 * k + 0.35 * r.dart + Math.sin(time * 1.3 + sd) * 0.04, 8, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-(s.vSide || 0) * 0.1, 0.3) - Math.cos(time * 1.7 + sd) * 0.12, 5, dt);
+  b.body.rotation.y = damp(b.body.rotation.y, Math.cos(time * 1.7 + sd) * 0.18 * (1 - k), 5, dt);
+  // the head: looks about, rears on the wind-up, snaps down on the dart
+  b.head.rotation.x = damp(b.head.rotation.x, -0.55 * k + 0.6 * r.dart - b.body.rotation.x * 0.5, 14, dt);
+  b.head.rotation.y = damp(b.head.rotation.y, (s.lookYaw || 0) * 0.6 + wander(time * 0.6, sd) * 0.35 * (1 - k), 6, dt);
+  // the tail: a flame's wave, base then tip; it flares on the wind-up and streams back on the dart
+  const f = 3.2 + 2.5 * sp, A = 0.22 + 0.15 * sp;
+  b.tail.rotation.x = damp(b.tail.rotation.x, Math.sin(time * f + sd) * A - 0.45 * k + 0.5 * r.dart + 0.25 * sp, 10, dt);
+  b.tail.rotation.z = Math.sin(time * f * 0.7 + sd) * A * 0.8;
+  b.tail2.rotation.x = damp(b.tail2.rotation.x, Math.sin(time * f + sd - 1.3) * A * 1.5 - 0.3 * k + 0.4 * r.dart, 10, dt);
+  b.tail2.rotation.z = Math.sin(time * f * 0.7 + sd - 1.3) * A * 1.2;
+}
+
 function animWisp(r, s, dt, time) {
   const b = r.bones;
   // drifts like a lantern on the wind: tips into its travel, sways and bobs
@@ -630,7 +676,8 @@ function animGolem(r, s, dt, time) {
   let armL = [-Math.sin(ph) * 0.35 * w, 0, 0.12 + 0.06 * thud];
   let armR = [Math.sin(ph) * 0.35 * w, 0, -0.12 - 0.06 * thud];
   let torsoX = 0.1 + Math.sin(time * 1.1 + r.seed) * 0.02 + 0.06 * w;
-  let hipsY = 1.05 - drop - c.bob * thud;
+  const hip0 = b.hips.userData.rest?.pos.y ?? 1.05; // the hips' rest height (a model may move them: the rune golem's)
+  let hipsY = hip0 - drop - c.bob * thud;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   if (s.windup === 'throw') {
     armL = [-2.8 * k, 0, 0.3];
@@ -648,10 +695,15 @@ function animGolem(r, s, dt, time) {
     hipsY -= s.lastAttack === 'pound' ? 0.2 : 0;
   }
   if (s.hurt > 0) torsoX -= 0.15 * s.hurt;
-  b.armL.rotation.set(damp(b.armL.rotation.x, armL[0], 7, dt), 0, damp(b.armL.rotation.z, armL[2], 10, dt));
-  b.armR.rotation.set(damp(b.armR.rotation.x, armR[0], 7, dt), 0, damp(b.armR.rotation.z, armR[2], 10, dt));
-  const P = r.pose || (r.pose = { torsoX: 0.1, hipsY: 1.05 });
-  P.torsoX = damp(P.torsoX, torsoX, 8, dt);
+  // a summoned golem strikes on a short wind-up (0.25 s): its arms must reach the top in time and slam down
+  // fast (the anticipation and the strike), then ease back slowly (the recovery)
+  const quick = s.windupTotal && s.windupTotal < 0.5, ka = quick && (s.windup || s.state === 'act') ? 30 : 7;
+  if (quick && s.windup === 'pound') { const q = Math.sqrt(k); armL = [-2.9 * q, 0, 0.45 * q]; armR = [-2.9 * q, 0, -0.45 * q]; torsoX = 0.1 - 0.35 * q; hipsY = hip0 + 0.08 * q; }
+  if (quick && s.state === 'act' && s.lastAttack === 'pound') { armL = [-0.35, 0, 0.35]; armR = [-0.35, 0, -0.35]; torsoX = 0.7; hipsY = hip0 - 0.22; }
+  b.armL.rotation.set(damp(b.armL.rotation.x, armL[0], ka, dt), 0, damp(b.armL.rotation.z, armL[2], 10, dt));
+  b.armR.rotation.set(damp(b.armR.rotation.x, armR[0], ka, dt), 0, damp(b.armR.rotation.z, armR[2], 10, dt));
+  const P = r.pose || (r.pose = { torsoX: 0.1, hipsY: hip0 });
+  P.torsoX = damp(P.torsoX, torsoX, quick && (s.windup || s.state === 'act') ? 26 : 8, dt);
   P.hipsY = damp(P.hipsY, hipsY + drop + c.bob * thud, 12, dt);
   b.torso.rotation.x = P.torsoX + thud * 0.04;
   b.torso.rotation.z = Math.sin(ph) * c.roll * w;
@@ -1192,7 +1244,7 @@ const BUILDERS = {
   hermit_crab: [() => buildCrab(true), animCrab],
   marsh_wisp: [buildWisp, animWisp],
   // the summoner's spirits (the owner's Meshy models, 2026-11-02): a spirit fox floating like a wisp, wolves on the wolf rig
-  spirit_wisp: [buildWisp, animWisp],
+  spirit_wisp: [buildSpiritFox, animSpiritFox],
   spirit_alpha: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t, { rate: 0.9, stride: 1.8 })], // the owner's antlered flame wolf
   stone_guardian: [buildGolem, animGolem], // the owner's rune golem
   sporecap: [buildSporecap, animSporecap],

@@ -1532,6 +1532,12 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   fox on the wisp rig, the golem on the crag golem's rig. All four take the spirit look (render/spirit-reveal.js:
   the model's shading recoloured to a glowing blue with a rim light, revealed from the ground up over the
   whole body's height when called) and shed spirit motes (owner: the blue glow as before).
+  The spirit fox has its own rig (body, head, tail, tail2; render/monsters.js buildSpiritFox): it floats and
+  weaves on its own phase (a swarm spreads), leans into its travel, its tail waves like a flame (the tip a
+  beat behind), and it strikes by pulling back, rearing its head and darting forward. The golem's hips rest
+  at the model's height (not the crag golem's 1.05), and a summoned golem strikes with `pound`
+  (view.js ALLY_STRIKE): on its short 0.25 s wind-up both arms go up overhead fast and slam down with the
+  body leaning in.
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

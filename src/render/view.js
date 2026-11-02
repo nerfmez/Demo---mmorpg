@@ -33,6 +33,7 @@ import { GAME_CAMERA_OFFSET, cameraOffset } from './game-camera.js';
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
 import { arrives, arrivalFrom, arrivalAt, arrivalTime } from './companion-arrival.js';
 const SPIRITS = new Set(['spirit_wolf', 'spirit_alpha', 'spirit_wisp', 'stone_guardian']); // conjured summons: spirit motes off them
+const ALLY_STRIKE = { stone_guardian: 'pound' }; // a summon's strike by its rig's own attack (the golem pounds with both fists)
 import { fxGround, fxConfig, cachedGround } from './skillfx/fx-common.js';
 
 // The game camera (game-camera.js, 40 degrees above the horizon); `?pitch=` (15-80) previews
@@ -802,7 +803,7 @@ export class View {
       av.hurt = Math.max(0, av.hurt - dt * 5);
       // how far its strike reaches (the eagle swoops onto its prey from up to its range away)
       if (a.state === 'windup') { const tg = g.monsters.find((m) => m.id === a.targetId); av.reach = tg ? Math.max(0, Math.hypot(tg.x - a.x, tg.z - a.z) - 0.5) : 0; }
-      r.animate(r, { reach: av.reach || 0, moving: arr ? arr.k < 1 : a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic }, dt, time);
+      r.animate(r, { reach: av.reach || 0, moving: arr ? arr.k < 1 : a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: ALLY_STRIKE[a.type] || 'bite', windup: a.state === 'windup' ? ALLY_STRIKE[a.type] || 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : av.arr ? 1 : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y,r.baseScale);

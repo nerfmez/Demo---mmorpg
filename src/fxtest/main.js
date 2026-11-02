@@ -16,6 +16,7 @@ import { disposeObject } from '../render/dispose.js';
 import { buildMonster } from '../render/monsters.js';
 import { installSpiritReveal, updateSpiritReveal, removeSpiritReveal } from '../render/spirit-reveal.js';
 const SPIRITS = new Set(['spirit_wolf', 'spirit_alpha', 'spirit_wisp', 'stone_guardian']); // the conjured spirits (view.js)
+const ALLY_STRIKE = { stone_guardian: 'pound' }; // a summon's strike by its rig's own attack (the golem pounds with both fists)
 import { arrives, arrivalFrom, arrivalAt, arrivalTime } from '../render/companion-arrival.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
 import { fusionRecipe, benchData } from './fusion.js';
@@ -604,7 +605,7 @@ function tick(real, draw = true) {
     const sp = r.px === undefined ? 0 : Math.hypot(ax - r.px, az - r.pz) / Math.max(1e-3, dt); r.px = ax; r.pz = az;
     r.root.position.set(ax, arr ? arr.y : 0, az); r.root.rotation.y = arr ? arr.facing : a.facing;
     if (a.state === 'windup') { const tg = game.monsters.find((m) => m.id === a.targetId); r.reach = tg ? Math.max(0, Math.hypot(tg.x - a.x, tg.z - a.z) - 0.5) : 0; }
-    Object.assign(r.state, { reach: r.reach || 0, moving: arr ? arr.k < 1 : a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic });
+    Object.assign(r.state, { reach: r.reach || 0, moving: arr ? arr.k < 1 : a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: ALLY_STRIKE[a.type] || 'bite', windup: a.state === 'windup' ? ALLY_STRIKE[a.type] || 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic });
     if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
     r.animate?.(r, r.state, dt, simTime);
     if (r.reveal) updateSpiritReveal(r.reveal, r.age, a.life, 0, r.baseScale || 1);

@@ -781,7 +781,7 @@ export class View {
         rig.root.position.set(a.x, this.groundAt(a.x, a.z), a.z);
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
-        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: null /* the summoner's spirits are the owner's own models now (no recolour) */ };
+        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: SPIRITS.has(a.type)?installSpiritReveal(rig):null /* the conjured spirits glow blue and rise from the ground (owner: as before) */ };
         // a hunter's companion comes in from the wild along its arrival path (companion-arrival.js)
         if (arrives(a.type) && a.arriveT > 0) av.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, g.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
         this.allyViews.set(a.id, av);
@@ -805,7 +805,7 @@ export class View {
       r.animate(r, { reach: av.reach || 0, moving: arr ? arr.k < 1 : a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : av.arr ? 1 : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
-      if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
+      if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y,r.baseScale);
       // spirit motes off a conjured summon (not a hunter's hounds or a straw dummy: they are flesh and straw)
       if ((SPIRITS.has(a.type)) && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
     }

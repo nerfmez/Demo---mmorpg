@@ -3,7 +3,9 @@ import FX from '../../data/combat-fx.json';
 // Reveal the existing animated companion; never substitute the static preview wolf.
 export function installSpiritReveal(rig){
  const cfg=FX.skills.spirit_wolf.body;
- const state={height:{value:0},base:{value:0},parts:[]};
+ const state={height:{value:0},base:{value:0},parts:[],top:1.8};
+ // how tall the body is (unscaled): the reveal climbs all of it, a tall alpha or golem too (updateSpiritReveal's scale)
+ rig.root.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(rig.root);if(isFinite(box.max.y))state.top=Math.max(0.6,(box.max.y-box.min.y)/(rig.root.scale.y||1));
  rig.root.traverse(o=>{
   if(!o.isMesh||!o.material)return;
   const originals=o.material;const convert=original=>{
@@ -32,4 +34,5 @@ export function installSpiritReveal(rig){
  return state;
 }
 export function removeSpiritReveal(state){if(!state)return;for(const p of state.parts){for(const m of p.materials)m.dispose();p.o.material=p.originals;}state.parts.length=0;}
-export function updateSpiritReveal(state,age,life,ground){state.base.value=ground;state.height.value=Math.min(1,age/.36,Math.max(0,life/.4))*1.8-.08;}
+/** scale: the rig's scale now (its height is state.top x scale). */
+export function updateSpiritReveal(state,age,life,ground,scale=1){state.base.value=ground;state.height.value=Math.min(1,age/.36,Math.max(0,life/.4))*(state.top*scale+0.3)-.08;}

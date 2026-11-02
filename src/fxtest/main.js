@@ -14,6 +14,8 @@ import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
 import { buildMonster } from '../render/monsters.js';
+import { installSpiritReveal, updateSpiritReveal, removeSpiritReveal } from '../render/spirit-reveal.js';
+const SPIRITS = new Set(['spirit_wolf', 'spirit_alpha', 'spirit_wisp', 'stone_guardian']); // the conjured spirits (view.js)
 import { arrives, arrivalFrom, arrivalAt, arrivalTime } from '../render/companion-arrival.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
 import { fusionRecipe, benchData } from './fusion.js';
@@ -131,7 +133,7 @@ function buildHero(weapon = heroWeapon, offhand = heroOffhand) {
 buildHero();
 // the game's hero: the chibi body and its hair (hero_base stays as the fallback rig)
 const { hero_base, hero_chibi, hero_chibi_hair } = MODELS.characters;
-loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair }, weapons: MODELS.weapons, monsters: { hunt_hound: MODELS.monsters.hunt_hound, pack_hound: MODELS.monsters.pack_hound, hunt_bear: MODELS.monsters.hunt_bear, hunt_hawk: MODELS.monsters.hunt_hawk, spirit_wolf: MODELS.monsters.spirit_wolf, spirit_alpha: MODELS.monsters.spirit_alpha, spirit_wisp: MODELS.monsters.spirit_wisp, stone_guardian: MODELS.monsters.stone_guardian } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); for (const r of benchAllies.values()) { r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); /* summons set before the models came are rebuilt in them */ }).catch(() => {});
+loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair }, weapons: MODELS.weapons, monsters: { hunt_hound: MODELS.monsters.hunt_hound, pack_hound: MODELS.monsters.pack_hound, hunt_bear: MODELS.monsters.hunt_bear, hunt_hawk: MODELS.monsters.hunt_hawk, spirit_wolf: MODELS.monsters.spirit_wolf, spirit_alpha: MODELS.monsters.spirit_alpha, spirit_wisp: MODELS.monsters.spirit_wisp, stone_guardian: MODELS.monsters.stone_guardian } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); for (const r of benchAllies.values()) { removeSpiritReveal(r.reveal); r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); /* summons set before the models came are rebuilt in them */ }).catch(() => {});
 const tip = new THREE.Vector3();
 function staffTip() {
   const w = hero.bones?.weapon;
@@ -175,7 +177,7 @@ const skipSets = new Map();
 const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_PROJECTILES])).get(k);
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
-  for (const r of benchAllies.values()) { r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); // the old bench's summons
+  for (const r of benchAllies.values()) { removeSpiritReveal(r.reveal); r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); // the old bench's summons
   if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, haste: state.haste ?? null });
   game.aimAt(aimAngle);
@@ -591,6 +593,7 @@ function tick(real, draw = true) {
     let r = benchAllies.get(a.id);
     if (!r) {
       r = buildMonster(a.type, 1, false); scene.add(r.root); benchAllies.set(a.id, r); r.state = { hurt: 0 }; r.lastHp = a.hp; r.age = 0;
+      if (SPIRITS.has(a.type)) r.reveal = installSpiritReveal(r); // the conjured spirits glow blue and rise from the ground (view.js)
       // a hunter's companion comes in from the wild as in the game (view.js syncAllies)
       if (arrives(a.type) && a.arriveT > 0) r.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, game.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
     }
@@ -604,8 +607,9 @@ function tick(real, draw = true) {
     Object.assign(r.state, { reach: r.reach || 0, moving: arr ? arr.k < 1 : a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic });
     if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
     r.animate?.(r, r.state, dt, simTime);
+    if (r.reveal) updateSpiritReveal(r.reveal, r.age, a.life, 0, r.baseScale || 1);
   }
-  for (const [id, r] of benchAllies) if (!game.allies.some((a) => a.id === id)) { r.root.removeFromParent(); disposeObject(r.root); benchAllies.delete(id); }
+  for (const [id, r] of benchAllies) if (!game.allies.some((a) => a.id === id)) { removeSpiritReveal(r.reveal); r.root.removeFromParent(); disposeObject(r.root); benchAllies.delete(id); }
   fx.update(dt);
   castBtn.classList.toggle('ready', fx.counterReady);
   const recipeKind = skillDef().recipe?.id;

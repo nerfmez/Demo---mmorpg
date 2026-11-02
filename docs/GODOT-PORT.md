@@ -1529,8 +1529,9 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
   of its HP (`soulSwap` event).
   The summoner's summons have the owner's own models (data/models.json `spirit_wisp`, `spirit_alpha`,
   `spirit_wolf`, `stone_guardian`): the wolves on the wolf rig moving by the beast clips (animBeast), the
-  fox on the wisp rig, the golem on the crag golem's rig. They keep their own colours (no spirit recolour)
-  and shed spirit motes.
+  fox on the wisp rig, the golem on the crag golem's rig. All four take the spirit look (render/spirit-reveal.js:
+  the model's shading recoloured to a glowing blue with a rim light, revealed from the ground up over the
+  whole body's height when called) and shed spirit motes (owner: the blue glow as before).
   The eagle (`animEagle`) flaps by a bird's cycle: a 55% downstroke, an upstroke with the wing folded at the
   wrist, glides between bouts, wings tucked for its dive.
 - Shock (ชา, 2026-10-31, lightning's status; `progression.combat.shock`): a hit's `shock` {duration}

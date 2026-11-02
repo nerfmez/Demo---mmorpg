@@ -825,3 +825,11 @@ gold halo turns over the head of every body that carries it (fading over its las
 caught, a star flash, a gold ring on the ground and a column of light strokes rising round the body, a short
 shake, and the halo is gone. Fix in the round: a 2-point ribbon has no middle to be wide in (the streaks drew
 nothing); they are 5 points now.
+Round 2 (owner: "prettier"): rebuilt with the approved Blessing of Light's techniques and given its own read,
+wings of light. On the cast gold angel wings unfold behind the hero (an arch from the shoulder out to the tip
+and feathers hanging from it, longest at the tip; spread across the screen so they open wide from the game
+camera whichever way the hero faces) and fold away, a gold holy circle (two rings and an eight-pointed star)
+turns underneath, a soft ring goes out in the air to the true 9 m and stars pop. While it lasts a double halo
+turns over each covered body and a feather of light drifts down now and then. The rising: a column of light
+bursts UP out of the ground (Blessing's column, revealed bottom up with its streaks flowing upward), a lens
+glint, the wings open wide from the risen body and dissolve into feathers drifting down, stars and the circle.

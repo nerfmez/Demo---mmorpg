@@ -334,7 +334,7 @@ export class SkillFx {
       // Sic 'Em: the marker over the prey and the rush (skillfx/sic-fx.js)
       case 'sicEm': this.companion.sic.order(e, g.player); return true;
       case 'summonAssault': this.companion.assault.order(e); return true; // the summoner's Assault (skillfx/assault-fx.js)
-      case 'revive': { const a = e.id === 'player' ? null : g.allies.find((q) => q.id === e.id); this.revive.rise(e.x, e.z, a ? a.type : 'player'); return true; }
+      case 'revive': { const a = e.id === 'player' ? null : g.allies.find((q) => q.id === e.id); this.revive.rise(e.x, e.z, a ? a.type : 'player', a ? a.facing : g.player.facing); return true; }
       case 'preyDrop': this.prey.prize(e.x, e.z); return true; // a marked kill's extra part
       case 'packBuff': this.companion.pack.howl(e); return true; // Pack Hunt: the howl and the frenzy (skillfx/pack-fx.js)
       case 'companionPounce': { this.companion.sic.pounced(e.id); if (e.roar) { const b = this.call.locate?.(e.id); if (b) this.companion.roar(b.x, b.z, e.roar); } return false; }
@@ -412,7 +412,7 @@ export class SkillFx {
       case 'buff': {
         if (e.kind === 'iron_body') { this.iron.harden(e.x, e.z, this.skillOf(e.kind)?.duration ?? 6); return true; }
         if (e.kind === 'blessing') { this.bless.bestow(e.x, e.z, e.radius); return true; }
-        if (e.kind === 'revive') { this.revive.bestow(e.x, e.z, e.radius); return true; } // skillfx/revive-fx.js
+        if (e.kind === 'revive') { this.revive.bestow(e.x, e.z, e.radius, g.player.facing); return true; } // skillfx/revive-fx.js
         if (!BUFF_LOOKS[e.kind] && !AURA_SHOUTS.has(e.kind)) return false;
         // party shouts (Rally): the ring to the true radius, and a mark over every body the buff reached
         const bodies = this.buffBodies; bodies.length = 0; bodies.push(g.player);

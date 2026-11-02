@@ -655,21 +655,21 @@
           "role": "pack",
           "pass": [
             {
-              "areaDamagePct": 2.6
+              "areaDamagePct": 3.5
             },
             {
-              "areaDamagePct": 1.9,
+              "areaDamagePct": 2.6,
               "maxHpPct": 2
             },
             {
-              "areaDamagePct": 2.6
+              "areaDamagePct": 3.5
             }
           ],
           "keys": [
             {
               "name": "ดาเมจต่อศัตรูที่โดน",
               "effects": {
-                "perTargetDamagePct": 3.3,
+                "perTargetDamagePct": 4.5,
                 "perTargetCap": 30
               }
             },
@@ -682,14 +682,14 @@
             {
               "name": "กวาดแรงขึ้น",
               "effects": {
-                "packDamagePct": 5
+                "packDamagePct": 6.8
               }
             }
           ],
           "cap": {
             "name": "แรงส่ง",
             "effects": {
-              "packDamagePct": 22
+              "packDamagePct": 30
             },
             "uptime": 0.7
           }
@@ -720,14 +720,14 @@
                 "debuff": {
                   "name": "ดีบัฟ",
                   "effects": {
-                    "singleDamagePct": 11.5,
+                    "singleDamagePct": 12.4,
                     "teamDamagePct": 6
                   }
                 },
                 "heavy": {
                   "name": "แรงสุด",
                   "effects": {
-                    "meleeDamagePct": 42,
+                    "meleeDamagePct": 44,
                     "hastePct": -15
                   }
                 }
@@ -989,40 +989,40 @@
           "role": "pack",
           "pass": [
             {
-              "elementalDamagePct": 3.5
+              "elementalDamagePct": 4.7
             },
             {
-              "areaDamagePct": 3.5
+              "areaDamagePct": 4.7
             },
             {
-              "elementalDamagePct": 3.5
+              "elementalDamagePct": 4.7
             }
           ],
           "keys": [
             {
               "name": "ติดไฟและไหม้แรงขึ้น",
               "effects": {
-                "packDamagePct": 11.2,
+                "packDamagePct": 15.1,
                 "singleDamagePct": 6
               }
             },
             {
               "name": "รัศมีเวทไฟ",
               "effects": {
-                "packDamagePct": 9.6
+                "packDamagePct": 12.9
               }
             },
             {
               "name": "ไฟแรง",
               "effects": {
-                "elementalDamagePct": 9.6
+                "elementalDamagePct": 12.9
               }
             }
           ],
           "cap": {
             "name": "ไฟลาม",
             "effects": {
-              "packDamagePct": 28
+              "packDamagePct": 36
             },
             "uptime": 0.6
           }
@@ -1037,15 +1037,15 @@
           "pass": [
             {
               "maxHpPct": 3,
-              "elementalDamagePct": 3.7
+              "elementalDamagePct": 4.1
             },
             {
               "selfTakenPct": 2,
-              "areaDamagePct": 3.7
+              "areaDamagePct": 4.1
             },
             {
               "maxHpPct": 3,
-              "elementalDamagePct": 3.7
+              "elementalDamagePct": 4.1
             }
           ],
           "keys": [
@@ -1053,7 +1053,7 @@
               "name": "ชะลอแรงขึ้น",
               "effects": {
                 "selfTakenPct": 10,
-                "packDamagePct": 9
+                "packDamagePct": 9.9
               }
             },
             {
@@ -1061,13 +1061,13 @@
               "effects": {
                 "selfTakenPct": 8,
                 "singleDamagePct": 5,
-                "packDamagePct": 7.2
+                "packDamagePct": 8
               }
             },
             {
               "name": "เวทต่อเนื่องนานขึ้น",
               "effects": {
-                "dotDamagePct": 55,
+                "dotDamagePct": 60,
                 "selfTakenPct": 6
               }
             }
@@ -1076,7 +1076,7 @@
             "name": "แตกเป็นเสี่ยง",
             "effects": {
               "singleDamagePct": 15,
-              "packDamagePct": 55,
+              "packDamagePct": 60,
               "selfTakenPct": 8
             },
             "uptime": 0.6
@@ -1097,7 +1097,7 @@
           ],
           "pass": [
             {
-              "elementalDamagePct": 8.2
+              "elementalDamagePct": 11
             },
             {
               "hastePct": 5
@@ -1110,13 +1110,13 @@
             {
               "name": "คริเวทสายฟ้า",
               "effects": {
-                "critChancePct": 10.9
+                "critChancePct": 14.6
               }
             },
             {
               "name": "เด้งแรงขึ้น",
               "effects": {
-                "packDamagePct": 10.9
+                "packDamagePct": 14.6
               }
             },
             {
@@ -1144,7 +1144,7 @@
           },
           "pass": [
             {
-              "elementalDamagePct": 7.6
+              "elementalDamagePct": 6.5
             },
             {
               "hastePct": 4
@@ -1157,7 +1157,7 @@
             {
               "name": "จังหวะธาตุ",
               "effects": {
-                "spellDamagePct": 35
+                "spellDamagePct": 31
               },
               "uptime": 0.6
             },
@@ -1179,7 +1179,7 @@
           "cap": {
             "name": "ธาตุประลัย",
             "effects": {
-              "singleDamagePct": 35,
+              "singleDamagePct": 31,
               "packDamagePct": 18
             },
             "uptime": 0.5
@@ -1312,42 +1312,42 @@
           ],
           "pass": [
             {
-              "controlDurationPct": 3.1,
-              "teamDamagePct": 1.8
+              "controlDurationPct": 3,
+              "teamDamagePct": 1.7
             },
             {
               "spellDamagePct": 3,
               "teamDamagePct": 1.2
             },
             {
-              "teamDamagePct": 2.3
+              "teamDamagePct": 2.2
             }
           ],
           "keys": [
             {
               "name": "ศัตรูติดดีบัฟรับดาเมจ",
               "effects": {
-                "teamDamagePct": 7.2
+                "teamDamagePct": 7
               }
             },
             {
               "name": "ตราบาป",
               "effects": {
-                "teamTakenPct": 5.4
+                "teamTakenPct": 5.2
               }
             },
             {
               "name": "ดีบัฟนานขึ้น",
               "effects": {
-                "controlDurationPct": 12,
-                "teamDamagePct": 3.6
+                "controlDurationPct": 11.6,
+                "teamDamagePct": 3.5
               }
             }
           ],
           "cap": {
             "name": "คำพิพากษา",
             "effects": {
-              "teamDamagePct": 27,
+              "teamDamagePct": 26,
               "singleDamagePct": 15
             },
             "uptime": 0.7
@@ -1370,7 +1370,7 @@
               "maxShieldPct": 1.5
             },
             {
-              "maxShield": 3.6
+              "maxShield": 3.2
             },
             {
               "barrierPct": 1.1
@@ -1578,39 +1578,39 @@
           },
           "pass": [
             {
-              "meleeDamagePct": 9.1
+              "meleeDamagePct": 7.9
             },
             {
               "defense": 90
             },
             {
-              "meleeDamagePct": 9.1
+              "meleeDamagePct": 7.9
             }
           ],
           "keys": [
             {
               "name": "ดาเมจตามเกราะ",
               "effects": {
-                "meleeDamagePct": 33
+                "meleeDamagePct": 28
               }
             },
             {
               "name": "ผลักไกล",
               "effects": {
-                "singleDamagePct": 22
+                "singleDamagePct": 18.5
               }
             },
             {
               "name": "ตีหนัก",
               "effects": {
-                "meleeDamagePct": 28
+                "meleeDamagePct": 24
               }
             }
           ],
           "cap": {
             "name": "โล่สวน",
             "effects": {
-              "singleDamagePct": 58
+              "singleDamagePct": 50
             },
             "uptime": 0.7
           }
@@ -1658,7 +1658,7 @@
       "entry": {
         "name": "คริจากข้างหลัง",
         "effects": {
-          "critChancePct": 10
+          "critChancePct": 10.4
         },
         "uptime": 0.6
       },
@@ -1672,15 +1672,15 @@
         {
           "name": "โอกาสคริ",
           "effects": {
-            "critChancePct": 3
+            "critChancePct": 3.1
           }
         },
         {
           "name": "ลำต้น (เด่น)",
           "cost": 2,
           "effects": {
-            "meleeDamagePct": 8,
-            "critChancePct": 2
+            "meleeDamagePct": 8.3,
+            "critChancePct": 2.1
           }
         }
       ],
@@ -1697,7 +1697,7 @@
               "critChancePct": 2.3
             },
             {
-              "critMultPct": 9.2
+              "critMultPct": 9.5
             },
             {
               "critChancePct": 2.3
@@ -1714,7 +1714,7 @@
             {
               "name": "ครั้งแรกหลังซ่อน",
               "effects": {
-                "singleDamagePct": 47
+                "singleDamagePct": 48
               },
               "uptime": 0.25
             },
@@ -1745,7 +1745,7 @@
               "hastePct": 3
             },
             {
-              "meleeDamagePct": 7.8
+              "meleeDamagePct": 9.5
             },
             {
               "mpOnHit": 1
@@ -1755,27 +1755,27 @@
             {
               "name": "เลือดไหล",
               "effects": {
-                "packDamagePct": 24
+                "packDamagePct": 30
               }
             },
             {
               "name": "ดาเมจเลือดไหลและพิษ",
               "effects": {
-                "dotDamagePct": 50,
-                "packDamagePct": 11.7
+                "dotDamagePct": 55,
+                "packDamagePct": 14.3
               }
             },
             {
               "name": "ว่องไวเหนือแรง",
               "effects": {
-                "meleeDamagePct": 24
+                "meleeDamagePct": 30
               }
             }
           ],
           "cap": {
             "name": "พายุใบมีด",
             "effects": {
-              "packDamagePct": 59
+              "packDamagePct": 55
             },
             "uptime": 0.6
           }
@@ -1795,29 +1795,29 @@
               "dodgeChancePct": 1.5
             },
             {
-              "goldFindPct": 23
+              "goldFindPct": 60
             },
             {
-              "gearFindPct": 15.4
+              "gearFindPct": 60
             }
           ],
           "keys": [
             {
               "name": "ล้วงกระเป๋า",
               "effects": {
-                "goldFindPct": 57
+                "goldFindPct": 60
               }
             },
             {
               "name": "ขโมยไอเทม",
               "effects": {
-                "gearFindPct": 49
+                "gearFindPct": 60
               }
             },
             {
               "name": "ตาไว",
               "effects": {
-                "materialFindPct": 49
+                "materialFindPct": 60
               }
             }
           ],
@@ -1825,7 +1825,7 @@
             "name": "ราชาโจร",
             "effects": {
               "goldFindPct": 60,
-              "gearFindPct": 36
+              "gearFindPct": 60
             }
           }
         }
@@ -1872,7 +1872,7 @@
       "entry": {
         "name": "ดาเมจใส่เป้าเดิม",
         "effects": {
-          "singleDamagePct": 12
+          "singleDamagePct": 5.4
         },
         "uptime": 0.8
       },
@@ -1880,7 +1880,7 @@
         {
           "name": "ดาเมจประชิด",
           "effects": {
-            "meleeDamagePct": 4
+            "meleeDamagePct": 1.8
           }
         },
         {
@@ -1893,7 +1893,7 @@
           "name": "ลำต้น (เด่น)",
           "cost": 2,
           "effects": {
-            "meleeDamagePct": 8
+            "meleeDamagePct": 3.7
           }
         }
       ],
@@ -1917,7 +1917,7 @@
               "defense": 90
             },
             {
-              "meleeDamagePct": 47
+              "meleeDamagePct": 50
             }
           ],
           "keys": [
@@ -1945,7 +1945,7 @@
             "name": "ยิ่งสู้ยิ่งแกร่ง",
             "effects": {
               "selfTakenPct": 10,
-              "meleeDamagePct": 47
+              "meleeDamagePct": 50
             }
           }
         },
@@ -1957,12 +1957,11 @@
             "AGI": 0.15
           },
           "support": [
-            "blood_boil",
-            "berserk"
+            "blood_boil"
           ],
           "pass": [
             {
-              "meleeDamagePct": 2.6
+              "meleeDamagePct": 4.3
             },
             {
               "hastePct": 3
@@ -1975,7 +1974,7 @@
             {
               "name": "ดาเมจตาม HP ที่หาย",
               "effects": {
-                "meleeDamagePct": 7.6
+                "meleeDamagePct": 13.6
               },
               "uptime": 0.6
             },
@@ -1997,7 +1996,7 @@
           "cap": {
             "name": "คลั่งไม่ตาย",
             "effects": {
-              "singleDamagePct": 7.6
+              "singleDamagePct": 13.6
             },
             "uptime": 0.6
           }
@@ -2045,14 +2044,14 @@
       "entry": {
         "name": "ดาเมจและ HP คู่หู",
         "effects": {
-          "summonDamagePct": 6
+          "summonDamagePct": 3.5
         }
       },
       "trunk": [
         {
           "name": "ดาเมจคู่หู",
           "effects": {
-            "summonDamagePct": 5
+            "summonDamagePct": 2.9
           }
         },
         {
@@ -2065,8 +2064,8 @@
           "name": "ลำต้น (เด่น)",
           "cost": 2,
           "effects": {
-            "summonDamagePct": 5,
-            "projectileDamagePct": 3
+            "summonDamagePct": 2.9,
+            "projectileDamagePct": 1.7
           }
         }
       ],
@@ -2076,26 +2075,26 @@
           "role": "single",
           "pass": [
             {
-              "summonDamagePct": 1.2
+              "summonDamagePct": 12.2
             },
             {
-              "projectileDamagePct": 1
+              "projectileDamagePct": 9.6
             },
             {
-              "summonDamagePct": 1.2
+              "summonDamagePct": 12.2
             }
           ],
           "keys": [
             {
               "name": "คู่หูตีเร็วขึ้น",
               "effects": {
-                "summonDamagePct": 4.5
+                "summonDamagePct": 39
               }
             },
             {
               "name": "ตีเป้าที่คู่หูตีอยู่",
               "effects": {
-                "singleDamagePct": 3.4
+                "singleDamagePct": 29
               },
               "uptime": 0.8
             },
@@ -2109,7 +2108,7 @@
           "cap": {
             "name": "หัวหน้าฝูง",
             "effects": {
-              "summonDamagePct": 6.7
+              "summonDamagePct": 57
             }
           }
         },
@@ -2118,41 +2117,41 @@
           "role": "income",
           "pass": [
             {
-              "materialFindPct": 6
+              "materialFindPct": 12
             },
             {
-              "materialFindPct": 6
+              "materialFindPct": 12
             },
             {
-              "materialFindPct": 6
+              "materialFindPct": 12
             }
           ],
           "keys": [
             {
               "name": "ชำแหละ",
               "effects": {
-                "materialFindPct": 15
+                "materialFindPct": 31
               }
             },
             {
               "name": "ตามรอยเหยื่อ",
               "effects": {
-                "materialFindPct": 10,
-                "gearFindPct": 6
+                "materialFindPct": 19.9,
+                "gearFindPct": 12
               }
             },
             {
               "name": "ล่าคล่อง",
               "effects": {
-                "goldFindPct": 10
+                "goldFindPct": 19.9
               }
             }
           ],
           "cap": {
             "name": "นักล่าผู้ยิ่งใหญ่",
             "effects": {
-              "materialFindPct": 20,
-              "gearFindPct": 8
+              "materialFindPct": 38,
+              "gearFindPct": 16
             }
           }
         }
@@ -2230,27 +2229,27 @@
           "role": "pack",
           "pass": [
             {
-              "trapDamagePct": 1.1
+              "trapDamagePct": 8.8
             },
             {
-              "areaDamagePct": 0.9
+              "areaDamagePct": 6.9
             },
             {
-              "trapDamagePct": 1.1
+              "trapDamagePct": 8.8
             }
           ],
           "keys": [
             {
               "name": "ดาเมจต่อกับดักที่ทำงาน",
               "effects": {
-                "packDamagePct": 1.8
+                "packDamagePct": 14.9
               },
               "uptime": 0.8
             },
             {
               "name": "วางค้างเพิ่ม",
               "effects": {
-                "trapDamagePct": 1.8
+                "trapDamagePct": 14.9
               }
             },
             {
@@ -2263,7 +2262,7 @@
           "cap": {
             "name": "ทุ่งระเบิด",
             "effects": {
-              "packDamagePct": 2
+              "packDamagePct": 16.1
             },
             "uptime": 0.6
           }
@@ -2331,26 +2330,26 @@
           },
           "pass": [
             {
-              "trapDamagePct": 9.4
+              "trapDamagePct": 5.5
             },
             {
-              "elementalDamagePct": 9.4
+              "elementalDamagePct": 5.5
             },
             {
-              "trapDamagePct": 9.4
+              "trapDamagePct": 5.5
             }
           ],
           "keys": [
             {
               "name": "ธาตุต่อกัน",
               "effects": {
-                "packDamagePct": 33
+                "packDamagePct": 19.3
               }
             },
             {
               "name": "ธาตุแรง",
               "effects": {
-                "elementalDamagePct": 34
+                "elementalDamagePct": 20
               }
             },
             {
@@ -2363,7 +2362,7 @@
           "cap": {
             "name": "ห่วงธาตุ",
             "effects": {
-              "packDamagePct": 60
+              "packDamagePct": 34
             },
             "uptime": 0.6
           }
@@ -2410,14 +2409,14 @@
       "entry": {
         "name": "ดาเมจธาตุของศรผสาน",
         "effects": {
-          "elementalDamagePct": 10
+          "elementalDamagePct": 24
         }
       },
       "trunk": [
         {
           "name": "ดาเมจธาตุ",
           "effects": {
-            "elementalDamagePct": 4
+            "elementalDamagePct": 9.6
           }
         },
         {
@@ -2430,7 +2429,7 @@
           "name": "ลำต้น (เด่น)",
           "cost": 2,
           "effects": {
-            "elementalDamagePct": 8
+            "elementalDamagePct": 19.2
           }
         }
       ],
@@ -2441,30 +2440,31 @@
           "loadout": [
             "hunter_shot",
             "fire_arrow_rain",
+            "arrow_rain",
             "firebolt"
           ],
           "pass": [
             {
-              "elementalDamagePct": 14.8
+              "elementalDamagePct": 13.6
             },
             {
-              "projectileDamagePct": 14.8
+              "projectileDamagePct": 13.6
             },
             {
-              "elementalDamagePct": 14.8
+              "elementalDamagePct": 13.6
             }
           ],
           "keys": [
             {
               "name": "แรงและระยะของธาตุ",
               "effects": {
-                "elementalDamagePct": 55
+                "elementalDamagePct": 51
               }
             },
             {
               "name": "ไหม้ลาม",
               "effects": {
-                "packDamagePct": 55
+                "packDamagePct": 51
               }
             },
             {
@@ -2477,7 +2477,7 @@
           "cap": {
             "name": "ฝนเพลิงลุก",
             "effects": {
-              "packDamagePct": 60
+              "packDamagePct": 54
             },
             "uptime": 0.6
           }
@@ -2492,26 +2492,26 @@
           ],
           "pass": [
             {
-              "elementalDamagePct": 8.2
+              "elementalDamagePct": 7
             },
             {
-              "projectileDamagePct": 8.2
+              "projectileDamagePct": 7
             },
             {
-              "elementalDamagePct": 8.2
+              "elementalDamagePct": 7
             }
           ],
           "keys": [
             {
               "name": "แรงและระยะของธาตุ",
               "effects": {
-                "elementalDamagePct": 31
+                "elementalDamagePct": 27
               }
             },
             {
               "name": "แตกกระจาย",
               "effects": {
-                "singleDamagePct": 31
+                "singleDamagePct": 27
               }
             },
             {
@@ -2524,7 +2524,7 @@
           "cap": {
             "name": "ศรเยือกแข็ง",
             "effects": {
-              "singleDamagePct": 56
+              "singleDamagePct": 48
             },
             "uptime": 0.7
           }
@@ -2535,7 +2535,8 @@
           "loadout": [
             "hunter_shot",
             "thunder_lance",
-            "chain_spark"
+            "chain_spark",
+            "arrow_rain"
           ],
           "pass": [
             {
@@ -2586,27 +2587,27 @@
           ],
           "pass": [
             {
-              "elementalDamagePct": 8.8
+              "elementalDamagePct": 8.5
             },
             {
-              "projectileDamagePct": 8.8
+              "projectileDamagePct": 8.5
             },
             {
-              "elementalDamagePct": 8.8
+              "elementalDamagePct": 8.5
             }
           ],
           "keys": [
             {
               "name": "แรงและระยะของธาตุ",
               "effects": {
-                "elementalDamagePct": 33
+                "elementalDamagePct": 32
               }
             },
             {
               "name": "พิษซ้อน",
               "effects": {
-                "dotDamagePct": 45,
-                "singleDamagePct": 17.8
+                "dotDamagePct": 43,
+                "singleDamagePct": 17.2
               }
             },
             {
@@ -2619,7 +2620,7 @@
           "cap": {
             "name": "หมอกพิษ",
             "effects": {
-              "singleDamagePct": 57
+              "singleDamagePct": 55
             },
             "uptime": 0.7
           }
@@ -2644,7 +2645,7 @@
         "arcane_bolt",
         "spirit_swarm",
         "call_alpha",
-        "spirit_wolf"
+        "summon_assault"
       ],
       "support": [],
       "inner": {
@@ -2667,27 +2668,27 @@
       "entry": {
         "name": "สัตว์อัญเชิญเพิ่ม 1",
         "effects": {
-          "summonDamagePct": 15
+          "summonDamagePct": 13.4
         }
       },
       "trunk": [
         {
           "name": "ดาเมจอัญเชิญ",
           "effects": {
-            "summonDamagePct": 5
+            "summonDamagePct": 4.5
           }
         },
         {
           "name": "สัตว์อยู่นาน",
           "effects": {
-            "summonDamagePct": 4
+            "summonDamagePct": 3.6
           }
         },
         {
           "name": "ลำต้น (เด่น)",
           "cost": 2,
           "effects": {
-            "summonDamagePct": 10
+            "summonDamagePct": 9
           }
         }
       ],
@@ -2697,7 +2698,7 @@
           "role": "single",
           "pass": [
             {
-              "summonDamagePct": 3.4
+              "summonDamagePct": 23
             },
             {
               "hastePct": 3
@@ -2710,13 +2711,13 @@
             {
               "name": "จำนวนสัตว์เพิ่ม",
               "effects": {
-                "summonDamagePct": 17
+                "summonDamagePct": 23
               }
             },
             {
               "name": "แรงตามจำนวน",
               "effects": {
-                "summonDamagePct": 12.7
+                "summonDamagePct": 23
               }
             },
             {
@@ -2729,9 +2730,15 @@
           "cap": {
             "name": "ฝูงไร้ที่สิ้นสุด",
             "effects": {
-              "summonDamagePct": 26
+              "summonDamagePct": 23
             }
-          }
+          },
+          "loadout": [
+            "arcane_bolt",
+            "spirit_swarm",
+            "call_alpha",
+            "spirit_wolf"
+          ]
         },
         "brute": {
           "name": "อสูรใหญ่",
@@ -2747,7 +2754,7 @@
           },
           "pass": [
             {
-              "maxHpPct": 4
+              "maxHpPct": 4.1
             },
             {
               "summonDamagePct": 3
@@ -2760,27 +2767,27 @@
             {
               "name": "ดึงความสนใจ",
               "effects": {
-                "selfTakenPct": 13.2
+                "selfTakenPct": 13.4
               }
             },
             {
               "name": "รับดาเมจลดตอนสัตว์อยู่",
               "effects": {
-                "selfTakenPct": 13.2
+                "selfTakenPct": 13.4
               },
               "uptime": 0.8
             },
             {
               "name": "อสูรถึก",
               "effects": {
-                "maxHpPct": 10.6
+                "maxHpPct": 10.8
               }
             }
           ],
           "cap": {
             "name": "ผู้พิทักษ์ยักษ์",
             "effects": {
-              "selfTakenPct": 19.9,
+              "selfTakenPct": 20,
               "summonDamagePct": 15
             }
           }
@@ -2790,20 +2797,20 @@
           "role": "single",
           "pass": [
             {
-              "spellDamagePct": 3.8
+              "spellDamagePct": 10.2
             },
             {
               "maxMpPct": 4
             },
             {
-              "spellDamagePct": 3.8
+              "spellDamagePct": 10.2
             }
           ],
           "keys": [
             {
               "name": "เวทแรงตามสัตว์",
               "effects": {
-                "spellDamagePct": 19.2
+                "spellDamagePct": 54
               }
             },
             {
@@ -2815,14 +2822,14 @@
             {
               "name": "สั่งพร้อมกัน",
               "effects": {
-                "summonDamagePct": 14.4
+                "summonDamagePct": 37
               }
             }
           ],
           "cap": {
             "name": "จ้าววิญญาณ",
             "effects": {
-              "singleDamagePct": 24
+              "singleDamagePct": 60
             },
             "uptime": 0.7
           }
@@ -2901,43 +2908,49 @@
           "role": "pack",
           "pass": [
             {
-              "areaDamagePct": 13.6
+              "areaDamagePct": 7.5
             },
             {
-              "elementalDamagePct": 13.6
+              "elementalDamagePct": 7.5
             },
             {
-              "areaDamagePct": 13.6
+              "areaDamagePct": 7.5
             }
           ],
           "keys": [
             {
               "name": "ดาเมจต่อศัตรูที่โดน",
               "effects": {
-                "perTargetDamagePct": 16.9,
+                "perTargetDamagePct": 9.5,
                 "perTargetCap": 25
               }
             },
             {
               "name": "ผสานกวาด",
               "effects": {
-                "packDamagePct": 40
+                "packDamagePct": 22
               }
             },
             {
               "name": "ธาตุแรง",
               "effects": {
-                "elementalDamagePct": 35
+                "elementalDamagePct": 19.3
               }
             }
           ],
           "cap": {
             "name": "ระเบิดเวทดาบ",
             "effects": {
-              "packDamagePct": 60
+              "packDamagePct": 33
             },
             "uptime": 0.6
-          }
+          },
+          "loadout": [
+            "spell_wave",
+            "flame_slash",
+            "whirl_blade",
+            "thunder_slash"
+          ]
         },
         "dps": {
           "name": "DPS",
@@ -2949,10 +2962,10 @@
           },
           "pass": [
             {
-              "critChancePct": 1.9
+              "critChancePct": 1.3
             },
             {
-              "critMultPct": 7.6
+              "critMultPct": 5.7
             },
             {
               "hastePct": 3
@@ -2962,14 +2975,14 @@
             {
               "name": "ใส่เป้าที่ติดสถานะ",
               "effects": {
-                "singleDamagePct": 17.2
+                "singleDamagePct": 12.8
               },
               "uptime": 0.7
             },
             {
               "name": "คริผสาน",
               "effects": {
-                "critChancePct": 5.7
+                "critChancePct": 4.3
               }
             },
             {
@@ -2982,7 +2995,7 @@
           "cap": {
             "name": "ดาบเวทตัดสิน",
             "effects": {
-              "singleDamagePct": 24
+              "singleDamagePct": 18.5
             }
           }
         },
@@ -2991,39 +3004,39 @@
           "role": "single",
           "pass": [
             {
-              "dotDamagePct": 7
+              "dotDamagePct": 6.1
             },
             {
-              "elementalDamagePct": 4.7
+              "elementalDamagePct": 4
             },
             {
-              "dotDamagePct": 7
+              "dotDamagePct": 6.1
             }
           ],
           "keys": [
             {
               "name": "ติดสถานะง่าย",
               "effects": {
-                "singleDamagePct": 14
+                "singleDamagePct": 12.1
               }
             },
             {
               "name": "สถานะแรง",
               "effects": {
-                "dotDamagePct": 29
+                "dotDamagePct": 25
               }
             },
             {
               "name": "สถานะนาน",
               "effects": {
-                "singleDamagePct": 11.8
+                "singleDamagePct": 10.2
               }
             }
           ],
           "cap": {
             "name": "ไฟไหม้ลามทุ่ง",
             "effects": {
-              "singleDamagePct": 23,
+              "singleDamagePct": 20,
               "packDamagePct": 10
             }
           }

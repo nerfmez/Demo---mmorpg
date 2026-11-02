@@ -52,14 +52,17 @@ for (const [job, J] of Object.entries(W.jobs)) {
       const id = `${job}/${bid}${fork ? ':' + fork : ''}/${plan}/${gear}/${spare}`;
       builds.push({ id, job, group: `${job}/${bid}${fork ? ':' + fork : ''}`, role: B.role, plan, gear, spare, points: cost(jobNodes), profile: buildProfile(withNodes(), { ...spec0, jobNodes, gear }) });
     }
-    // the ladder: the job's own inner plan and trunk bought, then the branch point by point
-    const innerIds = fill(J.inner.own.map((s) => inner[s]), W.points.inner);
+    // the ladder: the line's best plan (its inner plan and gear set with no spare points elsewhere), trunk
+    // bought, then the branch point by point; what each point adds where the line is actually played
+    const group = `${job}/${bid}${fork ? ':' + fork : ''}`, mine = builds.filter((x) => x.group === group && x.spare === 'inner');
+    const top = mine.reduce((a, x) => (!a || x.profile.axes[B.role] > a.profile.axes[B.role] ? x : a), null);
+    const innerIds = fill(J.inner[top.plan].map((s) => inner[s]), W.points.inner);
     const steps = [];
     for (let n = 0; n <= path.length; n++) {
-      const p = buildProfile(withNodes(), { ...spec0, jobNodes: [...innerIds, entry, ...trunk, ...path.slice(0, n)], gear: 'mixed' });
+      const p = buildProfile(withNodes(), { ...spec0, jobNodes: [...innerIds, entry, ...trunk, ...path.slice(0, n)], gear: top.gear });
       steps.push({ points: cost(path.slice(0, n)), node: n ? nodes[path[n - 1]].name : 'start', axes: p.axes, dead: n > 0 && AXES.every((k) => Math.abs(p.axes[k] - steps[n - 1].axes[k]) < 1e-9) });
     }
-    ladders.push({ group: `${job}/${bid}${fork ? ':' + fork : ''}`, role: B.role, steps });
+    ladders.push({ group, role: B.role, plan: top.plan, gear: top.gear, steps });
   }
 }
 const audit = auditBuilds(data, builds);

@@ -32,7 +32,7 @@ function comparison(before, after, effectText, caption) {
 const metalSparks = [[-36,-22,-145],[-23,-38,-120],[-7,-43,-99],[16,-37,-66],[34,-23,-34],[41,-5,-7],[-39,-3,-177],[23,-12,-27]]
   .map(([x,y,angle]) => `<path class="ws-metal-spark" d="M0 0H4" style="--spark-x:${x}px;--spark-y:${y}px;--spark-angle:${angle}deg"/>`).join('');
 // One orthographic side elevation. The face rests on the blank's y=144 plane;
-// the handle rotates about its fixed grip (248,78), not a moving icon anchor.
+// the handle rotates about its fixed grip (244,122), not a moving icon anchor.
 // Item artwork is a separate identity thumbnail, never the physical strike target.
 const workshopScene = `<svg class="ws-forge-scene" viewBox="0 0 320 210" fill="none" aria-hidden="true">
  <defs>
@@ -41,7 +41,33 @@ const workshopScene = `<svg class="ws-forge-scene" viewBox="0 0 320 210" fill="n
   <linearGradient id="wsWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a06a3c"/><stop offset=".5" stop-color="#8a5730"/><stop offset=".51" stop-color="#6e4224"/><stop offset="1" stop-color="#5c361d"/></linearGradient>
   <linearGradient id="wsHead" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8ea4ad"/><stop offset=".38" stop-color="#c9d8db"/><stop offset=".39" stop-color="#7d939d"/><stop offset="1" stop-color="#55697a"/></linearGradient>
   <linearGradient id="wsHot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe2a2"/><stop offset=".5" stop-color="#f3a957"/><stop offset="1" stop-color="#c8693a"/></linearGradient>
+  <radialGradient id="wsFireGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffa04a" stop-opacity=".62"/><stop offset=".35" stop-color="#ff7a2e" stop-opacity=".3"/><stop offset=".7" stop-color="#d9531f" stop-opacity=".1"/><stop offset="1" stop-color="#d9531f" stop-opacity="0"/></radialGradient>
+  <radialGradient id="wsForgeMouth" cx=".5" cy=".95" r=".85"><stop offset="0" stop-color="#fff4c4"/><stop offset=".3" stop-color="#ffc35a"/><stop offset=".62" stop-color="#ec6e2a"/><stop offset="1" stop-color="#5e1a0e"/></radialGradient>
+  <linearGradient id="wsStone" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2a2320"/><stop offset=".5" stop-color="#40332c"/><stop offset="1" stop-color="#2c2421"/></linearGradient>
+  <linearGradient id="wsFireCast" gradientUnits="userSpaceOnUse" x1="20" y1="0" x2="230" y2="0"><stop offset="0" stop-color="#ff8a3a" stop-opacity=".5"/><stop offset=".4" stop-color="#ff8a3a" stop-opacity=".2"/><stop offset=".8" stop-color="#ff8a3a" stop-opacity="0"/></linearGradient>
+  <clipPath id="wsAnvilClip"><path d="M22 158C40 151 62 151 82 153H220L233 155V169H215C205 169 197 173 193 179C190 184 192 187 199 189L209 192V196H95V192L105 189C112 187 114 184 111 179C107 173 98 169 86 169C64 169 40 167 22 158Z"/></clipPath>
  </defs>
+ <!-- the forge behind the anvil: a stone hearth under an iron hood, its fire lighting the room -->
+ <ellipse class="ws-forge-glow" cx="58" cy="122" rx="150" ry="104" fill="url(#wsFireGlow)"/>
+ <g class="ws-forge">
+  <path d="M42 46V4H72V46Z" fill="#231c19" stroke="#0f0b0a" stroke-width="2"/>
+  <path d="M46 8V44" stroke="#4a3b32" stroke-width="2" stroke-opacity=".7"/>
+  <path d="M2 74L20 44H94L112 74Z" fill="#2d2522" stroke="#0f0b0a" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M4 72H110" stroke="#ff9a4a" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>
+  <path d="M8 178V90C8 81 14 76 23 76H91C100 76 106 81 106 90V178Z" fill="url(#wsStone)" stroke="#0f0b0a" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M8 96H30M82 96H106M8 116H28M84 116H106M8 136H28M84 136H106M8 156H106M8 172H106M19 76V96M95 76V96M18 116V136M96 116V136M30 156V172M58 156V172M86 156V172" stroke="#140f0d" stroke-opacity=".7" stroke-width="1.4"/>
+  <path d="M28 144V112C28 97 41 88 56 88C71 88 84 97 84 112V144" stroke="#ffae5c" stroke-opacity=".5" stroke-width="5"/>
+  <path d="M31 142V112C31 99 42 91 56 91C70 91 81 99 81 112V142Z" fill="url(#wsForgeMouth)" stroke="#1a0f0b" stroke-width="2"/>
+  <g class="ws-forge-flame"><path d="M39 136C35 127 39 119 44 110C46 118 51 121 51 128C51 133 46 136 39 136Z" fill="#ffc157"/><path d="M42 135C40 130 42 125 45 120C46 125 48 127 48 130C48 133 46 135 42 135Z" fill="#fff3c8"/></g>
+  <g class="ws-forge-flame ws-forge-flame-2"><path d="M50 136C46 124 51 112 57 101C60 112 66 117 66 127C66 133 60 137 50 136Z" fill="#ffb24c"/><path d="M53 135C51 128 54 121 57 115C59 121 62 125 62 129C62 133 59 135 53 135Z" fill="#fff5d2"/></g>
+  <g class="ws-forge-flame ws-forge-flame-3"><path d="M62 136C60 128 64 121 69 114C71 121 74 124 74 129C74 134 69 137 62 136Z" fill="#ffc157"/></g>
+  <path d="M33 141C36 135 42 134 46 137C50 133 57 133 60 137C64 133 71 134 74 137C76 135 79 136 80 141Z" fill="#c4421c" stroke="#5e1a0e" stroke-width="1.2"/>
+  <path d="M38 139H44M51 138H57M65 139H71" stroke="#ffd98a" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M22 144H90V151H22Z" fill="#3a2f29" stroke="#0f0b0a" stroke-width="1.8"/>
+  <path d="M23 145H89" stroke="#ffab5e" stroke-opacity=".75" stroke-width="1.4"/>
+  <circle class="ws-ember" cx="48" cy="96" r="1.3" fill="#ffd27a"/><circle class="ws-ember" cx="58" cy="94" r="1" fill="#ffb24c"/><circle class="ws-ember" cx="66" cy="98" r="1.2" fill="#ffe3a0"/><circle class="ws-ember" cx="53" cy="99" r=".9" fill="#ffb24c"/>
+ </g>
+ <ellipse cx="58" cy="182" rx="70" ry="7" fill="#ff8a3a" fill-opacity=".14"/>
  <ellipse cx="152" cy="206" rx="96" ry="5" fill="#0b1a1f" fill-opacity=".45"/>
  <!-- the stump the anvil sits on -->
  <path d="M98 195H206L211 207H93Z" fill="url(#wsWood)" stroke="#3b2414" stroke-width="2" stroke-linejoin="round"/>
@@ -56,6 +82,7 @@ const workshopScene = `<svg class="ws-forge-scene" viewBox="0 0 320 210" fill="n
  <path d="M112 189H192" stroke="#8ea8b1" stroke-opacity=".7" stroke-width="1.3"/>
  <path d="M118 177C122 181 122 185 118 188M186 177C182 181 182 185 186 188" stroke="#88a3ad" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/>
  <rect x="208" y="154.6" width="7" height="3.6" rx=".7" fill="#1f2e37"/><circle cx="222" cy="156.4" r="1.6" fill="#1f2e37"/>
+ <rect class="ws-forge-glow" x="0" y="140" width="240" height="60" fill="url(#wsFireCast)" clip-path="url(#wsAnvilClip)"/>
  <!-- the blank on the face: hot metal -->
  <path d="M118 144H170V153H118Z" fill="url(#wsHot)" stroke="#7a3518" stroke-width="1.4" stroke-linejoin="round"/>
  <path d="M121 146.5H160" stroke="#fff6d8" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".9"/>

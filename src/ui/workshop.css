@@ -60,14 +60,14 @@
 .workshop .ws-cost-art > *, .workshop .ws-cost-art img, .workshop .ws-cost-art svg,
 .workshop .ws-recipe-art > *, .workshop .ws-recipe-art img, .workshop .ws-recipe-art svg,
 .workshop .ws-item-art > *, .workshop .ws-item-art img, .workshop .ws-item-art svg { display: block; width: 100% !important; height: 100% !important; max-width: 100%; max-height: 100%; object-fit: contain; }
-.workshop .ws-stage { isolation: isolate; position: relative; overflow: hidden; background: radial-gradient(ellipse at 50% 35%, #496766 0%, #2a4347 48%, #24393d 100%); border: 1px solid #b09763; border-radius: 13px; color: #faf1d9; min-height: 269px; padding: 14px 20px 15px; text-align: center; }
+.workshop .ws-stage { isolation: isolate; position: relative; overflow: hidden; background: radial-gradient(ellipse 62% 78% at 36% 50%, #ff8a3a3a 0%, #ff7a2e18 55%, transparent 100%), radial-gradient(ellipse at 50% 40%, #1f1916 0%, #120e0c 62%, #0a0807 100%); border: 1px solid #b09763; border-radius: 13px; color: #faf1d9; min-height: 269px; padding: 14px 20px 15px; text-align: center; }
 .workshop .ws-stage::before { position: absolute; content: ''; inset: 7px; border: 1px solid #bda87338; border-radius: 8px; pointer-events: none; z-index: -1; }
 .workshop .ws-stage-top { display: flex; justify-content: space-between; gap: 10px; color: #d5d5ba; font-size: 10px; }
 .workshop .ws-stage-top small { font-size: 9px; }
 .workshop .ws-pedestal { height: 153px; margin: 0 auto; width: 260px; max-width: 100%; }
 .workshop .ws-forge-scene { display: block; width: 100%; height: 100%; overflow: visible; }
 .workshop .ws-stage-identity { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
-.workshop .ws-item-art { display: block; width: 35px; height: 35px; flex: 0 0 35px; border: 1px solid #bda87338; border-radius: 5px; background: #24393d; padding: 3px; }
+.workshop .ws-item-art { display: block; width: 35px; height: 35px; flex: 0 0 35px; border: 1px solid #bda87338; border-radius: 5px; background: #1c1613; padding: 3px; }
 .workshop .ws-hammer { transform-box: view-box; transform-origin: 244px 122px; opacity: 0; pointer-events: none; }
 .workshop .ws-stage h2 { position: relative; font-size: 18px; line-height: 1.55; color: #fbf4dd; }
 .workshop .ws-ranks { display: flex; justify-content: center; align-items: center; gap: 20px; margin: 5px 0; min-height: 28px; }
@@ -273,7 +273,7 @@
 .overlay.is-workshop .workshop input[type=search]::placeholder { color: #7c8378; }
 .overlay.is-workshop .workshop h3 { color: #283f43 !important; }
 .overlay.is-workshop .workshop .ws-stage h2 { color: #fbf4dd !important; }
-.overlay.is-workshop .workshop .ws-stage p { color: #becdbf !important; }
+.overlay.is-workshop .workshop .ws-stage p { color: #cfc1a8 !important; }
 .overlay.is-workshop .workshop .ws-order small { color: #6f7b6c; }
 .overlay.is-workshop .workshop .ws-cost small { color: #598260 !important; }
 .overlay.is-workshop .workshop .ws-cost.is-missing small { color: #aa4f40 !important; }
@@ -479,3 +479,20 @@
 }
 /* the hammer rests raised over the blank between strikes (its stroke's start pose), so the scene is whole */
 .workshop .ws-stage:not(.is-working) .ws-hammer { opacity: 1; transform: rotate(20deg); }
+/* the forge behind the anvil (owner 2026-11-03: a forge at the back, a dark room, its firelight around):
+   the fire breathes and a few embers rise; reduced motion keeps the light still */
+.workshop .ws-forge-glow { animation: ws-fire-breathe 2.6s ease-in-out infinite; }
+.workshop .ws-forge-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: ws-flame-lick .9s ease-in-out infinite alternate; }
+.workshop .ws-forge-flame-2 { animation-duration: 1.15s; animation-delay: -.4s; }
+.workshop .ws-forge-flame-3 { animation-duration: .8s; animation-delay: -.2s; }
+.workshop .ws-ember { opacity: 0; animation: ws-ember-rise 2.4s linear infinite; }
+.workshop .ws-ember:nth-of-type(2) { animation-delay: -.7s; animation-duration: 2.9s; }
+.workshop .ws-ember:nth-of-type(3) { animation-delay: -1.5s; animation-duration: 2.2s; }
+.workshop .ws-ember:nth-of-type(4) { animation-delay: -2s; animation-duration: 3.1s; }
+@keyframes ws-fire-breathe { 0%, 100% { opacity: .82; } 23% { opacity: 1; } 41% { opacity: .88; } 62% { opacity: .97; } 80% { opacity: .78; } }
+@keyframes ws-flame-lick { from { transform: scale(.94, .84) skewX(-3deg); } to { transform: scale(1.04, 1.08) skewX(3deg); } }
+@keyframes ws-ember-rise { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -46px); } }
+@media (prefers-reduced-motion: reduce) {
+  .workshop .ws-forge-glow, .workshop .ws-forge-flame { animation: none; }
+  .workshop .ws-ember { display: none; }
+}

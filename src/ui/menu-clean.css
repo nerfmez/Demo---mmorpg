@@ -646,3 +646,11 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
 /* the bag fills the window's height above the picked item's shelf (it was a fixed short box) */
 #atelier:is(#atelier) .library-window:has(.bag-grid) { display: flex; flex-direction: column; }
 #atelier:is(#atelier) .library-window:has(.bag-grid) .inventory-scroll { flex: 1 1 auto; height: auto; min-height: 110px; }
+/* bag on a phone: the type filter is one slim row; the category tabs and the filter sit close to the slots */
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) .library-window:has(.bag-grid) .filters { min-height: 0; padding: 2px 8px; }
+  #atelier:is(#atelier) .inventory-filter { gap: 6px; font-size: 11px; }
+  #atelier:is(#atelier) .inventory-filter select { min-height: 36px; height: 36px; padding: 2px 8px; font-size: 12px; }
+  #atelier:is(#atelier) .library-window:has(.bag-grid) .category-tabs { min-height: 0; padding: 2px 8px; }
+  #atelier:is(#atelier) .library-window:has(.bag-grid) .inventory-scroll { margin-top: 0; }
+}

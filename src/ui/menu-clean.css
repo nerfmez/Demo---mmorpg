@@ -674,3 +674,16 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
   #atelier:is(#atelier) .equipped-skills { grid-template-rows: repeat(2, minmax(100px, auto)); gap: 6px; }
   #atelier:is(#atelier) .skill-card { min-height: 100px; padding-top: 12px; padding-bottom: 12px; }
 }
+/* worn-gear slots by the hero (every screen): a square with the slot's name and the picture; the item's
+   name is on the picked item's shelf, and an empty slot says only its name */
+#atelier:is(#atelier) .wear-slot { width: 66px; height: 66px; padding: 4px 2px; border-radius: 12px; justify-content: center; }
+#atelier:is(#atelier) .wear-slot small { font-size: 10px !important; }
+#atelier:is(#atelier) .wear-slot:has(.object-art) b, #atelier:is(#atelier) .wear-slot:not(:has(.object-art)) b { display: none; }
+#atelier:is(#atelier) .wear-slot .object-art { width: 38px; height: 38px; }
+#atelier:is(#atelier) .wear-slot .empty-mark { font-size: 20px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) .wear-slot { width: 56px; height: 56px; }
+  #atelier:is(#atelier) .wear-slot .object-art { width: 32px; height: 32px; }
+}
+/* the hero's window needs only the hero and seven small slots: the bag/library window gets the width */
+#atelier:is(#atelier) .two-windows { grid-template-columns: 36% 64%; }

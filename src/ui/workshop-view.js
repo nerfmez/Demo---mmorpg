@@ -35,22 +35,46 @@ const metalSparks = [[-36,-22,-145],[-23,-38,-120],[-7,-43,-99],[16,-37,-66],[34
 // the handle rotates about its fixed grip (248,78), not a moving icon anchor.
 // Item artwork is a separate identity thumbnail, never the physical strike target.
 const workshopScene = `<svg class="ws-forge-scene" viewBox="0 0 320 210" fill="none" aria-hidden="true">
- <path d="M55 196H266" stroke="#9aab9d" stroke-opacity=".3"/>
- <path d="M38 153H219V164H194L178 178V187H204V196H108V187H136V178L115 166H82Z" fill="#657b7d" stroke="#acc0b9" stroke-width="1.5" stroke-linejoin="round"/>
- <path d="M83 154H218V160H84Z" fill="#a4b4ae"/>
- <path d="M137 178H178V187H137Z" fill="#425d62"/>
- <path d="M111 190H201" stroke="#91a49b" stroke-width="2"/>
- <path d="M118 144H170V152H118Z" fill="#b69368" stroke="#e0c595" stroke-width="1"/>
- <path data-workpiece-plane d="M118 144H170" stroke="#f0d9ac" stroke-width="1.5"/>
+ <defs>
+  <linearGradient id="wsAnvilSide" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c8590"/><stop offset=".45" stop-color="#55707c"/><stop offset=".46" stop-color="#3f5662"/><stop offset="1" stop-color="#34495a"/></linearGradient>
+  <linearGradient id="wsAnvilTop" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9fb7bf"/><stop offset=".55" stop-color="#d3e2e3"/><stop offset="1" stop-color="#a8bec4"/></linearGradient>
+  <linearGradient id="wsWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a06a3c"/><stop offset=".5" stop-color="#8a5730"/><stop offset=".51" stop-color="#6e4224"/><stop offset="1" stop-color="#5c361d"/></linearGradient>
+  <linearGradient id="wsHead" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8ea4ad"/><stop offset=".38" stop-color="#c9d8db"/><stop offset=".39" stop-color="#7d939d"/><stop offset="1" stop-color="#55697a"/></linearGradient>
+  <linearGradient id="wsHot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe2a2"/><stop offset=".5" stop-color="#f3a957"/><stop offset="1" stop-color="#c8693a"/></linearGradient>
+ </defs>
+ <ellipse cx="152" cy="206" rx="96" ry="5" fill="#0b1a1f" fill-opacity=".45"/>
+ <!-- the stump the anvil sits on -->
+ <path d="M98 195H206L211 207H93Z" fill="url(#wsWood)" stroke="#3b2414" stroke-width="2" stroke-linejoin="round"/>
+ <path d="M100 198.5H204" stroke="#c08a55" stroke-opacity=".7" stroke-width="1.4"/>
+ <path d="M116 203l11 1M160 202l15 1M188 204l8 0" stroke="#4a2c17" stroke-width="1.2" stroke-linecap="round"/>
+ <!-- the anvil: horn, thick face, heel with its holes, pinched waist, flared feet -->
+ <path d="M22 158C40 151 62 151 82 153H220L233 155V169H215C205 169 197 173 193 179C190 184 192 187 199 189L209 192V196H95V192L105 189C112 187 114 184 111 179C107 173 98 169 86 169C64 169 40 167 22 158Z" fill="url(#wsAnvilSide)" stroke="#1f2e37" stroke-width="2.4" stroke-linejoin="round"/>
+ <path d="M82 153H220L233 155V159H82C62 159 40 160 24 158C40 152 62 151 82 153Z" fill="url(#wsAnvilTop)"/>
+ <path d="M25 157.5C42 153 62 153 82 154.5H230" stroke="#f3faf9" stroke-opacity=".75" stroke-width="1.1" stroke-linecap="round"/>
+ <path d="M86 169C64 169 44 167.5 30 162" stroke="#1f2e37" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>
+ <path d="M86 169H215" stroke="#1f2e37" stroke-opacity=".5" stroke-width="1.3"/>
+ <path d="M112 189H192" stroke="#8ea8b1" stroke-opacity=".7" stroke-width="1.3"/>
+ <path d="M118 177C122 181 122 185 118 188M186 177C182 181 182 185 186 188" stroke="#88a3ad" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/>
+ <rect x="208" y="154.6" width="7" height="3.6" rx=".7" fill="#1f2e37"/><circle cx="222" cy="156.4" r="1.6" fill="#1f2e37"/>
+ <!-- the blank on the face: hot metal -->
+ <path d="M118 144H170V153H118Z" fill="url(#wsHot)" stroke="#7a3518" stroke-width="1.4" stroke-linejoin="round"/>
+ <path d="M121 146.5H160" stroke="#fff6d8" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".9"/>
+ <path data-workpiece-plane d="M118 144H170" stroke="#fff0c4" stroke-width="1.2"/>
  <g class="ws-hammer">
-  <path d="M143 130L248 78" stroke="#705334" stroke-width="10" stroke-linecap="round"/>
-  <path d="M145 127L248 76" stroke="#c89959" stroke-width="5" stroke-linecap="round"/>
-  <path d="M227 81L232 89M233 78L238 86M239 75L244 83" stroke="#76543b" stroke-width="2"/>
-  <circle data-hammer-grip cx="248" cy="78" r="4" fill="#bb8c51"/>
-  <path d="M130 119H158V144H130Z" fill="#8d9e9f" stroke="#d4dfdb" stroke-width="1.5" stroke-linejoin="round"/>
-  <path d="M132 121H156V126H132Z" fill="#d5dfd9"/>
-  <path d="M132 136H156V143H132Z" fill="#526d75"/>
-  <path data-hammer-face d="M130 144H158" stroke="#e0e6dc" stroke-width="1.5"/>
+  <!-- the haft from the head's eye to the grip, then the wrapped grip and its pommel -->
+  <path d="M150 121L246 76" stroke="#3b2414" stroke-width="11" stroke-linecap="round"/>
+  <path d="M150 121L246 76" stroke="url(#wsWood)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M152 117.5L240 76.5" stroke="#d29a62" stroke-width="2" stroke-linecap="round" stroke-opacity=".85"/>
+  <path d="M214 88l6 9M221 85l6 9M228 82l6 9M235 79l6 9" stroke="#3a2a22" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M214 88l6 9M221 85l6 9M228 82l6 9M235 79l6 9" stroke="#6b4a37" stroke-width="1.6" stroke-linecap="round"/>
+  <circle data-hammer-grip cx="248" cy="78" r="5" fill="#8d6a3a" stroke="#3b2414" stroke-width="1.8"/>
+  <!-- the head: a blacksmith's block with chamfered ends; the striking face is its foot -->
+  <path d="M131 114H157L161 118V140L158 144H130L127 140V118Z" fill="url(#wsHead)" stroke="#22323b" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M127 125H161M127 133H161" stroke="#22323b" stroke-opacity=".45" stroke-width="1.2"/>
+  <path d="M132 116.5H155" stroke="#f2f8f7" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".9"/>
+  <path d="M136 119V139" stroke="#eef5f4" stroke-opacity=".55" stroke-width="2"/>
+  <rect x="139" y="111" width="10" height="4" rx="1" fill="#55697a" stroke="#22323b" stroke-width="1.4"/>
+  <path data-hammer-face d="M130 144H158" stroke="#e7efea" stroke-width="1.5"/>
  </g>
  <g class="ws-impact" data-impact-origin transform="translate(144 144)">
   <g class="ws-spark"><circle r="9" fill="#f5bb6c" fill-opacity=".5"/><circle r="4" fill="#fff8dd"/></g>

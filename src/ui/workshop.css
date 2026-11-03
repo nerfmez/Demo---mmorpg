@@ -469,3 +469,13 @@
 /* a finished result shows for a moment, then gets out of the way (the item, the shelf and the bag show it) */
 .workshop > .ws-notice.is-success { animation: ws-toast-life 3.2s ease both; }
 @keyframes ws-toast-life { 0% { opacity: 0; translate: 0 10px; } 8%, 80% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 0 6px; visibility: hidden; } }
+/* the anvil scene is the stage's subject: draw it large (the identity row sits close under it) */
+.workshop .ws-pedestal { height: 172px; width: 310px; }
+.workshop .ws-craft-detail .ws-pedestal { height: 186px; width: 336px; }
+.workshop .ws-stage-identity { margin-top: 2px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .workshop .ws-pedestal { height: 118px; width: 212px; }
+  .workshop .ws-craft-detail .ws-pedestal { height: 118px; width: 212px; }
+}
+/* the hammer rests raised over the blank between strikes (its stroke's start pose), so the scene is whole */
+.workshop .ws-stage:not(.is-working) .ws-hammer { opacity: 1; transform: rotate(20deg); }

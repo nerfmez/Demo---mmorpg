@@ -121,13 +121,14 @@
     "_farmDoc": "goldFindPct/materialFindPct/gearFindPct (Ranger farming line, hunter arrows) raise gold, material chances and gear drop chances on kills, up to caps; they add nothing to the power score."
   },
   "job": {
-    "_doc": "The wheel Job Tree (data/jobtree.json, phase C 2026-11-03): Job Lv 1-39 give the inner ring's 39 points, the job is chosen at Job Lv 40 (its entry is free) and Job Lv 40-70 give the job's 31 points. expCurve.base 15 keeps Job Lv near the character level: Job 40 at the monster cap (character Lv 40), Job 70 at character Lv 70 (tests/core/balance-model.test.js).",
+    "_doc": "The wheel Job Tree (data/jobtree.json, phase C 2026-11-03): Job Lv 1-39 give the inner ring's 39 points, the job is chosen at Job Lv 40 (its entry is free) and Job Lv 40-70 give the job's 31 points: startingPoints (1, the point Job Lv 1 brings) plus 69 level-ups is the tree's 70. expCurve.base 15 keeps Job Lv near the character level: Job 40 at the monster cap (character Lv 40), Job 70 at character Lv 70 (tests/core/balance-model.test.js).",
     "maxLevel": 70,
     "expCurve": {
       "base": 15,
       "exponent": 1.8
     },
     "pointsPerLevel": 1,
+    "startingPoints": 1,
     "jobChoiceLevel": 40
   },
   "respec": {

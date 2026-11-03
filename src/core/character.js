@@ -50,7 +50,7 @@ export function createCharacter(data, opts = {}) {
     stats: { ...p.character.startingStats },
     jobLevel: 1,
     jobExp: 0,
-    jobPoints: 0,
+    jobPoints: data.progression.job.startingPoints || 0, // Job Lv 1's point: with 69 level-ups, the wheel's 70
     jobNodes: [data.jobtree.origin],
     treeRevision: data.jobtree.revision,
     gold: st.gold,
@@ -245,11 +245,13 @@ export function migrateCharacter(ch, data) {
     const owned = [...new Set(ch.jobNodes || [])];
     const retained = owned.filter(id => data.jobtree.nodes[id] && !data.jobtree.nodes[id].retired);
     const refunded = owned.filter(id => id !== data.jobtree.origin && !retained.includes(id)).length;
-    ch.jobPoints = (ch.jobPoints || 0) + refunded;
+    // moving onto the wheel (a tree with jobs) from an earlier tree also brings Job Lv 1's starting point once
+    const start = data.jobtree.jobs && !String(ch.treeRevision ?? '').startsWith('wheel') ? (data.progression.job.startingPoints || 0) : 0;
+    ch.jobPoints = (ch.jobPoints || 0) + refunded + start;
     ch.jobNodes = retained.includes(data.jobtree.origin) ? retained : [data.jobtree.origin, ...retained];
     ch.treeRevision = data.jobtree.revision;
     ch.progress.balanceMigration = data.jobtree.jobs
-      ? `สกิลทรีใหม่ (วงล้อ): คืนแต้มจ็อบทั้งหมด ${refunded} แต้ม ลงใหม่ได้ฟรี · เลือกอาชีพที่ Job Lv ${jobChoiceLevel(data)}`
+      ? `สกิลทรีใหม่ (วงล้อ): คืนแต้มจ็อบทั้งหมด ${refunded + start} แต้ม ลงใหม่ได้ฟรี · เลือกอาชีพที่ Job Lv ${jobChoiceLevel(data)}`
       : `แยกกลุ่มอิสระ: เก็บโหนดเดิม คืนแต้มสะพานหรือโหนดที่ยกเลิก ${refunded} แต้ม`;
   }
   for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;

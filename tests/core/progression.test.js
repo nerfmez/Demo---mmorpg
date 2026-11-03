@@ -6,7 +6,7 @@ import { createCharacter, addExp, allocateStat, allocateJobNode, respecStats, re
 test('character level gives Stat Points; Job Level gives separate Job Points through 70 (the wheel tree)', () => {
  const ch=createCharacter(data),sp=ch.statPoints;
  addExp(ch,data,expToNext(data,1),0);assert.equal(ch.level,2);assert.equal(ch.statPoints,sp+3);assert.equal(ch.jobLevel,1);
- addExp(ch,data,0,1e12);assert.equal(ch.jobLevel,70);assert.equal(ch.jobPoints,69);assert.equal(ch.level,2);assert.equal(ch.jobExp,0);
+ assert.equal(ch.jobPoints,1,'Job Lv 1 brings its point');addExp(ch,data,0,1e12);assert.equal(ch.jobLevel,70);assert.equal(ch.jobPoints,70,'the wheel tree has 39 + 31');assert.equal(ch.level,2);assert.equal(ch.jobExp,0);
 });
 test('allocated stats improve their actual combat values',()=>{
  const ch=createCharacter(data),before=derive(ch,data);allocateStat(ch,'VIT',2);allocateStat(ch,'INT',2);const after=derive(ch,data);

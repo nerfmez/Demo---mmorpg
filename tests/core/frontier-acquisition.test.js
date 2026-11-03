@@ -72,7 +72,7 @@ test('the wheel tree refunds every earlier node and v13 movement migration coexi
   if(hasSocket)ch.movementMods=[801];else delete ch.movementMods;
   ch.autoPotions.hp={enabled:true,threshold:37,potion:'hp_potion_s'};
   const before=structuredClone(ch),m=migrateCharacter(ch,data);
-  assert.equal(m.version,CHARACTER_VERSION);assert.equal(m.treeRevision,data.jobtree.revision);assert.equal(m.jobPoints,7+7,'seven distinct nodes refunded');assert.deepEqual(m.jobNodes,['origin']);assert.deepEqual(m.movementMods,hasSocket?[801]:[]);
+  assert.equal(m.version,CHARACTER_VERSION);assert.equal(m.treeRevision,data.jobtree.revision);assert.equal(m.jobPoints,7+7+1,'seven distinct nodes refunded, plus Job Lv 1 starting point');assert.deepEqual(m.jobNodes,['origin']);assert.deepEqual(m.movementMods,hasSocket?[801]:[]);
   for(const key of ['slots','mods','nextUid','movementSkills','movement','gear','equipped','gold','materials'])assert.deepEqual(m[key],before[key],version+'/'+key);
   assert.deepEqual(m.skills,{...before.skills,charged_shot:4},version+'/skills');
   if(version>=12)assert.deepEqual(m.autoPotions,before.autoPotions);

@@ -12,7 +12,7 @@ test('v2 migration refunds the old network for the wheel and keeps roll quality'
  const before={gold:ch.gold,materials:structuredClone(ch.materials),equipped:structuredClone(ch.equipped),skills:structuredClone(ch.skills),stats:structuredClone(ch.stats),nextUid:ch.nextUid};
  const def=data.items.gearOptions.attack_flat;
  before.skills.slash=24; // v17: old rank 5 is skill level 24
- migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.equal(ch.jobPoints,7+4);assert.deepEqual(ch.jobNodes,['origin']);
+ migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.equal(ch.jobPoints,7+4+1);assert.deepEqual(ch.jobNodes,['origin']);
  assert.deepEqual({gold:ch.gold,materials:ch.materials,equipped:ch.equipped,skills:ch.skills,stats:ch.stats,nextUid:ch.nextUid},before);
  const item=ch.gear.find(g=>g.uid===99);assert.equal(item.upgrade,4);assert.equal(item.grade,'A');assert.equal(item.options[0].value,def.max);assert.ok(ch.progress.balanceMigration);
  const once=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),once);

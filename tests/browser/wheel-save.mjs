@@ -30,7 +30,7 @@ try{
  await page.goto(url);await continueGame();
  const before=await page.evaluate(()=>__frontier.game.snapshot());
  assert.deepEqual(before.jobNodes,['origin'],'the earlier tree has no node on the wheel');
- assert.equal(before.jobPoints,15+4,'every old node refunded once on Continue');assert.equal(before.treeRevision,data.jobtree.revision);assert.equal(before.gold,4567);
+ assert.equal(before.jobPoints,15+4+1,'every old node refunded once on Continue, plus Job Lv 1 starting point');assert.equal(before.treeRevision,data.jobtree.revision);assert.equal(before.gold,4567);
  assert.match(await page.evaluate(()=>__frontier.game.ch.progress.balanceMigration),/วงล้อ/);
  // the opaque journal holds the completed world frame (count only world-scene draws, as menu-hub.mjs does)
  await page.evaluate(()=>{const v=__frontier.view,render=v.renderer.render.bind(v.renderer);window.worldDraws=0;v.renderer.render=(scene,...rest)=>{if(scene===v.scene)window.worldDraws++;return render(scene,...rest);};});
@@ -41,7 +41,7 @@ try{
  await tap('.wheel-tree [data-node="in.str.s3"]');await page.locator('.wheel-tree [data-f="route"]').tap();await idle();
  const route=['in.center.c1','in.str.s1','in.str.s2','in.str.s3'];
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('frontier.slot.1')).character);
- assert.deepEqual(saved.jobNodes,['origin',...route],'the route is saved in buying order');assert.equal(saved.jobPoints,19-4);
+ assert.deepEqual(saved.jobNodes,['origin',...route],'the route is saved in buying order');assert.equal(saved.jobPoints,20-4);
  for(const key of KEYS)assert.deepEqual(saved[key],before[key],key+' is retained');assert.equal(saved.gold,before.gold);assert.equal(saved.version,CHARACTER_VERSION);
  await page.screenshot({path:out+'ipad-route.png',timeout:90000});
  await page.locator('.wheel-tree [data-f="exit"]').tap();await page.waitForFunction(()=>!__frontier.panels.isOpen);
@@ -55,7 +55,7 @@ try{
  assert.deepEqual(await page.evaluate(()=>__frontier.game.ch.jobNodes),loaded.jobNodes,'a cancelled respec changes nothing');
  const gold=await page.evaluate(()=>__frontier.game.ch.gold);
  await page.locator('.wheel-tree [data-f="respec"]').tap();await page.locator('.wheel-tree [data-f="respec-yes"]').tap();await idle();
- const after=await page.evaluate(()=>__frontier.game.ch);assert.deepEqual(after.jobNodes,['origin']);assert.equal(after.jobPoints,19);assert.ok(after.gold<gold,'a respec costs gold');
+ const after=await page.evaluate(()=>__frontier.game.ch);assert.deepEqual(after.jobNodes,['origin']);assert.equal(after.jobPoints,20);assert.ok(after.gold<gold,'a respec costs gold');
  await page.screenshot({path:out+'ipad-respec.png',timeout:90000});
  assert.deepEqual(errors,[]);
  const report={ok:true,url,source:'actual full main game, wheel tree save gate',version:CHARACTER_VERSION,earlierTreeRefundedOnce:true,route,persisted:true,reloadContinue:true,cancelledAndConfirmedRespec:true,worldDrawingHeld:true,errors};

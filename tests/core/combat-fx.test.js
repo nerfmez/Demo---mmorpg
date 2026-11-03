@@ -14,8 +14,17 @@ test('every weapon type has a blade trail look, and every melee strike a look of
     assert.ok(c.fullSpeed > c.minSpeed && c.life > 0, `${w}: speed band and life`);
   }
   // attacks that emit monsterSwing (src/core/ai.js): bite, sweep, shove and the planted contacts
-  for (const name of ['bite', 'sweep', 'shove', 'slap', 'peck', 'pinch', 'scythe', 'claw', 'rend', 'rake']) {
+  for (const name of ['bite', 'sweep', 'shove', 'slap', 'peck', 'pinch', 'scythe', 'claw', 'rend', 'rake', 'kick', 'swipe']) {
     assert.ok(KINDS.has(fx.monsters[name]?.kind), `${name} has a known effect kind`);
+  }
+  // every placed monster's melee strike has its own look: none falls back to the plain wedge (vfx.js genericSwing)
+  const SWING = new Set(['bite', 'sweep', 'shove', 'slap', 'peck', 'pinch', 'scythe', 'claw', 'whirl', 'rend', 'rake']);
+  for (const [type, def] of Object.entries(data.monsters.monsters)) {
+    if (def.awaiting) continue;
+    for (const [name, atk] of Object.entries(def.attacks)) {
+      if (!SWING.has(atk.kind || name)) continue;
+      assert.ok(KINDS.has(fx.monsters[name]?.kind) || fx.swingColors?.[name], `${type}.${name} has a strike look of its own`);
+    }
   }
   const looks = Object.values(fx.monsters).map((m) => JSON.stringify(m));
   assert.equal(new Set(looks).size, looks.length, 'no two attacks share one look');

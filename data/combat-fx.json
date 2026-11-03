@@ -240,6 +240,44 @@
       "height": 0.6,
       "dust": 10,
       "dur": 0.36
+    },
+    "kick": {
+      "kind": "claw",
+      "color": "#c8e07a",
+      "coreColor": "#fffbea",
+      "height": 0.45,
+      "sparks": 8,
+      "dur": 0.26,
+      "trail": {
+        "streaks": 2,
+        "spread": 0.08,
+        "width": 0.2,
+        "reach": 0.04,
+        "life": 0.3,
+        "minSpeed": 1.0,
+        "fullSpeed": 5,
+        "opacity": 1,
+        "core": 0.45
+      }
+    },
+    "swipe": {
+      "kind": "claw",
+      "color": "#d9c8ff",
+      "coreColor": "#fffaf0",
+      "height": 0.7,
+      "sparks": 7,
+      "dur": 0.32,
+      "trail": {
+        "streaks": 3,
+        "spread": 0.15,
+        "width": 0.2,
+        "reach": 0.06,
+        "life": 0.32,
+        "minSpeed": 1.2,
+        "fullSpeed": 5,
+        "opacity": 1,
+        "core": 0.5
+      }
     }
   },
   "overrides": {
@@ -319,6 +357,19 @@
       "limbs": [
         "bladeL",
         "bladeR"
+      ]
+    },
+    "fern_ear_hare.kick": {
+      "scale": 1.3,
+      "limbs": [
+        "leg0",
+        "leg1"
+      ]
+    },
+    "rootdigger_mole.swipe": {
+      "scale": 1.2,
+      "limbs": [
+        "handR"
       ]
     }
   },

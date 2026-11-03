@@ -282,8 +282,12 @@ for (const id of ['fern_ear_tuft', 'mirror_scale', 'rootdigger_claw']) material[
 for (const id of ['skill_crystal_m', 'skill_crystal_l']) material[id] = supplied(`assets/crystal/${id}.png`);
 for (const id of ['fernstep_charm', 'mirrorwing_pendant', 'burrowguard_brooch', 'grove_union_ring']) gear[id] = supplied(`assets/moonroot/gear/${id}.png`);
 
-// job-tree nodes have no picture since the wheel tree (phase C): its field journal draws the map itself
-export const ART = { gear, material, skill, mod, monster, zone };
+// job-tree nodes have no picture since the wheel tree (phase C): its field journal draws the map itself. The
+// compass stays: the "choose your path" quest card shows it (ui/quest-journal.js).
+const job = {
+  origin: P('M35 39l17-21 24 4 17 23-1 54-57 2z','#b29161')+C(64,62,23,'#e6dbb7')+P('M65 40l9 24-18 18 3-26z','#5d8e91')+L('M41 93h46','#6d553c',5),
+};
+export const ART = { gear, material, skill, mod, monster, zone, job };
 
 // Arrow bundles use supplied raster art; retain the authored SVG fallback.
 const ARROW_LOOK = { feather_arrow: ['#efe3b8', '#9aa3a8'], tusk_arrow: ['#c69b60', '#efe6cf'], hawk_arrow: ['#87ad9f', '#c9c5af'], storm_arrow: ['#6d96a4', '#d5c58b'] };

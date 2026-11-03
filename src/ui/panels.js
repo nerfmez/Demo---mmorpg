@@ -14,6 +14,7 @@ import { tagsHtml, rulesHtml, TAGS as TAG_TH } from './buildmeta.js';
 import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
+import { isWheelTree } from './wheel-view.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse, jobChoiceLevel } from '../core/character.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
@@ -201,7 +202,8 @@ export class Panels {
     if (this.tab !== tab) this.sel.detail = false;
     this.tab = tab;
     this.overlay.classList.toggle('is-hub', tab === 'menu');
-    this.overlay.classList.toggle('is-journal', tab === 'job');
+    this.overlay.classList.toggle('is-journal', tab === 'job' && !isWheelTree(this.game.data));
+    this.overlay.classList.toggle('is-wheel', tab === 'job' && isWheelTree(this.game.data));
     this.overlay.classList.toggle('is-atelier', LOADOUT_TABS.has(tab));
     this.overlay.classList.add('on');
     document.body.classList.add('panel-open');
@@ -226,7 +228,7 @@ export class Panels {
     this.cleanJobNetwork?.();
     this.cleanJobNetwork = null;
     this.tab = null;
-    this.overlay.classList.remove('on', 'is-journal', 'is-atelier', 'is-hub');
+    this.overlay.classList.remove('on', 'is-journal', 'is-wheel', 'is-atelier', 'is-hub');
     document.body.classList.remove('panel-open');
     document.body.classList.remove('loadout-open');
     this.lastResult = null;
@@ -283,12 +285,12 @@ export class Panels {
     this.body.dataset.panel = this.tab;
     this.body.setAttribute('aria-labelledby', `tab-${this.tab}`);
     const scroll = top ? 0 : this.body.scrollTop;
-    if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal')){this.jobJournal.refresh();return;}
+    if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal,.wheel-tree')){this.jobJournal.refresh();return;}
     this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
     if (this.tab === 'growth') patchBars(this);
     if(this.lastResult && ['skills','mods','movement','growth','job'].includes(this.tab)) this.body.insertAdjacentHTML('afterbegin', `<div class="result-pop" role="status">${this.lastResult}</div>`);
-    this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this) : null;
+    this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this, { effectText }) : null;
     this.body.scrollTop = scroll;
     if (activeData && Object.keys(activeData).length) {
       const focus = [...this.overlay.querySelectorAll('button, select')].find((el) => Object.entries(activeData).every(([key, val]) => el.dataset[key] === val));
@@ -882,6 +884,23 @@ const EFFECT_TH = {
   tenacityPct: 'ทนทาน (ดีบัฟสั้นลง) %',
   companionFetch: 'คู่หูคาบของ (ม.)',
   trapDamagePct: 'ดาเมจกับดัก %',
+  // the wheel tree's situational stats (core/wheel-rules.js) and weapon lines (character.js foldWeaponStats)
+  singleDamagePct: 'ดาเมจใส่บอส/ตัวเดี่ยว %',
+  packDamagePct: 'ดาเมจใส่ฝูง %',
+  perTargetDamagePct: 'ดาเมจต่อศัตรูรอบเป้า %',
+  selfTakenPct: 'ลดดาเมจที่ได้รับ %',
+  teamDamagePct: 'มาร์กเป้า: พวกพ้องตีแรงขึ้น %',
+  teamTakenPct: 'ลดดาเมจที่เพื่อนได้รับ %',
+  teamBuffPct: 'ฮีลพวกพ้องแรงขึ้น %',
+  heavyDamagePct: 'ดาเมจอาวุธหนัก %',
+  heavyHpPct: 'HP เมื่อถืออาวุธหนัก %',
+  heavyPenetrationPct: 'เจาะเกราะอาวุธหนัก %',
+  dualDamagePct: 'ดาเมจถือสองมือ %',
+  dualHastePct: 'ความเร็วเมื่อถือสองมือ %',
+  dualCritPct: 'โอกาสคริเมื่อถือสองมือ %',
+  hpRegenPct: 'ฟื้น HP %',
+  potionHealPct: 'ยาฟื้นฟูแรงขึ้น %',
+  dodgeChancePct: 'โอกาสหลบ %',
 };
 
 function effectText(k, v) {

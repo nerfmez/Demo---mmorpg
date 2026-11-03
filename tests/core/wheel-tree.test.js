@@ -97,3 +97,28 @@ test('the heavy weapon line and the dual wield line hang off their sectors, and 
   assert.equal(dual.meleeDamagePct, 25); assert.equal(dual.hastePct, 16); assert.equal(dual.critChancePct, 9); assert.ok(Math.abs(dual.critChance - 0.09) < 1e-9);
   assert.equal(fold({ weaponType: 'staff', dualWield: false }).maxHp, 1000, 'a staff is no heavy weapon');
 });
+
+test('a route is bought in one go along the line, never picks a fork, and needs the points for all of it', async () => {
+  const { jobRoute, allocateJobRoute } = await import('../../src/core/character.js');
+  const ch = hero(70, 10);
+  // c1 + s1..s4 = 5 points
+  const r = jobRoute(ch, data, 'in.str.s4');
+  assert.deepEqual(r.path, ['in.center.c1', 'in.str.s1', 'in.str.s2', 'in.str.s3', 'in.str.s4']);
+  assert.equal(r.cost, 5);
+  assert.equal(allocateJobRoute(ch, data, 'in.str.s4').done, true);
+  assert.equal(ch.jobPoints, 5);
+  // not enough points for the rest of the line: nothing is bought
+  const far = allocateJobRoute(ch, data, 'in.str.s12');
+  assert.equal(far.can, false); assert.equal(far.reason, 'no_points');
+  assert.equal(ch.jobPoints, 5); assert.ok(!ch.jobNodes.includes('in.str.s5'));
+  // past an open fork the route stops and asks for the fork itself; the fork key as target is fine
+  const job = hero(70, 70);
+  buy(job, ['job.heavy']);
+  const past = jobRoute(job, data, 'job.heavy.crusher.t1p0');
+  assert.equal(past.reason, 'fork_choice');
+  assert.equal(allocateJobRoute(job, data, 'job.heavy.crusher.t0k.debuff').done, true);
+  assert.equal(allocateJobRoute(job, data, 'job.heavy.crusher.t1p0').done, true);
+  assert.equal(jobNodeState(job, data, 'job.heavy.crusher.t0k.charge').reason, 'fork_taken');
+  // a job's line before the job is chosen
+  assert.equal(jobRoute(hero(70, 70), data, 'job.heavy.trunk0').reason, 'job_choice');
+});

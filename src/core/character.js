@@ -466,6 +466,37 @@ export function allocateJobNode(ch, data, nodeId) {
   return { can: true, done: true, job: data.jobtree.nodes[nodeId].type === 'job' };
 }
 
+/**
+ * The unowned route to `target` and whether it can be bought in one go (the wheel screen's "spend along
+ * the line"). A route never chooses for the player: a fork on the way that is not the target and whose
+ * group is still open stops it (reason 'fork_choice'), and so does a job entry (reason 'job_choice').
+ */
+export function jobRoute(ch, data, target) {
+  const nodes = data.jobtree.nodes;
+  const path = jobPath(ch, data, target);
+  const cost = path.reduce((a, id) => a + nodeCost(nodes[id]), 0);
+  if (!path.length) return { path, cost, can: false, reason: ch.jobNodes.includes(target) ? 'taken' : 'unknown' };
+  const fork = path.find((id) => id !== target && nodes[id].forkGroup);
+  if (fork) return { path, cost, can: false, reason: 'fork_choice', fork };
+  const job = path.find((id) => id !== target && nodes[id].type === 'job');
+  if (job) return { path, cost, can: false, reason: 'job_choice', job };
+  const trial = { ...ch, jobNodes: [...ch.jobNodes] };
+  for (const id of path) {
+    const st = jobNodeState(trial, data, id);
+    if (!st.can) return { path, cost, can: false, reason: st.reason, at: id, need: st.need };
+    trial.jobNodes.push(id); trial.jobPoints -= st.cost;
+  }
+  return { path, cost, can: true };
+}
+
+/** Buy every node of jobRoute(target) in order, or nothing. */
+export function allocateJobRoute(ch, data, target) {
+  const r = jobRoute(ch, data, target);
+  if (!r.can) return r;
+  for (const id of r.path) allocateJobNode(ch, data, id);
+  return { ...r, done: true };
+}
+
 /** Every parent a directed node names: ALL of `requires` and the ANY-ONE `requiresAny`. */
 export function jobParents(node) {
   return [...(node?.requires || []), ...(node?.requiresAny || [])];

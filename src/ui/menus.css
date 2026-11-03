@@ -81,12 +81,12 @@ body:not(.touch) .hub-tile:has(.hub-state) kbd { right: 12px; bottom: 5px; }
 #hud .quick-actions .menu-toggle:active { background: #345778; }
 
 /* ---- compact heights (iPad landscape keyboard, phones) ---- */
-@media (max-width: 700px) {
+@media (max-width: 700px) and (orientation: portrait) {
   .hub { grid-template-columns: 1fr; gap: 12px; }
   .panel-back { padding: 0 12px 0 8px; min-height: 40px; font-size: 13px; }
   .panel-header { gap: 8px; }
 }
-@media (max-height: 520px) and (min-width: 701px) {
+@media (max-height: 520px) and (orientation: landscape) {
   .hub { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .hub-group { padding: 8px; }
   .hub-group > header { padding-bottom: 6px; margin-bottom: 6px; }

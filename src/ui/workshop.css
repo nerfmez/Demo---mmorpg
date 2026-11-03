@@ -225,7 +225,7 @@
  .workshop .ws-stage { min-height: 260px; }
  .workshop .ws-notice { flex-wrap: wrap; }
 }
-@media (max-width: 600px) {
+@media (max-width: 600px) and (orientation: portrait) {
  .overlay.is-workshop .panel-header { padding: 8px 12px; min-height: 50px; }
  .overlay.is-workshop .panel-eyebrow { display: none; }
  .workshop { padding: 16px 14px 28px; }
@@ -254,7 +254,7 @@
  .workshop .ws-empty-main { grid-column: auto; padding: 35px 15px; }
  .workshop .ws-stage h2 { font-size: 19px; }
 }
-@media (max-height: 500px) and (min-width: 601px) {
+@media (max-height: 520px) and (orientation: landscape) {
  .workshop .ws-heading p, .workshop .ws-eyebrow, .workshop .ws-modes small { display: none; }
  .workshop .ws-heading { margin-bottom: 9px; }
  .workshop h1 { font-size: 22px; }

@@ -239,7 +239,7 @@ text.fm-halo{fill:none!important;stroke:#f6efd9;stroke-width:4px;stroke-linejoin
 .fm-log li:nth-child(2){opacity:.45}.fm-log li:nth-child(n+3){display:none}
 /* the key to the map's ink, on the compass page only */
 .wheel-tree .fm-legend{position:absolute;left:34px;bottom:14px;z-index:4;pointer-events:none}
-@media (max-width:760px){
+@media (max-width:760px) and (orientation:portrait){
   .wheel-tree{padding:30px 4px 4px}
   .fm-sheet,.fm-flyshadow{inset:4px 8px 2px}
   .fm-tabs{right:8px;gap:3px}.fm-tabs button span{display:none}.wheel-tree .fm-tabs button{padding:5px 8px 16px}

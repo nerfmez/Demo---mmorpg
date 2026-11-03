@@ -89,7 +89,7 @@
 .journal-results-head {display:flex;align-items:center;justify-content:space-between;margin:0 0 15px}
 .journal-results .seeker-search-result {width:100%;margin:6px 0}
 .overlay.is-journal .result-pop {position:absolute;left:50%;top:80px;transform:translateX(-50%);z-index:9}
-@media(max-width:700px){
+@media (max-width:700px) and (orientation: portrait) {
  .panel .journal-toolbar {min-height:108px;flex-wrap:wrap;gap:8px;padding:8px 10px}
  .panel .pbody .journal-title h3 {font-size:16px}
  .journal-title>small {font-size:7px;letter-spacing:1px}
@@ -111,7 +111,7 @@
  .journal-oaths .btn {font-size:11px;min-height:40px;padding:4px 8px}
  .journal-results {padding:12px}
 }
-@media(max-height:520px) and (min-width:701px){
+@media (max-height: 520px) and (orientation: landscape){
  .panel .journal-toolbar {min-height:58px;padding:5px 10px;gap:8px}
  .panel .pbody .journal-title h3 {font-size:16px}
  .journal-title>small {font-size:7px}
@@ -129,8 +129,8 @@
 .panel .journal-screen .seeker-node.taken .seeker-node-disc{color:#f8f0dd}
 .panel .journal-screen .seeker-node-caption{text-shadow:none!important}
 
-@media(max-height:520px) and (min-width:701px){.panel .journal-footer{min-height:44px;padding-block:0}}
-@media(max-width:700px){
+@media (max-height: 520px) and (orientation: landscape){.panel .journal-footer{min-height:44px;padding-block:0}}
+@media (max-width:700px) and (orientation: portrait) {
  .panel .journal-toolbar{display:grid;grid-template-columns:44px minmax(0,1fr) 78px 44px;grid-template-rows:44px 44px;min-height:108px;gap:6px;padding:8px 10px}
  .panel .journal-title{grid-column:2;grid-row:1;max-width:none;overflow:hidden}
  .panel .journal-title>small{font-size:7px;letter-spacing:1px;white-space:nowrap}
@@ -142,4 +142,4 @@
 
 /* Paired network branches have separate lanes; labels fit the space between siblings. */
 .panel .journal-screen .seeker-node-caption{width:140px}
-@media(max-width:700px){.panel .journal-screen .seeker-node-caption{width:calc(140px / var(--inverse-zoom,1))}}
+@media (max-width:700px) and (orientation: portrait) {.panel .journal-screen .seeker-node-caption{width:calc(140px / var(--inverse-zoom,1))}}

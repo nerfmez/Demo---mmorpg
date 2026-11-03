@@ -28,8 +28,14 @@ async function audit(page, name) {
       if (!b.width || !b.height || cs.visibility === 'hidden' || cs.display === 'none' || el.closest('[hidden],[inert],[aria-hidden="true"]')) continue;
       if (el.closest('svg') || el.closest('.fm-map')) continue; // map places carry their own larger hit circles
       const label = (el.getAttribute('aria-label') || el.textContent || el.className || el.tagName).trim().slice(0, 30);
-      if (b.right > W + 1 || b.bottom > H + 1 || b.left < -1 || b.top < -1) out.push(label);
-      else if (Math.min(b.width, b.height) < 40 && !el.matches('input[type="range"]')) small.push(`${label} ${Math.round(b.width)}x${Math.round(b.height)}`);
+      // a control in a scrolling list is reached by scrolling; one under a page or a modal is not in play
+      let scroller = el.parentElement;
+      while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflow + getComputedStyle(scroller).overflowX + getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+      const off = b.right > W + 1 || b.bottom > H + 1 || b.left < -1 || b.top < -1;
+      if (off) { if (!scroller || scroller === document.documentElement || scroller === document.body) out.push(label); continue; }
+      const top = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      if (!top || !(el.contains(top) || top.contains(el))) continue;
+      if (Math.min(b.width, b.height) < 40 && !el.matches('input[type="range"]')) small.push(`${label} ${Math.round(b.width)}x${Math.round(b.height)}`);
     }
     return { out, small: small.slice(0, 8), scrollX: document.documentElement.scrollWidth > W + 1 };
   });
@@ -86,6 +92,13 @@ try {
     await page.setViewportSize({ width: h, height: w });
     await page.waitForTimeout(800);
     await shot(page, `${tag}-30-portrait`);
+    // landscape only: the card is up and play is held; turned back, the card goes and play goes on
+    assert.equal(await page.evaluate(() => document.querySelector('.rotate-lock')?.open && window.__frontier.rotateLock.blocked), true, 'held upright: rotate card');
+    const t0 = await page.evaluate(() => window.__frontier.game.time);
+    await page.waitForTimeout(400);
+    assert.equal(await page.evaluate(() => window.__frontier.game.time), t0, 'held upright: the game is paused');
+    await page.setViewportSize({ width: w, height: h });
+    await page.waitForFunction(() => document.querySelector('.rotate-lock')?.open === false && !window.__frontier.rotateLock.blocked);
     await ctx.close();
   }
   console.log(JSON.stringify({ problems, errors: errors.slice(0, 8) }, null, 1));

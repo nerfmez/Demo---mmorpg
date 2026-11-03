@@ -712,7 +712,7 @@ body.touch .hint {
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
-@media (max-width: 640px) {
+@media (max-width: 640px) and (orientation: portrait) {
   .grid2 {
     grid-template-columns: 1fr;
   }

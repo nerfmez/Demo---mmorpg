@@ -344,13 +344,13 @@
 .pg .savecode { width: 100%; min-height: 70px; }
 
 /* narrow screens: columns stack and the whole page scrolls */
-@media (max-width: 700px) {
+@media (max-width: 700px) and (orientation: portrait) {
   .overlay:not(.is-journal):not(.is-atelier) .pbody:has(> .pg) { overflow-y: auto; }
   .pg { display: block; height: auto; }
   .pg > .pg-col { overflow: visible; padding: 14px; }
   .pg > .pg-col + .pg-col { border-left: 0; border-top: 1px solid var(--mc-hair); }
 }
-@media (max-height: 520px) and (min-width: 701px) {
+@media (max-height: 520px) and (orientation: landscape) {
   .pg > .pg-col { padding: 10px 12px; gap: 8px; }
   .pg h3 { font-size: 15px; }
   .pg-face { width: 60px; height: 60px; }
@@ -369,7 +369,7 @@
   width: min(1180px, calc(100vw - 48px - var(--safe-l) - var(--safe-r)));
   height: min(780px, calc(100dvh - 48px - var(--safe-t) - var(--safe-b))); max-height: none; margin: 0;
 }
-@media (max-height: 520px), (max-width: 700px) {
+@media (max-height: 520px), (max-width: 700px) and (orientation: portrait) {
   .overlay:not(.is-atelier):not(.is-journal):not(.is-hub) .panel {
     width: calc(100vw - 24px - var(--safe-l) - var(--safe-r)); height: calc(100dvh - 24px - var(--safe-t) - var(--safe-b)); border-radius: 18px;
   }
@@ -471,7 +471,7 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
 .overlay:not(.is-journal) .pbody .pg-map .travel-card.landmark-card { background: #fff4e3; }
 .overlay:not(.is-journal) .pbody .pg-map .travel-card .btn.primary { min-height: 46px; width: 100%; }
 
-@media (max-height: 520px) and (min-width: 701px) {
+@media (max-height: 520px) and (orientation: landscape) {
   .pg-growth { grid-template-columns: 210px minmax(0, 1fr); }
   .pg-growth .seeker-hero > :first-child, .pg-craft-detail .recipe-hero > :first-child { width: 56px; height: 56px; border-radius: 14px; }
   .pg-growth .seeker-hero h3, .pg-craft-detail .craft-detail-title { font-size: 16px; }
@@ -493,7 +493,30 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
 .overlay:not(.is-journal) .pbody .pg-quest .qj-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; flex-wrap: nowrap; margin: 0; }
 .overlay:not(.is-journal) .pbody .pg-quest .qj-tabs button { white-space: nowrap; padding: 0 6px; }
 .pg-craft-list .recipe-card .recipe-action { border: 0; margin: 0; padding: 0; }
-@media (max-height: 520px) and (min-width: 701px) {
+@media (max-height: 520px) and (orientation: landscape) {
   .overlay:not(.is-journal) .pbody .pg-quest .qj-tabs button { font-size: 11.5px; }
   .pg-quest .qj-cover h2 { font-size: 14px; }
+}
+
+/* a phone held sideways (landscape only, owner 2026-11-03): the same layouts as the iPad; the frame,
+   headers and titles shrink so the content has the screen */
+@media (max-height: 520px) and (orientation: landscape) {
+  .overlay:not(.is-atelier):not(.is-journal):not(.is-hub) .panel { width: calc(100vw - 12px - var(--safe-l) - var(--safe-r)); height: calc(100dvh - 12px - var(--safe-t) - var(--safe-b)); border-radius: 14px; }
+  .overlay:not(.is-atelier):not(.is-journal) .panel-header { min-height: 44px; padding: 2px 6px 2px 8px; gap: 6px; }
+  .overlay:not(.is-atelier):not(.is-journal) .panel-header h2 { font-size: 16px; }
+  .overlay:not(.is-atelier):not(.is-journal) :is(.pause-label, .panel-eyebrow) { display: none; }
+  .overlay:not(.is-atelier):not(.is-journal) .panel-gold { font-size: 13px; }
+  .overlay:not(.is-atelier):not(.is-journal) .panel-close { width: 40px; height: 40px; min-height: 40px; }
+  .overlay:not(.is-atelier):not(.is-journal) .pbody { padding: 8px 10px; }
+  .pg > .pg-col { padding: 8px 10px; }
+  .pg :is(h2) { font-size: 16px; }
+  .overlay.is-hub:not(.is-atelier):not(.is-journal) .panel { width: calc(100vw - 12px - var(--safe-l, 0px) - var(--safe-r, 0px)); max-height: calc(100dvh - 12px); }
+  .overlay.is-hub:not(.is-atelier):not(.is-journal) .panel-header { padding: 2px 6px 2px 16px; }
+  .overlay.is-hub:not(.is-atelier):not(.is-journal) .pbody { padding: 4px 14px 6px; }
+  .overlay.is-hub .hub { gap: 4px 12px; }
+  .overlay.is-hub .hub-group header { margin-bottom: 2px; }
+  .overlay.is-hub .hub-tiles { gap: 5px; }
+  .overlay.is-hub .hub-tile { min-height: 40px; padding: 4px 10px; font-size: 13px; }
+  .workshop .ws-heading { margin-bottom: 6px; }
+  .workshop h1 { font-size: 18px; }
 }

@@ -50,13 +50,13 @@
 .overlay:not(.is-journal) .seeker-mobile-nav {background:#152532;border-color:var(--line)}
 .overlay:not(.is-journal) .pbody :is(.inventory-filter,.item-detail,.inventory-list,.inventory-empty,.gear-compare,.gear-implicit,.gear-options,.craft-cost,.cost,.region-detail,.atlas-legend) {color:#c9d9e3}
 .overlay:not(.is-journal) button:focus-visible,.overlay:not(.is-journal) input:focus-visible {outline-color:#a3cbeb}
-@media(max-width:700px) {
+@media (max-width:700px) and (orientation: portrait) {
  .overlay:not(.is-journal) .panel {width:100%;height:100%;grid-template-columns:minmax(0,1fr);border-radius:0}
  .overlay:not(.is-journal) .pbody {padding:12px}
  .overlay:not(.is-journal) .seeker-mod-list {grid-template-columns:repeat(3,minmax(0,1fr))}
  .overlay:not(.is-journal) .seeker-mod-tile {min-height:123px;padding:8px 2px}
 }
-@media(max-height:520px) and (min-width:701px){
+@media (max-height: 520px) and (orientation: landscape){
  .overlay:not(.is-journal) {padding:5px}
  .overlay:not(.is-journal) .panel {height:100%;width:100%;grid-template-columns:116px minmax(0,1fr)}
  .overlay:not(.is-journal) .pbody {padding:12px}
@@ -112,4 +112,4 @@
 .overlay:not(.is-journal) .pbody .upgrade-track li small{font-size:10px}.overlay:not(.is-journal) .pbody .craft-goals label{color:#b7cfdb}
 .overlay:not(.is-journal) .pbody :is(.craft-repeat,.upgrade-cost,.grade-promotion){border-color:#86a5b344}.overlay:not(.is-journal) .pbody :is(.craft-repeat summary,.recipe-affixes summary){color:#a4d8d0}
 .journal-section-heading>b{font-size:calc(15px * var(--inverse-zoom,1))}.journal-section-heading>span{font-size:calc(11px * var(--inverse-zoom,1))}
-@media(max-width:700px){.overlay:not(.is-journal) .pbody .upgrade-track li small{font-size:9px}}
+@media (max-width:700px) and (orientation: portrait) {.overlay:not(.is-journal) .pbody .upgrade-track li small{font-size:9px}}

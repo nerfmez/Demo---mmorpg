@@ -337,7 +337,7 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
  .region-detail .creature-entry { display: inline-flex; vertical-align: top; width: 50%; padding: 12px 8px 12px 0; }
  .worldmap .zlabel { font-size: 10px; }
 }
-@media (max-width: 700px) {
+@media (max-width: 700px) and (orientation: portrait) {
  .overlay { padding: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l); }
  .panel { width: 100%; height: 100%; border-radius: 0; border-inline: 0; grid-template-columns: minmax(0,1fr); grid-template-rows: auto auto minmax(0,1fr) auto; }
  .panel-header { grid-column: 1; grid-row: 1; padding: 10px 12px; gap: 10px; }
@@ -417,7 +417,7 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
  .drop-pictures small { font-size: 10px; }
  .grid2 { grid-template-columns: 1fr; }
 }
-@media (max-height: 520px) and (min-width: 701px) {
+@media (max-height: 520px) and (orientation: landscape) {
  .overlay { padding: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l); }
  .panel { width: 100%; height: 100%; border-radius: 0; grid-template-columns: 138px minmax(0,1fr); }
  .panel-header { padding: 6px 12px; }
@@ -510,7 +510,7 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
 .network-detail>.btn {width:100%;min-height:46px}
 .route-summary {margin-top:12px;padding:10px;border:1px solid #a9b9b3;background:#e9eee1;border-radius:8px;display:grid;gap:8px;font-size:11px}
 @media(max-width:1050px) {.job-network-layout {grid-template-columns:minmax(0,1fr) 215px;gap:10px}.network-sectors .btn{font-size:10px;padding:6px 8px}}
-@media(max-width:760px) {
+@media (max-width:760px) and (orientation: portrait) {
  .job-network-layout {grid-template-columns:1fr}
  .network-viewport {height:360px}
  .job-network-layout .network-detail {position:static;display:block;order:initial;grid-row:auto}
@@ -523,11 +523,11 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
  .job-summary {align-items:start}.job-summary .level-pill {white-space:normal;font-size:11px;text-align:right;min-width:100px}
  .network-legend {font-size:10px;gap:6px 10px}.network-legend small {width:100%;margin:0}
 }
-@media(max-height:520px) and (min-width:701px) {.network-viewport {height:320px}.job-network-layout {grid-template-columns:minmax(0,1fr) 200px}.job-summary small{display:none}}
+@media (max-height: 520px) and (orientation: landscape) {.network-viewport {height:320px}.job-network-layout {grid-template-columns:minmax(0,1fr) 200px}.job-summary small{display:none}}
 
 .network-detail .respec-area summary {cursor:pointer;font-size:11px;color:#66765f}
 .network-detail .respec-area[open]>.btn {margin:10px 0 5px}
-@media(max-width:700px) {
+@media (max-width:700px) and (orientation: portrait) {
  .network-viewport {height:260px}
  .network-legend small {display:none}
  .job-network-layout .network-detail {padding:10px 12px}
@@ -545,7 +545,7 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
 /* View controls occupy their own row: they must never cover a selectable node. */
 .network-shell>.network-tools {position:static;justify-content:flex-end;margin:0;border-radius:0;border-width:1px 0 0;padding:5px 8px}
 .network-shell>.network-tools button {height:40px}
-@media(max-width:700px) {.network-viewport {height:250px}.network-legend{padding:6px 9px}.network-sectors .btn{min-height:40px}}
+@media (max-width:700px) and (orientation: portrait) {.network-viewport {height:250px}.network-legend{padding:6px 9px}.network-sectors .btn{min-height:40px}}
 /* Keep the graph and its selected-node action together inside the available game window. */
 .pbody[data-panel="job"] {display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .pbody[data-panel="job"] .job-summary {flex:none;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:10px;margin:0 0 12px}
@@ -554,7 +554,7 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
 .pbody[data-panel="job"] .network-viewport {height:auto;flex:1;min-height:100px}
 .pbody[data-panel="job"] .network-sectors,.pbody[data-panel="job"] .network-tools,.pbody[data-panel="job"] .network-legend {flex:none}
 .pbody[data-panel="job"] .network-detail {min-height:0;max-height:100%;overflow-y:auto;align-self:stretch;position:static}
-@media(max-width:700px) {
+@media (max-width:700px) and (orientation: portrait) {
  .pbody[data-panel="job"] {padding:8px 12px}
  .pbody[data-panel="job"] .job-summary {margin-bottom:7px}
  .pbody[data-panel="job"] .job-summary h3 {display:none}
@@ -570,7 +570,7 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
  .pbody[data-panel="job"] .route-summary {padding:4px 6px;margin:5px 0;display:flex;align-items:center;justify-content:space-between;gap:6px}
  .pbody[data-panel="job"] .route-summary .btn {min-height:32px;font-size:10px;padding:4px 8px}
 }
-@media(max-height:520px) and (min-width:701px) {
+@media (max-height: 520px) and (orientation: landscape) {
  .pbody[data-panel="job"] {padding:8px 12px}
  .pbody[data-panel="job"] .job-summary {margin-bottom:6px}
  .pbody[data-panel="job"] .network-sectors {padding:4px}.pbody[data-panel="job"] .network-sectors .btn{min-height:32px;font-size:9px}

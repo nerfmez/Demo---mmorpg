@@ -534,13 +534,13 @@ export class Panels {
         this.sel.zone = t.dataset.id;
         this.sel.waypoint = undefined;
         this.render();
-        if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
+        if (matchMedia('(max-width: 700px) and (orientation: portrait)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
         return;
       case 'select-waypoint':
         this.sel.waypoint = t.dataset.id; // "mapId:id" (one world, ids repeat per map)
         this.sel.zone = t.dataset.zone;
         this.render();
-        if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
+        if (matchMedia('(max-width: 700px) and (orientation: portrait)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
         return;
       case 'workspace':
         return this.open(t.dataset.page);
@@ -598,13 +598,13 @@ export class Panels {
       case 'inspect-item':
         this.sel.item = t.dataset.id;
         this.sel.detail = true;
-        return this.render(matchMedia('(max-width: 700px)').matches);
+        return this.render(matchMedia('(max-width: 700px) and (orientation: portrait)').matches);
       case 'inspect-equipped':
         this.sel.bag = 'gear';
         this.sel.gear = 'all';
         this.sel.item = t.dataset.uid;
         this.sel.detail = true;
-        return this.render(matchMedia('(max-width: 700px)').matches);
+        return this.render(matchMedia('(max-width: 700px) and (orientation: portrait)').matches);
       case 'stat':
         allocateStat(ch, t.dataset.stat);
         return this.changed();

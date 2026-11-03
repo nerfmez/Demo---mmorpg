@@ -608,3 +608,29 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
   #atelier:is(#atelier) .inventory-scroll { height: clamp(110px, calc(100dvh - 250px), 200px); min-height: 110px; margin: 2px 8px 4px; }
   #atelier:is(#atelier) .movement-bar { min-height: 44px; padding: 2px 8px; }
 }
+/* shop: one line per potion (picture, name and what it gives, buy buttons); the quick slots column narrower */
+.pg-shop { grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); }
+.pg-shop > .pg-col { padding: 12px 14px; gap: 8px; }
+.pg-banner { padding: 6px 12px; font-size: 12px; border-radius: 10px; }
+.overlay:not(.is-journal) .pbody .pg .shop-item { flex-wrap: nowrap; gap: 8px; padding: 4px 6px 4px 4px; border-radius: 12px; }
+.pg .shop-item .pg-ic { width: 40px; height: 40px; }
+.pg .shop-item .pg-ic :is(svg, img, .potion-art, .art) { width: 34px; height: 34px; }
+.pg .shop-item .pg-tx b, .pg .shop-item .pg-tx small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg .shop-item .pg-tx b { font-size: 13px; }
+.pg .shop-item .pg-tx small { font-size: 11px; }
+.pg .shop-item .shop-buy { flex-wrap: nowrap; gap: 4px; }
+.pg .shop-item .shop-buy .btn { padding: 0 9px; font-size: 12px; }
+.overlay:not(.is-journal) .pbody .pg .quick-slot { min-height: 72px; padding: 6px 2px 4px; }
+/* quests and the map: smaller headings, the long text only where it is read */
+.pg-quest > .pg-col, .pg-map > .pg-col, .pg-growth > .pg-col, .pg-settings > .pg-col { padding: 12px 14px; gap: 8px; }
+.pg-quest h2, .pg-quest h3 { font-size: 15px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .pg-shop { grid-template-columns: minmax(0, 1fr) 190px; }
+  .pg-shop > .pg-col { padding: 8px 10px; gap: 5px; }
+  .pg .shop-item .pg-tx small { display: none; }
+  .pg .quick-slots { gap: 6px; }
+  .overlay:not(.is-journal) .pbody .pg .quick-slot { min-height: 60px; }
+  .pg .quick-slot small { display: none; }
+  .pg-shop .muted { display: none; }
+  .pg-quest > .pg-col, .pg-map > .pg-col, .pg-growth > .pg-col, .pg-settings > .pg-col { padding: 8px 10px; gap: 6px; }
+}

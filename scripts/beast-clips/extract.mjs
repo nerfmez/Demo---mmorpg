@@ -5,7 +5,8 @@
 // (render/beast-clips.js) turn each of their own bones by the turn that takes the wolf's rest direction to
 // its direction in the frame, so any quadruped rig with the wolf rig's bones (body, chest, neck, head, tail,
 // leg0..3, leg0k..3k) plays them in its own proportions.
-// Usage: node scripts/beast-clips/extract.mjs [path/to/Wolf.gltf]
+// Usage: node scripts/beast-clips/extract.mjs [path/to/Wolf.gltf] [out.json]
+// The leaf fox plays the pack's own Fox (same skeleton names): node scripts/beast-clips/extract.mjs <Fox.gltf> data/beast-clips-fox.json
 globalThis.ProgressEvent ??= class extends Event { constructor(t, o = {}) { super(t); Object.assign(this, o); } };
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,6 +23,8 @@ const node = (n) => { const o = scene.getObjectByName(n.replace(/\./g, '')); if 
 const FPS = 20;
 // the clips the companions use, by our name
 const CLIPS = { walk: 'Walk', gallop: 'Gallop', idle: 'Idle', attack: 'Attack', hit: 'Idle_HitReact_Left', jump: 'Gallop_Jump' };
+// taken when the file has them (the fox's nose stuck in the ground after a missed pounce)
+const OPTIONAL = { headlow: 'Idle_2_HeadLow' };
 
 // the wolf's sides: .L is the animal's left; our rigs put leg0/leg2 at +x
 scene.updateMatrixWorld(true);
@@ -68,9 +71,10 @@ const sample = () => {
 mixer.clipAction(gltf.animations.find((c) => c.name === 'Idle')).play(); mixer.setTime(0);
 const rest = sample(); mixer.stopAllAction();
 const legLen = rest.hipY;
-const out = { _source: 'Quaternius, Ultimate Animated Animals (CC0 1.0), Wolf.gltf; scripts/beast-clips/extract.mjs', fps: FPS, rest: null, clips: {} };
+const out = { _source: `Quaternius, Ultimate Animated Animals (CC0 1.0), ${path.basename(src)}; scripts/beast-clips/extract.mjs`, fps: FPS, rest: null, clips: {} };
 { const { hipY, ...r } = rest; out.rest = r; }
-for (const [ours, theirs] of Object.entries(CLIPS)) {
+const wanted = { ...CLIPS, ...Object.fromEntries(Object.entries(OPTIONAL).filter(([, n]) => gltf.animations.some((c) => c.name === n))) };
+for (const [ours, theirs] of Object.entries(wanted)) {
   const clip = gltf.animations.find((c) => c.name === theirs);
   if (!clip) throw new Error('no clip ' + theirs);
   mixer.stopAllAction();
@@ -86,6 +90,6 @@ for (const [ours, theirs] of Object.entries(CLIPS)) {
   out.clips[ours] = { from: theirs, duration: +clip.duration.toFixed(3), frames };
   act.stop();
 }
-const file = path.join(root, 'data/beast-clips.json');
+const file = process.argv[3] ? path.resolve(process.argv[3]) : path.join(root, 'data/beast-clips.json');
 fs.writeFileSync(file, JSON.stringify(out) + '\n');
 console.log('wrote', file, Object.fromEntries(Object.entries(out.clips).map(([k, c]) => [k, c.frames.length])), (fs.statSync(file).size / 1024).toFixed(1) + ' KB');

@@ -27,7 +27,11 @@ const REAR = { body: [0, 0.94, 0.33], chest: [0, 0.97, 0.22], neck: [0, 0.5, 0.8
   leg0: [0.3, -0.35, 0.89], leg0k: [0.12, -0.72, 0.68], leg1: [-0.3, -0.35, 0.89], leg1k: [-0.12, -0.72, 0.68],
   leg2: [0, -0.97, 0.24], leg2k: [0, -0.99, -0.12], leg3: [0, -0.97, 0.24], leg3k: [0, -0.99, -0.12] };
 const V = (a) => new THREE.Vector3(a[0], a[1], a[2]).normalize();
-const REST = Object.fromEntries(Object.entries(CLIPS.rest).map(([k, d]) => [k, V(d)]));
+/** A set of clips from scripts/beast-clips/extract.mjs (the wolf's by default; the leaf fox plays the pack's Fox). */
+export function clipSet(json) {
+  return { C: json.clips, REST: Object.fromEntries(Object.entries(json.rest).map(([k, d]) => [k, V(d)])), follow: { attack: 0.58 * json.clips.attack.duration, jump: 0.4, swipe: 0.6 } };
+}
+const WOLF = clipSet(CLIPS);
 const REARV = Object.fromEntries(Object.entries(REAR).map(([k, d]) => [k, V(d)]));
 // the howl: forelegs straight, chest up a little, neck and muzzle thrown back toward the sky
 const HOWL = { chest: [0, 0.4, 0.92], neck: [0, 0.92, 0.38], head: [0, 0.85, 0.52] };
@@ -35,7 +39,7 @@ const HOWLV = Object.fromEntries(Object.entries(HOWL).map(([k, d]) => [k, V(d)])
 // a swipe keeps the bear's head, tail and hind legs as in its rear pose (planted); the rest is the clip's
 const SWIPE_KEEP = new Set(['head', 'tail', 'leg2', 'leg2k', 'leg3', 'leg3k']);
 // where each attack clip strikes (a clip's own `hit` if it has one) and how long its follow-through plays
-const HIT = { attack: 0.42, jump: 0.68 }, FOLLOW = { attack: 0.58 * CLIPS.clips.attack.duration, jump: 0.4, swipe: 0.6 };
+export const HIT = { attack: 0.42, jump: 0.68 };
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _hip = new THREE.Vector3();
 
 /** The rig's own rest directions (root space; the rigs' rest rotations are the identity) and hip offset. */
@@ -57,7 +61,7 @@ function clipDir(B, clip, u, n, out) {
   const fr = clip.frames, f = u * fr.length, i = Math.floor(f) % fr.length, j = (i + 1) % fr.length, k = f - Math.floor(f);
   const a = fr[i][n], c = fr[j][n];
   _a.set(a[0] + (c[0] - a[0]) * k, a[1] + (c[1] - a[1]) * k, a[2] + (c[2] - a[2]) * k).normalize();
-  _q.setFromUnitVectors(REST[n], _a);
+  _q.setFromUnitVectors(B.set.REST[n], _a);
   return out.copy(B.rest[n]).applyQuaternion(_q);
 }
 // an absolute clip's direction (the pose itself, the swipe) for bone n at phase u: into out
@@ -71,10 +75,12 @@ const clipLift = (clip, u) => { const fr = clip.frames, f = u * fr.length, i = M
 
 /**
  * opts: stride (m per walk cycle, per m of leg), gallopFrom / gallopFull (m/s), rate (a heavier beast plays
- * slower), bodyY (the rig's body height, for the hips' rest).
+ * slower), bodyY (the rig's body height, for the hips' rest), set (a clipSet; the wolf's by default).
+ * s.pose ({clip, u, w, leap}) poses the rig directly at phase u of one of its clips with weight w instead of the
+ * attack the wind-up picks (a monster's own timing: its rules move it, `leap` metres lift it in the air).
  */
 export function animBeast(r, s, dt, time, opts = {}) {
-  const b = r.bones, B = r.beast || setup(r), C = CLIPS.clips;
+  const b = r.bones, B = r.beast || setup(r), S = (B.set = opts.set || WOLF), C = S.C, FOLLOW = S.follow;
   const speed = s.moving ? Math.max(0, s.speed || 0) : 0, rate = opts.rate || 1;
   // the clips to blend: locomotion by speed, then an attack or a flinch over it
   const gFrom = opts.gallopFrom ?? 3.2, gFull = opts.gallopFull ?? 5.5;
@@ -92,8 +98,9 @@ export function animBeast(r, s, dt, time, opts = {}) {
     B.winding = false;
     if (B.inAttack) { const h = C[B.clip].hit ?? HIT[B.clip]; B.attackT += dt * rate * (1 - h) / FOLLOW[B.clip]; if (B.attackT >= 1) B.inAttack = false; }
   }
-  const clip = C[B.clip || 'attack'], abs = !!clip.absolute, hitAt = clip.hit ?? HIT[B.clip || 'attack'];
-  const atk = Math.min(0.999, B.attackT || 0), aw = B.inAttack ? clamp01(Math.min(atk * (abs ? 5 : 8), (1 - atk) * (abs ? 4 : 6))) : 0;
+  const P = s.pose, name = P ? P.clip : B.clip || 'attack', clip = C[name], abs = !!clip.absolute, hitAt = clip.hit ?? HIT[name] ?? 0.5;
+  const atk = Math.min(0.999, P ? P.u : B.attackT || 0), aw = P ? P.w : B.inAttack ? clamp01(Math.min(atk * (abs ? 5 : 8), (1 - atk) * (abs ? 4 : 6))) : 0;
+  if (P) B.inAttack = false;
 
   const hw = clamp01((s.hurt || 0) * 1.5);
   // standing to call (s.standT): the bear rears to roar (up over 0.2 s, down over its last 0.2 s); a wolf
@@ -129,8 +136,8 @@ export function animBeast(r, s, dt, time, opts = {}) {
   _hip.copy(B.hip).applyQuaternion(B.world.body);
   // a pounce carries it forward onto its prey: out to the bite, back over the landing
   // (the clip's own rise is small for a wolf in place: the leap adds an arc that peaks just before the bite)
-  const pj = B.clip === 'jump' && aw > 0, lunge = pj ? 1.3 * B.legLen * (atk < hitAt ? Math.sin(0.5 * Math.PI * Math.max(0, atk - 0.3) / (hitAt - 0.3)) : 1 - (atk - hitAt) / (1 - hitAt)) : 0;
-  const leap = pj ? 0.75 * B.legLen * Math.sin(Math.PI * clamp01((atk - 0.3) / 0.62)) : 0;
+  const pj = !P && B.clip === 'jump' && aw > 0, lunge = pj ? 1.3 * B.legLen * (atk < hitAt ? Math.sin(0.5 * Math.PI * Math.max(0, atk - 0.3) / (hitAt - 0.3)) : 1 - (atk - hitAt) / (1 - hitAt)) : 0;
+  const leap = P ? P.leap || 0 : pj ? 0.75 * B.legLen * Math.sin(Math.PI * clamp01((atk - 0.3) / 0.62)) : 0;
   b.body.position.set(B.restBody.x + B.hip.x - _hip.x, B.restBody.y + B.hip.y - _hip.y + B.lift * B.legLen + leap, B.restBody.z + B.hip.z - _hip.z + lunge);
   // the jaw opens on the bite, the swipe's roar, the rear's roar and the howl
   if (b.jaw) b.jaw.rotation.x = 0.45 * Math.max(aw * Math.sin(Math.PI * clamp01((atk - hitAt + 0.12) / 0.4)), rw * (0.7 + 0.3 * Math.sin(time * 30)), howl * (0.75 + 0.25 * Math.sin(time * 9)));

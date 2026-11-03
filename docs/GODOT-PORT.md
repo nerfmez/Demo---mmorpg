@@ -492,6 +492,38 @@ durations; on `Control` or `Curse`) are fitted by control, not by shape; Forking
 `from: true`) and Arresting Arc (`chainStun`, `chainStunBoss`) stuns the chain's last target.
 Wide Spread and Far Reach share the `spread` family.
 
+### Monster kits, the monster sandbox and strikes of light (docs/MONSTER-ATTACKS.md)
+
+- **`behavior: "kit"`** (`core/ai.js` `kit`): a monster's own attacks as data. Each attack with `use`
+  (`min`/`max` gap in metres, `max` defaulting to its `range`; optional `hpBelow`) is taken when ready and
+  in its band; the first in the data's order wins. Between attacks it walks in, or circles at `kit.circle`
+  [near, far] while everything is cooling. `beginAttack` starts an attack by its mechanics (`kind`, else
+  its name): a `pounce`/`dive` marks its landing at the target at wind-up start (`delay` = wind-up +
+  `air`). In Godot keep the same table-driven choice in the monster's state machine.
+- **Leaps:** `air` (s) is the leap's flight time (default 0.35). `missStun` on a leap: if nobody stands
+  inside its `radius` where it lands, it is `stunned` that long (event `stunned` with `miss`).
+- **`tell: "sector"`** on an attack draws its warning as a cone at the true reach: a fill that grows out
+  from the monster to the edge by the hit time and a crisp arc at the far edge from the start (`vfx.js`
+  `syncTelegraphs`).
+- **Leaf fox** (the first kit): `pounce` (1.0 s wind-up: a crouch, a frozen listen, a dip; a 0.55 s leap
+  onto the marked spot; root 0.6 s on a hit, stuck 1.2 s on a miss), `gust` (a `sweep` with
+  `tell: "sector"`: a 5 m, 50° cone at the end of the wind-up that bleeds), `snap` (a `claw`-path bite).
+  Its model is the owner's Meshy fox on the wolf rig's bones, moved by the CC0 Quaternius Fox clips
+  (`data/beast-clips-fox.json`, `scripts/beast-clips/extract.mjs <Fox.gltf> <out>`; `render/beast-clips.js`
+  `clipSet`, and `s.pose` to pose one clip at the rules' own timing); `render/monsters-forest.js` adds the
+  held poses (the listening freeze, the tail lifted to the side, the whip).
+- **Strikes of light** (`render/skillfx/monster-fx.js`): the owner turned down limb trails for monsters,
+  so kit monsters' strikes are drawn in the companions' language (a jaw of light, claw marks of light,
+  `claw-fx.js`/`bite-fx.js`) plus leaves of light (`leaf-fx.js`, one instanced mesh). An attack whose
+  `data/combat-fx.json` look is `kind: "light"` (`marks`, `halo`, `rim`, `len`, `wid`, `gap`, `height`) is
+  raked across the prey that way (the hare's kick, the mole's swipe). Charge cues follow the wind-up
+  (`windup` event): the fox's tail glows and gathers leaves before the gust; arcs pulse by its ears while
+  it listens before the pounce. Monster area bursts carry `source` and `attack` for this.
+- **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
+  its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
+  closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`
+  captures each attack frame by frame. A review tool only: no save.
+
 ### Mid/high monsters (attack kinds and presentation)
 
 Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`. New attack kinds:

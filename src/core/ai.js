@@ -26,6 +26,12 @@ export function updateMonster(game, m, dt) {
   if (m.twitchT > 0) { m.twitchT -= dt; m.moving = false; return; }
   const tempo = m.enraged ? 1.25 : 1;
   for (const k in m.cd) m.cd[k] = Math.max(0, m.cd[k] - dt * tempo);
+  // an illusion (doubles) moves like its maker but never attacks, and pops when its time is up
+  if (m.illusion) {
+    for (const k in m.cd) m.cd[k] = 99;
+    m.illusion.t -= dt;
+    if (m.illusion.t <= 0) return game.killMonster(m);
+  }
   m.stateT += dt;
   m.tauntT=Math.max(0,(m.tauntT||0)-dt);
   if (def.flyer) m.alt = approach(m.alt ?? def.hover, m.state === 'act' ? 0.5 : m.state === 'recover' ? 0.9 : def.hover, (m.state === 'act' ? 12 : 3) * dt);
@@ -250,7 +256,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'mirror_ring'].includes(kind)) {
+  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'mirror_ring', 'drum', 'doubles'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -357,6 +363,39 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'drum': {
+      // the leaf tanuki's belly drum: `beats` rings run out from it, `beat` s apart, to `radius`; the last is
+      // wider and knocks back. Each ring hits a unit once, as it passes (a step through it, or out of reach, is safe)
+      for (let i = 0; i < atk.beats; i++) {
+        const last = i === atk.beats - 1, max = atk.radius * (last ? atk.lastScale || 1 : 1);
+        game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'shockwave', look: 'drum', beat: i, x: m.x, z: m.z, radius: 0.6, maxRadius: max, growth: atk.waveSpeed, delay: i * atk.beat, duration: (max - 0.6) / atk.waveSpeed, damage: dmg, knock: last ? atk.knock : 0 });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', (atk.beats - 1) * atk.beat + atk.recover);
+    }
+    case 'boomerang': {
+      // the leaf from its head, thrown along the locked line: out to `range`, then back to it
+      const dir = dirFromAngle(w.angle);
+      game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: w.name, attack: w.name, boomerang: true, x: m.x + dir.x * (m.r + 0.2), z: m.z + dir.z * (m.r + 0.2), y: 0.9, angle: w.angle, speed: atk.speed, radius: atk.projectileRadius ?? 0.45, range: atk.range, element: m.def.element || 'physical', damage: dmg });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'doubles': {
+      // a puff of leaves and `count` copies of itself stand beside it: they move with it but never attack,
+      // pop at a touch (1 HP) and fade after `life` s; once a fight (`use.once`)
+      for (let i = 0; i < atk.count; i++) {
+        const a = w.angle + (i % 2 ? 1.6 : -1.6) * (1 + Math.floor(i / 2) * 0.5);
+        let x = m.x + Math.sin(a) * 2.2, z = m.z + Math.cos(a) * 2.2;
+        if (!game.world.isFree(x, z, m.r)) { x = m.x; z = m.z; }
+        const c = game.spawnMinion(m.type, m.level, x, z);
+        Object.assign(c, { illusion: { t: atk.life, of: m.id }, hp: 1, maxHp: 1, homeX: x, homeZ: z, facing: m.facing });
+        setAggro(game, c, t || game.player);
+      }
+      m.used = { ...(m.used || {}), [w.name]: true };
+      game.emit({ type: 'doubles', id: m.id, x: m.x, z: m.z, count: atk.count });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'shard_rain':
     case 'mirror_ring':
       // the moth's marks (falling glass shards; a ring of light around itself) were spawned at
@@ -392,7 +431,9 @@ function windup(game, m, dt, t, gap) {
     case 'pounce':
     case 'dive': {
       // the leap's air time (atk.air) lands it as its marked circle goes off (beginAttack spawns it then)
-      m.charge = { t: 0, dur: atk.air ?? 0.35, fromX: m.x, fromZ: m.z, toX: w.tx, toZ: w.tz, dive: true, hit: new Set(), dmg: 0 };
+      // `landShort` (m): it lands that far short of the marked middle, at its prey's front rather than on top of it
+      const back = atk.landShort || 0, len = Math.hypot(w.tx - m.x, w.tz - m.z) || 1, k = Math.max(0, len - back) / len;
+      m.charge = { t: 0, dur: atk.air ?? 0.35, fromX: m.x, fromZ: m.z, toX: m.x + (w.tx - m.x) * k, toZ: m.z + (w.tz - m.z) * k, dive: true, hit: new Set(), dmg: 0 };
       setState(m, 'act');
       m.windup = { ...w };
       return;
@@ -479,7 +520,8 @@ function act(game, m, dt, t) {
       m.charge = null;
       m.cd[name] = atk.cooldown;
       // a leap that lands on nobody (its circle's radius, as the area tests it) leaves it stuck: the punish window
-      if (atk.missStun && !game.units().some((u) => dist(c.toX, c.toZ, u.x, u.z) <= (atk.radius || 1) + u.r)) {
+      const mx = m.windup?.tx ?? c.toX, mz = m.windup?.tz ?? c.toZ; // the marked circle's middle
+      if (atk.missStun && !game.units().some((u) => dist(mx, mz, u.x, u.z) <= (atk.radius || 1) + u.r)) {
         game.emit({ type: 'stunned', id: m.id, x: m.x, z: m.z, miss: name });
         return setState(m, 'stunned', atk.missStun);
       }
@@ -829,7 +871,7 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   let reach = Infinity, soon = Infinity;
   for (const name of names) {
     const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
-    if (u.hpBelow && m.hp > m.maxHp * u.hpBelow) continue;
+    if ((u.hpBelow && m.hp > m.maxHp * u.hpBelow) || (u.once && m.used?.[name])) continue;
     reach = Math.min(reach, max);
     soon = Math.min(soon, m.cd[name]);
     if (m.cd[name] > 0 || gap < (u.min ?? 0) || gap > max) continue;

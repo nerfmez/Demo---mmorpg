@@ -65,6 +65,7 @@ import { LightChainFx } from './skillfx/lightchain-fx.js';
 import { WaveFx, wavePalette } from './skillfx/wave-fx.js';
 import { DrawFx } from './skillfx/draw-fx.js';
 import { GreatshieldFx } from './skillfx/greatshield-fx.js';
+import { MonsterFx } from './skillfx/monster-fx.js';
 const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 
 // skills whose presentation this director owns (the old renderer keeps every other skill)
@@ -120,6 +121,7 @@ export class SkillFx {
     this.rune = new RuneFx(scene, camera); // the trapper's Gravity Rune circle and pull
     this.call = new CallFx(scene, camera); // the hunter's whistle and a companion coming in from the wild
     this.companion = new CompanionFx(scene, camera, this.call); // the companions' own strikes and the bear's roar
+    this.monster = new MonsterFx(scene, camera, this.companion, this.call, host); // kit monsters' strikes as shapes of light (docs/MONSTER-ATTACKS.md)
     this.spiritCall = new SpiritCallFx(scene, camera); // the summoner's spirits called: a flame from the staff, a rune circle
     this.revive = new ReviveFx(scene, camera, this.call); // the priest's guardian light: halos, the rising
     this.reviveBodies = Array.from({ length: 12 }, () => ({ x: 0, z: 0, type: '', t: 0 })); this.revived = [];
@@ -165,7 +167,7 @@ export class SkillFx {
     this.lance.locate = (id) => this.centerOf(id);
     this.tslash.locate = (id) => this.centerOf(id);
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura, this.call, this.companion, this.revive]) fx.onShake = shake;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura, this.call, this.companion, this.revive, this.monster]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
@@ -475,7 +477,9 @@ export class SkillFx {
       case 'charged': { const c = this.centerOf(e.id); if (c) { this.lance.flash(c.x, c.y, c.z, 1.1); this.lance.spark(c.x, c.y, c.z, 6, 3); } return true; }
       case 'chargeShock': { const c = this.tslash.shock(e.id); if (c) { this.lance.flash(c.x, c.y + 0.2, c.z, 1.4); this.lance.spark(c.x, c.y, c.z, 8, 4); this.lance.twitch(e.id, 0.12); } host.shake(0.08, 0.08); return true; }
       case 'shocked': this.lance.twitch(e.id, 0.2); return true;
+      case 'windup': this.monster.windup(e, g); return false; // its charge cue; the ground warning stays the View's
       case 'stunned': {
+        this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);
         const head = this.headOf(e.id);
         this.mace.interrupted(e.id, head ? head.clone() : null, e.duration ?? m?.stateDur ?? 1);
@@ -516,6 +520,7 @@ export class SkillFx {
         return false;
       }
       case 'burst':
+        if (e.source != null) this.monster.burst(e, g); // a kit monster's landing (the old dust still draws)
         if (e.kind === 'arrow_rain') { this.rain.burst(e); return true; }
         if (e.kind === 'fire_arrow_rain') { this.frain.burst(e); host.shake(0.08, 0.1); return true; }
         if (e.kind === 'flame_geyser') { this.geyser.erupt(e.x, e.z, e.radius || 2.2); host.shake(0.12, 0.14); return true; }
@@ -599,6 +604,7 @@ export class SkillFx {
   update(dt) {
     const g = this.game, p = g.player, host = this.host;
     this.time += dt;
+    this.monster.update(dt, g);
     const tip = this.staffTip();
     this.chain.update(dt, tip);
     this.frost.update(dt);

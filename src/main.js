@@ -1,5 +1,6 @@
 // Boot: data -> world -> view (the live map behind the title screen) -> menu -> a game session
 // (simulation + HUD + input + panels), then one frame loop for everything.
+import { startMonsterLab } from './ui/monster-lab.js';
 import { createPresence } from './ui/presence.js';
 import { onlineRuntime } from './network/online-runtime.js';
 import { data } from './data.js';
@@ -328,6 +329,11 @@ function startGame(character, slot) {
     };
     pick.addEventListener('change',choose);hudRoot.append(bar);session.sandboxBar=bar;choose();
   }
+  if (fresh && params.has('monsterLab')) {
+    // the monster sandbox (docs/MONSTER-ATTACKS.md): one monster, its chosen attack looped on an unharmed hero
+    session.monsterLab = startMonsterLab({ game, view, root: hudRoot, input, data, type: params.get('monsterLab') });
+    F.monsterLab = session.monsterLab;
+  }
 
   const ch = game.ch;
   const opening = new Opening(hudRoot, game, view, { hud, input, save, refresh: () => { session.refreshPortrait(); session.refreshBadges(); } });
@@ -422,9 +428,12 @@ function frameBody(now) {
     if (!(fullscreen.blocked || !!F.rotateLock?.blocked)) s.input.update();
     if (onlineRuntime?.gate.blocked) s.input.reset();
     if(s.sandboxBar)s.sandboxBar.hidden=s.panels.isOpen||(fullscreen.blocked || !!F.rotateLock?.blocked);
-    const paused = !view.worldPrepared || s.panels.isOpen || s.completion.isOpen || F.paused || (fullscreen.blocked || !!F.rotateLock?.blocked) || !!onlineRuntime?.gate.blocked;
+    // the monster sandbox runs the clock slower, holds it, or steps it one frame
+    const labDt = s.monsterLab ? s.monsterLab.tick(dt) : dt;
+    if (s.monsterLab) s.monsterLab.bar.hidden = s.panels.isOpen || (fullscreen.blocked || !!F.rotateLock?.blocked);
+    const paused = !view.worldPrepared || s.panels.isOpen || s.completion.isOpen || F.paused || (fullscreen.blocked || !!F.rotateLock?.blocked) || !!onlineRuntime?.gate.blocked || labDt === 0;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
-    const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
+    const sdt = view.hitStop > 0 ? labDt * 0.08 : labDt;
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
     if (!paused) s.game.update(sdt);
     for (const e of s.game.drainEvents()) {

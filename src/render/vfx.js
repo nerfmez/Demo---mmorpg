@@ -1555,7 +1555,11 @@ export class Vfx {
       if (m.dead || !w || m.state !== 'windup') continue;
       let kind = null;
       const mech = m.def.attacks[w.name]?.kind || w.name; // an attack can borrow another's mechanics
-      if (RING_TELLS.has(mech)) kind = 'slam';
+      // a kit monster's attack names its warning (data/monsters.json attacks.<name>.tell)
+      const tell = m.def.attacks[w.name]?.tell;
+      if (tell === 'sector') kind = 'sector';
+      else if (tell === 'lane') kind = 'lane';
+      else if (RING_TELLS.has(mech)) kind = 'slam';
       else if (COASTAL_CONTACTS.has(mech)) kind = 'melee';
       else if (mech === 'charge' || mech === 'lash' || mech === 'quake' || mech === 'beam') kind = 'lane';
       if (!kind) continue;
@@ -1570,6 +1574,15 @@ export class Vfx {
           mesh.material.uniforms.uColor.value.set(0xff6a3a);
           mesh.material.uniforms.uColor2.value.set(0xff9a5a);
           v = { mesh, kind };
+        } else if (kind === 'sector') {
+          // a cone at its true reach: a plain fill growing out from the monster to the edge by the hit, and a
+          // crisp edge along the far arc from the start (docs/MONSTER-ATTACKS.md)
+          const atk = m.def.attacks[w.name], R = m.r + atk.range, arc = (atk.arc * Math.PI) / 180;
+          const mat = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, side: THREE.DoubleSide });
+          const mesh = makeDecal(sectorGeometry(0, R, arc, 24), mat(0xff7a3a, 0.3), this.world, 0.07);
+          const edge = makeDecal(sectorGeometry(R - 0.09, R, arc, 24), mat(0xffb070, 0.8), this.world, 0.075);
+          this.scene.add(edge);
+          v = { mesh, edge, kind };
         } else if (kind === 'melee') {
           const atk = m.def.attacks[w.name];
           const geo = sectorGeometry(0, m.r + atk.range, atk.arc * Math.PI / 180);
@@ -1578,7 +1591,7 @@ export class Vfx {
         } else {
           const atk = m.def.attacks[w.name];
           // a beam is a fixed line; a charge covers its speed over its duration
-          const mech = atk.kind || w.name, fixed = mech === 'beam' || mech === 'lash' || mech === 'quake';
+          const mech = atk.kind || w.name, fixed = mech === 'beam' || mech === 'lash' || mech === 'quake' || atk.tell === 'lane';
           const len = mech === 'quake' ? atk.length : fixed ? atk.range : (atk.speed || 12) * (atk.duration || 0.4);
           const geo = new THREE.PlaneGeometry(fixed ? atk.width : m.r * 1.6, len, 1, 14).rotateX(-Math.PI / 2).translate(0, 0, len / 2);
           const mesh = makeDecal(geo, new THREE.MeshBasicMaterial({ color: 0xff7a4a, transparent: true, opacity: 0.25, depthWrite: false }), this.world, 0.07);
@@ -1589,7 +1602,15 @@ export class Vfx {
       }
       const k = Math.min(1, m.stateT / w.total);
       v.mesh.position.set(m.x, 0, m.z);
-      if (v.kind === 'slam') {
+      if (v.kind === 'sector') {
+        const f = Math.max(0.04, k);
+        v.mesh.rotation.y = v.edge.rotation.y = w.angle;
+        v.mesh.scale.set(f, 1, f);
+        v.mesh.material.opacity = 0.18 + 0.2 * k;
+        v.edge.position.set(m.x, 0, m.z);
+        v.edge.material.opacity = 0.55 + 0.35 * k;
+        conform(v.edge);
+      } else if (v.kind === 'slam') {
         const atk = m.def.attacks[w.name];
         const r = w.radius ?? atk.radius ?? (m.r + atk.range);
         v.mesh.scale.set(r, 1, r);
@@ -1604,6 +1625,7 @@ export class Vfx {
     for (const [key, v] of this.telegraphs) {
       if (!seen.has(key)) {
         disposeObject(v.mesh, this.sharedGeo);
+        if (v.edge) disposeObject(v.edge, this.sharedGeo);
         this.telegraphs.delete(key);
       }
     }

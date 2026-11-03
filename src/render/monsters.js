@@ -9,6 +9,7 @@ import { monsterModel } from './models.js';
 import { attachMonsterModel } from './monsterSkin.js';
 import { MIDHIGH_BUILDERS, MIDHIGH_SCALE } from './monsters-midhigh.js';
 import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
+import { FOREST_BUILDERS, FOREST_SCALE } from './monsters-forest.js';
 import MOTION from '../../data/monster-motion.json';
 import FX from '../../data/combat-fx.json';
 import { createRollFx } from './roll-fx.js';
@@ -1255,9 +1256,10 @@ const BUILDERS = {
   horned_warden: [buildWarden, animWarden],
   ...MIDHIGH_BUILDERS,
   ...GROVE_BUILDERS,
+  ...FOREST_BUILDERS,
 };
 
-export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, spirit_alpha: 1.6, spirit_wisp: 0.6, stone_guardian: 0.85, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.15, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
+export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, spirit_alpha: 1.6, spirit_wisp: 0.6, stone_guardian: 0.85, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.15, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE, ...FOREST_SCALE };
 
 const MOTION_LIKE = { spirit_wisp: 'marsh_wisp', spirit_wolf: 'thornback_wolf', spirit_alpha: 'thornback_wolf', hunt_hawk: 'gale_hawk', hunt_hound: 'thornback_wolf', pack_hound: 'thornback_wolf', hunt_bear: 'thornback_wolf' };
 export function buildMonster(type, level = 1, boss = false) {

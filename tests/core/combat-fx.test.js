@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { data } from './helpers.js';
 
 const fx = JSON.parse(readFileSync(new URL('../../data/combat-fx.json', import.meta.url), 'utf8'));
-const KINDS = new Set(['splash', 'thrust', 'pincer', 'fangs', 'claw', 'smear']);
+// 'light': claw marks of light on the prey (skillfx/monster-fx.js; the owner turned down limb trails for monsters)
+const KINDS = new Set(['splash', 'thrust', 'pincer', 'fangs', 'claw', 'smear', 'light']);
 
 test('every weapon type has a blade trail look, and every melee strike a look of its own', () => {
   for (const w of [...Object.keys(data.items.weaponTypes).filter((k) => !k.startsWith('_')), 'none']) {

@@ -1398,6 +1398,7 @@
           "range": 9,
           "windup": 1.0,
           "air": 0.55,
+          "landShort": 0.9,
           "radius": 1.1,
           "recover": 0.5,
           "missStun": 1.2,
@@ -1459,8 +1460,11 @@
     "leaf_tanuki": {
       "name": "Leaf Tanuki",
       "nameTh": "ทานุกิใบไม้",
-      "behavior": "spore",
-      "element": "poison",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: a trickster. Up close it rears and drums its belly (three rings run out, the last wider, knocking back); from range it throws the leaf from its head, which cuts going out and coming back; hurt, it puffs into leaves and two copies of itself stand beside it (they never attack and pop at a touch).",
+      "kit": {
+        "circle": [3, 5.5]
+      },
       "hp": 700,
       "damage": 85,
       "defense": 60,
@@ -1471,20 +1475,39 @@
       "exp": 18,
       "jobExp": 12,
       "attacks": {
-        "puff": {
+        "doubles": {
+          "use": {"max": 10, "hpBelow": 0.6, "once": true},
+          "windup": 1.0,
+          "count": 2,
+          "life": 8,
+          "recover": 0.5,
+          "cooldown": 20
+        },
+        "drum": {
+          "use": {"max": 2.6},
           "range": 4.5,
           "windup": 0.8,
+          "beats": 3,
+          "beat": 0.45,
+          "radius": 4.5,
+          "lastScale": 1.2,
+          "waveSpeed": 8,
+          "knock": 2,
           "recover": 0.6,
-          "cooldown": 5,
-          "radius": 3.2,
-          "duration": 4,
-          "dps": 60,
-          "damageMult": 1
+          "cooldown": 7,
+          "damageMult": 0.8
         },
-        "hop": {
-          "distance": 4.5,
-          "duration": 0.5,
-          "cooldown": 3
+        "boomerang": {
+          "tell": "lane",
+          "use": {"min": 2, "max": 7},
+          "range": 7,
+          "width": 0.9,
+          "windup": 0.7,
+          "speed": 11,
+          "projectileRadius": 0.45,
+          "recover": 0.5,
+          "cooldown": 4,
+          "damageMult": 0.9
         }
       },
       "drops": [

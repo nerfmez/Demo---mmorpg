@@ -118,6 +118,8 @@ export class View {
       scene: this.scene, camera: this.camera, renderer: this.renderer, vfx: this.vfx,
       game: () => this.game, anim: () => this.heroAnim, rig: () => this.hero, weapon: () => this.game.derived.weaponType,
       body: (id) => this.monsterBody(id),
+      monsterRig: (id) => this.monsterViews.get(id)?.rig || null,
+      groundAt: (x, z) => this.groundAt(x, z),
       float: (x, y, z, text, color, big) => this.floatText?.(x, y, z, text, color, big),
       banner: (text) => { const p = this.game.player; this.floatText?.(p.x, 2.6, p.z, text, '#fff2b0', true); },
       shake: (amp) => this.addShake(amp * 3),
@@ -687,7 +689,8 @@ export class View {
         const p = g.player, dx = p.x - e.x, dz = p.z - e.z, d = Math.hypot(dx, dz);
         const off = Math.atan2(Math.sin(Math.atan2(dx, dz) - e.angle), Math.cos(Math.atan2(dx, dz) - e.angle));
         const at = !p.dead && d <= e.range + 0.6 && Math.abs(off) <= ((e.arc || 120) * Math.PI) / 360 ? [p.x - (dx / (d || 1)) * 0.25, p.z - (dz / (d || 1)) * 0.25] : null;
-        v.monsterSwing({ ...e, type: g.monsterById(e.id)?.type, at });
+        const sw = { ...e, type: g.monsterById(e.id)?.type, at };
+        if (!this.skillFx.monster.swing(sw, g)) v.monsterSwing(sw); // a kit monster's strike is drawn as light (skillfx/monster-fx.js)
         break;
       }
       case 'ward':
@@ -995,9 +998,10 @@ export class View {
       this.updateHero(dt, time);
       // the camera moves first, so monsters are culled against this frame's view (also after a snap)
       focus = this._gameCameraFocus || (this._gameCameraFocus = { x: 0, y: 0, z: 0 });
-      focus.x = p.x + g.input.moveX * 1.2;
+      // focusShift: a review tool's look past the hero (the monster sandbox frames hero and monster together)
+      focus.x = p.x + g.input.moveX * 1.2 + (this.focusShift?.x || 0);
       focus.y = this.heroY;
-      focus.z = p.z + g.input.moveZ * 1.2;
+      focus.z = p.z + g.input.moveZ * 1.2 + (this.focusShift?.z || 0);
       zoneId = world.zoneAt(p.x, p.z).id;
       this.updateCamera(dt, focus);
       this.updateStreaming(p.x, p.z);

@@ -1023,6 +1023,8 @@ export class Game {
 
   killMonster(m) {
     if(m.dead)return;
+    // an illusion (the leaf tanuki's doubles, ai.js `doubles`) pops into leaves: no kill, no reward
+    if (m.illusion) { m.dead = true; m.hp = 0; m.deathT = 0; m.windup = m.charge = m.melee = null; if (this.player.targetId === m.id) this.player.targetId = null; this.emit({ type: 'illusionPop', id: m.id, x: m.x, z: m.z, monster: m.type }); return; }
     spreadCurse(this,m);
     // Killed during a wind-up: the attack it was marking never comes, so its pending areas go too
     // (an attack already launched, like a boulder in flight, still lands).
@@ -1940,9 +1942,23 @@ export class Game {
       pr.z += pr.vz * dt;
       pr.travelled += step;
       let dead = pr.travelled >= pr.range;
+      // a boomerang (the leaf tanuki's leaf; ai.js `boomerang`) turns at its range and flies back to its thrower,
+      // able to hit each unit once more on the way back; it is gone when it reaches the thrower
+      if (pr.boomerang) {
+        const src = this.monsterById(pr.sourceId);
+        if (!pr.back && dead) { pr.back = true; pr.hit.clear(); dead = false; }
+        if (pr.back) {
+          if (!src || src.dead) dead = true;
+          else {
+            const a = Math.atan2(src.x - pr.x, src.z - pr.z);
+            pr.vx = Math.sin(a) * pr.speed; pr.vz = Math.cos(a) * pr.speed;
+            dead = dist(pr.x, pr.z, src.x, src.z) < src.r + 0.2 || pr.travelled > pr.range * 3;
+          }
+        }
+      }
       // solid obstacles and cliff faces stop projectiles (not water)
       const g = this.world.surfaceY(pr.x, pr.z);
-      if (!dead && (!this.world.isFree(pr.x, pr.z, 0.05, { ignoreWater: true }) || g - pr.ground > 1.3)) {
+      if (!dead && !pr.boomerang && (!this.world.isFree(pr.x, pr.z, 0.05, { ignoreWater: true }) || g - pr.ground > 1.3)) {
         dead = true;
         this.projectileImpact(pr);
       }
@@ -1984,9 +2000,11 @@ export class Game {
       } else if (!dead && pr.owner === 'monster') {
         for (const u of this.units()) {
           if (dist(pr.x, pr.z, u.x, u.z) < u.r + pr.radius) {
+            if (pr.boomerang && pr.hit.has(u.id)) continue; // a boomerang cuts through: once per pass
             const src = this.monsterById(pr.sourceId);
             this.damageUnit(u, pr.damage, src, { poison: pr.poison, attack: pr.attack });
-            this.emit({ type: 'impact', kind: pr.kind, element: pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane'), x: pr.x, z: pr.z });
+            this.emit({ type: 'impact', kind: pr.kind, element: pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane'), x: pr.x, z: pr.z, back: !!pr.back });
+            if (pr.boomerang) { pr.hit.add(u.id); continue; }
             dead = true;
             break;
           }
@@ -2032,7 +2050,7 @@ export class Game {
           const d = dist(a.x, a.z, u.x, u.z);
           if (!a.hit.has(u.id) && Math.abs(d - a.radius) < 0.7) {
             a.hit.add(u.id);
-            this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { attack: a.attack });
+            this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { attack: a.attack, knock: a.knock ? { angle: Math.atan2(u.x - a.x, u.z - a.z), force: a.knock } : undefined });
           }
         }
       } else if (a.tick) {
@@ -2073,7 +2091,7 @@ export class Game {
             const d = dist(a.x, a.z, u.x, u.z);
             if (d <= a.radius + u.r && !(a.inner && d < a.inner)) this.damageUnit(u, a.damage, src, { attack: a.attack });
           }
-          this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner });
+          this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner, source: a.sourceId, attack: a.attack });
         }
       }
       if (a.trap) tickTrap(this, a, dt);

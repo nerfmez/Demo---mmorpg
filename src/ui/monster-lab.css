@@ -1,0 +1,37 @@
+/* The monster sandbox's bar (src/ui/monster-lab.js): top centre, clear of the portrait and the map. */
+.monster-lab {
+  position: absolute;
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  max-width: min(560px, calc(100vw - 360px));
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(20, 26, 34, 0.82);
+  color: #f4efe3;
+  font: 14px/1.2 'Mitr', system-ui, sans-serif;
+  pointer-events: auto;
+}
+.monster-lab[hidden] { display: none !important; }
+.monster-lab .ml-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.monster-lab .ml-head b { font-weight: 400; opacity: 0.8; font-size: 12px; }
+.monster-lab select,
+.monster-lab button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font: inherit;
+}
+.monster-lab .ml-attacks,
+.monster-lab .ml-tools { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.monster-lab .ml-attacks button.on,
+.monster-lab .ml-tools button.on { background: #f0a43a; border-color: #f0a43a; color: #2a1a0c; }

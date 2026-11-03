@@ -131,3 +131,73 @@ test('leaf fox mousing pounce: marked spot, lands once after its air time, pins 
   b.until(() => b.m.state === 'chase', 3);
   assert.equal(b.m.charge, null, 'the leap is cleared');
 });
+
+test('leaf tanuki drum: three rings run out after the wind-up, each hits once as it passes, the last knocks back', () => {
+  const a = M.leaf_tanuki.attacks.drum;
+  const { m, g, hits, step, until, place, only } = arena('leaf_tanuki', 15);
+  only('drum'); place(1.5);
+  until(() => m.state === 'windup');
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing during the wind-up');
+  const rings = () => g.areas.filter((x) => x.attack === 'drum');
+  until(() => m.state === 'recover');
+  assert.equal(rings().length, a.beats, 'one ring per beat');
+  assert.ok(rings().every((r, i) => Math.abs(r.delay - i * a.beat) < 1e-9), 'a beat apart');
+  assert.ok(rings().at(-1).knock > 0 && rings()[0].knock === 0, 'only the last knocks back');
+  step(a.beats * a.beat + 1.2);
+  assert.equal(hits.length, a.beats, 'each ring once');
+  // out of the rings' reach: nothing
+  const b = arena('leaf_tanuki', 15);
+  b.only('drum'); b.place(1.5);
+  b.until(() => b.m.state === 'recover');
+  Object.assign(b.g.player, { x: 0, z: a.radius * a.lastScale + 2 });
+  b.step(a.beats * a.beat + 1.5);
+  assert.equal(b.hits.length, 0, 'out of reach');
+  b.until(() => b.m.state === 'chase');
+});
+
+test('leaf tanuki boomerang: hits along its line going out and again coming back; beside the line it misses', () => {
+  const { m, g, hits, until, step, place, only } = arena('leaf_tanuki', 15);
+  only('boomerang'); place(4);
+  until(() => m.state === 'recover');
+  assert.equal(hits.length, 0, 'nothing before it is thrown');
+  const leaf = g.projectiles.find((p) => p.boomerang);
+  assert.ok(leaf, 'thrown');
+  for (let t = 0; t < 4 && g.projectiles.includes(leaf); t += 0.01) { g.updateProjectiles(0.01); step(0.01); }
+  assert.ok(!g.projectiles.includes(leaf), 'it comes back and is gone');
+  assert.equal(hits.length, 2, 'once out, once back');
+  const b = arena('leaf_tanuki', 15);
+  b.only('boomerang'); b.place(4);
+  b.until(() => b.m.state === 'windup' && b.m.stateT > b.m.windup.total * 0.6);
+  Object.assign(b.g.player, { x: 2.5, z: b.g.player.z });
+  b.until(() => b.m.state === 'recover');
+  for (let t = 0; t < 4; t += 0.01) { b.g.updateProjectiles(0.01); b.step(0.01); }
+  assert.equal(b.hits.length, 0, 'beside the line');
+});
+
+test('leaf tanuki doubles: once, when hurt; the copies never attack, pop at a touch for no reward, and fade', () => {
+  const a = M.leaf_tanuki.attacks.doubles;
+  const { m, g, until, step, place } = arena('leaf_tanuki', 15, { realDamage: true });
+  for (const k in m.cd) m.cd[k] = k === 'doubles' ? 0 : 99;
+  place(4);
+  step(0.5);
+  assert.notEqual(m.windup?.name, 'doubles', 'not while healthy');
+  m.hp = m.maxHp * 0.5;
+  until(() => m.state === 'windup' && m.windup.name === 'doubles');
+  until(() => m.state === 'recover');
+  const copies = g.monsters.filter((x) => x.illusion);
+  assert.equal(copies.length, a.count);
+  g.monsters.push(...copies.filter((c) => !g.monsters.includes(c)));
+  const kills = g.stats.kills, exp = g.ch.exp;
+  for (let t = 0; t < 3; t += 0.01) { for (const c of copies) if (!c.dead) updateMonster(g, c, 0.01); }
+  assert.ok(copies.every((c) => c.state !== 'windup'), 'the copies never wind up');
+  g.hitMonster(copies[0], 10, {});
+  assert.ok(copies[0].dead, 'a touch pops it');
+  assert.equal(g.stats.kills, kills, 'no kill counted');
+  assert.equal(g.ch.exp, exp, 'no experience');
+  for (let t = 0; t < a.life; t += 0.05) if (!copies[1].dead) updateMonster(g, copies[1], 0.05);
+  assert.ok(copies[1].dead, 'the other fades');
+  m.cd.doubles = 0; m.state = 'chase';
+  step(1);
+  assert.notEqual(m.windup?.name, 'doubles', 'only once');
+});

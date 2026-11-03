@@ -47,7 +47,7 @@
 .fm-crumb{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fm-crumb b{font-weight:400;color:var(--ink-2)}
 .fm-sp{flex:1}
-.wheel-tree .fm-tool{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;border-radius:8px;color:#7d775f;font-size:12px;white-space:nowrap}
+.wheel-tree .fm-tool{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:44px;justify-content:center;padding:0 10px;border-radius:8px;color:#7d775f;font-size:12px;white-space:nowrap}
 .fm-tool svg{width:18px;height:18px}
 .fm-points{display:flex;align-items:center;gap:10px;padding-left:14px;border-left:1px solid #b09c7655}
 .fm-n{font:34px/1 var(--num);color:var(--ink-2);min-width:1.2em;text-align:right;display:inline-block}
@@ -269,7 +269,7 @@ text.fm-halo{fill:none!important;stroke:#f6efd9;stroke-width:4px;stroke-linejoin
   .fm-tabs button span{font-size:11px}
   .fm-top{position:absolute;top:-40px;right:6px;height:40px;padding:0;gap:2px;border:0;z-index:6}
   .wheel-tree .fm-exit{display:inline-flex;min-width:40px;justify-content:center}
-  .wheel-tree .fm-tool{min-height:40px;padding:0 8px}
+  .wheel-tree .fm-tool{min-height:44px;min-width:44px;padding:0 8px}
   .fm-points{border-left:0;padding:0 4px;gap:4px}.fm-n{font-size:22px}
   .fm-points::after{content:"แต้ม";font-size:11px;color:var(--muted)}
   .fm-sheet,.fm-flyshadow{inset:0;border:0;border-radius:0;box-shadow:none}

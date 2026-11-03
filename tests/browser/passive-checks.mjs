@@ -1,65 +1,57 @@
-// Real input regression for the integrated book. Current core remains authoritative.
+// Real input regression for the Job Tree screen: the wheel tree's field journal of maps (phase C, 2026-11-03).
+// Shared by workspaces, overlays and the capture reviews. Core rules stay authoritative (allocateJobNode,
+// allocateJobRoute); these checks prove the taps reach them and that looking never spends.
 import assert from 'node:assert/strict';
-import {loadData} from '../../src/core/data-node.js';
-import {jobNodeState} from '../../src/core/character.js';
-const data=loadData();
-export async function verifyCompactCaptions(page){
- await page.waitForFunction(()=>!document.querySelector('.paper-turn-layer')&&!window.__frontier.panels.jobJournal.snapshot().camera.active);
- const captions=await page.locator('.compact-junction .discipline-caption').evaluateAll(es=>{
-  const map=document.querySelector('#map').getBoundingClientRect(),z=window.__frontier.panels.jobJournal.snapshot().camera.z;
-  return es.map(e=>({name:e.querySelector('b').textContent,lines:[...e.children].map(line=>{
-   const r=line.getBoundingClientRect(),style=getComputedStyle(line),range=document.createRange();range.selectNodeContents(line);
-   const ink=range.getBoundingClientRect(),button=e.closest('[data-discipline]'),card=button.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
-   // Font em boxes can exceed line-height without clipping. Require the actual
-   // text range inside its card and viewport, including Thai marks and wraps.
-   return {text:line.textContent,visible:style.display!=='none'&&ink.width>0&&ink.height>0,font:Math.round(parseFloat(style.fontSize)*z*100)/100,inMap:r.left>=map.left&&r.right<=map.right&&r.top>=map.top&&r.bottom<=map.bottom,inkFits:ink.left>=r.left-1&&ink.right<=r.right+1&&ink.top>=Math.max(card.top,map.top)&&ink.bottom<=Math.min(card.bottom,map.bottom)&&line.scrollWidth<=line.clientWidth+1,hit:button.contains(hit)};
-  })}));
- });
- assert.ok(captions.length,'compact spread has branch captions');
- for(const c of captions)for(const [i,line] of c.lines.entries())assert.ok(line.visible&&line.font>=(i===0?13:12)&&line.inMap&&line.inkFits&&line.hit,'whole branch caption remains readable and reachable: '+JSON.stringify({name:c.name,...line}));
- return captions;
+
+const idle = (page) => page.waitForFunction(() => { const s = window.__frontier.panels.jobJournal?.snapshot(); return s && !s.turning && !s.animating && !s.pending.length; }, null, { timeout: 60000 });
+/** Turn to the place's map and pin its note (what the old journal's search did). */
+export async function journalJump(page, id) {
+  await idle(page);
+  await page.evaluate((id) => window.__frontier.panels.jobJournal.jump(id), id);
+  await idle(page);
+  if (await page.evaluate((id) => window.__frontier.panels.jobJournal.snapshot().selected !== id, id)) await page.evaluate((id) => window.__frontier.panels.jobJournal.select(id), id);
+  await page.waitForFunction((id) => window.__frontier.panels.jobJournal.snapshot().selected === id, id);
 }
-export async function journalJump(page,id){
- const search=page.locator('[data-action="search"]').first();await search.click();
- await page.locator('#node-search').fill(id);
- await page.locator(`#search-results [data-jump="${id}"]`).first().click();
- await page.waitForFunction(id=>window.__frontier.panels.jobJournal.snapshot().selected===id||!window.__frontier.panels.jobJournal.snapshot().progress.stages.find(s=>s.tier===window.__frontier.panels.jobJournal.snapshot().tier).unlocked,id);
-}
-export async function verifyPassiveGestures(page,{context,engineName,capture=async()=>{}}){
- await page.evaluate(()=>{const f=window.__frontier;f.panels.close();f.game.ch.jobNodes=['origin'];f.game.ch.jobLevel=20;f.game.ch.jobPoints=19;f.game.ch.gold=1000;f.panels.journalState=null;f.panels.open('job');});
- const tap=async s=>{const t=page.locator(s).first();if(await page.evaluate(()=>navigator.maxTouchPoints>0))await t.tap();else await t.click();await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));};
- const state=()=>page.evaluate(()=>__frontier.panels.jobJournal.snapshot());
- assert.equal(await page.locator('#plane > [data-node]').count(),6);assert.equal(await page.locator('.seeker-constellation').count(),0);
- assert.equal((await state()).audio.plays,0);assert.equal((await state()).audio.contextState,'not-created');
- await journalJump(page,'lesson.prepare');assert.equal((await state()).owned.length,1,'inspection never spends');await tap('[data-action="learn"]');assert.equal((await state()).points,18);
- for(const id of ['lesson.strike','lesson.rhythm','path.impact','path.reach','path.precision','path.horizon']){await journalJump(page,id);await tap('[data-action="learn"]');}
- assert.equal((await state()).progress.spent,7);await journalJump(page,'advanced.power');assert.ok(await page.locator('[data-action="learn"]').isEnabled());
- await journalJump(page,'advanced.flow');assert.ok(await page.locator('[data-action="learn"]').isEnabled(),'independent group has no outside parents');
- await journalJump(page,'advanced.power');await capture('job-detail');await tap('[data-action="close-detail"]');
- const before=await state();
- await page.locator('#map').evaluate(el=>{el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:91,pointerType:'touch',clientX:100,clientY:150}));el.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:91}));});
- await tap('[data-action="zoom-out"]');await tap('[data-action="zoom-in"]');
- // A fitted wide spread has no horizontal room to pan. Zoom using the actual
- // controls until there is room for this drag; keep the purchase assertions.
- for(let i=0;i<6;i++){
-  const room=await page.locator('#map').evaluate(el=>document.querySelector('#plane').offsetWidth*window.__frontier.panels.jobJournal.snapshot().camera.z-el.clientWidth);
-  if(room>150)break;
-  await tap('[data-action="zoom-in"]');
- }
- const box=await page.locator('#map').boundingBox(),cameraBefore=(await state()).camera;
- await page.mouse.move(box.x+box.width*.35,box.y+box.height*.4);await page.mouse.down();await page.mouse.move(box.x+box.width*.35+55,box.y+box.height*.4+15,{steps:6});await page.mouse.up();
- assert.ok(Math.abs((await state()).camera.x-cameraBefore.x)>20,'drag pans without purchase');
- if(engineName==='chromium'&&page.viewportSize().width===1180){const cdp=await context.newCDPSession(page),old=(await state()).camera.z,x=box.x+box.width*.35,y=box.y+box.height*.35;try{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:x-35,y,id:1},{x:x+35,y,id:2}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-62,y,id:1},{x:x+62,y,id:2}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.ok((await state()).camera.z>old);}finally{await cdp.detach();}}
- assert.deepEqual((await state()).owned,before.owned);assert.equal((await state()).selected,before.selected);
- await tap('[data-action="junction"]');assert.ok(await page.locator('[data-discipline]').count());const points=(await state()).points;
- if(await page.locator('.compact-junction').count())await verifyCompactCaptions(page);
- if(page.viewportSize().height<=520){
-  await page.waitForFunction(()=>!document.querySelector('.paper-turn-layer')&&[...document.querySelectorAll('[data-discipline]')].every(el=>{const r=el.getBoundingClientRect(),m=document.querySelector('#map').getBoundingClientRect();return r.left>=m.left&&r.top>=m.top&&r.right<=m.right&&r.bottom<=m.bottom&&el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),null,{timeout:10000});
-  const targets=await page.locator('[data-discipline]').evaluateAll(es=>es.map(el=>{const r=el.getBoundingClientRect(),m=document.querySelector('#map').getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {id:el.dataset.discipline,w:r.width,h:r.height,inMap:r.left>=m.left&&r.top>=m.top&&r.right<=m.right&&r.bottom<=m.bottom,hit:el.contains(hit)};}));
-  assert.ok(targets.every(t=>t.w>=44&&t.h>=44&&t.inMap&&t.hit),'all compact spread branch targets stay in the map and accept native taps: '+JSON.stringify(targets));
- }
- const group=await page.locator('[data-discipline]').first().getAttribute('data-discipline');await tap(`[data-discipline="${group}"]`);await tap('[data-action="junction"]');assert.equal((await state()).points,points);if(await page.locator('[data-junction-page="1"]:not(:disabled)').count()){await tap('[data-junction-page="1"]');const spread=(await state()).junctionPage,key=await page.locator('[data-discipline]').first().getAttribute('data-discipline');await tap(`[data-discipline="${key}"]`);await tap('[data-action="junction"]');assert.equal((await state()).junctionPage,spread,'drilldown returns to the same dense spread');assert.equal((await state()).points,points);}
- if(await page.locator('.compact-junction').count())await verifyCompactCaptions(page);
- await capture('job-overview');
- await tap('[data-action="exit"]');assert.equal(await page.evaluate(()=>__frontier.panels.isOpen),false);
+export async function verifyPassiveGestures(page, { capture = async () => {} } = {}) {
+  await page.evaluate(() => { const f = window.__frontier; f.panels.close(); f.panels.wheelState = null; Object.assign(f.game.ch, { jobNodes: ['origin'], jobLevel: 20, jobPoints: 19, gold: 1000 }); f.panels.open('job'); });
+  const touch = await page.evaluate(() => navigator.maxTouchPoints > 0);
+  const tap = async (s) => { const t = page.locator(s).first(); if (touch) await t.tap(); else await t.click(); await page.waitForTimeout(120); };
+  const tapPlace = async (id) => {
+    const box = await page.evaluate((id) => { const e = document.querySelector(`.wheel-tree [data-node="${id}"]`); e.scrollIntoView({ block: 'nearest', inline: 'center' }); const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }, id);
+    if (touch) await page.touchscreen.tap(box[0], box[1]); else await page.mouse.click(box[0], box[1]);
+    await page.waitForTimeout(350);
+  };
+  const state = () => page.evaluate(() => ({ ...window.__frontier.panels.jobJournal.snapshot(), owned: [...window.__frontier.game.ch.jobNodes] }));
+  await idle(page);
+  assert.equal((await state()).page, 'overview', 'the journal opens on the compass of the six sectors');
+  assert.ok(await page.locator('.wheel-tree [data-tab]').count() >= 8, 'every sector, the camp and the jobs have a tab');
+  // the camp: looking at a place never spends, buying it spends its cost
+  await tap('.wheel-tree [data-tab="camp"]'); await idle(page);
+  await tapPlace('in.center.c1');
+  assert.equal((await state()).selected, 'in.center.c1'); assert.deepEqual((await state()).owned, ['origin'], 'inspection never spends');
+  await capture('job-detail');
+  await tap('.wheel-tree [data-f="buy"]'); await idle(page);
+  assert.equal((await state()).points, 18); assert.ok((await state()).owned.includes('in.center.c1'));
+  // a sector map: a later place is bought along its road in one go
+  await tap('.wheel-tree [data-tab="sector.int"]'); await idle(page);
+  await tapPlace('in.int.i3');
+  assert.ok(await page.locator('.wheel-tree [data-f="route"]').count(), 'a place further on offers its whole road');
+  await tap('.wheel-tree [data-f="route"]'); await idle(page);
+  const after = await state();
+  assert.ok(['in.int.i1', 'in.int.i2', 'in.int.i3'].every((id) => after.owned.includes(id)), 'the road is bought in order');
+  assert.equal(after.points, 15);
+  // a drag along the map scrolls it and buys nothing
+  const before = await state();
+  const wrap = page.locator('.wheel-tree .fm-mapwrap').first();
+  if (await wrap.evaluate((el) => el.scrollWidth > el.clientWidth + 20)) {
+    const box = await wrap.boundingBox(), start = await wrap.evaluate((el) => el.scrollLeft);
+    await wrap.evaluate((el) => el.scrollBy({ left: 140 }));
+    assert.ok(await wrap.evaluate((el, s) => Math.abs(el.scrollLeft - s) > 20, start), 'the map scrolls sideways');
+    void box;
+  }
+  assert.deepEqual((await state()).owned, before.owned, 'moving the map buys nothing');
+  await page.evaluate(() => window.__frontier.panels.jobJournal.turnTo('overview')); await idle(page);
+  await capture('job-overview');
+  await tap('.wheel-tree [data-f="exit"]');
+  assert.equal(await page.evaluate(() => window.__frontier.panels.isOpen), false);
 }

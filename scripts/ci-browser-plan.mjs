@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { RASTER_ICONS } from '../src/ui/raster-icons.js';
 
-export const ROUTING_VERSION = 5;
+export const ROUTING_VERSION = 6;
 export const SUITES = {
   boot: ['boot.mjs'],
   opening: ['opening.mjs'],
@@ -19,19 +19,16 @@ export const SUITES = {
   ux: ['ux.mjs'],
   lab: ['lab.mjs'],
   capture: ['capture.mjs'],
-  save: ['journal-route-save.mjs'],
+  save: ['wheel-save.mjs'],
   icons: ['icon-consumers.mjs'],
   'monster-identity': ['monster-identity.mjs'],
   quests: ['quest-journal.mjs'],
   // Full postmerge/manual CI owns ALL of the existing broad UI/HUD review.
   // Keep separate shards: moving ownership must not create a 9-script timeout.
-  journal: ['journal.mjs'],
-  'journal-motion': ['skill-journal.mjs'],
+  // the wheel Job Tree journal (phase C): its walk-through with asserts
+  journal: ['wheel-tree.mjs'],
   overlays: ['fullscreen-overlays.mjs'],
   workspaces: ['workspaces.mjs'],
-  'journal-upgrade': ['journal-route-upgrade.mjs'],
-  'journal-lines': ['journal-lines.mjs'],
-  'skill-lines': ['skill-lines.mjs'],
   wearable: ['wearable-level.mjs'],
   hud: ['fieldhud.mjs', 'gameplay-qol.mjs'],
 };
@@ -39,7 +36,7 @@ export const FULL_SUITES = Object.keys(SUITES);
 // Scripts run with the game's real full preload (every map prepared before play);
 // the rest use the development load (start map only, FRONTIER_LOAD=dev).
 export const FULL_LOAD = new Set(SUITES.world);
-export const LEGACY_UI_SUITES = ['journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'save'];
+export const LEGACY_UI_SUITES = ['journal', 'overlays', 'workspaces', 'wearable', 'save'];
 const UI_TESTS = new Set(['ux', 'journal', 'workspaces', 'passive-checks']);
 
 // Demo release policy: bounded risk checks, not full-regression certification.
@@ -50,7 +47,7 @@ export const SHARED_SUITES = ['boot', 'smoke', 'combat', 'menu', 'save', 'hud'];
 export function riskSuites(file) {
   const name = file.split('/').at(-1).split('.')[0];
   if (file === 'src/save.js' || /^(?:character|progression|skills|jobtree|mods|journal)(?:-|$)/.test(name))
-    return ['save', 'opening', 'journal-upgrade', 'skill-lines'];
+    return ['save', 'opening', 'journal'];
   if (/^(?:world|terrain|map|harbor|city|ground|environment)(?:-|$)/.test(name)) return ['world', 'smoke'];
   if (/^(?:ai|combat|monsters?|damage|projectiles?|physical|vfx|status|boss)(?:-|$)/.test(name))
     return ['combat', 'monster-identity', 'smoke'];
@@ -71,10 +68,10 @@ const LOCAL_PATHS = {
   'src/ui/quest-journal.js': ['quests', 'hud'],
   'src/ui/fieldhud.css': ['hud'],
 };
-const JOURNAL_FILES = new Set(['camera.js', 'format.js', 'journal.css', 'journal.js', 'layout.js',
-  'line-groups.js', 'model.js', 'page-turn.js', 'paper-audio.js', 'presentation.js', 'route-motion.js',
-  'fonts/noto-thai-400.ttf', 'fonts/noto-thai-600.ttf', 'fonts/OFL.txt'].map(file => `src/ui/skill-journal/${file}`));
-const JOURNAL_SUITES = ['menu', 'save', 'journal', 'journal-motion', 'overlays', 'journal-upgrade', 'journal-lines', 'skill-lines'];
+// the wheel Job Tree journal (phase C) and the shared Thai face
+const JOURNAL_FILES = new Set(['wheel-view.js', 'wheel-map-layout.js', 'wheel.css', 'effect-format.js', 'jobview.js', 'fonts.css',
+  'fonts/noto-thai-400.ttf', 'fonts/noto-thai-600.ttf', 'fonts/OFL.txt'].map(file => `src/ui/${file}`));
+const JOURNAL_SUITES = ['menu', 'save', 'journal', 'overlays'];
 // New/unregistered images and the registry itself fail closed. These bytes are
 // consumed by inventory, crafting, skill buttons, atlas/quests and ground loot.
 export const ITEM_IMAGES = new Set(Object.entries(RASTER_ICONS)

@@ -2,7 +2,7 @@
 // Panels draws the main menu (hub) and the group sidebar from this; the HUD button and the
 // keyboard shortcuts open the hub or a page directly.
 export const MENU_GROUPS = [
-  { id: 'hero', title: 'นักผจญภัย', sub: 'ค่าสถานะและเส้นทางพาสซีฟ', icon: 'person', pages: ['char', 'job'] },
+  { id: 'hero', title: 'นักผจญภัย', sub: 'ค่าสถานะและสมุดเส้นทางสกิล', icon: 'person', pages: ['char', 'job'] },
   { id: 'build', title: 'สกิลและม็อด', sub: 'จัดชุดการต่อสู้และอัปเกรด', icon: 'book', pages: ['skills', 'mods', 'movement', 'growth'] },
   { id: 'items', title: 'ของและร้านค้า', sub: 'อุปกรณ์ คราฟต์ ซื้อขาย', icon: 'bag', pages: ['bag', 'craft', 'forge', 'shop'] },
   { id: 'world', title: 'การเดินทาง', sub: 'ภารกิจและแผนที่โลก', icon: 'scroll', pages: ['journal', 'map'] },
@@ -11,7 +11,7 @@ export const MENU_GROUPS = [
 
 export const MENU_PAGES = {
   char: { label: 'ตัวละคร', desc: 'ค่าสถานะ แต้ม Stat', icon: 'person', key: 'C' },
-  job: { label: 'เส้นทางพาสซีฟ', desc: 'Job Tree ใช้แต้ม Job', icon: 'tree', key: 'J' },
+  job: { label: 'สมุดเส้นทางสกิล', desc: 'Job Tree ใช้แต้ม Job', icon: 'tree', key: 'J' },
   skills: { label: 'ชุดสกิล', desc: 'ใส่สกิลลงช่องต่อสู้', icon: 'book', key: 'K' },
   mods: { label: 'ม็อด', desc: 'ใส่เหรียญม็อดในสกิล', icon: 'hex' },
   movement: { label: 'เคลื่อนที่', desc: 'สกิลพุ่งและหลบ', icon: 'dash' },

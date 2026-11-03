@@ -55,7 +55,7 @@ const jobs = (state = 'success', published = 'success') => [{ id: 42, name: 'dep
 test('bounded routing covers explicit high-risk families and never expands every shared file to full', () => {
   const cases = [
     ['src/core/ai.js', ['combat', 'monster-identity']], ['data/world.json', ['world', 'smoke']],
-    ['src/save.js', ['save', 'journal-upgrade']], ['src/core/skills.js', ['save', 'skill-lines']],
+    ['src/save.js', ['save', 'journal']], ['src/core/skills.js', ['save', 'journal']],
     ['data/items.json', ['items', 'weapons', 'monster-identity']], ['src/core/crafting.js', ['equipment-focus', 'items']],
     ['src/ui/new-panel.js', ['menu', 'hud', 'overlays']], ['src/main.js', ['combat', 'smoke', 'menu']],
     ['package-lock.json', ['combat', 'smoke']], ['new-runtime.js', ['combat', 'smoke']],

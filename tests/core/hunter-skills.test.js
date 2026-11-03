@@ -175,7 +175,7 @@ test('a called companion runs in from the wild first: it does nothing until it i
   assert.ok(g.monsters[0].hp < hp0, 'then it goes in and bites');
 });
 
-test('Companion fetch (the Ranger trunk node): an idle companion brings the drops lying round the hero, never while fighting', () => {
+test('Companion fetch (the Hunter trunk node): an idle companion brings the drops lying round the hero, never while fighting', () => {
   const { g, mk } = fixture(['call_companion']);
   g.executeSkill(g.skills[0], { angle: 0, x: 0, z: 0 });
   const a = g.allies.find((q) => q.type === 'hunt_hound');
@@ -186,9 +186,9 @@ test('Companion fetch (the Ranger trunk node): an idle companion brings the drop
   g.derived.companionFetch = 0; g.drops = [drop];
   run(g, 2);
   assert.equal(drop.carrier, undefined); assert.ok(dist(drop, { x: 9, z: 0 }) < 1e-9, 'untouched');
-  // the Ranger's job node carries it
-  assert.ok(data.jobtree.nodes.rj.effects.companionFetch > 0);
-  g.derived.companionFetch = data.jobtree.nodes.rj.effects.companionFetch;
+  // the Hunter's first trunk node carries it
+  assert.ok(data.jobtree.nodes['job.hunter.trunk1'].effects.companionFetch > 0);
+  g.derived.companionFetch = data.jobtree.nodes['job.hunter.trunk1'].effects.companionFetch;
   const gold0 = g.ch.gold;
   let took = false;
   for (let t = 0; t < 12 && g.drops.length; t += 0.05) {

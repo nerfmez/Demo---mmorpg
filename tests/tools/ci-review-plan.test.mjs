@@ -70,7 +70,7 @@ test('monster identities have one owner in affected/full CI and both-engine head
 });
 test('bounded routes retain selected UI/HUD owners in both source plans', () => {
   for (const file of ['src/ui/equipment-avatar.js', 'src/ui/menu-map.js', 'src/ui/mapimage.js',
-    'src/ui/skill-journal/journal.js', 'src/ui/skill-journal/fonts/noto-thai-400.ttf',
+    'src/ui/wheel-view.js', 'src/ui/fonts/noto-thai-400.ttf',
     'tests/browser/ux.mjs', 'tests/browser/journal.mjs', 'tests/browser/workspaces.mjs']) {
     const suites = browserPlan([file]).suites, legacy = legacyReviewRequirements(file);
     assert.ok(legacy.ui, file);

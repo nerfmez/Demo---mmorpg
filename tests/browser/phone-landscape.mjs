@@ -75,7 +75,7 @@ try {
     }
     if (only !== 'pages') {
     // the wheel tree journal (preview)
-    await page.goto(base + '?fresh=1&load=dev&quality=low&seed=5&tree=wheel');
+    await page.goto(base + '?fresh=1&load=dev&quality=low&seed=5');
     await ready(page);
     await freezeScene(page);
     await page.evaluate(() => { const f = window.__frontier; f.game.ch.jobPoints = 5; f.panels.open('job'); });

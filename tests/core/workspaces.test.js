@@ -1,11 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data as liveData,withField} from './helpers.js';
-const data=withField(liveData);
-import {CHARACTER_VERSION,createCharacter,derive,allocateJobNode,jobNodeState,migrateCharacter} from '../../src/core/character.js';
+// four passive nodes with the effects the rules support (the wheel spreads them over its sectors and jobs)
+const PASSIVES={dot_power:{effects:{dotDamagePct:5}},lasting_time:{effects:{persistentDurationPct:6}},aoe_radius:{effects:{areaRadiusPct:4}},cc_time:{effects:{controlDurationPct:5}}};
+const field=withField(liveData),data={...field,jobtree:{...field.jobtree,nodes:{...field.jobtree.nodes,...PASSIVES}}};
+import {createCharacter,derive} from '../../src/core/character.js';
 import {modFits,socketMod,computeSkill,unsocketMod} from '../../src/core/skills.js';
 import {TAGS,modRules,modStatus,skillMeta} from '../../src/ui/buildmeta.js';
-import {clusterNodes} from '../../src/ui/jobview.js';
 function fixture(id='test_mire',mods=[]) {
  const ch=createCharacter(data); for(const k in ch.stats)ch.stats[k]=20;
  ch.skills[id]=1;ch.slots[0]={skill:id,mods:[]};ch.mods=mods.map((id,i)=>({id,uid:100+i,level:1}));
@@ -22,28 +23,6 @@ test('every skill, movement and mod has a known visible type and complete rule v
  assert.ok(data.skills.combat.test_mire.tags.includes('DoT'));
  assert.ok(!data.skills.combat.healing_spring.tags.includes('DoT'));
  assert.ok(!data.skills.combat.hex.tags.includes('Persistent'));
-});
-test('constellations cover every node and specialist subviews preserve the four jobs',()=>{
- const t=data.jobtree;assert.equal(t.constellations.length,10);
- for(const [id,n]of Object.entries(t.nodes)){
-  assert.ok(t.constellations.some(c=>c.id===n.category),id);
-  assert.equal(n.clusterPos.length,2);assert.ok(n.clusterPos.every(Number.isFinite));
- }
- // 242 original nodes plus the generated build lines and their bridges (scripts/journal-lines.mjs).
- assert.equal(Object.keys(t.nodes).length,242+Object.values(t.nodes).filter(n=>n.line||n.bridge).length);
- for(const [id,n] of Object.entries(t.nodes)){
-  assert.ok(t.sections[n.section],id+' belongs to a major section');
-  assert.ok(!('tier' in n)&&!('requiresSpent' in n),id+' has no individual stage gate');
- }
- for(const group of t.groups){const ns=clusterNodes(t,'specialist',group.id);assert.equal(ns.length,37);assert.ok(ns.some(([id])=>id===group.job));}
-});
-test('new small stat nodes spend Job Points only and retain old saved nodes',()=>{
- const ch=createCharacter(data);ch.jobPoints=20;const before=ch.statPoints;
- assert.ok(allocateJobNode(ch,data,'f_hp').done);assert.equal(ch.statPoints,before);assert.equal(ch.jobPoints,19);
- const base=createCharacter(data);assert.equal(derive(ch,data).maxHp-derive(base,data).maxHp,data.jobtree.nodes.f_hp.effects.maxHp);
- const old={...ch,jobNodes:['origin','a1','a2','aj'],jobLevel:8};migrateCharacter(old,data);
- assert.deepEqual(old.jobNodes,['origin','a1','a2','aj']);assert.equal(old.version,CHARACTER_VERSION);
- assert.equal(data.jobtree.sections[data.jobtree.nodes.aoe_master.section].tier,4);assert.equal(data.jobtree.sections[data.jobtree.nodes.aoe_master.section].requiresSpent,17);assert.equal(jobNodeState(ch,data,'aoe_master').reason,'tier_points');
 });
 test('mod compatibility uses needs/on/not/family and explanations expose each rule',()=>{
  const S=data.skills.combat,M=data.mods.mods;

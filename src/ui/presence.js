@@ -10,6 +10,10 @@ export function createPresence(game, view, resetInput, modelsReady, options = {}
   const actors = new RemotePlayers(view, game.data);
   const root = document.createElement('details'); root.className = 'presence-panel';
   root.innerHTML = `<summary>ผู้เล่นออนไลน์ · ทดลอง</summary><div class="presence-content"><strong>Experimental visual prototype</strong><p>เห็นผู้เล่น การเดินและท่าโจมตี · มอนสเตอร์ ไอเทมและเซฟยังแยกกัน</p><label>ห้อง / Room <input maxlength="24" value="lobby" aria-label="Room"></label><div class="presence-actions"><button type="button" data-join>เข้าห้อง / Join</button><button type="button" data-leave>${required ? 'เชื่อมต่อใหม่ / Retry' : 'เล่นคนเดียว / Solo'}</button></div><output role="status"></output></div>`;
+  // the experimental online chip is for online builds and testing only (owner, 2026-11-03: off the play HUD);
+  // ?presence=1 or options.visible brings it back
+  const visible = required || !!options.visible || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('presence') === '1');
+  if (!visible) root.hidden = true;
   document.body.append(root);
   const output = root.querySelector('output'), join = root.querySelector('[data-join]'), room = root.querySelector('input');
   join.disabled = !endpoint;

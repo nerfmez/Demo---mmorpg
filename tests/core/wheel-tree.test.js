@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { data as live } from './helpers.js';
 import { createCharacter, allocateJobNode, jobNodeState, respecJob, jobPointsSpent, derive, currentJob, nodeCost } from '../../src/core/character.js';
 
-const wheel = JSON.parse(readFileSync(new URL('../../data/wheeltree.json', import.meta.url), 'utf8'));
+const wheel = JSON.parse(readFileSync(new URL('../../data/jobtree.json', import.meta.url), 'utf8'));
 const data = { ...live, jobtree: wheel };
 const N = wheel.nodes;
 const hero = (jobLevel = 70, points = 70) => Object.assign(createCharacter(data), { jobLevel, jobPoints: points, gold: 1e6 });

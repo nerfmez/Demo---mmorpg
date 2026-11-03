@@ -32,7 +32,7 @@ try {
     console.log('BOOT', map || 'azure');
     const other = p === a ? b : a;
     if (await other.evaluate(() => !!window.__frontier?.game)) await other.evaluate(() => { __frontier.paused = true; __frontier.panels.tab = 'job'; });
-    await p.goto(`${origin}/?fresh=1&quality=low&stream=0&map=${map}${p === b ? '&kit=bow' : ''}`);
+    await p.goto(`${origin}/?fresh=1&presence=1&quality=low&stream=0&map=${map}${p === b ? '&kit=bow' : ''}`);
     await p.bringToFront();
     await p.waitForFunction(() => !!window.__frontier?.view);
     await p.evaluate(() => __frontier.view.setRenderScale(.5)); // software GPU; retain full-size HUD/touch layout, including startup
@@ -153,7 +153,7 @@ try {
   });
   if (!hosted) { await app.close(); app = null; }
   else await a.routeWebSocket(endpoint, ws => ws.close({ code: 1008, reason: 'test unavailable' }));
-  await a.goto(`${origin}/?quality=low&stream=0&map=moonroot-grove-v1`); await a.bringToFront();
+  await a.goto(`${origin}/?presence=1&quality=low&stream=0&map=moonroot-grove-v1`); await a.bringToFront();
   await enterFullscreenGate(a); await activate(a, '[data-act="continue"]');
   await a.waitForFunction(initialUiReady, null, { timeout: 180000 });
   await a.waitForFunction(() => __frontier.presence.client.status === 'reconnecting', null, { polling: 100 });

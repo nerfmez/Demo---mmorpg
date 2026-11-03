@@ -19,3 +19,4 @@ body:has(.overlay.on, .menu-layer.on) .presence-panel { display: none; }
   .presence-panel { left: calc(10px + env(safe-area-inset-left)); top: calc(4px + env(safe-area-inset-top)); font-size: 10px; }
   .presence-panel summary { padding-block: 4px; min-height: 28px; }
 }
+.presence-panel[hidden] { display: none !important; }

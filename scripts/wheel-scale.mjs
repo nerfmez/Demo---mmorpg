@@ -1,6 +1,6 @@
 // The job skills' numbers the wheel tree is designed with (data/drafts/wheel.json skillScale): each entry
-// multiplies a skill's damage, heal or summon bite (base and scale) in data/skills.json. The live game keeps
-// skills.json as it is until the wheel tree ships; the wheel tools read the data through this.
+// multiplies a skill's damage, heal or summon bite (base and scale) in data/skills.json. The wheel shipped at
+// phase C with its multipliers baked into skills.json; new ones are tried here before they go there too.
 export function applySkillScale(data, scale = {}) {
   const combat = { ...data.skills.combat };
   for (const [id, k] of Object.entries(scale)) {

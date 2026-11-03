@@ -7,12 +7,12 @@ import { prExecutionRange } from './ci-pr-source.mjs';
 import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 import { browserShards } from './ci-browser-shards.mjs';
 
-export const UI_SUITES = ['save', 'opening', 'journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'equipment-focus', 'equipment-inactive', 'monster-identity'];
+export const UI_SUITES = ['save', 'opening', 'journal', 'overlays', 'workspaces', 'wearable', 'equipment-focus', 'equipment-inactive', 'monster-identity'];
 export const HUD_SUITES = ['hud'];
 const SHA = /^[a-f0-9]{40}$/;
 // Longest jobs first; interleave engines instead of queueing all WebKit after Chromium.
 export const SCHEDULE = ['ux', 'weapons', 'capture', 'world', 'wearable', 'equipment', 'combat', 'smoke',
-  'workspaces', 'journal-motion', 'skill-lines', 'journal-lines', 'journal-upgrade', 'journal',
+  'workspaces', 'journal',
   'overlays', 'save', 'opening', 'items', 'menu', 'quests', 'icons', 'monster-identity', 'lab', 'hud', 'equipment-focus', 'equipment-inactive', 'boot'];
 export function reviewPlan({ source, sourceTree, merge = source, mergeTree = sourceTree, suites, mode, driftSuites = [] }) {
   if (![source, sourceTree, merge, mergeTree].every(sha => SHA.test(sha)) ||

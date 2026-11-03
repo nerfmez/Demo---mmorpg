@@ -1,5 +1,5 @@
 // Build the wheel Job Tree the game plays from the simulated draft (owner, 2026-11-03: "ทำทรีวงล้อเข้าเกม").
-// data/drafts/wheel.json -> data/wheeltree.json, in the shape core/character.js reads (nodes with
+// data/drafts/wheel.json -> data/jobtree.json (the game's Job Tree since phase C, 2026-11-03), in the shape core/character.js reads (nodes with
 // requires / requiresAny, type, requiresJob, effects) plus what the wheel adds: a node's `cost` in points
 // (pass 1, key 2, capstone 3, a job's entry 0), `forkGroup` (pick one of a key's forks, same price) and
 // the tree's `jobChoiceLevel` (a job is chosen at Job Lv 40). A conditional effect the simulator weighed
@@ -51,11 +51,12 @@ for (const [job, J] of Object.entries(W.jobs)) {
 for (const [id, n] of Object.entries(nodes)) for (const p of [...(n.requires || []), ...(n.requiresAny || [])]) { n.links.push(p); nodes[p].links.push(id); }
 const tree = {
   _doc: 'The wheel Job Tree, built by scripts/wheel-build.mjs from data/drafts/wheel.json (do not edit by hand). Inner ring: Job Lv 1-39 points, from the centre outward in any sector. Jobs: one, chosen at jobChoiceLevel; its entry is free, then trunk and branches (pass 1 point, key 2, capstone 3; a fork is one of its keys at the same price). Effects with an uptime are written at the simulated average until their condition is a rule.',
-  origin: 'origin', jobChoiceLevel: 40, points: W.points,
+  // a new revision makes migrateCharacter refund every node a save holds that this tree does not have
+  origin: 'origin', revision: 'wheel-1', jobChoiceLevel: 40, points: W.points,
   jobs: Object.fromEntries(Object.entries(W.jobs).map(([id, J]) => [id, { nameTh: J.name, entry: `job.${id}`, branches: Object.fromEntries(Object.entries(J.branches).map(([b, B]) => [b, { nameTh: B.name, role: B.role }])) }])),
   sectors: SECTOR,
   nodes,
 };
-writeFileSync(new URL('../data/wheeltree.json', import.meta.url), JSON.stringify(tree, null, 1) + '\n');
+writeFileSync(new URL('../data/jobtree.json', import.meta.url), JSON.stringify(tree, null, 1) + '\n');
 const count = Object.keys(nodes).length, cost = Object.values(nodes).reduce((a, n) => a + n.cost, 0);
 console.log(`${count} nodes, ${cost} points in all`);

@@ -17,37 +17,8 @@
     "inner": 39,
     "job": 31
   },
-  "_skillScaleDoc": "Feel per point (2026-11-02): the job skills' damage, heal or summon bite (base and scale) the wheel tree is designed with, as multipliers on data/skills.json. The live game keeps today's numbers while it runs the old tree; when the wheel tree ships these multipliers go into skills.json with it. scripts/wheel-sim.mjs applies them; scripts/wheel-feel.mjs writes them.",
-  "skillScale": {
-    "spike_trap": 0.757,
-    "blast_trap": 0.757,
-    "trap_field": 0.75,
-    "flame_geyser": 1.095,
-    "lightning_rod": 1.529,
-    "spore_pod": 1.509,
-    "call_companion": 0.252,
-    "mark_prey": 0.244,
-    "spirit_swarm": 0.37,
-    "call_alpha": 0.37,
-    "pack_hunt": 0.252,
-    "sky_shatter": 0.658,
-    "earth_rend": 0.658,
-    "cross_cut": 0.773,
-    "blade_storm": 0.772,
-    "backstab": 0.825,
-    "steal": 1.062,
-    "meteor": 1.082,
-    "blizzard": 1.007,
-    "thunderstorm": 0.846,
-    "spell_wave": 1.149,
-    "shield_rush": 2.313,
-    "fire_arrow_rain": 1.198,
-    "thunder_lance": 1.129,
-    "flame_slash": 1.016,
-    "ice_spikes": 0.919,
-    "thunder_slash": 1.15,
-    "blood_boil": 0.757
-  },
+  "_skillScaleDoc": "Feel per point: multipliers on the job skills' damage, heal or summon bite (base and scale). The wheel tree shipped at phase C (2026-11-03) with the multipliers it was designed with baked into data/skills.json, so this list starts empty again; scripts/wheel-feel.mjs writes new ones and scripts/wheel-sim.mjs applies them on top of skills.json.",
+  "skillScale": {},
   "inner": {
     "center": [
       {
@@ -132,9 +103,10 @@
       },
       {
         "id": "s6",
-        "name": "HP",
+        "name": "HP · ทนทาน",
         "effects": {
-          "maxHpPct": 3
+          "maxHpPct": 3,
+          "tenacityPct": 4
         }
       },
       {
@@ -160,9 +132,10 @@
       },
       {
         "id": "s10",
-        "name": "HP",
+        "name": "HP · ทนทาน",
         "effects": {
-          "maxHpPct": 3
+          "maxHpPct": 3,
+          "tenacityPct": 4
         }
       },
       {
@@ -283,9 +256,10 @@
       },
       {
         "id": "d3",
-        "name": "ความเร็ววิ่ง",
+        "name": "ความเร็ววิ่ง · ต้านธาตุ",
         "effects": {
-          "moveSpeedPct": 2
+          "moveSpeedPct": 2,
+          "resistAllPct": 3
         }
       },
       {
@@ -325,9 +299,10 @@
       },
       {
         "id": "d9",
-        "name": "ความเร็ววิ่ง",
+        "name": "ความเร็ววิ่ง · ต้านธาตุ",
         "effects": {
-          "moveSpeedPct": 2
+          "moveSpeedPct": 2,
+          "resistAllPct": 3
         }
       },
       {
@@ -470,9 +445,10 @@
       },
       {
         "id": "i5",
-        "name": "MP",
+        "name": "MP · ต้านธาตุ",
         "effects": {
-          "maxMpPct": 4
+          "maxMpPct": 4,
+          "resistAllPct": 3
         }
       },
       {
@@ -506,9 +482,10 @@
       },
       {
         "id": "i10",
-        "name": "MP",
+        "name": "MP · ต้านธาตุ",
         "effects": {
-          "maxMpPct": 4
+          "maxMpPct": 4,
+          "resistAllPct": 3
         }
       },
       {
@@ -3304,5 +3281,6 @@
     "_doc": "A side line hangs on a node of a sector instead of the centre (owner, 2026-11-03: a heavy weapon line and a dual wield line; their stats count only with that weapon, character.js foldWeaponStats).",
     "heavy": "str.s4",
     "dual": "strdex.sd4"
-  }
+  },
+  "_defenseDoc": "Defensive line (docs/SKILL-TREE-WHEEL-DRAFT-TH.md section 12): carried from the earlier tree into the wheel at phase C (2026-11-03): STR HP nodes s6/s10 also give tenacityPct 4, INT MP nodes i5/i10 and DEX run nodes d3/d9 also give resistAllPct 3."
 }

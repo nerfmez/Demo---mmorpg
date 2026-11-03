@@ -9,8 +9,9 @@ import { SUITES, FULL_SUITES, browserPlan } from '../../scripts/ci-browser-plan.
 test('full inventory retains every original CI browser check, boot/save and broad UI/HUD ownership', () => {
   const original = ['smoke', 'map-travel', 'open-world', 'open-world-city', 'midhigh-monsters', 'gear-hands', 'weapon-loading', 'weapon-models', 'shop-potions', 'potions-moving', 'details-touch', 'menu-hub', 'coastal-attacks', 'lab', 'ux', 'capture'];
   const scripts = Object.values(SUITES).flat();
-  for (const name of [...original, 'boot', 'opening', 'journal-route-save', 'details-game-touch', 'journal', 'skill-journal',
-    'fullscreen-overlays', 'workspaces', 'journal-route-upgrade', 'journal-lines', 'skill-lines', 'wearable-level', 'fieldhud'])
+  // phase C: the wheel journal (wheel-tree) and its save gate (wheel-save) replace the old skill journal's scripts
+  for (const name of [...original, 'boot', 'opening', 'wheel-save', 'details-game-touch', 'wheel-tree',
+    'fullscreen-overlays', 'workspaces', 'wearable-level', 'fieldhud'])
     assert.ok(scripts.includes(`${name}.mjs`), name);
   assert.equal(new Set(scripts).size, scripts.length, 'each check has one shard owner');
   for (const script of scripts) assert.ok(existsSync(new URL(`../browser/${script}`, import.meta.url)), script);
@@ -24,7 +25,7 @@ test('documentation and tool tests select no browsers; infrastructure fails clos
 test('bounded local dependencies include their cross-area consumers', () => {
   assert.deepEqual(browserPlan(['src/ui/menu.js']).suites, ['boot', 'menu', 'save']);
   for (const path of ['public/models/weapons/new.glb', 'docs/WEAPON-MODEL-PROVENANCE.json']) assert.ok(browserPlan([path]).suites.includes('weapons'));
-  for (const path of ['src/ui/skill-journal/journal.js', 'src/ui/skill-journal/paper-audio.js']) assert.ok(browserPlan([path]).suites.includes('save'));
+  for (const path of ['src/ui/wheel-view.js', 'src/ui/wheel.css']) assert.ok(browserPlan([path]).suites.includes('save'));
 });
 test('core, data, saves, shared code, dependency and unknown paths select bounded safety', () => {
   for (const file of ['src/core/ai.js', 'tests/core/save.test.js', 'src/save.js', 'data/items.json', 'src/main.js', 'src/ui/panels.js', 'src/ui/input.js', 'src/ui/style.css', 'src/render/models.js', 'src/render/view.js', 'tests/browser/fullscreen-entry.mjs', 'tests/browser/new-test.mjs', 'package-lock.json', 'vite.config.js', 'new-runtime.js', 'src/new\nfile.js']) {

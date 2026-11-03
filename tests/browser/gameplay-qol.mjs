@@ -25,7 +25,7 @@ try {
   await page.evaluate(()=>{__frontier.paused=true;__frontier.input.reset();document.querySelector('.banner')?.remove();});
   if(touch)await page.evaluate(()=>{for(const [k,v] of Object.entries({'--safe-t':'12px','--safe-l':'12px','--safe-r':'12px','--safe-b':'20px'}))document.documentElement.style.setProperty(k,v);dispatchEvent(new Event('resize'));});
   await page.waitForFunction(()=>document.querySelector('.ammo-count').textContent==='200');
-  assert.equal(await page.locator('.auto-potions-hud small').innerText(),'HP ปิด · MP ปิด');
+  assert.equal(await page.locator('.auto-potions-hud').getAttribute('data-status'),'HP ปิด · MP ปิด');
   const hitTargets=['.ammo-hud','.auto-potions-hud','.questtrack','.pframe','.sbtn.attack',...(touch?['.joy']:[])];
   const boxes=await page.evaluate(selectors=>selectors.map(s=>{const e=document.querySelector(s),r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {s,x:r.x,y:r.y,right:r.right,bottom:r.bottom,w:r.width,h:r.height,hit:(s==='.joy'?document.querySelector('.joyzone'):e).contains(hit)};}),hitTargets);
   await page.screenshot({path:out+size+'-bow-hud.png'});

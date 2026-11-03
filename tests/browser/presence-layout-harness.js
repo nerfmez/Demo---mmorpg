@@ -24,7 +24,7 @@ hud.onPanel = tab => panels.open(tab);
 hud.addMenuButton('bag', 'I', () => panels.toggle('bag'), 'กระเป๋า');
 hud.addMenuButton('book', 'K', () => panels.toggle('skills'), 'สกิล');
 const fullscreen = createFullscreen({ bypass: true, onResize() {}, onBlocked: () => input.reset() });
-presence = createPresence(game, view, () => input.reset(), () => true);
+presence = createPresence(game, view, () => input.reset(), () => true, { visible: true });
 // Exercise real Join/Solo handlers and DOM status without opening any socket.
 presence.client.start = room => { presence.client.room = room; presence.client.statusTo('online'); };
 window.__frontier = { game, hud, panels, input, supplies, presence, fullscreen, rendererOmitted: true, networkStubbed: true };

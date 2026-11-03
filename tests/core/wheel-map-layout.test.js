@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { bookPages, pageMap, pageOf, radius } from '../../src/ui/wheel-map-layout.js';
 
-const tree = JSON.parse(readFileSync(new URL('../../data/wheeltree.json', import.meta.url), 'utf8'));
+const tree = JSON.parse(readFileSync(new URL('../../data/jobtree.json', import.meta.url), 'utf8'));
 const N = tree.nodes;
 
 test('every node has a map, and pageOf finds it there', () => {

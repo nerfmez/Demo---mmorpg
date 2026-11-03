@@ -11,9 +11,8 @@ import {
   jobPointsSpent, jobChoiceLevel,
 } from '../core/character.js';
 import { bookPages, pageMap, pageOf, radius, SECTOR_ORDER, SECTOR_ANGLE, SIDE_LINES, JOB_SECTOR } from './wheel-map-layout.js';
-import { effectLabel, effectValue } from './skill-journal/format.js';
+import { effectLabel, effectValue } from './effect-format.js';
 
-export const isWheelTree = (data) => !!data.jobtree?.jobs;
 
 // ---------- ink drawings (24px box) ----------
 const G = {

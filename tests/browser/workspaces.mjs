@@ -18,8 +18,8 @@ if(process.env.OFFLINE_UI){
  const {build}=await import('vite');
  const built=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'SeekerReview',formats:['iife']}}});
  offlineCode=built[0].output.find(o=>o.type==='chunk').code;
- offlineCss=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','loadout-workspace','skill-journal/journal','compact'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
- for(const weight of [400,600]){const f=readFileSync(new URL(`../../src/ui/skill-journal/fonts/noto-thai-${weight}.ttf`,import.meta.url)).toString('base64');offlineCss+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${f});font-weight:${weight}}`;}
+ offlineCss=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','loadout-workspace','wheel','compact'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
+ for(const weight of [400,600]){const f=readFileSync(new URL(`../../src/ui/fonts/noto-thai-${weight}.ttf`,import.meta.url)).toString('base64');offlineCss+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${f});font-weight:${weight}}`;}
  for(const subset of ['thai','latin']){
   const font=readFileSync(new URL('../../node_modules/@fontsource/mitr/files/mitr-'+subset+'-400-normal.woff2',import.meta.url)).toString('base64');
   offlineCss += `@font-face{font-family:Mitr;src:url(data:font/woff2;base64,${font}) format('woff2');font-weight:400;}`;
@@ -48,18 +48,20 @@ try{
   if(process.env.OFFLINE_UI){await page.setContent('<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><body><div id="hud"></div></body></html>');await page.addStyleTag({content:offlineCss});await page.addScriptTag({content:offlineCode});await page.evaluate(()=>document.fonts.ready);}else await page.goto(`http://localhost:${port}/?fresh=1&quality=low&seed=7`);if(!process.env.OFFLINE_UI)await waitForGameUi(page);else await page.waitForFunction(()=>window.__frontier?.game?.time>.2,null,{timeout:60000});await freezeScene(page);
   await page.evaluate(()=>{const f=window.__frontier,g=f.game;f.paused=true;for(const s in g.ch.stats)g.ch.stats[s]=20;for(const id in g.data.skills.combat)g.ch.skills[id]=1;g.ch.movementSkills=Object.keys(g.data.skills.movement);g.ch.jobPoints=30;g.ch.jobLevel=8;g.ch.gold=10000;for(const id in g.data.items.materials)g.ch.materials[id]=500;g.ch.mods=Object.keys(g.data.mods.mods).map((id,i)=>({id,level:1,grade:'C',uid:900+i}));g.ch.slots[0]={skill:'stone_burst',mods:[]};g.refresh();f.panels.open('job');});
   const click=async sel=>{const q=page.locator(sel).first();return touch?q.tap():q.click();};
-  const nav=async tab=>{if(await page.locator('#atelier').isVisible()){await page.evaluate(tab=>__frontier.panels.open(tab),tab);return;}if(await page.locator('.is-journal').count()){await click('[data-action="exit"]');await page.evaluate(t=>window.__frontier.panels.open(t),tab);return;}if(!await page.locator(`[data-tab="${tab}"]`).count()){await page.evaluate(t=>window.__frontier.panels.open(t),tab);return;}if(width<=700)await page.locator('[data-page-select]').selectOption(tab);else await click(`[data-tab="${tab}"]`);};
+  const nav=async tab=>{if(await page.locator('#atelier').isVisible()){await page.evaluate(tab=>__frontier.panels.open(tab),tab);return;}if(await page.locator('.is-wheel').count()){await click('.wheel-tree [data-f="exit"]');await page.evaluate(t=>window.__frontier.panels.open(t),tab);return;}if(!await page.locator(`[data-tab="${tab}"]`).count()){await page.evaluate(t=>window.__frontier.panels.open(t),tab);return;}if(width<=700)await page.locator('[data-page-select]').selectOption(tab);else await click(`[data-tab="${tab}"]`);};
   const shot=async label=>{await page.screenshot({path:out+size+'-'+label+'.png',timeout:60000});};
   const noOverflow=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),size+' horizontal overflow');
-  assert.equal(await page.locator('#plane > [data-node]').count(),6);assert.equal(await page.locator('.seeker-constellation').count(),0);await noOverflow();await shot('shared-start');
+  // the Job Tree: the wheel tree's field journal (phase C); looking never spends, buying spends the cost
+  const idle=()=>page.waitForFunction(()=>{const s=window.__frontier.panels.jobJournal?.snapshot();return s&&!s.turning&&!s.animating&&!s.pending.length;},null,{timeout:60000});
+  await idle();assert.equal(await page.locator('.wheel-tree').count(),1);await noOverflow();await shot('shared-start');
   const before=await page.evaluate(()=>window.__frontier.game.ch.jobPoints);
-  await journalJump(page,'lesson.prepare');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before,'inspection never spends');
-  await click('[data-action="learn"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before-1);
-  await journalJump(page,'lesson.strike');assert.ok(await page.locator('[data-action="learn"][data-id="lesson.strike"]').count());
-  await click('[data-action="learn"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before-2);
-  await click('[data-action="close-detail"]');await click('[data-action="fit"]');await noOverflow();await shot('ordinary-path');
-  const pts=await page.evaluate(()=>window.__frontier.game.ch.jobPoints),rect=await page.locator('#map').boundingBox();
-  if(touch){await page.locator('#map').evaluate(el=>{const r=el.getBoundingClientRect();el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:15,pointerType:'touch',clientX:r.x+100,clientY:r.y+100}));el.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:15}));});}
+  await journalJump(page,'in.center.c1');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before,'inspection never spends');
+  await click('.wheel-tree [data-f="buy"]');await idle();assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before-1);
+  await journalJump(page,'in.center.c2');await click('.wheel-tree [data-f="buy"]');await idle();assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before-2);
+  if(await page.locator('.wheel-tree [data-note]:not([hidden]) [data-f="close"]').count())await click('.wheel-tree [data-note]:not([hidden]) [data-f="close"]');await noOverflow();await shot('ordinary-path');
+  // a cancelled touch or a drag over the map buys nothing
+  const pts=await page.evaluate(()=>window.__frontier.game.ch.jobPoints),rect=await page.locator('.wheel-tree .fm-mapwrap').first().boundingBox();
+  if(touch){await page.locator('.wheel-tree .fm-mapwrap').first().evaluate(el=>{const r=el.getBoundingClientRect();el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:15,pointerType:'touch',clientX:r.x+100,clientY:r.y+100}));el.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:15}));});}
   else{await page.mouse.move(rect.x+100,rect.y+150);await page.mouse.down();await page.mouse.move(rect.x+180,rect.y+190,{steps:5});await page.mouse.up();}
   assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),pts);
   await nav('skills');assert.equal(await page.locator('#atelier .skill-card').count(),4);await noOverflow();await shot('skills');

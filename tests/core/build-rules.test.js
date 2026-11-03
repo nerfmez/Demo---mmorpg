@@ -4,7 +4,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
-import { linePath } from '../../src/core/balance.js';
 import { AXES, buildProfile, gearSetStats, packTargets, dominates, auditBuilds } from '../../src/core/build-rules.js';
 
 const R = data.progression.balance.rules, cap = data.progression.balance.monsterCap;
@@ -46,18 +45,21 @@ test('a profile reads the build: gear sets shift damage and survival, shapes rea
   assert.equal(at('sword', 'mixed').team, 0);
 });
 
-test('the Job Tree as it is: no build is overpowered and every build has a weakness; lines lead their roles', () => {
-  const ROLE = { damage: 'single', crit: 'single', speed: 'single', physical: 'single', element: 'single', guardian: 'survival', mana: 'sustain', agility: 'mobility', treasure: 'income' };
-  for (const kit of ['sword', 'bow', 'staff']) {
-    const builds = [];
-    for (const [line, role] of Object.entries(ROLE)) for (const gear of Object.keys(R.gearSets)) {
-      builds.push({ id: `${line}/${gear}`, group: line, role, profile: buildProfile(data, { kit, level: cap, jobNodes: linePath(data, 'line.' + line).slice(0, 39), gear }) });
-    }
-    const a = auditBuilds(data, builds);
-    assert.deepEqual(a.overpowered, [], `${kit}: overpowered ${JSON.stringify(a.overpowered)}`);
-    assert.deepEqual(a.noWeakness, [], `${kit}: no weakness ${a.noWeakness}`);
-    for (const role of ['survival', 'mobility', 'income']) assert.ok(!a.roleMisses.some((m) => m.role === role), `${kit}: the ${role} line leads it`);
-  }
+// the wheel Job Tree (phase C): every build the draft allows (job, branch, fork, inner-ring plan, gear set,
+// spare points) is profiled by scripts/wheel-sim.mjs on the live skills; none may dominate another, every one
+// has a weakness and each role's lines lead it
+test('the wheel Job Tree as it ships: no build is overpowered, every build has a weakness, roles lead', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const { readFileSync, mkdtempSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const out = mkdtempSync(tmpdir() + '/wheel-sim-') + '/sim.json';
+  execFileSync(process.execPath, [new URL('../../scripts/wheel-sim.mjs', import.meta.url).pathname, out], { stdio: 'ignore' });
+  const sim = JSON.parse(readFileSync(out, 'utf8'));
+  assert.ok(sim.builds > 1000, 'the whole draft is simulated');
+  assert.deepEqual(sim.overpowered, [], 'overpowered');
+  assert.deepEqual(sim.noWeakness, [], 'no weakness');
+  assert.deepEqual(sim.roleMisses, [], 'roles lead');
+  assert.deepEqual(sim.overBudget, [], 'over budget');
 });
 
 test('a stun counts the wind-ups it cancels, not only the time it holds; team help scores as a difference', async () => {

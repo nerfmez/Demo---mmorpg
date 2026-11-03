@@ -47,7 +47,8 @@ test('speed follows the damage soft cap: past the threshold each point counts ha
 test('base cooldowns are 1.6x longer and damage per cast grew alike; a speed node is worth about a damage node', () => {
   assert.equal(combat.slash.cooldown, 1.2, 'main attacks slowed again to an MMORPG pace (owner, 2026-10-31)');
   assert.equal(combat.meteor.cooldown, 16);
-  const nodes = Object.values(data.jobtree.nodes).map((n) => n.effects || {});
+  // one point's worth: the wheel's 1-point nodes (keys and capstones cost more and carry more)
+  const nodes = Object.values(data.jobtree.nodes).filter((n) => (n.cost ?? 1) === 1).map((n) => n.effects || {});
   const median = (a) => a.sort((x, y) => x - y)[Math.floor(a.length / 2)];
   const speed = median(nodes.filter((e) => e.hastePct).map((e) => e.hastePct));
   const damage = median(nodes.flatMap((e) => Object.entries(e).filter(([k]) => k === 'damagePct' || k.endsWith('DamagePct')).map(([, v]) => v)));

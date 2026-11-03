@@ -1,7 +1,6 @@
 import {rasterIconMarkup,rasterIconUrl,MONSTER_PORTRAITS,SHARED_MONSTER_PORTRAITS,REGION_PORTRAITS} from './raster-icons.js';
 import { SKILL_ART } from './skillart.js';
 import {MOD_ART} from './gemart.js';
-import { JOB_ART } from './jobart.js';
 import { PENDING_SKILL_ICONS, pendingSkillArt } from './pending-art.js';
 // Authored cel-style artwork. Identity is keyed by content ID, never grade or rarity.
 // Every named object has its own silhouette/details; UI glyphs live separately in icons.js.
@@ -150,31 +149,6 @@ const zone = {
   coast: zoneBase(P('M6 84q30-10 58-2t58-4v38H6z','#e4d3a2','none')+P('M6 96q30-8 58 0t58-2v20H6z','#7fb6be','none')+L('M8 97c14-5 24 3 38-1m20 1c14-5 26 3 42-1','#eef6ee',3)+L('M34 90C30 60 34 40 44 26','#9a7a52',5)+P('M44 26c-18-6-30 4-32 12 12-8 22-8 32-12zm0 0c14-12 30-10 36-2-14-2-24 0-36 2zm0 0c-6-14-20-18-30-14 12 2 22 6 30 14zm0 0c8 2 24 8 26 20-10-10-18-14-26-20z','#6f9a55')+G(''+E(90,88,10,6,'#d8704b')+C(84,84,3,'#e27b50')+C(96,84,3,'#e27b50'),'')+C(100,30,12,'#f0cf86','none'),'#e4d3a2','#d7ebea')
 };
 
-const job = {
-  origin: P('M35 39l17-21 24 4 17 23-1 54-57 2z','#b29161')+C(64,62,23,'#e6dbb7')+P('M65 40l9 24-18 18 3-26z','#5d8e91')+L('M41 93h46','#6d553c',5),
-  v1: G(blade,'translate(3 1) scale(.85)')+L('M22 20l80 85','#b8905a',10)+L('M25 20l75 82','#ebc88e',4),
-  v2: P('M32 84l-7-24 14-24 16 12-3 19 20 9 16-26 17 8-13 43-36 6z','#c19971')+C(46,35,12,'#e5c19a')+L('M59 85l24 7','#745843',4),
-  vj: G(shield,'translate(-2 9) scale(.82)')+G(gear.horned_helm,'translate(38 -1) scale(.57)'),
-  v3: G(gear.crag_plate,'translate(10 12) scale(.8)')+P('M32 24l-11-6 5 28m70-18 13-10-5 28z','#d2c7a8'),
-  v4: P('M15 72C65 71 81 39 90 12c6 38-20 66-75 60zM24 96C82 91 93 64 105 31c7 49-24 70-81 65zM38 119c49-8 62-23 78-52 1 35-16 54-78 52z','#d6b47c'),
-  a1: P('M18 38l43-13 47 13v65L62 91l-44 12z','#8fa7a8')+P('M23 43l36-11v52l-36 11z','#e8d9b8')+L('M63 34v54m11-37 23 6m-23 9 23 6','#526e7c',4)+spark(84,27,13),
-  a2: E(64,87,37,22,'#a9b09b')+E(64,76,37,17,'#dbd0ac')+E(64,75,26,11,'#639ba3')+P('M66 17C31 50 48 66 65 65c20-2 21-22 1-48z','#a6d6c9'),
-  aj: G(gear.ancient_staff,'translate(2 1) scale(.9)')+P('M79 69l11 10-6 33-17-8z','#9a86a4')+spark(24,40,12),
-  a3: L('M25 92c-21-33 6-71 40-66 44-6 59 56 16 72','#a393b5',11)+L('M42 77c-16-23 14-45 34-26 15 16-5 35-14 19','#d6c39c',7)+spark(102,22,10),
-  a4: L('M22 98c70 2 10-78 83-78M23 75c52 0 8-52 61-55','#8cb6b3',7)+diamond(88,54,15,'#c3d8bc')+L('M21 46l28-20','#dec999',5),
-  r1: C(67,61,38,'#d1c69f')+C(67,61,24,'#859975')+C(67,61,9,'#e1c48e')+L('M17 110l50-49','#7b5f42',6)+P('M62 52l16-3-6 16z','#eef1d6'),
-  r2: G(boot,'translate(26 17) scale(.68)')+G(wing,'translate(-5 -10) scale(.8)'),
-  rj: P('M26 109C14 70 24 34 64 14c38 13 49 56 36 95L77 89l-13 24-18-24z','#678472')+P('M43 76c-10-35 34-48 43-13l-5 29-18 11-20-12z','#c9be94')+L('M31 114l63-65','#bb9861',6)+P('M87 48l22-6-6 21z','#e3debd'),
-  r3: P('M13 65c28-42 75-42 103 0-28 37-74 36-103 0z','#ded7b7')+C(64,64,22,'#83a5a1')+C(64,64,10,'#456970')+spark(69,56,6)+L('M42 19l-5 11m43-11 5 11','#b9a065',4),
-  r4: G(gear.hunter_bow,'translate(20 0) scale(.85)')+L('M9 44h26M8 61h29M13 78h26','#b8a46b',5)+P('M44 85l22-4-18 13z','#e4cf93'),
-  w1: P('M16 83l23-8 22 16 30-24 17 12-41 36-44-10z','#bca080')+L('M49 46h40M69 26v40','#83b29b',10)+spark(26,28,7),
-  w2: G(house,'translate(-5 -6) scale(.83)')+G(shield,'translate(55 53) scale(.48)'),
-  wj: G(shield,'translate(7 7) scale(.86)')+P('M24 64C2 41 20 18 48 23 47 45 43 58 24 64zm78 0c22-23 4-46-24-41 1 22 5 35 24 41z','#9fbc86')+L('M24 64l20-29m58 29-20-29','#d9dbab',3),
-  w3: C(64,63,48,'#9ebfb53b','#90b4a3',6)+P('M29 101V79l34-15 35 15v22z','#d6c09a')+P('M52 44h24v25H52z','#a3c5b2')+spark(63,23,10),
-  w4: L('M24 86c-17-46 40-81 78-35','#bac38c',7)+P('M91 42l20 16-24 4z','#bac38c')+P('M63 106V65C21 71 22 36 30 29c27 3 30 19 33 36 4-25 14-36 38-37 8 34-12 46-38 37z','#7fa68a')+L('M65 106V65','#4e7c69',4)
-};
-
-Object.assign(job, JOB_ART);
 Object.assign(material, {
   salt_gel: P('M22 96Q10 70 39 46L51 22 82 28 105 68Q122 104 64 112Z','#67b6b9')+P('M39 72L54 37 75 42 89 80 61 98Z','#a2d8ce')+diamond(54,38,10,'#e7ecd2'),
   shore_feather: P('M26 111Q9 69 60 20L104 10Q111 62 53 91Z','#ede2ce')+P('M55 87Q91 58 103 12L84 19 33 98Z','#7b919b')+L('M22 116L96 20','#ad956f',4),
@@ -308,6 +282,11 @@ for (const id of ['fern_ear_tuft', 'mirror_scale', 'rootdigger_claw']) material[
 for (const id of ['skill_crystal_m', 'skill_crystal_l']) material[id] = supplied(`assets/crystal/${id}.png`);
 for (const id of ['fernstep_charm', 'mirrorwing_pendant', 'burrowguard_brooch', 'grove_union_ring']) gear[id] = supplied(`assets/moonroot/gear/${id}.png`);
 
+// job-tree nodes have no picture since the wheel tree (phase C): its field journal draws the map itself. The
+// compass stays: the "choose your path" quest card shows it (ui/quest-journal.js).
+const job = {
+  origin: P('M35 39l17-21 24 4 17 23-1 54-57 2z','#b29161')+C(64,62,23,'#e6dbb7')+P('M65 40l9 24-18 18 3-26z','#5d8e91')+L('M41 93h46','#6d553c',5),
+};
 export const ART = { gear, material, skill, mod, monster, zone, job };
 
 // Arrow bundles use supplied raster art; retain the authored SVG fallback.

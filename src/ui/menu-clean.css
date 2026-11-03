@@ -687,3 +687,54 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
 }
 /* the hero's window needs only the hero and seven small slots: the bag/library window gets the width */
 #atelier:is(#atelier) .two-windows { grid-template-columns: 36% 64%; }
+/* quests (content first): chapters as slim rows, quest cards tighter; a card that is not the tracked
+   one shows its title, status and reward only (its story opens when it becomes the current step) */
+.pg-quest { grid-template-columns: minmax(200px, 250px) minmax(0, 1fr); }
+.pg-quest .qj-cover h2 { font-size: 15px; }
+.pg-quest .qj-count { font-size: 11px; }
+.overlay:not(.is-journal) .pbody .pg-quest .qj-chapter { grid-template-columns: 26px 1fr; gap: 8px; padding: 6px 10px; border-radius: 12px; }
+.pg-quest .qj-chapter .qj-number { font-size: 15px; }
+.pg-quest .qj-chapter b { font-size: 12.5px; }
+.pg-quest .qj-chapter small { font-size: 10.5px; }
+.pg-quest .qj-chapters { gap: 2px; }
+.pg-quest .qj-chapter-intro h3 { font-size: 15px; }
+.pg-quest .qj-chapter-intro p { font-size: 11.5px; }
+.pg-quest .qj-list { gap: 6px; }
+.overlay:not(.is-journal) .pbody .pg-quest .qj-card { padding: 10px 12px; border-radius: 12px; }
+.pg-quest .qj-picture { width: 40px; height: 40px; border-radius: 10px; }
+.pg-quest .qj-card :is(.qj-description, .qj-objectives, .qj-footer, .qj-route) { margin-top: 4px; font-size: 12px; }
+.pg-quest .qj-card:not(.is-tracked) :is(.qj-description, .qj-lock-note) { display: none; }
+.pg-quest .qj-card:not(.is-tracked) .qj-reward { margin-top: 2px; font-size: 11px; }
+/* map: the map takes the column, the region list is a compact strip under it, the place card slimmer */
+.pg-map { grid-template-columns: minmax(0, 1fr) minmax(220px, 280px); }
+.pg-map .region-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.pg-map .region-grid > * { min-height: 44px; padding: 4px 8px; border-radius: 10px; }
+.pg-map .region-grid :is(img, svg, .art) { max-width: 40px; max-height: 40px; }
+.pg-map .section-heading h3 { font-size: 14px; }
+.pg-map .section-heading span, .pg-map > .pg-col > .muted { font-size: 11px; }
+.pg-map .region-cover { margin: 8px 8px 0; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; align-items: center; padding: 6px; }
+.pg-map .region-cover > :first-child { width: 56px; height: 56px; overflow: hidden; border-radius: 10px; }
+.pg-map .region-cover > :first-child :is(img, svg) { width: 100%; height: 100%; object-fit: cover; }
+.pg-map .region-cover h3 { font-size: 15px; }
+.pg-map .region-cover .section-kicker { font-size: 9px; }
+.pg-map .region-detail-body { padding: 8px; display: grid; gap: 6px; }
+.overlay:not(.is-journal) .pbody .pg-map .travel-card { padding: 8px 10px; }
+.overlay:not(.is-journal) .pbody .pg-map .travel-card .btn.primary { min-height: 42px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .pg-quest { grid-template-columns: 180px minmax(0, 1fr); }
+  .pg-quest .qj-chapter small { display: none; }
+  .pg-quest .qj-chapter-intro p { display: none; }
+  .pg-map { grid-template-columns: minmax(0, 1fr) 210px; }
+  .pg-map .atlas-heading, .pg-map .map-legend { display: none; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-cover h2 { display: none; }
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-chapter b { font-size: 12px; line-height: 1.3; }
+  .pg-quest .qj-chapter-intro h3 { font-size: 14px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-chapter small { display: none; }
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-chapter { min-height: 40px; padding: 4px 8px; }
+  .pg-quest { grid-template-columns: 200px minmax(0, 1fr); }
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-tabs button { font-size: 11px; padding: 0 4px; }
+}

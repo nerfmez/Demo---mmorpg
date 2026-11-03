@@ -65,6 +65,8 @@ try {
     await shot(page, `${tag}-01-hud`);
     await freezeScene(page);
     for (const [i, id] of PAGES.entries()) {
+      // a full-looking bag: twenty more pieces of gear, copies of the starting three
+      if (id === 'bag') await page.evaluate(() => { const g = window.__frontier.game; if (g.ch.gear.length < 10) { const base = g.ch.gear.slice(0, 3); for (let i = 0; i < 20; i++) g.ch.gear.push({ ...structuredClone(base[i % base.length]), uid: 90000 + i }); g.refresh(); } });
       await page.evaluate((id) => { const p = window.__frontier.panels; p.close(); p.open(id); }, id);
       await page.waitForTimeout(id === 'job' ? 1800 : 700);
       await shot(page, `${tag}-${String(i + 2).padStart(2, '0')}-${id}`);

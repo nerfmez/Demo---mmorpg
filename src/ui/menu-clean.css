@@ -519,13 +519,6 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
   .overlay.is-hub .hub-tile { min-height: 40px; padding: 4px 10px; font-size: 13px; }
   .workshop .ws-heading { margin-bottom: 6px; }
   .workshop h1 { font-size: 18px; }
-  /* bag: smaller boxes, more to a row */
-  #atelier:is(#atelier) .bag-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: minmax(64px, auto); gap: 6px; }
-  #atelier:is(#atelier) .bag-grid .inventory-cell { min-height: 64px; border-radius: 12px; padding: 6px 2px 3px; }
-  #atelier:is(#atelier) .bag-grid .inventory-cell > .object-art { max-height: 30px; max-width: 30px; }
-  #atelier:is(#atelier) .bag-grid .inventory-cell > b { font-size: 9px; }
-  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(72px, auto); }
-  #atelier:is(#atelier) .inventory-cell { min-height: 64px; }
   #atelier:is(#atelier) .wear-slot { width: 58px; height: 54px; padding: 3px 2px; border-radius: 12px; }
   #atelier:is(#atelier) .wear-slot small { font-size: 9.5px !important; }
   #atelier:is(#atelier) .wear-slot b { font-size: 9px; }
@@ -634,3 +627,22 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
   .pg-shop .muted { display: none; }
   .pg-quest > .pg-col, .pg-map > .pg-col, .pg-growth > .pg-col, .pg-settings > .pg-col { padding: 8px 10px; gap: 6px; }
 }
+
+/* bag (owner: "มีเกมไหนทำช่องของในกระเป๋าใหญ่ขนาดนี้"): small square slots like any RPG bag, packed
+   many to a row; a slot shows the picture, the count and the grade colour, the name shows when picked */
+#atelier:is(#atelier) .bag-grid, #atelier:is(#atelier) .inventory-scroll .bag-grid { grid-template-columns: repeat(auto-fill, 54px); grid-template-rows: none; grid-auto-rows: 54px; align-content: start; justify-content: start; gap: 6px; padding: 6px; }
+#atelier:is(#atelier) .bag-grid .inventory-cell { min-height: 0; width: 54px; height: 54px; padding: 0; border-radius: 10px; justify-content: center; }
+#atelier:is(#atelier) .bag-grid .inventory-cell > b { display: none; }
+#atelier:is(#atelier) .bag-grid .inventory-cell > .object-art { width: 36px; height: 36px; max-width: 36px; max-height: 36px; }
+#atelier:is(#atelier) .bag-grid .cell-corner { top: 2px; left: 4px; font-size: 9px; }
+#atelier:is(#atelier) .bag-grid .worn { top: 2px; right: 2px; transform: scale(.8); transform-origin: top right; }
+#atelier:is(#atelier) .bag-grid .stack-count { bottom: 1px; right: 4px; font-size: 10px; }
+#atelier:is(#atelier) .bag-grid .inventory-empty { width: 54px; height: 54px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) .bag-grid, #atelier:is(#atelier) .inventory-scroll .bag-grid { grid-template-columns: repeat(auto-fill, 48px); grid-auto-rows: 48px; gap: 5px; padding: 4px; }
+  #atelier:is(#atelier) .bag-grid .inventory-cell, #atelier:is(#atelier) .bag-grid .inventory-empty { width: 48px; height: 48px; }
+  #atelier:is(#atelier) .bag-grid .inventory-cell > .object-art { width: 32px; height: 32px; max-width: 32px; max-height: 32px; }
+}
+/* the bag fills the window's height above the picked item's shelf (it was a fixed short box) */
+#atelier:is(#atelier) .library-window:has(.bag-grid) { display: flex; flex-direction: column; }
+#atelier:is(#atelier) .library-window:has(.bag-grid) .inventory-scroll { flex: 1 1 auto; height: auto; min-height: 110px; }

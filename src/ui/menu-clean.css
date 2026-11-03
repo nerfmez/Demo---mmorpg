@@ -580,3 +580,31 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
   .pg-ab { font-size: 13px; } .pg-stat .pg-nm { font-size: 12px; }
   .pg-level small { font-size: 10.5px; }
 }
+/* skills / mods / movement / bag (the two windows): slimmer heads on every screen; on a phone held
+   sideways the four slots, the library and the selected item's shelf share one screen */
+#atelier:is(#atelier) .window-head { height: 52px; min-height: 52px; padding-top: 6px; padding-bottom: 6px; }
+#atelier:is(#atelier) .window-head h1 { font-size: 17px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) { --workspace-height: calc(100dvh - 12px - var(--safe-t, 0px) - var(--safe-b, 0px)); --mc-w: calc(100vw - 12px - var(--safe-l, 0px) - var(--safe-r, 0px)); }
+  #atelier:is(#atelier) .window-head { height: 44px; min-height: 44px; padding-top: 2px; padding-bottom: 2px; }
+  #atelier:is(#atelier) .window-head h1 { font-size: 15px; }
+  #atelier:is(#atelier) .loadout-intro { display: none; }
+  #atelier:is(#atelier) .equipped-skills { grid-template-rows: repeat(2, minmax(100px, auto)); gap: 6px; padding: 6px 8px; }
+  #atelier:is(#atelier) .skill-card { min-height: 100px; padding: 12px 4px 12px; }
+  #atelier:is(#atelier) .skill-card .object-art, #atelier:is(#atelier) .skill-card .skill-anchor .object-art { width: 40px; height: 40px; }
+  #atelier:is(#atelier) .skill-card b { font-size: 11px; }
+  #atelier:is(#atelier) .skill-card small { font-size: 9.5px; }
+  #atelier:is(#atelier) .socket { min-height: 40px; width: 40px; }
+  #atelier:is(#atelier) .socket .coin { width: 28px; height: 28px; }
+  #atelier:is(#atelier) .socket-empty { width: 26px; height: 26px; font-size: 18px; }
+  #atelier:is(#atelier) :is(.category-tabs, .filters) { min-height: 40px; padding: 2px 8px; }
+  #atelier:is(#atelier) :is(.category-tabs, .filters) button { min-height: 40px; padding: 4px 10px; }
+  #atelier:is(#atelier) .library-note { display: none; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(68px, auto); gap: 6px; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) .inventory-cell { min-height: 68px; padding: 4px 2px 3px; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) .inventory-cell .object-art { max-height: 34px; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) .inventory-cell b { font-size: 10px; }
+  #atelier:is(#atelier) .selection-shelf { min-height: 0; height: auto; padding: 4px 8px; }
+  #atelier:is(#atelier) .inventory-scroll { height: clamp(110px, calc(100dvh - 250px), 200px); min-height: 110px; margin: 2px 8px 4px; }
+  #atelier:is(#atelier) .movement-bar { min-height: 44px; padding: 2px 8px; }
+}

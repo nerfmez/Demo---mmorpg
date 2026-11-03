@@ -98,7 +98,7 @@
 @media(max-width:760px){.skill-journal .notebook{height:calc(100% - 65px)}}
 @media(max-height:520px){.skill-journal .notebook{height:calc(100% - 55px)}}
 /* A short spread has one row of branches, with room for labels below each touch target. */
-@media(max-height:520px){.skill-journal .map-viewport,.skill-journal .travel-view .map-viewport,.skill-journal .junction-view .map-viewport{top:62px;bottom:42px}.skill-journal .chapter-note{display:none}.skill-journal .map-controls{bottom:0}.skill-journal .node,.skill-journal .travel-view .node{width:calc(44px * var(--inverse));height:calc(44px * var(--inverse));padding:0}.skill-journal .junction-view .discipline-caption>span{display:none}}
+@media(max-height:520px){.skill-journal .map-viewport,.skill-journal .travel-view .map-viewport,.skill-journal .junction-view .map-viewport{top:62px;bottom:42px}.skill-journal .chapter-note{display:none}.skill-journal .map-controls{bottom:0}.skill-journal .node,.skill-journal .travel-view .node{width:calc(44.25px * var(--inverse));height:calc(44.25px * var(--inverse));padding:0}.skill-journal .junction-view .discipline-caption>span{display:none}}
 /* Allocate by paper height, not a global screen-height breakpoint. The user's
    776×540 clip otherwise leaves a large book with a ~100px masked node band. */
 .skill-journal .atlas-space {container-type:size;container-name:journal-paper}
@@ -112,7 +112,7 @@
  .skill-journal .map-controls {bottom:0;right:17px}
  .skill-journal .map-controls .icon-button {width:44px;height:44px}
  .skill-journal .map-status {bottom:12px;left:25px;font-size:8px;max-width:55%}
- .skill-journal .node,.skill-journal .travel-view .node {width:calc(44px * var(--inverse));height:calc(44px * var(--inverse));padding:0}
+ .skill-journal .node,.skill-journal .travel-view .node {width:calc(44.25px * var(--inverse));height:calc(44.25px * var(--inverse));padding:0}
  .skill-journal .node-disc,.skill-journal .travel-view .node-disc,.skill-journal .travel-view .node.notable .node-disc {width:calc(34px * var(--inverse));height:calc(34px * var(--inverse))}
  .skill-journal .node-caption b,.skill-journal .travel-view .node-caption b {font-size:11px}
  .skill-journal .node-caption small {display:none}

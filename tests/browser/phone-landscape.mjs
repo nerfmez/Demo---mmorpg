@@ -16,7 +16,7 @@ const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--por
 mkdirSync(S, { recursive: true });
 const errors = [], problems = [];
 const only = process.env.ONLY; // 'wheel' | 'pages' to review one part
-const PAGES = ['menu', 'char', 'job', 'skills', 'mods', 'movement', 'growth', 'bag', 'craft', 'forge', 'shop', 'journal', 'map', 'settings'];
+const PAGES = (process.env.PAGES || 'menu,char,job,skills,mods,movement,growth,bag,craft,forge,shop,journal,map,settings').split(',');
 let browser;
 const ready = (page) => page.waitForFunction(() => window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'), null, { timeout: 120000 });
 // controls a finger must hit, and anything poking out of the screen

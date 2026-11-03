@@ -345,11 +345,13 @@ export class Panels {
       // the value counts gear and the Job Tree too (the bonus in brackets)
       const total = d.stats?.[s] ?? ch.stats[s], extra = total - ch.stats[s];
       const open = this.sel.perkStat === s;
-      const chips = (perks[s] || []).map((p) => `<span class="pg-perk${p.active ? ' on' : ''}"><i>${p.at}</i>${esc(p.nameTh)}</span>`).join('');
-      const text = open ? `<div class="pg-perk-text">${(perks[s] || []).map((p) => `<p class="${p.active ? 'on' : ''}"><b>${p.at} · ${esc(p.nameTh)}</b> ${esc(p.descTh)}</p>`).join('')}</div>` : '';
-      return `<div class="pg-stat"><span class="pg-ab">${s}</span><span class="pg-nm"><b>${name}</b><small>${eff}</small></span><b class="pg-v">${total}${extra ? `<small> (+${extra})</small>` : ''}</b>
-      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button>
-      <button class="pg-perks${open ? ' open' : ''}" data-act="stat-perks" data-stat="${s}" aria-expanded="${open}" aria-label="ความสามารถพิเศษ ${s}">${chips}</button>${text}</div>`;
+      const chips = (perks[s] || []).map((p) => `<span class="pg-perk${p.active ? ' on' : ''}"><i>${p.at}</i><em>${esc(p.nameTh)}</em></span>`).join('');
+      // one line per stat (all six in sight); what it raises and what its thresholds do open on a tap
+      const text = open ? `<div class="pg-perk-text"><p class="pg-eff">${esc(eff)}</p>${(perks[s] || []).map((p) => `<p class="${p.active ? 'on' : ''}"><b>${p.at} · ${esc(p.nameTh)}</b> ${esc(p.descTh)}</p>`).join('')}</div>` : '';
+      return `<div class="pg-stat"><span class="pg-ab">${s}</span><b class="pg-nm" title="${esc(eff)}">${name}</b>
+      <button class="pg-perks${open ? ' open' : ''}" data-act="stat-perks" data-stat="${s}" aria-expanded="${open}" aria-label="ความสามารถพิเศษ ${s}">${chips}</button>
+      <b class="pg-v">${total}${extra ? `<small> +${extra}</small>` : ''}</b>
+      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button>${text}</div>`;
     }).join('');
     const kv = (rows) => `<div class="pg-kv">${rows.filter(Boolean).map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
     const pct = (label, v) => (v ? [label, `+${v.toFixed(0)}%`] : null);
@@ -362,7 +364,8 @@ export class Panels {
         <div class="pg-note"><b>อาชีพ: ${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก'}</b>${job ? '' : `<br>เลือกอาชีพได้เมื่อ Job Level ${jobChoiceLevel(data)}`}</div>
       </section>
       <section class="pg-col">
-        <div class="pg-title"><h3>แต้มสเตตัส</h3><span class="pg-pill">เหลือ ${ch.statPoints} แต้ม</span></div>
+        <div class="pg-title"><h3>แต้มสเตตัส</h3><span class="pg-pill">เหลือ ${ch.statPoints} แต้ม</span>
+          <button class="btn pg-respec-mini" data-act="respec-stats" title="รีแต้มด้วยเงินในเกม · ในนิคมเท่านั้น" ${!near.inTown || ch.gold < cost.stats ? 'disabled' : ''}>รีแต้ม ${cost.stats ? `${cost.stats} G` : 'ฟรี'}</button></div>
         <div class="muted">ได้เลเวลละ ${data.progression.character.statPointsPerLevel} แต้ม · ใช้เป็นเงื่อนไขของอาวุธ สกิล และม็อด</div>
         <div class="pg-list">${rows}</div>
         <div class="pg-foot"><span class="muted">รีแต้มด้วยเงินในเกม · ในนิคมเท่านั้น</span>

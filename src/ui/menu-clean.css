@@ -519,4 +519,64 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
   .overlay.is-hub .hub-tile { min-height: 40px; padding: 4px 10px; font-size: 13px; }
   .workshop .ws-heading { margin-bottom: 6px; }
   .workshop h1 { font-size: 18px; }
+  /* bag: smaller boxes, more to a row */
+  #atelier:is(#atelier) .bag-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: minmax(64px, auto); gap: 6px; }
+  #atelier:is(#atelier) .bag-grid .inventory-cell { min-height: 64px; border-radius: 12px; padding: 6px 2px 3px; }
+  #atelier:is(#atelier) .bag-grid .inventory-cell > .object-art { max-height: 30px; max-width: 30px; }
+  #atelier:is(#atelier) .bag-grid .inventory-cell > b { font-size: 9px; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(72px, auto); }
+  #atelier:is(#atelier) .inventory-cell { min-height: 64px; }
+  #atelier:is(#atelier) .wear-slot { width: 58px; height: 54px; padding: 3px 2px; border-radius: 12px; }
+  #atelier:is(#atelier) .wear-slot small { font-size: 9.5px !important; }
+  #atelier:is(#atelier) .wear-slot b { font-size: 9px; }
+  #atelier:is(#atelier) .wear-slot:has(.object-art) b { display: none; } /* the picture says what is worn */
+  #atelier:is(#atelier) .wear-slot .object-art { width: 30px; height: 30px; }
+  #atelier:is(#atelier) .wear-slot .empty-mark { font-size: 18px; }
+}
+
+/* ===== reorganised for both iPad and phone (owner 2026-11-03): content first, no needless scrolling =====
+   character: one line per stat, so all six are in sight; the profile and totals columns are narrower */
+.pg-char { grid-template-columns: minmax(170px, 210px) minmax(0, 1fr) minmax(190px, 240px); }
+.pg-char > .pg-col { padding: 12px 14px; gap: 8px; }
+.pg-face { width: 72px; height: 72px; }
+.pg-who > h3 { font-size: 17px; margin-top: 0; }
+.pg-who > small { margin-top: -6px; font-size: 11px; }
+.pg-note { padding: 8px 10px; font-size: 11.5px; border-radius: 12px; }
+.pg-char .pg-title h3 { font-size: 16px; }
+.pg-char .pg-title .pg-respec-mini { display: none; }
+.pg-char .pg-title .pg-pill { height: 30px; line-height: 30px; font-size: 13px; }
+.pg-char .muted { font-size: 11px; }
+.pg-char .pg-list { gap: 6px; container-type: inline-size; }
+.pg-stat { grid-template-columns: 38px 62px minmax(0, 1fr) auto 40px; gap: 6px; padding: 4px 6px 4px 10px; min-height: 48px; border-radius: 12px; }
+.pg-ab { font-size: 14px; }
+.pg-stat .pg-nm { font-size: 13px; font-weight: 500; color: var(--mc-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-v { font-size: 18px; min-width: 30px; }
+.pg-v small { font-size: 11px; color: var(--mc-good); }
+.overlay:not(.is-journal) .pg-stat .stat-plus { width: 40px; height: 40px; min-height: 40px; font-size: 20px; }
+.overlay:not(.is-journal) .pg-stat .pg-perks { grid-column: 3; grid-row: 1; flex-wrap: nowrap; overflow: hidden; align-items: center; gap: 4px; min-height: 40px; margin: 0; }
+.pg-perk { flex: none; padding: 2px 8px 2px 3px; font-size: 10.5px; }
+.pg-perk em { font-style: normal; }
+.pg-perk i { font-size: 9.5px; padding: 0 5px; }
+@container (max-width: 520px) { .pg-perk em { display: none; } .pg-perk { padding: 2px 3px; } }
+.pg-perk-text { padding: 2px 4px 6px; font-size: 11.5px; }
+.pg-perk-text .pg-eff { color: var(--mc-ink); }
+.pg-char .pg-kv span, .pg-char .pg-kv b { padding: 4px 2px; font-size: 12px; }
+.pg-char .pg-kv b { font-size: 13px; }
+.pg-char h4 { margin-top: 2px; font-size: 11px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .pg-char { grid-template-columns: 150px minmax(0, 1fr) 180px; }
+  .pg-char > .pg-col { padding: 8px 10px; gap: 6px; }
+  .pg-face { width: 48px; height: 48px; }
+  .pg-who > h3 { font-size: 15px; }
+  .pg-char .muted { display: none; }
+  .pg-char .pg-list { gap: 3px; }
+  .pg-char { grid-template-columns: 132px minmax(0, 1fr) 170px; }
+  .pg-stat { min-height: 40px; padding: 0 4px 0 8px; gap: 4px; grid-template-columns: 30px 54px minmax(0, 1fr) auto 40px; }
+  .pg-char .pg-foot { display: none; }
+  .overlay:not(.is-journal) .pg-char .pg-title .pg-respec-mini { display: inline-flex; min-height: 40px; height: 40px; padding: 0 10px; font-size: 12px; }
+  .pg-char .pg-title { gap: 6px; }
+  .pg-char .pg-title .pg-pill { margin-left: auto; padding: 0 10px; }
+  .pg-perk { padding: 1px 2px; } .pg-perk i { padding: 0 4px; }
+  .pg-ab { font-size: 13px; } .pg-stat .pg-nm { font-size: 12px; }
+  .pg-level small { font-size: 10.5px; }
 }

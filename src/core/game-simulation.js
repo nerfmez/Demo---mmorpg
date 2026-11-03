@@ -2090,7 +2090,11 @@ export class Game {
     const keep = [];
     for (const d of this.drops) {
       d.t += dt;
-      if (d.carrier != null) { keep.push(d); continue; } // in a companion's mouth (companionFetch)
+      if (d.carrier != null) {
+        // in a companion's mouth (companionFetch); a companion that died or was dismissed lets go where it was
+        if (this.allies.some((a) => a.id === d.carrier && !a.dead)) { keep.push(d); continue; }
+        d.carrier = null;
+      }
       if (!p.dead && d.t > 0.45) {
         const dd = dist(p.x, p.z, d.x, d.z);
         if (dd < MAGNET_RADIUS) {

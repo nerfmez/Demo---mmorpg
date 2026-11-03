@@ -209,4 +209,16 @@ test('Companion fetch (the Ranger trunk node): an idle companion brings the drop
   g.monsters = [mk('m', a.x + 2, a.z)];
   g.time += 0.05; g.updateAllies(0.05);
   assert.equal(near.carrier, null, 'dropped to fight'); assert.equal(a.fetchId, null);
+  // a companion removed with a drop in its mouth lets it go: the hero can still pick it up
+  g.monsters = [];
+  const lost = { id: 'd4', item: 'gold', qty: 2, x: 6, z: 0, t: 5 };
+  g.drops = [lost];
+  for (let t = 0; t < 4 && lost.carrier !== a.id; t += 0.05) { g.time += 0.05; g.updateAllies(0.05); }
+  assert.equal(lost.carrier, a.id);
+  g.allies = g.allies.filter((q) => q !== a);
+  const gold1 = g.ch.gold;
+  g.player.x = lost.x; g.player.z = lost.z;
+  for (let t = 0; t < 2 && g.drops.length; t += 0.05) g.updateDrops(0.05);
+  assert.equal(lost.carrier, null, 'released when its carrier is gone');
+  assert.equal(g.drops.length, 0, 'picked up by the hero'); assert.equal(g.ch.gold, gold1 + 2);
 });

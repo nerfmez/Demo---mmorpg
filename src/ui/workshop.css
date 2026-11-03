@@ -350,3 +350,122 @@
   .workshop .ws-categories { margin-bottom: 4px; }
   .workshop .ws-recipes { margin-top: 6px; }
 }
+/* result effects layer (ui/workshop-fx.js): fixed over the stage, above the panel, never takes a touch */
+.wsfx { position: fixed; z-index: 2000; pointer-events: none; overflow: visible; contain: layout; }
+.wsfx > * { position: absolute; pointer-events: none; will-change: transform, opacity; }
+.wsfx-heat { width: 90px; height: 40px; border-radius: 50%; background: radial-gradient(closest-side, #fff7d0, #ffb347 40%, #ff6a1c88 70%, transparent); filter: blur(2px); mix-blend-mode: screen; }
+.wsfx-ember { width: 4px; height: 4px; border-radius: 50%; background: #ffcf6a; box-shadow: 0 0 6px #ff9a2a; }
+.wsfx-flash { width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(closest-side, #fff, var(--c) 35%, color-mix(in srgb, var(--c) 40%, transparent) 60%, transparent); mix-blend-mode: screen; }
+.wsfx-ring { width: 60px; height: 26px; border-radius: 50%; border: 3px solid var(--c); box-shadow: 0 0 10px var(--c); }
+.wsfx-spark { width: 10px; height: 2.5px; border-radius: 2px; background: var(--c); box-shadow: 0 0 6px var(--c); }
+.wsfx-rays { border-radius: 50%; background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--c) 70%, transparent) 0 6deg, transparent 6deg 22deg); -webkit-mask: radial-gradient(closest-side, #000 20%, transparent 72%); mask: radial-gradient(closest-side, #000 20%, transparent 72%); mix-blend-mode: screen; }
+.wsfx-card { display: flex; align-items: center; gap: 10px; }
+.wsfx-art { position: relative; overflow: hidden; display: grid; place-items: center; width: 86px; height: 86px; border-radius: 18px; background: radial-gradient(circle at 50% 40%, #fffbe9, #f1e3bd); box-shadow: 0 0 0 3px #fff6d6, 0 0 26px #ffd46e, 0 8px 18px #0006; }
+.wsfx-art > :not(.wsfx-shine) { width: 70px; height: 70px; object-fit: contain; }
+.wsfx-art svg, .wsfx-art img { width: 70px; height: 70px; }
+.wsfx-shine { position: absolute; inset: -10% auto -10% 0; width: 34%; background: linear-gradient(90deg, transparent, #ffffffd0, transparent); transform: translateX(-120%) skewX(-20deg); }
+.wsfx-label { font: 700 50px/1 Kanit, Mitr, sans-serif; color: #fff; -webkit-text-stroke: 3px color-mix(in srgb, var(--c) 75%, #3a2000); paint-order: stroke fill; text-shadow: 0 0 18px var(--c), 0 0 4px var(--c), 0 4px 0 color-mix(in srgb, var(--c) 45%, #2a1800); }
+.wsfx-label.is-s { animation: wsfx-hue 1s linear infinite; }
+@keyframes wsfx-hue { from { filter: hue-rotate(0deg) brightness(1.15); } to { filter: hue-rotate(360deg) brightness(1.15); } }
+.wsfx-old { font: 700 40px/1 Kanit, sans-serif; color: var(--c); text-shadow: 0 0 10px var(--c); }
+.wsfx-star { width: 16px; height: 16px; background: var(--c); clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); filter: drop-shadow(0 0 4px var(--c)); }
+.wsfx-rune svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.wsfx-rune circle, .wsfx-rune path { fill: none; stroke: var(--c); stroke-width: 3; filter: drop-shadow(0 0 4px var(--c)); vector-effect: non-scaling-stroke; }
+.wsfx-rune circle.d { stroke-dasharray: 10 8; }
+.wsfx-mote { width: 6px; height: 6px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
+.wsfx-pillar { border-radius: 40% 40% 0 0; background: linear-gradient(0deg, color-mix(in srgb, var(--c) 90%, #fff), color-mix(in srgb, var(--c) 30%, transparent) 70%, transparent); filter: blur(3px); mix-blend-mode: screen; transform-origin: 50% 100%; }
+.wsfx-mat { width: 34px; height: 34px; display: grid; place-items: center; filter: drop-shadow(0 0 6px #ffe2a0); }
+.wsfx-mat > *, .wsfx-mat img, .wsfx-mat svg { width: 30px; height: 30px; }
+.wsfx-core { width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(closest-side, #fff, #ffe9a8 40%, #ffb84a88 70%, transparent); box-shadow: 0 0 24px #ffd27a; mix-blend-mode: screen; }
+/* the result line floats over the page's foot instead of pushing everything down when it appears */
+.workshop > .ws-notice:not(.is-ready) { position: fixed; left: 50%; bottom: calc(18px + var(--safe-b, 0px)); transform: translateX(-50%); z-index: 40; width: min(560px, calc(100% - 32px)); margin: 0; box-shadow: 0 10px 26px #10202a40; animation: ws-toast-in .28s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes ws-toast-in { from { opacity: 0; transform: translate(-50%, 14px); } }
+/* ===== workshop reorganised (owner 2026-11-03: "ปรับปรุงหน้าคราฟหรือตีบวก"): the page fills the screen,
+   each column scrolls on its own, and the confirm button is always in sight at the foot of the order
+   column. Notes that only repeat what the page shows are dropped. ===== */
+.overlay.is-workshop .pbody { overflow: hidden; }
+.workshop { height: 100%; min-height: 0; grid-template-rows: auto minmax(0, 1fr); padding-bottom: 0; }
+.workshop > .ws-layout, .workshop > .ws-craft-library, .workshop > .craft-workspace { min-height: 0; }
+.workshop .ws-layout { height: 100%; grid-template-columns: minmax(190px, .75fr) minmax(280px, 1.45fr) minmax(220px, .9fr); gap: 12px; align-items: stretch; }
+.workshop .ws-layout > * { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: 12px; }
+.workshop .ws-collection { display: flex; flex-direction: column; }
+.workshop .ws-gear-list { max-height: none; flex: 1 1 auto; min-height: 0; gap: 5px; }
+.workshop .ws-gear { min-height: 52px; padding: 5px 8px; gap: 8px; }
+.workshop .ws-gear .ws-thumb { width: 38px; height: 38px; flex: none; }
+.workshop .ws-gear .ws-thumb > *, .workshop .ws-gear .ws-thumb img, .workshop .ws-gear .ws-thumb svg { width: 100%; height: 100%; object-fit: contain; }
+.workshop .ws-gear em { display: none; }
+.workshop .ws-section-label small, .workshop .ws-stage p, .workshop .ws-order-note, .workshop .ws-confirm > small { display: none; }
+.workshop .ws-stage { padding: 8px 10px 10px; }
+.workshop .ws-stage-top { font-size: 10px; }
+.workshop .ws-pedestal { height: 120px; width: 220px; }
+.workshop .ws-ranks { margin: 2px 0 0; }
+.workshop .ws-comparison { margin: 10px 0 6px; }
+.workshop .ws-comparison th, .workshop .ws-comparison td { padding: 4px 4px; }
+.workshop .ws-order { display: flex; flex-direction: column; padding: 10px 12px 0; }
+.workshop .ws-order .ws-costs { flex: none; }
+.workshop .ws-cost { min-height: 48px; padding: 6px 0; }
+.workshop .ws-cost-art { width: 34px; height: 34px; flex: none; }
+.workshop .ws-confirm { position: sticky; bottom: 0; margin-top: auto; padding: 10px 0 12px; background: linear-gradient(transparent, #fffdf7 18%); }
+.workshop .ws-confirm .ws-readiness { margin-bottom: 6px; }
+.workshop .ws-requirements { font-size: 11px; }
+/* craft detail: the stage and the order side by side, both filling the height */
+.workshop .craft-workspace { display: flex; flex-direction: column; height: 100%; }
+.workshop .ws-back { min-height: 40px; padding: 0; margin: 0 0 4px; align-self: flex-start; }
+.workshop .ws-craft-detail-layout { flex: 1 1 auto; min-height: 0; max-width: none; width: 100%; grid-template-columns: minmax(0, 1.4fr) minmax(240px, 1fr); gap: 14px; }
+.workshop .ws-craft-detail-layout > * { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 12px; }
+.workshop .ws-craft-detail .ws-stage { min-height: 0; }
+.workshop .ws-craft-detail .ws-pedestal { height: 130px; width: 240px; }
+.workshop .ws-craft-library { display: flex; flex-direction: column; height: 100%; }
+.workshop .ws-craft-library .ws-recipes { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; padding-bottom: 12px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .workshop { padding: 6px 8px 0; }
+  .workshop .ws-layout { grid-template-columns: 170px minmax(0, 1fr) 210px; gap: 8px; }
+  .workshop .ws-section-label { margin-bottom: 4px; }
+  .workshop .ws-section-label h2 { font-size: 13px; }
+  .workshop .ws-section-label > b { width: 20px; height: 20px; flex-basis: 20px; font-size: 9px; }
+  .workshop .ws-collection .ws-filter { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .workshop .ws-filter button { white-space: nowrap; flex: none; min-height: 36px; padding: 2px 8px; }
+  .workshop .ws-gear { min-height: 44px; padding: 3px 6px; }
+  .workshop .ws-gear .ws-thumb { width: 32px; height: 32px; }
+  .workshop .ws-gear small { display: none; }
+  .workshop .ws-stage { padding: 4px 8px 6px; }
+  .workshop .ws-stage-top { display: none; }
+  .workshop .ws-pedestal { height: 96px; width: 180px; }
+  .workshop .ws-stage-identity h2 { font-size: 14px; }
+  .workshop .ws-ranks strong { font-size: 22px; }
+  .workshop .ws-comparison { margin-top: 6px; }
+  .workshop .ws-comparison h3 { font-size: 11px; margin-bottom: 4px; }
+  .workshop .ws-comparison table { font-size: 11px; }
+  .workshop .ws-order { padding: 6px 8px 0; }
+  .workshop .ws-cost { min-height: 40px; padding: 3px 0; }
+  .workshop .ws-cost-art { width: 28px; height: 28px; }
+  .workshop .ws-confirm { padding: 6px 0 8px; }
+  .workshop .ws-button { min-height: 44px; }
+  .workshop .ws-craft-detail-layout { grid-template-columns: minmax(0, 1fr) 230px; gap: 8px; }
+  .workshop .ws-craft-detail .ws-pedestal { height: 96px; width: 190px; }
+}
+.workshop .ws-confirm { background: #fffdf7; box-shadow: 0 -8px 8px -8px #2a3f4433; }
+/* recipe library: categories, search (and on a phone the "can craft" chip beside it), then the cards fill the rest */
+.workshop .ws-craft-library { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto minmax(0, 1fr); column-gap: 8px; align-items: center; }
+.workshop .ws-craft-library > .ws-library-head { grid-column: 1 / -1; grid-row: 1; }
+.workshop .ws-craft-library > .ws-categories { grid-column: 1 / -1; grid-row: 2; }
+.workshop .ws-craft-library > .ws-search { grid-column: 1 / -1; grid-row: 3; }
+.workshop .ws-craft-library > .ws-recipes { grid-column: 1 / -1; grid-row: 4; align-self: stretch; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .workshop .ws-craft-library { grid-template-rows: auto auto minmax(0, 1fr); }
+  .workshop .ws-craft-library > .ws-categories { grid-row: 1; }
+  .workshop .ws-craft-library > .ws-search { grid-column: 1; grid-row: 2; }
+  .workshop .ws-craft-library > .ws-library-head { grid-column: 2; grid-row: 2; margin: 0; }
+  .workshop .ws-craft-library > .ws-recipes { grid-row: 3; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  /* the result line is one short line at the foot's right, clear of the stage and its effect */
+  .workshop > .ws-notice:not(.is-ready) { left: auto; right: calc(10px + var(--safe-r, 0px)); bottom: calc(8px + var(--safe-b, 0px)); transform: none; width: auto; max-width: 300px; padding: 4px 6px 4px 10px; min-height: 0; animation-name: ws-toast-in-r; }
+  .workshop > .ws-notice:not(.is-ready) small, .workshop > .ws-notice:not(.is-ready) .ws-result-mark { display: none; }
+  .workshop > .ws-notice:not(.is-ready) b { font-size: 12px; }
+  .workshop > .ws-notice:not(.is-ready) .ws-subtle { min-height: 36px; padding: 0 8px; font-size: 11px; }
+}
+@keyframes ws-toast-in-r { from { opacity: 0; transform: translateY(10px); } }
+/* a finished result shows for a moment, then gets out of the way (the item, the shelf and the bag show it) */
+.workshop > .ws-notice.is-success { animation: ws-toast-life 3.2s ease both; }
+@keyframes ws-toast-life { 0% { opacity: 0; translate: 0 10px; } 8%, 80% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 0 6px; visibility: hidden; } }

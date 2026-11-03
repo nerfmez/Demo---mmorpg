@@ -285,6 +285,9 @@ export class Panels {
     this.body.dataset.panel = this.tab;
     this.body.setAttribute('aria-labelledby', `tab-${this.tab}`);
     const scroll = top ? 0 : this.body.scrollTop;
+    // pages whose columns scroll on their own (the workshop) keep each column's place across a re-render
+    const INNER = '.ws-layout > *, .ws-craft-detail-layout > *, .ws-recipes, .ws-gear-list';
+    const inner = top ? [] : [...this.body.querySelectorAll(INNER)].map((el) => el.scrollTop);
     if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal,.wheel-tree')){this.jobJournal.refresh();return;}
     this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
@@ -292,6 +295,7 @@ export class Panels {
     if(this.lastResult && ['skills','mods','movement','growth','job'].includes(this.tab)) this.body.insertAdjacentHTML('afterbegin', `<div class="result-pop" role="status">${this.lastResult}</div>`);
     this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this, { effectText }) : null;
     this.body.scrollTop = scroll;
+    if (inner.length) this.body.querySelectorAll(INNER).forEach((el, i) => { if (inner[i]) el.scrollTop = inner[i]; });
     if (activeData && Object.keys(activeData).length) {
       const focus = [...this.overlay.querySelectorAll('button, select')].find((el) => Object.entries(activeData).every(([key, val]) => el.dataset[key] === val));
       (focus || this.overlay.querySelector('.panel')).focus({ preventScroll: true });

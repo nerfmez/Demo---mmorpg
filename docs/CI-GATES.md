@@ -123,11 +123,11 @@ site. It does not rebuild the game or change its source identity.
 manually dispatchable. It is never a dependency of publication. It tests the exact
 upstream workflow SHA (a rollback's CI run therefore checks the current workflow
 source, while bounded live verification checks the restored game). The complete
-27-suite inventory is retained in 70 engine jobs. Opening runs eight unchanged
-view/kit cases (desktop and iPad sword/bow/staff, both phone orientations staff)
-and one separate v10-save migration in each engine. These are independent jobs
+27-suite inventory is retained in 70 engine jobs. Opening runs seven
+view/kit cases (desktop and iPad sword/bow/staff, phone landscape staff; the game is landscape only
+since 2026-11-03, so there is no phone-portrait case) and one separate v10-save migration in each engine. These are independent jobs
 under the same 30-minute bound and existing 90-second assertion timeouts; the
-logical opening suite cannot pass or certify release reuse without all nine
+logical opening suite cannot pass or certify release reuse without all eight
 exact-source case reports/jobs. Full WebKit exploration/Dreamloop and
 crafting/loadout/reload moved from the publication path into an additional full
 regression job. Their failures remain red with retained reports and screenshots;

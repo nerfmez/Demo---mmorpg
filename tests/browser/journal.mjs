@@ -19,7 +19,7 @@ if(offline){
 try{
  if(!offline)for(let i=0;;i++){try{if((await fetch('http://localhost:4187/')).ok)break;}catch{}if(i>50)throw Error('server startup');await new Promise(r=>setTimeout(r,250));}
  browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
- const sizes=process.env.QUICK?[['desktop',1600,900,false]]:[['desktop',1600,900,false],['ipad',1180,820,true],['phone-landscape',844,390,true],['phone-portrait',390,844,true]];
+ const sizes=process.env.QUICK?[['desktop',1600,900,false]]:[['desktop',1600,900,false],['ipad',1180,820,true],['phone-landscape',844,390,true]];
  for(const [name,width,height,touch]of sizes){
   if(process.env.JOURNAL_CASES&&!process.env.JOURNAL_CASES.split(',').includes(name))continue;
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));

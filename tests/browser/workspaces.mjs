@@ -29,7 +29,7 @@ if(process.env.OFFLINE_UI){
 try{
  for(let i=0;;i++){try{if((await fetch(`http://localhost:${port}/`)).ok)break;}catch{}if(i>80)throw Error('preview timeout');await new Promise(r=>setTimeout(r,300));}
  browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
- const sizes=process.env.QUICK?[['ipad',1180,820,true]]:[['desktop',1440,960,false],['ipad',1180,820,true],['phone-landscape',844,390,true],['phone-portrait',390,844,true]];
+ const sizes=process.env.QUICK?[['ipad',1180,820,true]]:[['desktop',1440,960,false],['ipad',1180,820,true],['phone-landscape',844,390,true]];
  // Keep the new review fixture in disposable contexts. Never replace the character
  // object held by the existing loadout controllers in the legacy workspace checks.
  for(const [size,width,height,touch]of sizes){

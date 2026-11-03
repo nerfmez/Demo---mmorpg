@@ -18,7 +18,7 @@ let browser;
 try {
   for (let i = 0; ; i++) { try { if ((await fetch(base)).ok) break; } catch {} if (i > 80) throw Error('server'); await new Promise((r) => setTimeout(r, 250)); }
   browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined, args: engine === chromium ? ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
-  for (const [name, width, height] of [['ipad', 1180, 820], ['phone-landscape', 844, 390], ['phone-portrait', 390, 844]]) {
+  for (const [name, width, height] of [['ipad', 1180, 820], ['phone-landscape', 844, 390]]) {
     const started = Date.now();
     const page = await (await browser.newContext({ viewport: { width, height }, hasTouch: true, isMobile: true })).newPage();
     page.setDefaultTimeout(60000);

@@ -83,8 +83,8 @@ try {
   await shot(page, '12-jobs-compass');
   const res = await page.evaluate(() => { const ch = window.__frontier.game.ch; return { points: ch.jobPoints, owned: ch.jobNodes.length, job: ch.jobNodes.includes('job.heavy'), debuff: ch.jobNodes.includes('job.heavy.crusher.t0k.debuff'), charge: ch.jobNodes.includes('job.heavy.crusher.t0k.charge'), s8: ch.jobNodes.includes('in.str.s8') }; });
   assert.ok(res.job && res.debuff && !res.charge && res.s8, JSON.stringify(res));
-  // 6) a phone: the DEX/INT map with a note
-  await page.setViewportSize({ width: 430, height: 860 });
+  // 6) a phone held sideways: the DEX/INT map with a note
+  await page.setViewportSize({ width: 844, height: 390 });
   await page.waitForTimeout(500);
   await page.evaluate(() => window.__frontier.panels.jobJournal.turnTo('sector.dexint'));
   await idle(page); await page.waitForTimeout(500);

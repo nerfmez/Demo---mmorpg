@@ -3,7 +3,6 @@ export const OPENING_CASES = [
   { view: 'desktop', width: 1280, height: 800, touch: false, kits: ['sword', 'bow', 'staff'] },
   { view: 'ipad', width: 1180, height: 820, touch: true, kits: ['sword', 'bow', 'staff'] },
   { view: 'phone-landscape', width: 844, height: 390, touch: true, kits: ['staff'] },
-  { view: 'phone-portrait', width: 390, height: 844, touch: true, kits: ['staff'] },
 ];
 
 export function openingSelection(environment = {}) {

@@ -14,7 +14,7 @@ const html='<!doctype html><html lang="th"><meta name="viewport" content="width=
 writeFileSync(out+'interactive-review.html',html);
 if(process.env.JOURNAL_EXPORT_ONLY)process.exit(0);
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox']});
-const cases=[['desktop',1440,900,false],['ipad',1180,820,true],['reference-clip',776,540,true],['phone',390,844,true],['phone-short',390,667,true],['phone-landscape',844,390,true]];const report=[];
+const cases=[['desktop',1440,900,false],['ipad',1180,820,true],['reference-clip',776,540,true],['phone-landscape',844,390,true]];const report=[];
 try{for(const [label,width,height,touch] of cases){
  if(process.env.JOURNAL_CASES&&!process.env.JOURNAL_CASES.split(',').includes(label))continue;
  const context=await browser.newContext({viewport:{width,height},isMobile:touch,hasTouch:touch,...(label==='ipad'&&process.env.JOURNAL_VIDEO?{recordVideo:{dir:out+'video/',size:{width,height}}}:{})});
@@ -43,7 +43,7 @@ try{for(const [label,width,height,touch] of cases){
  await tap('[data-node="lesson.prepare"]');await essentials('basic-ready','maxHp','+12');assert.equal(await page.locator('.learn-button').isEnabled(),true);
  await tap('.learn-button');await essentials('basic-owned','maxHp','+12');assert.equal((await snapshot()).points,before.points-1);assert.equal(await page.locator('.learn-button').isDisabled(),true);
  const paid=await snapshot();await page.evaluate(()=>__frontier.panels.jobJournal.learn('lesson.prepare'));assert.deepEqual((await snapshot()).owned,paid.owned);assert.equal((await snapshot()).routes.events.length,paid.routes.events.length);
- if(label==='phone'){
+ if(label==='phone-landscape'){
   await page.evaluate(()=>{__frontier.game.ch.jobPoints=0;__frontier.panels.jobJournal.refresh();});await journalJump(page,'lesson.care');await essentials('basic-no-points','healPct','+5%');assert.equal(await page.locator('.learn-button').isDisabled(),true);assert.ok((await page.locator('.availability').innerText()).includes('ไม่เพียงพอ'));
   const blocked=await snapshot();await page.evaluate(()=>__frontier.panels.jobJournal.learn('lesson.care'));assert.deepEqual((await snapshot()).owned,blocked.owned);assert.equal((await snapshot()).routes.events.length,blocked.routes.events.length);await page.evaluate(()=>{__frontier.game.ch.jobPoints=18;__frontier.panels.jobJournal.refresh();});
  }

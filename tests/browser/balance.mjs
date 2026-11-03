@@ -13,7 +13,7 @@ let css=['style','ux','art','workspaces','minimal','journal','overlays'].map(n=>
 for(const subset of ['thai','latin'])for(const weight of [400,500]){const f=readFileSync(new URL(`../../node_modules/@fontsource/mitr/files/mitr-${subset}-${weight}-normal.woff2`,import.meta.url)).toString('base64');css+=`@font-face{font-family:Mitr;src:url(data:font/woff2;base64,${f});font-weight:${weight}}`;}
 const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox']:[]}),reports=[];
 try{
- for(const [size,width,height,touch]of [['desktop',1440,960,false],['ipad',1180,820,true],['phone',390,844,true]]){
+ for(const [size,width,height,touch]of [['desktop',1440,960,false],['ipad',1180,820,true],['phone',844,390,true]]){
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1}),page=await ctx.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(String(e)));
   await page.setContent('<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><body><div id="hud"></div></body></html>');await page.addStyleTag({content:css});await page.addScriptTag({content:code});await page.evaluate(()=>document.fonts.ready);

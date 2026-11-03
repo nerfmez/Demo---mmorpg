@@ -11,19 +11,19 @@ import { browserPlan, SHARED_SUITES } from '../../scripts/ci-browser-plan.mjs';
 
 const source = 'a'.repeat(40), merge = 'b'.repeat(40), tree = 'c'.repeat(40);
 const expectedCases = ['desktop:sword', 'desktop:bow', 'desktop:staff', 'ipad:sword', 'ipad:bow',
-  'ipad:staff', 'phone-landscape:staff', 'phone-portrait:staff'];
+  'ipad:staff', 'phone-landscape:staff']; // landscape only (owner, 2026-11-03): no phone-portrait case
 
-test('opening partitions exactly the existing eight cases and one v10 migration', () => {
+test('opening partitions exactly the existing seven cases and one v10 migration', () => {
   const ordinary = openingSelection();
   assert.deepEqual(ordinary.cases.map(c => `${c.view}:${c.kit}`), expectedCases);
   assert.equal(ordinary.migration, true, 'unfiltered manual invocation retains migration');
   const shards = browserShards('opening');
-  assert.equal(shards.length, 9);
-  assert.equal(new Set(shards.map(c => c.shard)).size, 9);
+  assert.equal(shards.length, 8);
+  assert.equal(new Set(shards.map(c => c.shard)).size, 8);
   const selections = shards.map(c => openingSelection(c.env));
   assert.deepEqual(selections.flatMap(s => s.cases.map(c => `${c.view}:${c.kit}`)), expectedCases);
   assert.equal(selections.filter(s => s.migration).length, 1);
-  assert.ok(selections.slice(0, 8).every(s => s.cases.length === 1 && !s.migration));
+  assert.ok(selections.slice(0, 7).every(s => s.cases.length === 1 && !s.migration));
   assert.deepEqual(selections.at(-1), { cases: [], migration: true });
   assert.deepEqual(openingSelection({ OPENING_VIEW: 'desktop', KIT: 'staff' }).cases.map(c => `${c.view}:${c.kit}`), ['desktop:staff']);
   assert.equal(openingSelection({ OPENING_VIEW: 'desktop', KIT: 'staff' }).migration, true);

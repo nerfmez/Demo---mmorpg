@@ -13,7 +13,7 @@ let browser;const reports=[];
 try {
  for(let i=0;;i++){try{if((await fetch(`http://localhost:${port}/`)).ok)break;}catch{}if(i>60)throw Error('server did not start');await new Promise(r=>setTimeout(r,250));}
  browser=await engine.launch({executablePath:name==='chromium'?process.env.CHROMIUM_EXECUTABLE:undefined,args:name==='chromium'?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
- const sizes=process.env.QUICK?[['ipad',1180,820,true]]:[['ipad',1180,820,true],['desktop',1600,900,false],['phone-landscape',844,390,true],['phone-portrait',390,844,true]];
+ const sizes=process.env.QUICK?[['ipad',1180,820,true]]:[['ipad',1180,820,true],['desktop',1600,900,false],['phone-landscape',844,390,true]];
  for(const [size,width,height,touch]of sizes){
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
   await page.goto(`http://localhost:${port}/?fresh=1&seed=7&quality=low`);

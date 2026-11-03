@@ -72,6 +72,8 @@ export function createFullscreen({ bypass = false, onBlocked = () => {}, onResiz
     try {
       // Call synchronously within the button's gesture before awaiting anything.
       await request.call(target);
+      // landscape only: where the browser allows it (Android), hold the screen sideways
+      screen.orientation?.lock?.('landscape').catch(() => {});
       sync();
     } catch {
       failed = true; blocked = true;

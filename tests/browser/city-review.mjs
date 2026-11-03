@@ -57,7 +57,7 @@ try{
  if(process.env.HARBOR_VERIFY_NETWORK){
   await page.evaluate(()=>{document.querySelector('#hud').style.visibility='';__cityFreeze=false;__frontier.view.render=()=>{};});
   report.journalDevices=[];
-  for(const[label,width,height]of[['desktop',1600,900],['ipad',1180,820],['phone',390,844],['phone-landscape',844,390]]){
+  for(const[label,width,height]of[['desktop',1600,900],['ipad',1180,820],['phone-landscape',844,390]]){
    await page.setViewportSize({width,height});await verifyPassiveGestures(page,{context:ctx,engineName:engine.name(),capture:async name=>page.screenshot({path:out+label+'-'+name+'.png'})});report.journalDevices.push(label);
   }
  }

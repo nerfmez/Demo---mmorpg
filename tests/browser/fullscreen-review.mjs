@@ -15,7 +15,7 @@ const fsCode=await bundle(new URL('../../src/ui/fullscreen.js',import.meta.url).
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const reports=[];
 try {
- if(!process.env.REVIEW_LIVE_ONLY) for(const [label,width,height] of [['clip',776,540],['landscape',844,390],['tablet',1180,820],['portrait',390,844]]) {
+ if(!process.env.REVIEW_LIVE_ONLY) for(const [label,width,height] of [['clip',776,540],['landscape',844,390],['tablet',1180,820]]) {
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:true,isMobile:true,reducedMotion:'reduce'}),p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.setContent('<html><meta name="viewport" content="width=device-width,initial-scale=1"><body><div id="hud"></div></body></html>');await p.addStyleTag({content:css});await p.addScriptTag({content:harness});
   await p.evaluate(()=>{__frontier.panels.open('job')});await p.waitForTimeout(350);
@@ -59,7 +59,7 @@ try {
   if(action==='search')assert.equal(await p.locator('#node-search').inputValue(),'v1');await p.screenshot({path:out+`live-${action}-paused.png`});
   await enterFullscreenGate(p);assert.equal(await p.locator('#dialog').evaluate(d=>d.open&&!d.inert),true);await p.locator('[data-action="close-dialog"]').tap();
  }
- await p.evaluate(()=>__frontier.panels.close());await p.setViewportSize({width:640,height:1024});await p.waitForTimeout(250);await p.evaluate(()=>{const v=__frontier.view;Object.getPrototypeOf(v).render.call(v,0,performance.now()/1000,{});});await p.screenshot({path:out+'live-portrait.png'});
+ await p.evaluate(()=>__frontier.panels.close());await p.setViewportSize({width:1024,height:640});await p.waitForTimeout(250);await p.evaluate(()=>{const v=__frontier.view;Object.getPrototypeOf(v).render.call(v,0,performance.now()/1000,{});});await p.screenshot({path:out+'live-portrait.png'});
  await p.reload({waitUntil:'commit'});await p.waitForFunction(()=>window.__frontier?.menu);await freezeScene(p);await enterFullscreenGate(p);await p.locator('[data-act="continue"]').tap();await p.waitForFunction(()=>__frontier.game?.time>.1);assert.equal(await p.evaluate(()=>__frontier.game.ch.name),'นักเดินทาง');
  assert.deepEqual(errors,[]);reports.push({actualGame:true,overlap,exitPauses:true,reentryResumes:true,searchAndRespecGovernedByGate:true,reloadContinuePreserved:true,pageErrors:errors});await ctx.close();
  writeFileSync(out+'live-report.json',JSON.stringify(reports,null,2));console.log('PASS fullscreen, HUD budget and book geometry review');}

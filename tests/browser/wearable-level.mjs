@@ -26,7 +26,7 @@ try{
  for(let i=0;;i++){try{if((await fetch(url)).ok)break;}catch{}if(i>60)throw Error('preview unavailable');await new Promise(r=>setTimeout(r,250));}
  browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
  const report=[];
- for(const [name,width,height,touch]of [['desktop',1440,900,false],['ipad',1180,820,true],['phone',390,844,true]]){
+ for(const [name,width,height,touch]of [['desktop',1440,900,false],['ipad',1180,820,true],['phone',844,390,true]]){
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,reducedMotion:'reduce'}),page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(20000);
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});await page.waitForFunction(()=>__frontier?.game?.time>.3&&document.getElementById('loading').classList.contains('done'),null,{timeout:90000});await freezeScene(page);
   assert.equal(await page.locator('vite-error-overlay').count(),0);

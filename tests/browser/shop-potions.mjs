@@ -66,9 +66,9 @@ try {
     assert.deepEqual(overlap, [], 'quick bar overlaps ' + overlap);
     await page.context().close();
   }
-  // phone portrait: with the shop prompt showing, the quick bar must stay clear of it and of the buttons
+  // a phone held sideways (landscape only): with the shop prompt showing, the quick bar must stay clear of it and of the buttons
   {
-    const page = await (await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })).newPage();
+    const page = await (await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true })).newPage();
     page.setDefaultTimeout(120000);
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.goto(base + '?fresh=1&seed=9&quality=low&stream=0');
@@ -81,8 +81,8 @@ try {
       const bar = r(document.querySelector('#hud .quickbar'));
       return [...document.querySelectorAll('#hud .combat .sbtn, #hud .quest-widget, #hud .prompt .pbtn, #hud .pframe')].filter((el) => el.getClientRects().length && hit(bar, r(el))).map((el) => el.className);
     });
-    await page.screenshot({ path: out + 'portrait-prompt.png' });
-    assert.deepEqual(overlap, [], 'portrait quick bar overlaps ' + overlap);
+    await page.screenshot({ path: out + 'phone-prompt.png' });
+    assert.deepEqual(overlap, [], 'phone quick bar overlaps ' + overlap);
     await page.context().close();
   }
   assert.deepEqual(errors, []);

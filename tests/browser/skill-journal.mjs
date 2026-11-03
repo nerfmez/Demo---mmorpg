@@ -11,7 +11,7 @@ const live=process.env.JOURNAL_URL,engineName=process.env.BROWSER||'chromium',en
 let code='',css='';
 if(!live){const b=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'JournalIntegration',formats:['iife']}}});code=b[0].output.find(f=>f.type==='chunk').code;css=journalHarnessStyles();}
 const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?(live?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--no-sandbox']):[]});
-const cases=process.env.QUICK?[['ipad',1180,820,true,false]]:[['desktop',1440,900,false,false],['ipad',1180,820,true,false],['phone',390,844,true,false],['phone-landscape',844,390,true,false],['phone-reduced',390,844,true,true]];const reports=[];
+const cases=process.env.QUICK?[['ipad',1180,820,true,false]]:[['desktop',1440,900,false,false],['ipad',1180,820,true,false],['phone-landscape',844,390,true,false],['phone-reduced',844,390,true,true]];const reports=[];
 try{for(const [label,width,height,touch,reduced] of cases){
  if(process.env.JOURNAL_CASES&&!process.env.JOURNAL_CASES.split(',').includes(label))continue;
  const context=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,reducedMotion:reduced?'reduce':'no-preference'}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(60000);

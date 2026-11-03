@@ -10,7 +10,7 @@ try{
  await page.goto((process.env.UI_ORIGIN||'http://127.0.0.1:4178')+'/?fresh=1&seed=9&quality=high&stream=0');
  await page.waitForFunction(()=>window.__frontier?.modelsReady&&document.querySelector('#loading').classList.contains('done'));
  await page.evaluate(()=>{const f=__frontier;f.paused=true;window.__panelDraw=f.view.render.bind(f.view);f.view.render=()=>{};document.querySelector('.banner')?.remove();});
- for(const [width,height]of [[1440,900],[1180,820],[844,390],[390,844]]){
+ for(const [width,height]of [[1440,900],[1180,820],[844,390]]){
   await page.setViewportSize({width,height});await page.evaluate(()=>__panelDraw(0,2,{}));
   await page.evaluate(()=>__frontier.panels.open('menu'));
   assert.equal(await page.locator('.hub-tile').count(),12);

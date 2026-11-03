@@ -23,7 +23,7 @@ try {
   browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined, args: engine === chromium ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
   for (const [name, width, height, touch] of [
     ['desktop', 1600, 900, false], ['ipad', 1180, 820, true],
-    ['phone-landscape', 844, 390, true], ['phone-portrait', 390, 844, true],
+    ['phone-landscape', 844, 390, true],
   ]) {
     if(process.env.QUICK&&name!=='ipad')continue;
     const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: touch, deviceScaleFactor: 1 });

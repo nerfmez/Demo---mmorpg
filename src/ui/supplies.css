@@ -24,3 +24,10 @@ body.ingame #hud .auto-potions-hud{position:absolute;top:calc(100% + 7px);right:
 @media(max-height:560px) and (orientation:landscape){body.ingame #hud .ammo-hud{left:calc(50% - 126px);right:auto;top:calc(64px + var(--safe-t));bottom:auto;width:196px;min-height:54px}body.ingame #hud .auto-potions-hud{min-height:44px;top:calc(100% + 4px);padding:4px 6px}#hud .auto-potions-hud strong{font-size:9px}#hud .auto-potions-hud small{font-size:8px}}
 @media(max-width:600px) and (orientation:portrait){body.ingame #hud .ammo-hud{right:calc(10px + var(--safe-r));top:calc(236px + var(--safe-t));bottom:auto;width:132px;display:flex;flex-direction:column;gap:2px;min-height:76px;padding:7px 8px}#hud .ammo-hud strong{font-size:11px;align-self:flex-start}.auto-potion-grid{grid-template-columns:1fr}body.ingame #hud .auto-potions-hud{flex-direction:column;justify-content:center;gap:2px}}
 @media(max-width:850px){.auto-potion-grid{grid-template-columns:1fr}}
+/* auto-potion settings: a round gear above the first potion slot (owner, 2026-11-03); the dot lights while
+   HP or MP auto-use is on. The status is the button's label (aria-label, title, data-status). */
+body.ingame #hud .auto-potions-hud{position:absolute;top:auto;bottom:calc(100% + 6px);left:0;right:auto;width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center;border-radius:50%;border:1.5px solid var(--hc-edge,#a8c4da99);background:var(--hc-glass,#183046ec);color:var(--hc-text,#f1eedc);box-shadow:0 2px 7px #071c2c40}
+#hud .auto-potions-hud svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+#hud .auto-potions-hud .ap-dot{position:absolute;right:3px;top:3px;width:9px;height:9px;border-radius:50%;background:#7d8b93;border:1.5px solid #10202c}
+#hud .auto-potions-hud.on .ap-dot{background:#6fe08a;box-shadow:0 0 6px #6fe08acc}
+@media(max-height:560px) and (orientation:landscape){body.ingame #hud .auto-potions-hud{top:auto;bottom:calc(100% + 4px)}}

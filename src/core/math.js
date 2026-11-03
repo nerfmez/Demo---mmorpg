@@ -113,7 +113,35 @@ export function pointInPolygon(points, x, z) {
 /** The original X shoreline remains the default; an authored coastal contour
  * is optional for capes with multiple land/water intervals along the same X. */
 export function seaContains(sea, x, z) {
-  return sea.coastline ? !coastIndex(sea.coastline).contains(x, z) : z > polylineZAtX(sea.shore, x);
+  if (sea.coastline) return !coastIndex(sea.coastline).contains(x, z);
+  return z > polylineZAtX(sea.shore, x) || (!!sea.bays && bayIndex(sea).some((b) => x >= b.box[0] && x <= b.box[1] && z >= b.box[2] && z <= b.box[3] && pointInPolygon(b.points, x, z)));
+}
+
+// Bays (data sea.bays, Frontier's Sunfall Coast): water cut into the land north of an X shoreline,
+// each a closed outline {points, kinds} whose open side lies out in the sea. Their coast is the
+// outline's edges that are not out at sea, and the shoreline's own segments inside a bay are not
+// coast there. Far from every bay (more than BAY_REACH metres outside its box) coastSample answers
+// exactly as before.
+const BAY_REACH = 60, bayIndexes = new WeakMap();
+function bayIndex(sea) {
+  let list = bayIndexes.get(sea.bays);
+  if (list) return list;
+  list = sea.bays.map((bay) => {
+    const xs = bay.points.map((p) => p[0]), zs = bay.points.map((p) => p[1]), box = [Math.min(...xs), Math.max(...xs), Math.min(...zs), Math.max(...zs)];
+    return { points: bay.points, kinds: bay.kinds || [], box };
+  });
+  const inside = (x, z) => list.some((b) => pointInPolygon(b.points, x, z));
+  for (const b of list) {
+    const edges = [], near = (x, z) => x > b.box[0] - BAY_REACH && x < b.box[1] + BAY_REACH && z > b.box[2] - BAY_REACH && z < b.box[3] + BAY_REACH;
+    b.points.forEach((a, i) => { const c = b.points[(i + 1) % b.points.length], mx = (a[0] + c[0]) / 2, mz = (a[1] + c[1]) / 2; if (mz <= polylineZAtX(sea.shore, mx)) edges.push({ a, b: c, kind: b.kinds[i] || 'beach' }); });
+    for (let i = 0; i < sea.shore.length - 1; i++) {
+      const a = sea.shore[i], c = sea.shore[i + 1], mx = (a[0] + c[0]) / 2, mz = (a[1] + c[1]) / 2;
+      if ((near(a[0], a[1]) || near(c[0], c[1])) && !inside(mx, mz - 0.01)) edges.push({ a, b: c, kind: sea.edgeKinds?.[i] || 'beach' });
+    }
+    b.edges = edges;
+  }
+  bayIndexes.set(sea.bays, list);
+  return list;
 }
 
 // A long coastline is indexed once: runs of 16 consecutive segments with their
@@ -180,6 +208,18 @@ function coastIndex(points) {
 /** Signed nearest shoreline distance (positive inland) and authored edge use. */
 export function coastSample(sea, x, z) {
   const points = sea.coastline || sea.shore, kinds = sea.coastline ? sea.coastKinds : sea.edgeKinds;
+  if (!sea.coastline && sea.bays) {
+    const bay = bayIndex(sea).find((b) => x > b.box[0] - BAY_REACH && x < b.box[1] + BAY_REACH && z > b.box[2] - BAY_REACH && z < b.box[3] + BAY_REACH);
+    if (bay) {
+      let nearest = Infinity, kind = 'beach';
+      for (const { a, b, kind: k } of bay.edges) {
+        const vx = b[0] - a[0], vz = b[1] - a[1], len2 = vx * vx + vz * vz, t = len2 > 0 ? clamp(((x - a[0]) * vx + (z - a[1]) * vz) / len2, 0, 1) : 0;
+        const dx = x - a[0] - vx * t, dz = z - a[1] - vz * t, d = dx * dx + dz * dz;
+        if (d < nearest) { nearest = d; kind = k; }
+      }
+      return { distance: Math.sqrt(nearest) * (seaContains(sea, x, z) ? -1 : 1), kind };
+    }
+  }
   if (points.length > 64) {
     const { nearest, index } = coastIndex(points).nearest(x, z);
     return { distance: Math.sqrt(nearest) * (seaContains(sea, x, z) ? -1 : 1), kind: kinds?.[index] || 'beach' };

@@ -10,7 +10,7 @@
 import { edgeCliffAt } from './edge-cliffs.js';
 import { pondReach, pondCircleDistance } from './ponds.js';
 import {applyAcceptedHeights,smoothAcceptedAprons,acceptedApronOffsets,apronConnectors} from './accepted-scenes.js';
-import { clamp, distToSegment, coastSample, toBoxLocal, fromBoxLocal } from './math.js';
+import { clamp, distToSegment, coastSample, seaContains, toBoxLocal, fromBoxLocal } from './math.js';
 
 // ---------- noise (hash-based, deterministic, no RNG state) ----------
 
@@ -376,6 +376,16 @@ export function buildHeightfield(worldData, zoneAt) {
         const m = d < 0 ? 1 : 1 - smoothstep(beach, beach + 8, d);
         const target = d >= 0 ? Math.min(hf[k], prof) * 0.3 + prof * 0.7 : prof;
         hf[k] = hf[k] * (1 - m) + target * m;
+      }
+    }
+    // a bay cut into the land (sea.bays) is sea floor too, deepening away from its edges; its scene
+    // draws its own shore over it
+    for (const bay of sea.bays || []) {
+      const xs = bay.points.map((p) => p[0]), zs = bay.points.map((p) => p[1]);
+      for (let i = 0; i < w; i++) for (let j = 0; j < h; j++) {
+        const x = X(i), z = Z(j);
+        if (x < Math.min(...xs) || x > Math.max(...xs) || z < Math.min(...zs) || z > Math.max(...zs) || !seaContains(sea, x, z)) continue;
+        hf[j * w + i] = Math.min(hf[j * w + i], Math.max(water - 4.5, water - 0.25 + coastSample(sea, x, z).distance * 0.16));
       }
     }
   }

@@ -695,5 +695,23 @@
       "plateTilt": 0.025, "ridgeLength": [0.9, 2.2] },
     "pier": { "plankDepth": 0.32, "plankThickness": 0.1, "plankGap": 0.03, "plankEndJitter": [-0.12, 0.09], "plankYaw": 0.014,
       "plankLift": 0.012, "plankTilt": 0.012, "pileLean": 0.045, "pileSpacing": 3.4 }
+  },
+  "waypointRuin": {
+    "_doc": "Every native waypoint (src/render/waypoint-ruin.js) is the approved arrival beach's warp pillar (owner, 31 October 2026: the new pillar replaces all the old crystal stones): a heap of carved blocks in a broken stone ring until unlocked, then the blocks fly up and rebuild the pillar. scale: world metres per authored unit (the beach's own scene scale); the solid ring is core/world.js WAYPOINT_SOLID (ringRadius x scale); assemble: seconds for the rebuild; colours of the carvings, their glow, the seams, rune circle, ribbons, motes and landing dust; motes: how many drift up the pillar; ringRadius: the broken ring, authored units.",
+    "scale": 0.8,
+    "assemble": 4.0,
+    "stone": ["#cbc6c2", "#bfbab8", "#d2ccc6", "#b6b1b2", "#c7c1bc", "#bcb7b0"],
+    "moss": ["#a2c64a", "#b4d152", "#8fb843"],
+    "ink": "#4c4852",
+    "inkWidth": 0.025,
+    "carve": "#5d596a",
+    "carveGlow": "#86f2ff",
+    "glow": "#5fe6ff",
+    "rune": "#3cc9ff",
+    "ribbon": "#5fe3ff",
+    "mote": "#a6f6ff",
+    "dust": "#f4e2b8",
+    "motes": 40,
+    "ringRadius": 2.1
   }
 }

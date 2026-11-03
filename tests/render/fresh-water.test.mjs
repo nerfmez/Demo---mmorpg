@@ -7,6 +7,7 @@ import {terrainDomain} from '../../src/render/terrain-domain.js';
 import {finishSteps} from '../../src/render/build-queue.js';
 import {disposeObject} from '../../src/render/dispose.js';
 import {pondRim} from '../../src/core/ponds.js';
+import {acceptedScenes} from '../../src/core/accepted-scenes.js';
 import mirror from '../../data/accepted-scenes/mirror-pond.json' with {type:'json'};
 
 const hook=registerHooks({load(url,context,next){return next(url,url.endsWith('.json')?{...context,importAttributes:{...context.importAttributes,type:'json'}}:context);}});
@@ -36,7 +37,9 @@ test('Mirror Pond is one sheet of water drawn to the scene\'s own waterline, not
 test('a wobbled pond\'s water follows its natural rim; the stream carries flow coordinates',()=>{
  const {w,group}=build('frontier-wilds-v1'),meshes=fresh(group);
  const ponds=w.data.ponds,river=meshes.filter(m=>m.geometry.attributes.flow.getX(0)===1);
- assert.equal(meshes.length,ponds.length+1,'one mesh per pond and one for the stream');
+ // a scene's own pools (Glimmer Wetland) are drawn to their waterlines; the circles filling them are only collision
+ const pools=acceptedScenes(w.data).flatMap(s=>s.pond?[s.pond]:s.pools||[]),drawn=ponds.filter(p=>!pools.some(sp=>Math.hypot(p[0]-sp.x,p[1]-sp.z)+p[2]<=Math.max(...sp.radius)+1));
+ assert.equal(meshes.length,drawn.length+pools.length+1,'one mesh per pond and one for the stream');
  assert.equal(river.length,1);
  const along=river[0].geometry.attributes.along,across=river[0].geometry.attributes.across;
  assert.ok(along.getX(along.count-1)>300,'along runs the stream\'s length in metres');

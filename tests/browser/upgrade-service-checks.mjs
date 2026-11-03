@@ -19,6 +19,9 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
     // Multistrike (AGI 6) reaches rank 2 at AGI 6 + requiresStatPerLevel; Life Leech (VIT 5) is one short
     const step = g.data.progression.modUpgrade.requiresStatPerLevel;
     Object.assign(g.ch.stats, { AGI: change.agi ?? 6 + step, VIT: 4 + step, STR: 5 });
+    // stat totals include worn gear: an earlier step may wear a crafted piece with an AGI option, so the
+    // fixture takes off everything but the weapon and the totals are exactly the stats set here (restored after)
+    for (const slot of Object.keys(g.ch.equipped)) if (slot !== 'weapon') g.ch.equipped[slot] = null;
     g.ch.skills.slash = 1; g.ch.skillExp = {}; g.ch.level = Math.max(g.ch.level, 5);
     g.ch.mods = [{ uid: 9001, id: 'multistrike', level: change.level ?? 1 }, { uid: 9002, id: 'life_leech', level: 1 }];
     for (const slot of g.ch.slots) slot.mods = [];

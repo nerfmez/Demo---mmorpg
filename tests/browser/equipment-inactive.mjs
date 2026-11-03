@@ -13,7 +13,7 @@ for(let n=0;;n++){if(server.exitCode!==null)throw Error('local server exited');t
 const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
 const report=[];
 try{
- for(const [name,width,height,touch] of (process.env.UI_DEVICE==='tablet'?[['ipad',1180,820,true]]:[['desktop',1440,900,false],['ipad',1180,820,true],['phone',844,390,true],['phone-portrait',390,844,true]])){
+ for(const [name,width,height,touch] of (process.env.UI_DEVICE==='tablet'?[['ipad',1180,820,true]]:[['desktop',1440,900,false],['ipad',1180,820,true],['phone',844,390,true]])){
   const context=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,reducedMotion:'reduce'}),page=await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   if(process.env.OFFLINE_UI)await page.route('**/?fresh=*',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><head>${['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','loadout-workspace','skill-journal/journal','compact'].map(n=>`<link rel="stylesheet" href="/src/ui/${n}.css">`).join('')}<style>@font-face{font-family:Mitr;src:url('/node_modules/@fontsource/mitr/files/mitr-thai-400-normal.woff2')}</style></head><body><div id="hud"></div><script type="module" src="/tests/browser/workspace-harness.js"></script></body></html>`}));

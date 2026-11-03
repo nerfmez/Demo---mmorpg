@@ -192,7 +192,7 @@ function discGeometry(segs = 40, rings = 6) {
 
 let arrowGeo = null;
 // bow skills whose projectile is drawn as a real arrow (and nocked through the cast)
-const BOW_SHOTS = new Set(['hunter_shot', 'charged_shot', 'rapid_volley', 'killing_arrow']);
+const BOW_SHOTS = new Set(['hunter_shot', 'charged_shot', 'rapid_volley', 'killing_arrow', 'mark_prey']);
 
 /** One shared set of arrow meshes for every arrow in flight. */
 function arrowGeometry() {

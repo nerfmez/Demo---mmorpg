@@ -1,8 +1,9 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
+import { allyHealMult } from './wheel-rules.js';
 
-export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows'];
+export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock','sic','packBuff','assault','revive'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -72,7 +73,7 @@ export function commandAllies(g,command,targetId=null) {
 export function healUnit(g,u,amount,s,mult=1) {
   if(u.dead||u.hp<=0)return;
   const e=s?.modEffects || {},part=e.healBarrier || 0;
-  const actual=amount*mult;
+  const actual=amount*mult*allyHealMult(g,u); // the wheel's teamBuffPct on heals we give allies
   if(u===g.player)g.healPlayer(actual*(1-part));
   else {const got=Math.min(u.maxHp-u.hp,actual*(1-part));u.hp+=got;if(got>0)g.emit({type:'heal',amount:Math.round(got),x:u.x,z:u.z});}
   if(part){u.barrier=Math.max(u.barrier||0,Math.min(u.maxHp*e.healBarrierCap,actual*part));u.barrierT=Math.max(u.barrierT||0,e.healBarrierDuration);}
@@ -152,6 +153,13 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     for(const w of walls)g.spawnArea({owner:'player',kind:'crystal_wall',skill:s,...w,radius:w.r,angle:axis,duration:s.duration,wallHp:s.wall.hp.base+s.wall.hp.scale*g.derived.magic,wallHitAt:0});
     return true;
   }
+  // Traps (s.trap, the trapper): set at the aim point; armed after arm s, a trap waits (for life s) until a
+  // monster comes within trigger m, then springs: one burst of the skill over its radius (updateAreas). A
+  // skill keeps at most max traps set (the oldest goes); a field (count) scatters its traps over spread m.
+  if(s.trap){placeTraps(g,s,aim,mult);return true;}
+  if(s.sic){commandCompanion(g,s);return true;}
+  if(s.assault){commandSummons(g,s);return true;}
+  if(s.packBuff)for(const a of g.allies)if(a.companion&&!a.dead){a.buffs.pack={damage:s.packBuff.damage,t:s.packBuff.duration};if(s.packBuff.howl){a.roarT=Math.max(a.roarT||0,s.packBuff.howl);a.roarTotal=s.packBuff.howl;}g.emit({type:'packBuff',id:a.id,duration:s.packBuff.duration});} // it stands to howl the pack in (packBuff.howl s; a bear roars)
   // Flame Arrow Rain (s.arrows): count arrows pin across the circle at land s, one near its middle, the rest
   // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
   if(s.arrows){
@@ -235,7 +243,8 @@ export function chargeShock(g,m,opts){
  * (Venom Arrow's direct hits, Miasma Arrow's mist ticks). */
 export function stackPoison(g,m,pz,amount){
   const old=m.statuses.poison,before=old?.stacks||0,stacks=Math.min(pz.maxStacks,before+1);
-  m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks};
+  // a poison that spreads (Spore Pod's): passed on when the monster dies (spreadCurse)
+  m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks,spread:Math.max(pz.spread||0,old?.spread||0)};
   if(stacks>before)g.emit({type:'poisonStack',id:m.id,stacks,x:m.x,z:m.z});
 }
 export function adjustFrontierHit(g,m,amount,opts) {
@@ -245,7 +254,8 @@ export function adjustFrontierHit(g,m,amount,opts) {
   const behind=Math.abs(angleDiff(m.facing,angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z)))>Math.PI/2;
   if(s?.positionalMult&&behind)amount*=s.positionalMult;
   if(s?.frontMult&&!behind)amount*=s.frontMult;
-  if(opts.exposure)m.statuses.exposure={fraction:Math.max(m.statuses.exposure?.fraction||0,opts.exposure.fraction),t:Math.max(m.statuses.exposure?.t||0,opts.exposure.duration),spread:Math.max(m.statuses.exposure?.spread||0,e.curseSpread||0)};
+  // Mark Prey (exposure.prey: the extra part's chance when it dies marked) keeps the mark on the exposure
+  if(opts.exposure)m.statuses.exposure={fraction:Math.max(m.statuses.exposure?.fraction||0,opts.exposure.fraction),t:Math.max(m.statuses.exposure?.t||0,opts.exposure.duration),spread:Math.max(m.statuses.exposure?.spread||0,e.curseSpread||0),prey:Math.max(m.statuses.exposure?.prey||0,opts.exposure.prey||0)};
   // Breakbeat Slam: every direct hit stuns (bosses only briefly); a started wind-up is cancelled and
   // a shelled monster is knocked out of its shell.
   if(opts.stun){
@@ -260,6 +270,11 @@ export function adjustFrontierHit(g,m,amount,opts) {
   // Thunder Slash: what it cuts keeps a charge (shocks, each a share of this hit) for the hero's main skills
   if(opts.shockCharge&&!opts.byAlly){const C=opts.shockCharge;m.statuses.charged={t:C.duration,shocks:C.shocks,damage:amount*C.mult};g.emit({type:'charged',id:m.id,x:m.x,z:m.z,duration:C.duration});}
   if(opts.taunt){m.forcedTargetId=g.player.id;m.tauntT=Math.max(m.tauntT||0,opts.taunt.duration);}
+  // Net Trap: rooted, it cannot walk (core/ai.js) but still strikes what is in reach
+  if(opts.root&&!opts.byAlly){const d=m.boss?opts.root.bossDuration:opts.root.duration;if(d>0){m.statuses.root={t:Math.max(m.statuses.root?.t||0,d)};g.emit({type:'rooted',id:m.id,x:m.x,z:m.z,duration:d});}}
+  // Spike Trap: the wound bleeds a share of the hit over its duration
+  // (a hawk's dive bleeds too: a companion's pounce, core/game-simulation.js updateAllies)
+  if(opts.bleed&&amount>0){const next={dps:amount*opts.bleed.fraction/opts.bleed.duration,t:opts.bleed.duration,acc:0},old=m.statuses.bleed;if(!old||next.dps>=old.dps)m.statuses.bleed=next;}
   if(e.pull&&!m.boss){const a=angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z),d=Math.min(e.pull,dist(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z));g.moveEntity(m,Math.sin(a)*d,Math.cos(a)*d);}
   if(e.poisonFraction){const source=amount/(1-e.poisonFraction),old=m.statuses.poison;const next={dps:source*e.poisonFraction/e.poisonDuration,t:e.poisonDuration,acc:0,owner:'player'};if(!old||next.dps>=old.dps)m.statuses.poison=next;}
   if(e.bleedFraction){const source=amount/(1-e.bleedFraction),old=m.statuses.bleed;const next={dps:source*e.bleedFraction/e.bleedDuration,t:e.bleedDuration,acc:0};if(!old||next.dps>=old.dps)m.statuses.bleed=next;}
@@ -280,6 +295,13 @@ function secondaryBurst(g,x,z,radius,damage,element,skill,kind='mod_burst'){
 }
 /** Spreading Hex: a dying target passes each spreadable debuff (Hex, armor exposure) with its remaining time to the nearest clean monster. */
 export function spreadCurse(g,m){
+  // Spore Pod: a monster dying poisoned passes its stacks to the nearest one within spread (once: the
+  // poison passed on does not spread again)
+  const pz=m.statuses.poison;
+  if(pz?.spread&&pz.t>0){
+    const next=g.monsters.filter(q=>q!==m&&!q.dead&&dist(m.x,m.z,q.x,q.z)<=pz.spread).sort((a,b)=>dist(m.x,m.z,a.x,a.z)-dist(m.x,m.z,b.x,b.z))[0];
+    if(next){const old=next.statuses.poison;next.statuses.poison={dps:Math.max(pz.dps,old?.dps||0),t:Math.max(pz.t,old?.t||0),acc:old?.acc||0,owner:'player',stacks:Math.max(pz.stacks||0,old?.stacks||0),spread:0};g.emit({type:'poisonSpread',from:m.id,id:next.id,x:m.x,z:m.z,tx:next.x,tz:next.z});}
+  }
   for(const key of ['hex','exposure']){
     const h=m.statuses[key];if(!h?.spread||h.t<=0)continue;
     const next=g.monsters.filter(q=>q!==m&&!q.dead&&!q.statuses[key]&&dist(m.x,m.z,q.x,q.z)<=h.spread).sort((a,b)=>dist(m.x,m.z,a.x,a.z)-dist(m.x,m.z,b.x,b.z))[0];
@@ -454,4 +476,138 @@ export function endProjectile(g,pr){
   const e=pr.skill?.modEffects;if(e?.terminalBurst&&(!e.returnMult||pr.returning))secondaryBurst(g,pr.x,pr.z,e.burstRadius,pr.damage*e.terminalBurst,pr.element,pr.kind);
   if(e?.returnMult&&!pr.returning){pr.returning=true;pr.hit.clear();pr.vx*=-1;pr.vz*=-1;pr.angle+=Math.PI;pr.damage*=e.returnMult;pr.travelled=0;pr.range=dist(pr.x,pr.z,pr.startX,pr.startZ);pr.pierce=Infinity;return pr.range>.05;}
   return false;
+}
+
+/** The hunter's companion (call_companion's hunt_hound), living, or null. */
+export const companionOf=(g)=>g.allies.find(a=>a.companion&&!a.dead&&a.life>0)||null;
+/** Sic 'Em's target: the locked one in range, else the nearest in range; null with none. */
+export function sicTarget(g,s){
+  const p=g.player,t=p.targetId&&g.monsterById(p.targetId);
+  if(t&&!t.dead&&dist(t.x,t.z,p.x,p.z)<=s.range)return t;
+  let best=null,bd=s.range;for(const m of g.monsters){if(m.dead)continue;const d=dist(m.x,m.z,p.x,p.z);if(d<=bd){bd=d;best=m;}}
+  return best;
+}
+/** Sic 'Em (s.sic): the companion runs at the target, faster, and its next bite there is mult x with a stun
+ *  (core/game-simulation.js updateAllies); it stays on that target. Pack Hunt (s.packBuff): the companion's
+ *  bites are stronger for a while (a buff, like a summon's damage buffs). */
+/** The summoner's own summons (not a hunter's companion, not a set dummy): what Assault and Soul Swap use. */
+export const summonsOf=(g)=>g.allies.filter(a=>!a.dead&&a.life>0&&!a.static&&!a.companion);
+/** Assault (s.assault): every summon runs at the target, faster (speed x), and its next hit there is mult x and
+ *  knocks it back (knock m); the order lasts time s (core/game-simulation.js updateAllies, the same path as
+ *  Sic 'Em's). */
+export function commandSummons(g,s){
+  const all=summonsOf(g),t=all.length&&sicTarget(g,s);if(!t)return false;
+  const A=s.assault;
+  for(const a of all){a.command='attack';a.targetId=t.id;a.state='follow';a.stateT=0;a.sic={targetId:t.id,mult:A.mult,speed:A.speed,knock:A.knock,t:A.time};}
+  g.emit({type:'summonAssault',ids:all.map(a=>a.id),target:t.id,tx:t.x,tz:t.z});
+  return true;
+}
+export function commandCompanion(g,s){
+  const a=companionOf(g),t=a&&sicTarget(g,s);if(!t)return false;
+  a.command='attack';a.targetId=t.id;a.state='follow';a.stateT=0;
+  // what it does there is its own (the companion's pounce), else the skill's
+  const P=a.pounce||s.sic;
+  a.sic={targetId:t.id,mult:P.mult,speed:s.sic.speed,stun:P.stun,bleed:P.bleed,stagger:P.stagger,taunt:P.taunt,t:4}; // the wolf's pins it (stun), the hawk's tears (bleed, a hard flinch), the bear's roars (taunt)
+  g.emit({type:'sicEm',id:a.id,target:t.id,x:a.x,z:a.z,tx:t.x,tz:t.z});
+  return true;
+}
+/** A set trap's moment (core/game-simulation.js updateAreas): a monster came within its trigger, or a
+ *  Lightning Rod relayed to it. Returns true when it springs into its burst; false when it waits again
+ *  (a Spore Pod with puffs left) or is spent (a.spent).
+ *  - puffs (Spore Pod): each puff is a burst area of its own; the pod re-arms after rearm s
+ *  - pulses (Flame Geyser): the burst comes count times, interval s apart
+ *  - relay (Lightning Rod): springs our other armed traps within relay m at once
+ *  - zap (Lightning Rod): it stands zap.life s, striking the nearest monster in range every interval
+ *  - pull (Gravity Rune, the skill's own field): draws monsters (not bosses) to its middle over pull.time */
+export function springTrap(g,a){
+  const T=a.trap,s=a.skill;a.relayed=false;
+  if(T.puffs){
+    a.puffs=(a.puffs??T.puffs)-1;a.nextArm=a.t+(T.rearm||1);
+    g.spawnArea({owner:'player',kind:a.kind,skill:s,x:a.x,z:a.z,radius:a.radius,delay:0,duration:.35,damage:a.damage,element:a.element});
+    g.emit({type:'trapSprung',skill:a.kind,look:a.look||a.kind,id:a.id,x:a.x,z:a.z,radius:a.radius,puffsLeft:a.puffs});
+    if(a.puffs<=0){a.spent=true;g.emit({type:'areaEnd',id:a.id});}
+    return false;
+  }
+  a.sprung=true;a.t=0;a.delay=0;
+  g.emit({type:'trapSprung',skill:a.kind,look:a.look||a.kind,id:a.id,x:a.x,z:a.z,radius:a.radius});
+  if(T.relay)for(const b of g.areas)if(b!==a&&b.trap&&b.owner==='player'&&!b.sprung&&!b.spent&&b.t>=b.trap.arm&&dist(a.x,a.z,b.x,b.z)<=T.relay){b.relayed=true;g.emit({type:'trapRelay',id:a.id,to:b.id,x:a.x,z:a.z,tx:b.x,tz:b.z});}
+  if(T.pulses)for(let k=1;k<T.pulses.count;k++)g.spawnArea({owner:'player',kind:a.kind,skill:s,x:a.x,z:a.z,radius:a.radius,delay:k*T.pulses.interval,duration:.35,damage:a.damage,element:a.element,pulseOf:a.id,pulse:k});
+  if(T.zap){a.zapT=T.zap.interval;a.duration=T.zap.life;}
+  if(s?.pull){a.pullT=s.pull.time;a.duration=Math.max(a.duration||0,s.pull.time);}
+  return true;
+}
+/** A sprung trap's lasting part, each step (updateAreas): Lightning Rod's zaps, Gravity Rune's pull. */
+export function tickTrap(g,a,dt){
+  const Z=a.trap?.zap;
+  if(Z&&a.zapT!==undefined){
+    a.zapT-=dt;
+    if(a.zapT<=0){
+      a.zapT+=Z.interval;
+      let best=null,bd=Z.range;
+      for(const m of g.monsters){if(m.dead)continue;const d=dist(a.x,a.z,m.x,m.z)-m.r;if(d<=bd){bd=d;best=m;}}
+      if(best){g.hitMonster(best,a.damage*Z.mult,g.hitOpts(a.skill,{crit:g.rollCrit(),fromX:a.x,fromZ:a.z}));g.emit({type:'trapZap',id:a.id,target:best.id,x:a.x,z:a.z,tx:best.x,tz:best.z});}
+    }
+  }
+  const P=a.skill?.pull;
+  if(P&&a.pullT>0){
+    const k=Math.min(1,dt/a.pullT);a.pullT-=dt;
+    for(const m of g.monsters){
+      if(m.dead||m.boss)continue;
+      const d=dist(a.x,a.z,m.x,m.z);if(d>P.radius+m.r||d<.35)continue;
+      g.moveEntity(m,(a.x-m.x)*k*(1-.35/d),(a.z-m.z)*k*(1-.35/d));
+    }
+  }
+}
+/** The trapper's traps (s.trap): see executeFrontier. A trap is a player area waiting with no delay of its
+ *  own (TRAP_WAIT) until updateAreas springs it. */
+export const TRAP_WAIT = 1e6;
+export function placeTraps(g,s,aim,mult){
+  const T=s.trap,n=T.count||1,mine=g.areas.filter(a=>a.trap&&!a.sprung&&a.skill?.id===s.id);
+  while(mine.length&&mine.length+n>T.max){const old=mine.shift();g.areas=g.areas.filter(a=>a!==old);g.emit({type:'areaEnd',id:old.id});}
+  // a pool (Trap Field): each trap thrown is one of the trapper's traps at random, learned or not; it works
+  // as that trap (its circle, trigger, element, root or bleed) with the pool's share of this skill's damage
+  const pool=T.pool?Object.keys(T.pool):null,as={};
+  for(let i=0;i<n;i++){
+    const a=(i+g.rng.range(0,.6))/n*Math.PI*2,d=n>1&&i>0?T.spread*(.45+.55*Math.sqrt(g.rng.range(0,1))):0;
+    const x=aim.x+Math.cos(a)*d,z=aim.z+Math.sin(a)*d;
+    let look=s.id,use=s,k=1,radius=s.radius,trigger=T.trigger;
+    if(pool){
+      look=g.rng.pick(pool);const def=g.data.skills.combat[look];
+      use=as[look]||(as[look]={...s,element:def.element,root:def.root,bleed:def.bleed});
+      k=T.pool[look];radius=def.radius;trigger=def.trap.trigger;
+    }
+    const area=g.spawnArea({owner:'player',kind:s.id,skill:use,look,x,z,radius,delay:TRAP_WAIT,duration:.35,damage:s.damage*mult*k,element:use.element,trap:{...T,trigger}});
+    g.emit({type:'trapSet',skill:s.id,look,id:area.id,x,z,arm:T.arm,life:T.life,radius,trigger,hold:use.root?.duration,fromX:g.player.x,fromZ:g.player.z,i});
+  }
+}
+
+/** Companion fetch (คู่หูคาบของ, the hunter's trunk node; owner 2026-10-25, docs/SKILL-TREE-WHEEL-DRAFT-TH.md
+ *  job 10): with the node's companionFetch (a radius in metres round the hero) a hunter's companion that has
+ *  nothing to fight runs to a drop lying within that radius but past the hero's own pull, takes it in its
+ *  mouth and brings it back; near the hero it lets go and the drop flies in as usual (updateDrops). A fight
+ *  makes it drop what it carries where it stands. Tunables: progression.combat.companionFetch. Returns true
+ *  when the companion was busy fetching this step (it then skips its heel). */
+export function companionFetch(g,a,radius,dt,busy){
+  const F=g.data.progression.combat.companionFetch,p=g.player;
+  let d=a.fetchId!=null?g.drops.find(q=>q.id===a.fetchId):null;
+  if(a.fetchId!=null&&!d){a.fetchId=null;}
+  if(busy||!radius){if(d&&d.carrier===a.id)d.carrier=null;a.fetchId=null;return false;}
+  if(!d){
+    let bd=Infinity;
+    for(const q of g.drops){
+      if(q.t<F.settle||q.carrier!=null||g.allies.some(o=>o!==a&&o.fetchId===q.id))continue;
+      const dp=dist(q.x,q.z,p.x,p.z);if(dp>radius||dp<=F.release)continue;
+      const da=dist(q.x,q.z,a.x,a.z);if(da<bd){bd=da;d=q;}
+    }
+    if(!d)return false;
+    a.fetchId=d.id;
+  }
+  const carrying=d.carrier===a.id,tx=carrying?p.x:d.x,tz=carrying?p.z:d.z,gap=dist(a.x,a.z,tx,tz);
+  if(carrying&&gap<=F.release){d.carrier=null;a.fetchId=null;g.emit({type:'companionFetch',id:a.id,drop:d.id,done:true,x:a.x,z:a.z});return false;}
+  if(!carrying&&gap<=F.grab){d.carrier=a.id;g.emit({type:'companionFetch',id:a.id,drop:d.id,x:d.x,z:d.z});}
+  const ang=angleTo(a.x,a.z,tx,tz),step=Math.min(gap,a.speed*F.speedMult*dt);
+  g.moveEntity(a,Math.sin(ang)*step,Math.cos(ang)*step);
+  a.facing=ang;a.moving=true;a.state='follow';
+  if(d.carrier===a.id){d.x=a.x+Math.sin(a.facing)*F.mouth;d.z=a.z+Math.cos(a.facing)*F.mouth;}
+  return true;
 }

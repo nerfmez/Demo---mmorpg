@@ -612,6 +612,228 @@ twinkling along the path; motes spiral into the staff head as it is cast; on imp
 once (it shatters), shards fly out and fall, a thin ring of frost light races out over the ground, a glint
 and a puff of mist.
 
+Spike Trap, round 1 (`trap-fx.js`; the trapper's traps are made objects, not spells). The hero tosses a
+round trap plate (a wooden disc in an iron rim with teeth, cel-shaded like the world with same-hue outlines)
+from the hand onto the aim point; it lands with a puff of dust and settles; when it arms its teeth click up
+with a glint and a thin amber ring of light shows its trigger range, a soft ring running out to it now and
+then (light only where it helps reading). When a monster steps in, steel spikes (white-hot at their points)
+punch up in two rings over the true radius with speed lines, a dust burst, a glint and a warm light; what
+they strike bleeds a spray of drops; they hold, sink back, and the plate is gone. The bench walks a dummy
+into an armed trap so it springs there as in the game.
+
+Net Trap, round 1 (`trap-fx.js`, the same plates). Its plate carries the net rolled up in a coil of rope
+instead of teeth. When a monster steps in, a dome of rope bursts up off the plate (tall and narrow), then
+spreads out and down over the whole circle with a little bounce, iron weights on its rim pinning it; it is
+held for the root's length over what it caught, then thins away. The net is drawn as lines, not a fill: a
+rope grid on the dome (tan cords with a dark same-hue edge, lit from above, brighter knots where they
+cross); the meridians thin toward the top so the cells stay even.
+
+Blast Trap, round 1 (`trap-fx.js`). Its plate carries a round black bomb with a short fuse that sparks once
+it is armed. When a monster steps in, the plate is gone at once and the burst is Flame Arrow Rain's approved
+one (`FlameRainFx.boom`: a dome of Firebolt's fire that tears into tongues and burns away, embers, a toon
+pit cooling), sized to the trap's 2.6 m, with dust thrown out, a harder shake and a clean glint - not the
+ragged flash (the owner disliked those bursts on Thunder Lance).
+
+Lure Dummy, round 1 (`trap-fx.js` with the game's straw-dummy model, `monsters.js` lure_dummy). The hero
+throws it down (`sow`); it thumps into the ground at the aim point with a ring of dust, straw thrown up and
+a glint. Each time it draws them (the rules' taunt, every 1.5 s) a thin ring of amber light runs out to its
+5 m lure range; an amber tether sags and sways from each monster it has drawn to its chest (Provoke's
+tether, warm instead of red, to the dummy instead of the hero); it wobbles when struck; when its time is up
+it falls apart in a burst of straw. The bench now draws static summons and walks drawn dummies up to it.
+The owner passed it.
+
+Trap Field, round 1 (`trap-fx.js`, no new pieces). Owner: the field throws the trapper's traps at random,
+whether the player has learned them or not. The hero sows five plates that leave the hand one after another
+(0.06 s apart) and spread over the 3 m circle; each is a Spike, Net or Blast plate (teeth, rope coil, bomb)
+with its own trigger ring, and springs with that trap's approved effect.
+
+Flame Geyser, round 1 (`geyser-fx.js`, plate in `trap-fx.js`). The trap's plate is an iron vent whose throat
+glows once armed and between eruptions. Each of the rules' three bursts is an eruption of Firebolt's fire
+(meteor-flame.js on V5_FIELD): a comet shell turned to point down into the vent, so its hot round head sits
+in the nozzle and its tail is a tongue of fire about 3 m tall carried upward; it shoots up in a few frames
+with an overshoot, roars, then its cut rises so the top tears first while it sinks back into the vent (a
+head left standing read as a ball). A thin ring of fire runs out to the true 2.2 m radius, and short
+tongues lick up from the ground where it passes. Embers, a warm light, a small shake. A squashed dome at
+the jet's foot was tried and dropped: it read as a flat blotchy disc. Nothing comes from the sky, unlike
+Flame Arrow Rain and Blast Trap's dome. The owner passed it.
+
+Frost Jaw, round 1 (`jaw-fx.js`, plate in `trap-fx.js`; Ice Spikes' translucent crystal shader, its own
+shape). The plate is the iron trap with a cold light in its middle once armed. When it springs, two rows
+of ice fangs break out of the ground on opposite sides, leaning out like an open jaw, then snap in with an
+overshoot so their points nearly meet over the monster that stepped in - a cage of fangs - with a glint
+where they meet, chips and a cold light. Thin frost lines (spokes with fern branches) run out to the
+trap's true radius under it. The jaw stays shut for the stun, its fangs breathing light, then flashes
+white and cracks into chips with cold mist. Changes during the round: the fangs close on the nearest
+monster rather than the plate's middle (the rules hit the whole circle; the cage shows who is held), the
+trap's trigger went to 0.4 m so it bites what steps on it, the frost lines were made fainter (they drew
+over the fangs), and the bench's walking dummies now stay put while stunned or rooted. Owner: "can the ground be a
+snowflake?" - the frost under the jaw is now a six-armed snowflake of frost light (each arm with three
+pairs of branches at 60 degrees, a small fork at its tip, a hexagon at the heart, thin lines in a soft
+halo) drawn out from the middle to the true radius, turned at random each time.
+
+Stun mark (every stun in the game, `mace-fx.js` on the rules' `stunned`). Owner: the little stars over a
+stunned head read as something else; make it swirling lines. Now three short comet-like strokes of warm
+light (thick at their leading head, thinning behind) orbit the head on a tilted ring for the stun, fading
+in and out; no sprites. Owner: "still not clear, add something" - over them a dizzy spiral (an anime '@' swirl,
+1.8 turns) faces the camera above the head, turning, bobbing and popping in, and every stun line now has
+a dark warm ink edge under its light so it reads on bright grass. Then: "only the spiral, instead of the lines below" - the orbiting
+strokes are gone; the stun mark is the spiral alone. Then: "why does the spiral turn upright?" - it faced the camera; it now
+lies flat over the head and turns round the vertical, a little larger (0.3 m). Then: "it is lopsided!" - camera-facing ribbons laid flat went
+uneven and it bobbed; it is now a flat strip mesh of even width (cream line, dark ink edge) turning
+round the vertical, nothing else.
+
+Lightning Rod, round 1 (`rod-fx.js`, plate in `trap-fx.js`; Chain Spark's `zig` and crackle shaders). The
+plate carries the rod's stub with a copper coil and ball, a cold spark on it once armed. When a monster
+steps in, an iron rod wound with copper coils and topped with a copper ball punches up 1.7 m with an
+overshoot, with a burst of short arcs round the ball, a glint and a cold light. A long jagged bolt runs from
+the ball to each of our traps it sets off (the rules' trapRelay), a glint where it lands; while it stands,
+small arcs keep crackling off the ball and its glow breathes; each strike (trapZap) is a bolt from the ball
+into the monster with a glint and sparks on the body; at the end it sinks back. Every bolt leaves the rod,
+so it is not Chain Spark's hop from body to body. The bench sets a Blast Trap and a Net Trap beside the rod
+so the relay shows. The owner passed it ("โอเค").
+
+Spore Pod, round 1 (`spore-fx.js`, the pod in `trap-fx.js`). The plate carries a fleshy green bulb with
+yellow bumps and a dark mouth; it breathes while it waits, squeezes hard on each puff and shrinks as it
+empties (three puffs). Each puff is a puffball bursting, not Miasma Arrow's lime-and-violet floor gas:
+golden spores (specks of light, white-gold at the heart) thrown up out of the mouth and out to the true
+2 m radius, slowed by the air and drifting down with a flutter; soft ochre puffs swelling low round it and
+a small plume rising from the mouth; a thin ring of spore light running out to the radius; a warm light.
+When a monster dies poisoned by it (poisonSpread), a stream of pale spores arcs from the body to the next
+one with a little puff where it lands. Round-1 fixes: the first spores were fine glitter and the clouds
+hardly showed (spores doubled in size and thrown further, clouds firmer, the ring thinner). The owner passed it.
+
+Gravity Rune, round 1 (`rune-fx.js`, plate in `trap-fx.js`). The plate is the disc with violet rune rings
+and a violet star once armed. When it springs, a rune circle of violet light opens on the ground out to the
+pull's true 4.5 m reach: an outer and an inner ring with glyph ticks and small diamonds between them,
+turning, and five spiral arms winding in, flowing toward the middle while it pulls. Streaks of light are
+drawn in along the spiral, faster as they near the middle. At the end of the pull the circle shrinks into
+the middle, a ring snaps in to the burst's radius and a star glints where they meet. Lines only, no fill.
+Round-1 fix: the first lines were thick and came out near white on grass; thinner, fainter and more
+violet now.
+
+Hunter companions' motion (2026-11-01). Owner: "the animation is not natural on any of them; make the bear go
+from four legs to two in one model, the standing pose as the reference". The wolf and the bear now play the
+Quaternius wolf's clips (CC0: walk, gallop, idle, attack, flinch) retargeted by direction onto their rigs
+(src/render/beast-clips.js), the bear slower and heavier; the bear rears onto its hind legs in its own model
+when it roars. No CC0 bird clip was reachable, so the eagle flaps by a real bird's cycle (fast downstroke,
+folded upstroke, glides). The FX bench's call buttons send the companion in (Sic 'Em) on the second press.
+
+Calling a companion, round 1 (`call-fx.js`, path in `companion-arrival.js`; owner: "make the call effect").
+No magic: the hero whistles (three thin warm arcs toward where it comes from) and the animal comes in from the
+wild behind the hero. The wolf gallops in kicking dust and leaps the last stretch, landing in a small ring of
+dust; the bear lumbers in and lands heavy (a bigger dust ring and a short shake); the eagle dives down out of
+the sky with a thin streak of wind, flares with a ring of air round it and a few feathers drift down. The
+rules hold it still until it is here, so the hawk no longer struck a dummy while still in the sky. Round-1
+fixes: the landing dust first showed where it was called while it already ran at a dummy (the rules now wait);
+the eagle's first streak drew from stale points across the screen (now sampled back along its own path, at
+most 1.8 m).
+
+Companions' own moves (owner: "each one must have its own attack and skill moves"). The bear swipes with a
+paw (rearing, the paw raised, raked down: spine and forelegs from a CC0 humanoid claw swipe, UAL2
+Zombie_Scratch); the wolf sent in by Sic 'Em crouches and leaps onto its prey (the wolf clip's own
+Gallop_Jump with a leap arc and a lunge); Pack Hunt makes the wolf stand and howl, the bear rear and roar; the
+eagle swoops from its height onto its prey and beats back up, and stoops from higher when sent in.
+
+Companions' strikes, round 1 (`companion-fx.js`; owner: "no attack effect at all, and every Sic 'Em shows
+the same daze"). Each hit is the animal's own weapon drawn as light on the screen's plane: the wolf a fang
+snap (an upper and a lower crescent closing, a glint), the bear three warm-red claw rakes torn across the
+prey, the eagle two crossed talon slashes and a feather or two. Sic 'Em: the wolf's snap is bigger and its
+landing throws dust (its pounce keeps the stun), the bear's roar sends three warm rings out to the taunt's
+5 m and shakes the screen, the eagle's dive tears three red gashes (bleed) with a ring of air and feathers.
+The rules changed with it: only the wolf's pounce stuns now; the hawk's bleeds harder and staggers, the
+bear's taunts and hits harder.
+Round 2 (owner: "the rest is fine but the wolf is not good"): the wolf's two crescents became a jaw of white
+fangs, the long canines outside, growing from a bowed jaw line, snapping shut on the prey with an
+overshoot so the upper and lower fangs interlock, held a moment, then fading as it opens a little.
+Round 3 tried light from the wolf's own jaw (the monster-trail rule); the owner turned it down, does not
+like the monster trails either (they will be redone), and asked for outside research. Web search only (the
+pages - Real Time VFX, ArtStation, CGHOW, the Cartoon FX gallery - were blocked by the session's network):
+the common bite is the Pokémon "Bite" kind, a solid jaw of teeth opening wide over the target and slamming
+shut (Gabriel Aguiar's and a Real Time VFX forum recreation; CGHOW's Niagara animal bite: one jaw mesh with
+teeth, a flash, sparks), with anime impact-frame habits (a held high-contrast moment, lines bursting out
+from the contact, a white flash). Round 4 (`bite-fx.js`, the owner chose this direction): solid ivory teeth
+with long interlocking canines and a dark outline pop in wide open over the prey, slam shut with an
+overshoot, tremble shut a moment with a star flash and burst lines, then spring apart and fade.
+Round 5 (owner: "not pretty yet, and too big"): about the prey's body width (0.42 m half-width, 0.56 sent in);
+curved fangs that narrow to a point and lean in, lit on the outer half and shaded on the inner (two toon
+tones), on a slim crescent of gum pointed at both ends; a warm maroon outline instead of near-black; a soft
+warm glow behind it as it shuts; squash and stretch (tall as it slams, flat on the impact); thinner, fewer
+burst lines and a smaller star.
+Round 6 (owner: "should it not be a see-through effect, not solid colour?"): the jaw is light now, not paint:
+additive translucent teeth (two tones kept), a thin bright rim and a wider soft amber halo round each tooth,
+no dark outline; it adds light over the prey and the grass behind it.
+The owner then asked for the bear and the eagle "like this" (`claw-fx.js`): each claw mark is a solid curved
+slash shape of added light (pointed at both ends, two toon tones, a thin bright rim and a coloured halo) that
+wipes in along its length, swells a little on the impact and lets its tail follow it out. The bear rakes
+three with an orange-red halo, the eagle crosses two with a pale blue halo, its Sic 'Em dive three with a
+red one.
+
+Sic 'Em, round 1 (`sic-fx.js`; owner: "passed, do the Sic 'Em effect"). Web search only (pages blocked): orders
+are marked with a head marker over the target (FFXIV headmarkers, a red reticle above the target in Sonic and
+the Black Knight), in a colour that reads on any monster - bright over a dark shadow (Monster Hunter Now
+suggestion) - and a lock that animates as it takes. So: the hero whistles toward the prey; a red chevron of
+see-through light drops in over its head with a squash, over a soft dark shadow, bobbing and pulsing; three
+red-orange brackets close in on the ground round it and turn; two streaks of light trail the companion as it
+runs in; when the pounce lands the chevron snaps down and bursts (the strike's own bite, rakes or gashes play
+with it); a lapsed order fades.
+
+Mark Prey, round 1 (`prey-fx.js`; owner: "passed, do Mark Prey"). Web search (pages blocked): a hunter's mark is
+an indicator hovering over the target that everyone sees (WoW's Hunter's Mark); GW2 wraps the target instead.
+Ours must read apart from Sic 'Em's red chevron: an amber sigil of see-through light, a crosshair ring with
+four ticks round a paw print, stamped down big and faint onto the prey's head with a flash and a ring round
+the prey, then hovering, turning and breathing for the mark's time, fading over its last second. Sunder's
+broken shield no longer shows for this exposure. A marked kill's extra part (preyDrop) rises in a gold star
+and sparkles.
+
+Pack Hunt, round 1 (`pack-fx.js`; owner: "passed, do Pack Hunt"). Web search (pages blocked): howls are sound
+waves from the animal (ESO's werewolf howls, GW2), buffs a glowing ground circle with rings rising on
+activation and then a fainter aura for the buff's time. So, in a cool moon colour apart from the bear's
+orange roar: three arcs of moonlight rise and widen from the companion's muzzle as it stands to howl, two
+rings of moonlight run out over the ground, and the pack's wolves run in to it (the call's run-in); while the
+pack buff lasts a warm ring breathes under the companion and embers rise off its back, fading with it.
+
+Spirit Swarm, round 1 (`spirit-call-fx.js`; owner: "passed, go on" - the summoner's effects one at a time).
+Web search (pages blocked): summons are built in layers - a ground circle and motes rising from it - in
+phases from a still circle to a release; a critique warns that too many motions at once stop reading. So one
+motion per layer in the spirits' see-through blue: a spirit flame per fox arcs from the staff's tip to its
+spot (the three a beat apart), a small rune circle (two rings, six ticks, a three-line star) opens there
+with a soft flash and turns slowly while motes rise, and the fox forms out of the ground once its flame has
+landed (its reveal waits SPIRIT_ARRIVE; the rules hold it still for summon.arrive 0.5 s) before it runs in.
+
+Call Alpha, round 1 (same file; owner: Spirit Swarm "passed"). One bigger spirit flame arcs from the staff,
+a circle twice the size opens with a pillar of spirit fire rising round its edge while the alpha forms
+(the rules hold it 0.75 s), then its howl: one ring of blue light running out over the ground to the aura's
+true 8 m reach, where the other summons hit harder.
+
+Assault, round 1 (`assault-fx.js`; owner: Call Alpha "passed, do Assault"). Built on Sic 'Em's research and
+language (a head marker that reads on any monster, a ground reticle that locks) in the summoner's blue, so
+the two orders read apart: three blue chevrons stack down over the target (a charge sign) and three brackets
+close in round it turning the other way; a tether of light runs from each sent summon to the target for a
+moment; each summon trails two streaks as it runs in; every charged hit jolts the stack, breaks a crescent of
+light on the target facing the blow with speed lines thrown the way it is pushed, a star and a short shake;
+the marker bursts and fades when the last one has struck or the order lapses.
+
+Soul Swap, round 1 (spirit-call-fx.js `swapGather`/`swap`; owner: Assault "passed, do Soul Swap"). In the same
+spirit language as the calls: on the gather a small rune circle opens under the hero and under the summon it
+will trade with; at the trade two spirit flames cross between the two spots, landing in fresh circles, the
+summon's with the rising pillar of spirit fire that marks its heal; a light shake. The FX bench's dodge picker
+has Soul Swap (with a non-summon skill the bench calls a Spirit Swarm first to trade with).
+
+Revive, round 1 (`revive-fx.js`; owner: "do the priest group"). In the holy gold of Blessing and the Bell: on the
+cast a gold ring runs out to the true 9 m and strokes of light fall round the hero; while the light lasts a thin
+gold halo turns over the head of every body that carries it (fading over its last 3 s); when a lethal hit is
+caught, a star flash, a gold ring on the ground and a column of light strokes rising round the body, a short
+shake, and the halo is gone. Fix in the round: a 2-point ribbon has no middle to be wide in (the streaks drew
+nothing); they are 5 points now.
+Round 2 (owner: "prettier"): rebuilt with the approved Blessing of Light's techniques and given its own read,
+wings of light. On the cast gold angel wings unfold behind the hero (an arch from the shoulder out to the tip
+and feathers hanging from it, longest at the tip; spread across the screen so they open wide from the game
+camera whichever way the hero faces) and fold away, a gold holy circle (two rings and an eight-pointed star)
+turns underneath, a soft ring goes out in the air to the true 9 m and stars pop. While it lasts a double halo
+turns over each covered body and a feather of light drifts down now and then. The rising: a column of light
+bursts UP out of the ground (Blessing's column, revealed bottom up with its streaks flowing upward), a lens
+glint, the wings open wide from the risen body and dissolve into feathers drifting down, stars and the circle.
+
 ## Warp and level-up, round 1 (2026-10-31)
 
 Owner: "ปรับปรุงเอฟเฟค วาปกับเลเวลอัป" (the old ones were a flat additive cylinder and a puff of sparks).

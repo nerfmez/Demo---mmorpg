@@ -1,5 +1,5 @@
 {
-  "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up. levels: each kind's one fixed level range (owner, 2026-10-29: no kind returns at other levels); a map spawn stays inside it unless marked temporary (a placeholder until a new monster fills that zone).",
+  "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up. levels: each kind's one fixed level range (owner, 2026-10-29: no kind returns at other levels); a map spawn stays inside it unless marked temporary (a placeholder until a new monster fills that zone). element: what its attacks deal (physical when absent); an attack's own element overrides it, and an attack's inflict { status, chance, duration, slow | dpsMult } puts a status on the hero (core/defense.js: resisted by element resistance, shortened by tenacity). Elements follow each monster's body and home: the marsh wisp's swamp fire, the coast's cold brine, spore and venom poison, the storm hawk's and the rune sentinel's lightning, the moonlit moth's cold glass; fangs and claws make bleed, the mole's burrowing roots the hero for a moment.",
   "monsters": {
     "tusk_boar": {
       "name": "Boarbull",
@@ -62,6 +62,7 @@
       "name": "Moss Shell Beetle",
       "nameTh": "ด้วงกระดองตะไคร่",
       "behavior": "shell_spitter",
+      "element": "poison",
       "hp": 800,
       "damage": 80,
       "defense": 100,
@@ -170,6 +171,7 @@
       "name": "Lostlight Wisp",
       "nameTh": "ภูตแสงหลงทาง",
       "behavior": "kiter",
+      "element": "fire",
       "hp": 450,
       "damage": 110,
       "defense": 20,
@@ -182,6 +184,7 @@
       "jobExp": 14,
       "attacks": {
         "orb": {
+          "inflict": {"status": "burn", "chance": 0.5, "duration": 3, "dpsMult": 0.15},
           "range": 10,
           "windup": 0.45,
           "recover": 0.4,
@@ -254,6 +257,7 @@
           "duration": 6
         },
         "rend": {
+          "inflict": {"status": "bleed", "chance": 0.5, "duration": 3, "dpsMult": 0.12},
           "range": 2.3,
           "arc": 110,
           "windup": 0.4,
@@ -308,6 +312,7 @@
       "name": "Sporecap",
       "nameTh": "เห็ดสปอร์",
       "behavior": "spore",
+      "element": "poison",
       "hp": 600,
       "damage": 70,
       "defense": 60,
@@ -433,6 +438,8 @@
       "jobExp": 18,
       "attacks": {
         "dive": {
+          "element": "lightning",
+          "inflict": {"status": "shock", "chance": 0.5, "duration": 2.5},
           "range": 12,
           "windup": 0.7,
           "radius": 1.5,
@@ -502,6 +509,7 @@
           "summon": 2
         },
         "rake": {
+          "inflict": {"status": "bleed", "chance": 0.6, "duration": 4, "dpsMult": 0.12},
           "range": 3.1,
           "arc": 130,
           "windup": 0.55,
@@ -701,6 +709,8 @@
           "damageMult": 1
         },
         "salt_spit": {
+          "element": "cold",
+          "inflict": {"status": "chill", "chance": 1, "duration": 2.5, "slow": 0.35},
           "minRange": 1.7,
           "range": 5,
           "windup": 1,
@@ -875,6 +885,7 @@
       "jobExp": 14,
       "attacks": {
         "scythe": {
+          "inflict": {"status": "bleed", "chance": 0.4, "duration": 3, "dpsMult": 0.12},
           "range": 1.9,
           "arc": 150,
           "windup": 0.6,
@@ -929,6 +940,7 @@
       "name": "Reedblade Viper",
       "nameTh": "งูใบกกพิษ",
       "behavior": "viper",
+      "element": "poison",
       "hp": 520,
       "damage": 100,
       "defense": 30,
@@ -957,6 +969,7 @@
           "damageMult": 0.4
         },
         "lash": {
+          "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15},
           "minRange": 0,
           "maxRange": 5.5,
           "range": 5.5,
@@ -1126,6 +1139,8 @@
       "jobExp": 21,
       "attacks": {
         "beam": {
+          "element": "lightning",
+          "inflict": {"status": "shock", "chance": 1, "duration": 3},
           "range": 12,
           "width": 1.1,
           "windup": 1.2,
@@ -1236,6 +1251,7 @@
       "name": "Mirrorwing Moth",
       "nameTh": "ผีเสื้อราตรีปีกกระจก",
       "behavior": "moth",
+      "element": "cold",
       "hp": 400,
       "damage": 90,
       "defense": 20,
@@ -1253,6 +1269,7 @@
       ],
       "attacks": {
         "shard_rain": {
+          "inflict": {"status": "chill", "chance": 0.5, "duration": 2, "slow": 0.25},
           "range": 9,
           "windup": 0.8,
           "count": 4,
@@ -1264,6 +1281,7 @@
           "damageMult": 1.1
         },
         "mirror_ring": {
+          "inflict": {"status": "chill", "chance": 1, "duration": 2.5, "slow": 0.4},
           "range": 3.2,
           "radius": 4.2,
           "inner": 1.5,
@@ -1322,6 +1340,7 @@
           "damageMult": 1.1
         },
         "erupt": {
+          "inflict": {"status": "root", "chance": 1, "duration": 1},
           "minRange": 4,
           "range": 10,
           "windup": 1.1,
@@ -1420,6 +1439,7 @@
       "name": "Leaf Tanuki",
       "nameTh": "ทานุกิใบไม้",
       "behavior": "spore",
+      "element": "poison",
       "hp": 700,
       "damage": 85,
       "defense": 60,
@@ -1534,6 +1554,7 @@
       "name": "Pearl Fish",
       "nameTh": "ปลามุก",
       "behavior": "kiter",
+      "element": "cold",
       "hp": 480,
       "damage": 110,
       "defense": 25,
@@ -1545,6 +1566,7 @@
       "jobExp": 14,
       "attacks": {
         "orb": {
+          "inflict": {"status": "chill", "chance": 0.6, "duration": 2, "slow": 0.3},
           "range": 10,
           "windup": 0.45,
           "recover": 0.4,
@@ -1588,6 +1610,7 @@
       "name": "Pearl Sea Slug",
       "nameTh": "ทากทะเลมุก",
       "behavior": "viper",
+      "element": "poison",
       "hp": 700,
       "damage": 95,
       "defense": 50,
@@ -1616,6 +1639,7 @@
           "damageMult": 0.4
         },
         "lash": {
+          "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15},
           "minRange": 0,
           "maxRange": 5.5,
           "range": 5.5,
@@ -1656,6 +1680,7 @@
       "name": "One-eyed Clam",
       "nameTh": "หอยตาเดียว",
       "behavior": "shell_spitter",
+      "element": "poison",
       "hp": 950,
       "damage": 90,
       "defense": 100,

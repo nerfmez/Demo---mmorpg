@@ -1,8 +1,9 @@
 // One-shot cosmetic feedback, owned by this Panels instance. No game-loop or save-schema changes.
 import { executeWorkshop, WORKSHOP_OPERATIONS, workshopReason } from './workshop-model.js';
+import { playWorkshopFx } from './workshop-fx.js';
 const DURATION = 900;
 
-export function createWorkshopController(ui, { schedule = setTimeout, cancel = clearTimeout, reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches } = {}) {
+export function createWorkshopController(ui, { schedule = (fn, ms) => setTimeout(fn, ms), cancel = (id) => clearTimeout(id), reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches } = {}) {
   let timer = null, token = 0, busy = false, receipt = null, error = '';
   const finish = () => {
     if (timer !== null) cancel(timer);
@@ -31,6 +32,7 @@ export function createWorkshopController(ui, { schedule = setTimeout, cancel = c
         ui.lastResult = null;
         // Model and normal autosave callback are updated NOW, before any cosmetic timer.
         ui.changed();
+        playWorkshopFx(ui, result); // cosmetic, over the stage; the result is already saved
         if (token === sequence && busy) timer = schedule(() => {
           if (token !== sequence) return;
           timer = null; busy = false;

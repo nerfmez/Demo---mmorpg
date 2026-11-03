@@ -103,13 +103,18 @@ export class FlameRainFx {
     const a = this.arrows.find((q) => q.live && q.id === e.id) || this.arrows.find((q) => q.live && q.burst < 0 && Math.hypot(q.x - e.x, q.z - e.z) < 0.05);
     if (!a) return;
     a.burst = a.t;
-    this.p.set(a.x, 0.45, a.z); this.flash(this.p, 2.0);
-    this.fire?.impact(a.x, 0.4, a.z, true, 0.8);   // embers only: the dome is the fire
-    const b = this.bursts[this.burstI++ % BURSTS];
-    Object.assign(b, { live: true, t: 0, x: a.x, z: a.z, size: a.blast * 0.62 });
-    b.dome.visible = true; placeV(b.dome, this.p.set(a.x, 0, a.z)); b.dome.scale.setScalar(0.01);
-    const lip = a.blast * 0.32; b.pit.visible = true; placeV(b.pit, this.p.set(a.x, 0.05, a.z)); b.pit.scale.setScalar(lip * 1.7 * 2); conformPlane(b.pit);
+    this.boom(a.x, a.z, a.blast);
     a.flame.visible = false;
+  }
+  /** A burst of fire at (x, z) over radius blast: a flash, embers, a dome of Firebolt's fire that tears into
+   *  tongues and burns away, and a little toon pit cooling (also the trapper's Blast Trap, skillfx/trap-fx.js). */
+  boom(x, z, blast, flash = true) {
+    if (flash) { this.p.set(x, 0.45, z); this.flash(this.p, 2.0); }
+    this.fire?.impact(x, 0.4, z, true, 0.8 * Math.max(1, blast / 1.4));   // embers only: the dome is the fire
+    const b = this.bursts[this.burstI++ % BURSTS];
+    Object.assign(b, { live: true, t: 0, x, z, size: blast * 0.62 });
+    b.dome.visible = true; placeV(b.dome, this.p.set(x, 0, z)); b.dome.scale.setScalar(0.01);
+    const lip = blast * 0.32; b.pit.visible = true; placeV(b.pit, this.p.set(x, 0.05, z)); b.pit.scale.setScalar(lip * 1.7 * 2); conformPlane(b.pit);
   }
   // red fletching: two short vanes splayed back from the shaft's end (tail: the end, dir: the flight)
   fletch(tail, dir, alpha) {

@@ -6,6 +6,7 @@ import { worldMapImage } from './mapimage.js';
 import { toWorld, waypointUnlocked } from '../core/atlas.js';
 import { loadPref, savePref } from '../save.js';
 import { fieldIcon, xpMarkup, xpPresentation, trackerMarkup } from './fieldhud.js';
+import { jobChoiceLevel } from '../core/character.js';
 import { statusList } from '../core/statuses.js';
 import { statusChips, statusKey } from './status-icons.js';
 
@@ -400,7 +401,7 @@ export class Hud {
         break;
       case 'joblevelup':
         this.toast(`Job Level ${e.level} · ได้ Job Point +1`, '#c59bff');
-        if (e.level === d.progression.job.jobChoiceLevel) this.banner('เลือก Job ได้แล้ว!', 'เปิด Job Tree (J) แล้วเลือกสายที่เข้ากับ Build');
+        if (e.level === jobChoiceLevel(d)) this.banner('เลือก Job ได้แล้ว!', 'เปิด Job Tree (J) แล้วเลือกสายที่เข้ากับ Build');
         break;
       case 'questDone': {
         this.lastTracker = null;
@@ -433,6 +434,8 @@ export class Hud {
         if (e.reason === 'potion_cooldown') this.toast('ยังดื่มยาชนิดนี้ซ้ำไม่ได้ รอสักครู่', '#c8b8a0');
         if (e.reason === 'potion_full') this.toast((d.items.consumables.types[e.item]?.group === 'mp' ? 'MP' : 'HP') + ' เต็มอยู่แล้ว', '#c8b8a0');
         if (e.reason === 'target') this.toast('ไม่มีเป้าหมายในระยะ', '#c8b8a0');
+        if (e.reason === 'companion') this.toast('ยังไม่มีคู่หู เรียกคู่หูก่อน', '#c8b8a0');
+        if (e.reason === 'summon') this.toast('ยังไม่มีสัตว์อัญเชิญ เรียกสัตว์ก่อน', '#c8b8a0');
         if (e.reason === 'arrows') this.toast('ลูกธนูหมด · คราฟต์ได้ทุกที่นอกการต่อสู้ (กระเป๋า → มือซ้าย)', '#e08a3a');
         break;
       case 'playerDeath':

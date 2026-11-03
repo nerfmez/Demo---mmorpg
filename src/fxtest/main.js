@@ -13,6 +13,11 @@ import HOLDS from '../../data/weapon-holds.json';
 import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
+import { buildMonster } from '../render/monsters.js';
+import { installSpiritReveal, updateSpiritReveal, removeSpiritReveal } from '../render/spirit-reveal.js';
+const SPIRITS = new Set(['spirit_wolf', 'spirit_alpha', 'spirit_wisp', 'stone_guardian']); // the conjured spirits (view.js)
+const ALLY_STRIKE = { stone_guardian: 'pound' }; // a summon's strike by its rig's own attack (the golem pounds with both fists)
+import { arrives, arrivalFrom, arrivalAt, arrivalTime } from '../render/companion-arrival.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
 import { fusionRecipe, benchData } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
@@ -20,6 +25,7 @@ import { ThunderArrowFx } from './thunder-arrow-fx.js';
 import { mulberry32 } from '../render/skillfx/fx-common.js';
 import { OCCLUDER_LAYER } from '../render/skillfx/flame-fx.js';
 import { SkillFx, OWN_PROJECTILES, ELEMENT_COLOR } from '../render/skill-fx.js';
+import { SPIRIT_ARRIVE } from '../render/skillfx/spirit-call-fx.js';
 import { GAME_CAMERA_OFFSET } from '../render/game-camera.js';
 import { FrontierFx } from '../render/frontier-fx.js';
 
@@ -104,6 +110,7 @@ function makeDummy() {
   return { g, mats, orig: mats.map((m) => m.color.clone()), pop: 0, popColor: new THREE.Color(), shake: 0, x: 0, z: 0, center: new THREE.Vector3() };
 }
 const dummies = Array.from({ length: 6 }, makeDummy);
+const benchAllies = new Map(); // summons drawn on the bench (Lure Dummy, the hunter's hounds)
 
 // errors on screen (the owner tests on a tablet, with no console): the banner shows what failed
 function notify(text) { try { showBanner(text); } catch { /* before the banner exists */ } }
@@ -128,7 +135,7 @@ function buildHero(weapon = heroWeapon, offhand = heroOffhand) {
 buildHero();
 // the game's hero: the chibi body and its hair (hero_base stays as the fallback rig)
 const { hero_base, hero_chibi, hero_chibi_hair } = MODELS.characters;
-loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair }, weapons: MODELS.weapons }, { onWeaponReady: () => buildHero() }).then(() => buildHero()).catch(() => {});
+loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair }, weapons: MODELS.weapons, monsters: { hunt_hound: MODELS.monsters.hunt_hound, pack_hound: MODELS.monsters.pack_hound, hunt_bear: MODELS.monsters.hunt_bear, hunt_hawk: MODELS.monsters.hunt_hawk, spirit_wolf: MODELS.monsters.spirit_wolf, spirit_alpha: MODELS.monsters.spirit_alpha, spirit_wisp: MODELS.monsters.spirit_wisp, stone_guardian: MODELS.monsters.stone_guardian } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); for (const r of benchAllies.values()) { removeSpiritReveal(r.reveal); r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); /* summons set before the models came are rebuilt in them */ }).catch(() => {});
 const tip = new THREE.Vector3();
 function staffTip() {
   const w = hero.bones?.weapon;
@@ -172,6 +179,7 @@ const skipSets = new Map();
 const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_PROJECTILES])).get(k);
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
+  for (const r of benchAllies.values()) { removeSpiritReveal(r.reveal); r.root.removeFromParent(); disposeObject(r.root); } benchAllies.clear(); // the old bench's summons
   if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement, haste: state.haste ?? null });
   game.aimAt(aimAngle);
@@ -380,7 +388,7 @@ function renderPanel() {
   const W = [[null, 'ของสกิล'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์'], ['axe', 'ขวาน'], ['mace', 'กระบอง'], ['greatblade', 'ดาบใหญ่'], ['greatshield', 'โล่ใหญ่'], ['staff', 'คทา'], ['bow', 'ธนู']];
   pick('มือขวา', W, state.weapon || null, (id) => { state.weapon = id; });
   pick('มือซ้าย', [[null, 'ว่าง'], ['shield', 'โล่'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์']], state.offhand || null, (id) => { state.offhand = id; });
-  pick('หลบ', [['dash', 'พุ่ง'], ['roll', 'กลิ้ง'], ['blink', 'วาร์ป'], ['leap', 'กระโดด']], state.movement || 'dash', (id) => { state.movement = id; });
+  pick('หลบ', [['dash', 'พุ่ง'], ['roll', 'กลิ้ง'], ['blink', 'วาร์ป'], ['leap', 'กระโดด'], ['soul_swap', 'สลับวิญญาณ']], state.movement || 'dash', (id) => { state.movement = id; });
   panel.append(wb);
 
   // speed trial: the one speed value, up to its cap
@@ -581,6 +589,29 @@ function tick(real, draw = true) {
     d.g.rotation.z = sh * 1.2;
   });
 
+  // static summons (Lure Dummy) stand where the rules set them, the game's own model (view.js draws them in
+  // the game; the bench draws only these)
+  for (const a of game.allies) {
+    let r = benchAllies.get(a.id);
+    if (!r) {
+      r = buildMonster(a.type, 1, false); scene.add(r.root); benchAllies.set(a.id, r); r.state = { hurt: 0 }; r.lastHp = a.hp; r.age = 0;
+      if (SPIRITS.has(a.type)) r.reveal = installSpiritReveal(r); // the conjured spirits glow blue and rise from the ground (view.js)
+      // a hunter's companion comes in from the wild as in the game (view.js syncAllies)
+      if (arrives(a.type) && a.arriveT > 0) r.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, game.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
+    }
+    r.age += dt;
+    const arr = r.arr && a.arriveT > 0 ? arrivalAt(a.type, arrivalTime(a.type) - a.arriveT, r.arr.from, a.x, a.z, r.arr.at) : null;
+    const ax = arr ? arr.x : a.x, az = arr ? arr.z : a.z;
+    // its speed from how far it moved (the game's view measures it the same way), its bite from its state
+    const sp = r.px === undefined ? 0 : Math.hypot(ax - r.px, az - r.pz) / Math.max(1e-3, dt); r.px = ax; r.pz = az;
+    r.root.position.set(ax, arr ? arr.y : 0, az); r.root.rotation.y = arr ? arr.facing : a.facing;
+    if (a.state === 'windup') { const tg = game.monsters.find((m) => m.id === a.targetId); r.reach = tg ? Math.max(0, Math.hypot(tg.x - a.x, tg.z - a.z) - 0.5) : 0; }
+    Object.assign(r.state, { reach: r.reach || 0, moving: arr ? arr.k < 1 : a.moving, speed: sp, vFwd: sp, vSide: 0, speedFactor: 1.2, aggro: true, state: a.state === 'recover' && a.stateT < 0.12 ? 'act' : a.state, lastAttack: ALLY_STRIKE[a.type] || 'bite', windup: a.state === 'windup' ? ALLY_STRIKE[a.type] || 'bite' : null, windupT: a.stateT, windupTotal: 0.25, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic });
+    if (a.hp < r.lastHp) r.state.hurt = 1; r.lastHp = a.hp; r.state.hurt = Math.max(0, r.state.hurt - dt * 4);
+    r.animate?.(r, r.state, dt, simTime);
+    if (r.reveal) updateSpiritReveal(r.reveal, r.age - (SPIRIT_ARRIVE[a.type] || 0), a.life, 0, r.baseScale || 1);
+  }
+  for (const [id, r] of benchAllies) if (!game.allies.some((a) => a.id === id)) { removeSpiritReveal(r.reveal); r.root.removeFromParent(); disposeObject(r.root); benchAllies.delete(id); }
   fx.update(dt);
   castBtn.classList.toggle('ready', fx.counterReady);
   const recipeKind = skillDef().recipe?.id;
@@ -628,7 +659,7 @@ rebuild();
 requestAnimationFrame(frame);
 window.__fxtest = { state, ACTIONS, registerClip, pickAction, get game() { return game; }, get hero() { return hero; }, get anim() { return heroAnim; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, fx,
   // review hooks: freeze the clock and advance fixed 60 Hz steps, rendering only the last one
-  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, redraw: () => tick(0, true) /* render again without stepping time (another camera) */, vfx, staffTip,
+  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, redraw: () => tick(0, true) /* render again without stepping time (another camera) */, vfx, benchAllies, staffTip,
   hideDummies: () => dummies.forEach((d) => { d.g.visible = false; }),
   stances: HOLDS.stances, // the animator's stance table (pose tools add trial stances to it)
   setOffhand: (kind) => { state.offhand = kind; rebuild(); }, // a second weapon (dual carry) or null

@@ -6,13 +6,15 @@ import { createWorld } from './world.js';
 import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, defenseFactor, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
-import { computeSkill, movementSkill } from './skills.js';
+import { computeSkill, movementSkill, aimsAtGround } from './skills.js';
 import { gainProficiency } from './skill-growth.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { perkHit, perkAfterHit, perkCast, perkMovement, perkDodge, perkInvulnerable, perkTaken, perkSteady, perkAfterTaken, perkRegen, perkShield, perkKill, perkDrops } from './stat-perks.js';
-import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock } from './frontier-content.js';
+import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal, lightWallStops, coverMult, rushContact, stackPoison, chargeShock, springTrap, tickTrap, companionOf, sicTarget, summonsOf, companionFetch } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
+import { monsterHit, resistOf, inflictHero, statusTaken, statusWalk, DOTS } from './defense.js';
+import { heroHitMult, allyHitMult, heroTakenMult, allyTakenMult } from './wheel-rules.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
@@ -343,8 +345,10 @@ export class Game {
     return a;
   }
 
-  spawnAllies(s, x, z) {
+  spawnAllies(s, x, z, exact = false) {
     const sm = s.summon;
+    // a hunter keeps one companion: calling another kind sends the old one away
+    if (sm.companion) for (const a of this.allies) if (a.companion && a.type !== sm.type) a.life = 0;
     const mine = this.allies.filter((a) => a.type === sm.type && !a.dead);
     while (mine.length >= sm.count) {
       const old = mine.shift();
@@ -352,8 +356,8 @@ export class Game {
     }
     for (let i = 0; i < sm.count - mine.length; i++) {
       const a = (i / sm.count) * Math.PI * 2;
-      let ax = x + Math.sin(a) * 1.2;
-      let az = z + Math.cos(a) * 1.2;
+      let ax = exact ? x : x + Math.sin(a) * 1.2;
+      let az = exact ? z : z + Math.cos(a) * 1.2;
       if (!this.world.isFree(ax, az, 0.6)) {
         ax = x;
         az = z;
@@ -363,6 +367,10 @@ export class Game {
         kind: 'ally',
         team: 'player',
         type: sm.type,
+        static: !!sm.static,
+        companion: !!sm.companion, pounce: sm.pounce,
+        arriveT: sm.arrive || 0,
+        alphaAura: sm.aura || null, // Call Alpha: the other summons near it hit harder // a hunter's companion runs in from the wild first (it acts once it is here)
         effects: sm.effects, skill: s.id, tauntRadius:sm.tauntRadius, tauntInterval:sm.tauntInterval, tauntDuration:sm.tauntDuration,
         x: ax,
         z: az,
@@ -375,7 +383,7 @@ export class Game {
         range: sm.range,
         attackCooldown: sm.attackCooldown,
         cd: 0,
-        life: sm.life,
+        life: sm.permanent ? Infinity : sm.life,
         state: 'follow',
         stateT: 0,
         targetId: null,
@@ -475,6 +483,16 @@ export class Game {
     // Backstab (s.shadowStep): the hero steps through the shadows to behind its target, then strikes.
     // It needs a target within shadowStep.range (the locked one, else on a tap the nearest); with none it
     // fails before anything is spent.
+    // Assault needs our summons and a target in reach; without either it fails before anything is spent
+    if (s.assault && (!summonsOf(this).length || !sicTarget(this, s))) {
+      this.emit({ type: 'fail', reason: summonsOf(this).length ? 'target' : 'summon', slot: i });
+      return false;
+    }
+    // Sic 'Em needs our companion and a target in reach; without either it fails before anything is spent
+    if (s.sic && (!companionOf(this) || !sicTarget(this, s))) {
+      this.emit({ type: 'fail', reason: companionOf(this) ? 'target' : 'companion', slot: i });
+      return false;
+    }
     if (s.shadowStep && !this.shadowStep(s)) {
       if (!this.input.aimFromPointer) this.input.manualAim = false; // a drag's aim lasts one press
       this.emit({ type: 'fail', reason: 'target', slot: i });
@@ -550,7 +568,7 @@ export class Game {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
-    if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'].includes(s.kind)) {
+    if (aimsAtGround(s)) {
       let pt = point || (this.input.aimFromPointer ? this.input.aimPoint : null);
       if (!pt) {
         if (s.kind === 'heal_zone') pt = { x: p.x, z: p.z };
@@ -577,6 +595,15 @@ export class Game {
     if (p.dead || p.dash) return false;
     if (p.movement.charges < 1) return false;
     const mv = this.move;
+    // Soul Swap (kind swap) needs one of our summons within its reach: the one nearest the aimed point (else
+    // the nearest one); without it nothing is spent
+    let swapWith = null;
+    if (mv.kind === 'swap') {
+      const aimAt = point || (this.input.aimFromPointer ? this.input.aimPoint : null), ox = aimAt ? aimAt.x : p.x, oz = aimAt ? aimAt.z : p.z;
+      let bd = Infinity;
+      for (const a of summonsOf(this)) { if (dist(a.x, a.z, p.x, p.z) > mv.distance) continue; const d = dist(a.x, a.z, ox, oz); if (d < bd) { bd = d; swapWith = a; } }
+      if (!swapWith) { this.emit({ type: 'fail', reason: 'summon', slot: 'movement' }); return false; }
+    }
     this.cancelCharge();
     this.cancelChannel();
     p.queued = null;
@@ -586,7 +613,12 @@ export class Game {
     const moving = Math.hypot(this.input.moveX, this.input.moveZ) > 0.2;
     if (moving) angle = Math.atan2(this.input.moveX, this.input.moveZ);
     else angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (mv.kind === 'blink' || mv.kind === 'leap') {
+    if (mv.kind === 'swap') {
+      // a short gather in place (invulnerable), then the hero and the summon trade places (swapPlayer)
+      angle = angleTo(p.x, p.z, swapWith.x, swapWith.z); p.facing = angle;
+      p.dash = { t: 0, dur: (mv.delay || 0) + mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'swap', delay: mv.delay || 0, allyId: swapWith.id, heal: mv.heal || 0, moved: false };
+      if (!mv.delay) this.swapPlayer(p);
+    } else if (mv.kind === 'blink' || mv.kind === 'leap') {
       const dest = point || (this.input.aimFromPointer && !moving ? this.input.aimPoint : null);
       let d = mv.distance;
       if (dest) {
@@ -634,6 +666,18 @@ export class Game {
     p.x = d.toX;
     p.z = d.toZ;
     d.moved = true;
+  }
+
+  /** Soul Swap's trade: the hero and the summon change places; the summon is healed (dash.heal of its HP).
+   *  A summon gone by now leaves the hero where it stood. */
+  swapPlayer(p) {
+    const d = p.dash, a = this.allies.find((q) => q.id === d.allyId && !q.dead && q.life > 0);
+    d.moved = true;
+    if (!a) return;
+    const fx = p.x, fz = p.z;
+    this.emit({ type: 'soulSwap', id: a.id, fromX: fx, fromZ: fz, x: a.x, z: a.z });
+    p.x = a.x; p.z = a.z; a.x = fx; a.z = fz;
+    a.hp = Math.min(a.maxHp, a.hp + a.maxHp * d.heal);
   }
 
   /** What the player can interact with right now. */
@@ -926,6 +970,7 @@ export class Game {
     // stat perks (core/stat-perks.js) on the hero's own skill hits
     const perk = this.derived.perks && opts.skill && !opts.dot && !opts.byAlly ? perkHit(this, m, opts, crit) : null;
     if (perk) { dmg *= perk.mult; crit = perk.crit; }
+    dmg *= heroHitMult(this, m, opts) * allyHitMult(m, opts); // the wheel tree's single / pack / per-target and team marks
     if (crit) dmg *= this.derived.critMult * (perk ? perk.critMult : 1);
     const stagger = opts.stagger || 0;
     // Penetration ignores a share of the monster's defense.
@@ -946,7 +991,7 @@ export class Game {
       if (!stagger) m.flinchReady = this.time + (combat?.flinchLock || 0);
     }
     this.stats.damageDealt += dmg;
-    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
+    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', bleed: !!opts.bleed, dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
       chargeShock(this, m, opts); // Thunder Slash's charge: a main skill's hit shocks it
@@ -1000,6 +1045,9 @@ export class Game {
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
     const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng, {}, m.worldId).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId);
+    // Mark Prey: a monster dying marked may drop one more of its own parts
+    const prey = m.statuses?.exposure?.t > 0 ? m.statuses.exposure.prey : 0;
+    if (prey && !m.minion && this.rng.chance(prey)) { const parts = (this.data.monsters.monsters[m.type]?.drops || []).filter((x) => x.item !== 'gold'); if (parts.length) { drops.push({ item: this.rng.pick(parts).item, qty: 1 }); this.emit({ type: 'preyDrop', id: m.id, x: m.x, z: m.z }); } }
     if (this.derived.perks) {
       perkKill(this, m);
       drops.push(...perkDrops(this, m));
@@ -1046,11 +1094,13 @@ export class Game {
 
   damageAlly(a, amount, source) {
     if (a.dead) return 0;
-    let dmg = Math.max(1, Math.round(amount * 0.85 * buffTaken(a.buffs)));
+    if (this.time < (a.reviveInv || 0)) return 0; // just risen by Revive
+    let dmg = Math.max(1, Math.round(amount * 0.85 * buffTaken(a.buffs) * allyTakenMult(this, a)));
     if(a.barrier>0){const absorbed=Math.min(a.barrier,dmg);a.barrier-=absorbed;dmg-=absorbed;if(a.barrier<=0)breakBarrier(this,a);}
     a.hp -= dmg;
     this.emit({ type: 'allyHit', id: a.id, amount: dmg, x: a.x, z: a.z });
     if (source && !source.dead && source.kind === 'monster') a.targetId = source.id;
+    if (a.hp <= 0) this.reviveFrom(a);
     if (a.hp <= 0) a.life = 0;
     return dmg;
   }
@@ -1065,12 +1115,16 @@ export class Game {
       return 0;
     }
     if (perkInvulnerable(this)) return 0; // LUK's narrow escape
+    if (this.time < (p.reviveInv || 0)) return 0; // just risen by Revive
     // LUK: a lucky dodge, a monster hit that misses entirely (never damage over time)
     if (!opts.dot && this.derived.dodgeChancePct > 0 && this.luckRng.chance(this.derived.dodgeChancePct / 100)) {
       this.emit({ type: 'dodge', x: p.x, z: p.z, lucky: true });
       perkDodge(this, false);
       return 0;
     }
+    // the defensive line (core/defense.js): the attack's element is resisted
+    const hit = monsterHit(source, opts.attack);
+    amount *= (1 - resistOf(this.derived, hit.element)) * statusTaken(this) * heroTakenMult(this);
     const guard=applyGuard(this,amount,source,opts);
     // Shield Fortress takes the whole hit on the shield: no damage, no knockback
     if (guard.full) {
@@ -1106,13 +1160,16 @@ export class Game {
     if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;
     this.emit({ type: 'playerHit', amount: dmg, absorbed, shielded, blocked, x: p.x, z: p.z });
-    if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
+    // a status the attack puts on the hero: resisted by its element, shortened by tenacity
+    if (opts.poison) inflictHero(this, { status: 'poison', duration: opts.poison.duration, dps: opts.poison.dps }, amount, 'poison', this.rng);
+    if (hit.inflict && p.hp > 0) inflictHero(this, hit.inflict, amount, hit.element, this.rng);
     if (opts.knock && dmg > 0 && !perkSteady(this) && !Object.values(p.buffs).some((b) => b.steady)) {
       this.cancelCharge();
       this.cancelChannel();
       const d = dirFromAngle(opts.knock.angle);
       this.moveEntity(p, d.x * opts.knock.force * 0.3, d.z * opts.knock.force * 0.3);
     }
+    if (p.hp <= 0) this.reviveFrom(p); // Revive's guardian light catches a lethal hit
     if (p.hp <= 0) {
       p.hp = 0;
       p.dead = true;
@@ -1127,6 +1184,20 @@ export class Game {
       this.emit({ type: 'playerDeath' });
     }
     return dmg;
+  }
+
+  /** Revive (a buff with `revive` {hp, invulnerable}): a unit (the hero or an ally) whose HP has just reached 0
+   *  while it carries the guardian light rises at once with revive.hp of its HP and is untouchable for
+   *  revive.invulnerable s; the light is spent. */
+  reviveFrom(u) {
+    const id = Object.keys(u.buffs || {}).find((k) => u.buffs[k].revive);
+    if (!id) return false;
+    const R = u.buffs[id].revive;
+    delete u.buffs[id];
+    u.hp = Math.max(1, Math.round(u.maxHp * R.hp));
+    u.reviveInv = this.time + (R.invulnerable || 0);
+    this.emit({ type: 'revive', id: u === this.player ? 'player' : u.id, x: u.x, z: u.z });
+    return true;
   }
 
   /** The spell shield takes what it can of `amount` (after armour and barrier) and stops recharging for a while. */
@@ -1158,7 +1229,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, shock:s.shock, shockCharge:s.shockCharge, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, mpOnHit: s.mpOnHit, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, shock:s.shock, shockCharge:s.shockCharge, root:s.root, bleed:s.bleed, modEffects:s.modEffects, tags:s.tags, perkCast:s.perkCast, ...extra, ...(s.noCrit ? NO_CRIT : null) };
   }
 
   /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
@@ -1364,7 +1435,7 @@ export class Game {
       case 'buff': {
         // each buff skill keeps its own entry, so different buffs stack and the same one refreshes
         // rage: more damage the lower the hero's HP (Boiling Blood); leech/mpHit: HP and MP back on each hit (Fighting Spirit)
-        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff, taken: s.takenMult, steady: s.steady, rage: s.rage, leech: s.spirit?.leech, mpHit: s.spirit?.mp };
+        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff, taken: s.takenMult, steady: s.steady, rage: s.rage, leech: s.spirit?.leech, mpHit: s.spirit?.mp, revive: s.revive };
         p.buffs[s.id] = { ...buff };
         for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.buffs[s.id] = { ...buff };
         // Provoke: the monsters round the hero turn on it
@@ -1373,6 +1444,10 @@ export class Game {
         return;
       }
       case 'summon': {
+        // a summon set at the aim point (Lure Dummy) stands where it is put, within the skill's range
+        if (s.summon.placeAt === 'aim') { const d = Math.min(s.range || 0, dist(p.x, p.z, aim.x, aim.z)), a = angleTo(p.x, p.z, aim.x, aim.z); this.spawnAllies(s, p.x + Math.sin(a) * d, p.z + Math.cos(a) * d, true); return; }
+        // a hunter's companion comes to the hero's side, a little behind, clear of the hero's body
+        if (s.summon.companion) { const a = p.facing + Math.PI * 0.62, cx = p.x + Math.sin(a) * 1.9, cz = p.z + Math.cos(a) * 1.9; if (this.world.isFree(cx, cz, 0.6)) { this.spawnAllies(s, cx, cz, true); return; } }
         this.spawnAllies(s, p.x - Math.sin(p.facing) * 1.2, p.z - Math.cos(p.facing) * 1.2);
         return;
       }
@@ -1528,6 +1603,7 @@ export class Game {
     if (p.dash) {
       p.dash.t += dt;
       if (p.dash.kind === 'blink' && !p.dash.moved && p.dash.t >= p.dash.delay) this.blinkPlayer(p);
+      if (p.dash.kind === 'swap' && !p.dash.moved && p.dash.t >= p.dash.delay) this.swapPlayer(p);
       if (p.dash.kind === 'leap') {
         const k = Math.min(1, p.dash.t / p.dash.dur);
         p.x = p.dash.fromX + (p.dash.toX - p.dash.fromX) * k;
@@ -1566,7 +1642,7 @@ export class Game {
     const mx = this.input.moveX;
     const mz = this.input.moveZ;
     const mlen = Math.hypot(mx, mz);
-    const chill = p.statuses.chill ? 1 - p.statuses.chill.slow : 1;
+    const chill = statusWalk(p); // chill slows, root stops (core/defense.js)
     const haste = 1 + buffSum(p.buffs, 'speed');
     const speed = this.derived.moveSpeed * (p.charging ? p.charging.skill.charge.moveMult : p.channeling ? p.channeling.skill.channel.moveMult : p.cast ? 0.4 : 1) * chill * haste;
     p.moving = mlen > 0.08;
@@ -1629,7 +1705,7 @@ export class Game {
       if(s.trigger.cost&&p.mp<s.cost)return;
       p.triggerCd[i] = s.trigger.icd;
       let aim;
-      if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'].includes(s.kind)) aim = { angle: p.facing, x: p.x, z: p.z };
+      if (aimsAtGround(s)) aim = { angle: p.facing, x: p.x, z: p.z };
       else aim = this.resolveAim(s, null);
       this.emit({ type: 'trigger', slot: i, skill: s.id });
       if(s.trigger.cost)p.mp-=s.cost;
@@ -1660,7 +1736,7 @@ export class Game {
       sh.t -= dt;
       if (sh.t <= 0) delete m.statuses.shock;
     }
-    for (const k of ['chill', 'hex', 'mire', 'charged']) {
+    for (const k of ['chill', 'hex', 'mire', 'charged', 'root', 'mark']) {
       if (!m.statuses[k]) continue;
       m.statuses[k].t -= dt;
       if (m.statuses[k].t <= 0) delete m.statuses[k];
@@ -1673,8 +1749,10 @@ export class Game {
 
   tickPlayerStatuses(dt) {
     const p = this.player;
-    const st = p.statuses.poison;
-    if (st) {
+    // poison, burn and bleed (core/defense.js): damage over time that never kills
+    for (const id of DOTS) {
+      const st = p.statuses[id];
+      if (!st) continue;
       st.t -= dt;
       st.acc += st.dps * dt;
       if (st.acc >= 2) {
@@ -1682,15 +1760,23 @@ export class Game {
         st.acc -= n;
         const shielded = this.drainShield(n);
         p.hp -= n - shielded;
-        this.emit({ type: 'playerHit', amount: n - shielded, absorbed: 0, shielded, dot: true, x: p.x, z: p.z });
-        if (p.hp <= 0) p.hp = 1; // poison alone never kills
+        this.emit({ type: 'playerHit', amount: n - shielded, absorbed: 0, shielded, dot: true, status: id, x: p.x, z: p.z });
+        if (p.hp <= 0) p.hp = 1; // a dot alone never kills
       }
-      if (st.t <= 0) delete p.statuses.poison;
+      if (st.t <= 0) delete p.statuses[id];
     }
-    if (p.statuses.chill) {
-      p.statuses.chill.t -= dt;
-      if (p.statuses.chill.t <= 0) delete p.statuses.chill;
+    // chill, shock and root only last
+    for (const id of ['chill', 'shock', 'root']) {
+      const st = p.statuses[id];
+      if (st && (st.t -= dt) <= 0) delete p.statuses[id];
     }
+  }
+
+  /** Call Alpha: an alpha's aura makes the other summons within its radius hit harder (the strongest one). */
+  alphaBonus(a) {
+    let b = 0;
+    for (const o of this.allies) if (o !== a && o.alphaAura && !o.dead && o.life > 0 && dist(o.x, o.z, a.x, a.z) <= o.alphaAura.radius) b = Math.max(b, o.alphaAura.damage);
+    return b;
   }
 
   updateAllies(dt) {
@@ -1709,6 +1795,13 @@ export class Game {
         continue;
       }
       keep.push(a);
+      // a static one (Lure Dummy) stands where it was set: it only draws monsters (tickFrontier taunts)
+      if (a.static) { a.moving = false; continue; }
+      // a companion still coming in from the wild (summon.arrive; the view draws its run in) does nothing yet
+      if (a.arriveT > 0) { a.arriveT -= dt; a.moving = false; continue; }
+      // a bear that has just roared (Sic 'Em) stands its ground on its hind legs a moment; a companion howling
+      // the pack in (Pack Hunt) stands to howl
+      if (a.roarT > 0) { a.roarT -= dt; a.moving = false; continue; }
       // pick a target: what we are fighting, else the player's target, else something threatening the player
       if(a.command==='follow'){a.targetId=null;}
       if(a.command!=='attack'&&a.effects?.focusTarget&&p.lastHitTarget!==a.focusId){a.focusId=p.lastHitTarget;a.focusReady=this.time+a.effects.focusSwitchDelay;a.targetId=null;}
@@ -1733,14 +1826,24 @@ export class Game {
         }
         a.targetId = t ? t.id : null;
       }
-      const haste = 1 + buffSum(a.buffs, 'speed');
+      // Sic 'Em: it runs at its target faster and bites it hard (below); it gives up after a while
+      if (a.sic) { a.sic.t -= dt; const st = this.monsterById(a.sic.targetId); if (a.sic.t <= 0 || !st || st.dead) a.sic = null; else { t = st; a.targetId = st.id; } }
+      // Mark Prey: unless told otherwise it goes for marked prey near us first
+      else if (a.command !== 'attack' && !commandFollow) { let bd = 14, prey = null; for (const m of this.monsters) { if (m.dead || !m.statuses.exposure?.prey) continue; const d = dist(m.x, m.z, p.x, p.z); if (d < bd) { bd = d; prey = m; } } if (prey) { t = prey; a.targetId = prey.id; } }
+      const haste = (1 + buffSum(a.buffs, 'speed')) * (a.sic ? a.sic.speed : 1);
       if (a.state === 'windup') {
         if (a.stateT >= 0.25) {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
-            const k = 1 + buffSum(a.buffs, 'damage');
-            this.hitMonster(tt, a.damage * k * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z });
-            this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
+            const k = 1 + buffSum(a.buffs, 'damage') + this.alphaBonus(a), sic = a.sic && a.sic.targetId === tt.id ? a.sic : null;
+            this.hitMonster(tt, a.damage * k * (sic ? sic.mult : 1) * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z, stun: sic?.stun, bleed: sic?.bleed, stagger: sic?.stagger, knock: sic?.knock });
+            if (sic) {
+              a.sic = null;
+              // a bear's roar turns the monsters round it onto the bear
+              if (sic.taunt) { for (const m of this.monsters) if (!m.dead && dist(a.x, a.z, m.x, m.z) <= sic.taunt.radius) { m.forcedTargetId = a.id; m.tauntT = Math.max(m.tauntT || 0, sic.taunt.duration); } a.roarT = sic.taunt.stand || 0; a.roarTotal = a.roarT; }
+              this.emit({ type: 'companionPounce', id: a.id, kind: a.type, target: tt.id, x: tt.x, z: tt.z, roar: sic.taunt?.radius || 0 });
+            }
+            this.emit({ type: 'allyStrike', id: a.id, target: tt.id, skill: a.skill || 'spirit_wolf', kind: a.type, sic: !!sic, x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
           a.cd = a.attackCooldown;
           a.state = 'recover';
@@ -1753,6 +1856,8 @@ export class Game {
         a.moving = false;
         continue;
       }
+      // Companion fetch (a Job Tree node): with nothing to fight it brings the drops lying round the hero
+      if (a.companion && companionFetch(this, a, this.derived.companionFetch || 0, dt, !!t)) continue;
       a.state = t ? 'chase' : 'follow';
       if (t) {
         const d = dist(a.x, a.z, t.x, t.z) - t.r - a.r;
@@ -1880,7 +1985,7 @@ export class Game {
         for (const u of this.units()) {
           if (dist(pr.x, pr.z, u.x, u.z) < u.r + pr.radius) {
             const src = this.monsterById(pr.sourceId);
-            this.damageUnit(u, pr.damage, src, { poison: pr.poison });
+            this.damageUnit(u, pr.damage, src, { poison: pr.poison, attack: pr.attack });
             this.emit({ type: 'impact', kind: pr.kind, element: pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane'), x: pr.x, z: pr.z });
             dead = true;
             break;
@@ -1904,6 +2009,14 @@ export class Game {
       if(a.wallHp!==undefined){a.t+=dt;if(a.wallHp>0&&a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.lightWall){a.t+=dt;if(a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
       if(a.follow){if(this.player.dead)continue;a.x=this.player.x;a.z=this.player.z;}
+      // a set trap (core/frontier-content.js placeTraps) waits, armed after arm s, until a monster comes within
+      // its trigger, then springs at once (the burst below); it is gone after its life unsprung
+      if (a.trap && !a.sprung) {
+        a.t += dt;
+        if (a.t >= a.trap.life) { this.emit({ type: 'areaEnd', id: a.id }); continue; }
+        if (!(a.relayed || (a.t >= Math.max(a.trap.arm, a.nextArm || 0) && this.monsters.some((m) => !m.dead && dist(a.x, a.z, m.x, m.z) <= a.trap.trigger + m.r)))) { keep.push(a); continue; }
+        if (!springTrap(this, a)) { if (!a.spent) keep.push(a); continue; }
+      }
       // a monster's attack marked at its wind-up waits while that monster twitches from shock (ai.js pauses
       // the wind-up), so the hit still lands with the strike; one already launched (a rock in flight) does not
       if (a.owner === 'monster' && a.t < a.delay) { const src = this.monsterById(a.sourceId); if (src && src.twitchT > 0 && src.state === 'windup') { keep.push(a); continue; } }
@@ -1919,14 +2032,14 @@ export class Game {
           const d = dist(a.x, a.z, u.x, u.z);
           if (!a.hit.has(u.id) && Math.abs(d - a.radius) < 0.7) {
             a.hit.add(u.id);
-            this.damageUnit(u, a.damage, this.monsterById(a.sourceId));
+            this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { attack: a.attack });
           }
         }
       } else if (a.tick) {
         if (live >= a.nextTick) {
           a.nextTick += a.tick;
           if (a.owner === 'monster') {
-            for (const u of this.units()) if (dist(a.x, a.z, u.x, u.z) <= a.radius + u.r) this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { dot: true });
+            for (const u of this.units()) if (dist(a.x, a.z, u.x, u.z) <= a.radius + u.r) this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { dot: true, attack: a.attack });
           } else if (a.heal) {
             const p = this.player;
             if (!p.dead && dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) healUnit(this,this.player,a.heal,a.skill);
@@ -1958,14 +2071,17 @@ export class Game {
           // a ring (a.inner) leaves its middle safe
           for (const u of this.units()) {
             const d = dist(a.x, a.z, u.x, u.z);
-            if (d <= a.radius + u.r && !(a.inner && d < a.inner)) this.damageUnit(u, a.damage, src);
+            if (d <= a.radius + u.r && !(a.inner && d < a.inner)) this.damageUnit(u, a.damage, src, { attack: a.attack });
           }
           this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner });
         }
       }
+      if (a.trap) tickTrap(this, a, dt);
       if (live < (a.duration || 0)) keep.push(a);
       else this.emit({ type: 'areaEnd', id: a.id });
     }
+    // areas spawned during the loop (a Spore Pod's puff, a Flame Geyser's later pulses) were walked by the
+    // same for-of and are in keep; a Lightning Rod relaying to a trap already passed springs it next step
     this.areas = keep;
   }
 
@@ -1974,6 +2090,11 @@ export class Game {
     const keep = [];
     for (const d of this.drops) {
       d.t += dt;
+      if (d.carrier != null) {
+        // in a companion's mouth (companionFetch); a companion that died or was dismissed lets go where it was
+        if (this.allies.some((a) => a.id === d.carrier && !a.dead)) { keep.push(d); continue; }
+        d.carrier = null;
+      }
       if (!p.dead && d.t > 0.45) {
         const dd = dist(p.x, p.z, d.x, d.z);
         if (dd < MAGNET_RADIUS) {

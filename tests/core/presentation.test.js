@@ -58,7 +58,9 @@ test('imported models name real gear bases and respect measured asset budgets',a
  for(const [group,id,m] of all){
   if(group==='weapons')assert.equal(data.items.gearBases[id]?.slot,'weapon',id+' is a weapon base');
   if(group==='monsters'){
-   assert.ok(data.monsters.monsters[id],id+' is a monster');
+   // a monster, or a summon's beast (the hunter's companions are drawn on the monster rigs too)
+   const summons=new Set(Object.values(data.skills.combat).map((d)=>d?.summon?.type).filter(Boolean));
+   assert.ok(data.monsters.monsters[id]||summons.has(id),id+' is a monster or a summon');
    // one segment [a,b] or a list of them per bone
    const isSeg=(s)=>s.length===2&&s.every((p)=>p.length===3&&p.every(Number.isFinite));
    for(const [b,seg] of Object.entries(m.segments))assert.ok(isSeg(seg)||(seg.length>0&&seg.every(isSeg)),id+'/'+b+' segment');

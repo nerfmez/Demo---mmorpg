@@ -146,6 +146,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Projectile')) inc += derived.projectileDamagePct;
   if (tags.has('Area') && tags.has('Damage')) inc += derived.areaDamagePct;
   if (tags.has('Spell') && tags.has('Damage')) inc += derived.spellDamagePct;
+  if (tags.has('Trap')) inc += derived.trapDamagePct || 0; // the trapper's line (Job Tree)
   // Journal-line increases read the final tags (after mods), so an element-changing mod counts.
   const lineInc = (t, element) => (ELEMENTS.some((e) => t.has(e) || e.toLowerCase() === element) ? derived.elementalDamagePct || 0 : 0)
     + (t.has('Damage') ? derived.damagePct || 0 : 0) + (t.has('Attack') ? derived.attackDamagePct || 0 : 0);
@@ -175,11 +176,20 @@ export function computeSkill(ch, data, derived, slotIndex) {
       count: sm.count,
       life: sm.life,
       hp: Math.round(sm.hp.base + sm.hp.vit * stats.VIT + sm.hp.level * ch.level),
-      damage: (sm.damage.base + sm.damage.scale * derived.magic) * levelMult * (1 + derived.summonDamagePct / 100),
+      // a summon bites from our magic power, a hunter's companion (damage.stat 'attack') from our attack
+      damage: (sm.damage.base + sm.damage.scale * (sm.damage.stat === 'attack' ? derived.attack : derived.magic)) * levelMult * (1 + derived.summonDamagePct / 100),
       speed: sm.speed,
       range: sm.range,
       attackCooldown: sm.attackCooldown,
+      placeAt: sm.placeAt,
+      static: !!sm.static,
+      permanent: !!sm.permanent, // stays until it dies (a hunter's companion)
+      companion: !!sm.companion, // a hunter's companion: one at a time, whatever its kind
+      pounce: sm.pounce,         // what Sic 'Em does with it (its own bite, bleed, stun or roar)
+      arrive: sm.arrive || 0,    // a companion's run in from the wild (it acts once it is here)
+      aura: sm.aura,             // a summoner's alpha: other summons within aura.radius hit aura.damage harder
     };
+    if (sm.permanent) s.summon.life = Infinity;
   }
   if (tags.has('Area') && s.radius) s.radius *= 1 + derived.areaRadiusPct / 100;
   if (tags.has('Melee')) s.arc += derived.meleeArcAdd;
@@ -414,3 +424,8 @@ export function setMovement(ch, data, id) {
   ch.movement = id;
   return { ok: true };
 }
+
+/** Skills aimed at a point on the ground (the drag places a circle): areas, zones, walls, and a summon set
+ *  where it is aimed (Lure Dummy). */
+export const GROUND_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'];
+export const aimsAtGround = (s) => !!s && (GROUND_KINDS.includes(s.kind) || s.summon?.placeAt === 'aim');

@@ -1,6 +1,7 @@
 // Character progression: Character Level -> Stat Points, Job Level -> Job Points (Job Tree),
 // equipment (two hands + armour slots, items.slots), arrows, appearance, and derived combat stats. The character object is plain
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
+import { foldResists } from './defense.js';
 import { enterMap } from './maps.js';
 import { migrateQuestJournal } from './quests.js';
 import { normalizeSkillGrowth } from './skill-growth.js';
@@ -414,8 +415,8 @@ export function jobNodeState(ch, data, nodeId) {
     return { can: false, reason: 'requires_job', need: node.requiresJob };
 
   if (node.type === 'job') {
-    if (ch.jobLevel < data.progression.job.jobChoiceLevel)
-      return { can: false, reason: 'job_level', need: data.progression.job.jobChoiceLevel };
+    const choice = jobChoiceLevel(data);
+    if (ch.jobLevel < choice) return { can: false, reason: 'job_level', need: choice };
     const other = ch.jobNodes.find((n) => tree.nodes[n]?.type === 'job');
     if (other) return { can: false, reason: 'one_job', other };
   }
@@ -439,16 +440,61 @@ export function jobNodeState(ch, data, nodeId) {
   if (!Array.isArray(node.requires) && !node.links.some((l) => ch.jobNodes.includes(l)))
     return { can: false, reason: 'not_linked' };
 
-  if (ch.jobPoints < 1) return { can: false, reason: 'no_points' };
-  return { can: true, tier: tier.tier, have: tier.spent, need: tier.requires };
+  // a fork (the wheel): one of a key's forks, the others close once one is taken
+  if (node.forkGroup && ch.jobNodes.some((id) => id !== nodeId && tree.nodes[id]?.forkGroup === node.forkGroup))
+    return { can: false, reason: 'fork_taken' };
+  const cost = nodeCost(node);
+  if (ch.jobPoints < cost) return { can: false, reason: 'no_points', need: cost };
+  return { can: true, tier: tier.tier, have: tier.spent, need: tier.requires, cost };
+}
+
+/** Points a node costs: 1 unless it says (the wheel's keys cost 2, capstones 3, a job's entry 0). */
+export function nodeCost(node) {
+  return node?.cost ?? 1;
+}
+
+/** The Job Level a job is chosen at: the tree's own (the wheel: 40) or the progression's. */
+export function jobChoiceLevel(data) {
+  return data.jobtree.jobChoiceLevel ?? data.progression.job.jobChoiceLevel;
 }
 
 export function allocateJobNode(ch, data, nodeId) {
   const st = jobNodeState(ch, data, nodeId);
   if (!st.can) return st;
   ch.jobNodes.push(nodeId);
-  ch.jobPoints -= 1;
+  ch.jobPoints -= st.cost ?? 1;
   return { can: true, done: true, job: data.jobtree.nodes[nodeId].type === 'job' };
+}
+
+/**
+ * The unowned route to `target` and whether it can be bought in one go (the wheel screen's "spend along
+ * the line"). A route never chooses for the player: a fork on the way that is not the target and whose
+ * group is still open stops it (reason 'fork_choice'), and so does a job entry (reason 'job_choice').
+ */
+export function jobRoute(ch, data, target) {
+  const nodes = data.jobtree.nodes;
+  const path = jobPath(ch, data, target);
+  const cost = path.reduce((a, id) => a + nodeCost(nodes[id]), 0);
+  if (!path.length) return { path, cost, can: false, reason: ch.jobNodes.includes(target) ? 'taken' : 'unknown' };
+  const fork = path.find((id) => id !== target && nodes[id].forkGroup);
+  if (fork) return { path, cost, can: false, reason: 'fork_choice', fork };
+  const job = path.find((id) => id !== target && nodes[id].type === 'job');
+  if (job) return { path, cost, can: false, reason: 'job_choice', job };
+  const trial = { ...ch, jobNodes: [...ch.jobNodes] };
+  for (const id of path) {
+    const st = jobNodeState(trial, data, id);
+    if (!st.can) return { path, cost, can: false, reason: st.reason, at: id, need: st.need };
+    trial.jobNodes.push(id); trial.jobPoints -= st.cost;
+  }
+  return { path, cost, can: true };
+}
+
+/** Buy every node of jobRoute(target) in order, or nothing. */
+export function allocateJobRoute(ch, data, target) {
+  const r = jobRoute(ch, data, target);
+  if (!r.can) return r;
+  for (const id of r.path) allocateJobNode(ch, data, id);
+  return { ...r, done: true };
 }
 
 /** Every parent a directed node names: ALL of `requires` and the ANY-ONE `requiresAny`. */
@@ -464,7 +510,7 @@ export function jobRouteCost(ch, data, id, allowed = null, memo = new Map()) {
   if (memo.has(id)) return memo.get(id);
   memo.set(id, Infinity); // guards a malformed cycle
   const n = nodes[id];
-  let cost = 1 + (n.requires || []).reduce((a, p) => a + jobRouteCost(ch, data, p, allowed, memo), 0);
+  let cost = nodeCost(n) + (n.requires || []).reduce((a, p) => a + jobRouteCost(ch, data, p, allowed, memo), 0);
   if (n.requiresAny?.length) cost += Math.min(...n.requiresAny.map(p => jobRouteCost(ch, data, p, allowed, memo)));
   memo.set(id, cost);
   return cost;
@@ -506,7 +552,7 @@ export function jobPath(ch, data, target) {
     const path = queue.shift();
     for (const next of nodes[path.at(-1)].links) {
       if (seen.has(next) || !allowed(next)) continue;
-      if (nodes[next].type === 'job' && (job || ch.jobLevel < data.progression.job.jobChoiceLevel)) continue;
+      if (nodes[next].type === 'job' && (job || ch.jobLevel < jobChoiceLevel(data))) continue;
       seen.add(next);
       const route = [...path, next];
       if (next === target) return route.filter(id => !ch.jobNodes.includes(id));
@@ -519,6 +565,11 @@ export function jobPath(ch, data, target) {
 export function currentJob(ch, data) {
   const id = ch.jobNodes.find((n) => data.jobtree.nodes[n]?.type === 'job');
   return id ? data.jobtree.nodes[id] : null;
+}
+
+/** Points the owned nodes cost (the origin is free). */
+export function jobPointsSpent(ch, data) {
+  return ch.jobNodes.reduce((a, id) => a + (id === data.jobtree.origin ? 0 : nodeCost(data.jobtree.nodes[id] || {})), 0);
 }
 
 export function respecCost(ch, data) {
@@ -543,7 +594,7 @@ export function respecStats(ch, data) {
 export function respecJob(ch, data) {
   const cost = respecCost(ch, data).job;
   if (ch.gold < cost) return false;
-  ch.jobPoints += ch.jobNodes.length - 1;
+  ch.jobPoints += jobPointsSpent(ch, data);
   ch.jobNodes = [data.jobtree.origin];
   ch.gold -= cost;
   return true;
@@ -869,6 +920,29 @@ export function derive(ch, data) {
     manaCostReductionPct: 0,
     mpOnHit: 0,
     dodgeChancePct: 0,
+    resistAllPct: 0,
+    resistFirePct: 0,
+    resistColdPct: 0,
+    resistLightningPct: 0,
+    resistPoisonPct: 0,
+    tenacityPct: 0,
+    trapDamagePct: 0,
+    // the wheel tree's situational stats (core/wheel-rules.js)
+    singleDamagePct: 0,
+    packDamagePct: 0,
+    perTargetDamagePct: 0,
+    perTargetCap: 0,
+    selfTakenPct: 0,
+    teamDamagePct: 0,
+    teamTakenPct: 0,
+    teamBuffPct: 0,
+    // the wheel's weapon lines (foldWeaponStats)
+    heavyDamagePct: 0,
+    heavyHpPct: 0,
+    heavyPenetrationPct: 0,
+    dualDamagePct: 0,
+    dualHastePct: 0,
+    dualCritPct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
@@ -908,6 +982,7 @@ export function derive(ch, data) {
     const eff = data.jobtree.nodes[n]?.effects || {};
     for (const k in eff) if (!STATS.includes(k) && k !== 'finesse') add(k, eff[k]);
   }
+  foldResists(d); // element resistance and tenacity (core/defense.js), before the caps
   const base = pc.base;
   const soft = pc.softCaps;
   for (const stat of soft?.stats || []) if (d[stat] > soft.threshold)
@@ -940,5 +1015,28 @@ export function derive(ch, data) {
   d.offhand = offOk ? (handsOf(data, off) === 'off' ? 'shield' : 'weapon') : greatshield ? 'shield' : arrow ? 'arrows' : 'none';
   d.dualWield = d.offhand === 'weapon';
   d.blockChance = d.offhand === 'shield' ? d.blockChancePct / 100 : 0;
+  foldWeaponStats(d, data);
   return d;
+}
+
+/**
+ * The wheel's weapon lines (owner, 2026-11-03: a heavy weapon line and a dual wield line): their stats count
+ * only with that kind of weapon in hand. With a heavy weapon (progression.combat.wheel.heavyWeapons) heavy
+ * damage adds to melee damage, heavy HP to max HP and heavy penetration to penetration; dual wielding (a
+ * second weapon in the off hand) adds dual damage to melee damage, dual speed to speed and dual crit to crit
+ * chance. Each stays under its cap. Called at the end of derive() and by the balance hero (core/balance.js)
+ * once its weapon is set.
+ */
+export function foldWeaponStats(d, data) {
+  const caps = data.progression.character.caps, heavy = (data.progression.combat.wheel?.heavyWeapons || []).includes(d.weaponType);
+  if (heavy) {
+    d.meleeDamagePct += d.heavyDamagePct || 0;
+    d.maxHp = Math.round(d.maxHp * (1 + (d.heavyHpPct || 0) / 100));
+    d.penetrationPct = Math.min(caps.penetrationPct ?? Infinity, d.penetrationPct + (d.heavyPenetrationPct || 0));
+  }
+  if (d.dualWield) {
+    d.meleeDamagePct += d.dualDamagePct || 0;
+    d.hastePct = Math.min(caps.hastePct ?? Infinity, d.hastePct + (d.dualHastePct || 0));
+    if (d.dualCritPct) { d.critChancePct += d.dualCritPct; d.critChance = Math.min(1, d.critChancePct / 100); }
+  }
 }

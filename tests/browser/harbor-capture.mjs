@@ -97,7 +97,7 @@ try {
   }
   await page.setViewportSize({width:1600,height:900});
   await stage(...await page.evaluate(()=>window.__frontier.game.data.world.playerSpawn));await capture('12-arrival-desktop');
-  if(process.env.HARBOR_VERIFY_NETWORK) for(const [device,width,height] of [['desktop',1600,900],['ipad',1180,820],['phone',390,844],['phone-landscape',844,390]]) {
+  if(process.env.HARBOR_VERIFY_NETWORK) for(const [device,width,height] of [['desktop',1600,900],['ipad',1180,820],['phone-landscape',844,390]]) {
     await page.setViewportSize({width,height});
     await verifyPassiveGestures(page,{context:ctx,engineName:engine.name(),capture:name=>capture(device+'-'+name)});
   }

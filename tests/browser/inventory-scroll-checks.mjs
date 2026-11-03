@@ -17,7 +17,9 @@ export async function verifyInventoryScroll(page,{context,engineName,width,heigh
  assert.equal(await cells.count(),fixture.count,'every owned item exists in the same list');
  assert.equal(await page.locator('[data-action="prev"],[data-action="next"]').count(),0,'no inventory page arrows');
  const bounds=await page.locator('.library-window').boundingBox();
- assert.ok(bounds.x>=10&&bounds.y>=10&&bounds.x+bounds.width<=width-10&&bounds.y+bounds.height<=height-10,'bounded inventory leaves scene margins');
+ // the window never touches the screen edge; a short phone screen keeps only a slim margin (owner, 2026-11-03: no wasted space)
+ const m=height<=520?4:10;
+ assert.ok(bounds.x>=m&&bounds.y>=m&&bounds.x+bounds.width<=width-m&&bounds.y+bounds.height<=height-m,'bounded inventory leaves scene margins '+JSON.stringify({bounds,width,height}));
  const box=await scroller.boundingBox(),x=box.x+box.width/2;
  if(touch&&engineName==='chromium'){
   const cdp=await context.newCDPSession(page),y=Math.min(box.y+box.height-20,height-60);

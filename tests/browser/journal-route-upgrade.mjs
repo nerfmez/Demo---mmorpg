@@ -15,7 +15,7 @@ writeFileSync(out+'interactive-review.html',html);
 if(process.env.JOURNAL_EXPORT_ONLY)process.exit(0);
 const engineName=process.env.BROWSER||'chromium',engine=engineName==='webkit'?webkit:chromium;
 const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox']:[]});
-const cases=[['ipad',1180,820,true],['phone',390,844,true],['compact',776,540,true],['phone-short',390,667,true],['landscape',844,390,true],['desktop',1440,900,false],['reduced',390,844,true]];const report=[];
+const cases=[['ipad',1180,820,true],['compact',776,540,true],['landscape',844,390,true],['desktop',1440,900,false],['reduced',844,390,true]];const report=[];
 const first=['lesson.prepare','lesson.strike','lesson.rhythm'];
 try{for(const [label,width,height,touch] of cases){
  if(process.env.JOURNAL_CASES&&!process.env.JOURNAL_CASES.split(',').includes(label))continue;

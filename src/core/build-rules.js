@@ -53,6 +53,7 @@ export function castDamage(s) {
   if (s.echo) dmg *= 1 + s.echo.mult; // the echo strikes again
   if (s.modEffects?.returnMult) dmg *= 1 + s.modEffects.returnMult; // a returning shot's way back
   if (s.afterShock) dmg *= 1 + s.afterShock.mult; // Thunder Lance: the lane strikes again
+  if (s.trap?.pulses) dmg *= s.trap.pulses.count; // Flame Geyser: the burst again, interval s apart
   // Flame Arrow Rain: arrows burst over the circle, so a target there is in about count x (blast / radius)^2 of them
   if (s.arrows) dmg *= s.arrows.count * Math.min(1, (s.arrows.blast / Math.max(0.1, s.radius || 1)) ** 2);
   // a zone that stacks poison on each tick (Miasma Arrow): the stacks poison on top of the ticks, on
@@ -106,10 +107,13 @@ export function buildProfile(data, spec) {
     ch.slots[slot].mods.push(uid);
     asks.push(modRequires(data, data.mods.mods[id], level));
   }
-  const needs = new Set(asks.flatMap((r) => Object.keys(r))), start = data.progression.character.startingStats;
-  const spare = ['VIT', 'LUK', 'AGI', 'INT', 'DEX', 'STR'].filter((k) => !needs.has(k));
-  for (const r of asks) for (const [stat, need] of Object.entries(r)) for (const k of spare) {
-    const move = Math.min(need - ch.stats[stat], ch.stats[k] - start[k]);
+  // a stat gives up only what is above the most any skill or mod asks of it (2026-11-02: a support buff that
+  // asked for a little VIT used to lock all of it, so STR fell short of the main attack's need)
+  const start = data.progression.character.startingStats, keep = {};
+  for (const r of asks) for (const [k, v] of Object.entries(r)) keep[k] = Math.max(keep[k] || 0, v);
+  for (const r of asks) for (const [stat, need] of Object.entries(r)) for (const k of ['VIT', 'LUK', 'AGI', 'INT', 'DEX', 'STR']) {
+    if (k === stat) continue;
+    const move = Math.min(need - ch.stats[stat], ch.stats[k] - Math.max(start[k], keep[k] || 0));
     if (move > 0) { ch.stats[k] -= move; ch.stats[stat] += move; }
   }
   d.stats = statTotals(ch, data).stats; // the moved points meet the requirements (HP and power stay as measured)
@@ -118,7 +122,15 @@ export function buildProfile(data, spec) {
   // a held channel is measured as one cast per tick: its damage per second over a tick, its drain
   // per second over a tick (the rules: frontier-content.js tickFrontier)
   const held = (s) => s.channel ? { ...s, cooldown: s.channel.tick, castTime: 0, damage: s.damage * s.channel.tick, cost: s.channel.manaPerSecond * s.channel.tick } : s;
-  const skills = ch.slots.map((sl, i) => sl.skill && held(computeSkill(ch, data, d, i))).filter(Boolean);
+  // a trap pool (Trap Field) is measured as its average trap: the mean share of the damage and circle,
+  // the bleed and root of the traps that carry them, each at its odds (core/frontier-content.js placeTraps)
+  const mixed = (s) => {
+    const P = s.trap?.pool; if (!P) return s;
+    const ks = Object.keys(P), defs = ks.map((k) => data.skills.combat[k]), n = ks.length, sum = ks.reduce((a, k) => a + P[k], 0);
+    const bleed = ks.reduce((a, k, i) => a + P[k] * (defs[i].bleed?.fraction || 0), 0) / sum, root = defs.reduce((a, x) => a + (x.root?.duration || 0), 0) / n;
+    return { ...s, damage: s.damage * sum / n, radius: defs.reduce((a, x) => a + x.radius, 0) / n, bleed: bleed ? { fraction: bleed } : null, root: root ? { duration: root } : null };
+  };
+  const skills = ch.slots.map((sl, i) => sl.skill && mixed(held(computeSkill(ch, data, d, i)))).filter(Boolean);
   const C = R.control, all = [...skills];
   // a buff turned aura (a mod) holds for good, at its share of the buff, and keeps MP reserved
   const aura = (s) => s.modEffects?.buffAura || 0;
@@ -130,7 +142,7 @@ export function buildProfile(data, spec) {
   const armourOf = (s) => s.modEffects?.penetrate ? defenseFactor(m.defense * (1 - (d.penetrationPct || 0) / 100) * (1 - s.modEffects.penetrate / 100), data) / armour : 1;
   const pct = (k) => (d[k] || 0) / 100;
   // rotation: cooldown skills whenever ready, each holding the hero for its cast and a short recovery;
-  // the main attack fills the rest of the fighting time; MP cuts the main attack first
+  // the main attack fills the rest of the fighting time; MP cuts the least damage per MP first (fit)
   const lock = (s) => s.castTime + (s.charge ? s.charge.duration : 0) + R.recover;
   const busy = attacks.slice(1).reduce((a, s) => a + lock(s) / s.cooldown, 0);
   const main = attacks[0], interval = main.channel ? main.cooldown : Math.max(main.cooldown, main.castTime, 0.35);
@@ -141,13 +153,19 @@ export function buildProfile(data, spec) {
   const helperCost = helpers.reduce((a, s) => a + s.cost / s.cooldown, 0), helperShare = helperCost > supply && !spec.mpFree ? supply / helperCost : 1;
   // each attack hands back its own MP on hit (gear, the Job Tree and a mod are already in it)
   const spend = (hitsOf) => attacks.reduce((a, s, i) => a + rates[i] * (s.cost - (s.mpOnHit || 0) * hitsOf(s)), 0) + helperCost * helperShare;
-  const fit = (hitsOf) => { // scale the main attack down until the MP lasts the fight
-    const over = spend(hitsOf) - supply;
+  // short of MP the player drops what gives the least damage for its MP first (owner, 2026-11-02: cutting
+  // the cheap main attack first made a melee build with costly big skills weaker than its main attack alone)
+  const fit = (hitsOf) => {
+    let over = spend(hitsOf) - supply;
     if (over <= 0 || spec.mpFree) return rates;
-    const r = [...rates], cut = Math.min(r[0], over / Math.max(1e-6, main.cost - (main.mpOnHit || 0) * hitsOf(main)));
-    r[0] -= cut;
-    const left = over - cut * (main.cost - (main.mpOnHit || 0) * hitsOf(main));
-    if (left > 1e-9) { const rest = attacks.slice(1).reduce((a, s, i) => a + r[i + 1] * s.cost, 0); for (let i = 1; i < r.length; i++) r[i] *= Math.max(0, 1 - left / Math.max(1e-6, rest)); }
+    const r = [...rates], net = (s) => s.cost - (s.mpOnHit || 0) * hitsOf(s);
+    const worth = (i) => castDamage(attacks[i]) * fanShots(attacks[i], data) * hitsOf(attacks[i]) / net(attacks[i]);
+    const order = attacks.map((_, i) => i).filter((i) => net(attacks[i]) > 0).sort((x, y) => worth(x) - worth(y));
+    for (const i of order) {
+      if (over <= 1e-9) break;
+      const c = net(attacks[i]), cut = Math.min(r[i], over / c);
+      r[i] -= cut; over -= cut * c;
+    }
     return r;
   };
   // our own buffs: damage with their uptime (they last duration, come back every cooldown; a support
@@ -160,7 +178,8 @@ export function buildProfile(data, spec) {
   const amp = 1 + [...attacks, ...helpers].reduce((a, s) => a + (s.def.exposure ? s.def.exposure.fraction * Math.min(1, s.def.exposure.duration / s.cooldown) : 0)
     + (s.kind === 'curse_zone' && s.takenMult ? (s.takenMult - 1) * Math.min(1, s.duration / s.cooldown) : 0), 0);
   // burning and poison add their damage over time (a share of the hit, progression.balance.rules.control)
-  const dots = (s) => 1 + (s.burnChance || 0) * C.burn + pct('poisonChancePct') * C.poison;
+  // a bleed (Spike Trap) is its share of the hit, all of it over its duration
+  const dots = (s) => 1 + (s.burnChance || 0) * C.burn + pct('poisonChancePct') * C.poison + (s.bleed?.fraction || 0);
   const dealt = (hitsOf, scen) => {
     const r = fit(hitsOf);
     return attacks.reduce((a, s, i) => {
@@ -171,11 +190,17 @@ export function buildProfile(data, spec) {
       // what it cut: all of them on a lone target, on one of a pack), Shatter Arrow's shards (they fly on
       // past the target the arrow struck, so only the rest of a pack takes them; a shot that never stops never breaks)
       if (s.shockCharge) burst += s.shockCharge.mult * s.shockCharge.shocks / (scen === 'pack' ? Math.max(1, hits) : 1);
+      // Lightning Rod: a strike on one monster each interval for its life
+      const Z = s.trap?.zap; if (Z) burst += Z.mult * Math.floor(Z.life / Z.interval) / (scen === 'pack' ? Math.max(1, hits) : 1);
       if (s.shatter && scen === 'pack' && s.pierce !== Infinity) burst += s.shatter.mult * Math.min(s.shatter.count, R.pack.size - 1) / Math.max(1, hits);
       const triggered = s.trigger?.on === 'on_movement' && mv.charges ? Math.min(1 / s.trigger.icd, C.dodgeUse / mv.recharge) * s.trigger.damageMult : 0;
       // the lane's far end (a mod): the player aims it at a lone target, a pack has its share there
       const e = s.modEffects || {}, tip = e.tipMult ? (scen === 'pack' ? 1 + e.tipShare * (e.tipMult - 1) : e.tipMult) : 1;
-      return a + (r[i] + triggered) * castDamage(s) * (scen === 'single' ? fanShots(s, data) : 1) * tip * hits * (1 + burst) * dots(s) * critOf(s) * armourOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
+      // a field of traps (Trap Field): a pack walks into each of them, a lone monster into fieldSingle
+      // a pod that puffs each time a monster passes (Spore Pod) counts the same way
+      const many = s.trap?.count > 1 ? s.trap.count : s.trap?.puffs || 0;
+      const field = many > 1 ? (scen === 'pack' ? Math.min(many, R.pack.size) : C.fieldSingle) : 1;
+      return a + (r[i] + triggered) * castDamage(s) * field * (scen === 'single' ? fanShots(s, data) : 1) * tip * hits * (1 + burst) * dots(s) * critOf(s) * armourOf(s) * (1 + pct(scen === 'pack' ? 'packDamagePct' : 'singleDamagePct') + perTarget);
     }, 0) * armour * amp * (1 + selfDamage * helperShare);
   };
   // summons fight beside us: each attacks every attackCooldown while it lives (life of every cooldown)
@@ -211,10 +236,12 @@ export function buildProfile(data, spec) {
     }
     if (e.chainStun) free *= 1 - Math.min(C.cap, rate * e.chainStun / R.pack.size); // one monster, the chain's last
     // shock: its twitches stop the monster for twitch / interval of the time it lasts
-    const SH = s.def.afterShock?.shock, SHK = data.progression.combat.shock;
+    const SH = s.def.afterShock?.shock || s.shock?.duration, SHK = data.progression.combat.shock;
     if (SH && SHK) free *= 1 - Math.min(C.cap, rate * SH * (SHK.twitch / SHK.interval) * reach);
     if (s.knock) free *= 1 - Math.min(C.cap, rate * s.knock / C.monsterSpeed * reach);
     if (chill) free *= 1 - Math.min(C.cap, chill.slow * C.slowShare * Math.min(1, rate * chill.duration) * reach);
+    // a root (Net Trap) holds them where they stand: a full slow for its length
+    if (s.root) free *= 1 - Math.min(C.cap, C.slowShare * Math.min(1, rate * s.root.duration) * reach);
     if (s.kind === 'curse_zone' && s.dealtMult) free *= 1 - (1 - s.dealtMult) * Math.min(1, s.duration / s.cooldown) * share(s);
     if (s.summon?.tauntRadius || s.def.summon?.tauntRadius || s.tauntRadius) free *= 1 - C.tauntShare * Math.min(1, (s.summon?.life || s.duration || 0) / s.cooldown) * share(s);
   });
@@ -227,7 +254,12 @@ export function buildProfile(data, spec) {
   // our heals land on us too (a spring at our feet, a cleanse on ourselves)
   const selfHeal = [...attacks, ...helpers].reduce((a, s) => a + (s.heal ? s.heal * (s.kind === 'heal_zone' ? s.duration / s.tick : 1) / s.cooldown * (helpers.includes(s) ? helperShare : 1) : 0), 0);
   const net = incoming - (d.hpRegen || 0) - pct('leechPct') * single - skillLeech - shield - selfHeal;
-  const survival = net <= 0 ? R.survivalCap : Math.min(R.survivalCap, (d.maxHp + (d.maxShield || 0)) / net);
+  // seconds to fall without healing (s0) and the share of the incoming damage our healing covers (h):
+  // s0 / (1 - h) while the hits win; past healStretch the curve goes on gently (a log of the rest) so a
+  // healer who outheals the pack still gains from every heal, HP or shield node instead of sitting at
+  // the cap (owner, 2026-11-02)
+  const s0 = (d.maxHp + (d.maxShield || 0)) / Math.max(1e-9, incoming), h = (incoming - net) / Math.max(1e-9, incoming), H = R.healStretch;
+  const survival = Math.min(R.survivalCap, h < H ? s0 / (1 - h) : s0 / (1 - H) * (1 + Math.log(1 + (h - H) / (1 - H))));
   const mobility = d.moveSpeed * (1 + selfSpeed * helperShare) + (mv.charges ? mv.distance / Math.max(0.1, mv.recharge) : 0) + attacks.reduce((a, s, i) => a + (s.kind === 'dash_line' ? s.range * rf[i] : 0), 0); // a dash cut moves the hero too
   // team: what the build gives allies (buff share x uptime; healing and barriers per second measured
   // against the pack's damage per second; an aura that cuts allies' damage taken)

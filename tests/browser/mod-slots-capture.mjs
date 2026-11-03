@@ -16,7 +16,7 @@ for(const id of ['breaking_ward','cast_on_guard'])assert.ok(socketMod(character,
 const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE||'/opt/pw-browsers/chromium':undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
 const errors=[];
 try{
- for(const [name,viewport] of [['tablet',{width:1180,height:820}],['portrait',{width:820,height:1180}],['phone',{width:844,height:390}]]){
+ for(const [name,viewport] of [['tablet',{width:1180,height:820}],['phone',{width:844,height:390}]]){
   const context=await browser.newContext({viewport,hasTouch:true,isMobile:true,deviceScaleFactor:1});
   await context.addInitScript(character=>{Object.defineProperty(document,'fullscreenEnabled',{value:false,configurable:true});localStorage.setItem('frontier.slot.1',JSON.stringify({version:2,character}));localStorage.setItem('frontier.lastSlot','1');},character);
   const page=await context.newPage();page.setDefaultTimeout(180000);

@@ -169,6 +169,871 @@
       "icon": "fire",
       "upgradeStat": "INT"
     },
+    "spike_trap": {
+      "name": "Spike Trap",
+      "nameTh": "กับดักหนาม",
+      "desc": "วางกับดักหนามที่จุดเล็ง ศัตรูเดินเข้ามาหนามแทงขึ้น เลือดไหล 40% ของดาเมจใน 4 วินาที วางค้างได้ 3 อัน อยู่ 20 วินาที ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Area", "Damage", "Physical"],
+      "kind": "ground_area",
+      "damage": {
+        "base": 260,
+        "scale": 2.1
+      },
+      "range": 9,
+      "radius": 1.4,
+      "delay": 0,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 0.9,
+        "max": 3
+      },
+      "bleed": {
+        "fraction": 0.4,
+        "duration": 4
+      },
+      "cooldown": 5,
+      "castTime": 0.25,
+      "cost": 96,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "AGI": 3
+      },
+      "upgradeMaterial": "boar_tusk",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "upgradeStat": "DEX"
+    },
+    "net_trap": {
+      "name": "Net Trap",
+      "nameTh": "กับดักตาข่าย",
+      "desc": "วางกับดักตาข่ายที่จุดเล็ง ศัตรูเดินเข้ามาตาข่ายคลุมวง 2.4 ม. ตรึงอยู่กับที่ 2.5 วินาที (บอส 0.8) ยังตีได้ถ้าอยู่ในระยะ วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Area", "Control"],
+      "kind": "ground_area",
+      "damage": {
+        "base": 90,
+        "scale": 0.7
+      },
+      "range": 9,
+      "radius": 2.4,
+      "delay": 0,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 2
+      },
+      "root": {
+        "duration": 2.5,
+        "bossDuration": 0.8
+      },
+      "cooldown": 9,
+      "castTime": 0.25,
+      "cost": 112,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "AGI": 4
+      },
+      "upgradeMaterial": "wolf_pelt",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "upgradeStat": "DEX"
+    },
+    "blast_trap": {
+      "name": "Blast Trap",
+      "nameTh": "กับดักระเบิด",
+      "desc": "วางกับดักระเบิดที่จุดเล็ง ศัตรูเดินเข้ามาระเบิดแรงวง 2.6 ม. วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Area", "Damage", "Fire"],
+      "kind": "ground_area",
+      "damage": {
+        "base": 510,
+        "scale": 4.0
+      },
+      "range": 9,
+      "radius": 2.6,
+      "delay": 0,
+      "trap": {
+        "arm": 0.8,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 2
+      },
+      "cooldown": 10,
+      "castTime": 0.25,
+      "cost": 160,
+      "element": "fire",
+      "requires": {
+        "DEX": 6,
+        "AGI": 4
+      },
+      "upgradeMaterial": "crag_stone",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "upgradeStat": "DEX"
+    },
+    "lure_dummy": {
+      "name": "Lure Dummy",
+      "nameTh": "หุ่นล่อเป้า",
+      "desc": "ตั้งหุ่นฟางที่จุดเล็ง 8 วินาที ศัตรูในระยะ 5 ม. หันไปตีหุ่นแทน หุ่นไม่ตีและไม่เดิน ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Summon", "Minion", "Guard"],
+      "kind": "summon",
+      "range": 8,
+      "cooldown": 18,
+      "castTime": 0.3,
+      "cost": 128,
+      "element": "physical",
+      "summon": {
+        "type": "lure_dummy",
+        "count": 1,
+        "life": 8,
+        "placeAt": "aim",
+          "static": true,
+        "hp": {
+          "base": 900,
+          "vit": 40,
+          "level": 40
+        },
+        "damage": {
+          "base": 0,
+          "scale": 0
+        },
+        "speed": 0,
+        "range": 0,
+        "attackCooldown": 99,
+        "tauntRadius": 5,
+        "tauntInterval": 1.5,
+        "tauntDuration": 2
+      },
+      "requires": {
+        "DEX": 5,
+        "AGI": 4
+      },
+      "upgradeMaterial": "boar_hide",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      "upgradeStat": "DEX"
+    },
+    "trap_field": {
+      "name": "Trap Field",
+      "nameTh": "ทุ่งกับดัก",
+      "desc": "โยนกับดัก 5 อันกระจายทั่ววง 3 ม. ที่จุดเล็ง แต่ละอันสุ่มเป็นหนาม (เลือดไหล) ตาข่าย (ตรึง) หรือระเบิด (ไฟ แรงสุด) ไม่ต้องรู้สกิลนั้น แต่ละอันทำงานเมื่อศัตรูเดินเข้า อยู่ 20 วินาที ต้องใช้ธนู",
+      "tags": ["Attack", "Trap", "Area", "Damage", "Physical", "Signature"],
+      "kind": "ground_area",
+      "damage": { "base": 150, "scale": 1.2 },
+      "range": 9,
+      "radius": 1.3,
+      "delay": 0,
+      "trap": {
+        "arm": 0.8,
+        "life": 20,
+        "trigger": 0.9,
+        "max": 5, "count": 5, "spread": 3, "pool": { "spike_trap": 1, "net_trap": 0.35, "blast_trap": 1.9 } },
+      "cooldown": 14,
+      "castTime": 0.35,
+      "cost": 224,
+      "element": "physical",
+      "requires": {
+        "DEX": 7,
+        "AGI": 5
+      },
+      "upgradeMaterial": "mantis_scythe",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+      
+      "upgradeStat": "DEX"
+    },
+    "flame_geyser": {
+      "name": "Flame Geyser",
+      "nameTh": "น้ำพุเพลิง",
+      "desc": "วางกับดักที่จุดเล็ง ศัตรูเดินเข้ามาเปลวไฟพุ่งจากพื้น 3 ระลอก ห่างกัน 1 วินาที โดนทั้งวง 2.2 ม. และติดไฟลุก วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Damage",
+        "Fire"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 120,
+        "scale": 0.95
+      },
+      "radius": 2.2,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 2,
+        "pulses": {
+          "count": 3,
+          "interval": 1.0
+        }
+      },
+      "burnChance": 1,
+      "cooldown": 10,
+      "cost": 144,
+      "element": "fire",
+      "requires": {
+        "DEX": 6,
+        "AGI": 4
+      },
+      "upgradeMaterial": "glow_dust",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+            "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "frost_jaw": {
+      "name": "Frost Jaw",
+      "nameTh": "ขากรรไกรน้ำแข็ง",
+      "desc": "วางกับดักที่จุดเล็ง ศัตรูเดินเข้ามาขากรรไกรน้ำแข็งงับ สตัน 1.6 วินาที (บอส 0.4) และช้าลง 40% 3 วินาที วง 1.8 ม. วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Control",
+        "Cold"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 110,
+        "scale": 0.85
+      },
+      "radius": 1.8,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 0.4,
+        "max": 2
+      },
+      "stun": {
+        "duration": 1.6,
+        "bossDuration": 0.4
+      },
+      "chill": {
+        "slow": 0.4,
+        "duration": 3
+      },
+      "cooldown": 12,
+      "cost": 128,
+      "element": "cold",
+      "requires": {
+        "DEX": 6,
+        "AGI": 4
+      },
+      "upgradeMaterial": "pearl_scale",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+            "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "lightning_rod": {
+      "name": "Lightning Rod",
+      "nameTh": "เสาล่อฟ้า",
+      "desc": "วางกับดักที่จุดเล็ง ศัตรูเดินเข้ามาเสาเหล็กเด้งขึ้น จุดกับดักอื่นของเราในระยะ 6 ม. ให้ทำงานทันที แล้วช็อตศัตรูใกล้สุดในระยะ 4 ม. ทุก 0.8 วินาทีนาน 6 วินาที ติดชา วางค้างได้ 1 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Damage",
+        "Lightning"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 90,
+        "scale": 0.7
+      },
+      "radius": 1.2,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 1,
+        "relay": 6,
+        "zap": {
+          "interval": 0.8,
+          "range": 4,
+          "life": 6,
+          "mult": 1
+        }
+      },
+      "shock": {
+        "duration": 1.5
+      },
+      "cooldown": 11,
+      "cost": 160,
+      "element": "lightning",
+      "requires": {
+        "DEX": 7,
+        "AGI": 4
+      },
+      "upgradeMaterial": "storm_quill",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+            "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "spore_pod": {
+      "name": "Spore Pod",
+      "nameTh": "ฝักสปอร์",
+      "desc": "วางฝักที่จุดเล็ง พ่นหมอกพิษทุกครั้งที่ศัตรูเดินผ่าน (สูงสุด 3 ครั้ง) ซ้อนพิษ ศัตรูที่ตายขณะติดพิษนี้แพร่พิษให้ตัวที่ใกล้ที่สุดในระยะ 3 ม. วางค้างได้ 2 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Damage",
+        "Poison",
+        "DoT"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 70,
+        "scale": 0.55
+      },
+      "radius": 2.0,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 2,
+        "puffs": 3,
+        "rearm": 1.2
+      },
+      "poison": {
+        "maxStacks": 5,
+        "duration": 4,
+        "stackDps": 0.25,
+        "spread": 3
+      },
+      "cooldown": 9,
+      "cost": 120,
+      "element": "poison",
+      "requires": {
+        "DEX": 6,
+        "AGI": 4
+      },
+      "upgradeMaterial": "spore_sac",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+            "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "gravity_rune": {
+      "name": "Gravity Rune",
+      "nameTh": "วงเวทดูด",
+      "desc": "วางวงเวทที่จุดเล็ง ศัตรูเดินเข้ามาวงเวทดูดศัตรูในระยะ 4.5 ม. เข้ากลางวงใน 0.8 วินาที (บอสไม่ถูกดูด) ใช้ต้อนศัตรูลงกับดักอื่น วางค้างได้ 1 อัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Trap",
+        "Area",
+        "Control",
+        "Arcane"
+      ],
+      "kind": "ground_area",
+      "damage": {
+        "base": 80,
+        "scale": 0.6
+      },
+      "radius": 1.6,
+      "trap": {
+        "arm": 0.6,
+        "life": 20,
+        "trigger": 1.0,
+        "max": 1
+      },
+      "pull": {
+        "radius": 4.5,
+        "time": 0.8
+      },
+      "cooldown": 12,
+      "cost": 128,
+      "element": "arcane",
+      "requires": {
+        "DEX": 6,
+        "AGI": 5
+      },
+      "upgradeMaterial": "rune_core",
+      "range": 9,
+      "delay": 0,
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "trapper",
+      "iconPending": true,
+            "upgradeStat": "DEX",
+      "castTime": 0.25
+    },
+    "call_companion": {
+      "name": "Call Wolf",
+      "nameTh": "เรียกหมาป่า",
+      "desc": "เรียกหมาป่าคู่หูมาอยู่ข้างตัวจนกว่ามันจะตาย กัดเร็ว ไล่ทัน กัดตามพลังโจมตีของเรา มีคู่หูได้ทีละตัว เรียกซ้ำได้ตัวใหม่เต็ม HP ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "range": 0,
+      "summon": {
+        "type": "hunt_hound",
+        "arrive": 0.6,
+        "count": 1,
+        "permanent": true,
+        "hp": {
+          "base": 1300,
+          "vit": 45,
+          "level": 50
+        },
+        "damage": {
+          "base": 70,
+          "scale": 0.6,
+          "stat": "attack"
+        },
+        "speed": 7.5,
+        "range": 1.1,
+        "attackCooldown": 1.1,
+        "companion": true,
+        "pounce": {
+          "mult": 3,
+          "stun": {
+            "duration": 1.0,
+            "bossDuration": 0.3
+          }
+        }
+      },
+      "cooldown": 20,
+      "castTime": 0.4,
+      "cost": 160,
+      "element": "physical",
+      "requires": {
+        "DEX": 4,
+        "STR": 3
+      },
+      "upgradeMaterial": "wolf_fang",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "call_hawk": {
+      "name": "Call Hawk",
+      "nameTh": "เรียกเหยี่ยว",
+      "desc": "เรียกเหยี่ยวคู่หูมาบินอยู่เหนือตัวจนกว่ามันจะตาย จิกจากระยะ 5 ม. เร็วแต่เลือดน้อย กัดตามพลังโจมตีของเรา มีคู่หูได้ทีละตัว ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "range": 0,
+      "summon": {
+        "type": "hunt_hawk",
+        "arrive": 0.8,
+        "count": 1,
+        "permanent": true,
+        "companion": true,
+        "hp": {
+          "base": 700,
+          "vit": 25,
+          "level": 30
+        },
+        "damage": {
+          "base": 50,
+          "scale": 0.5,
+          "stat": "attack"
+        },
+        "speed": 10,
+        "range": 5,
+        "attackCooldown": 0.8,
+        "pounce": {
+          "mult": 2.2,
+          "bleed": {
+            "fraction": 0.8,
+            "duration": 5
+          },
+          "stagger": 0.45
+        }
+      },
+      "cooldown": 20,
+      "castTime": 0.4,
+      "cost": 160,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "STR": 2
+      },
+      "upgradeMaterial": "hawk_feather",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "call_bear": {
+      "name": "Call Bear",
+      "nameTh": "เรียกหมี",
+      "desc": "เรียกหมีคู่หูมาอยู่ข้างตัวจนกว่ามันจะตาย ตัวถึก เดินช้า ตบแรงแต่ช้า กัดตามพลังโจมตีของเรา มีคู่หูได้ทีละตัว ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "range": 0,
+      "summon": {
+        "type": "hunt_bear",
+        "arrive": 0.9,
+        "count": 1,
+        "permanent": true,
+        "companion": true,
+        "hp": {
+          "base": 2600,
+          "vit": 80,
+          "level": 90
+        },
+        "damage": {
+          "base": 95,
+          "scale": 0.75,
+          "stat": "attack"
+        },
+        "speed": 5,
+        "range": 1.4,
+        "attackCooldown": 1.6,
+        "pounce": {
+          "mult": 2.0,
+          "taunt": {
+            "radius": 5,
+            "duration": 3,
+            "stand": 1.2
+          }
+        }
+      },
+      "cooldown": 20,
+      "castTime": 0.4,
+      "cost": 160,
+      "element": "physical",
+      "requires": {
+        "DEX": 3,
+        "STR": 5
+      },
+      "upgradeMaterial": "boar_hide",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "sic_em": {
+      "name": "Sic 'Em",
+      "nameTh": "สั่งคู่หูจู่โจม",
+      "desc": "สั่งคู่หูพุ่งใส่เป้าหมาย หมาป่ากัดแรง 3 เท่าและทำให้มึน เหยี่ยวดิ่งจิกให้เลือดไหลและตัดท่าเงื้อ หมีคำรามให้มอนรอบ ๆ หันมาตีมัน ต้องมีคู่หูและมีเป้าในระยะ 12 ม. ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Minion",
+        "Control"
+      ],
+      "kind": "command",
+      "range": 12,
+      "sic": {
+        "speed": 2.5,
+        "mult": 3,
+        "stun": {
+          "duration": 1.0,
+          "bossDuration": 0.3
+        }
+      },
+      "cooldown": 8,
+      "castTime": 0.15,
+      "cost": 96,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "STR": 3
+      },
+      "upgradeMaterial": "greyfang_mane",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "mark_prey": {
+      "name": "Mark Prey",
+      "nameTh": "ทำเครื่องหมายเหยื่อ",
+      "desc": "ยิงศรตามรอยใส่เป้าหมาย เกราะลดลง 20% 10 วินาที คู่หูไล่กัดเหยื่อตัวนี้ก่อน ถ้าเหยื่อตายระหว่างนั้นมีโอกาส 35% ดรอปชิ้นส่วนเพิ่ม ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Projectile",
+        "Debuff"
+      ],
+      "kind": "projectile",
+      "range": 14,
+      "speed": 26,
+      "projectileRadius": 0.3,
+      "damage": {
+        "base": 110,
+        "scale": 0.9
+      },
+      "exposure": {
+        "fraction": 0.2,
+        "duration": 10,
+        "prey": 0.35
+      },
+      "cooldown": 10,
+      "castTime": 0.25,
+      "cost": 88,
+      "element": "physical",
+      "requires": {
+        "DEX": 5,
+        "STR": 2
+      },
+      "upgradeMaterial": "hawk_feather",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
+    "spirit_swarm": {
+      "name": "Spirit Swarm",
+      "nameTh": "เรียกฝูงภูต",
+      "desc": "เรียกภูตวิญญาณ 3 ตัว ตัวเล็ก เร็ว ตีถี่แต่เปราะ อยู่ 14 วินาที แรงตามพลังเวท",
+      "tags": [
+        "Spell",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "power": "spell",
+      "range": 0,
+      "summon": {
+        "type": "spirit_wisp",
+        "arrive": 0.5,
+        "count": 3,
+        "life": 14,
+        "hp": {
+          "base": 160,
+          "vit": 7,
+          "level": 7
+        },
+        "damage": {
+          "base": 13,
+          "scale": 0.13
+        },
+        "speed": 8.5,
+        "range": 1.4,
+        "attackCooldown": 0.75
+      },
+      "cooldown": 16,
+      "castTime": 0.4,
+      "cost": 300,
+      "element": "physical",
+      "requires": {
+        "INT": 5,
+        "VIT": 3
+      },
+      "upgradeMaterial": "wisp_core",
+      "job": "summoner",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "INT"
+    },
+    "call_alpha": {
+      "name": "Call Alpha",
+      "nameTh": "เรียกจ่าฝูง",
+      "desc": "เรียกจ่าฝูงวิญญาณตัวใหญ่ 1 ตัว อยู่ 20 วินาที ระหว่างที่อยู่ สัตว์อัญเชิญตัวอื่นในระยะ 8 เมตรตีแรงขึ้น 20%",
+      "tags": [
+        "Spell",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "power": "spell",
+      "range": 0,
+      "summon": {
+        "type": "spirit_alpha",
+        "arrive": 0.75,
+        "count": 1,
+        "life": 20,
+        "hp": {
+          "base": 1400,
+          "vit": 60,
+          "level": 60
+        },
+        "damage": {
+          "base": 85,
+          "scale": 0.65
+        },
+        "speed": 7,
+        "range": 2.0,
+        "attackCooldown": 1.2,
+        "aura": {
+          "radius": 8,
+          "damage": 0.2
+        }
+      },
+      "cooldown": 30,
+      "castTime": 0.6,
+      "cost": 520,
+      "element": "physical",
+      "requires": {
+        "INT": 8,
+        "VIT": 5
+      },
+      "upgradeMaterial": "greyfang_mane",
+      "job": "summoner",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "INT"
+    },
+    "summon_assault": {
+      "name": "Assault",
+      "nameTh": "สั่งบุก",
+      "desc": "สั่งสัตว์อัญเชิญทุกตัวพุ่งเข้าใส่เป้าหมายในระยะ 12 เมตร วิ่งเร็วขึ้น การตีครั้งต่อไปที่เป้านั้นแรง 1.8 เท่าและกระแทกถอยหลัง ต้องมีสัตว์อัญเชิญ",
+      "tags": [
+        "Spell",
+        "Minion",
+        "Control"
+      ],
+      "kind": "command",
+      "power": "spell",
+      "range": 12,
+      "assault": {
+        "speed": 1.8,
+        "mult": 1.8,
+        "knock": 1.0,
+        "time": 4
+      },
+      "cooldown": 9,
+      "castTime": 0.15,
+      "cost": 140,
+      "element": "physical",
+      "requires": {
+        "INT": 6,
+        "VIT": 3
+      },
+      "upgradeMaterial": "wolf_fang",
+      "job": "summoner",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "INT"
+    },
+    "pack_hunt": {
+      "name": "Pack Hunt",
+      "nameTh": "ฝูงล่า",
+      "desc": "ผิวปากเรียกหมาป่า 3 ตัวมาช่วยไล่กัด 8 วินาที และคู่หูของเราดุขึ้น กัดแรงขึ้น 30% ช่วงเดียวกัน ต้องใช้ธนู",
+      "tags": [
+        "Attack",
+        "Summon",
+        "Minion"
+      ],
+      "kind": "summon",
+      "range": 0,
+      "summon": {
+        "type": "pack_hound",
+        "arrive": 0.65,
+        "count": 3,
+        "life": 8,
+        "hp": {
+          "base": 500,
+          "vit": 20,
+          "level": 20
+        },
+        "damage": {
+          "base": 55,
+          "scale": 0.45,
+          "stat": "attack"
+        },
+        "speed": 9,
+        "range": 1.5,
+        "attackCooldown": 0.9
+      },
+      "packBuff": {
+        "damage": 0.3,
+        "duration": 8,
+        "howl": 0.9
+      },
+      "cooldown": 16,
+      "castTime": 0.4,
+      "cost": 224,
+      "element": "physical",
+      "requires": {
+        "DEX": 7,
+        "STR": 4
+      },
+      "upgradeMaterial": "dusk_pelt",
+      "power": "attack",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "job": "hunter",
+      "iconPending": true,
+      "fxPending": true,
+      "upgradeStat": "DEX"
+    },
     "ice_ball": {
       "name": "Ice Ball",
       "nameTh": "บอลน้ำแข็ง",
@@ -307,8 +1172,8 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 87,
-        "scale": 0.87
+        "base": 194,
+        "scale": 1.94
       },
       "range": 10,
       "speed": 26,
@@ -426,8 +1291,8 @@
       "kind": "heal_zone",
       "power": "spell",
       "heal": {
-        "base": 96,
-        "scale": 0.72
+        "base": 37,
+        "scale": 0.28
       },
       "tick": 0.5,
       "duration": 4,
@@ -795,8 +1660,8 @@
         "staff"
       ],
       "damage": {
-        "base": 70,
-        "scale": 0.65
+        "base": 134,
+        "scale": 1.25
       },
       "arc": 55,
       "channel": {
@@ -843,7 +1708,7 @@
     "cleanse": {
       "name": "Mend and Cleanse",
       "nameTh": "ชำระบาดแผล",
-      "desc": "ฮีลเป้าพันธมิตรที่บาดเจ็บในระยะ หรือฮีลตนเอง ล้างพิษหรือความเย็นหนึ่งอย่าง ไม่ล้างกลไกบอส",
+      "desc": "ฮีลเป้าพันธมิตรที่บาดเจ็บในระยะ หรือฮีลตนเอง ล้างดีบัฟหนึ่งอย่าง (ตรึง ชา ไหม้ พิษ เลือดไหล ช้า) ไม่ล้างกลไกบอส",
       "tags": [
         "Spell",
         "Heal",
@@ -866,7 +1731,11 @@
         "scale": 1.04
       },
       "cleanse": [
+        "root",
+        "shock",
+        "burn",
         "poison",
+        "bleed",
         "chill"
       ]
     },
@@ -1061,8 +1930,8 @@
       "kind": "melee_arc",
       "power": "attack",
       "damage": {
-        "base": 128,
-        "scale": 1.49
+        "base": 93,
+        "scale": 1.08
       },
       "range": 2.2,
       "arc": 100,
@@ -1098,8 +1967,8 @@
       "kind": "melee_nova",
       "power": "attack",
       "damage": {
-        "base": 100,
-        "scale": 1.1
+        "base": 73,
+        "scale": 0.8
       },
       "range": 1.8,
       "radius": 1.8,
@@ -1446,6 +2315,38 @@
       "job": "blade",
       "iconPending": true
     },
+    "revive": {
+      "name": "Revive",
+      "nameTh": "ชุบชีวิต",
+      "desc": "ห่มแสงคุ้มชีวิตให้ตัวเองและพวกรอบตัว 9 ม. นาน 30 วินาที ใครโดนดาเมจถึงตายระหว่างนั้นจะลุกขึ้นทันทีด้วย HP ครึ่งหลอดและอมตะ 1.5 วินาที (แสงหายไปเมื่อใช้แล้ว)",
+      "tags": [
+        "Spell",
+        "Buff",
+        "Area",
+        "Duration"
+      ],
+      "kind": "buff",
+      "power": "spell",
+      "radius": 9,
+      "duration": 30,
+      "revive": {
+        "hp": 0.5,
+        "invulnerable": 1.5
+      },
+      "cooldown": 180,
+      "castTime": 0.6,
+      "cost": 400,
+      "element": "none",
+      "requires": {
+        "VIT": 7,
+        "INT": 5
+      },
+      "upgradeMaterial": "golden_pearl",
+      "upgradeStat": "VIT",
+      "job": "priest",
+      "iconPending": true,
+      "fxPending": true
+    },
     "blessing": {
       "name": "Blessing of Light",
       "nameTh": "พรแห่งแสง",
@@ -1555,8 +2456,8 @@
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 832,
-        "scale": 6.72
+        "base": 396,
+        "scale": 3.2
       },
       "range": 12,
       "radius": 3.5,
@@ -1592,8 +2493,8 @@
       "kind": "dot_zone",
       "power": "spell",
       "damage": {
-        "base": 144,
-        "scale": 1.28
+        "base": 48,
+        "scale": 0.42
       },
       "range": 11,
       "radius": 3.8,
@@ -1625,8 +2526,8 @@
       "kind": "ground_area",
       "power": "spell",
       "damage": {
-        "base": 208,
-        "scale": 1.6
+        "base": 177,
+        "scale": 1.36
       },
       "range": 12,
       "radius": 3.2,
@@ -1725,8 +2626,8 @@
       "kind": "projectile",
       "power": "attack",
       "damage": {
-        "base": 180,
-        "scale": 1.8
+        "base": 435,
+        "scale": 4.35
       },
       "range": 10,
       "speed": 16,
@@ -2178,6 +3079,31 @@
       },
       "icon": "blink",
       "upgradeStat": "INT"
+    },
+    "soul_swap": {
+      "name": "Soul Swap",
+      "nameTh": "สลับวิญญาณ",
+      "desc": "สลับที่กับสัตว์อัญเชิญที่อยู่ใกล้จุดเล็งในระยะ 10 เมตร ไม่โดนดาเมจระหว่างสลับ และฮีลสัตว์ตัวนั้น 15% ของ HP สูงสุด ต้องมีสัตว์อัญเชิญ",
+      "tags": [
+        "Movement",
+        "Spell"
+      ],
+      "kind": "swap",
+      "distance": 10,
+      "duration": 0.08,
+      "delay": 0.12,
+      "charges": 1,
+      "recharge": 5,
+      "invulnerable": true,
+      "heal": 0.15,
+      "requires": {
+        "AGI": 6,
+        "INT": 4
+      },
+      "icon": "blink",
+      "iconPending": true,
+      "job": "summoner",
+      "upgradeStat": "AGI"
     },
     "leap": {
       "name": "Leap Slam",

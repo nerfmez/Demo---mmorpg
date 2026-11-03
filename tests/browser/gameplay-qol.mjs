@@ -12,7 +12,7 @@ let browser;const reports=[];
 try {
  for(let i=0;;i++){try{if((await fetch(base)).ok)break;}catch{}if(i>60)throw Error('preview');await new Promise(r=>setTimeout(r,250));}
  browser=await engine.launch({executablePath:name==='chromium'?process.env.CHROMIUM_EXECUTABLE:undefined,args:name==='chromium'?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
- for(const [size,width,height,touch] of [['desktop',1280,800,false],['ipad',1180,820,true],['phone-landscape',844,390,true],['phone-portrait',390,844,true]].filter(c=>!process.env.QOL_VIEW||c[0].startsWith(process.env.QOL_VIEW))){
+ for(const [size,width,height,touch] of [['desktop',1280,800,false],['ipad',1180,820,true],['phone-landscape',844,390,true]].filter(c=>!process.env.QOL_VIEW||c[0].startsWith(process.env.QOL_VIEW))){
   console.log('START gameplay QoL',name,size);
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch}),page=await ctx.newPage(),errors=[];
   page.setDefaultTimeout(90000);page.on('pageerror',e=>errors.push(String(e)));

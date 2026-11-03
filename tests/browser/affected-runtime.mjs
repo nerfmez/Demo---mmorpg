@@ -9,7 +9,7 @@ import { freezeScene } from './freeze-scene.mjs';
 
 export const AFFECTED_VIEWPORTS = [
   ['desktop', 1600, 900, false], ['ipad', 1180, 820, true],
-  ['phone-landscape', 844, 390, true], ['phone-portrait', 390, 844, true],
+  ['phone-landscape', 844, 390, true],
 ];
 
 export async function withAffectedRuntime(suite, inspect, { saved = false, reduced = false } = {}) {
@@ -29,7 +29,7 @@ export async function withAffectedRuntime(suite, inspect, { saved = false, reduc
     }
     browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined,
       args: engine === chromium ? ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
-    const cases = reduced ? [...AFFECTED_VIEWPORTS, ['phone-reduced', 390, 844, true, true]] : AFFECTED_VIEWPORTS;
+    const cases = reduced ? [...AFFECTED_VIEWPORTS, ['phone-reduced', 844, 390, true, true]] : AFFECTED_VIEWPORTS;
     for (const [name, width, height, touch, reduce] of cases) {
       const context = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: touch,
         reducedMotion: reduce ? 'reduce' : 'no-preference' });

@@ -126,7 +126,7 @@ try {
   console.log('surf phases captured; touch stream crossing passed');
  }
  if(pass!=='before'&&!process.env.DREAMLOOP_TERRAIN_ONLY) {
-  for(const [device,w,h] of [['desktop',1600,900],['ipad',1180,820],['phone',390,844],['phone-landscape',844,390]]){
+  for(const [device,w,h] of [['desktop',1600,900],['ipad',1180,820],['phone-landscape',844,390]]){
    await page.setViewportSize({width:w,height:h});
    await verifyPassiveGestures(page,{context:ctx,engineName:engine.name(),capture:name=>capture(device+'-'+name)});
    console.log('network workflow passed',device);

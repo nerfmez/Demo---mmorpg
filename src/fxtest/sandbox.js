@@ -2,7 +2,7 @@
 // few training dummies on an isolated flat floor. Nothing is saved; nothing here changes rules.
 import { Game } from '../core/game.js';
 import { createCharacter, equip } from '../core/character.js';
-import { tickFrontier } from '../core/frontier-content.js';
+import { tickFrontier, sicTarget } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
@@ -16,14 +16,14 @@ export const BENCH_SKILLS = ['slash', 'hunter_shot', 'firebolt', 'chain_spark', 
   // group 3 (2026-10-30): the blade's trickery
   'stealth', 'steal', 'decoy',
   // group 4 (2026-10-31): elemental skills, the spell archer's arrows and the spellblade's cuts
-  'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball'];
+  'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap', 'blast_trap', 'lure_dummy', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune', 'call_companion', 'sic_em', 'mark_prey', 'pack_hunt', 'call_hawk', 'call_bear', 'spirit_swarm', 'call_alpha', 'summon_assault', 'spirit_wolf', 'stone_guardian', 'revive'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
-export const BENCH_WEAPON = { slash: 'sword', hunter_shot: 'bow', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', venom_bolt: 'wand', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword', sky_shatter: 'greatblade', earth_rend: 'greatblade', iron_body: 'greatblade', cross_cut: 'dagger', blade_storm: 'dagger', backstab: 'dagger', rally: 'sword', frenzy_roar: 'sword', stand_firm: 'sword', team_stand: 'sword', blessing: 'staff', rapid_volley: 'bow', killing_arrow: 'bow', meteor: 'staff', blizzard: 'staff', thunderstorm: 'staff', holy_bell: 'staff', light_chain: 'staff', spell_wave: 'sword', draw_cut: 'sword', shield_rush: 'greatshield', shield_fort: 'greatshield', faith_wall: 'greatshield', provoke: 'greatshield', blood_boil: 'sword', fighting_spirit: 'sword', berserk: 'sword', stealth: 'dagger', steal: 'dagger', decoy: 'dagger', fire_arrow_rain: 'bow', frost_shatter_arrow: 'bow', thunder_lance: 'bow', poison_mist_arrow: 'bow', flame_slash: 'sword', ice_spikes: 'sword', thunder_slash: 'sword', ice_ball: 'staff' };
+export const BENCH_WEAPON = { slash: 'sword', hunter_shot: 'bow', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', venom_bolt: 'wand', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword', sky_shatter: 'greatblade', earth_rend: 'greatblade', iron_body: 'greatblade', cross_cut: 'dagger', blade_storm: 'dagger', backstab: 'dagger', rally: 'sword', frenzy_roar: 'sword', stand_firm: 'sword', team_stand: 'sword', blessing: 'staff', rapid_volley: 'bow', killing_arrow: 'bow', meteor: 'staff', blizzard: 'staff', thunderstorm: 'staff', holy_bell: 'staff', light_chain: 'staff', spell_wave: 'sword', draw_cut: 'sword', shield_rush: 'greatshield', shield_fort: 'greatshield', faith_wall: 'greatshield', provoke: 'greatshield', blood_boil: 'sword', fighting_spirit: 'sword', berserk: 'sword', stealth: 'dagger', steal: 'dagger', decoy: 'dagger', fire_arrow_rain: 'bow', frost_shatter_arrow: 'bow', thunder_lance: 'bow', poison_mist_arrow: 'bow', flame_slash: 'sword', ice_spikes: 'sword', thunder_slash: 'sword', ice_ball: 'staff', spike_trap: 'bow', net_trap: 'bow', blast_trap: 'bow', lure_dummy: 'bow', trap_field: 'bow', flame_geyser: 'bow', frost_jaw: 'bow', lightning_rod: 'bow', spore_pod: 'bow', gravity_rune: 'bow', call_companion: 'bow', sic_em: 'bow', mark_prey: 'bow', pack_hunt: 'bow', call_hawk: 'bow', call_bear: 'bow', spirit_swarm: 'staff', call_alpha: 'staff', summon_assault: 'staff', spirit_wolf: 'staff', stone_guardian: 'staff', revive: 'staff' };
 
 // Dummy layouts per skill (caster at the origin facing +X). Each shows what mods change:
 // extra chain hops, the nova edge (Concentrated shrinks it), the cone edge and range.
 // the game and close cameras frame this area for each skill (centre cx, cz; width w, depth d)
-export const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, hunter_shot: { cx: 6.0, cz: 0.6, w: 16, d: 7.5 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, venom_bolt: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 }, sky_shatter: { cx: 1.8, cz: 0.4, w: 8, d: 6 }, earth_rend: { cx: 3.6, cz: 0, w: 11, d: 6 }, iron_body: { cx: 1.2, cz: 0, w: 8, d: 6 }, cross_cut: { cx: 1.4, cz: 0.2, w: 7, d: 5.5 }, blade_storm: { cx: 0.6, cz: 0, w: 9, d: 7.5 }, backstab: { cx: 3.0, cz: 0, w: 10, d: 6.5 }, rally: { cx: 0, cz: 0, w: 18, d: 13 }, frenzy_roar: { cx: 0, cz: 0, w: 18, d: 13 }, stand_firm: { cx: 0, cz: 0, w: 18, d: 13 }, team_stand: { cx: 0, cz: 0, w: 19, d: 14 }, blessing: { cx: 0, cz: 0, w: 19, d: 14 }, rapid_volley: { cx: 6.5, cz: 0.4, w: 16, d: 7 }, killing_arrow: { cx: 8.5, cz: 0, w: 20, d: 7 }, meteor: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, blizzard: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, thunderstorm: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, holy_bell: { cx: 0.8, cz: 0, w: 12.5, d: 9.5 }, light_chain: { cx: 5.6, cz: 0, w: 14, d: 6 }, spell_wave: { cx: 5.0, cz: 0, w: 13, d: 6.5 }, draw_cut: { cx: 4.0, cz: 0.4, w: 15, d: 7 }, shield_rush: { cx: 4.0, cz: 0.4, w: 15, d: 8 }, shield_fort: { cx: 1.2, cz: 0, w: 11, d: 8 }, faith_wall: { cx: 3.6, cz: 0, w: 14, d: 9 }, provoke: { cx: 0, cz: 0, w: 19, d: 14 }, blood_boil: { cx: 0.8, cz: 0, w: 9, d: 6.5 }, fighting_spirit: { cx: 0, cz: 0, w: 18, d: 13 }, berserk: { cx: 0.8, cz: 0, w: 10, d: 7 }, stealth: { cx: 1.2, cz: 0, w: 10, d: 7 }, steal: { cx: 1.0, cz: 0, w: 7, d: 5.5 }, decoy: { cx: 0, cz: 0, w: 10, d: 7 }, fire_arrow_rain: { cx: 4.4, cz: 0.4, w: 13, d: 8.5 }, frost_shatter_arrow: { cx: 5.6, cz: 0, w: 14, d: 7 }, thunder_lance: { cx: 6.0, cz: 0, w: 15, d: 6.5 }, poison_mist_arrow: { cx: 4.4, cz: 0.4, w: 12, d: 8 }, flame_slash: { cx: 1.8, cz: 0.2, w: 8, d: 6.5 }, ice_spikes: { cx: 3.0, cz: 0, w: 10, d: 6 }, thunder_slash: { cx: 2.2, cz: 0.2, w: 9, d: 7 }, ice_ball: { cx: 5.6, cz: 0, w: 14, d: 6 } };
+export const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, hunter_shot: { cx: 6.0, cz: 0.6, w: 16, d: 7.5 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, venom_bolt: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 }, sky_shatter: { cx: 1.8, cz: 0.4, w: 8, d: 6 }, earth_rend: { cx: 3.6, cz: 0, w: 11, d: 6 }, iron_body: { cx: 1.2, cz: 0, w: 8, d: 6 }, cross_cut: { cx: 1.4, cz: 0.2, w: 7, d: 5.5 }, blade_storm: { cx: 0.6, cz: 0, w: 9, d: 7.5 }, backstab: { cx: 3.0, cz: 0, w: 10, d: 6.5 }, rally: { cx: 0, cz: 0, w: 18, d: 13 }, frenzy_roar: { cx: 0, cz: 0, w: 18, d: 13 }, stand_firm: { cx: 0, cz: 0, w: 18, d: 13 }, team_stand: { cx: 0, cz: 0, w: 19, d: 14 }, blessing: { cx: 0, cz: 0, w: 19, d: 14 }, rapid_volley: { cx: 6.5, cz: 0.4, w: 16, d: 7 }, killing_arrow: { cx: 8.5, cz: 0, w: 20, d: 7 }, meteor: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, blizzard: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, thunderstorm: { cx: 5.2, cz: 0.4, w: 14, d: 9 }, holy_bell: { cx: 0.8, cz: 0, w: 12.5, d: 9.5 }, light_chain: { cx: 5.6, cz: 0, w: 14, d: 6 }, spell_wave: { cx: 5.0, cz: 0, w: 13, d: 6.5 }, draw_cut: { cx: 4.0, cz: 0.4, w: 15, d: 7 }, shield_rush: { cx: 4.0, cz: 0.4, w: 15, d: 8 }, shield_fort: { cx: 1.2, cz: 0, w: 11, d: 8 }, faith_wall: { cx: 3.6, cz: 0, w: 14, d: 9 }, provoke: { cx: 0, cz: 0, w: 19, d: 14 }, blood_boil: { cx: 0.8, cz: 0, w: 9, d: 6.5 }, fighting_spirit: { cx: 0, cz: 0, w: 18, d: 13 }, berserk: { cx: 0.8, cz: 0, w: 10, d: 7 }, stealth: { cx: 1.2, cz: 0, w: 10, d: 7 }, steal: { cx: 1.0, cz: 0, w: 7, d: 5.5 }, decoy: { cx: 0, cz: 0, w: 10, d: 7 }, fire_arrow_rain: { cx: 4.4, cz: 0.4, w: 13, d: 8.5 }, frost_shatter_arrow: { cx: 5.6, cz: 0, w: 14, d: 7 }, thunder_lance: { cx: 6.0, cz: 0, w: 15, d: 6.5 }, poison_mist_arrow: { cx: 4.4, cz: 0.4, w: 12, d: 8 }, flame_slash: { cx: 1.8, cz: 0.2, w: 8, d: 6.5 }, ice_spikes: { cx: 3.0, cz: 0, w: 10, d: 6 }, thunder_slash: { cx: 2.2, cz: 0.2, w: 9, d: 7 }, ice_ball: { cx: 5.6, cz: 0, w: 14, d: 6 }, spike_trap: { cx: 4.0, cz: 0.4, w: 12, d: 7 }, net_trap: { cx: 4.0, cz: 0.4, w: 12, d: 7 }, blast_trap: { cx: 4.0, cz: 0.4, w: 12, d: 7 }, lure_dummy: { cx: 3.5, cz: 0.4, w: 13, d: 8 }, trap_field: { cx: 4.5, cz: 0.4, w: 13, d: 8.5 }, flame_geyser: { cx: 4.5, cz: 0.4, w: 13, d: 8.5 }, frost_jaw: { cx: 4.5, cz: 0.4, w: 13, d: 8.5 }, lightning_rod: { cx: 4.5, cz: 0.4, w: 13, d: 8.5 }, spore_pod: { cx: 4.5, cz: 0.4, w: 13, d: 8.5 }, gravity_rune: { cx: 4.5, cz: 0.4, w: 13, d: 8.5 }, call_companion: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, sic_em: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, mark_prey: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, pack_hunt: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, call_hawk: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, call_bear: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, spirit_swarm: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, call_alpha: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, summon_assault: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, spirit_wolf: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, stone_guardian: { cx: 3.5, cz: 0.4, w: 13, d: 8.5 }, revive: { cx: 0, cz: 0, w: 19, d: 14 } };
 export const LAYOUTS = {
   // two in the swing, one just outside its arc, and a line behind for a linked bolt to fly on into
   slash: [[2.0, 0.4], [1.8, -0.9], [1.4, 2.0], [5.0, 0.6], [8.2, -0.3], [11.0, 1.0]],
@@ -99,6 +99,29 @@ export const LAYOUTS = {
   ice_spikes: [[1.8, 0.1], [4.0, -0.3], [5.6, 0.3], [3.6, 2.2]],
   thunder_slash: [[1.6, 0.3], [1.4, -0.9], [3.8, 1.2], [4.6, -0.6], [-2.4, 0.2]],
   ice_ball: [[5.0, 0.0], [8.5, 1.2], [7.0, -2.2], [11.5, 0.2]],
+  // traps: set ahead, with monsters walking into them
+  spike_trap: [[7.5, 0.3], [9.0, -1.0], [6.5, 2.4]],
+  net_trap: [[7.5, 0.3], [8.4, -1.0], [6.5, 2.4]],
+  blast_trap: [[7.5, 0.3], [8.4, -1.0], [6.5, 2.4]],
+  lure_dummy: [[6.0, 1.5], [6.5, -1.4], [8.0, 0.2]],
+  trap_field: [[7.0, 0.3], [8.5, -1.2], [8.0, 1.6], [9.5, 0.4]],
+  flame_geyser: [[7.5, 0.3], [8.4, -1.0], [6.5, 2.4]],
+  frost_jaw: [[7.5, 0.3], [8.4, -1.0], [6.5, 2.4]],
+  lightning_rod: [[7.5, 0.3], [9.5, -1.5], [10.0, 1.8]],
+  spore_pod: [[7.5, 0.3], [8.4, -1.0], [9.5, 0.8]],
+  gravity_rune: [[7.5, 0.3], [9.5, -2.2], [10.0, 2.5], [8.0, 3.2]],
+  call_companion: [[6.5, 0.3], [8.0, -1.5], [8.5, 1.8]],
+  sic_em: [[7.5, 0.3], [8.5, -1.8], [9.0, 2.0]],
+  mark_prey: [[7.5, 0.3], [6.0, -2.0], [9.0, 2.0]],
+  pack_hunt: [[6.5, 0.3], [8.0, -1.5], [8.5, 1.8], [7.0, 2.6]],
+  call_hawk: [[6.5, 0.3], [8.0, -1.5], [8.5, 1.8]],
+  call_bear: [[6.5, 0.3], [8.0, -1.5], [8.5, 1.8]],
+  spirit_swarm: [[6.5, 0.3], [8.0, -1.5], [8.5, 1.8]],
+  call_alpha: [[6.5, 0.3], [8.0, -1.5], [8.5, 1.8]],
+  summon_assault: [[7.5, 0.3], [8.5, -1.8], [9.0, 2.0]],
+  spirit_wolf: [[6.5, 0.3], [8.0, -1.5], [8.5, 1.8]],
+  stone_guardian: [[6.5, 0.3], [8.0, -1.5], [8.5, 1.8]],
+  revive: [[4.5, 0.3], [6.0, -1.5], [6.0, 1.8]],
 };
 // Facings per layout (default: every dummy faces the hero). Flank Thrust needs some backs turned.
 export const FACINGS = {
@@ -123,7 +146,19 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   ch.skills[skill] = 1;
   ch.mods = mods.map((m) => ({ id: m.id, uid: ch.nextUid++, level: m.level || 1, grade: 'C' }));
   if (fusion) ch.skills[fusion] = 1;
-  ch.slots = ch.slots.map((_, i) => ({ skill: i === 0 ? skill : i === 1 && fusion ? fusion : null, mods: i === 0 ? ch.mods.map((m) => m.uid) : [] }));
+  // Lightning Rod sets off our other traps near it: the bench sets a Blast Trap and a Net Trap beside it (slots 1, 2)
+  const helpers = skill === 'lightning_rod' ? ['blast_trap', 'net_trap'] : [];
+  // the hunter's companion skills need the companion: the bench calls it at the start (slot 1)
+  // the summoner's Assault needs summons: the bench calls a swarm at the start (slot 1)
+  const swarm = skill === 'summon_assault' || (movement === 'soul_swap' && !data.skills.combat[skill]?.summon); // Soul Swap needs a summon to trade with
+  if (swarm) { ch.skills.spirit_swarm = 1; helpers.push('spirit_swarm'); }
+  const hound = ['sic_em', 'mark_prey', 'pack_hunt'].includes(skill);
+  if (hound) { ch.skills.call_companion = 1; helpers.push('call_companion'); }
+  // a call bench: the first press calls the companion, the next ones send it in (Sic 'Em, slot 1)
+  const caller = ['call_companion', 'call_hawk', 'call_bear'].includes(skill);
+  if (caller) { ch.skills.sic_em = 1; helpers.push('sic_em'); }
+  for (const h of helpers) ch.skills[h] = 1;
+  ch.slots = ch.slots.map((_, i) => ({ skill: i === 0 ? skill : i === 1 && fusion ? fusion : helpers[i - 1] || null, mods: i === 0 ? ch.mods.map((m) => m.uid) : [] }));
   const mv = data.skills.movement[movement] ? movement : 'dash'; // the dodge button's move (the bench's หลบ picker)
   if (data.skills.movement[mv]) { ch.movementSkills = [mv]; ch.movement = mv; }
   ch.equipped.weapon = ch.equipped.offhand = null;
@@ -147,6 +182,28 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   g.world = { surfaceY: () => 0, groundY: () => 0, isFree: () => true, move: (x, z, r, dx, dz) => ({ x: x + dx, z: z + dz, blocked: false }), seams: [], seamAt: () => null, bounds: { minX: -40, maxX: 40, minZ: -40, maxZ: 40 } };
   g.isSafe = () => false;
   g.nearby = () => ({ inTown: false });
+  if (hound) { const cs = g.skills.find((q) => q?.id === 'call_companion'); g.runSkill(cs, { angle: 0, x: 0, z: 0 }); }
+  if (swarm) { const cs = g.skills.find((q) => q?.id === 'spirit_swarm'); g.runSkill(cs, { angle: 0, x: 0, z: 0 }); }
+  // Revive's bench: 1.5 s after the cast a lethal blow falls on the hero, so the rising shows
+  if (skill === 'revive') { const run = g.runSkill.bind(g); g.runSkill = (s, aim, opts) => { run(s, aim, opts); if (s.id === 'revive') g.pending.push({ t: 1.5, fn: () => { if (!g.player.dead) g.damagePlayer(g.player.maxHp * 50, null, { unblockable: true }); if (g.player.dead) { g.player.dead = false; g.player.hp = g.player.maxHp; } } }); }; }
+  // hounds go for what is near, so the bench's dummies count as foes for them
+  if (hound || swarm || ['call_companion', 'call_hawk', 'call_bear', 'spirit_swarm', 'call_alpha', 'spirit_wolf', 'stone_guardian'].includes(skill)) for (const m of g.monsters) m.aggro = true;
+  if (caller) {
+    const run = g.runSkill.bind(g);
+    g.runSkill = (s, aim, opts) => {
+      const sic = g.skills.find((q) => q?.id === 'sic_em');
+      if (s.id === skill && sic && g.allies.some((a) => a.companion && a.life > 0) && sicTarget(g, sic)) return run(sic, aim, opts);
+      run(s, aim, opts);
+    };
+  }
+  if (helpers.length && !hound && !caller && !swarm) {
+    const run = g.runSkill.bind(g);
+    g.runSkill = (s, aim, opts) => {
+      run(s, aim, opts);
+      if (s.id !== skill) return;
+      helpers.forEach((h, i) => { const hs = g.skills.find((q) => q?.id === h); if (hs) run(hs, { ...aim, x: aim.x - 1.6, z: aim.z + (i ? -2.2 : 2.2) }, opts); });
+    };
+  }
   if (haste !== null) {
     const refresh = g.refreshSkills.bind(g);
     g.refreshSkills = () => { g.derived.hastePct = haste; refresh(); };
@@ -164,6 +221,7 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     g.updateProjectiles(dt);
     g.updateAreas(dt);
     for (const m of g.monsters) g.tickStatuses(m, dt);
+    g.updateAllies(dt); // summons live their life (a Lure Dummy stands and draws them)
     g.player.mp = g.player.maxMp; // cooldowns run for real; MP and arrows never block a test
     if (g.ch.arrows?.stock && Object.values(g.ch.arrows.stock).reduce((a, n) => a + n, 0) < 50) g.ch.arrows.stock.feather_arrow = 200;
     g.player.movement.charges = Math.max(g.player.movement.charges, 1);
@@ -181,6 +239,37 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     g.benchStep = function (dt) {
       step.call(this, dt);
       for (const m of this.monsters) if (m.state === 'stunned' && (m.stateT += dt) >= m.stateDur) { m.state = 'idle'; this.emit({ type: 'benchStunEnd', id: m.id }); }
+    };
+  }
+  // Traps: bench dummies run no AI, so the first ones walk into a trap once it is armed (and wander back
+  // home after it springs), so it springs on the bench as in the game
+  const T = data.skills.combat[skill]?.trap;
+  if (T) {
+    const WALKERS = Math.min(g.monsters.length, T.count > 1 ? 2 : 1), SPEED = 2.4;
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      const set = this.areas.filter((a) => a.trap && !a.sprung && a.t >= a.trap.arm + 0.3);
+      for (let i = 0; i < WALKERS; i++) {
+        const m = this.monsters[i];
+        if (m.state === 'stunned' || m.statuses?.root) { m.moving = false; continue; } // held by the trap, as in the game
+        let to = null, best = Infinity;
+        for (const a of set) { const d = Math.hypot(a.x - m.x, a.z - m.z); if (d < best) { best = d; to = a; } }
+        const tx = to ? to.x : m.homeX, tz = to ? to.z : m.homeZ, d = Math.hypot(tx - m.x, tz - m.z);
+        if (d > 0.05) { const k = Math.min(1, SPEED * (to ? 1 : 0.6) * dt / d); m.x += (tx - m.x) * k; m.z += (tz - m.z) * k; m.moving = true; m.facing = Math.atan2(tx - m.x, tz - m.z); } else m.moving = false;
+      }
+    };
+  }
+  // Lure Dummy: bench dummies run no AI, so a monster it has drawn (tauntT, forcedTargetId) walks up to it
+  if (data.skills.combat[skill]?.summon?.static) {
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      for (const m of this.monsters) {
+        const a = m.tauntT > 0 && this.allies.find((q) => q.id === m.forcedTargetId);
+        const tx = a ? a.x : m.homeX, tz = a ? a.z : m.homeZ, d = Math.hypot(tx - m.x, tz - m.z), stop = a ? 1.3 : 0.05;
+        if (d > stop) { const step = Math.min(d - stop, 2.2 * (a ? 1 : 0.6) * dt); m.x += (tx - m.x) / d * step; m.z += (tz - m.z) / d * step; m.moving = true; } else m.moving = false;
+      }
     };
   }
   // Measured Riposte: something to block. The first dummy winds up (1 s, the rules' windup state)

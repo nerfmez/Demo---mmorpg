@@ -12,6 +12,7 @@ import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
 import MOTION from '../../data/monster-motion.json';
 import FX from '../../data/combat-fx.json';
 import { createRollFx } from './roll-fx.js';
+import { animBeast } from './beast-clips.js';
 import { motionConfig, advanceGait, poseLegs, poseSplayedLegs, legCycle, wander, breath } from './monster-motion.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
@@ -64,7 +65,14 @@ function buildBoar() {
 function buildWolf(kind = 'wolf') {
   const alpha = kind === 'greyfang';
   const spirit = kind === 'spirit';
-  const C = spirit
+  // the hunter's hounds (call_companion, pack_hunt): a warm brown hunting dog, its back ridge the same brown
+  // the hunter's bear (call_bear): the same body, built heavier: round ears, a short snout, thick legs
+  const bear = kind === 'bear', hound = kind === 'hound';
+  const C = bear
+    ? { fur: '#6a4a32', dark: '#45301f', light: '#b8936a', thorn: '#45301f', eye: '#1e140c', nose: '#1a120c', fang: '#fffaf0' }
+    : kind === 'hound'
+    ? { fur: '#a8743e', dark: '#6e4524', light: '#f0dcb4', thorn: '#7a4e2a', eye: '#2a1a10', nose: '#1e1410', fang: '#fffaf0' }
+    : spirit
     ? { fur: '#8fc8ff', dark: '#5a8ad8', light: '#d8f0ff', thorn: '#bfe6ff', eye: '#ffffff', nose: '#3a5a9a', fang: '#ffffff' }
     : alpha
     ? { fur: '#5f6168', dark: '#3a3b42', light: '#b9b6ae', thorn: '#d8d0c0', eye: '#ffcf40', nose: '#1e1e22', fang: '#f4efe0' }
@@ -75,42 +83,44 @@ function buildWolf(kind = 'wolf') {
   rb.bone('neck', 'chest', [0, 0.12, 0.22]);
   rb.bone('head', 'neck', [0, 0.1, 0.16]);
   rb.bone('jaw', 'head', [0, -0.08, 0.1]);
-  rb.add('body', sph(0.36, 12, 10).scale(0.85, 0.8, 1.35), C.fur, { pos: [0, 0, -0.12] });
+  rb.add('body', sph(0.36, 12, 10).scale(bear ? 1.15 : 0.85, bear ? 1.0 : 0.8, bear ? 1.25 : 1.35), C.fur, { pos: [0, bear ? 0.04 : 0, -0.12] });
   rb.add('body', sph(0.3, 10, 8).scale(0.8, 0.6, 1.2), C.light, { pos: [0, -0.12, -0.05], plain: true });
-  rb.add('chest', sph(0.36, 12, 10).scale(0.95, 1.0, 0.9), C.fur);
+  rb.add('chest', sph(0.36, 12, 10).scale(bear ? 1.2 : 0.95, bear ? 1.2 : 1.0, 0.9), C.fur, bear ? { pos: [0, 0.06, 0] } : undefined);
   rb.add('chest', sph(0.3, 10, 8).scale(1.0, 0.9, 0.7), C.light, { pos: [0, -0.08, 0.16] }); // ruff (the pelt)
   // thorny back: the "thornback" look
-  for (let i = 0; i < 6; i++) rb.add('body', cone(0.05 + (alpha ? 0.02 : 0), alpha ? 0.3 : 0.22, 4), C.thorn, { pos: [(i % 2 ? 0.06 : -0.06), 0.27 - Math.abs(i - 2) * 0.015, 0.25 - i * 0.14], rot: [-0.6, 0, i % 2 ? -0.3 : 0.3] });
+  if (!bear && !hound) for (let i = 0; i < 6; i++) rb.add('body', cone(0.05 + (alpha ? 0.02 : 0), alpha ? 0.3 : 0.22, 4), C.thorn, { pos: [(i % 2 ? 0.06 : -0.06), 0.27 - Math.abs(i - 2) * 0.015, 0.25 - i * 0.14], rot: [-0.6, 0, i % 2 ? -0.3 : 0.3] });
   rb.add('neck', sph(0.2, 10, 8).scale(0.9, 1, 1.1), C.fur);
   rb.add('head', sph(0.2, 12, 10).scale(0.95, 0.85, 1.05), C.fur, { pos: [0, 0.02, 0] });
-  rb.add('head', new THREE.CylinderGeometry(0.08, 0.12, 0.26, 8).rotateX(Math.PI / 2), C.fur, { pos: [0, -0.04, 0.2] });
-  rb.add('head', sph(0.04, 6, 5), C.nose, { pos: [0, -0.01, 0.34], plain: true });
+  rb.add('head', new THREE.CylinderGeometry(bear ? 0.1 : 0.08, bear ? 0.13 : 0.12, bear ? 0.16 : 0.26, 8).rotateX(Math.PI / 2), bear ? C.light : C.fur, { pos: [0, -0.04, bear ? 0.17 : 0.2] });
+  rb.add('head', sph(0.04, 6, 5), C.nose, { pos: [0, -0.01, bear ? 0.26 : 0.34], plain: true });
   rb.add('jaw', new THREE.CylinderGeometry(0.06, 0.09, 0.2, 8).rotateX(Math.PI / 2), C.light, { pos: [0, -0.02, 0.14] });
   for (const s of [1, -1]) {
     rb.add('head', sph(0.032, 6, 5), C.eye, { pos: [s * 0.1, 0.07, 0.14], glow: true });
     rb.add('jaw', cone(0.018, 0.07, 4), C.fang, { pos: [s * 0.045, 0.03, 0.2], rot: [Math.PI, 0, 0], plain: true });
     rb.bone(`ear${s > 0 ? 'L' : 'R'}`, 'head', [s * 0.1, 0.16, -0.03]);
-    rb.add(`ear${s > 0 ? 'L' : 'R'}`, cone(0.055, 0.17, 4).translate(0, 0.08, 0), C.dark, { rot: [-0.2, 0, -s * 0.25] });
+    if (bear) rb.add(`ear${s > 0 ? 'L' : 'R'}`, sph(0.06, 8, 6).scale(1, 1, 0.6), C.dark);
+    else rb.add(`ear${s > 0 ? 'L' : 'R'}`, cone(0.055, 0.17, 4).translate(0, 0.08, 0), C.dark, { rot: [-0.2, 0, -s * 0.25] });
   }
   const legs = [];
   for (const [x, z, parent] of [[0.17, 0.05, 'chest'], [-0.17, 0.05, 'chest'], [0.17, -0.42, 'body'], [-0.17, -0.42, 'body']]) {
     const n = `leg${legs.length}`;
     rb.bone(n, parent, [x, -0.1, z]);
-    rb.add(n, cylDown(0.07, 0.055, 0.34, 7), C.fur);
+    rb.add(n, cylDown(bear ? 0.1 : 0.07, bear ? 0.085 : 0.055, 0.34, 7), C.fur);
     rb.bone(`${n}k`, n, [0, -0.33, 0]);
-    rb.add(`${n}k`, cylDown(0.05, 0.04, 0.3, 6), C.dark);
-    rb.add(`${n}k`, sph(0.05, 6, 5).scale(1, 0.6, 1.5), C.dark, { pos: [0, -0.3, 0.03] });
+    rb.add(`${n}k`, cylDown(bear ? 0.08 : 0.05, bear ? 0.075 : 0.04, 0.3, 6), C.dark);
+    rb.add(`${n}k`, sph(bear ? 0.08 : 0.05, 6, 5).scale(1, 0.6, 1.5), C.dark, { pos: [0, -0.3, 0.03] });
     legs.push(n);
   }
   rb.bone('tail', 'body', [0, 0.12, -0.55]);
-  rb.add('tail', new THREE.CylinderGeometry(0.03, 0.09, 0.55, 7).translate(0, -0.26, 0), C.fur, { rot: [-0.9, 0, 0] });
+  if (bear) rb.add('tail', sph(0.07, 6, 5), C.fur);
+  else rb.add('tail', new THREE.CylinderGeometry(0.03, 0.09, 0.55, 7).translate(0, -0.26, 0), C.fur, { rot: [-0.9, 0, 0] });
   if (alpha) {
     rb.add('neck', sph(0.26, 10, 8).scale(1.1, 1, 1.2), C.light, { pos: [0, 0.02, -0.04] });
     rb.add('head', new THREE.BoxGeometry(0.03, 0.12, 0.02), '#d8483a', { pos: [0.1, 0.1, 0.1], rot: [0, 0, 0.5], plain: true }); // scar
   }
   const rig = rb.build();
   rig.legs = legs;
-  rig.height = alpha ? 1.4 : 1.2;
+  rig.height = alpha ? 1.4 : bear ? 1.5 : 1.2;
   if (spirit) rig.material.userData.flash.value.set(0, 0, 0.35);
   return rig;
 }
@@ -480,6 +490,52 @@ function buildWisp() {
   return rig;
 }
 
+// The summoner's spirit fox (the owner's model, a fox of blue flame floating, its tail a curl of fire): a body,
+// a head and a two-part tail. It floats and weaves (so a swarm of three spreads out), leans into its travel,
+// its tail waves like a flame (the tip a beat behind the base) and its head looks about. Its strike: it pulls
+// back and rears its head (the wind-up), darts forward with the head snapping down (the hit), then settles.
+function buildSpiritFox() {
+  const rb = new RigBuilder({ outline: 0, rim: 0.6 });
+  rb.bone('body', 'root', [0, 0.75, 0.05]);
+  rb.bone('head', 'body', [0, 0.2, 0.25]);
+  rb.bone('tail', 'body', [0, 0, -0.17]);
+  rb.bone('tail2', 'tail', [0, 0.45, -0.23]);
+  rb.add('body', sph(0.22, 12, 8), '#bdf3ff', { glow: true }); // the stand-in before the model comes
+  rb.add('head', sph(0.14, 10, 8), '#bdf3ff', { glow: true, pos: [0, 0.03, 0.12] });
+  rb.add('tail', cone(0.12, 0.45, 6).translate(0, 0.22, 0), '#5fd0ff', { rot: [-0.5, 0, 0] });
+  rb.add('tail2', cone(0.1, 0.35, 6).translate(0, 0.17, 0), '#5fd0ff', { rot: [-0.3, 0, 0] });
+  const rig = rb.build();
+  rig.height = 1.6;
+  rig.halo = true;
+  return rig;
+}
+
+function animSpiritFox(r, s, dt, time) {
+  const b = r.bones, c = r.motion, R = (n) => b[n].userData.rest.pos;
+  advanceGait(r, s, dt, c);
+  const sp = Math.min(1, (r.speed || 0) / 5), sd = r.seed;
+  // the strike: wind-up (0..1), then the dart (act) and the settle (recover)
+  const k = s.state === 'windup' ? clamp01((s.windupT || 0) / (s.windupTotal || 0.25)) : 0;
+  const act = s.state === 'act' ? 1 : 0;
+  r.dart = damp(r.dart || 0, act ? 1 : 0, act ? 40 : 6, dt);
+  const back = 0.22 * k * k, fwd = 0.5 * r.dart;
+  // float and weave: a slow figure of eight about where it is, its own phase so three spread apart
+  const wx = Math.sin(time * 1.7 + sd) * 0.28 * (1 - 0.6 * (k + r.dart)), wy = Math.sin(time * 2.6 + sd * 1.3) * 0.08;
+  b.body.position.set(R('body').x + wx, R('body').y + wy + 0.08 * k, R('body').z - back + fwd);
+  b.body.rotation.x = damp(b.body.rotation.x, 0.22 * sp - 0.3 * k + 0.35 * r.dart + Math.sin(time * 1.3 + sd) * 0.04, 8, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-(s.vSide || 0) * 0.1, 0.3) - Math.cos(time * 1.7 + sd) * 0.12, 5, dt);
+  b.body.rotation.y = damp(b.body.rotation.y, Math.cos(time * 1.7 + sd) * 0.18 * (1 - k), 5, dt);
+  // the head: looks about, rears on the wind-up, snaps down on the dart
+  b.head.rotation.x = damp(b.head.rotation.x, -0.55 * k + 0.6 * r.dart - b.body.rotation.x * 0.5, 14, dt);
+  b.head.rotation.y = damp(b.head.rotation.y, (s.lookYaw || 0) * 0.6 + wander(time * 0.6, sd) * 0.35 * (1 - k), 6, dt);
+  // the tail: a flame's wave, base then tip; it flares on the wind-up and streams back on the dart
+  const f = 3.2 + 2.5 * sp, A = 0.22 + 0.15 * sp;
+  b.tail.rotation.x = damp(b.tail.rotation.x, Math.sin(time * f + sd) * A - 0.45 * k + 0.5 * r.dart + 0.25 * sp, 10, dt);
+  b.tail.rotation.z = Math.sin(time * f * 0.7 + sd) * A * 0.8;
+  b.tail2.rotation.x = damp(b.tail2.rotation.x, Math.sin(time * f + sd - 1.3) * A * 1.5 - 0.3 * k + 0.4 * r.dart, 10, dt);
+  b.tail2.rotation.z = Math.sin(time * f * 0.7 + sd - 1.3) * A * 1.2;
+}
+
 function animWisp(r, s, dt, time) {
   const b = r.bones;
   // drifts like a lantern on the wind: tips into its travel, sways and bobs
@@ -600,6 +656,7 @@ function buildGolem() {
     rb.bone(`fist${n}`, `arm${n}`, [0, -1.05, 0]);
     rb.add(`fist${n}`, new THREE.DodecahedronGeometry(0.42, 0), C.rock);
     rb.bone(`leg${n}`, 'hips', [s * 0.45, -0.1, 0]);
+    rb.bone(`knee${n}`, `leg${n}`, [0, -0.45, 0]); // bends the shin of a model with one (the rune golem); the crag golem's legs are one piece
     rb.add(`leg${n}`, cylDown(0.3, 0.34, 0.9, 7), C.rockD);
     rb.add(`leg${n}`, new THREE.BoxGeometry(0.6, 0.2, 0.75), C.rock, { pos: [0, -0.9, 0.1] });
   }
@@ -615,12 +672,14 @@ function animGolem(r, s, dt, time) {
   const ph = r.phase;
   // heavy biped: each footfall lands hard (the hips drop sharply), the torso rolls over the planted
   // leg and twists against the stride, the arms swing behind with weight
-  const drop = poseLegs(r, c, BIPED_LEGS);
+  const drop = poseLegs(r, c, BIPED_LEGS, (n) => n.replace('leg', 'knee')); // knees bend where the model has them
   const thud = (0.5 + 0.5 * Math.cos(2 * ph)) ** 3 * w;
-  let armL = [-Math.sin(ph) * 0.35 * w, 0, 0.12 + 0.06 * thud];
-  let armR = [Math.sin(ph) * 0.35 * w, 0, -0.12 - 0.06 * thud];
+  const lag = ph - 0.5; // the arms swing a beat behind the legs, with weight
+  let armL = [-Math.sin(lag) * 0.35 * w, 0, 0.12 + 0.06 * thud];
+  let armR = [Math.sin(lag) * 0.35 * w, 0, -0.12 - 0.06 * thud];
   let torsoX = 0.1 + Math.sin(time * 1.1 + r.seed) * 0.02 + 0.06 * w;
-  let hipsY = 1.05 - drop - c.bob * thud;
+  const hip0 = b.hips.userData.rest?.pos.y ?? 1.05; // the hips' rest height (a model may move them: the rune golem's)
+  let hipsY = hip0 - drop - c.bob * thud;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   if (s.windup === 'throw') {
     armL = [-2.8 * k, 0, 0.3];
@@ -638,10 +697,15 @@ function animGolem(r, s, dt, time) {
     hipsY -= s.lastAttack === 'pound' ? 0.2 : 0;
   }
   if (s.hurt > 0) torsoX -= 0.15 * s.hurt;
-  b.armL.rotation.set(damp(b.armL.rotation.x, armL[0], 7, dt), 0, damp(b.armL.rotation.z, armL[2], 10, dt));
-  b.armR.rotation.set(damp(b.armR.rotation.x, armR[0], 7, dt), 0, damp(b.armR.rotation.z, armR[2], 10, dt));
-  const P = r.pose || (r.pose = { torsoX: 0.1, hipsY: 1.05 });
-  P.torsoX = damp(P.torsoX, torsoX, 8, dt);
+  // a summoned golem strikes on a short wind-up (0.25 s): its arms must reach the top in time and slam down
+  // fast (the anticipation and the strike), then ease back slowly (the recovery)
+  const quick = s.windupTotal && s.windupTotal < 0.5, ka = quick && (s.windup || s.state === 'act') ? 30 : 7;
+  if (quick && s.windup === 'pound') { const q = Math.sqrt(k); armL = [-2.9 * q, 0, 0.45 * q]; armR = [-2.9 * q, 0, -0.45 * q]; torsoX = 0.1 - 0.35 * q; hipsY = hip0 + 0.08 * q; }
+  if (quick && s.state === 'act' && s.lastAttack === 'pound') { armL = [-0.35, 0, 0.35]; armR = [-0.35, 0, -0.35]; torsoX = 0.7; hipsY = hip0 - 0.22; }
+  b.armL.rotation.set(damp(b.armL.rotation.x, armL[0], ka, dt), 0, damp(b.armL.rotation.z, armL[2], 10, dt));
+  b.armR.rotation.set(damp(b.armR.rotation.x, armR[0], ka, dt), 0, damp(b.armR.rotation.z, armR[2], 10, dt));
+  const P = r.pose || (r.pose = { torsoX: 0.1, hipsY: hip0 });
+  P.torsoX = damp(P.torsoX, torsoX, quick && (s.windup || s.state === 'act') ? 26 : 8, dt);
   P.hipsY = damp(P.hipsY, hipsY + drop + c.bob * thud, 12, dt);
   b.torso.rotation.x = P.torsoX + thud * 0.04;
   b.torso.rotation.z = Math.sin(ph) * c.roll * w;
@@ -725,6 +789,57 @@ function animHawk(r, s, dt, time) {
   // the head holds still against the bob, then darts to look
   b.head.rotation.x = -b.body.rotation.x * 0.6;
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.7 + Math.round(wander(time * 0.7, r.seed) * 3) * 0.12 * (s.aggro ? 0 : 1), 12, dt);
+}
+
+/**
+ * The hunter's eagle (the owner's model on the hawk rig), flapping the way a big bird does: a strong
+ * downstroke (55% of the beat, the wings swept from above the back to below the body), then an upstroke
+ * with the wing folded at the wrist (the tip bone folds in and back) so it does not push air back up; the
+ * body lifts on each downstroke. Between bouts of beats it glides on spread wings, banking with its turns.
+ * Its strike is a swoop: the wind-up folds the wings back and dives it from its height onto the prey, talons
+ * forward, at the hit; the recovery beats hard back up. Sent in by Sic 'Em (s.sic) it climbs high as it closes
+ * and stoops from there. The model rests with its wings raised: angles are from that rest.
+ */
+function animEagle(r, s, dt, time) {
+  const b = r.bones, c = r.motion;
+  advanceGait(r, s, dt, c);
+  const moving = (s.speed || 0) > 0.6;
+  // flap in bouts, glide between them (more flapping while it is moving fast)
+  const want = moving ? (s.speed > 6 ? 1 : 0.65 + 0.35 * Math.sin(time * 0.9 + r.seed)) : 0.55 + 0.45 * Math.sin(time * 0.6 + r.seed);
+  r.flapAmt = damp(r.flapAmt ?? 1, want > 0.5 ? 1 : 0, 2.5, dt);
+  r.beat = ((r.beat || 0) + dt * 3.1) % 1;
+  const u = r.beat, down = u < 0.55, k = down ? u / 0.55 : (u - 0.55) / 0.45;
+  const e = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x);
+  // the wing's angle (+ raises it from its rest) and the tip's fold (- folds it in) over the beat
+  let wing = down ? 0.15 - 1.25 * e(k) : -1.1 + 1.25 * e(k);
+  let fold = down ? -0.1 * (1 - k) : -0.85 * Math.sin(Math.PI * k);
+  let sweep = down ? 0 : -0.35 * Math.sin(Math.PI * k);
+  // a glide: spread a little below the rest, tips open, a slow breathing of the wings
+  const glide = { wing: -0.5 + 0.05 * Math.sin(time * 2 + r.seed), fold: 0.05, sweep: 0 };
+  wing = glide.wing + (wing - glide.wing) * r.flapAmt; fold = glide.fold + (fold - glide.fold) * r.flapAmt; sweep *= r.flapAmt;
+  let pitch = 0.08 + clampAbs(r.accel || 0, 3) * 0.03, lift = (down ? 0.07 * Math.sin(Math.PI * k) : -0.04 * Math.sin(Math.PI * k)) * r.flapAmt;
+  let kk = 22;
+  const kw = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  // its strike is a swoop: from its height down onto the prey at the hit (talons forward), then it climbs
+  // back; sent in (Sic 'Em) it climbs high while it closes and stoops from there, wings folded tight
+  const high = s.sic ? 4.4 : 2.6, low = 0.75, e2 = (x) => x * x * (3 - 2 * x);
+  let alt = high, reach = 0, follow = 10; const far = Math.max(0.7, (s.reach || 0) / (r.root.scale.x || 1)); // its prey's distance, in the rig's units
+  if (s.windup) { wing = 0.5 * kw + wing * (1 - kw); fold = -1.0 * kw + fold * (1 - kw); sweep = -0.9 * kw; pitch = 0.08 + (s.sic ? 0.95 : 0.6) * kw; kk = 18; alt = high + (low - high) * e2(kw); reach = far * e2(kw); follow = 40; r.swoopT = 0; }
+  else if (s.state === 'act') { wing = 0.3; fold = -0.6; sweep = -0.6; pitch = 0.7; kk = 26; alt = low; reach = far; follow = 40; }
+  else if (s.state === 'recover') {
+    // a few hard beats back up
+    r.swoopT = (r.swoopT || 0) + dt; const up = clamp01(r.swoopT / 0.5);
+    wing = -0.2 + 0.25 * Math.sin(time * 18); fold = 0.15; sweep = 0.1; pitch = -0.2; kk = 16; alt = low + (2.6 - low) * e2(up); reach = far * (1 - e2(up)); follow = 14;
+  }
+  b.wingL.rotation.z = damp(b.wingL.rotation.z, wing, kk, dt); b.wingR.rotation.z = damp(b.wingR.rotation.z, -wing, kk, dt);
+  b.wingL.rotation.y = damp(b.wingL.rotation.y, sweep, kk, dt); b.wingR.rotation.y = damp(b.wingR.rotation.y, -sweep, kk, dt);
+  b.wingLt.rotation.z = damp(b.wingLt.rotation.z, fold, kk, dt); b.wingRt.rotation.z = damp(b.wingRt.rotation.z, -fold, kk, dt);
+  b.body.rotation.x = damp(b.body.rotation.x, pitch, 8, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-(s.turn || 0) * 0.25, 0.5), 5, dt); // bank into its turns
+  b.body.position.y = damp(b.body.position.y, 0.3 + (s.alt ?? alt) + Math.sin(time * 1.3 + r.seed) * 0.06 * (alt > 2 ? 1 : 0) + lift, follow, dt);
+  b.body.position.z = damp(b.body.position.z, reach, follow, dt);
+  b.head.rotation.x = -b.body.rotation.x * 0.7;
+  b.head.rotation.y = damp(b.head.rotation.y, (s.lookYaw || 0) * 0.7 + Math.round(wander(time * 0.7, r.seed) * 3) * 0.1, 12, dt);
 }
 
 // ---------- horned warden (boss) ----------
@@ -1089,17 +1204,51 @@ function animShoreGull(r, s, dt, time) {
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * .6 + look, 16, dt);
 }
 
+// ---------- lure dummy (the trapper's Lure Dummy: a straw target on a post, a summon that only draws monsters) ----------
+function buildLureDummy() {
+  const C = { post: '#6e4a2c', straw: '#d9b56a', band: '#b0403a', head: '#e2c47e', mark: '#7a2a22' };
+  const rb = new RigBuilder({ outline: 0.03, darkness: 0.3 });
+  rb.bone('body', 'root', [0, 0, 0]);
+  rb.bone('top', 'body', [0, 1.05, 0]);
+  rb.add('body', new THREE.CylinderGeometry(0.07, 0.09, 1.1, 8).translate(0, 0.55, 0), C.post);
+  rb.add('top', new THREE.CylinderGeometry(0.3, 0.27, 0.62, 12), C.straw);
+  rb.add('top', new THREE.CylinderGeometry(0.31, 0.31, 0.1, 12), C.band, { pos: [0, -0.04, 0], plain: true });
+  rb.add('top', sph(0.23, 12, 9), C.head, { pos: [0, 0.52, 0] });
+  rb.add('top', new THREE.CylinderGeometry(0.05, 0.05, 1.05, 6).rotateZ(Math.PI / 2), C.post, { pos: [0, 0.18, 0] });
+  // a painted target on its chest, so it reads as a lure
+  rb.add('top', new THREE.TorusGeometry(0.11, 0.025, 5, 16), C.mark, { pos: [0, 0.06, 0.29], plain: true });
+  const rig = rb.build();
+  rig.height = 1.9;
+  return rig;
+}
+function animLureDummy(r, s, dt, time) {
+  // planted: it only wobbles when struck and leans a little in the wind
+  const b = r.bones, hit = s.hurt || 0;
+  b.top.rotation.z = damp(b.top.rotation.z, Math.sin(time * 1.1 + r.seed) * 0.03 + Math.sin(time * 40) * 0.12 * hit, 10, dt);
+  b.top.rotation.x = damp(b.top.rotation.x, -0.15 * hit, 10, dt);
+}
+
 const BUILDERS = {
+  lure_dummy: [buildLureDummy, animLureDummy],
   tusk_boar: [buildBoar, (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.62, paw: true })],
   thornback_wolf: [() => buildWolf('wolf'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   greyfang: [() => buildWolf('greyfang'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
-  spirit_wolf: [() => buildWolf('spirit'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
+  spirit_wolf: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)], // the owner's blue-flame wolf (models.json)
+  // the hunter's companions move by the Quaternius wolf's clips (beast-clips.js); the bear heavier and slower
+  hunt_hound: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)],
+  pack_hound: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)],
+  hunt_bear: [() => buildWolf('bear'), (r, s, dt, t) => animBeast(r, s, dt, t, { rate: 0.8, stride: 1.6, gallopFrom: 4.4, gallopFull: 7, swipe: true })],
+  hunt_hawk: [buildHawk, animEagle],
   moss_beetle: [buildBeetle, animBeetle],
   reef_crab: [buildCrab, animCrab],
   salt_slime: [buildSaltSlime, animSaltSlime],
   shore_gull: [buildShoreGull, animShoreGull],
   hermit_crab: [() => buildCrab(true), animCrab],
   marsh_wisp: [buildWisp, animWisp],
+  // the summoner's spirits (the owner's Meshy models, 2026-11-02): a spirit fox floating like a wisp, wolves on the wolf rig
+  spirit_wisp: [buildSpiritFox, animSpiritFox],
+  spirit_alpha: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t, { rate: 0.9, stride: 1.8 })], // the owner's antlered flame wolf
+  stone_guardian: [buildGolem, animGolem], // the owner's rune golem
   sporecap: [buildSporecap, animSporecap],
   crag_golem: [buildGolem, animGolem],
   gale_hawk: [buildHawk, animHawk],
@@ -1108,16 +1257,18 @@ const BUILDERS = {
   ...GROVE_BUILDERS,
 };
 
-export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
+export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, spirit_alpha: 1.6, spirit_wisp: 0.6, stone_guardian: 0.85, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.15, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
 
+const MOTION_LIKE = { spirit_wisp: 'marsh_wisp', spirit_wolf: 'thornback_wolf', spirit_alpha: 'thornback_wolf', hunt_hawk: 'gale_hawk', hunt_hound: 'thornback_wolf', pack_hound: 'thornback_wolf', hunt_bear: 'thornback_wolf' };
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;
   const rig = build();
   // an imported model, once loaded, replaces the procedural parts on the same bones
-  const model = monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type);
-  if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
+  const model = monsterModel(type);
+  if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = type; }
   rig.animate = anim;
-  rig.motion = motionConfig(MOTION, type);
+  // the hunter's companions move like the beasts they are drawn from (data/monster-motion.json)
+  rig.motion = motionConfig(MOTION, MOTION_LIKE[type] || type);
   rig.seed = Math.random() * 10;
   const s = monsterScale(type, level, boss);
   rig.root.scale.setScalar(s);
@@ -1130,7 +1281,7 @@ export function buildMonster(type, level = 1, boss = false) {
 /** Model scale for a monster (higher levels are a little bigger; bosses fixed). */
 export function monsterScale(type, level = 1, boss = false) {
   // an imported model may be drawn at its own size (rootScale in data/models.json)
-  const base = (MONSTER_SCALE[type] || 1) * (monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type)?.cfg.rootScale ?? 1);
+  const base = (MONSTER_SCALE[type] || 1) * (monsterModel(type)?.cfg.rootScale ?? 1);
   return boss ? base : base * (1 + Math.min(0.25, (level - 1) * 0.03));
 }
 

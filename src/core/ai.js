@@ -4,10 +4,19 @@
 // States: idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle.
 
 import { DEG, angleDiff, angleTo, clamp, dist, dirFromAngle } from './math.js';
+import { monsterHit } from './defense.js';
+
+// a monster projectile's look follows its attack's element (data/monsters.json); a physical one keeps the
+// old looks (spit poison-green, an orb arcane-violet)
+const projectileLook = (m, name) => {
+  const e = monsterHit(m, name).element;
+  return e !== 'physical' ? e : name === 'spit' ? 'poison' : 'arcane';
+};
 
 export function updateMonster(game, m, dt) {
   const def = m.def;
-  const slowMult = (m.statuses.chill ? 1 - m.statuses.chill.slow : 1) * (m.buffs.howl ? 1 + m.buffs.howl.speed : 1);
+  // a rooted monster (Net Trap) walks nowhere but still strikes what is in reach
+  const slowMult = (m.statuses.root ? 0 : 1) * (m.statuses.chill ? 1 - m.statuses.chill.slow : 1) * (m.buffs.howl ? 1 + m.buffs.howl.speed : 1);
   const enraged = def.enrageAt && m.hp / m.maxHp <= def.enrageAt;
   if (enraged && !m.enraged) {
     m.enraged = true;
@@ -198,6 +207,8 @@ function idle(game, m, dt, slowMult) {
 /** Walk toward a point. Returns true when arrived. */
 function walkTo(game, m, x, z, speed, dt) {
   const d = dist(m.x, m.z, x, z);
+  // rooted (Net Trap): no walking of any kind, home included, until it wears off
+  if (m.statuses?.root && d >= 0.3) { m.moving = false; return false; }
   if (d < 0.3) {
     m.moving = false;
     return true;
@@ -267,13 +278,13 @@ function windup(game, m, dt, t, gap) {
       for (const u of game.units()) {
         const g = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
         const inArc = Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) <= arc / 2;
-        if (inArc && g <= atk.range + 0.4) game.damageUnit(u, dmg, m, atk.knock ? { knock: { angle: angleTo(m.x, m.z, u.x, u.z), force: atk.knock } } : undefined);
+        if (inArc && g <= atk.range + 0.4) game.damageUnit(u, dmg, m, { attack: w.name, knock: atk.knock ? { angle: angleTo(m.x, m.z, u.x, u.z), force: atk.knock } : undefined });
       }
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
     case 'charge': {
-      m.charge = { t: 0, dur: atk.duration, speed: atk.speed, angle: w.angle, hit: new Set(), dmg, left: 0 };
+      m.charge = { name: w.name, t: 0, dur: atk.duration, speed: atk.speed, angle: w.angle, hit: new Set(), dmg, left: 0 };
       m.cd[w.name] = atk.cooldown;
       setState(m, 'act');
       m.windup = { ...w };
@@ -289,6 +300,7 @@ function windup(game, m, dt, t, gap) {
         owner: 'monster',
         sourceId: m.id,
         kind: w.name,
+        attack: w.name,
         x: m.x + dir.x * (m.r + 0.2),
         z: m.z + dir.z * (m.r + 0.2),
         y: m.def.hover ? m.def.hover + 0.1 : 0.7,
@@ -296,7 +308,7 @@ function windup(game, m, dt, t, gap) {
         speed: atk.speed,
         radius: atk.projectileRadius ?? 0.35,
         range: w.name === 'salt_spit' ? atk.range : atk.range + 3,
-        element: w.name === 'salt_spit' ? 'salt' : w.name === 'spit' ? 'poison' : 'arcane',
+        element: w.name === 'salt_spit' ? 'salt' : projectileLook(m, w.name),
         damage: dmg,
         poison: atk.poisonDps ? { dps: atk.poisonDps * (1 + (m.level - 1) * 0.15), duration: atk.poisonDuration } : null,
       });
@@ -304,15 +316,15 @@ function windup(game, m, dt, t, gap) {
       return setState(m, 'recover', atk.recover);
     }
     case 'slam': {
-      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'slam', x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: 0.3, damage: dmg });
-      if (m.enraged) game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'shockwave', x: m.x, z: m.z, radius: atk.radius, maxRadius: atk.shockwaveMax, growth: atk.shockwaveSpeed, duration: (atk.shockwaveMax - atk.radius) / atk.shockwaveSpeed, damage: dmg * 0.6 });
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'slam', kind: 'slam', x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: 0.3, damage: dmg });
+      if (m.enraged) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'slam', kind: 'shockwave', x: m.x, z: m.z, radius: atk.radius, maxRadius: atk.shockwaveMax, growth: atk.shockwaveSpeed, duration: (atk.shockwaveMax - atk.radius) / atk.shockwaveSpeed, damage: dmg * 0.6 });
       m.cd.slam = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
     case 'stomp':
     case 'shards':
       // a ring around the monster, marked on the ground for the whole wind-up
-      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: w.name, x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: 0.3, damage: dmg });
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: w.name, x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: 0.3, damage: dmg });
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     case 'venom':
@@ -328,7 +340,7 @@ function windup(game, m, dt, t, gap) {
       game.emit({ type: 'beam', kind: w.name, id: m.id, x: m.x, z: m.z, angle: w.angle, length: atk.range, width: atk.width });
       for (const u of game.units()) {
         const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, side = Math.abs(dx * dir.z - dz * dir.x);
-        if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) game.damageUnit(u, dmg, m);
+        if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) game.damageUnit(u, dmg, m, { attack: w.name });
       }
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
@@ -366,7 +378,7 @@ function windup(game, m, dt, t, gap) {
       return setState(m, 'recover', atk.recover);
     }
     case 'puff': {
-      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: atk.areaKind || 'spore_cloud', x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: atk.duration, tick: 0.5, damage: atk.dps * 0.5 * (1 + (m.level - 1) * 0.14) });
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: atk.areaKind || 'spore_cloud', x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: atk.duration, tick: 0.5, damage: atk.dps * 0.5 * (1 + (m.level - 1) * 0.14) });
       m.cd[w.name] = atk.cooldown;
       // hop away from the cloud (a sporecap); a flyer simply drifts on
       const hop = m.def.attacks.hop;
@@ -429,7 +441,7 @@ function act(game, m, dt, t) {
         for (const u of game.units()) {
           const gap = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
           const inArc = Math.abs(angleDiff(ang, angleTo(m.x, m.z, u.x, u.z))) <= atk.arc * DEG / 2;
-          if (gap <= atk.range && inArc) game.damageUnit(u, strike.damage, m, h.knock ? { knock: { angle: angleTo(m.x, m.z, u.x, u.z), force: h.knock } } : undefined);
+          if (gap <= atk.range && inArc) game.damageUnit(u, strike.damage, m, { attack: strike.name, knock: h.knock ? { angle: angleTo(m.x, m.z, u.x, u.z), force: h.knock } : undefined });
         }
         if (h.step) {
           const d = dirFromAngle(strike.angle);
@@ -442,7 +454,7 @@ function act(game, m, dt, t) {
       for (const u of game.units()) {
         const gap = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
         const inArc = Math.abs(angleDiff(strike.angle, angleTo(m.x, m.z, u.x, u.z))) <= atk.arc * DEG / 2;
-        if (gap <= atk.range && inArc) game.damageUnit(u, strike.damage, m);
+        if (gap <= atk.range && inArc) game.damageUnit(u, strike.damage, m, { attack: strike.name });
       }
     }
     if (m.stateT >= atk.duration) {
@@ -477,7 +489,7 @@ function act(game, m, dt, t) {
       if (c.hit.has(u.id)) continue;
       if (dist(m.x, m.z, u.x, u.z) < m.r + u.r + 0.35) {
         c.hit.add(u.id);
-        game.damageUnit(u, c.dmg, m, { knock: { angle: c.angle, force: 4 } });
+        game.damageUnit(u, c.dmg, m, { attack: c.name, knock: { angle: c.angle, force: 4 } });
       }
     }
   }
@@ -597,7 +609,7 @@ function greyfang(game, m, dt, { t, gap, slowMult }) {
   const leap = a.leap;
   if (leap && m.cd.leap <= 0 && m.hp <= m.maxHp * leap.hpBelow && gap >= leap.minRange && gap <= leap.range) {
     startWindup(game, m, 'leap', t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'pounce', x: t.x, z: t.z, radius: leap.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * leap.damageMult });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'leap', kind: 'pounce', x: t.x, z: t.z, radius: leap.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * leap.damageMult });
     return;
   }
   if (gap <= a.bite.range && m.cd.bite <= 0) return startWindup(game, m, 'bite', t);
@@ -627,13 +639,13 @@ function golem(game, m, dt, { t, gap, slowMult }) {
     const d = dirFromAngle(m.facing);
     const x = m.x + d.x * 1.6;
     const z = m.z + d.z * 1.6;
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'pound', x, z, radius: a.pound.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * a.pound.damageMult });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'pound', kind: 'pound', x, z, radius: a.pound.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * a.pound.damageMult });
     return;
   }
   if (m.cd.throw <= 0 && gap >= a.throw.minRange && gap <= a.throw.range) {
     // aim where the target stands now: walk out of the marked circle
     startWindup(game, m, 'throw', t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'rock', x: t.x, z: t.z, radius: a.throw.radius, delay: m.windup.total + a.throw.flight, duration: 0.3, damage: m.damage * a.throw.damageMult });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'throw', kind: 'rock', x: t.x, z: t.z, radius: a.throw.radius, delay: m.windup.total + a.throw.flight, duration: 0.3, damage: m.damage * a.throw.damageMult });
     return;
   }
   if (gap > a.pound.range * 0.7) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
@@ -647,7 +659,7 @@ function hawk(game, m, dt, { t, dToT, slowMult }) {
   const a = m.def.attacks;
   if (m.cd.dive <= 0 && dToT <= a.dive.range && m.alt > m.def.hover * 0.8) {
     startWindup(game, m, 'dive', t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'dive', x: t.x, z: t.z, radius: a.dive.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.dive.damageMult });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'dive', kind: 'dive', x: t.x, z: t.z, radius: a.dive.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.dive.damageMult });
     return;
   }
   const [near, far] = m.def.circle;
@@ -665,7 +677,7 @@ function wardenBoss(game, m, dt, { t, gap, slowMult }) {
     const d = dirFromAngle(m.windup.angle), seg = q.length / q.steps;
     for (let i = 0; i < q.steps; i++) {
       const r = seg * (i + 0.5);
-      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'quake', x: m.x + d.x * r, z: m.z + d.z * r, radius: q.width / 2 + seg * 0.25, delay: m.windup.total + i * q.stepDelay, duration: 0.3, damage: m.damage * q.damageMult });
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'quake', kind: 'quake', x: m.x + d.x * r, z: m.z + d.z * r, radius: q.width / 2 + seg * 0.25, delay: m.windup.total + i * q.stepDelay, duration: 0.3, damage: m.damage * q.damageMult });
     }
     return;
   }
@@ -698,7 +710,7 @@ function viper(game, m, dt, { t, gap, dToT, slowMult }) {
     // aim where the target stands now: step out of the marked pool
     startWindup(game, m, 'venom', t, { tx: t.x, tz: t.z });
     const lvl = 1 + (m.level - 1) * 0.15;
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'venom_pool', x: t.x, z: t.z, radius: a.venom.radius, delay: m.windup.total + a.venom.flight, duration: a.venom.duration, tick: a.venom.tick, damage: a.venom.dps * a.venom.tick * lvl });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'venom', kind: 'venom_pool', x: t.x, z: t.z, radius: a.venom.radius, delay: m.windup.total + a.venom.flight, duration: a.venom.duration, tick: a.venom.tick, damage: a.venom.dps * a.venom.tick * lvl });
     return;
   }
   const [near, far] = m.def.keepDistance;
@@ -722,7 +734,7 @@ function stalker(game, m, dt, { t, gap, dToT, slowMult }) {
   if (gap <= a.claw.range && m.cd.claw <= 0) return startWindup(game, m, 'claw', t);
   if (m.cd.pounce <= 0 && gap >= a.pounce.minRange && gap <= a.pounce.range) {
     startWindup(game, m, 'pounce', t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'pounce', x: t.x, z: t.z, radius: a.pounce.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.pounce.damageMult });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'pounce', kind: 'pounce', x: t.x, z: t.z, radius: a.pounce.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.pounce.damageMult });
     return;
   }
   // between attacks it circles half-seen, out of reach
@@ -748,7 +760,7 @@ function hare(game, m, dt, { t, gap, dToT, slowMult }) {
   if (gap <= a.kick.range && m.cd.kick <= 0) return startWindup(game, m, 'kick', t);
   if (m.cd.hop <= 0 && gap >= a.hop.minRange && gap <= a.hop.range) {
     startWindup(game, m, 'hop', t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'pounce', x: t.x, z: t.z, radius: a.hop.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.hop.damageMult });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'hop', kind: 'pounce', x: t.x, z: t.z, radius: a.hop.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.hop.damageMult });
     return;
   }
   const [near, far] = m.def.circle;
@@ -765,7 +777,7 @@ function moth(game, m, dt, { t, gap, dToT, slowMult }) {
   const ring = a.mirror_ring, rain = a.shard_rain;
   if (gap <= ring.range && m.cd.mirror_ring <= 0) {
     startWindup(game, m, 'mirror_ring', t);
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'mirror_ring', x: m.x, z: m.z, radius: ring.radius, inner: ring.inner, delay: m.windup.total, duration: 0.3, damage: m.damage * ring.damageMult });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'mirror_ring', kind: 'mirror_ring', x: m.x, z: m.z, radius: ring.radius, inner: ring.inner, delay: m.windup.total, duration: 0.3, damage: m.damage * ring.damageMult });
     return;
   }
   if (m.cd.shard_rain <= 0 && dToT <= rain.range) {
@@ -775,7 +787,7 @@ function moth(game, m, dt, { t, gap, dToT, slowMult }) {
       const ang = i * 2.4 + game.rng.range(-0.4, 0.4), d = i ? rain.spread * (0.6 + 0.4 * game.rng.next()) : 0;
       const x = t.x + Math.sin(ang) * d, z = t.z + Math.cos(ang) * d;
       if (game.isSafe(x, z)) continue;
-      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'glass_shard', x, z, radius: rain.radius, delay: m.windup.total + i * rain.step, duration: 0.3, damage: m.damage * rain.damageMult });
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'shard_rain', kind: 'glass_shard', x, z, radius: rain.radius, delay: m.windup.total + i * rain.step, duration: 0.3, damage: m.damage * rain.damageMult });
     }
     return;
   }
@@ -789,7 +801,7 @@ function mole(game, m, dt, { t, gap, slowMult }) {
   if (gap <= a.swipe.range && m.cd.swipe <= 0) return startWindup(game, m, 'swipe', t);
   if (m.cd.erupt <= 0 && gap >= a.erupt.minRange && gap <= a.erupt.range && !game.isSafe(t.x, t.z)) {
     startWindup(game, m, 'erupt', t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'erupt', x: t.x, z: t.z, radius: a.erupt.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * a.erupt.damageMult });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'erupt', kind: 'erupt', x: t.x, z: t.z, radius: a.erupt.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * a.erupt.damageMult });
     return;
   }
   if (gap > a.swipe.range * 0.8) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);

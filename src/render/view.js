@@ -32,6 +32,10 @@ import { updateWaypointRuin } from './waypoint-ruin.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 import { GAME_CAMERA_OFFSET, cameraOffset } from './game-camera.js';
 import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
+import { SPIRIT_ARRIVE } from './skillfx/spirit-call-fx.js';
+import { arrives, arrivalFrom, arrivalAt, arrivalTime } from './companion-arrival.js';
+const SPIRITS = new Set(['spirit_wolf', 'spirit_alpha', 'spirit_wisp', 'stone_guardian']); // conjured summons: spirit motes off them
+const ALLY_STRIKE = { stone_guardian: 'pound' }; // a summon's strike by its rig's own attack (the golem pounds with both fists)
 import { fxGround, fxConfig, cachedGround } from './skillfx/fx-common.js';
 
 // The game camera (game-camera.js, 40 degrees above the horizon); `?pitch=` (15-80) previews
@@ -616,10 +620,10 @@ export class View {
         if (!drawn) v.chain(e);
         break;
       case 'allyStrike':
-        v.bite(e);
+        if (!drawn) v.bite(e); // the hunter's companions draw their own (skill-fx.js)
         break;
       case 'summon':
-        v.summon(e);
+        if (!drawn) v.summon(e); // the hunter's companions come in to a whistle (skill-fx.js), no puff
         break;
       case 'buff':
         if (!drawn) v.warcry(e); // a buff skill without its own look (skill-fx.js) uses the roar ring
@@ -776,32 +780,41 @@ export class View {
       seen.add(a.id);
       let av = this.allyViews.get(a.id);
       if (!av) {
-        const rig = this.takeRig(a.type==='stone_guardian'?'crag_golem':a.type, 1, false);
+        const rig = this.takeRig(a.type, 1, false);
         rig.root.position.set(a.x, this.groundAt(a.x, a.z), a.z);
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
-        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: a.type==='spirit_wolf'?installSpiritReveal(rig):null };
+        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: SPIRITS.has(a.type)?installSpiritReveal(rig):null /* the conjured spirits glow blue and rise from the ground (owner: as before) */ };
+        // a hunter's companion comes in from the wild along its arrival path (companion-arrival.js)
+        if (arrives(a.type) && a.arriveT > 0) av.arr = { from: arrivalFrom(a.type, a.id, a.x, a.z, g.player.facing || 0, { x: 0, z: 0 }), at: { x: 0, y: 0, z: 0, k: 0, facing: 0 } };
         this.allyViews.set(a.id, av);
       }
       const r = av.rig;
       av.spawnT += dt || 1 / 60;
-      let d = a.facing - r.root.rotation.y;
+      // (on its way while the rules still hold it: arriveT counts down the same time)
+      const arrT = arrivalTime(a.type) - (a.arriveT || 0);
+      const arr = av.arr && a.arriveT > 0 ? arrivalAt(a.type, arrT, av.arr.from, a.x, a.z, av.arr.at) : null;
+      let d = (arr ? arr.facing : a.facing) - r.root.rotation.y;
       d = Math.atan2(Math.sin(d), Math.cos(d));
-      r.root.rotation.y += d * Math.min(1, dt * 12);
-      const gy = this.world.groundY(a.x, a.z);
-      av.y = damp(av.y, gy, 16, dt);
-      r.root.position.set(a.x, av.y, a.z);
-      measureMotion(av, a.x, a.z, r.root.rotation.y, dt);
+      r.root.rotation.y += arr ? d : d * Math.min(1, dt * 12);
+      const ax = arr ? arr.x : a.x, az = arr ? arr.z : a.z;
+      const gy = this.world.groundY(ax, az);
+      av.y = arr ? gy : damp(av.y, gy, 16, dt);
+      r.root.position.set(ax, av.y + (arr ? arr.y : 0), az);
+      measureMotion(av, ax, az, r.root.rotation.y, dt);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
-      const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
+      // how far its strike reaches (the eagle swoops onto its prey from up to its range away)
+      if (a.state === 'windup') { const tg = g.monsters.find((m) => m.id === a.targetId); av.reach = tg ? Math.max(0, Math.hypot(tg.x - a.x, tg.z - a.z) - 0.5) : 0; }
+      r.animate(r, { reach: av.reach || 0, moving: arr ? arr.k < 1 : a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: ALLY_STRIKE[a.type] || 'bite', windup: a.state === 'windup' ? ALLY_STRIKE[a.type] || 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0, standT: a.roarT || 0, standTotal: a.roarTotal || 1.2, pounce: !!a.sic, sic: !!a.sic }, dt, time);
+      const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : av.arr ? 1 : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
-      if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
-      if (Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
+      if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT-(SPIRIT_ARRIVE[a.type]||0),a.life,av.y,r.baseScale); // it forms once its flame lands (skillfx/spirit-call-fx.js)
+      // spirit motes off a conjured summon (not a hunter's hounds or a straw dummy: they are flesh and straw)
+      if ((SPIRITS.has(a.type)) && Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
     }
     for (const [id, av] of this.allyViews) {
       if (!seen.has(id)) {
-        this.vfx.summon({ x: av.rig.root.position.x, z: av.rig.root.position.z });
+        if (!av.arr) this.vfx.summon({ x: av.rig.root.position.x, z: av.rig.root.position.z }); // a companion has no magic puff
         removeSpiritReveal(av.reveal);
         this.releaseRig(av.rig);
         this.allyViews.delete(id);
@@ -837,7 +850,10 @@ export class View {
       if (!v.visible) continue;
       const age = time - v.userData.born;
       const hop = age < 0.45 ? Math.sin((age / 0.45) * Math.PI) * 1.2 : 0;
-      v.position.set(d.x, ground + 0.35 + hop + Math.sin(time * 3 + d.id) * 0.06, d.z);
+      // in a companion's mouth (core companionFetch): held at its head, no bob; a hawk carries it in flight
+      let lift = 0;
+      if (d.carrier != null) for (const a of g.allies) if (a.id === d.carrier) lift = a.type === 'hunt_hawk' ? 1.25 : 0.3;
+      v.position.set(d.x, ground + 0.35 + hop + lift + (lift ? 0 : Math.sin(time * 3 + d.id) * 0.06), d.z);
       if (!v.children[0].isSprite) v.children[0].rotation.y = time * 2 + d.id;
     }
     for (const [id, v] of this.dropViews) {

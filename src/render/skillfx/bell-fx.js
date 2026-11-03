@@ -10,7 +10,7 @@
 //    see-through half-sphere, bright at its rim) and three rings race out to the true radius (in the air,
 //    nothing on the ground), rays of light shoot up from its crown, stars burst outward, the camera
 //    shakes, and a smaller echo follows; each struck target rings (a ring round it and a star); the stunned
-//    get the stun stars (MaceFx, on the rules' 'stunned');
+//    get the stun swirl (MaceFx, on the rules' 'stunned');
 //  - after: the bell lifts and fades away.
 // Two shell meshes, one ribbon pair, a glow sprite and a pool of star sprites: light on an iPad.
 import * as THREE from 'three';

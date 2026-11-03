@@ -344,13 +344,13 @@
 .pg .savecode { width: 100%; min-height: 70px; }
 
 /* narrow screens: columns stack and the whole page scrolls */
-@media (max-width: 700px) {
+@media (max-width: 700px) and (orientation: portrait) {
   .overlay:not(.is-journal):not(.is-atelier) .pbody:has(> .pg) { overflow-y: auto; }
   .pg { display: block; height: auto; }
   .pg > .pg-col { overflow: visible; padding: 14px; }
   .pg > .pg-col + .pg-col { border-left: 0; border-top: 1px solid var(--mc-hair); }
 }
-@media (max-height: 520px) and (min-width: 701px) {
+@media (max-height: 520px) and (orientation: landscape) {
   .pg > .pg-col { padding: 10px 12px; gap: 8px; }
   .pg h3 { font-size: 15px; }
   .pg-face { width: 60px; height: 60px; }
@@ -369,7 +369,7 @@
   width: min(1180px, calc(100vw - 48px - var(--safe-l) - var(--safe-r)));
   height: min(780px, calc(100dvh - 48px - var(--safe-t) - var(--safe-b))); max-height: none; margin: 0;
 }
-@media (max-height: 520px), (max-width: 700px) {
+@media (max-height: 520px), (max-width: 700px) and (orientation: portrait) {
   .overlay:not(.is-atelier):not(.is-journal):not(.is-hub) .panel {
     width: calc(100vw - 24px - var(--safe-l) - var(--safe-r)); height: calc(100dvh - 24px - var(--safe-t) - var(--safe-b)); border-radius: 18px;
   }
@@ -471,7 +471,7 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
 .overlay:not(.is-journal) .pbody .pg-map .travel-card.landmark-card { background: #fff4e3; }
 .overlay:not(.is-journal) .pbody .pg-map .travel-card .btn.primary { min-height: 46px; width: 100%; }
 
-@media (max-height: 520px) and (min-width: 701px) {
+@media (max-height: 520px) and (orientation: landscape) {
   .pg-growth { grid-template-columns: 210px minmax(0, 1fr); }
   .pg-growth .seeker-hero > :first-child, .pg-craft-detail .recipe-hero > :first-child { width: 56px; height: 56px; border-radius: 14px; }
   .pg-growth .seeker-hero h3, .pg-craft-detail .craft-detail-title { font-size: 16px; }
@@ -493,7 +493,248 @@ body:has(.overlay.on) .fullscreen-control, body:has(#atelier:not([hidden])) .ful
 .overlay:not(.is-journal) .pbody .pg-quest .qj-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; flex-wrap: nowrap; margin: 0; }
 .overlay:not(.is-journal) .pbody .pg-quest .qj-tabs button { white-space: nowrap; padding: 0 6px; }
 .pg-craft-list .recipe-card .recipe-action { border: 0; margin: 0; padding: 0; }
-@media (max-height: 520px) and (min-width: 701px) {
+@media (max-height: 520px) and (orientation: landscape) {
   .overlay:not(.is-journal) .pbody .pg-quest .qj-tabs button { font-size: 11.5px; }
   .pg-quest .qj-cover h2 { font-size: 14px; }
+}
+
+/* a phone held sideways (landscape only, owner 2026-11-03): the same layouts as the iPad; the frame,
+   headers and titles shrink so the content has the screen */
+@media (max-height: 520px) and (orientation: landscape) {
+  .overlay:not(.is-atelier):not(.is-journal):not(.is-hub) .panel { width: calc(100vw - 12px - var(--safe-l) - var(--safe-r)); height: calc(100dvh - 12px - var(--safe-t) - var(--safe-b)); border-radius: 14px; }
+  .overlay:not(.is-atelier):not(.is-journal) .panel-header { min-height: 44px; padding: 2px 6px 2px 8px; gap: 6px; }
+  .overlay:not(.is-atelier):not(.is-journal) .panel-header h2 { font-size: 16px; }
+  .overlay:not(.is-atelier):not(.is-journal) :is(.pause-label, .panel-eyebrow) { display: none; }
+  .overlay:not(.is-atelier):not(.is-journal) .panel-gold { font-size: 13px; }
+  .overlay:not(.is-atelier):not(.is-journal) .panel-close { width: 40px; height: 40px; min-height: 40px; }
+  .overlay:not(.is-atelier):not(.is-journal) .pbody { padding: 8px 10px; }
+  .pg > .pg-col { padding: 8px 10px; }
+  .pg :is(h2) { font-size: 16px; }
+  .overlay.is-hub:not(.is-atelier):not(.is-journal) .panel { width: calc(100vw - 12px - var(--safe-l, 0px) - var(--safe-r, 0px)); max-height: calc(100dvh - 12px); }
+  .overlay.is-hub:not(.is-atelier):not(.is-journal) .panel-header { padding: 2px 6px 2px 16px; }
+  .overlay.is-hub:not(.is-atelier):not(.is-journal) .pbody { padding: 4px 14px 6px; }
+  .overlay.is-hub .hub { gap: 4px 12px; }
+  .overlay.is-hub .hub-group header { margin-bottom: 2px; }
+  .overlay.is-hub .hub-tiles { gap: 5px; }
+  .overlay.is-hub .hub-tile { min-height: 40px; padding: 4px 10px; font-size: 13px; }
+  .workshop .ws-heading { margin-bottom: 6px; }
+  .workshop h1 { font-size: 18px; }
+  #atelier:is(#atelier) .wear-slot { width: 58px; height: 54px; padding: 3px 2px; border-radius: 12px; }
+  #atelier:is(#atelier) .wear-slot small { font-size: 9.5px !important; }
+  #atelier:is(#atelier) .wear-slot b { font-size: 9px; }
+  #atelier:is(#atelier) .wear-slot:has(.object-art) b { display: none; } /* the picture says what is worn */
+  #atelier:is(#atelier) .wear-slot .object-art { width: 30px; height: 30px; }
+  #atelier:is(#atelier) .wear-slot .empty-mark { font-size: 18px; }
+}
+
+/* ===== reorganised for both iPad and phone (owner 2026-11-03): content first, no needless scrolling =====
+   character: one line per stat, so all six are in sight; the profile and totals columns are narrower */
+.pg-char { grid-template-columns: minmax(170px, 210px) minmax(0, 1fr) minmax(190px, 240px); }
+.pg-char > .pg-col { padding: 12px 14px; gap: 8px; }
+.pg-face { width: 72px; height: 72px; }
+.pg-who > h3 { font-size: 17px; margin-top: 0; }
+.pg-who > small { margin-top: -6px; font-size: 11px; }
+.pg-note { padding: 8px 10px; font-size: 11.5px; border-radius: 12px; }
+.pg-char .pg-title h3 { font-size: 16px; }
+.pg-char .pg-title .pg-respec-mini { display: none; }
+.pg-char .pg-title .pg-pill { height: 30px; line-height: 30px; font-size: 13px; }
+.pg-char .muted { font-size: 11px; }
+.pg-char .pg-list { gap: 6px; container-type: inline-size; }
+.pg-stat { grid-template-columns: 38px 62px minmax(0, 1fr) auto 40px; gap: 6px; padding: 4px 6px 4px 10px; min-height: 48px; border-radius: 12px; }
+.pg-ab { font-size: 14px; }
+.pg-stat .pg-nm { font-size: 13px; font-weight: 500; color: var(--mc-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-v { font-size: 18px; min-width: 30px; }
+.pg-v small { font-size: 11px; color: var(--mc-good); }
+.overlay:not(.is-journal) .pg-stat .stat-plus { width: 40px; height: 40px; min-height: 40px; font-size: 20px; }
+.overlay:not(.is-journal) .pg-stat .pg-perks { grid-column: 3; grid-row: 1; flex-wrap: nowrap; overflow: hidden; align-items: center; gap: 4px; min-height: 40px; margin: 0; }
+.pg-perk { flex: none; padding: 2px 8px 2px 3px; font-size: 10.5px; }
+.pg-perk em { font-style: normal; }
+.pg-perk i { font-size: 9.5px; padding: 0 5px; }
+@container (max-width: 520px) { .pg-perk em { display: none; } .pg-perk { padding: 2px 3px; } }
+.pg-perk-text { padding: 2px 4px 6px; font-size: 11.5px; }
+.pg-perk-text .pg-eff { color: var(--mc-ink); }
+.pg-char .pg-kv span, .pg-char .pg-kv b { padding: 4px 2px; font-size: 12px; }
+.pg-char .pg-kv b { font-size: 13px; }
+.pg-char h4 { margin-top: 2px; font-size: 11px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .pg-char { grid-template-columns: 150px minmax(0, 1fr) 180px; }
+  .pg-char > .pg-col { padding: 8px 10px; gap: 6px; }
+  .pg-face { width: 48px; height: 48px; }
+  .pg-who > h3 { font-size: 15px; }
+  .pg-char .muted { display: none; }
+  .pg-char .pg-list { gap: 3px; }
+  .pg-char { grid-template-columns: 132px minmax(0, 1fr) 170px; }
+  .pg-stat { min-height: 40px; padding: 0 4px 0 8px; gap: 4px; grid-template-columns: 30px 54px minmax(0, 1fr) auto 40px; }
+  .pg-char .pg-foot { display: none; }
+  .overlay:not(.is-journal) .pg-char .pg-title .pg-respec-mini { display: inline-flex; min-height: 40px; height: 40px; padding: 0 10px; font-size: 12px; }
+  .pg-char .pg-title { gap: 6px; }
+  .pg-char .pg-title .pg-pill { margin-left: auto; padding: 0 10px; }
+  .pg-perk { padding: 1px 2px; } .pg-perk i { padding: 0 4px; }
+  .pg-ab { font-size: 13px; } .pg-stat .pg-nm { font-size: 12px; }
+  .pg-level small { font-size: 10.5px; }
+}
+/* skills / mods / movement / bag (the two windows): slimmer heads on every screen; on a phone held
+   sideways the four slots, the library and the selected item's shelf share one screen */
+#atelier:is(#atelier) .window-head { height: 52px; min-height: 52px; padding-top: 6px; padding-bottom: 6px; }
+#atelier:is(#atelier) .window-head h1 { font-size: 17px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) { --workspace-height: calc(100dvh - 12px - var(--safe-t, 0px) - var(--safe-b, 0px)); --mc-w: calc(100vw - 12px - var(--safe-l, 0px) - var(--safe-r, 0px)); }
+  #atelier:is(#atelier) .window-head { height: 44px; min-height: 44px; padding-top: 2px; padding-bottom: 2px; }
+  #atelier:is(#atelier) .window-head h1 { font-size: 15px; }
+  #atelier:is(#atelier) .loadout-intro { display: none; }
+  #atelier:is(#atelier) .equipped-skills { grid-template-rows: repeat(2, minmax(100px, auto)); gap: 6px; padding: 6px 8px; }
+  #atelier:is(#atelier) .skill-card { min-height: 100px; padding: 12px 4px 12px; }
+  #atelier:is(#atelier) .skill-card .object-art, #atelier:is(#atelier) .skill-card .skill-anchor .object-art { width: 40px; height: 40px; }
+  #atelier:is(#atelier) .skill-card b { font-size: 11px; }
+  #atelier:is(#atelier) .skill-card small { font-size: 9.5px; }
+  #atelier:is(#atelier) .socket { min-height: 40px; width: 40px; }
+  #atelier:is(#atelier) .socket .coin { width: 28px; height: 28px; }
+  #atelier:is(#atelier) .socket-empty { width: 26px; height: 26px; font-size: 18px; }
+  #atelier:is(#atelier) :is(.category-tabs, .filters) { min-height: 40px; padding: 2px 8px; }
+  #atelier:is(#atelier) :is(.category-tabs, .filters) button { min-height: 40px; padding: 4px 10px; }
+  #atelier:is(#atelier) .library-note { display: none; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(68px, auto); gap: 6px; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) .inventory-cell { min-height: 68px; padding: 4px 2px 3px; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) .inventory-cell .object-art { max-height: 34px; }
+  #atelier:is(#atelier) .inventory-grid:not(.bag-grid) .inventory-cell b { font-size: 10px; }
+  #atelier:is(#atelier) .selection-shelf { min-height: 0; height: auto; padding: 4px 8px; }
+  #atelier:is(#atelier) .inventory-scroll { height: clamp(110px, calc(100dvh - 250px), 200px); min-height: 110px; margin: 2px 8px 4px; }
+  #atelier:is(#atelier) .movement-bar { min-height: 44px; padding: 2px 8px; }
+}
+/* shop: one line per potion (picture, name and what it gives, buy buttons); the quick slots column narrower */
+.pg-shop { grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); }
+.pg-shop > .pg-col { padding: 12px 14px; gap: 8px; }
+.pg-banner { padding: 6px 12px; font-size: 12px; border-radius: 10px; }
+.overlay:not(.is-journal) .pbody .pg .shop-item { flex-wrap: nowrap; gap: 8px; padding: 4px 6px 4px 4px; border-radius: 12px; }
+.pg .shop-item .pg-ic { width: 40px; height: 40px; }
+.pg .shop-item .pg-ic :is(svg, img, .potion-art, .art) { width: 34px; height: 34px; }
+.pg .shop-item .pg-tx b, .pg .shop-item .pg-tx small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg .shop-item .pg-tx b { font-size: 13px; }
+.pg .shop-item .pg-tx small { font-size: 11px; }
+.pg .shop-item .shop-buy { flex-wrap: nowrap; gap: 4px; }
+.pg .shop-item .shop-buy .btn { padding: 0 9px; font-size: 12px; }
+.overlay:not(.is-journal) .pbody .pg .quick-slot { min-height: 72px; padding: 6px 2px 4px; }
+/* quests and the map: smaller headings, the long text only where it is read */
+.pg-quest > .pg-col, .pg-map > .pg-col, .pg-growth > .pg-col, .pg-settings > .pg-col { padding: 12px 14px; gap: 8px; }
+.pg-quest h2, .pg-quest h3 { font-size: 15px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .pg-shop { grid-template-columns: minmax(0, 1fr) 190px; }
+  .pg-shop > .pg-col { padding: 8px 10px; gap: 5px; }
+  .pg .shop-item .pg-tx small { display: none; }
+  .pg .quick-slots { gap: 6px; }
+  .overlay:not(.is-journal) .pbody .pg .quick-slot { min-height: 60px; }
+  .pg .quick-slot small { display: none; }
+  .pg-shop .muted { display: none; }
+  .pg-quest > .pg-col, .pg-map > .pg-col, .pg-growth > .pg-col, .pg-settings > .pg-col { padding: 8px 10px; gap: 6px; }
+}
+
+/* bag (owner: "มีเกมไหนทำช่องของในกระเป๋าใหญ่ขนาดนี้"): small square slots like any RPG bag, packed
+   many to a row; a slot shows the picture, the count and the grade colour, the name shows when picked */
+#atelier:is(#atelier) .bag-grid, #atelier:is(#atelier) .inventory-scroll .bag-grid { grid-template-columns: repeat(auto-fill, 54px); grid-template-rows: none; grid-auto-rows: 54px; align-content: start; justify-content: start; gap: 6px; padding: 6px; }
+#atelier:is(#atelier) .bag-grid .inventory-cell { min-height: 0; width: 54px; height: 54px; padding: 0; border-radius: 10px; justify-content: center; }
+#atelier:is(#atelier) .bag-grid .inventory-cell > b { display: none; }
+#atelier:is(#atelier) .bag-grid .inventory-cell > .object-art { width: 36px; height: 36px; max-width: 36px; max-height: 36px; }
+#atelier:is(#atelier) .bag-grid .cell-corner { top: 2px; left: 4px; font-size: 9px; }
+#atelier:is(#atelier) .bag-grid .worn { top: 2px; right: 2px; transform: scale(.8); transform-origin: top right; }
+#atelier:is(#atelier) .bag-grid .stack-count { bottom: 1px; right: 4px; font-size: 10px; }
+#atelier:is(#atelier) .bag-grid .inventory-empty { width: 54px; height: 54px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) .bag-grid, #atelier:is(#atelier) .inventory-scroll .bag-grid { grid-template-columns: repeat(auto-fill, 48px); grid-auto-rows: 48px; gap: 5px; padding: 4px; }
+  #atelier:is(#atelier) .bag-grid .inventory-cell, #atelier:is(#atelier) .bag-grid .inventory-empty { width: 48px; height: 48px; }
+  #atelier:is(#atelier) .bag-grid .inventory-cell > .object-art { width: 32px; height: 32px; max-width: 32px; max-height: 32px; }
+}
+/* the bag fills the window's height above the picked item's shelf (it was a fixed short box) */
+#atelier:is(#atelier) .library-window:has(.bag-grid) { display: flex; flex-direction: column; }
+#atelier:is(#atelier) .library-window:has(.bag-grid) .inventory-scroll { flex: 1 1 auto; height: auto; min-height: 110px; }
+/* bag on a phone: the type filter is one slim row; the category tabs and the filter sit close to the slots */
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) .library-window:has(.bag-grid) .filters { min-height: 0; padding: 2px 8px; }
+  #atelier:is(#atelier) .inventory-filter { gap: 6px; font-size: 11px; }
+  #atelier:is(#atelier) .inventory-filter select { min-height: 36px; height: 36px; padding: 2px 8px; font-size: 12px; }
+  #atelier:is(#atelier) .library-window:has(.bag-grid) .category-tabs { min-height: 0; padding: 2px 8px; }
+  #atelier:is(#atelier) .library-window:has(.bag-grid) .inventory-scroll { margin-top: 0; }
+}
+/* skills / mods / movement library (same rule as the bag): compact tiles packed many to a row, the list
+   fills the window above the shelf instead of a short box over empty space; the four slot cards shorter */
+#atelier:is(#atelier) .library-window:has(.skill-grid) { display: flex; flex-direction: column; }
+#atelier:is(#atelier) .library-window:has(.skill-grid) .inventory-scroll { flex: 1 1 auto; height: auto; min-height: 110px; }
+#atelier:is(#atelier) .skill-grid, #atelier:is(#atelier) .inventory-scroll .skill-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); grid-template-rows: none; grid-auto-rows: 78px; align-content: start; gap: 6px; padding: 6px; }
+#atelier:is(#atelier) .skill-grid .inventory-cell { min-height: 0; height: 78px; padding: 12px 2px 3px; border-radius: 10px; }
+#atelier:is(#atelier) .skill-grid .inventory-cell .object-art { width: 38px; height: 38px; max-height: 38px; }
+#atelier:is(#atelier) .skill-grid .inventory-cell b { font-size: 10px; margin-top: 2px; }
+#atelier:is(#atelier) .skill-grid .cell-corner { font-size: 8.5px; top: 2px; left: 4px; }
+#atelier:is(#atelier) .library-note { display: none; }
+#atelier:is(#atelier) .equipped-skills { grid-template-rows: repeat(2, minmax(118px, auto)); gap: 8px; }
+#atelier:is(#atelier) .skill-card { min-height: 118px; padding-top: 16px; padding-bottom: 18px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) .skill-grid, #atelier:is(#atelier) .inventory-scroll .skill-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); grid-auto-rows: 64px; gap: 5px; padding: 4px; }
+  #atelier:is(#atelier) .skill-grid .inventory-cell { height: 64px; padding: 10px 1px 2px; }
+  #atelier:is(#atelier) .skill-grid .inventory-cell .object-art { width: 30px; height: 30px; max-height: 30px; }
+  #atelier:is(#atelier) .skill-grid .inventory-cell b { font-size: 9px; }
+  #atelier:is(#atelier) .equipped-skills { grid-template-rows: repeat(2, minmax(100px, auto)); gap: 6px; }
+  #atelier:is(#atelier) .skill-card { min-height: 100px; padding-top: 12px; padding-bottom: 12px; }
+}
+/* worn-gear slots by the hero (every screen): a square with the slot's name and the picture; the item's
+   name is on the picked item's shelf, and an empty slot says only its name */
+#atelier:is(#atelier) .wear-slot { width: 66px; height: 66px; padding: 4px 2px; border-radius: 12px; justify-content: center; }
+#atelier:is(#atelier) .wear-slot small { font-size: 10px !important; }
+#atelier:is(#atelier) .wear-slot:has(.object-art) b, #atelier:is(#atelier) .wear-slot:not(:has(.object-art)) b { display: none; }
+#atelier:is(#atelier) .wear-slot .object-art { width: 38px; height: 38px; }
+#atelier:is(#atelier) .wear-slot .empty-mark { font-size: 20px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) .wear-slot { width: 56px; height: 56px; }
+  #atelier:is(#atelier) .wear-slot .object-art { width: 32px; height: 32px; }
+}
+/* the hero's window needs only the hero and seven small slots: the bag/library window gets the width */
+#atelier:is(#atelier) .two-windows { grid-template-columns: 36% 64%; }
+/* quests (content first): chapters as slim rows, quest cards tighter; a card that is not the tracked
+   one shows its title, status and reward only (its story opens when it becomes the current step) */
+.pg-quest { grid-template-columns: minmax(200px, 250px) minmax(0, 1fr); }
+.pg-quest .qj-cover h2 { font-size: 15px; }
+.pg-quest .qj-count { font-size: 11px; }
+.overlay:not(.is-journal) .pbody .pg-quest .qj-chapter { grid-template-columns: 26px 1fr; gap: 8px; padding: 6px 10px; border-radius: 12px; }
+.pg-quest .qj-chapter .qj-number { font-size: 15px; }
+.pg-quest .qj-chapter b { font-size: 12.5px; }
+.pg-quest .qj-chapter small { font-size: 10.5px; }
+.pg-quest .qj-chapters { gap: 2px; }
+.pg-quest .qj-chapter-intro h3 { font-size: 15px; }
+.pg-quest .qj-chapter-intro p { font-size: 11.5px; }
+.pg-quest .qj-list { gap: 6px; }
+.overlay:not(.is-journal) .pbody .pg-quest .qj-card { padding: 10px 12px; border-radius: 12px; }
+.pg-quest .qj-picture { width: 40px; height: 40px; border-radius: 10px; }
+.pg-quest .qj-card :is(.qj-description, .qj-objectives, .qj-footer, .qj-route) { margin-top: 4px; font-size: 12px; }
+.pg-quest .qj-card:not(.is-tracked) :is(.qj-description, .qj-lock-note) { display: none; }
+.pg-quest .qj-card:not(.is-tracked) .qj-reward { margin-top: 2px; font-size: 11px; }
+/* map: the map takes the column, the region list is a compact strip under it, the place card slimmer */
+.pg-map { grid-template-columns: minmax(0, 1fr) minmax(220px, 280px); }
+.pg-map .region-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.pg-map .region-grid > * { min-height: 44px; padding: 4px 8px; border-radius: 10px; }
+.pg-map .region-grid :is(img, svg, .art) { max-width: 40px; max-height: 40px; }
+.pg-map .section-heading h3 { font-size: 14px; }
+.pg-map .section-heading span, .pg-map > .pg-col > .muted { font-size: 11px; }
+.pg-map .region-cover { margin: 8px 8px 0; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; align-items: center; padding: 6px; }
+.pg-map .region-cover > :first-child { width: 56px; height: 56px; overflow: hidden; border-radius: 10px; }
+.pg-map .region-cover > :first-child :is(img, svg) { width: 100%; height: 100%; object-fit: cover; }
+.pg-map .region-cover h3 { font-size: 15px; }
+.pg-map .region-cover .section-kicker { font-size: 9px; }
+.pg-map .region-detail-body { padding: 8px; display: grid; gap: 6px; }
+.overlay:not(.is-journal) .pbody .pg-map .travel-card { padding: 8px 10px; }
+.overlay:not(.is-journal) .pbody .pg-map .travel-card .btn.primary { min-height: 42px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .pg-quest { grid-template-columns: 180px minmax(0, 1fr); }
+  .pg-quest .qj-chapter small { display: none; }
+  .pg-quest .qj-chapter-intro p { display: none; }
+  .pg-map { grid-template-columns: minmax(0, 1fr) 210px; }
+  .pg-map .atlas-heading, .pg-map .map-legend { display: none; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-cover h2 { display: none; }
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-chapter b { font-size: 12px; line-height: 1.3; }
+  .pg-quest .qj-chapter-intro h3 { font-size: 14px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-chapter small { display: none; }
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-chapter { min-height: 40px; padding: 4px 8px; }
+  .pg-quest { grid-template-columns: 200px minmax(0, 1fr); }
+  .overlay:not(.is-journal) .pbody .pg-quest .qj-tabs button { font-size: 11px; padding: 0 4px; }
 }

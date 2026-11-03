@@ -58,7 +58,7 @@ export class Menu {
         <button class="mbtn" data-act="slots">☰ เลือกเซฟ</button>
         <button class="mbtn" data-act="settings">⚙ ตั้งค่ากราฟิก</button>
       </div>
-      <div class="title-foot">${IS_PREVIEW?'ทดลองสมดุล · ใช้เซฟทดลอง 3 ช่อง · นำเข้าโค้ดเซฟหลักเพื่อทดลองได้':'เซฟอัตโนมัติในเบราว์เซอร์นี้ · 3 ช่องเซฟ'}</div>
+      <div class="title-foot">${IS_PREVIEW?'โหมดทดลอง · ใช้เซฟทดลอง 3 ช่องแยกจากเซฟหลัก · นำเข้าโค้ดเซฟหลักเพื่อทดลองได้':'เซฟอัตโนมัติในเบราว์เซอร์นี้ · 3 ช่องเซฟ'}</div>
     </div>`, 'title');
   }
 

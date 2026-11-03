@@ -14,8 +14,9 @@ import { tagsHtml, rulesHtml, TAGS as TAG_TH } from './buildmeta.js';
 import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
+import { isWheelTree } from './wheel-view.js';
 import { questTarget, rewardText } from './hud.js';
-import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse } from '../core/character.js';
+import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse, jobChoiceLevel } from '../core/character.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
 import { perkList } from '../core/stat-perks.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
@@ -201,7 +202,8 @@ export class Panels {
     if (this.tab !== tab) this.sel.detail = false;
     this.tab = tab;
     this.overlay.classList.toggle('is-hub', tab === 'menu');
-    this.overlay.classList.toggle('is-journal', tab === 'job');
+    this.overlay.classList.toggle('is-journal', tab === 'job' && !isWheelTree(this.game.data));
+    this.overlay.classList.toggle('is-wheel', tab === 'job' && isWheelTree(this.game.data));
     this.overlay.classList.toggle('is-atelier', LOADOUT_TABS.has(tab));
     this.overlay.classList.add('on');
     document.body.classList.add('panel-open');
@@ -226,7 +228,7 @@ export class Panels {
     this.cleanJobNetwork?.();
     this.cleanJobNetwork = null;
     this.tab = null;
-    this.overlay.classList.remove('on', 'is-journal', 'is-atelier', 'is-hub');
+    this.overlay.classList.remove('on', 'is-journal', 'is-wheel', 'is-atelier', 'is-hub');
     document.body.classList.remove('panel-open');
     document.body.classList.remove('loadout-open');
     this.lastResult = null;
@@ -283,13 +285,17 @@ export class Panels {
     this.body.dataset.panel = this.tab;
     this.body.setAttribute('aria-labelledby', `tab-${this.tab}`);
     const scroll = top ? 0 : this.body.scrollTop;
-    if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal')){this.jobJournal.refresh();return;}
+    // pages whose columns scroll on their own (the workshop) keep each column's place across a re-render
+    const INNER = '.ws-layout > *, .ws-craft-detail-layout > *, .ws-recipes, .ws-gear-list';
+    const inner = top ? [] : [...this.body.querySelectorAll(INNER)].map((el) => el.scrollTop);
+    if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal,.wheel-tree')){this.jobJournal.refresh();return;}
     this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
     if (this.tab === 'growth') patchBars(this);
     if(this.lastResult && ['skills','mods','movement','growth','job'].includes(this.tab)) this.body.insertAdjacentHTML('afterbegin', `<div class="result-pop" role="status">${this.lastResult}</div>`);
-    this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this) : null;
+    this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this, { effectText }) : null;
     this.body.scrollTop = scroll;
+    if (inner.length) this.body.querySelectorAll(INNER).forEach((el, i) => { if (inner[i]) el.scrollTop = inner[i]; });
     if (activeData && Object.keys(activeData).length) {
       const focus = [...this.overlay.querySelectorAll('button, select')].find((el) => Object.entries(activeData).every(([key, val]) => el.dataset[key] === val));
       (focus || this.overlay.querySelector('.panel')).focus({ preventScroll: true });
@@ -343,11 +349,13 @@ export class Panels {
       // the value counts gear and the Job Tree too (the bonus in brackets)
       const total = d.stats?.[s] ?? ch.stats[s], extra = total - ch.stats[s];
       const open = this.sel.perkStat === s;
-      const chips = (perks[s] || []).map((p) => `<span class="pg-perk${p.active ? ' on' : ''}"><i>${p.at}</i>${esc(p.nameTh)}</span>`).join('');
-      const text = open ? `<div class="pg-perk-text">${(perks[s] || []).map((p) => `<p class="${p.active ? 'on' : ''}"><b>${p.at} · ${esc(p.nameTh)}</b> ${esc(p.descTh)}</p>`).join('')}</div>` : '';
-      return `<div class="pg-stat"><span class="pg-ab">${s}</span><span class="pg-nm"><b>${name}</b><small>${eff}</small></span><b class="pg-v">${total}${extra ? `<small> (+${extra})</small>` : ''}</b>
-      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button>
-      <button class="pg-perks${open ? ' open' : ''}" data-act="stat-perks" data-stat="${s}" aria-expanded="${open}" aria-label="ความสามารถพิเศษ ${s}">${chips}</button>${text}</div>`;
+      const chips = (perks[s] || []).map((p) => `<span class="pg-perk${p.active ? ' on' : ''}"><i>${p.at}</i><em>${esc(p.nameTh)}</em></span>`).join('');
+      // one line per stat (all six in sight); what it raises and what its thresholds do open on a tap
+      const text = open ? `<div class="pg-perk-text"><p class="pg-eff">${esc(eff)}</p>${(perks[s] || []).map((p) => `<p class="${p.active ? 'on' : ''}"><b>${p.at} · ${esc(p.nameTh)}</b> ${esc(p.descTh)}</p>`).join('')}</div>` : '';
+      return `<div class="pg-stat"><span class="pg-ab">${s}</span><b class="pg-nm" title="${esc(eff)}">${name}</b>
+      <button class="pg-perks${open ? ' open' : ''}" data-act="stat-perks" data-stat="${s}" aria-expanded="${open}" aria-label="ความสามารถพิเศษ ${s}">${chips}</button>
+      <b class="pg-v">${total}${extra ? `<small> +${extra}</small>` : ''}</b>
+      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button>${text}</div>`;
     }).join('');
     const kv = (rows) => `<div class="pg-kv">${rows.filter(Boolean).map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
     const pct = (label, v) => (v ? [label, `+${v.toFixed(0)}%`] : null);
@@ -357,10 +365,11 @@ export class Panels {
         <h3>${esc(ch.name || 'นักเดินทาง')}</h3><small>${kit ? `เริ่มจาก${kit.nameTh} · ` : ''}อาวุธ ${data.items.weaponTypes?.[d.weaponType]?.nameTh || '-'}</small>
         ${level('Character Level', ch.exp, expToNext(data, ch.level), 'char')}
         ${level('Job Level', ch.jobExp, jobExpToNext(data, ch.jobLevel), 'job')}
-        <div class="pg-note"><b>อาชีพ: ${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก'}</b>${job ? '' : `<br>เลือกอาชีพได้เมื่อ Job Level ${data.progression.job.jobChoiceLevel}`}</div>
+        <div class="pg-note"><b>อาชีพ: ${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก'}</b>${job ? '' : `<br>เลือกอาชีพได้เมื่อ Job Level ${jobChoiceLevel(data)}`}</div>
       </section>
       <section class="pg-col">
-        <div class="pg-title"><h3>แต้มสเตตัส</h3><span class="pg-pill">เหลือ ${ch.statPoints} แต้ม</span></div>
+        <div class="pg-title"><h3>แต้มสเตตัส</h3><span class="pg-pill">เหลือ ${ch.statPoints} แต้ม</span>
+          <button class="btn pg-respec-mini" data-act="respec-stats" title="รีแต้มด้วยเงินในเกม · ในนิคมเท่านั้น" ${!near.inTown || ch.gold < cost.stats ? 'disabled' : ''}>รีแต้ม ${cost.stats ? `${cost.stats} G` : 'ฟรี'}</button></div>
         <div class="muted">ได้เลเวลละ ${data.progression.character.statPointsPerLevel} แต้ม · ใช้เป็นเงื่อนไขของอาวุธ สกิล และม็อด</div>
         <div class="pg-list">${rows}</div>
         <div class="pg-foot"><span class="muted">รีแต้มด้วยเงินในเกม · ในนิคมเท่านั้น</span>
@@ -368,7 +377,7 @@ export class Panels {
       </section>
       <section class="pg-col">
         <h4>การโจมตี</h4>${kv([['พลังโจมตี', d.attack], ['พลังเวท', d.magic], ['โอกาสคริ', `${Math.round(d.critChance * 100)}%`], ['แรงคริ', `×${d.critMult.toFixed(2)}`], d.dodgeChancePct ? ['โอกาสหลบ', `${d.dodgeChancePct.toFixed(1)}%`] : null, pct('ดาเมจประชิด', d.meleeDamagePct), pct('ดาเมจยิง', d.projectileDamagePct), pct('ดาเมจเวท', d.spellDamagePct), pct('ดาเมจวงกว้าง', d.areaDamagePct), pct('ดาเมจอัญเชิญ', d.summonDamagePct), d.poisonChancePct ? ['โอกาสติดพิษ', `${d.poisonChancePct.toFixed(0)}%`] : null])}
-        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], d.maxShield ? ['เกราะเวท', d.maxShield] : null, pct('บาเรีย', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null])}
+        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], d.maxShield ? ['เกราะเวท', d.maxShield] : null, pct('บาเรีย', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null, pct('ต้านไฟ', d.resistFirePct), pct('ต้านน้ำแข็ง', d.resistColdPct), pct('ต้านสายฟ้า', d.resistLightningPct), pct('ต้านพิษ', d.resistPoisonPct), pct('ทนทาน (ดีบัฟสั้นลง)', d.tenacityPct)])}
         <h4>อื่น ๆ</h4>${kv([['ความเร็วเดิน', `${d.moveSpeed.toFixed(1)} m/s`], ['ความเร็ว', `${Math.round(d.hastePct)}% / ${g.data.progression.character.caps.hastePct}%`], ['Gold', ch.gold.toLocaleString()]])}
       </section></div>`;
   }
@@ -532,13 +541,13 @@ export class Panels {
         this.sel.zone = t.dataset.id;
         this.sel.waypoint = undefined;
         this.render();
-        if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
+        if (matchMedia('(max-width: 700px) and (orientation: portrait)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
         return;
       case 'select-waypoint':
         this.sel.waypoint = t.dataset.id; // "mapId:id" (one world, ids repeat per map)
         this.sel.zone = t.dataset.zone;
         this.render();
-        if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
+        if (matchMedia('(max-width: 700px) and (orientation: portrait)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
         return;
       case 'workspace':
         return this.open(t.dataset.page);
@@ -596,13 +605,13 @@ export class Panels {
       case 'inspect-item':
         this.sel.item = t.dataset.id;
         this.sel.detail = true;
-        return this.render(matchMedia('(max-width: 700px)').matches);
+        return this.render(matchMedia('(max-width: 700px) and (orientation: portrait)').matches);
       case 'inspect-equipped':
         this.sel.bag = 'gear';
         this.sel.gear = 'all';
         this.sel.item = t.dataset.uid;
         this.sel.detail = true;
-        return this.render(matchMedia('(max-width: 700px)').matches);
+        return this.render(matchMedia('(max-width: 700px) and (orientation: portrait)').matches);
       case 'stat':
         allocateStat(ch, t.dataset.stat);
         return this.changed();
@@ -874,7 +883,31 @@ const EFFECT_TH = {
   blockChancePct: 'โอกาสบล็อก %',
   goldFindPct: 'ทองที่ได้ %',
   materialFindPct: 'โอกาสได้วัตถุดิบ %',
-  gearFindPct: 'โอกาสดรอปอุปกรณ์ %',
+  gearFindPct: 'โอกาสดรอปอุปกรณ์ %',  resistAllPct: 'ต้านทุกธาตุ %',
+  resistFirePct: 'ต้านไฟ %',
+  resistColdPct: 'ต้านน้ำแข็ง %',
+  resistLightningPct: 'ต้านสายฟ้า %',
+  resistPoisonPct: 'ต้านพิษ %',
+  tenacityPct: 'ทนทาน (ดีบัฟสั้นลง) %',
+  companionFetch: 'คู่หูคาบของ (ม.)',
+  trapDamagePct: 'ดาเมจกับดัก %',
+  // the wheel tree's situational stats (core/wheel-rules.js) and weapon lines (character.js foldWeaponStats)
+  singleDamagePct: 'ดาเมจใส่บอส/ตัวเดี่ยว %',
+  packDamagePct: 'ดาเมจใส่ฝูง %',
+  perTargetDamagePct: 'ดาเมจต่อศัตรูรอบเป้า %',
+  selfTakenPct: 'ลดดาเมจที่ได้รับ %',
+  teamDamagePct: 'มาร์กเป้า: พวกพ้องตีแรงขึ้น %',
+  teamTakenPct: 'ลดดาเมจที่เพื่อนได้รับ %',
+  teamBuffPct: 'ฮีลพวกพ้องแรงขึ้น %',
+  heavyDamagePct: 'ดาเมจอาวุธหนัก %',
+  heavyHpPct: 'HP เมื่อถืออาวุธหนัก %',
+  heavyPenetrationPct: 'เจาะเกราะอาวุธหนัก %',
+  dualDamagePct: 'ดาเมจถือสองมือ %',
+  dualHastePct: 'ความเร็วเมื่อถือสองมือ %',
+  dualCritPct: 'โอกาสคริเมื่อถือสองมือ %',
+  hpRegenPct: 'ฟื้น HP %',
+  potionHealPct: 'ยาฟื้นฟูแรงขึ้น %',
+  dodgeChancePct: 'โอกาสหลบ %',
 };
 
 function effectText(k, v) {
@@ -892,7 +925,7 @@ function describeSkill(s) {
   if (s.damage !== undefined) parts.push(s.kind === 'dot_zone' ? `ดาเมจ ${Math.round(s.damage)}/วิ × ${s.duration.toFixed(1)} วิ` : `ดาเมจ ${Math.round(s.damage)}`);
   if (s.heal !== undefined) parts.push(`ฮีล ${Math.round(s.heal)}/วิ × ${s.duration.toFixed(1)} วิ`);
   if (s.barrier !== undefined) parts.push(`เกราะ ${Math.round(s.barrier)} (${number(s.duration)} วิ)`);
-  if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${number(s.summon.hp)} · ${number(s.summon.life)} วิ`);
+  if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${number(s.summon.hp)} · ${s.summon.permanent ? 'อยู่จนตาย' : number(s.summon.life) + ' วิ'}`);
   if (s.takenMult) parts.push(`รับดาเมจ +${Math.round((s.takenMult - 1) * 100)}% · ตีเบาลง ${Math.round((1 - s.dealtMult) * 100)}% · ${number(s.duration)} วิ`);
   if (s.damageBuff) parts.push(`ดาเมจ +${Math.round(s.damageBuff * 100)}% · เร็ว +${Math.round(s.speedBuff * 100)}% · ${number(s.duration)} วิ`);
   if (s.charge) parts.push(`กดค้าง ${s.charge.duration} วิ · ดาเมจ ${Math.round(s.damage)}–${Math.round(s.damage * s.charge.maxDamageMult)}`);

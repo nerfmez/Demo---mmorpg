@@ -13,6 +13,7 @@ import { FlameSlashFx } from './skillfx/flameslash-fx.js';
 import { IceSpikeFx } from './skillfx/icespike-fx.js';
 import { ThunderSlashFx } from './skillfx/tslash-fx.js';
 import { IceBallFx } from './skillfx/iceball-fx.js';
+import { TrapFx } from './skillfx/trap-fx.js';
 import { ACTIONS, pickAction } from './actions.js';
 import { FireExtras } from './skillfx/fire-extras.js';
 import { ChainFx } from './skillfx/chain-fx.js';
@@ -22,6 +23,17 @@ import { ModFx } from './skillfx/mod-fx.js';
 import { VenomFx } from './skillfx/venom-fx.js';
 import { RainFx } from './skillfx/rain-fx.js';
 import { FlameRainFx } from './skillfx/flamerain-fx.js';
+import { GeyserFx } from './skillfx/geyser-fx.js';
+import { JawFx } from './skillfx/jaw-fx.js';
+import { RodFx } from './skillfx/rod-fx.js';
+import { SporeFx } from './skillfx/spore-fx.js';
+import { RuneFx } from './skillfx/rune-fx.js';
+import { CallFx } from './skillfx/call-fx.js';
+import { CompanionFx } from './skillfx/companion-fx.js';
+import { PreyFx } from './skillfx/prey-fx.js';
+import { ReviveFx } from './skillfx/revive-fx.js';
+import { SpiritCallFx, SPIRIT_ARRIVE } from './skillfx/spirit-call-fx.js';
+import { arrives } from './companion-arrival.js';
 import { IceArrowFx } from './skillfx/icearrow-fx.js';
 import { LanceFx } from './skillfx/lance-fx.js';
 import { MiasmaFx } from './skillfx/miasma-fx.js';
@@ -58,7 +70,9 @@ const BUFF_KEYS = Object.keys(BUFF_LOOKS);
 // skills whose presentation this director owns (the old renderer keeps every other skill)
 // Cross Cut's violet crescents (owner's pick)
 const CROSS_PALETTE = { hot: [1, 0.95, 1], body: [0.8, 0.52, 1.0], glow: [0.56, 0.22, 1.0] };
-export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball']);
+export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte', 'meteor', 'thunderstorm', 'blizzard', 'sky_shatter', 'earth_rend', 'cross_cut', 'blade_storm', 'backstab', 'iron_body', 'rally', 'frenzy_roar', 'stand_firm', 'team_stand', 'blessing', 'rapid_volley', 'killing_arrow', 'holy_bell', 'light_chain', 'spell_wave', 'draw_cut', 'shield_rush', 'shield_fort', 'faith_wall', 'provoke', 'blood_boil', 'fighting_spirit', 'berserk', 'stealth', 'steal', 'decoy', 'fire_arrow_rain', 'frost_shatter_arrow', 'thunder_lance', 'poison_mist_arrow', 'flame_slash', 'ice_spikes', 'thunder_slash', 'ice_ball', 'spike_trap', 'net_trap', 'blast_trap', 'lure_dummy', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
+// the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
+const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
 export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
@@ -90,6 +104,8 @@ export class SkillFx {
     this.ispike = new IceSpikeFx(scene, camera);
     this.tslash = new ThunderSlashFx(scene, camera);
     this.iball = new IceBallFx(scene, camera);
+    this.traps = new TrapFx(scene, camera);
+    this.traps.onBlast = (x, z, r) => this.frain.boom(x, z, r, false); // Blast Trap: Flame Arrow Rain's burst, bigger, no ragged flash (owner)
     this.fire = new FireExtras(scene, camera);
     this.chain = new ChainFx(scene, camera);
     this.frost = new FrostFx(scene, camera);
@@ -98,6 +114,17 @@ export class SkillFx {
     this.venom = new VenomFx(scene, camera);
     this.rain = new RainFx(scene, camera);
     this.frain = new FlameRainFx(scene, camera, this.fire); // the spell archer's Flame Arrow Rain
+    this.geyser = new GeyserFx(scene, camera, this.fire); // the trapper's Flame Geyser eruptions
+    this.jaw = new JawFx(scene, camera); // the trapper's Frost Jaw bite
+    this.rod = new RodFx(scene, camera); // the trapper's Lightning Rod
+    this.rune = new RuneFx(scene, camera); // the trapper's Gravity Rune circle and pull
+    this.call = new CallFx(scene, camera); // the hunter's whistle and a companion coming in from the wild
+    this.companion = new CompanionFx(scene, camera, this.call); // the companions' own strikes and the bear's roar
+    this.spiritCall = new SpiritCallFx(scene, camera); // the summoner's spirits called: a flame from the staff, a rune circle
+    this.revive = new ReviveFx(scene, camera, this.call); // the priest's guardian light: halos, the rising
+    this.reviveBodies = Array.from({ length: 12 }, () => ({ x: 0, z: 0, type: '', t: 0 })); this.revived = [];
+    this.prey = new PreyFx(scene, camera); // Mark Prey's sigil over the prey and the extra part's gold
+    this.spore = new SporeFx(scene, camera); // the trapper's Spore Pod puffs and its poison passing on
     this.iarrow = new IceArrowFx(scene, camera); // the spell archer's Shatter Arrow
     this.lance = new LanceFx(scene, camera); // the spell archer's Thunder Lance
     this.miasma = new MiasmaFx(scene, camera); // the spell archer's Miasma Arrow
@@ -132,11 +159,13 @@ export class SkillFx {
     this.draw = new DrawFx(scene, camera);
     this.gs = new GreatshieldFx(scene, camera); // the guardian's greatshield skills
     this.lchain.locate = (id) => { for (const m of this.game.monsters) if (m.id === id) return m; return null; };
+    this.companion.sic.preyOf = this.lchain.locate; this.companion.assault.preyOf = this.lchain.locate;
+    this.call.locate = (id) => { for (const a of this.game.allies || []) if (a.id === id) return a; return null; };
     this.iarrow.locate = (id) => this.centerOf(id);
     this.lance.locate = (id) => this.centerOf(id);
     this.tslash.locate = (id) => this.centerOf(id);
     const shake = (amp, time) => host.shake(amp, time);
-    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura]) fx.onShake = shake;
+    for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte, this.rend, this.storm, this.shadow, this.iron, this.buff, this.kill, this.bell, this.gs, this.aura, this.call, this.companion, this.revive]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.crossI = 0; this.stormI = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0; this.drawEchoes = 3;
     // scratch (no allocation per frame)
     this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
@@ -144,6 +173,7 @@ export class SkillFx {
     this.echoSpots = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
     this.markBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, facing: 0 })); this.marks = [];
     this.exposedBuf = Array.from({ length: 12 }, () => ({ x: 0, z: 0, t: 0, full: 5 })); this.exposed = [];
+    this.preyBuf = Array.from({ length: 8 }, () => ({ id: 0, x: 0, y: 0, z: 0, t: 0 })); this.preyed = [];
     this.headOf = (id) => { const b = host.body(id); return b ? this.head.set(b.x, b.h + 0.4, b.z) : null; };
     this.posOf = (id) => host.body(id);
     this.timerDone = (t) => !t.done || this.time - t.at < 2;
@@ -282,7 +312,51 @@ export class SkillFx {
       case 'fortBlock': this.gs.block(g.player, e.fromX, e.fromZ); return true;
       case 'rushStop': this.gs.rushStop(e.x, e.z, e.angle); return true;
       case 'lightWallBlock': this.gs.wallBlock(e.id, e.x, e.z); return true;
-      case 'areaEnd': this.gs.wallEnd(e.id); this.miasma.end(e.id); return false;
+      case 'areaEnd': this.gs.wallEnd(e.id); this.miasma.end(e.id); this.traps.end(e.id); this.rod.end(e.id); return false;
+      // the trapper's traps: tossed from the hand, set, sprung (skillfx/trap-fx.js)
+      // Trap Field throws the others' plates (e.look: which trap each one is)
+      case 'trapSet': {
+        if (!TRAP_FX.has(e.skill)) return false;
+        const s = this.skillOf(e.skill), P = s?.trap?.pulses;
+        if (P) e.vent = (P.count - 1) * P.interval + 0.75; // a geyser's vent stays through its pulses
+        this.traps.set(e, s, this.castTip()); return true;
+      }
+      // Lure Dummy: its thump when set and its straw when gone (skillfx/trap-fx.js); the view still draws the summon
+      // the hunter's companions come in from the wild to a whistle, no magic puff (skillfx/call-fx.js)
+      case 'summon': {
+        if (e.skill === 'lure_dummy') { this.traps.plant(e); return false; }
+        const a = g.allies?.find((q) => q.id === e.id);
+        if (a && SPIRIT_ARRIVE[a.type]) { this.spiritCall.summon(e, a.type, this.castTip(), a.alphaAura?.radius || 0); return true; }
+        if (!a || !arrives(a.type)) return false;
+        this.call.call(e, a.type, g.player); return true;
+      }
+      case 'allyGone': this.traps.gone(e); return false;
+      // the hunter's companions' strikes: a fang snap, claw rakes, talon slashes (skillfx/companion-fx.js)
+      case 'allyStrike': return this.companion.strike(e);
+      // Sic 'Em: the marker over the prey and the rush (skillfx/sic-fx.js)
+      case 'sicEm': this.companion.sic.order(e, g.player); return true;
+      case 'summonAssault': this.companion.assault.order(e); return true; // the summoner's Assault (skillfx/assault-fx.js)
+      case 'revive': { const a = e.id === 'player' ? null : g.allies.find((q) => q.id === e.id); this.revive.rise(e.x, e.z, a ? a.type : 'player', a ? a.facing : g.player.facing); return true; }
+      case 'preyDrop': this.prey.prize(e.x, e.z); return true; // a marked kill's extra part
+      case 'packBuff': this.companion.pack.howl(e); return true; // Pack Hunt: the howl and the frenzy (skillfx/pack-fx.js)
+      case 'companionPounce': { this.companion.sic.pounced(e.id); if (e.roar) { const b = this.call.locate?.(e.id); if (b) this.companion.roar(b.x, b.z, e.roar); } return false; }
+      case 'trapSprung': { if (!TRAP_FX.has(e.skill)) return false; this.traps.spring(e);
+        const look = e.look || e.skill;
+        if (look === 'frost_jaw') {
+          // the fangs close on the nearest monster in the circle (the one that stepped in)
+          let cx = e.x, cz = e.z, best = (e.radius || 1.8) + 1;
+          for (const m of g.monsters) { if (m.dead) continue; const d = Math.hypot(m.x - e.x, m.z - e.z); if (d < best) { best = d; cx = m.x; cz = m.z; } }
+          this.jaw.bite(e.x, e.z, e.radius || 1.8, this.skillOf(look)?.stun?.duration || g.data.skills.combat.frost_jaw.stun.duration, cx, cz); host.shake(0.16, 0.12); return true;
+        }
+        if (look === 'lightning_rod') { this.rod.raise(e); host.shake(0.12, 0.1); return true; }
+        if (look === 'gravity_rune') { const P = this.skillOf(look)?.pull || g.data.skills.combat.gravity_rune.pull; this.rune.open(e.x, e.z, P.radius, e.radius || 1.6, P.time); host.shake(0.1, 0.1); return true; }
+        if (look === 'spore_pod') { this.spore.puff(e.x, e.z, e.radius || 2, e.puffsLeft ?? 2); return true; }
+        if (look === 'blast_trap') host.shake(0.3, 0.25); else host.shake(0.1, 0.1); return true; }
+      // Lightning Rod: a bolt to each trap it sets off, and one into each body it strikes (skillfx/rod-fx.js)
+      case 'trapRelay': this.rod.relay(e); return true;
+      // Spore Pod: a monster dying poisoned by it passes the poison on (skillfx/spore-fx.js)
+      case 'poisonSpread': this.spore.spread(e); return true;
+      case 'trapZap': { const c = this.centerOf(e.target); this.rod.zap(e, c); if (c) { this.lance.flash(c.x, c.y, c.z, 0.9); this.lance.spark(c.x, c.y, c.z, 5, 3); } return true; }
       case 'chargeStart': {
         if (!SKILL_FX.has(e.skill)) return false;
         const s = this.skillOf(e.skill);
@@ -340,6 +414,7 @@ export class SkillFx {
       case 'buff': {
         if (e.kind === 'iron_body') { this.iron.harden(e.x, e.z, this.skillOf(e.kind)?.duration ?? 6); return true; }
         if (e.kind === 'blessing') { this.bless.bestow(e.x, e.z, e.radius); return true; }
+        if (e.kind === 'revive') { this.revive.bestow(e.x, e.z, e.radius, g.player.facing); return true; } // skillfx/revive-fx.js
         if (!BUFF_LOOKS[e.kind] && !AURA_SHOUTS.has(e.kind)) return false;
         // party shouts (Rally): the ring to the true radius, and a mark over every body the buff reached
         const bodies = this.buffBodies; bodies.length = 0; bodies.push(g.player);
@@ -407,7 +482,10 @@ export class SkillFx {
         return true;
       }
       // dodges: the blink's gather and jump, the leap's landing (skillfx/move-fx.js)
-      case 'movement': if (e.kind === 'blink' && g.player.dash?.kind === 'blink') this.move.gather(g.player.x, g.player.z, g.player.dash.delay || 0.08); return false;
+      // Soul Swap: circles open under the hero and the summon, then two spirit flames cross (skillfx/spirit-call-fx.js)
+      case 'soulSwap': this.spiritCall.swap(e); host.shake(0.05, 0.06); return true;
+      case 'movement': if (e.kind === 'soul_swap' && g.player.dash?.kind === 'swap') { const a = g.allies.find((q) => q.id === g.player.dash.allyId); if (a) this.spiritCall.swapGather(g.player.x, g.player.z, a.x, a.z); return true; }
+        if (e.kind === 'blink' && g.player.dash?.kind === 'blink') this.move.gather(g.player.x, g.player.z, g.player.dash.delay || 0.08); return false;
       // Backstab: the hero leaves in shards and appears behind its target (skillfx/shadow-fx.js)
       case 'shadowStep': {
         const t = g.monsters.find((m) => m.id === e.id), sh = this.shadow;
@@ -430,6 +508,7 @@ export class SkillFx {
         const el = this.skillOf(e.kind)?.element;
         if (e.kind === 'arrow_rain') { this.rain.wave(e, el || 'physical', g.player); return true; }
         if (e.kind === 'fire_arrow_rain') return true; // drawn from its arrowPin events
+        if (TRAP_FX.has(e.kind)) return true; // drawn from its trapSet and trapSprung
         if (e.kind === 'poison_mist_arrow') { this.miasma.begin(e, g.player); return true; }
         if (e.kind === 'meteor') { this.meteor.begin(e); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.begin(e, el || 'lightning'); return true; }
@@ -439,6 +518,8 @@ export class SkillFx {
       case 'burst':
         if (e.kind === 'arrow_rain') { this.rain.burst(e); return true; }
         if (e.kind === 'fire_arrow_rain') { this.frain.burst(e); host.shake(0.08, 0.1); return true; }
+        if (e.kind === 'flame_geyser') { this.geyser.erupt(e.x, e.z, e.radius || 2.2); host.shake(0.12, 0.14); return true; }
+        if (TRAP_FX.has(e.kind)) return true; // the spring is drawn by trapSprung
         if (e.kind === 'meteor') { this.meteor.impact(e); host.shake(0.4, 0.3); return true; }
         if (e.kind === 'thunderstorm') { this.thunder.strike(e, g.monsters.filter((m) => !m.dead && Math.hypot(m.x - e.x, m.z - e.z) <= (e.radius || 3) + (m.r || 0)).map((m) => [m.x, m.z])); host.shake(0.14, 0.12); return true; }
         if (e.kind === 'leap') { this.move.land(e.x, e.z, e.radius); host.shake(0.2, 0.18); return true; }
@@ -486,6 +567,7 @@ export class SkillFx {
         if (e.skill === 'holy_bell') this.bell.hit(c);
         if (e.skill === 'spell_wave') this.wave.hit(c);
         if (e.skill === 'thunder_lance') this.lance.hit(c);
+        if (TRAP_FX.has(e.skill) && e.bleed) this.traps.bleed(c);
         if (e.skill === 'frost_shatter_arrow') this.iarrow.hit(e.id, c, c.x - e.fromX, c.z - e.fromZ, this.skillOf(e.skill)?.chill?.duration || 3);
         if (e.skill === 'draw_cut') this.draw.hit(c);
         if (e.skill === 'shield_rush') this.gs.rushHit(c, e.fromX, e.fromZ);
@@ -537,7 +619,11 @@ export class SkillFx {
     }
     this.venom.update(dt, tip);
     this.rain.update(dt);
-    this.frain.update(dt);
+    this.frain.update(dt); this.geyser.update(dt); this.jaw.update(dt); this.rod.update(dt); this.spore.update(dt); this.rune.update(dt); this.call.update(dt); this.companion.update(dt); this.spiritCall.update(dt);
+    // the bodies that carry Revive's light (its halos)
+    this.revived.length = 0;
+    for (const u of [p, ...g.allies]) { if (this.revived.length >= this.reviveBodies.length || u.dead) continue; const b = u.buffs && Object.values(u.buffs).find((q) => q.revive); if (!b) continue; const o = this.reviveBodies[this.revived.length]; o.x = u.x; o.z = u.z; o.t = b.t; o.type = u === p ? 'player' : u.type; this.revived.push(o); }
+    this.revive.update(dt, this.revived);
     this.iarrow.update(dt);
     this.lance.update(dt);
     this.miasma.update(dt);
@@ -568,17 +654,21 @@ export class SkillFx {
     this.ispike.update(dt, this.bladeTip);
     this.tslash.update(dt, this.bladeBase, this.bladeTip, g.monsters);
     this.iball.update(dt, this.castTip());
+    this.traps.update(dt, g.allies, g.monsters);
     this.draw.update(dt, p, this.bladeBase, this.bladeTip);
     // Blink Draw: afterimages of the body along the dash (the game's posed echoes, in its violet)
     if (p.dash?.kind === 'draw_cut' && this.drawEchoes < 3 && p.dash.t >= p.dash.dur * (0.15 + 0.3 * this.drawEchoes)) { host.vfx?.drawCutEcho?.(host.rig?.()); this.drawEchoes++; }
     // Sunder Cut's open armour on what it struck
-    this.exposed.length = 0;
+    this.exposed.length = 0; this.preyed.length = 0;
     for (const m of g.monsters) {
       const ex = m.statuses?.exposure;
-      if (!ex || m.dead || this.exposed.length >= this.exposedBuf.length) continue;
+      if (!ex || m.dead) continue;
+      // Mark Prey's exposure has its own sigil (skillfx/prey-fx.js), not the broken shield
+      if (ex.prey) { if (this.preyed.length < this.preyBuf.length) { const o = this.preyBuf[this.preyed.length], h = this.headOf(m.id); o.id = m.id; o.x = m.x; o.z = m.z; o.y = h ? h.y + 0.6 : 2.4; o.t = ex.t; this.preyed.push(o); } continue; }
+      if (this.exposed.length >= this.exposedBuf.length) continue;
       const o = this.exposedBuf[this.exposed.length]; o.x = m.x; o.z = m.z; o.t = ex.t; o.full = this.skillOf('armor_cleave')?.exposure?.duration || 5; this.exposed.push(o);
     }
-    this.sunder.update(dt, this.exposed);
+    this.sunder.update(dt, this.exposed); this.prey.update(dt, this.preyed);
     this.mace.update(dt, this.headOf);
     // Flank Thrust: the weak side of the monsters it is aimed at
     this.marks.length = 0;
@@ -624,7 +714,7 @@ export class SkillFx {
   resize(w, h, cssW, cssH) { this.flame.resize(w, h, cssW, cssH); }
   get counterReady() { return this.riposte.ready; }
   clear() {
-    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.ascend, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
+    for (const fx of [this.chain, this.frost, this.flame, this.mod, this.venom, this.rain, this.frain, this.iarrow, this.lance, this.miasma, this.power, this.split, this.sunder, this.mace, this.thrust, this.bash, this.riposte, this.slash, this.fslash, this.ispike, this.tslash, this.iball, this.traps, this.geyser, this.jaw, this.rod, this.spore, this.rune, this.call, this.companion, this.prey, this.spiritCall, this.revive, this.fire, this.move, this.meteor, this.thunder, this.blizzard, this.shatter, this.rend, this.storm, this.shadow, this.iron, this.buff, this.bless, this.ascend, this.volley, this.kill, this.bell, this.lchain, this.wave, this.draw, this.gs, this.aura]) fx.clear();
     if (this.ghost) { dropCopy(this.ghost); this.ghost = null; }
     for (const c of this.decoyCopies.values()) dropCopy(c); this.decoyCopies.clear();
     this.timers.length = 0;

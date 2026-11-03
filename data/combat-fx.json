@@ -639,7 +639,10 @@
         "light": "#63d9f6",
         "rim": "#81eeff",
         "emission": 0.28,
-        "rimStrength": 0.38
+        "rimStrength": 0.38,
+        "contrast": 1.7,
+        "alpha": 0.62,
+        "edgeAlpha": 0.35
       },
       "_labFixedFields": [
         "body"

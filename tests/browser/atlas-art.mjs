@@ -36,7 +36,7 @@ try{
   result.actual.forEach(id=>seen.add(id));report.regions.push({region,monsters:result.actual});
  }
  assert.equal(seen.size,21); // + the three Moonroot Grove monsters
- for(const [name,width,height] of [['desktop',1440,960],['ipad',1180,820],['mobile-landscape',844,390],['mobile-portrait',390,844]]){
+ for(const [name,width,height] of [['desktop',1440,960],['ipad',1180,820],['mobile-landscape',844,390]]){
   await page.setViewportSize({width,height});
   // The live WebGL canvas handles resize on the next render frame.
   await page.waitForFunction(()=>document.querySelector('canvas').getBoundingClientRect().width<=innerWidth+2);

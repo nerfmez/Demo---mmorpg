@@ -58,3 +58,14 @@ body.ingame #hud {height:calc(var(--viewport-h,100dvh) - var(--xp-h))}
 @media(min-width:601px) and (min-height:561px){body.touch #hud .left-column {height:calc(var(--viewport-h,100dvh) * .51 - 70px - var(--safe-t) - var(--safe-b))}}
 @media(max-height:560px) and (orientation:landscape){#hud .left-column{left:calc(12px + var(--safe-l));top:calc(9px + var(--safe-t));height:calc(var(--viewport-h,100dvh) * .58 - 9px - var(--safe-t) - var(--safe-b));gap:12px}#hud .left-column .quest-widget{width:235px}#hud .questtrack .field-quest-row{padding-block:4px}#hud .toasts{top:calc(84px + var(--safe-t));max-width:220px}}
 @media(max-width:600px) and (orientation:portrait){#hud .left-column{left:calc(10px + var(--safe-l));top:calc(48px + var(--safe-t));height:calc(var(--viewport-h,100dvh) * .6 - 48px - var(--safe-t) - var(--safe-b))}#hud .left-column .quest-widget{width:210px}#hud .toasts{top:calc(350px + var(--safe-t));max-width:210px}}
+/* landscape only: the card a touch device shows when held upright (ui/rotate-lock.js) */
+.rotate-lock{position:fixed;inset:0;margin:0;max-width:none;max-height:none;width:100vw;height:100dvh;border:0;padding:24px;z-index:1100;display:none;place-items:center;background:#122137;color:#f4e8c9;font-family:Mitr,system-ui,sans-serif;text-align:center}
+.rotate-lock[open]{display:grid}
+.rotate-lock::backdrop{background:#122137}
+.rotate-lock-card{display:grid;justify-items:center;gap:14px;max-width:320px}
+.rotate-lock h1{margin:0;font-size:22px;font-weight:500}
+.rotate-lock p{margin:0;font-size:14px;line-height:1.6;color:#c9d3df}
+.rotate-lock-device{width:64px;height:108px;border:4px solid #f4e8c9;border-radius:14px;position:relative;animation:rotate-lock-turn 2.4s cubic-bezier(.5,0,.3,1) infinite}
+.rotate-lock-device i{position:absolute;left:50%;bottom:7px;width:16px;height:4px;margin-left:-8px;border-radius:2px;background:#f4e8c9}
+@keyframes rotate-lock-turn{0%,20%{transform:rotate(0)}55%,85%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@media (prefers-reduced-motion:reduce){.rotate-lock-device{animation:none;transform:rotate(-90deg)}}

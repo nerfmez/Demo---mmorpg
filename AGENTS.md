@@ -4,7 +4,7 @@ Current rules only. The code and `data/` are the source of truth for numbers.
 
 ## What this is
 
-A playable web demo (one fixed-coordinate open world: Azure Coast, Greenhollow Frontier and Moonroot Grove are content regions; all static scenes are prepared during the initial loading screen and only visible/shadow cells are attached while playing) of an anime-style top-down MMORPG with PoE-style buildcraft. The design brief is `docs/DESIGN-SUMMARY-TH.txt`; `docs/DESIGN-STATUS.md` tracks what is built. The owner plays on an iPad (Safari/WebKit) and does not use a computer, so every change must work with touch controls.
+A playable web demo (one fixed-coordinate open world: Azure Coast, Greenhollow Frontier and Moonroot Grove are content regions; all static scenes are prepared during the initial loading screen and only visible/shadow cells are attached while playing) of an anime-style top-down MMORPG with PoE-style buildcraft. The design brief is `docs/DESIGN-SUMMARY-TH.txt`; `docs/DESIGN-STATUS.md` tracks what is built. The owner plays on an iPad (Safari/WebKit) and does not use a computer, so every change must work with touch controls. The game is landscape only (owner, 2026-11-03): a touch device held upright shows a rotate card and pauses (`ui/rotate-lock.js`); design and test phone layouts sideways (`tests/browser/phone-landscape.mjs`), never portrait.
 
 ## Architecture rules (keep it Godot-portable)
 

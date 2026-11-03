@@ -24,10 +24,12 @@ import { QuestCompletion } from './ui/quest-completion.js';
 import { QuestRoute } from './render/quest-route.js';
 import { Supplies } from './ui/supplies.js';
 import { createFullscreen } from './ui/fullscreen.js';
+import { createRotateLock } from './ui/rotate-lock.js';
 import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel, stashDungeon } from './save.js';
 import { characterMap, selectMap } from './core/maps.js';
 import '@fontsource/mitr/thai-400.css';
 import '@fontsource/mitr/thai-500.css';
+import '@fontsource/charm/thai-400.css'; // the field journal's handwriting (ui/wheel-view.js)
 import '@fontsource/mitr/thai-600.css';
 import '@fontsource/mitr/latin-400.css';
 import '@fontsource/mitr/latin-500.css';
@@ -160,10 +162,13 @@ Object.defineProperty(F, 'world', { get: () => view.world }); // follows open-wo
 let session = null;
 const fullscreen = createFullscreen({
   bypass: fresh, // Existing never-saved browser-test fixture skips the entry menu.
-  onBlocked: () => session?.input.reset(),
+  onBlocked: () => { session?.input.reset(); F.rotateLock?.raise(); }, // the rotate card stays on top
   onResize: () => view.resize(),
 });
 F.fullscreen = fullscreen;
+// landscape only: held upright, a touch device shows the rotate card and the game pauses behind it
+const rotateLock = createRotateLock({ onChange: () => session?.input.reset() });
+F.rotateLock = rotateLock;
 const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport', 'potion']);
 
 /** Reload into the character's map (saved slot, or the unsaved test character). */
@@ -239,8 +244,8 @@ function startGame(character, slot) {
   hud.onPanel = (tab) => panels.open(tab);
   F.panels = panels; // browser tests open a page directly
   const ui = {
-    blocked: () => fullscreen.blocked || !!completion?.isOpen || !!onlineRuntime?.gate.blocked,
-    panelOpen: () => panels.isOpen || !!session?.presence?.open || fullscreen.blocked || !!completion?.isOpen || !!onlineRuntime?.gate.blocked,
+    blocked: () => (fullscreen.blocked || !!F.rotateLock?.blocked) || !!completion?.isOpen || !!onlineRuntime?.gate.blocked,
+    panelOpen: () => panels.isOpen || !!session?.presence?.open || (fullscreen.blocked || !!F.rotateLock?.blocked) || !!completion?.isOpen || !!onlineRuntime?.gate.blocked,
     closePanel: () => panels.close(),
     togglePanel: (t) => panels.toggle(t),
     configureSkill: (i) => {
@@ -414,10 +419,10 @@ function frameBody(now) {
   }
   const s = session;
   if (s) {
-    if (!fullscreen.blocked) s.input.update();
+    if (!(fullscreen.blocked || !!F.rotateLock?.blocked)) s.input.update();
     if (onlineRuntime?.gate.blocked) s.input.reset();
-    if(s.sandboxBar)s.sandboxBar.hidden=s.panels.isOpen||fullscreen.blocked;
-    const paused = !view.worldPrepared || s.panels.isOpen || s.completion.isOpen || F.paused || fullscreen.blocked || !!onlineRuntime?.gate.blocked;
+    if(s.sandboxBar)s.sandboxBar.hidden=s.panels.isOpen||(fullscreen.blocked || !!F.rotateLock?.blocked);
+    const paused = !view.worldPrepared || s.panels.isOpen || s.completion.isOpen || F.paused || (fullscreen.blocked || !!F.rotateLock?.blocked) || !!onlineRuntime?.gate.blocked;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
     const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
@@ -456,12 +461,12 @@ function frameBody(now) {
       if (SAVE_ON.has(e.type)) s.save();
       if (e.type === 'levelup' || e.type === 'joblevelup' || e.type === 'questDone') s.panels.render();
     }
-    s.completion.update(fullscreen.blocked || s.panels.isOpen || s.game.ch.opening?.stage !== 'done' || !view.worldPrepared);
+    s.completion.update((fullscreen.blocked || !!F.rotateLock?.blocked) || s.panels.isOpen || s.game.ch.opening?.stage !== 'done' || !view.worldPrepared);
     s.questRoute.update(dt);
     s.presence?.update(dt, time);
     // The job journal is opaque and already pauses the game. Keep the completed
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
-    if (initialWorldReady && s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
+    if (initialWorldReady && s.panels.tab !== 'job' && !(fullscreen.blocked || !!F.rotateLock?.blocked)) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
     s.hud.update(paused ? 0 : dt, s.ui);
     s.supplies.update();
     s.saveT += dt;
@@ -475,7 +480,7 @@ function frameBody(now) {
       s.refreshBadges();
       s.refreshPortrait();
     }
-  } else if (initialWorldReady && !fullscreen.blocked) view.render(dt, time);
+  } else if (initialWorldReady && !(fullscreen.blocked || !!F.rotateLock?.blocked)) view.render(dt, time);
   fpsAcc += dt;
   fpsN++;
   if (fpsAcc > 1) {

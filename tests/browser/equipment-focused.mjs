@@ -9,7 +9,9 @@ const engine = { chromium, webkit }[process.env.BROWSER || 'chromium'];
 if (!engine) throw Error('BROWSER must be chromium or webkit');
 const out = `tests/browser/out/equipment-focused-${engine.name()}`;
 mkdirSync(out, { recursive: true });
-const url = 'http://localhost:4246/?fresh=1&quality=low&stream=0';
+// the start map only (?load=dev, AGENTS.md): the equipment checks need no other map, and preparing every
+// map under WebKit's software renderer outlasted the 90 s wait
+const url = 'http://localhost:4246/?fresh=1&load=dev&quality=low&stream=0';
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4246', '--strictPort'], { stdio: 'ignore', detached: true });
 let browser;
 const results = [];

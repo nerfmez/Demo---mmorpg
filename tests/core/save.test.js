@@ -50,6 +50,17 @@ test('export codes round-trip (Thai names included) and bad codes are refused', 
 });
 
 
+test('the wheel tree preview (?tree=wheel) keeps its own slots: a main save is never migrated to the other tree',async()=>{
+ store.clear();const main=createCharacter(data,{name:'Main'});save.writeSlot(1,main);const before=store.get('frontier.slot.1');
+ globalThis.location={pathname:'/Demo---mmorpg/',search:'?tree=wheel'};
+ const wheel=await import('../../src/save.js?wheel-preview-test');delete globalThis.location;
+ assert.ok(wheel.IS_PREVIEW);assert.equal(wheel.loadSlot(1),null,'main slots are not visible');
+ assert.ok(wheel.importCode(save.exportCode(1),1));const copy=wheel.loadSlot(1).character;copy.name='Wheel';wheel.writeSlot(1,copy);
+ assert.equal(store.get('frontier.slot.1'),before,'main save untouched');assert.ok(store.get('frontier.wheel.slot.1'));
+ assert.equal(store.get('frontier.preview.slot.1'),undefined,'not the /lab/ preview slots either');
+ wheel.deleteSlot(1);assert.equal(store.get('frontier.slot.1'),before);assert.equal(wheel.migrateLegacy(),false);
+});
+
 test('published previews isolate all writes, deletes and legacy migration from main saves',async()=>{
  store.clear();const main=createCharacter(data,{name:'Main'});save.writeSlot(1,main);const before=store.get('frontier.slot.1');
  globalThis.location={pathname:'/Demo---mmorpg/lab/'};

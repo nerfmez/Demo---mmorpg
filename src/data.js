@@ -6,6 +6,7 @@ import items from '../data/items.json';
 import recipes from '../data/recipes.json';
 import progression from '../data/progression.json';
 import jobtree from '../data/jobtree.json';
+import wheeltree from '../data/wheeltree.json';
 import world from '../data/world.json';
 import quests from '../data/quests.json';
 import models from '../data/models.json';
@@ -18,4 +19,6 @@ import { mapRegistry } from './core/maps.js';
 if (world.city?.enabled) world.city = { ...city, ...world.city, docks: [...city.docks,...world.city.joins||[]] };
 
 // data.world is the map being played; main.js selects it (selectMap) before building the world.
-export const data = { skills, mods, monsters, items, recipes, progression, jobtree, world, quests, models, encounters, maps: mapRegistry(world, [frontier, moonroot]) };
+// ?tree=wheel previews the wheel Job Tree (phase B review) until it replaces the old tree (phase C)
+const wheelPreview = typeof location !== 'undefined' && new URLSearchParams(location.search).get('tree') === 'wheel';
+export const data = { skills, mods, monsters, items, recipes, progression, jobtree: wheelPreview ? wheeltree : jobtree, world, quests, models, encounters, maps: mapRegistry(world, [frontier, moonroot]) };

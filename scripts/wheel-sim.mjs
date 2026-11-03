@@ -6,9 +6,11 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { loadData } from '../src/core/data-node.js';
 import { buildProfile, auditBuilds, AXES } from '../src/core/build-rules.js';
+import { modFits } from '../src/core/skills.js';
+import { applySkillScale } from './wheel-scale.mjs';
 
-const data = loadData();
 const W = JSON.parse(readFileSync(new URL('../data/drafts/wheel.json', import.meta.url), 'utf8'));
+const data = applySkillScale(loadData(), W.skillScale); // the job skills' numbers the wheel is designed with
 const nodes = {}; // synthetic Job Tree nodes: id -> { effects, cost, name }
 const scaled = (n) => { const u = n.uptime ?? 1, e = {}; for (const [k, v] of Object.entries(n.effects)) e[k] = k === 'perTargetCap' ? v : v * u; return e; };
 const add = (id, n, cost = n.cost || 1) => { nodes[id] = { effects: scaled(n), cost, name: n.name }; return id; };
@@ -35,12 +37,17 @@ function branchNodes(job, bid, fork) {
 }
 const forksOf = (job, bid) => { const b = W.jobs[job].branches[bid], f = b.keys.find((k) => k.forks); return f ? Object.keys(f.forks) : [null]; };
 
+// every line plays its main attack with the mod its role calls for (2026-11-02: a pack player splits or widens
+// the main attack, a single-target player makes it hit harder): the first of these that fits it
+const ROLE_MODS = { pack: ['split', 'wide_arc', 'bounce'], single: ['heavy_blow', 'vicious_shot', 'focused_spell'] };
+const mainMod = (role, skill) => { const m = (ROLE_MODS[role] || []).find((id) => data.mods.mods[id] && !data.mods.mods[id].retired && modFits(data.skills.combat[skill], data.mods.mods[id]).ok); return m ? { 0: [m] } : undefined; };
 const builds = [], ladders = [];
 for (const [job, J] of Object.entries(W.jobs)) {
   const entry = add(`w.${job}.entry`, J.entry, 0), trunk = J.trunk.map((n, i) => add(`w.${job}.trunk${i}`, n, n.cost || 1));
   for (const bid of Object.keys(J.branches)) for (const fork of forksOf(job, bid)) {
     const B = J.branches[bid], path = branchNodes(job, bid, fork);
-    const spec0 = { kit: job, level: W.level, build: { ...J.build, stats: B.stats || J.build.stats }, loadout: B.loadout || J.loadout, support: B.support || J.support };
+    // a line may hold one weapon where its job holds two (B.dualWield)
+    const spec0 = { kit: job, level: W.level, build: { ...J.build, stats: B.stats || J.build.stats, ...(B.dualWield !== undefined ? { dualWield: B.dualWield } : {}) }, loadout: B.loadout || J.loadout, support: B.support || J.support, mods: B.mods || mainMod(B.role, (B.loadout || J.loadout)[0]) }; // a line may name its own mods (slot: [ids])
     const jobBase = [entry, ...trunk, ...path];
     const spareOptions = { inner: null };
     for (const other of Object.keys(J.branches)) if (other !== bid) spareOptions['side:' + other] = branchNodes(job, other, forksOf(job, other)[0]).slice(0, 4).concat(branchNodes(job, other, forksOf(job, other)[0]).slice(4, 8));
@@ -52,14 +59,17 @@ for (const [job, J] of Object.entries(W.jobs)) {
       const id = `${job}/${bid}${fork ? ':' + fork : ''}/${plan}/${gear}/${spare}`;
       builds.push({ id, job, group: `${job}/${bid}${fork ? ':' + fork : ''}`, role: B.role, plan, gear, spare, points: cost(jobNodes), profile: buildProfile(withNodes(), { ...spec0, jobNodes, gear }) });
     }
-    // the ladder: the job's own inner plan and trunk bought, then the branch point by point
-    const innerIds = fill(J.inner.own.map((s) => inner[s]), W.points.inner);
+    // the ladder: the line's best plan (its inner plan and gear set with no spare points elsewhere), trunk
+    // bought, then the branch point by point; what each point adds where the line is actually played
+    const group = `${job}/${bid}${fork ? ':' + fork : ''}`, mine = builds.filter((x) => x.group === group && x.spare === 'inner');
+    const top = mine.reduce((a, x) => (!a || x.profile.axes[B.role] > a.profile.axes[B.role] ? x : a), null);
+    const innerIds = fill(J.inner[top.plan].map((s) => inner[s]), W.points.inner);
     const steps = [];
     for (let n = 0; n <= path.length; n++) {
-      const p = buildProfile(withNodes(), { ...spec0, jobNodes: [...innerIds, entry, ...trunk, ...path.slice(0, n)], gear: 'mixed' });
+      const p = buildProfile(withNodes(), { ...spec0, jobNodes: [...innerIds, entry, ...trunk, ...path.slice(0, n)], gear: top.gear });
       steps.push({ points: cost(path.slice(0, n)), node: n ? nodes[path[n - 1]].name : 'start', axes: p.axes, dead: n > 0 && AXES.every((k) => Math.abs(p.axes[k] - steps[n - 1].axes[k]) < 1e-9) });
     }
-    ladders.push({ group: `${job}/${bid}${fork ? ':' + fork : ''}`, role: B.role, steps });
+    ladders.push({ group, role: B.role, plan: top.plan, gear: top.gear, steps });
   }
 }
 const audit = auditBuilds(data, builds);
@@ -68,7 +78,9 @@ for (const x of builds) { const g = byGroup[x.group] ||= { role: x.role, best: n
 const round = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round(v * (k === 'team' ? 1000 : 10)) / (k === 'team' ? 1000 : 10)]));
 const out = {
   builds: builds.length, axes: AXES, best: round(audit.best),
-  groups: Object.entries(byGroup).map(([g, v]) => ({ group: g, role: v.role, best: v.best.id, axes: round(v.best.profile.axes) })),
+  groups: Object.entries(byGroup).map(([g, v]) => { const pure = builds.filter((x) => x.group === g && x.spare === 'inner').reduce((a, x) => (!a || x.profile.axes[v.role] > a.profile.axes[v.role] ? x : a), null); return { group: g, role: v.role, best: v.best.id, axes: round(v.best.profile.axes), pure: round(pure.profile.axes) }; }),
+  // per role: the best value any build of another role reaches on that axis (a role's lines must lead it)
+  outside: Object.fromEntries([...new Set(builds.map((x) => x.role))].map((r) => [r, Math.max(...builds.filter((x) => x.role !== r).map((x) => x.profile.axes[r]))])),
   overpowered: audit.overpowered, noWeakness: audit.noWeakness, roleMisses: audit.roleMisses,
   roleGaps: audit.roleGaps.map((r) => ({ ...r, gap: Math.round(r.gap * 100) / 100 })),
   traps: audit.traps.length,

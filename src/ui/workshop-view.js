@@ -61,19 +61,22 @@ const workshopScene = `<svg class="ws-forge-scene" viewBox="0 0 320 210" fill="n
  <path d="M121 146.5H160" stroke="#fff6d8" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".9"/>
  <path data-workpiece-plane d="M118 144H170" stroke="#fff0c4" stroke-width="1.2"/>
  <g class="ws-hammer">
-  <!-- the haft from the head's eye to the grip, then the wrapped grip and its pommel -->
-  <path d="M150 121L246 76" stroke="#3b2414" stroke-width="11" stroke-linecap="round"/>
-  <path d="M150 121L246 76" stroke="url(#wsWood)" stroke-width="8" stroke-linecap="round"/>
-  <path d="M152 117.5L240 76.5" stroke="#d29a62" stroke-width="2" stroke-linecap="round" stroke-opacity=".85"/>
-  <path d="M214 88l6 9M221 85l6 9M228 82l6 9M235 79l6 9" stroke="#3a2a22" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M214 88l6 9M221 85l6 9M228 82l6 9M235 79l6 9" stroke="#6b4a37" stroke-width="1.6" stroke-linecap="round"/>
-  <circle data-hammer-grip cx="248" cy="78" r="5" fill="#8d6a3a" stroke="#3b2414" stroke-width="1.8"/>
+  <!-- a real hammer: the haft runs through the head's eye at a right angle to the striking axis,
+       so with the face flat on the blank the haft lies level and the wedged end shows on the far cheek -->
+  <path d="M152 122H238" stroke="#3b2414" stroke-width="11" stroke-linecap="round"/>
+  <path d="M152 122H238" stroke="url(#wsWood)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M163 119H234" stroke="#d29a62" stroke-width="2" stroke-linecap="round" stroke-opacity=".85"/>
+  <path d="M208 117l4 10M215 117l4 10M222 117l4 10M229 117l4 10" stroke="#3a2a22" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M208 117l4 10M215 117l4 10M222 117l4 10M229 117l4 10" stroke="#6b4a37" stroke-width="1.6" stroke-linecap="round"/>
+  <circle data-hammer-grip cx="244" cy="122" r="5" fill="#8d6a3a" stroke="#3b2414" stroke-width="1.8"/>
   <!-- the head: a blacksmith's block with chamfered ends; the striking face is its foot -->
-  <path d="M131 114H157L161 118V140L158 144H130L127 140V118Z" fill="url(#wsHead)" stroke="#22323b" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M127 125H161M127 133H161" stroke="#22323b" stroke-opacity=".45" stroke-width="1.2"/>
-  <path d="M132 116.5H155" stroke="#f2f8f7" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".9"/>
-  <path d="M136 119V139" stroke="#eef5f4" stroke-opacity=".55" stroke-width="2"/>
-  <rect x="139" y="111" width="10" height="4" rx="1" fill="#55697a" stroke="#22323b" stroke-width="1.4"/>
+  <path d="M131 108H157L161 112V140L158 144H130L127 140V112Z" fill="url(#wsHead)" stroke="#22323b" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M127 115H161M127 133H161" stroke="#22323b" stroke-opacity=".45" stroke-width="1.2"/>
+  <path d="M132 110.5H155" stroke="#f2f8f7" stroke-width="1.6" stroke-linecap="round" stroke-opacity=".9"/>
+  <path d="M135 118V139" stroke="#eef5f4" stroke-opacity=".55" stroke-width="2"/>
+  <rect x="160" y="116.5" width="5" height="11" rx="1" fill="#55697a" stroke="#22323b" stroke-width="1.4"/>
+  <rect x="123.5" y="117" width="4" height="10" rx="1" fill="#b98250" stroke="#3b2414" stroke-width="1.3"/>
+  <path d="M123.5 122H127.5" stroke="#3b2414" stroke-width="1.2"/>
   <path data-hammer-face d="M130 144H158" stroke="#e7efea" stroke-width="1.5"/>
  </g>
  <g class="ws-impact" data-impact-origin transform="translate(144 144)">

@@ -3,7 +3,7 @@ import { executeWorkshop, WORKSHOP_OPERATIONS, workshopReason } from './workshop
 import { playWorkshopFx } from './workshop-fx.js';
 const DURATION = 900;
 
-export function createWorkshopController(ui, { schedule = setTimeout, cancel = clearTimeout, reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches } = {}) {
+export function createWorkshopController(ui, { schedule = (fn, ms) => setTimeout(fn, ms), cancel = (id) => clearTimeout(id), reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches } = {}) {
   let timer = null, token = 0, busy = false, receipt = null, error = '';
   const finish = () => {
     if (timer !== null) cancel(timer);

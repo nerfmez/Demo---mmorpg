@@ -75,7 +75,7 @@ export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
 const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
-export const OWN_PROJECTILES = new Set(['venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
+export const OWN_PROJECTILES = new Set(['boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
 const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter', 'flame_slash', 'thunder_slash']);
 const SWING_LEAD = 0.12;
@@ -477,7 +477,10 @@ export class SkillFx {
       case 'charged': { const c = this.centerOf(e.id); if (c) { this.lance.flash(c.x, c.y, c.z, 1.1); this.lance.spark(c.x, c.y, c.z, 6, 3); } return true; }
       case 'chargeShock': { const c = this.tslash.shock(e.id); if (c) { this.lance.flash(c.x, c.y + 0.2, c.z, 1.4); this.lance.spark(c.x, c.y, c.z, 8, 4); this.lance.twitch(e.id, 0.12); } host.shake(0.08, 0.08); return true; }
       case 'shocked': this.lance.twitch(e.id, 0.2); return true;
-      case 'windup': this.monster.windup(e, g); return false; // its charge cue; the ground warning stays the View's
+      case 'windup': this.monster.windup(e, g); return false;
+      case 'doubles': this.monster.doubles(e, g); return true; // the tanuki's doubles step out of a puff of leaves
+      case 'illusionPop': this.monster.puff(e.x, e.z, 10); return true;
+      case 'rebound': this.monster.rebound(e); return true; // the pangolin's ball bounces back along its lane // its charge cue; the ground warning stays the View's
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);
@@ -554,6 +557,7 @@ export class SkillFx {
         return true;
       }
       case 'impact': {
+        if (e.kind === 'boomerang') { this.monster.leafCut(e, g); return true; } // the tanuki's leaf cuts going out and back
         if (e.kind === 'venom_mire') { this.venom.impact(e); return true; }
         if (e.kind === 'charged_shot') { this.power.impact(e, this.powerRatio); return true; }
         if (e.kind === 'frost_shatter_arrow') return true; // its hits and shatter draw it

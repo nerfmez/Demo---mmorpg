@@ -106,7 +106,7 @@ export function animBeast(r, s, dt, time, opts = {}) {
   // standing to call (s.standT): the bear rears to roar (up over 0.2 s, down over its last 0.2 s); a wolf
   // howls (opts.swipe marks the bear)
   const total = s.standTotal || 1.2, left = s.standT || 0, sw = left > 0 ? clamp01((total - left) / 0.22) * clamp01(left / 0.22) : 0;
-  const rw = opts.swipe ? sw : 0, howl = opts.swipe ? 0 : sw;
+  const rears = opts.swipe || opts.rear, rw = rears ? sw : 0, howl = rears ? 0 : sw; // opts.rear: a beast that stands up (the tanuki drums)
   const k = 1 - Math.exp(-dt * 16);
   let lift = 0;
   for (const n of BONES) {

@@ -1505,10 +1505,11 @@ export class Vfx {
       return {
         obj: m,
         update: (ar) => {
+          m.visible = ar.t >= ar.delay; // a later drum beat's ring waits unseen
           m.scale.set(ar.radius, 1, ar.radius);
           conform(m);
           m.material.opacity = 0.9 * (1 - (ar.t - ar.delay) / ar.duration);
-          if (Math.random() < 0.6) {
+          if (ar.t >= ar.delay && Math.random() < 0.6) {
             const ang = Math.random() * Math.PI * 2;
             const x = ar.x + Math.sin(ang) * ar.radius;
             const z = ar.z + Math.cos(ang) * ar.radius;
@@ -1557,7 +1558,8 @@ export class Vfx {
       const mech = m.def.attacks[w.name]?.kind || w.name; // an attack can borrow another's mechanics
       // a kit monster's attack names its warning (data/monsters.json attacks.<name>.tell)
       const tell = m.def.attacks[w.name]?.tell;
-      if (tell === 'sector') kind = 'sector';
+      if (tell === 'ring') kind = 'slam'; // a disc out to the attack's widest ring (radius x lastScale)
+      else if (tell === 'sector') kind = 'sector';
       else if (tell === 'lane') kind = 'lane';
       else if (RING_TELLS.has(mech)) kind = 'slam';
       else if (COASTAL_CONTACTS.has(mech)) kind = 'melee';
@@ -1569,7 +1571,7 @@ export class Vfx {
       if (!v) {
         if (kind === 'slam') {
           const atk = m.def.attacks[w.name];
-          const radius = w.radius ?? atk.radius ?? (m.r + atk.range);
+          const radius = w.radius ?? (atk.radius ? atk.radius * (atk.lastScale || 1) : m.r + atk.range);
           const mesh = this.decal(this.discGeo, discMaterial('telegraph'), m.x, m.z, radius, 0, 0.07);
           mesh.material.uniforms.uColor.value.set(0xff6a3a);
           mesh.material.uniforms.uColor2.value.set(0xff9a5a);
@@ -1604,7 +1606,8 @@ export class Vfx {
       v.mesh.position.set(m.x, 0, m.z);
       if (v.kind === 'sector') {
         const f = Math.max(0.04, k);
-        v.mesh.rotation.y = v.edge.rotation.y = w.angle;
+        const off = m.def.attacks[w.name].tellOff || 0; // a warning off its facing (the pangolin's tail lash: behind it)
+        v.mesh.rotation.y = v.edge.rotation.y = w.angle + off;
         v.mesh.scale.set(f, 1, f);
         v.mesh.material.opacity = 0.18 + 0.2 * k;
         v.edge.position.set(m.x, 0, m.z);
@@ -1612,7 +1615,7 @@ export class Vfx {
         conform(v.edge);
       } else if (v.kind === 'slam') {
         const atk = m.def.attacks[w.name];
-        const r = w.radius ?? atk.radius ?? (m.r + atk.range);
+        const r = w.radius ?? (atk.radius ? atk.radius * (atk.lastScale || 1) : m.r + atk.range);
         v.mesh.scale.set(r, 1, r);
         v.mesh.material.uniforms.uFill.value = k;
         v.mesh.material.uniforms.uA.value = 0.9;

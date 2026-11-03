@@ -512,6 +512,15 @@ Wide Spread and Far Reach share the `spread` family.
   (`data/beast-clips-fox.json`, `scripts/beast-clips/extract.mjs <Fox.gltf> <out>`; `render/beast-clips.js`
   `clipSet`, and `s.pose` to pose one clip at the rules' own timing); `render/monsters-forest.js` adds the
   held poses (the listening freeze, the tail lifted to the side, the whip).
+- **Leaf tanuki** (the second kit): `drum` (kind `drum`: at the end of the wind-up `beats` `shockwave` areas,
+  `beat` s apart, run out from 0.6 m to `radius` at `waveSpeed`; the last reaches `radius × lastScale` and
+  knocks back `knock` m; each ring hits a unit once as its edge passes; the monster stays in `recover` through
+  the beats; `tell: "ring"` warns with a disc out to the widest ring), `boomerang` (a projectile with
+  `boomerang: true`: at its `range` it turns back to its thrower, hits each unit once per pass, passes through
+  obstacles, and ends at the thrower; impacts carry `back`), `doubles` (`use.once`, `use.hpBelow`: `count`
+  copies of itself with `illusion: {t, of}`, 1 HP, that never attack and pop after `life` s or at a touch;
+  killing one emits `illusionPop`, gives no kill, no experience and no drops). Its model moves by the Shiba Inu
+  clips (`data/beast-clips-shiba.json`); it rears for the drum with the beast animator's rear (`opts.rear`).
 - **Strikes of light** (`render/skillfx/monster-fx.js`): the owner turned down limb trails for monsters,
   so kit monsters' strikes are drawn in the companions' language (a jaw of light, claw marks of light,
   `claw-fx.js`/`bite-fx.js`) plus leaves of light (`leaf-fx.js`, one instanced mesh). An attack whose

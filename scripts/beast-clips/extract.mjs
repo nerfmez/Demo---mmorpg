@@ -26,6 +26,8 @@ const CLIPS = { walk: 'Walk', gallop: 'Gallop', idle: 'Idle', attack: 'Attack', 
 // taken when the file has them (the fox's nose stuck in the ground after a missed pounce)
 const OPTIONAL = { headlow: 'Idle_2_HeadLow' };
 
+// the tail's last bone (the wolf has six, the Shiba Inu three)
+const TAIL_END = ['Tail6', 'Tail5', 'Tail4', 'Tail3'].find((n) => scene.getObjectByName(n));
 // the wolf's sides: .L is the animal's left; our rigs put leg0/leg2 at +x
 scene.updateMatrixWorld(true);
 const wp = (o) => o.getWorldPosition(new THREE.Vector3());
@@ -53,7 +55,7 @@ const sample = () => {
   const f = {
     hipY: P('Back').y,
     body: dir(P('Back'), P('Torso2')), chest: dir(P('Torso2'), P('Neck1')), neck: dir(P('Neck1'), P('Head')),
-    head: dir(P('Head'), at(node('Head'), restHeadTip)), tail: dir(P('Tail1'), P('Tail6')),
+    head: dir(P('Head'), at(node('Head'), restHeadTip)), tail: dir(P('Tail1'), P(TAIL_END)),
   };
   for (const k of [0, 1]) { // front legs: shoulder joint -> elbow, elbow -> foot
     const s = side[k];

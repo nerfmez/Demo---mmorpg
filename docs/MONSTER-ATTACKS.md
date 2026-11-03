@@ -57,7 +57,10 @@ session's network, so these come from search summaries of the cited pages.
    from a reference clip or real motion.
 3. Effects per layer, built live (never pasted pictures).
 4. Review in the game with the monster sandbox (`?fresh=1&monsterLab=<type>`): the attack looped on an
-   unharmed hero, slow motion and frame steps; a frame sheet from the game camera goes to the owner.
+   unharmed hero, slow motion and frame steps. **Every round goes to the owner as a video first** (owner,
+   2026-11-03: "ต้องส่ง video มาให้ดูก่อนทุกครั้ง"): `VIDEO=1 node tests/browser/monster-lab.mjs <type>` records
+   each attack stepped at 30 fps from the game camera and writes `<type>.mp4` (normal speed, then half speed);
+   a frame sheet may go with it.
 5. Record the round below and keep `docs/GODOT-PORT.md` accurate.
 
 ## Kits (proposed)

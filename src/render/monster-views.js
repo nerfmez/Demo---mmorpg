@@ -145,7 +145,7 @@ export function syncMonsterViews(view, dt, time) {
     let sc = r.baseScale * Math.min(1, 0.3 + mv.spawnT * 2.5);
     if (m.dead) {
       const k = Math.min(1, m.deathT / 1.4);
-      sc *= 1 - k * 0.35;
+      sc *= m.illusion ? 0.001 : 1 - k * 0.35; // an illusion is gone in its puff of leaves at once
       r.root.position.y = mv.y - k * k * 0.7;
       r.root.rotation.z = Math.min(1, m.deathT / 0.4) * 1.2;
     } else r.root.rotation.z = 0;

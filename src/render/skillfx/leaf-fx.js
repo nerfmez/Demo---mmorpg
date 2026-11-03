@@ -80,6 +80,15 @@ export class LeafFx {
     const s = this.f.swirl; s[i * 4] = cx; s[i * 4 + 1] = cz; s[i * 4 + 2] = r; s[i * 4 + 3] = rate;
     this.f.phase[i] = this.rnd() * 6.3;
   }
+  /** Keep leaf i alive and placed at (x, y, z), spinning flat (a boomerang); release() lets it go. */
+  hold(i, x, y, z, spin) {
+    const f = this.f, j = i * 3;
+    f.t[i] = Math.min(f.t[i], 0.1); f.life[i] = 9; f.swirl[i * 4 + 2] = -1;
+    f.p[j] = x; f.p[j + 1] = y; f.p[j + 2] = z; f.v[j] = f.v[j + 1] = f.v[j + 2] = 0;
+    f.rot[j] = -Math.PI / 2; f.rot[j + 1] = 0; f.rot[j + 2] = spin;
+    this.mesh.visible = true;
+  }
+  release(i) { const f = this.f; f.life[i] = f.t[i] + 0.2; f.swirl[i * 4 + 2] = 0; }
   update(dt, time = 0) {
     if (!this.mesh.visible) return;
     const f = this.f;
@@ -90,6 +99,13 @@ export class LeafFx {
       any = true;
       if (f.t[i] < 0 || f.t[i] >= f.life[i]) { this.mesh.setMatrixAt(i, HIDDEN); continue; }
       const k = f.t[i] / f.life[i], j = i * 3, sw = f.swirl[i * 4 + 2];
+      if (sw < 0) {
+        // held (a boomerang leaf): placed by hold() each frame
+        _q.setFromEuler(_e.set(f.rot[j], f.rot[j + 1], f.rot[j + 2], 'XZY'));
+        _m.compose(_p.set(f.p[j], f.p[j + 1], f.p[j + 2]), _q, _s.set(f.size[i], f.size[i], f.size[i]));
+        this.mesh.setMatrixAt(i, _m);
+        continue;
+      }
       if (sw > 0) {
         // circling a point, rising a little
         const ang = f.phase[i] + f.t[i] * f.swirl[i * 4 + 3];

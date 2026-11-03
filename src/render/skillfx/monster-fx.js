@@ -15,6 +15,7 @@ import { BITE_SHUT } from './bite-fx.js';
 import { lightSprite, glowTexture } from './light-kit.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
+const STONE_HALO = new THREE.Color('#e0b070'), STONE_RIM = new THREE.Color('#fff4dc'), DUST = 0xc8b48a;
 const PIN_HALO = new THREE.Color('#ff7a2a'), EAR = new THREE.Color('#ffd28a'), EAR_RIM = new THREE.Color('#fff4dc');
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 
@@ -27,6 +28,8 @@ export class MonsterFx {
     this.glow = lightSprite(scene, glowTexture('fire'), true, 8);
     this.glow.material.opacity = 0;
     this.glowOn = null;
+    this.rings = new Set(); // drum rings already drawn (area ids)
+    this.spinLeaf = -1; // the leaf instance riding a boomerang
   }
   rig(id) { return this.host.monsterRig?.(id) || null; }
   bonePos(id, bone, out) { const r = this.rig(id), b = r?.bones?.[bone]; if (!b) return null; b.updateWorldMatrix(true, false); return out.setFromMatrixPosition(b.matrixWorld); }
@@ -36,6 +39,7 @@ export class MonsterFx {
     // a strike whose look is 'light' (data/combat-fx.json monsters): claw marks of light raked across the prey
     const look = this.host.vfx?.monsterLook?.(e.type, e.name);
     if (look?.kind === 'light') { if (e.at) this.rake(e, look); return true; }
+    if (e.type === 'stone_pangolin') return this.pangolinSwing(e);
     if (e.type !== 'leaf_fox') return false;
     if (e.name === 'snap') {
       if (!e.at) return true; // a miss: the snap is in the pose alone
@@ -85,6 +89,7 @@ export class MonsterFx {
   /** A wind-up began: start its charge cue. */
   windup(e, g) {
     const m = g.monsterById?.(e.id);
+    if (m?.type === 'leaf_tanuki' && (e.name === 'drum' || e.name === 'boomerang' || e.name === 'doubles')) this.cues.push({ id: e.id, kind: 'tanuki_' + e.name, t: 0, total: e.total, next: 0 });
     if (m?.type !== 'leaf_fox') return;
     if (e.name === 'gust' || e.name === 'pounce') this.cues.push({ id: e.id, kind: e.name, t: 0, total: e.total, next: 0 });
   }
@@ -114,9 +119,64 @@ export class MonsterFx {
     if (n) this.leaves.burst(n.x, Math.max(0, n.y - 0.5), n.z, 8, 1.6);
   }
 
+  /** The pangolin's rake (two claw marks of light per hit, stone chips) and tail lash (a wide sweep behind it). */
+  pangolinSwing(e) {
+    const y = this.host.groundAt?.(e.x, e.z) ?? 0;
+    if (e.name === 'tail') {
+      // the tail swung round behind it: dust thrown along the arc's edge, a heavy mark on what it hits
+      const arc = (e.arc * Math.PI) / 180;
+      for (let i = 0; i < 9; i++) {
+        const a = e.angle + (i / 8 - 0.5) * arc, R = e.range * 0.85;
+        this.call.dust(e.x + Math.sin(a) * R, y + 0.15, e.z + Math.cos(a) * R, Math.sin(a) * 1.6, 0.5, Math.cos(a) * 1.6, 0.8, 0.5);
+      }
+      if (e.at) { this.companion.axes(); _v.set(e.at[0], 0.7, e.at[1]); this.companion.rake(_v, Math.sin(e.angle) >= 0 ? 1 : -1, 1, 0.85, 1.4, 0, STONE_HALO, STONE_RIM, 0); this.companion.glint(_v.x, _v.y, _v.z, 1.1, 0.03); this.onShake?.(0.1, 0.1); }
+      return true;
+    }
+    if (e.name === 'rake') {
+      if (e.at) {
+        this.companion.axes();
+        _v.set(e.at[0], 0.75, e.at[1]);
+        this.companion.rake(_v, e.hit === 2 ? -1 : 1, 2, 0.6, 1.0, 0.24, STONE_HALO, STONE_RIM, 0.02);
+        this.onShake?.(0.05, 0.07);
+      }
+      return true;
+    }
+    return false;
+  }
+  /** The pangolin's ball bounces off the end of its lane (core rebound): a ring of dust and stone. */
+  rebound(e) {
+    const y = this.host.groundAt?.(e.x, e.z) ?? 0;
+    this.call.ring(e.x, y + 0.1, e.z, 1.6, undefined, 0.35);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * 6.283; this.call.dust(e.x + Math.cos(a) * 0.5, y + 0.2, e.z + Math.sin(a) * 0.5, Math.cos(a) * 2, 0.6, Math.sin(a) * 2, 0.8, 0.5); }
+    this.onShake?.(0.1, 0.1);
+  }
+
+  /** A boomerang leaf hit (core impact of kind boomerang): two leaf cuts on the body it passed. */
+  leafCut(e, g) {
+    const p = g.player;
+    if (Math.hypot(p.x - e.x, p.z - e.z) > 1.5) return;
+    this.companion.axes();
+    this.companion.clawFx.mark(p.x, 0.85, p.z, 0.5, 0.9, e.back ? 0.6 : -0.6, e.back ? -1 : 1, LEAF_HALO, LEAF_RIM, 0, 0.3);
+    this.leaves.burst(p.x, 0.6, p.z, 4, 1.4);
+    this.onShake?.(0.04, 0.06);
+  }
+  /** The tanuki's doubles step out of a puff of leaves (core doubles), and an illusion popping (illusionPop). */
+  puff(x, z, n = 12) {
+    const y = this.host.groundAt?.(x, z) ?? 0;
+    this.leaves.burst(x, y + 0.3, z, n, 2.6);
+    for (let i = 0; i < 7; i++) { const a = (i / 7) * 6.283; this.call.dust(x + Math.cos(a) * 0.3, y + 0.4, z + Math.sin(a) * 0.3, Math.cos(a) * 1.2, 0.8, Math.sin(a) * 1.2, 0.9, 0.55); }
+  }
+  doubles(e, g) { this.puff(e.x, e.z, 16); for (const m of g.monsters) if (m.illusion?.of === e.id && !m.dead) this.puff(m.x, m.z, 10); }
+
   endCue(id) { for (const c of this.cues) if (c.id === id) c.t = c.total + 1; }
 
   update(dt, g) {
+    this.tanuki(g);
+    // a rolling pangolin kicks up dust behind it
+    for (const m of g.monsters) if (m.type === 'stone_pangolin' && m.charge && !m.charge.hop && Math.random() < 0.7) {
+      const y = this.host.groundAt?.(m.x, m.z) ?? 0;
+      this.call.dust(m.x, y + 0.15, m.z, (Math.random() - 0.5) * 0.8, 0.5, (Math.random() - 0.5) * 0.8, 0.7, 0.45);
+    }
     this.leaves.update(dt);
     let glowAt = null, glowK = 0;
     let live = 0;
@@ -133,6 +193,18 @@ export class MonsterFx {
         glowAt = t; glowK = k;
         c.next -= dt;
         if (c.next <= 0) { c.next = 0.09 - 0.05 * k; this.leaves.orbit(t.x, t.y + 0.1, t.z, 0.35 + 0.15 * k, 7 + 6 * k, 0.4, 0.22); }
+      } else if (c.kind === 'tanuki_drum') {
+        // the belly glows warm as it swells
+        const b = this.bonePos(c.id, 'chest', _w);
+        if (b) { glowAt = b; glowK = k; }
+      } else if (c.kind === 'tanuki_boomerang') {
+        // the leaf on its head lights up, then leaves gather round the cocked foreleg
+        const h = this.bonePos(c.id, k < 0.45 ? 'head' : 'leg0k', _w);
+        if (h) { if (k < 0.45) h.y += 0.35; glowAt = h; glowK = 0.5 + 0.5 * k; }
+      } else if (c.kind === 'tanuki_doubles') {
+        c.next -= dt;
+        const b = this.bonePos(c.id, 'body', _w);
+        if (b && c.next <= 0) { c.next = 0.06; this.leaves.orbit(b.x, b.y, b.z, 0.7, 9, 0.35, 0.26); }
       } else if (c.kind === 'pounce') {
         // listening: two little arcs of light pulse by its ears through the frozen part of the wind-up
         c.next -= dt;
@@ -150,6 +222,31 @@ export class MonsterFx {
     this.cues.length = live;
     if (glowAt) { this.glow.position.copy(glowAt); this.glow.scale.setScalar(1.2 + 0.8 * glowK); this.glow.material.opacity = 0.25 + 0.45 * glowK; this.glow.visible = true; }
     else if (this.glow.visible) { this.glow.material.opacity *= Math.exp(-dt * 18); if (this.glow.material.opacity < 0.02) this.glow.visible = false; }
+  }
+  /** The tanuki's drum rings (leaves running out on each ring as it leaves) and its leaf boomerang. */
+  tanuki(g) {
+    for (const a of g.areas) {
+      if (a.look !== 'drum' || a.t < a.delay || this.rings.has(a.id)) continue;
+      this.rings.add(a.id);
+      const y = this.host.groundAt?.(a.x, a.z) ?? 0, n = 14 + a.beat * 3, life = (a.maxRadius - a.radius) / a.growth;
+      for (let i = 0; i < n; i++) {
+        // a broken ring: leaves on about two thirds of the circle, riding out with the ring's edge
+        const ang = (i / n) * 6.283 + a.beat * 0.7;
+        if ((i + a.beat) % 3 === 0) continue;
+        this.leaves.leaf(a.x + Math.sin(ang) * 0.6, y + 0.25, a.z + Math.cos(ang) * 0.6, Math.sin(ang) * a.growth, 0.6, Math.cos(ang) * a.growth, 0.36 + 0.06 * a.beat, life + 0.15, 0.2);
+      }
+      this.call.ring(a.x, y + 0.08, a.z, a.maxRadius, undefined, life + 0.1);
+      this.onShake?.(a.knock ? 0.1 : 0.05, 0.08);
+    }
+    if (this.rings.size > 64) this.rings.clear();
+    // the leaf boomerang: one big leaf spinning flat along the projectile, a few small ones shed behind it
+    const pr = g.projectiles.find((q) => q.boomerang);
+    if (pr) {
+      const y = (this.host.groundAt?.(pr.x, pr.z) ?? 0) + (pr.y ?? 0.9);
+      if (this.spinLeaf < 0) this.spinLeaf = this.leaves.leaf(pr.x, y, pr.z, 0, 0, 0, 0.9, 9, 0, 0, null);
+      this.leaves.hold(this.spinLeaf, pr.x, y, pr.z, g.time * 22);
+      if (Math.random() < 0.35) this.leaves.leaf(pr.x, y, pr.z, -pr.vx * 0.1, 0.4, -pr.vz * 0.1, 0.22, 0.45, 2.5);
+    } else if (this.spinLeaf >= 0) { this.leaves.release(this.spinLeaf); this.spinLeaf = -1; }
   }
   clear() { this.leaves.clear(); this.cues.length = 0; this.glow.visible = false; }
 }

@@ -51,6 +51,10 @@ export function startMonsterLab({ game, view, root, input, data, type }) {
     }
     Object.assign(m, { x, z, homeX: x, homeZ: z, facing: Math.atan2(p.x - x, p.z - z), aggro: true, state: 'chase', stateT: 0, windup: null, charge: null, melee: null, targetUnit: p });
     if (m.dead || m.hp < m.maxHp * 0.2) Object.assign(m, { dead: false, hp: m.maxHp });
+    // an attack kept for a hurt monster (use.hpBelow) gets it hurt; a once-a-fight one may go again; old doubles go
+    if (u.hpBelow) m.hp = Math.min(m.hp, m.maxHp * u.hpBelow * 0.8);
+    m.used = null;
+    for (const o of game.monsters) if (o.illusion && !o.dead) game.killMonster(o);
     // the camera goes straight to the middle of the two
     view.focusShift ||= { x: 0, z: 0 };
     view.focusShift.x = (x - p.x) * 0.5; view.focusShift.z = (z - p.z) * 0.5;

@@ -201,3 +201,57 @@ test('leaf tanuki doubles: once, when hurt; the copies never attack, pop at a to
   step(1);
   assert.notEqual(m.windup?.name, 'doubles', 'only once');
 });
+
+test('stone pangolin rake: two claw hits at their own times, in its arc only', () => {
+  const a = M.stone_pangolin.attacks.rake;
+  const { m, hits, step, until, place, only } = arena('stone_pangolin', 17);
+  only('rake'); place(1);
+  until(() => m.state === 'act');
+  step(a.hits[0].at - 0.03);
+  assert.equal(hits.length, 0, 'nothing before the first hit');
+  until(() => m.state === 'recover');
+  assert.equal(hits.length, 2, 'two hits');
+  const b = arena('stone_pangolin', 17);
+  b.only('rake'); b.place(1);
+  b.until(() => b.m.state === 'act');
+  Object.assign(b.g.player, { x: 0, z: -3 }); // behind it
+  b.until(() => b.m.state === 'recover');
+  assert.equal(b.hits.length, 0, 'not behind it');
+});
+
+test('stone pangolin tail lash: only at what stands behind it, without turning, once, knocking back', () => {
+  const { m, hits, until, step, place, only, g } = arena('stone_pangolin', 17);
+  only('tail');
+  place(1); // in front: no tail lash
+  step(0.5);
+  assert.notEqual(m.windup?.name, 'tail', 'not at what is in front');
+  m.state = 'chase';
+  Object.assign(g.player, { x: 0, z: -(m.r + g.player.r + 1) }); // behind
+  until(() => m.state === 'windup' && m.windup.name === 'tail');
+  assert.equal(m.facing, 0, 'it does not turn');
+  until(() => m.state === 'recover');
+  assert.equal(hits.length, 1, 'one lash');
+  step(1);
+  assert.equal(hits.length, 1);
+});
+
+test('stone pangolin rebound roll: down its lane, back along it (a unit can be hit once each way), then dizzy', () => {
+  const a = M.stone_pangolin.attacks.roll;
+  const { m, hits, until, place, only, g } = arena('stone_pangolin', 17);
+  only('roll'); place(5);
+  until(() => m.state === 'act');
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.charge?.back, 3);
+  until(() => m.state === 'stunned', 3);
+  assert.ok(hits.length >= 1 && hits.length <= 2, 'at most once each way');
+  assert.ok(Math.abs(m.stateDur - a.dizzy) < 1e-9, 'dizzy after it');
+  assert.equal(m.charge, null);
+  // beside the lane: never hit
+  const b = arena('stone_pangolin', 17);
+  b.only('roll'); b.place(5);
+  b.until(() => b.m.state === 'windup' && b.m.stateT > b.m.windup.total * 0.6);
+  Object.assign(b.g.player, { x: 3, z: b.g.player.z });
+  b.until(() => b.m.state === 'stunned', 4);
+  assert.equal(b.hits.length, 0, 'beside the lane');
+  void g;
+});

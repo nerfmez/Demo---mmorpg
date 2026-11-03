@@ -211,7 +211,7 @@ function idle(game, m, dt, slowMult) {
 }
 
 /** Walk toward a point. Returns true when arrived. */
-function walkTo(game, m, x, z, speed, dt) {
+function walkTo(game, m, x, z, speed, dt, turn = 8) {
   const d = dist(m.x, m.z, x, z);
   // rooted (Net Trap): no walking of any kind, home included, until it wears off
   if (m.statuses?.root && d >= 0.3) { m.moving = false; return false; }
@@ -220,7 +220,7 @@ function walkTo(game, m, x, z, speed, dt) {
     return true;
   }
   const a = angleTo(m.x, m.z, x, z);
-  turnToward(m, a, dt, 8);
+  turnToward(m, a, dt, turn);
   const step = Math.min(d, speed * dt);
   const before = { x: m.x, z: m.z };
   game.moveEntity(m, Math.sin(a) * step, Math.cos(a) * step);
@@ -242,7 +242,8 @@ function startWindup(game, m, name, t, extra = {}) {
   const atk = m.def.attacks[name];
   const tempo = m.enraged ? 0.85 : 1;
   setState(m, 'windup');
-  const angle = t ? angleTo(m.x, m.z, t.x, t.z) : m.facing;
+  // keepFacing: an attack made without turning (the pangolin's tail lash at what is behind it)
+  const angle = t && !atk.keepFacing ? angleTo(m.x, m.z, t.x, t.z) : m.facing;
   m.windup = { name, total: atk.windup * tempo, angle, ...extra };
   m.stealth = false; // every wind-up is shown in full
   m.facing = angle;
@@ -256,7 +257,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'mirror_ring', 'drum', 'doubles'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'mirror_ring', 'drum', 'doubles'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -542,6 +543,22 @@ function act(game, m, dt, t) {
     }
   }
   const moved = dist(before.x, before.z, m.x, m.z);
+  const ratk = m.def.attacks[m.windup?.name];
+  if (!c.hop && ratk?.rebound && !c.back && ((res && res.blockedHard && moved < c.speed * dt * 0.4 && c.t > 0.08) || c.t >= c.dur)) {
+    // a rebound roll (the pangolin): at the end of its lane, or off whatever it struck, it bounces back along
+    // the same lane, able to hit each unit once more on the way
+    Object.assign(c, { back: true, angle: c.angle + Math.PI, t: 0, dur: ratk.rebound, speed: c.speed * (ratk.reboundSpeed ?? 0.8) });
+    c.hit.clear();
+    game.emit({ type: 'rebound', id: m.id, x: m.x, z: m.z, angle: c.angle });
+    return;
+  }
+  if (!c.hop && c.back && ratk?.dizzy && (c.t >= c.dur || (res && res.blockedHard && moved < c.speed * dt * 0.4))) {
+    // after the rebound it uncurls dizzy: the punish window
+    m.charge = null;
+    m.cd[m.windup.name] = ratk.cooldown;
+    game.emit({ type: 'stunned', id: m.id, x: m.x, z: m.z, dizzy: true });
+    return setState(m, 'stunned', ratk.dizzy);
+  }
   if (!c.hop && res && res.blockedHard && moved < c.speed * dt * 0.4 && c.t > 0.08) {
     // ran into a rock, tree, pillar or cliff: stunned. Positioning matters.
     m.charge = null;
@@ -872,6 +889,8 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   for (const name of names) {
     const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
     if ((u.hpBelow && m.hp > m.maxHp * u.hpBelow) || (u.once && m.used?.[name])) continue;
+    // behind: only for a target at its back (more than 100 degrees off its facing)
+    if (u.behind && Math.abs(angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z))) < 1.75) continue;
     reach = Math.min(reach, max);
     soon = Math.min(soon, m.cd[name]);
     if (m.cd[name] > 0 || gap < (u.min ?? 0) || gap > max) continue;
@@ -879,10 +898,10 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   }
   const circle = def.kit?.circle;
   if (circle && soon > 0.6) return strafe(game, m, dt, t, dToT, circle[0], circle[1], def.speed * slowMult);
-  if (gap > reach * 0.8) walkTo(game, m, t.x, t.z, def.speed * slowMult, dt);
+  if (gap > reach * 0.8) walkTo(game, m, t.x, t.z, def.speed * slowMult, dt, def.kit?.turn);
   else {
     m.moving = false;
-    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 6);
+    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, def.kit?.turn ?? 6);
   }
 }
 

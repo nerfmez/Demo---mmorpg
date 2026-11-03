@@ -2,6 +2,16 @@
 // assets/meshy/forest, prepared for the game with scripts/prep-monster-glb.py and weighted by
 // data/models.json). Their attacks follow docs/MONSTER-ATTACKS.md: the body's pose tells each one.
 //
+// Leaf tanuki: the same bones, moved by the pack's Shiba Inu clips (the stockiest dog in it;
+// data/beast-clips-shiba.json): it rears up to drum its belly (the beast animator's rear, as the bear), beating
+// on each ring; it bows to pluck the leaf off its head, cocks a foreleg back and flings it; it whirls about in
+// place before its doubles pop out of a puff of leaves.
+//
+// Stone pangolin: the same bones on a low, armoured body; it walks by the Shiba Inu clips (no free pangolin clip
+// exists), its attacks are posed here: it rears and rakes with its digging claws, swings its tail round behind it
+// without turning (head looking back over its shoulder), and for the roll it tucks its head in and its tail over
+// into a ball that spins along the lane, bounces and rolls back, then uncurls wobbling.
+//
 // Leaf fox: the wolf rig's bones, moved by the CC0 Fox clips of Quaternius' Ultimate Animated Animals
 // (data/beast-clips-fox.json, scripts/beast-clips/extract.mjs) - walk, gallop, idle, the bite, the leap and
 // the head-low sniff - never guessed angles. Its kit's beats on top of them:
@@ -13,8 +23,9 @@ import * as THREE from 'three';
 import { RigBuilder, clamp01 } from './rig.js';
 import { animBeast, clipSet, HIT } from './beast-clips.js';
 import FOX_CLIPS from '../../data/beast-clips-fox.json';
+import SHIBA_CLIPS from '../../data/beast-clips-shiba.json';
 
-const FOX = clipSet(FOX_CLIPS);
+const FOX = clipSet(FOX_CLIPS), SHIBA = clipSet(SHIBA_CLIPS);
 const sph = (r, w = 10, h = 8) => new THREE.SphereGeometry(r, w, h);
 const smooth = (x) => x * x * (3 - 2 * x);
 const _q = new THREE.Quaternion(), _e = new THREE.Euler();
@@ -104,7 +115,164 @@ function animLeafFox(r, s, dt, time) {
   if (headUp) nudge(b.head, -headUp, Math.sin(time * 1.3) * 0.04 * earPrick, 0.12 * earPrick);
 }
 
+function buildLeafTanuki() {
+  // bones at the model's joints (data/models.json leaf_tanuki, rig space after its 0.85 scale)
+  const C = { fur: '#8a6648', cream: '#efe2c8', dark: '#3a2a20', leaf: '#6aa04a' };
+  const rb = new RigBuilder({ outline: 0.02, darkness: 0.34 });
+  rb.bone('body', 'root', [0, 0.405, -0.1275]);
+  rb.bone('chest', 'body', [0, 0.043, 0.425]);
+  rb.bone('neck', 'chest', [0, 0.042, 0.17]);
+  rb.bone('head', 'neck', [0, 0.043, 0.1275]);
+  rb.bone('jaw', 'head', [0, -0.187, 0.136]);
+  rb.bone('tail', 'body', [0, 0.043, -0.2125]);
+  rb.add('body', sph(0.32).scale(1.1, 0.9, 1.2), C.fur, { pos: [0, 0.02, 0.15] });
+  rb.add('head', sph(0.24).scale(1.3, 1, 1), C.fur, { pos: [0, 0.05, 0.08] });
+  rb.add('head', sph(0.1).scale(1.2, 0.8, 1), C.cream, { pos: [0, -0.04, 0.24] });
+  rb.add('head', sph(0.08).scale(1.2, 0.4, 1.4), C.leaf, { pos: [0, 0.28, 0.06] });
+  rb.add('tail', sph(0.2).scale(1, 1.3, 1.6), C.dark, { pos: [0, 0.18, -0.2] });
+  const legs = [['leg0', 'chest', [0.255, -0.102, 0.2125], [0, -0.1105, 0.068]], ['leg1', 'chest', [-0.255, -0.102, 0.2125], [0, -0.1105, 0.068]],
+    ['leg2', 'body', [0.2805, -0.0845, 0], [0.0255, -0.1705, -0.0255]], ['leg3', 'body', [-0.2805, -0.0845, 0], [-0.0255, -0.1705, -0.0255]]];
+  for (const [n, parent, at, knee] of legs) {
+    rb.bone(n, parent, at);
+    rb.bone(n + 'k', n, knee);
+    rb.add(n, new THREE.CylinderGeometry(0.06, 0.05, 0.16, 6).translate(0, -0.08, 0), C.dark);
+    rb.add(n + 'k', new THREE.CylinderGeometry(0.05, 0.05, 0.14, 6).translate(0, -0.07, 0), C.dark);
+  }
+  const rig = rb.build();
+  rig.height = 0.95;
+  rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
+  return rig;
+}
+
+function animLeafTanuki(r, s, dt, time) {
+  const a = s.attack, P = r.pose, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  let pose = null, belly = 1, arm = 0, armSide = 0, head = 0, spin = 0, drumHit = 0;
+  s.standT = 0;
+  if (s.windup === 'drum' || (s.state === 'recover' && s.lastAttack === 'drum' && a?.beats)) {
+    // it rears onto its hind legs and drums its belly: swelling through the wind-up, a beat on each ring
+    const total = a.windup + a.beats * a.beat + 0.25, t = s.windup ? s.windupT : a.windup + s.actT;
+    s.standTotal = total; s.standT = Math.max(0, total - t);
+    pose = { clip: 'idle', u: 0, w: 0 }; // no bite clip under the rear
+    if (s.windup) { belly = 1 + 0.12 * smooth(k); arm = -0.9 * smooth(k); }
+    else {
+      const b = s.actT / a.beat, ph = b - Math.floor(b), on = s.actT < a.beats * a.beat ? Math.max(0, 1 - ph * 5) : 0;
+      drumHit = on; belly = 1 + 0.12 * (1 - on) - 0.1 * on; arm = -0.9 + 1.0 * on;
+    }
+  } else if (s.windup === 'boomerang') {
+    // it bows to pluck the leaf off its head, then rears a little with a foreleg cocked back to throw
+    const pluck = smooth(clamp01(k / 0.45)), cock = smooth(clamp01((k - 0.45) / 0.45));
+    head = 0.35 * pluck * (1 - cock) - 0.15 * cock;
+    arm = -2.0 * pluck * (1 - cock) - 1.6 * cock; armSide = -0.4 * cock;
+    pose = { clip: 'attack', u: 0.1 * cock, w: 0.6 * cock };
+  } else if (s.state === 'recover' && s.lastAttack === 'boomerang') {
+    // the fling: the foreleg snaps forward across, then settles
+    const t = clamp01(s.actT / 0.12), back = clamp01((s.actT - 0.2) / 0.3);
+    arm = (-1.6 + 2.4 * smooth(t)) * (1 - back); armSide = (-0.4 + 0.8 * t) * (1 - back);
+    pose = { clip: 'attack', u: 0.42 + 0.3 * t, w: 0.8 * (1 - back) };
+  } else if (s.windup === 'doubles') {
+    // paws together, then a whirl in place as the puff comes
+    arm = -1.2 * smooth(clamp01(k / 0.3)); armSide = 0.5 * smooth(clamp01(k / 0.3));
+    spin = Math.PI * 2 * smooth(clamp01((k - 0.55) / 0.45));
+    pose = { clip: 'idle', u: 0, w: 0 };
+  }
+  if (pose) Object.assign(P, { leap: 0 }, pose);
+  s.pose = pose ? P : null;
+  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.4, gallopFrom: 2.4, gallopFull: 4, rate: 1.1, rear: true });
+  const b = r.bones;
+  b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
+  if (arm || armSide) { nudge(b.leg0, arm, 0, armSide); nudge(b.leg1, s.windup === 'boomerang' || s.lastAttack === 'boomerang' ? arm * 0.25 : arm, 0, -armSide); }
+  if (head) nudge(b.head, head, 0, 0);
+  if (spin) nudge(b.body, 0, spin, 0);
+  r.drumHit = drumHit;
+}
+
+function buildStonePangolin() {
+  // bones at the model's joints (data/models.json stone_pangolin, rig space after its 0.9 scale)
+  const C = { stone: '#d8c8a4', dark: '#5a4a38', moss: '#7c9a4a' };
+  const rb = new RigBuilder({ outline: 0.022, darkness: 0.34 });
+  rb.bone('body', 'root', [0, 0.421, 0]);
+  rb.bone('chest', 'body', [0, -0.045, 0.405]);
+  rb.bone('neck', 'chest', [0, -0.045, 0.153]);
+  rb.bone('head', 'neck', [0, -0.018, 0.117]);
+  rb.bone('tail', 'body', [0, -0.045, -0.315]);
+  rb.add('body', sph(0.42).scale(1.2, 0.85, 1.4), C.stone, { pos: [0, 0.05, 0] });
+  rb.add('chest', sph(0.26).scale(1.1, 0.8, 1), C.stone);
+  rb.add('head', new THREE.ConeGeometry(0.14, 0.32, 6).rotateX(Math.PI / 2), C.stone, { pos: [0, 0, 0.12] });
+  rb.add('tail', new THREE.ConeGeometry(0.22, 0.6, 6).rotateX(-Math.PI / 2), C.stone, { pos: [0, -0.12, -0.3] });
+  const legs = [['leg0', 'chest', [0.198, -0.09, 0.153], [0.018, -0.117, 0.09]], ['leg1', 'chest', [-0.198, -0.09, 0.153], [-0.018, -0.117, 0.09]],
+    ['leg2', 'body', [0.315, -0.09, 0.09], [0.09, -0.162, 0.018]], ['leg3', 'body', [-0.315, -0.09, 0.09], [-0.09, -0.162, 0.018]]];
+  for (const [n, parent, at, knee] of legs) {
+    rb.bone(n, parent, at);
+    rb.bone(n + 'k', n, knee);
+    rb.add(n, new THREE.CylinderGeometry(0.07, 0.06, 0.14, 6).translate(0, -0.07, 0), C.dark);
+    rb.add(n + 'k', new THREE.ConeGeometry(0.06, 0.14, 5).translate(0, -0.07, 0.04), C.dark);
+  }
+  const rig = rb.build();
+  rig.height = 0.85;
+  rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
+  rig.spin = 0;
+  return rig;
+}
+
+function animStonePangolin(r, s, dt, time) {
+  const a = s.attack, P = r.pose, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  let pose = null, rear = 0, claw = 0, clawA = 0, clawB = 0, tailSwing = 0, look = 0, curl = 0, roll = false, wobble = 0;
+  if (s.windup === 'rake') {
+    // up on its hind legs, the digging claws raised
+    rear = 0.5 * smooth(k); claw = -1.5 * smooth(k);
+    pose = { clip: 'idle', u: 0, w: 0 };
+  } else if (s.state === 'act' && s.lastAttack === 'rake') {
+    // two rakes down across, right then left, on the rules' hit times
+    const h = a?.hits || [{ at: 0.12 }, { at: 0.3 }], t = s.actT;
+    const one = smooth(clamp01(t / h[0].at)), two = smooth(clamp01((t - h[0].at) / (h[1].at - h[0].at)));
+    rear = 0.5 - 0.35 * one;
+    clawA = -1.5 + 1.9 * one; clawB = -1.5 + 1.9 * two; // the right claw rakes on the first hit, the left on the second
+    pose = { clip: 'idle', u: 0, w: 0 };
+  } else if (s.windup === 'tail') {
+    // it looks back over its shoulder and draws the tail round to the other side
+    look = 1.1 * smooth(k); tailSwing = -0.9 * smooth(k);
+    pose = { clip: 'idle', u: 0, w: 0 };
+  } else if ((s.state === 'act' || s.state === 'recover') && s.lastAttack === 'tail') {
+    const t = s.state === 'act' ? s.actT : 0.45 + s.actT, sw = smooth(clamp01(t / 0.15)), back = clamp01((t - 0.45) / 0.4);
+    look = 1.1 * (1 - back); tailSwing = (-0.9 + 2.2 * sw) * (1 - back);
+    pose = { clip: 'idle', u: 0, w: 0 };
+  } else if (s.windup === 'roll') {
+    // it tucks into a ball, rocking on the spot as it winds up
+    curl = smooth(clamp01(k / 0.6)); wobble = Math.sin(time * 18) * 0.12 * clamp01((k - 0.6) / 0.4);
+    pose = { clip: 'idle', u: 0, w: 0 };
+  } else if (s.state === 'act' && s.lastAttack === 'roll') {
+    curl = 1; roll = true;
+    pose = { clip: 'idle', u: 0, w: 0 };
+  } else if (s.state === 'stunned' && s.lastAttack === 'roll') {
+    // uncurling, dizzy: it sways and its head lolls
+    curl = clamp01(1 - s.actT / 0.35); wobble = Math.sin(time * 9) * 0.18;
+  }
+  if (pose) Object.assign(P, { leap: 0 }, pose);
+  s.pose = pose ? P : null;
+  s.standT = 0;
+  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.3, gallopFrom: 3, gallopFull: 5, rate: 0.85 });
+  const b = r.bones;
+  if (rear) nudge(b.body, -rear, 0, 0);
+  if (claw) { nudge(b.leg0, claw, 0, -0.2); nudge(b.leg1, claw, 0, 0.2); }
+  if (clawA || clawB) { nudge(b.leg0, clawA, 0, -0.3 * (1 - clawA)); nudge(b.leg1, clawB, 0, 0.3 * (1 - clawB)); }
+  if (look) { nudge(b.neck, 0, look * 0.6, 0); nudge(b.head, 0, look * 0.6, 0); nudge(b.chest, 0, look * 0.3, 0); }
+  if (tailSwing) nudge(b.tail, -0.3 * Math.abs(tailSwing), tailSwing, 0);
+  if (curl) {
+    // a ball: head and chest tucked down and under, the tail up and over, legs drawn in
+    nudge(b.chest, 0.9 * curl, 0, 0); nudge(b.neck, 0.8 * curl, 0, 0); nudge(b.head, 0.9 * curl, 0, 0);
+    nudge(b.tail, -1.6 * curl, 0, 0);
+    for (const n of ['leg0', 'leg1', 'leg2', 'leg3']) nudge(b[n], (n < 'leg2' ? 1.2 : -1.2) * curl, 0, 0);
+  }
+  // rolling: the ball spins about its own middle, faster the faster it goes
+  r.spin = roll ? r.spin + dt * 16 : r.spin * Math.exp(-dt * 10);
+  if (roll || Math.abs(r.spin % (Math.PI * 2)) > 0.01) nudge(b.body, roll ? r.spin : 0, 0, 0);
+  if (wobble) nudge(b.body, 0, 0, wobble);
+  b.body.position.y += 0.08 * curl;
+}
+
 export const FOREST_BUILDERS = {
   leaf_fox: [buildLeafFox, animLeafFox],
+  leaf_tanuki: [buildLeafTanuki, animLeafTanuki],
+  stone_pangolin: [buildStonePangolin, animStonePangolin],
 };
-export const FOREST_SCALE = { leaf_fox: 1 };
+export const FOREST_SCALE = { leaf_fox: 1, leaf_tanuki: 1, stone_pangolin: 1 };

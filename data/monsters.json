@@ -1484,6 +1484,7 @@
           "cooldown": 20
         },
         "drum": {
+          "tell": "ring",
           "use": {"max": 2.6},
           "range": 4.5,
           "windup": 0.8,
@@ -1539,7 +1540,11 @@
     "stone_pangolin": {
       "name": "Stone Pangolin",
       "nameTh": "ตัวนิ่มหิน",
-      "behavior": "charger",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: armoured and slow to turn. Up close it rears and rakes twice with its digging claws; anyone standing behind it gets the tail lashed across without it turning; from range it curls into a ball and rolls down a lane, bounces back along it, then uncurls dizzy.",
+      "kit": {
+        "turn": 2.2
+      },
       "hp": 1100,
       "damage": 100,
       "defense": 100,
@@ -1550,22 +1555,45 @@
       "exp": 24,
       "jobExp": 16,
       "attacks": {
-        "bite": {
-          "range": 1.7,
-          "windup": 0.4,
-          "recover": 0.6,
-          "cooldown": 1.4,
-          "damageMult": 1
+        "tail": {
+          "kind": "rake",
+          "tell": "sector",
+          "tellOff": 3.1416,
+          "keepFacing": true,
+          "use": {"max": 2.4, "behind": true},
+          "range": 2.4,
+          "arc": 160,
+          "windup": 0.7,
+          "duration": 0.45,
+          "hits": [{"at": 0.15, "off": 3.1416, "knock": 3}],
+          "recover": 0.7,
+          "cooldown": 4,
+          "damageMult": 1.1
         },
-        "charge": {
-          "minRange": 3,
-          "maxRange": 8,
-          "windup": 0.75,
-          "speed": 13,
-          "duration": 0.65,
-          "recover": 0.9,
-          "cooldown": 5,
-          "damageMult": 1.6
+        "rake": {
+          "kind": "rake",
+          "use": {"max": 1.7},
+          "range": 1.7,
+          "arc": 100,
+          "windup": 0.5,
+          "duration": 0.45,
+          "hits": [{"at": 0.12, "off": -0.35}, {"at": 0.3, "off": 0.35}],
+          "recover": 0.6,
+          "cooldown": 2.2,
+          "damageMult": 0.75
+        },
+        "roll": {
+          "kind": "charge",
+          "use": {"min": 3, "max": 9},
+          "windup": 0.9,
+          "speed": 11,
+          "duration": 0.6,
+          "rebound": 0.55,
+          "reboundSpeed": 0.8,
+          "dizzy": 1.2,
+          "recover": 0.6,
+          "cooldown": 7,
+          "damageMult": 1.5
         }
       },
       "drops": [

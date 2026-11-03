@@ -117,6 +117,9 @@ try {
     await activate('[data-act="craft-ready"]');
     assert.ok(await page.locator('.recipe-card').count() > 0);
     assert.equal(await page.locator('.recipe-card [data-act="craft-open"]:disabled').count(), 0);
+    // a crafted grade raises the vest's AGI requirement (grade A needs AGI 8): the fixture brings the stat,
+    // so whichever grade the roll gives, the wear step below can be tested
+    await page.evaluate(() => { const g = window.__frontier.game; g.ch.stats.AGI = Math.max(g.ch.stats.AGI, 20); g.refresh(); });
     await activate('[data-act="craft-open"][data-id="hide_vest"]');
     await activate('[data-act="craft"][data-id="hide_vest"]');
     const made = await page.evaluate(() => window.__frontier.game.ch.gear.at(-1).uid);

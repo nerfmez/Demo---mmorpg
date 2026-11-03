@@ -286,3 +286,38 @@
 .workshop .ws-stage-top small { color: #d5d5ba !important; }
 .workshop .ws-equipped { font-size: 11px; color: #427956; }
 .workshop .ws-result-card { flex-wrap: wrap; }
+/* reorganised (owner 2026-11-03: content first, iPad and phone): the panel already names the page, so the
+   workshop's own title, subtitle and idle instruction go; the mode tabs and the "near the table" note
+   share one slim row */
+.workshop { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-content: start; }
+.workshop > :not(.ws-heading):not(.ws-modes) { grid-column: 1 / -1; }
+.workshop .ws-heading { grid-column: 2; grid-row: 1; margin: 0; align-self: center; }
+.workshop .ws-heading > div:first-child { display: none; }
+.workshop .ws-location small { display: none; }
+.workshop .ws-modes { grid-column: 1; grid-row: 1; margin: 0 0 10px; gap: 4px; }
+.workshop .ws-modes button { min-height: 44px; padding: 4px 12px 6px; gap: 8px; }
+.workshop .ws-modes b { font-size: 14px; }
+.workshop .ws-modes small { display: none; }
+.workshop .ws-modes svg { width: 18px; height: 18px; }
+.workshop .ws-notice.is-ready { display: none; }
+.workshop .ws-section-label { margin-bottom: 8px; }
+.workshop h2 { font-size: 15px; }
+/* every screen: the library's subtitle and the search's label are hints, not content */
+.workshop .ws-library-head { margin-bottom: 8px; }
+.workshop .ws-library-head h2 { font-size: 15px; }
+.workshop .ws-library-head p, .workshop .ws-search > span { display: none; }
+.workshop .ws-categories { margin-bottom: 8px; }
+/* a phone held sideways: tabs, categories and filters one slim scrolling row each */
+@media (max-height: 520px) and (orientation: landscape) {
+  .workshop { padding: 8px 10px 12px; }
+  .workshop .ws-modes { margin-bottom: 6px; }
+  .workshop .ws-modes button { min-height: 40px; padding: 2px 10px; }
+  .workshop .ws-modes b { font-size: 13px; }
+  .workshop .ws-heading { font-size: 11px; }
+  .workshop .ws-categories, .workshop .ws-filter { flex-wrap: nowrap; overflow-x: auto; gap: 4px; margin-bottom: 6px; scrollbar-width: none; }
+  .workshop .ws-categories button, .workshop .ws-filter button { min-height: 40px; padding: 2px 10px; font-size: 11.5px; white-space: nowrap; flex: none; }
+  .workshop .ws-search { margin-bottom: 6px; }
+  .workshop .ws-search input { height: 40px; }
+  .workshop .ws-layout { gap: 10px; }
+  .workshop .ws-section-label { margin-bottom: 4px; }
+}

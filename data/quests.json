@@ -444,18 +444,18 @@
     "s_job": {
       "name": "Choose Your Path",
       "nameTh": "เลือกทางของตัวเอง",
-      "descTh": "ลงทุนแต้มในต้นไม้อาชีพไปถึงโหนดอาชีพตามเงื่อนไขที่แสดงในเมนู ไม่บังคับให้ทุกคนเลือกทางเดียวกัน",
+      "descTh": "ถึง Job Lv 40 แล้วเลือกอาชีพหนึ่งในสิบสองที่ปลายทางของสมุดเส้นทางสกิล ไม่บังคับให้ทุกคนเลือกทางเดียวกัน",
       "type": "job",
       "count": 1,
       "reward": {
-        "gold": 90,
-        "exp": 245
+        "gold": 300,
+        "exp": 4800
       },
-      "level": 9,
+      "level": 40,
       "requires": [
         "h_craft"
       ],
-      "objectiveTextTh": "ปลดโหนดอาชีพ 1 โหนด",
+      "objectiveTextTh": "เลือกอาชีพที่ Job Lv 40",
       "chapter": "shared-road",
       "category": "optional",
       "objectives": [
@@ -463,7 +463,7 @@
           "id": "primary",
           "type": "job",
           "count": 1,
-          "labelTh": "ปลดโหนดอาชีพ 1 โหนด",
+          "labelTh": "เลือกอาชีพที่ Job Lv 40",
           "menu": "job"
         }
       ]

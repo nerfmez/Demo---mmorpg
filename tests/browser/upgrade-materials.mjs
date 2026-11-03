@@ -9,8 +9,8 @@ const engine=process.env.BROWSER==='webkit'?webkit:chromium;
 const out=new URL('./out/upgrade-materials-'+engine.name()+'/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
 const result=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'UpgradeIntegration',formats:['iife']}}});
 const code=result[0].output.find(f=>f.type==='chunk').code;
-let css=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','skill-journal/journal','loadout-workspace','workshop','skill-bars'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
-for(const w of [400,600])css+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${readFileSync(new URL(`../../src/ui/skill-journal/fonts/noto-thai-${w}.ttf`,import.meta.url)).toString('base64')});font-weight:${w}}`;
+let css=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','wheel','loadout-workspace','workshop','skill-bars'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
+for(const w of [400,600])css+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${readFileSync(new URL(`../../src/ui/fonts/noto-thai-${w}.ttf`,import.meta.url)).toString('base64')});font-weight:${w}}`;
 const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox']:[]});
 const reports=[];
 try{for(const [label,width,height,touch] of [['desktop',1440,900,false],['ipad',1180,820,true]]){

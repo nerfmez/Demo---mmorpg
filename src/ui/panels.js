@@ -14,7 +14,6 @@ import { tagsHtml, rulesHtml, TAGS as TAG_TH } from './buildmeta.js';
 import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
-import { isWheelTree } from './wheel-view.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse, jobChoiceLevel } from '../core/character.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
@@ -202,8 +201,7 @@ export class Panels {
     if (this.tab !== tab) this.sel.detail = false;
     this.tab = tab;
     this.overlay.classList.toggle('is-hub', tab === 'menu');
-    this.overlay.classList.toggle('is-journal', tab === 'job' && !isWheelTree(this.game.data));
-    this.overlay.classList.toggle('is-wheel', tab === 'job' && isWheelTree(this.game.data));
+    this.overlay.classList.toggle('is-wheel', tab === 'job');
     this.overlay.classList.toggle('is-atelier', LOADOUT_TABS.has(tab));
     this.overlay.classList.add('on');
     document.body.classList.add('panel-open');
@@ -228,7 +226,7 @@ export class Panels {
     this.cleanJobNetwork?.();
     this.cleanJobNetwork = null;
     this.tab = null;
-    this.overlay.classList.remove('on', 'is-journal', 'is-wheel', 'is-atelier', 'is-hub');
+    this.overlay.classList.remove('on', 'is-wheel', 'is-atelier', 'is-hub');
     document.body.classList.remove('panel-open');
     document.body.classList.remove('loadout-open');
     this.lastResult = null;
@@ -288,7 +286,7 @@ export class Panels {
     // pages whose columns scroll on their own (the workshop) keep each column's place across a re-render
     const INNER = '.ws-layout > *, .ws-craft-detail-layout > *, .ws-recipes, .ws-gear-list';
     const inner = top ? [] : [...this.body.querySelectorAll(INNER)].map((el) => el.scrollTop);
-    if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal,.wheel-tree')){this.jobJournal.refresh();return;}
+    if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.wheel-tree')){this.jobJournal.refresh();return;}
     this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
     if (this.tab === 'growth') patchBars(this);

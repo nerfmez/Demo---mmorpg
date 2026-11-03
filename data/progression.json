@@ -121,13 +121,14 @@
     "_farmDoc": "goldFindPct/materialFindPct/gearFindPct (Ranger farming line, hunter arrows) raise gold, material chances and gear drop chances on kills, up to caps; they add nothing to the power score."
   },
   "job": {
-    "maxLevel": 40,
+    "_doc": "The wheel Job Tree (data/jobtree.json, phase C 2026-11-03): Job Lv 1-39 give the inner ring's 39 points, the job is chosen at Job Lv 40 (its entry is free) and Job Lv 40-70 give the job's 31 points. expCurve.base 15 keeps Job Lv near the character level: Job 40 at the monster cap (character Lv 40), Job 70 at character Lv 70 (tests/core/balance-model.test.js).",
+    "maxLevel": 70,
     "expCurve": {
-      "base": 18,
+      "base": 15,
       "exponent": 1.8
     },
     "pointsPerLevel": 1,
-    "jobChoiceLevel": 5
+    "jobChoiceLevel": 40
   },
   "respec": {
     "_doc": "Town only. Gold only: no rare items, no real money.",
@@ -419,7 +420,6 @@
           "gravity_rune": "its worth is drawing a pack onto our other traps and areas, which the build profile does not measure (it scores only its small hit)",
           "chain_spark": "a main skill since the main line moved to 2.4 s (its MP now lasts on regeneration), it scores under its weapon's reference main; awaiting the skill growth rebalance (phase 3)",
           "whirl_blade": "a main skill since the main line moved to 2.4 s (its MP now lasts on regeneration), it scores under its weapon's reference main; awaiting the skill growth rebalance (phase 3)",
-          "thunderstorm": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3; the wheel draft brings it into band with skillScale)",
           "stone_guardian": "over its class band once MP is priced (potions an emergency aid, docs/SKILL-GROWTH-TH.md phase 1); awaiting the skill growth rebalance (phase 3)",
           "charged_shot": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
           "frontline_split": "costs more cast time and MP than it adds (control or positioning may be under-measured)",
@@ -475,11 +475,11 @@
       }
     },
     "farming": {
-      "_doc": "A Ranger who takes the whole farming line and shoots hunter arrows must out-earn a same-level sword hero after paying for the arrows, but the arrows must cost a noticeable share (tests/core/balance-model.test.js).",
+      "_doc": "A Hunter who takes the whole forager branch (the wheel tree) and shoots hunter arrows must out-earn a same-level sword hero after paying for the arrows, but the arrows must cost a noticeable share (tests/core/balance-model.test.js). find is that branch plus the arrows, capped.",
       "find": {
-        "goldFindPct": 49,
-        "materialFindPct": 37.3,
-        "gearFindPct": 37.3
+        "goldFindPct": 32,
+        "materialFindPct": 50,
+        "gearFindPct": 25
       },
       "arrow": "arrows_hunter",
       "plainArrow": "arrows_tusk",

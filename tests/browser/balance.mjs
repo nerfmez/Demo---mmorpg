@@ -21,7 +21,6 @@ try{
   const click=async selector=>{const l=page.locator(selector).first();return touch?l.tap():l.click();};
   const shot=async label=>page.screenshot({path:out+size+'-'+label+'.png',timeout:60000});
   const open=async tab=>page.evaluate(tab=>window.__frontier.panels.open(tab),tab);
-  const jump=async id=>{await page.locator('#node-search').fill(data.jobtree.nodes[id].nameTh);await click('.seeker-node-search button');await click(`.seeker-search-result[data-id="${id}"]`);};
   const overflow=async()=>assert.ok(await page.locator('.pbody').evaluate(el=>el.scrollWidth<=el.clientWidth+2),size+' content overflow');
   const feed='[data-act="skill-feed"][data-skill="slash"][data-crystal="skill_crystal"][data-n="1"]';
   assert.ok(await page.locator(feed).isDisabled(),'a skill never levels past the character, even with crystals');
@@ -59,12 +58,7 @@ try{
   await click('[data-act="return-craft"]');assert.equal(await page.locator('.craft-workspace').getAttribute('data-recipe'),'tusk_blade');assert.equal(await page.locator('.craft-result').count(),7);
   await click('[data-act="craft-back"]');await click('[data-act="craft-open"][data-id="hunter_bow"]');assert.equal(await page.locator('.craft-result').count(),0,'another recipe has its own history');
   await click('[data-act="craft-back"]');await click('[data-act="craft-open"][data-id="tusk_blade"]');assert.equal(await page.locator('.craft-result').count(),7,'recipe and goals persist through comparison and switching');
-  await open('job');await jump('v2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.seeker-node-detail').innerText(),/ต่อจากโหนด/);
-  await jump('v1');await click('[data-act="take-node"]');await jump('v2');await click('[data-act="take-node"]');await jump('v5');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.journal-tier-status').innerText(),/2\/3/);
-  await jump('m_atk');await click('[data-act="take-node"]');await jump('v5');await click('[data-act="take-node"]');await jump('vj');await click('[data-act="take-node"]');
-  assert.ok(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('vj')));await jump('v9');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.journal-tier-status').innerText(),/5\/17/);
-  assert.equal(await page.locator('.journal-section').count(),6);await click('[data-act="dismiss-node"]');await click('[data-fit]');await shot('tree');
-  assert.deepEqual(errors,[],size+' browser errors');reports.push({size,touch,rankGates:true,gradeAffixes:true,wearStatRequirements:true,dedicatedWorkshop:true,boundedCraft:true,connectedTree:true,ok:true});await ctx.close();
+  assert.deepEqual(errors,[],size+' browser errors');reports.push({size,touch,rankGates:true,gradeAffixes:true,wearStatRequirements:true,dedicatedWorkshop:true,boundedCraft:true,ok:true});await ctx.close();
  }
  const ctx=await browser.newContext({viewport:{width:1180,height:900},deviceScaleFactor:1}),page=await ctx.newPage();
  for(const kind of ['skill','gear','material','mod']){

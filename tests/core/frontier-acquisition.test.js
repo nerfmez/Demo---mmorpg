@@ -63,7 +63,8 @@ test('v9 prototype and v12 main saves retain IDs, loadouts and auto-potion setti
  const main=createCharacter(data);main.version=12;delete main.movementMods;assert.deepEqual(migrateCharacter(main,data).movementMods,[]);
  }finally{delete globalThis.localStorage;}
 });
-test('tree revision 3 selective refund and v13 movement migration coexist exactly once',()=>{
+// the wheel tree (phase C) shares no node with the earlier trees: every owned node comes back as a free point
+test('the wheel tree refunds every earlier node and v13 movement migration coexists exactly once',()=>{
  for(const version of [9,12,13])for(const hasSocket of [false,true]){
   const ch=createCharacter(data);ch.version=version;ch.treeRevision=2;ch.jobPoints=7;
   ch.jobNodes=['origin','v1','vj','path.precision','advanced.flow','line.damage.mastery.10','bridge.physical-damage.2','removed-node','bridge.physical-damage.2'];
@@ -71,7 +72,7 @@ test('tree revision 3 selective refund and v13 movement migration coexist exactl
   if(hasSocket)ch.movementMods=[801];else delete ch.movementMods;
   ch.autoPotions.hp={enabled:true,threshold:37,potion:'hp_potion_s'};
   const before=structuredClone(ch),m=migrateCharacter(ch,data);
-  assert.equal(m.version,CHARACTER_VERSION);assert.equal(m.treeRevision,3);assert.equal(m.jobPoints,9);assert.deepEqual(m.jobNodes,before.jobNodes.slice(0,6));assert.deepEqual(m.movementMods,hasSocket?[801]:[]);
+  assert.equal(m.version,CHARACTER_VERSION);assert.equal(m.treeRevision,data.jobtree.revision);assert.equal(m.jobPoints,7+7,'seven distinct nodes refunded');assert.deepEqual(m.jobNodes,['origin']);assert.deepEqual(m.movementMods,hasSocket?[801]:[]);
   for(const key of ['slots','mods','nextUid','movementSkills','movement','gear','equipped','gold','materials'])assert.deepEqual(m[key],before[key],version+'/'+key);
   assert.deepEqual(m.skills,{...before.skills,charged_shot:4},version+'/skills');
   if(version>=12)assert.deepEqual(m.autoPotions,before.autoPotions);

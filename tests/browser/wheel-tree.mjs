@@ -1,5 +1,5 @@
 // Focused capture for the wheel Job Tree as the field journal of maps (owner's "สมุดเส้นทางสกิล",
-// 2026-11-03; ?tree=wheel until phase C): the compass, the camp, a sector map with a route inked in one
+// 2026-11-03; the game's Job Tree since phase C): the compass, the camp, a sector map with a route inked in one
 // go, a job destination chosen, a branch map with its fork, the jobs compass and a phone sheet.
 // node tests/browser/wheel-tree.mjs [outDir]   (BROWSER=webkit for the iPad engine)
 import assert from 'node:assert/strict';
@@ -9,7 +9,7 @@ import { mkdirSync } from 'node:fs';
 import { freezeScene } from './freeze-scene.mjs';
 const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
 const S = process.argv[2] || `tests/browser/out/wheel-tree-${engine.name()}`, port = 4192;
-const url = `http://localhost:${port}/?fresh=1&load=dev&quality=low&seed=5&tree=wheel`;
+const url = `http://localhost:${port}/?fresh=1&load=dev&quality=low&seed=5`;
 const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
 mkdirSync(S, { recursive: true });
 const errors = [];

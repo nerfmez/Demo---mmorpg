@@ -63,7 +63,7 @@ try {
     const def = g.data.skills.combat.call_companion;
     g.ch.skills.call_companion = 1; g.ch.slots[1] = { skill: 'call_companion', mods: [] };
     g.derived.weaponType = 'bow'; g.refreshSkills();
-    g.ch.jobNodes = [...g.ch.jobNodes, 'rj']; g.refresh(); g.derived.weaponType = 'bow'; g.refreshSkills();
+    g.ch.jobNodes = [...g.ch.jobNodes, 'job.hunter.trunk1']; g.refresh(); // the Hunter's companion-fetch node g.derived.weaponType = 'bow'; g.refreshSkills();
     g.spawnAllies(g.skills[1], p.x + 1.5, p.z);
     const a = g.allies.find((q) => q.companion); if (a) a.arriveT = 0;
     // a drop on open ground the companion can run to: 7-10 m from the hero, free and outside the settlement

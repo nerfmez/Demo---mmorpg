@@ -2,14 +2,9 @@
 // position. Every read/write is guarded: private mode or blocked storage just means no save,
 // never a crash. Export/import codes let a save move between browsers or devices.
 // A published branch under /lab/ must never migrate or overwrite the main game's save.
-// The wheel Job Tree preview (?tree=wheel, src/data.js) loads a different tree: a main save opened there would
-// migrate away its tree allocations, so it keeps its own three slots too (import a main save's code to try it).
-const IS_LAB = typeof location !== 'undefined' && /\/lab(?:\/|$)/.test(location.pathname);
-const IS_WHEEL = typeof location !== 'undefined' && new URLSearchParams(location.search || '').get('tree') === 'wheel';
-export const IS_PREVIEW = IS_LAB || IS_WHEEL;
-const NS = IS_LAB ? 'frontier.preview.' : IS_WHEEL ? 'frontier.wheel.' : 'frontier.';
-const PREFIX = NS + 'slot.';
-const LAST = NS + 'lastSlot';
+export const IS_PREVIEW = typeof location !== 'undefined' && /\/lab(?:\/|$)/.test(location.pathname);
+const PREFIX = IS_PREVIEW ? 'frontier.preview.slot.' : 'frontier.slot.';
+const LAST = IS_PREVIEW ? 'frontier.preview.lastSlot' : 'frontier.lastSlot';
 const LEGACY = 'frontier-demo.save.v1';
 export const SLOT_COUNT = 3;
 

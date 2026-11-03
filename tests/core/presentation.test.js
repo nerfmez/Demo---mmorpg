@@ -12,7 +12,7 @@ test('every named content entry has distinct authored artwork within its categor
   gear:Object.keys(data.items.gearBases),material:Object.keys(data.items.materials),
   skill:[...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)],
   mod:Object.keys(data.mods.mods),monster:Object.keys(data.monsters.monsters),
-  zone:[...new Set([...data.world.zones,...legacyData.world.zones].map(z=>z.id))],job:Object.entries(data.jobtree.nodes).filter(([,n])=>!n.stage).map(([id])=>id)
+  zone:[...new Set([...data.world.zones,...legacyData.world.zones].map(z=>z.id))]
  };
  assert.deepEqual(Object.keys(SHARED_MONSTER_PORTRAITS).sort(),
   ['salt_slime','tusk_boar','thornback_wolf','greyfang','reed_viper','marsh_wisp'].map(id=>'monster/'+id).sort(),

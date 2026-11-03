@@ -63,16 +63,17 @@ test('bosses are long, readable fights at their level', () => {
 test('skill and mod rank gates, and the job tree, are reachable within the monster cap', () => {
   // a skill levels with the character, up to maxLevel: every mod socket step is reachable by the cap
   assert.ok(data.mods.slotLevels.every((L) => L <= cap) && data.progression.skillUpgrade.maxLevel >= cap);
-  // Job points from same-level kills reach the top job-tree section by the cap.
-  let job = 1, exp = 0;
-  for (let L = 1; L < cap; L++) {
-    const m = referenceMonster(data, L);
+  // the wheel tree (phase C): same-level kills bring the job choice (Job Lv 40) by the monster cap, and the
+  // job's last point (Job Lv 70) by the character's top level, still fighting cap monsters past the cap
+  let job = 1, exp = 0, atCap = 0;
+  for (let L = 1; L < data.progression.character.maxLevel; L++) {
+    const m = referenceMonster(data, Math.min(L, cap));
     exp += (expToNext(data, L) / m.exp) * m.jobExp;
     while (job < data.progression.job.maxLevel && exp >= jobExpToNext(data, job)) { exp -= jobExpToNext(data, job); job++; }
+    if (L + 1 === cap) atCap = job;
   }
-  const top = Math.max(...Object.values(data.jobtree.sections).map((s) => s.requiresSpent || 0));
-  assert.ok((job - 1) * data.progression.job.pointsPerLevel >= top, `job Lv${job} at character Lv${cap}`);
-  assert.ok(job >= data.progression.job.jobChoiceLevel);
+  assert.ok(atCap >= data.progression.job.jobChoiceLevel, `job Lv${atCap} at character Lv${cap}: the job choice is in reach`);
+  assert.equal(job, data.progression.job.maxLevel, 'the whole job line by the top character level');
 });
 
 test('quest rewards are a share of a level at the quest level', () => {
@@ -93,12 +94,12 @@ test('the reference hero is built from real rules: its main skill and the expect
   }
 });
 
-test('the Ranger farming line out-earns a sword hero after paying for its arrows', async () => {
+test('a farming hunter out-earns a sword hero after paying for its arrows', async () => {
   const { farmingIncome } = await import('../../src/core/balance.js');
   const F = data.progression.balance.farming;
-  // The treasure line plus hunter arrows, as the game grants them (capped).
-  const { lineEffects } = await import('../../src/core/balance.js');
-  const line = lineEffects(data, 'line.treasure'), caps = data.progression.character.caps;
+  // The Hunter's forager branch plus hunter arrows, as the game grants them (capped)
+  const caps = data.progression.character.caps, line = {};
+  for (const [id, n] of Object.entries(data.jobtree.nodes)) if (id.startsWith('job.hunter.forager.')) for (const [k, v] of Object.entries(n.effects || {})) line[k] = (line[k] || 0) + v;
   for (const k of ['goldFindPct', 'materialFindPct', 'gearFindPct']) {
     const sum = Math.min(caps[k], (line[k] || 0) + (data.items.arrows.types.hunter_arrow.stats[k] || 0));
     assert.ok(Math.abs(sum - F.find[k]) < 0.05, `${k}: the model uses what the game grants (${sum})`);
@@ -114,77 +115,18 @@ test('the Ranger farming line out-earns a sword hero after paying for its arrows
   }
 });
 
-test('every build line can be followed independently with no mandatory filler', async () => {
-  const { createCharacter, jobNodeState, allocateJobNode } = await import('../../src/core/character.js');
-  const { linePath } = await import('../../src/core/balance.js');
-  const lines = [...new Set(Object.values(data.jobtree.nodes).filter((n) => n.line).map((n) => n.line))];
-  assert.ok(lines.length >= 9);
-  const points = data.progression.job.maxLevel - 1;
-  for (const id of lines) {
-    const ch = createCharacter(data);
-    ch.jobLevel = data.progression.job.maxLevel;
-    ch.jobPoints = points;
-    for (const node of linePath(data, id)) {
-      if (!ch.jobPoints) break;
-      const st = jobNodeState(ch, data, node);
-      assert.ok(st.can, `${id}: ${node} ${st.reason}`);
-      allocateJobNode(ch, data, node);
-    }
-    assert.equal(ch.jobPoints, 1, `${id} has 38 meaningful investments; the spare point is freely placed`);
-    const left = linePath(data, id).filter((n) => !ch.jobNodes.includes(n)).length;
-    assert.equal(left, 0, `${id} has a little room past the cap (${left})`);
-  }
-});
-
-test('build lines only give, stay inside the caps alone, and pure lines are about equally strong', async () => {
-  const { linePath, lineEffects, balanceAt } = await import('../../src/core/balance.js');
-  const caps = data.progression.character.caps, lines = [...new Set(Object.values(data.jobtree.nodes).filter((n) => n.line).map((n) => n.line))];
-  for (const id of lines) for (const [k, v] of Object.entries(lineEffects(data, id))) {
-    assert.ok(v > 0, `${id} ${k} is a bonus, never a penalty`);
-    const soft = data.progression.character.softCaps, eff = soft.stats.includes(k) && v > soft.threshold ? soft.threshold + (v - soft.threshold) * soft.overflowFactor : v;
-    if (caps[k] > 0) assert.ok(eff + (k === 'critChancePct' ? data.progression.character.baseCritChancePct : 0) <= caps[k] + 1e-9, `${id} ${k} ${eff} fits its cap ${caps[k]}`);
-  }
-  const fits = { sword: ['damage', 'crit', 'speed', 'physical'], bow: ['damage', 'crit', 'speed', 'physical'], staff: ['damage', 'crit', 'speed', 'element'] };
-  for (const [kit, list] of Object.entries(fits)) {
-    const base = balanceAt(data, kit, cap).dps;
-    const gains = list.map((l) => balanceAt(data, kit, cap, linePath(data, 'line.' + l).slice(0, 39)).dps / base);
-    // Independent lines no longer include free-standing melee prerequisites.
-    for (const [i, g] of gains.entries()) assert.ok(g >= 1.4 && g <= 2.05, `${kit} ${list[i]} line ${g.toFixed(2)}x`);
-    assert.ok(Math.max(...gains) / Math.min(...gains) <= 1.45, `${kit}: no line dwarfs another (${gains.map((g) => g.toFixed(2))})`);
-  }
-  const guard = balanceAt(data, 'sword', cap, linePath(data, 'line.guardian').slice(0, 39)).ttd / balanceAt(data, 'sword', cap).ttd;
-  assert.ok(guard >= 1.4, `the guardian line survives longer (${guard.toFixed(2)}x)`);
-});
-
 test('fast casting runs out of MP in a long fight unless MP is taken too', async () => {
-  const { linePath, longFightDps } = await import('../../src/core/balance.js');
-  const speed = linePath(data, 'line.speed'), mana = linePath(data, 'line.mana');
+  const { longFightDps } = await import('../../src/core/balance.js');
+  const N = data.jobtree.nodes, MP = ['maxMpPct', 'mpRegenPct', 'mpOnHit', 'manaCostReductionPct'];
+  const speed = Object.keys(N).filter((id) => N[id].effects?.hastePct > 0 && !MP.some((k) => N[id].effects[k]));
+  const mana = Object.keys(N).filter((id) => MP.some((k) => N[id].effects?.[k] > 0) && !N[id].effects.hastePct);
   const pure = longFightDps(data, 'staff', cap, speed.slice(0, 39));
   assert.equal(pure.manaLimited, true, 'a pure speed caster is MP-bound in a boss fight');
-  const mixed = longFightDps(data, 'staff', cap, [...new Set([...speed.slice(0, 24), ...mana.filter((id) => !speed.includes(id)).slice(0, 15)])]);
+  const mixed = longFightDps(data, 'staff', cap, [...speed.slice(0, 24), ...mana.slice(0, 15)]);
   // every main attack lasts on regeneration at the reference pace (content-budget.test.js), so only
   // the extra speed runs dry: MP still pays, by less than when the main attack itself overspent, and
   // less again since base MP regeneration grows a little with level (owner, 2026-10-29); at the Lv40 cap
   // (levels stretched 1.625x, the per-level regen with them) the margin is small: still a gain, reported
   assert.ok(mixed.dps > pure.dps * 1.02, `speed with MP (${mixed.dps}) beats speed alone (${pure.dps}) in a long fight`);
 });
-
-test('each displayed line forks locally, with no bridge shortcut',()=>{
- const N=data.jobtree.nodes;
- for(const stage of data.jobtree.presentation.stages)for(const page of stage.paths.filter(p=>p.line)){
-  assert.equal(new Set(page.nodes.map(id=>N[id].line)).size,1);
-  for(const id of page.nodes){assert.ok(page.grid[id]);assert.ok([...N[id].requires,...N[id].requiresAny||[]].every(p=>page.nodes.includes(p)));}
-  if(!page.id.endsWith('mastery'))assert.equal(N[page.nodes.find(id=>id.endsWith('.join'))].requiresAny.length,2);
- }
-});
-test('mixing lines that suit each other is as viable as staying pure', async () => {
-  const { linePath, balanceAt } = await import('../../src/core/balance.js');
-  const P = (l) => linePath(data, 'line.' + l);
-  const mix = (a, b) => [...new Set([...P(a).slice(0, 20), ...P(b).filter((x) => !P(a).includes(x))])].slice(0, 39);
-  const at = (kit, list) => { const base = balanceAt(data, kit, cap), r = balanceAt(data, kit, cap, list); return { dps: r.dps / base.dps, ttd: r.ttd / base.ttd }; };
-  const bow = at('bow', mix('crit', 'speed'));
-  assert.ok(bow.dps >= Math.min(at('bow', P('crit').slice(0, 39)).dps, at('bow', P('speed').slice(0, 39)).dps), `bow crit+speed ${bow.dps.toFixed(2)}x`);
-  const tank = at('sword', mix('physical', 'guardian'));
-  assert.ok(tank.dps >= 1.45 && tank.ttd >= 1.3, `sword physical+guardian ${tank.dps.toFixed(2)}x damage, ${tank.ttd.toFixed(2)}x survival`);
-  assert.ok(at('staff', mix('element', 'mana')).dps >= 1.45, 'a staff can mix element with MP');
-});
+// the wheel's builds (overpowered, no weakness, roles, budget): tests/core/build-rules.test.js

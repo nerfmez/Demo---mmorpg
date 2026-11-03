@@ -42,14 +42,9 @@ jobs:
         if: steps.scope.outputs.ui == 'true'
       - run: npx playwright install --with-deps ${{ matrix.browser }}
         if: steps.scope.outputs.ui == 'true'
-      - name: Fullscreen travel journal and engraved modifier gems
+      - name: Wheel Job Tree journal (sector maps, route ink, job choice, fork, phone)
         if: steps.scope.outputs.ui == 'true'
-        run: node tests/browser/journal.mjs
-        env:
-          BROWSER: ${{ matrix.browser }}
-      - name: Journal page turns, audio and lifecycle
-        if: steps.scope.outputs.ui == 'true'
-        run: node tests/browser/skill-journal.mjs
+        run: node tests/browser/wheel-tree.mjs
         env:
           BROWSER: ${{ matrix.browser }}
       - name: Fullscreen pause governs journal modals
@@ -62,29 +57,14 @@ jobs:
         run: node tests/browser/workspaces.mjs
         env:
           BROWSER: ${{ matrix.browser }}
-      - name: Compact cards and atomic prerequisite route upgrades
-        if: steps.scope.outputs.ui == 'true'
-        run: node tests/browser/journal-route-upgrade.mjs
-        env:
-          BROWSER: ${{ matrix.browser }}
-      - name: Journal build lines, paged stages and wrapped line pages
-        if: steps.scope.outputs.ui == 'true'
-        run: node tests/browser/journal-lines.mjs
-        env:
-          BROWSER: ${{ matrix.browser }}
-      - name: Independent skill line hubs, readable phone forks and canonical bridge purchases
-        if: steps.scope.outputs.ui == 'true'
-        run: node tests/browser/skill-lines.mjs
-        env:
-          BROWSER: ${{ matrix.browser }}
       - name: Wearable character level, crafting and equipped previews
         if: steps.scope.outputs.ui == 'true'
         run: node tests/browser/wearable-level.mjs
         env:
           BROWSER: ${{ matrix.browser }}
-      - name: Saved character Continue, atomic route allocation, reload and respec
+      - name: Saved character Continue, earlier tree refunded, wheel route, reload and respec
         if: steps.scope.outputs.ui == 'true'
-        run: node tests/browser/journal-route-save.mjs
+        run: node tests/browser/wheel-save.mjs
         env:
           BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@v4
@@ -93,9 +73,8 @@ jobs:
           name: seeker-ui-review-${{ matrix.browser }}
           path: |
             tests/browser/out/workspaces*
-            tests/browser/out/journal*
-            tests/browser/out/skill-journal/
-            tests/browser/out/skill-lines/
+            tests/browser/out/wheel-tree-*/
+            tests/browser/out/wheel-save/
             tests/browser/out/fullscreen-overlays-*/
           if-no-files-found: ignore
           retention-days: 7

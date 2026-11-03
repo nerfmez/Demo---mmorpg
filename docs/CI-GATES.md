@@ -35,7 +35,7 @@ credentials, hosting, billing or account settings are changed.
    `ci-source.txt` is never rewritten to disguise a reused build's origin.
 
 Every runtime plan includes `boot` and `save`: real title/create/appearance/kit,
-rendered startup, save/reload/Continue, plus atomic journal purchase and reload.
+rendered startup, save/reload/Continue, plus a wheel Job Tree route purchase and reload (`wheel-save.mjs`: an earlier tree's save is refunded once).
 Each selected suite runs its existing assertions/viewports in Chromium and WebKit.
 A release always runs these safeguards even for documentation-only changes.
 
@@ -43,7 +43,7 @@ A release always runs these safeguards even for documentation-only changes.
 | --- | --- |
 | AI/combat/monsters/damage/projectiles/VFX | combat, monster identity, smoke |
 | World/terrain/map/harbor/environment | world travel, smoke |
-| Character/save/progression/skills/job tree/mods | opening, journal upgrade, skill lines |
+| Character/save/progression/skills/job tree/mods | opening, journal (the wheel tree, `wheel-tree.mjs`) |
 | Equipment/crafting/items/weapons/loot/shop/potions | equipment focus, weapons, items |
 | Unknown UI component | menu, HUD, overlays |
 | Shared/unknown runtime, build, dependencies, CI infrastructure | smoke, combat, menu, HUD |

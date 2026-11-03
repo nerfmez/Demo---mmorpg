@@ -85,13 +85,13 @@ test('local CSS and own-page UI have explicit consumers without a blanket UI all
 });
 test('mixed shared/core/save/dependencies, unknown UI/CSS and new journal modules select bounded safety', () => {
   for (const path of ['src/ui/style.css', 'src/ui/panels.js', 'src/ui/workshop.css', 'src/ui/workshop-view.js',
-    'src/core/quests.js', 'src/save.js', 'package-lock.json', 'src/ui/skill-journal/new.js', 'new.css'])
+    'src/core/quests.js', 'src/save.js', 'package-lock.json', 'src/ui/wheel-new.js', 'new.css'])
     assertBounded(browserPlan(['public/assets/icons/gear/wisp_staff.png', path]).suites);
 });
 test('full postmerge/manual inventory owns all legacy UI/HUD scripts before premerge narrowing', () => {
   const legacy = [
-    'journal', 'skill-journal', 'fullscreen-overlays', 'workspaces', 'journal-route-upgrade', 'journal-lines',
-    'skill-lines', 'wearable-level', 'journal-route-save', 'fieldhud', 'smoke', 'ux',
+    // the old skill journal's scripts went with it at phase C; the wheel journal and its save gate replace them
+    'wheel-tree', 'fullscreen-overlays', 'workspaces', 'wearable-level', 'wheel-save', 'fieldhud', 'smoke', 'ux',
   ];
   const scripts = browserPlan([], { full: true }).suites.flatMap(suite => SUITES[suite]);
   for (const name of legacy) assert.equal(scripts.filter(script => script === `${name}.mjs`).length, 1, name);

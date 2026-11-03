@@ -248,7 +248,9 @@ export function migrateCharacter(ch, data) {
     ch.jobPoints = (ch.jobPoints || 0) + refunded;
     ch.jobNodes = retained.includes(data.jobtree.origin) ? retained : [data.jobtree.origin, ...retained];
     ch.treeRevision = data.jobtree.revision;
-    ch.progress.balanceMigration = `แยกกลุ่มอิสระ: เก็บโหนดเดิม คืนแต้มสะพานหรือโหนดที่ยกเลิก ${refunded} แต้ม`;
+    ch.progress.balanceMigration = data.jobtree.jobs
+      ? `สกิลทรีใหม่ (วงล้อ): คืนแต้มจ็อบทั้งหมด ${refunded} แต้ม ลงใหม่ได้ฟรี · เลือกอาชีพที่ Job Lv ${jobChoiceLevel(data)}`
+      : `แยกกลุ่มอิสระ: เก็บโหนดเดิม คืนแต้มสะพานหรือโหนดที่ยกเลิก ${refunded} แต้ม`;
   }
   for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;
   if ((ch.version || 1) < 6 || !ch.arrows) {

@@ -28,7 +28,8 @@ const shell = (script, dir, env = {}) => spawnSync('bash', ['-e', '-o', 'pipefai
 test('PR78 actual-game details regression has exactly one mandatory equipment owner', () => {
   assert.deepEqual(SUITES.equipment, ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs']);
   const all = Object.values(SUITES).flat();
-  assert.equal(all.length, 34 + Number('equipment-inactive' in SUITES));
+  // phase C: four old skill-journal scripts left the inventory (journal-motion, journal-upgrade, journal-lines, skill-lines)
+  assert.equal(all.length, 30 + Number('equipment-inactive' in SUITES));
   assert.equal(new Set(all).size, all.length);
   assert.deepEqual(browserPlan(['tests/browser/details-game-touch.mjs']).suites, ['boot', 'equipment', 'save']);
 });
@@ -49,10 +50,10 @@ test('bounded edits retain quick routing, boot, saves and the equipment menu con
   assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs']).suites, ['boot', 'menu', 'save']);
   for (const suite of ['boot', 'equipment', 'weapons', 'menu', 'ux', 'workspaces', 'hud'])
     assert.ok(browserPlan(['src/ui/equipment-avatar.js']).suites.includes(suite));
-  for (const path of ['src/ui/menu.js', 'src/ui/skill-journal/journal.js']) {
+  for (const path of ['src/ui/menu.js', 'src/ui/wheel-view.js']) {
     assert.ok(browserPlan([path]).suites.includes('boot'), path);
   }
-  assert.ok(browserPlan(['src/ui/skill-journal/journal.js']).suites.includes('save'));
+  assert.ok(browserPlan(['src/ui/wheel-view.js']).suites.includes('save'));
 });
 test('shared, save, unknown and mixed/renamed runtime paths select bounded safety', () => {
   for (const path of ['src/main.js', 'src/save.js', 'data/items.json', 'src/ui/panels.js', 'src/render/view.js',

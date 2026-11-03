@@ -22,7 +22,7 @@ try{
    assert.ok(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));
    await page.screenshot({path:`${out}/${id}-${width}x${height}.png`});
    checks.push({id,width,height,box});
-   if(id==='job')await page.locator('.skill-journal [data-action="exit"]').tap();
+   if(id==='job')await page.locator('.wheel-tree [data-f="exit"]').tap();
    else if(id!=='menu')await page.locator('.panel-back').tap();
    if(id==='job')await page.evaluate(()=>__frontier.panels.open('menu'));
   }

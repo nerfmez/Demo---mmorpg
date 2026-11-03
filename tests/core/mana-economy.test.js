@@ -10,7 +10,7 @@ import { Game } from '../../src/core/game.js';
 import { createCharacter, derive } from '../../src/core/character.js';
 import { computeSkill } from '../../src/core/skills.js';
 import { optionRange } from '../../src/core/crafting.js';
-import { linePath, longFightDps } from '../../src/core/balance.js';
+import { longFightDps } from '../../src/core/balance.js';
 
 const C = data.skills.combat, M = data.mods.mods;
 const strong = { STR: 60, DEX: 60, INT: 60, AGI: 60, VIT: 60, LUK: 5 };
@@ -101,11 +101,16 @@ test('MP on hit options roll small, on attack gear only; spell gear rolls MP reg
 });
 
 test('pushing speed and mods without MP leaves an attacker MP-bound and weaker; taking MP fixes it', () => {
-  const cap = data.progression.balance.monsterCap, speed = linePath(data, 'line.speed'), mana = linePath(data, 'line.mana');
+  // the wheel's nodes that give speed and no MP, and those that give MP and no speed (any job: the rule is the
+  // economy, not one tree path)
+  const N = data.jobtree.nodes, MP = ['maxMpPct', 'mpRegenPct', 'mpOnHit', 'manaCostReductionPct'];
+  const speed = Object.keys(N).filter((id) => N[id].effects?.hastePct > 0 && !MP.some((k) => N[id].effects[k]));
+  const mana = Object.keys(N).filter((id) => MP.some((k) => N[id].effects?.[k] > 0) && !N[id].effects.hastePct);
+  const cap = data.progression.balance.monsterCap;
   const mods = ['multistrike', 'wide_arc', 'fire_shift', 'life_leech'];
   const plain = longFightDps(data, 'sword', cap, speed.slice(0, 39));
   const greedy = longFightDps(data, 'sword', cap, speed.slice(0, 39), 90, mods);
-  assert.equal(greedy.manaLimited, true, 'four mods and the speed line with no MP run dry in a long fight');
+  assert.equal(greedy.manaLimited, true, 'four mods and the speed nodes with no MP run dry in a long fight');
   assert.ok(greedy.dps < plain.dps, `greedy ${greedy.dps} falls below the bare skill ${plain.dps}`);
   const mixed = longFightDps(data, 'sword', cap, [...new Set([...speed.slice(0, 24), ...mana.filter((id) => !speed.includes(id)).slice(0, 15)])], 90, mods);
   assert.ok(mixed.dps > greedy.dps * 1.5, `taking MP (${mixed.dps}) pays off over ignoring it (${greedy.dps})`);

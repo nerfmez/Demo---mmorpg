@@ -70,7 +70,7 @@ try{
  for(let pass=0;pass<2;pass++){
   await page.waitForFunction(()=>__frontier.weaponModelsReady());await page.reload();await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);await activate('[data-act="continue"]');await ready();
   const migrated=await page.evaluate(()=>{__frontier.paused=true;__frontier.save();return __frontier.game.snapshot();});
-  assert.equal(migrated.version,CHARACTER_VERSION);assert.equal(migrated.treeRevision,state.treeRevision);assert.equal(migrated.jobPoints,9);assert.deepEqual(migrated.jobNodes,legacy.jobNodes.slice(0,6));
+  assert.equal(migrated.version,CHARACTER_VERSION);assert.equal(migrated.treeRevision,state.treeRevision);assert.equal(migrated.jobPoints,7+7,'the wheel refunds every earlier node');assert.deepEqual(migrated.jobNodes,['origin']);
   for(const key of ['skills','mods','slots','movement','movementMods','nextUid','autoPotions','gear','equipped'])assert.deepEqual(migrated[key],legacy[key],'combined migration '+key);
  }
  assert.deepEqual(errors,[]);

@@ -100,12 +100,12 @@ try {
   await activate('.quick-actions [aria-label="สกิล"]');assert.equal(await page.locator('#atelier .loadout-window h1').textContent(),'ชุดสกิล');
   await activate('#atelier [data-action="close"]');
   await activate('.menu-toggle');await activate('.hub-tile[data-go="job"]');
+  // the Job Tree is the wheel tree's journal (phase C), a book that takes the screen; its exit stays in reach
   const panel=await page.locator('.panel').boundingBox();
-  assert.ok(panel.x>=10&&panel.y>=10&&panel.x+panel.width<=width-10&&panel.y+panel.height<=height-10,size+' journal stays bounded');
-  assert.ok(panel.width*panel.height<=width*height*.88,size+' leaves useful scene space');
-  const exit=await page.locator('.skill-journal [data-action="exit"]').evaluate(el=>{const r=el.getBoundingClientRect();return {w:r.width,h:r.height,font:parseFloat(getComputedStyle(el).fontSize),hit:el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))};});
+  assert.ok(panel.x>=0&&panel.y>=0&&panel.x+panel.width<=width+1&&panel.y+panel.height<=height+1,size+' journal stays on screen');
+  const exit=await page.locator('.wheel-tree [data-f="exit"]').evaluate(el=>{const r=el.getBoundingClientRect();return {w:r.width,h:r.height,font:parseFloat(getComputedStyle(el).fontSize),hit:el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))};});
   assert.ok(exit.w>=44&&exit.h>=44&&exit.font>=12&&exit.hit,size+' journal close is readable and reachable '+JSON.stringify(exit));
-  await activate('.skill-journal [data-action="exit"]');
+  await activate('.wheel-tree [data-f="exit"]');
   await activate('.minimap');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),true);await activate('.panel-close');
   await page.evaluate(()=>{const f=window.__frontier;f.game.player.cooldowns[1]=2;f.game.player.cooldowns[2]=4;f.game.player.mp=0;f.input.refreshButtons();});
   await settle();

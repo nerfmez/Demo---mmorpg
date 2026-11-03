@@ -7,9 +7,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { loadData } from '../src/core/data-node.js';
 import { buildProfile, auditBuilds, AXES } from '../src/core/build-rules.js';
 import { modFits } from '../src/core/skills.js';
+import { applySkillScale } from './wheel-scale.mjs';
 
-const data = loadData();
 const W = JSON.parse(readFileSync(new URL('../data/drafts/wheel.json', import.meta.url), 'utf8'));
+const data = applySkillScale(loadData(), W.skillScale); // the job skills' numbers the wheel is designed with
 const nodes = {}; // synthetic Job Tree nodes: id -> { effects, cost, name }
 const scaled = (n) => { const u = n.uptime ?? 1, e = {}; for (const [k, v] of Object.entries(n.effects)) e[k] = k === 'perTargetCap' ? v : v * u; return e; };
 const add = (id, n, cost = n.cost || 1) => { nodes[id] = { effects: scaled(n), cost, name: n.name }; return id; };

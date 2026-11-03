@@ -127,12 +127,13 @@ export class TrapFx {
     this.nets = Array.from({ length: NETS }, () => { const m = new THREE.Mesh(dome, new THREE.ShaderMaterial({ uniforms: { uA: { value: 1 }, uSeed: { value: 0 } }, vertexShader: NET_VS, fragmentShader: NET_FS, transparent: true, side: THREE.DoubleSide })); m.visible = false; m.renderOrder = 5; scene.add(m); return { m, t: 9, x: 0, z: 0, R: 2.4, hold: 2.5, seed: 0 }; });
     const ball = new THREE.SphereGeometry(0.11, 10, 8); ball.userData.shared = true;
     this.weights = new THREE.InstancedMesh(ball, toon(IRON), NETS * WEIGHTS); this.weights.frustumCulled = false;
-    for (let i = 0; i < this.weights.count; i++) this.weights.setMatrixAt(i, ZERO); scene.add(this.weights);
+    for (let i = 0; i < this.weights.count; i++) this.weights.setMatrixAt(i, ZERO); this.weights.visible = false; scene.add(this.weights);
     // spikes: one instanced draw for all plates, and its outline
     const sg = spikeGeometry();
     this.spikes = new THREE.InstancedMesh(sg, toon('#ffffff', { vertexColors: true }), PLATES * SPIKES_PER);
     this.spikeEdges = new THREE.InstancedMesh(sg, outlineMaterial(EDGE, 0.02), PLATES * SPIKES_PER);
-    for (const m of [this.spikes, this.spikeEdges]) { m.frustumCulled = false; for (let i = 0; i < m.count; i++) m.setMatrixAt(i, ZERO); scene.add(m); }
+    // hidden while no spike stands, so an idle pool costs no draw call (data/rendering.json budgets)
+    for (const m of [this.spikes, this.spikeEdges]) { m.frustumCulled = false; for (let i = 0; i < m.count; i++) m.setMatrixAt(i, ZERO); m.visible = false; scene.add(m); }
     for (const p of this.plates) p.spikes = Array.from({ length: SPIKES_PER }, () => ({ x: 0, z: 0, h: 1, w: 1, lean: 0, yaw: 0, delay: 0 }));
     const quad = new THREE.PlaneGeometry(1, 1);
     this.dusts = Array.from({ length: DUSTS }, () => { const m = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: 0 } }, vertexShader: BILLBOARD_VS, fragmentShader: DUST_FS, transparent: true, depthWrite: false })); m.visible = false; m.renderOrder = 6; m.frustumCulled = false; scene.add(m); return { m, p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, life: 0.6, size: 0.6 }; });
@@ -254,7 +255,7 @@ export class TrapFx {
       q.m.material.uniforms.uPulse.value = 0.15 + 0.85 * (1 - Math.pow(1 - u, 2)); q.m.material.uniforms.uA.value = 1 - u * u;
     }
     const cam = this.camera.quaternion;
-    let k = 0;
+    let k = 0, spikesUp = false, weightsOut = false;
     for (const p of this.plates) {
       if (p.state === 'off') { for (let j = 0; j < SPIKES_PER; j++, k++) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); } continue; }
       p.t += dt;
@@ -313,10 +314,11 @@ export class TrapFx {
         if (hk <= 0.001) { this.spikes.setMatrixAt(k, ZERO); this.spikeEdges.setMatrixAt(k, ZERO); continue; }
         _e.set(0, s.yaw, s.lean, 'YXZ'); _q.setFromEuler(_e);
         _p.set(s.x, fxGround.y(s.x, s.z) - 0.05, s.z); _m.compose(_p, _q, _s.set(s.w, s.h * hk, s.w));
-        this.spikes.setMatrixAt(k, _m); this.spikeEdges.setMatrixAt(k, _m);
+        this.spikes.setMatrixAt(k, _m); this.spikeEdges.setMatrixAt(k, _m); spikesUp = true;
       }
     }
     this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
+    this.spikes.visible = this.spikeEdges.visible = spikesUp;
     // nets: up off the plate fast (a tall narrow dome), then out and down over the circle (a low wide one)
     // with a little bounce, held while it roots them, then thinning away; weights fly out to its rim
     this.nets.forEach((n, ni) => {
@@ -331,10 +333,10 @@ export class TrapFx {
         const a = n.seed + (w / WEIGHTS) * Math.PI * 2, rr = wide * 1.0;
         _p.set(n.x + Math.cos(a) * rr, fxGround.y(n.x, n.z) + 0.1 + 0.6 * up * (1 - dr), n.z - Math.sin(a) * rr);
         const sc = n.t < end ? 1 : Math.max(0.001, 1 - (n.t - end) / NET_FADE);
-        _m.compose(_p, _q.identity(), _s.set(sc, sc, sc)); this.weights.setMatrixAt(ni * WEIGHTS + w, _m);
+        _m.compose(_p, _q.identity(), _s.set(sc, sc, sc)); this.weights.setMatrixAt(ni * WEIGHTS + w, _m); weightsOut = true;
       }
     });
-    this.weights.instanceMatrix.needsUpdate = true;
+    this.weights.instanceMatrix.needsUpdate = true; this.weights.visible = weightsOut;
     // speed lines: thin streaks shooting up beside the tall spikes as they punch (the first 0.16 s)
     this.core.begin(); this.glow.begin();
     for (const p of this.plates) {
@@ -378,10 +380,10 @@ export class TrapFx {
   clear() {
     for (const p of this.plates) { p.state = 'off'; p.clicked = false; p.g.visible = false; p.ring.visible = false; p.spark.visible = false; p.cold.visible = false; p.arc.visible = false; p.g.scale.setScalar(1); }
     for (let i = 0; i < this.spikes.count; i++) { this.spikes.setMatrixAt(i, ZERO); this.spikeEdges.setMatrixAt(i, ZERO); }
-    this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true;
+    this.spikes.instanceMatrix.needsUpdate = true; this.spikeEdges.instanceMatrix.needsUpdate = true; this.spikes.visible = this.spikeEdges.visible = false;
     for (const q of this.dusts) { q.t = 9; q.m.visible = false; } for (const g of this.glints) { g.t = 9; g.s.visible = false; }
     this.lures.clear(); for (const q of this.pulses) { q.t = 9; q.m.visible = false; }
-    for (const n of this.nets) { n.t = 99; n.m.visible = false; } for (let i = 0; i < this.weights.count; i++) this.weights.setMatrixAt(i, ZERO); this.weights.instanceMatrix.needsUpdate = true;
+    for (const n of this.nets) { n.t = 99; n.m.visible = false; } for (let i = 0; i < this.weights.count; i++) this.weights.setMatrixAt(i, ZERO); this.weights.instanceMatrix.needsUpdate = true; this.weights.visible = false;
     for (const q of this.drops) q.t = 9; this.core.begin(); this.core.end(); this.glow.begin(); this.glow.end();
     this.light.intensity = 0; this.lightT = 9;
   }

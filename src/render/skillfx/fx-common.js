@@ -91,7 +91,7 @@ export class Ribbon {
         void main(){ vUv=uv; vA=alpha; vT=tint; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
       fragmentShader: frag, transparent: true, depthWrite: false, blending, side: THREE.DoubleSide,
     }));
-    this.mesh.frustumCulled = false;
+    this.mesh.frustumCulled = false; this.mesh.visible = false;
     this.mesh.renderOrder = blending === THREE.AdditiveBlending ? 2 : 3;
     scene.add(this.mesh);
   }
@@ -126,6 +126,8 @@ export class Ribbon {
     }
     this.drawn = this.i;
     this.geo.setDrawRange(0, this.i);
+    // an empty strip set still costs a draw call each frame (renderer.info counts it): hide it until it draws
+    this.mesh.visible = this.i > 0;
   }
   dispose() { this.mesh.removeFromParent(); this.geo.dispose(); this.mesh.material.dispose(); }
 }

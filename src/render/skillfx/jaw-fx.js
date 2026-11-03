@@ -57,10 +57,11 @@ export class JawFx {
     const mat = new THREE.ShaderMaterial({ vertexShader: ICE_VS, fragmentShader: ICE_FS, transparent: true, depthWrite: false });
     const fangGeo = crystalGeo(113); fangGeo.setAttribute('aFlash', new THREE.InstancedBufferAttribute(new Float32Array(JAWS * FANGS), 1));
     this.fangMesh = new THREE.InstancedMesh(fangGeo, mat, JAWS * FANGS); this.fangMesh.frustumCulled = false; this.fangMesh.renderOrder = 4;
-    for (let i = 0; i < this.fangMesh.count; i++) this.fangMesh.setMatrixAt(i, ZERO); scene.add(this.fangMesh);
+    // both instanced pools hide while empty, so an idle trap costs no draw call (data/rendering.json budgets)
+    for (let i = 0; i < this.fangMesh.count; i++) this.fangMesh.setMatrixAt(i, ZERO); this.fangMesh.visible = false; scene.add(this.fangMesh);
     const chipGeo = crystalGeo(97); chipGeo.setAttribute('aFlash', new THREE.InstancedBufferAttribute(new Float32Array(CHIPS).fill(0.35), 1));
     this.chipMesh = new THREE.InstancedMesh(chipGeo, mat, CHIPS); this.chipMesh.frustumCulled = false; this.chipMesh.renderOrder = 4;
-    for (let i = 0; i < CHIPS; i++) this.chipMesh.setMatrixAt(i, ZERO); scene.add(this.chipMesh);
+    for (let i = 0; i < CHIPS; i++) this.chipMesh.setMatrixAt(i, ZERO); this.chipMesh.visible = false; scene.add(this.chipMesh);
     this.chips = Array.from({ length: CHIPS }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), spin: new THREE.Vector3(), rot: new THREE.Euler(), t: 9, life: 0.6, size: 0.08 })); this.chipI = 0;
     const disc = new THREE.PlaneGeometry(1, 1, 8, 8), quad = new THREE.PlaneGeometry(1, 1);
     this.jaws = Array.from({ length: JAWS }, () => {
@@ -104,6 +105,7 @@ export class JawFx {
   update(dt) {
     this.time += dt;
     const cam = this.camera.quaternion, flash = this.fangMesh.geometry.attributes.aFlash.array;
+    let fangsUp = false, chipsOut = false;
     this.jaws.forEach((J, ji) => {
       const end = J.hold + BREAK + FADE + 0.2;
       if (J.t >= end) { if (J.rime.visible) { J.rime.visible = false; J.glint.visible = false; for (let i = 0; i < FANGS; i++) this.fangMesh.setMatrixAt(ji * FANGS + i, ZERO); } return; }
@@ -126,7 +128,7 @@ export class JawFx {
         _d.set(-Math.cos(f.th) * Math.sin(lean), Math.cos(lean), -Math.sin(f.th) * Math.sin(lean));
         _q.setFromUnitVectors(_y, _d);
         _p.set(f.bx, fxGround.y(f.bx, f.bz) - 0.1, f.bz);
-        _m.compose(_p, _q, _s.set(f.w * wk, f.h * hk, f.w * wk)); this.fangMesh.setMatrixAt(slot, _m);
+        _m.compose(_p, _q, _s.set(f.w * wk, f.h * hk, f.w * wk)); this.fangMesh.setMatrixAt(slot, _m); fangsUp = true;
       });
       // the snap: a glint where the points meet, a puff of chips and the frost running out
       const sk = (t - RISE - SNAP * 0.6) / 0.3;
@@ -136,7 +138,7 @@ export class JawFx {
       U.uGrow.value = Math.min(1, Math.max(0, (t - RISE) / 0.25)); U.uA.value = Math.max(0, 1 - fade);
       if (!J.broke && t >= J.hold + 0.1) { J.broke = true; for (let i = 0; i < 3; i++) { const a = J.yaw + i * 2.1; this.mist(J.cx + Math.cos(a) * J.R * 0.4, J.cz + Math.sin(a) * J.R * 0.4, i * 0.06, 0.9 + this.rnd() * 0.4); } this.lightT = 0.15; }
     });
-    this.fangMesh.instanceMatrix.needsUpdate = true; this.fangMesh.geometry.attributes.aFlash.needsUpdate = true;
+    this.fangMesh.instanceMatrix.needsUpdate = true; this.fangMesh.geometry.attributes.aFlash.needsUpdate = true; this.fangMesh.visible = fangsUp;
     for (let i = 0; i < CHIPS; i++) {
       const c = this.chips[i];
       if (c.t >= c.life) { this.chipMesh.setMatrixAt(i, ZERO); continue; }
@@ -144,9 +146,9 @@ export class JawFx {
       c.v.y -= 11 * dt; c.p.addScaledVector(c.v, dt); if (c.p.y < 0.03) { c.p.y = 0.03; c.v.multiplyScalar(0.4); c.v.y = Math.abs(c.v.y) * 0.3; }
       c.rot.x += c.spin.x * dt; c.rot.y += c.spin.y * dt; c.rot.z += c.spin.z * dt; _q.setFromEuler(c.rot);
       const sz = c.size * Math.min(1, 2.5 * (1 - c.t / c.life));
-      _p.set(c.p.x, c.p.y + fxGround.y(c.p.x, c.p.z), c.p.z); _m.compose(_p, _q, _s.set(sz * 0.45, sz * 2.6, sz * 0.45)); this.chipMesh.setMatrixAt(i, _m);
+      _p.set(c.p.x, c.p.y + fxGround.y(c.p.x, c.p.z), c.p.z); _m.compose(_p, _q, _s.set(sz * 0.45, sz * 2.6, sz * 0.45)); this.chipMesh.setMatrixAt(i, _m); chipsOut = true;
     }
-    this.chipMesh.instanceMatrix.needsUpdate = true;
+    this.chipMesh.instanceMatrix.needsUpdate = true; this.chipMesh.visible = chipsOut;
     for (const q of this.mists) {
       if (q.t >= 1.4) { q.m.visible = false; continue; }
       q.t += dt; if (q.t < 0) { q.m.visible = false; continue; }
@@ -157,7 +159,7 @@ export class JawFx {
   }
   clear() {
     for (const J of this.jaws) { J.t = 99; J.rime.visible = false; J.glint.visible = false; }
-    for (let i = 0; i < this.fangMesh.count; i++) this.fangMesh.setMatrixAt(i, ZERO); this.fangMesh.instanceMatrix.needsUpdate = true;
+    for (let i = 0; i < this.fangMesh.count; i++) this.fangMesh.setMatrixAt(i, ZERO); this.fangMesh.instanceMatrix.needsUpdate = true; this.fangMesh.visible = this.chipMesh.visible = false;
     for (const c of this.chips) c.t = 9; for (const q of this.mists) { q.t = 9; q.m.visible = false; }
     this.light.intensity = 0;
   }

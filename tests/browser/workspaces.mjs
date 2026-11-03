@@ -71,7 +71,7 @@ try{
   const lingering=await page.evaluate(()=>__frontier.game.ch.mods.find(m=>m.id==='lingering').uid);
   await click(`[data-action="mod"][data-id="${lingering}"]`);await click('#atelier [data-action="apply"]');assert.ok(await page.evaluate(uid=>__frontier.game.ch.slots[0].mods.includes(uid),lingering));
   assert.ok(await page.evaluate(()=>__frontier.game.skills[0].duration>__frontier.game.data.skills.combat.healing_spring.duration));await noOverflow();await shot('mods');
-  await nav('movement');assert.equal(await page.locator('#atelier .skill-grid .inventory-cell').count(),4);await click('[data-action="skill"][data-id="roll"]');await click('#atelier [data-action="apply"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.movement),'roll');await noOverflow();await shot('movement');
+  await nav('movement');assert.equal(await page.locator('#atelier .skill-grid .inventory-cell').count(),await page.evaluate(()=>Object.keys(__frontier.game.data.skills.movement).length));await click('[data-action="skill"][data-id="roll"]');await click('#atelier [data-action="apply"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.movement),'roll');await noOverflow();await shot('movement');
   await nav('bag');await verifyInventoryScroll(page,{context:ctx,engineName:name,width,height,touch,capture:label=>shot('inventory-'+label)});
   await nav('growth');assert.ok(await page.locator('[data-act="skill-feed"]').count());await noOverflow();await shot('upgrades');
   // movement skills rank up with AGI: their own tab, an upgrade button and the next rank's distance/recharge

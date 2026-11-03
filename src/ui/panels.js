@@ -15,7 +15,7 @@ import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
-import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse } from '../core/character.js';
+import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse, jobChoiceLevel } from '../core/character.js';
 import { equipmentItemLevel } from '../core/item-metadata.js';
 import { perkList } from '../core/stat-perks.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
@@ -357,7 +357,7 @@ export class Panels {
         <h3>${esc(ch.name || 'นักเดินทาง')}</h3><small>${kit ? `เริ่มจาก${kit.nameTh} · ` : ''}อาวุธ ${data.items.weaponTypes?.[d.weaponType]?.nameTh || '-'}</small>
         ${level('Character Level', ch.exp, expToNext(data, ch.level), 'char')}
         ${level('Job Level', ch.jobExp, jobExpToNext(data, ch.jobLevel), 'job')}
-        <div class="pg-note"><b>อาชีพ: ${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก'}</b>${job ? '' : `<br>เลือกอาชีพได้เมื่อ Job Level ${data.progression.job.jobChoiceLevel}`}</div>
+        <div class="pg-note"><b>อาชีพ: ${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก'}</b>${job ? '' : `<br>เลือกอาชีพได้เมื่อ Job Level ${jobChoiceLevel(data)}`}</div>
       </section>
       <section class="pg-col">
         <div class="pg-title"><h3>แต้มสเตตัส</h3><span class="pg-pill">เหลือ ${ch.statPoints} แต้ม</span></div>

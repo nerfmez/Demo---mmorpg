@@ -415,8 +415,8 @@ export function jobNodeState(ch, data, nodeId) {
     return { can: false, reason: 'requires_job', need: node.requiresJob };
 
   if (node.type === 'job') {
-    if (ch.jobLevel < data.progression.job.jobChoiceLevel)
-      return { can: false, reason: 'job_level', need: data.progression.job.jobChoiceLevel };
+    const choice = jobChoiceLevel(data);
+    if (ch.jobLevel < choice) return { can: false, reason: 'job_level', need: choice };
     const other = ch.jobNodes.find((n) => tree.nodes[n]?.type === 'job');
     if (other) return { can: false, reason: 'one_job', other };
   }
@@ -440,15 +440,29 @@ export function jobNodeState(ch, data, nodeId) {
   if (!Array.isArray(node.requires) && !node.links.some((l) => ch.jobNodes.includes(l)))
     return { can: false, reason: 'not_linked' };
 
-  if (ch.jobPoints < 1) return { can: false, reason: 'no_points' };
-  return { can: true, tier: tier.tier, have: tier.spent, need: tier.requires };
+  // a fork (the wheel): one of a key's forks, the others close once one is taken
+  if (node.forkGroup && ch.jobNodes.some((id) => id !== nodeId && tree.nodes[id]?.forkGroup === node.forkGroup))
+    return { can: false, reason: 'fork_taken' };
+  const cost = nodeCost(node);
+  if (ch.jobPoints < cost) return { can: false, reason: 'no_points', need: cost };
+  return { can: true, tier: tier.tier, have: tier.spent, need: tier.requires, cost };
+}
+
+/** Points a node costs: 1 unless it says (the wheel's keys cost 2, capstones 3, a job's entry 0). */
+export function nodeCost(node) {
+  return node?.cost ?? 1;
+}
+
+/** The Job Level a job is chosen at: the tree's own (the wheel: 40) or the progression's. */
+export function jobChoiceLevel(data) {
+  return data.jobtree.jobChoiceLevel ?? data.progression.job.jobChoiceLevel;
 }
 
 export function allocateJobNode(ch, data, nodeId) {
   const st = jobNodeState(ch, data, nodeId);
   if (!st.can) return st;
   ch.jobNodes.push(nodeId);
-  ch.jobPoints -= 1;
+  ch.jobPoints -= st.cost ?? 1;
   return { can: true, done: true, job: data.jobtree.nodes[nodeId].type === 'job' };
 }
 
@@ -465,7 +479,7 @@ export function jobRouteCost(ch, data, id, allowed = null, memo = new Map()) {
   if (memo.has(id)) return memo.get(id);
   memo.set(id, Infinity); // guards a malformed cycle
   const n = nodes[id];
-  let cost = 1 + (n.requires || []).reduce((a, p) => a + jobRouteCost(ch, data, p, allowed, memo), 0);
+  let cost = nodeCost(n) + (n.requires || []).reduce((a, p) => a + jobRouteCost(ch, data, p, allowed, memo), 0);
   if (n.requiresAny?.length) cost += Math.min(...n.requiresAny.map(p => jobRouteCost(ch, data, p, allowed, memo)));
   memo.set(id, cost);
   return cost;
@@ -507,7 +521,7 @@ export function jobPath(ch, data, target) {
     const path = queue.shift();
     for (const next of nodes[path.at(-1)].links) {
       if (seen.has(next) || !allowed(next)) continue;
-      if (nodes[next].type === 'job' && (job || ch.jobLevel < data.progression.job.jobChoiceLevel)) continue;
+      if (nodes[next].type === 'job' && (job || ch.jobLevel < jobChoiceLevel(data))) continue;
       seen.add(next);
       const route = [...path, next];
       if (next === target) return route.filter(id => !ch.jobNodes.includes(id));
@@ -520,6 +534,11 @@ export function jobPath(ch, data, target) {
 export function currentJob(ch, data) {
   const id = ch.jobNodes.find((n) => data.jobtree.nodes[n]?.type === 'job');
   return id ? data.jobtree.nodes[id] : null;
+}
+
+/** Points the owned nodes cost (the origin is free). */
+export function jobPointsSpent(ch, data) {
+  return ch.jobNodes.reduce((a, id) => a + (id === data.jobtree.origin ? 0 : nodeCost(data.jobtree.nodes[id] || {})), 0);
 }
 
 export function respecCost(ch, data) {
@@ -544,7 +563,7 @@ export function respecStats(ch, data) {
 export function respecJob(ch, data) {
   const cost = respecCost(ch, data).job;
   if (ch.gold < cost) return false;
-  ch.jobPoints += ch.jobNodes.length - 1;
+  ch.jobPoints += jobPointsSpent(ch, data);
   ch.jobNodes = [data.jobtree.origin];
   ch.gold -= cost;
   return true;

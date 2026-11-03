@@ -6,6 +6,7 @@ import { worldMapImage } from './mapimage.js';
 import { toWorld, waypointUnlocked } from '../core/atlas.js';
 import { loadPref, savePref } from '../save.js';
 import { fieldIcon, xpMarkup, xpPresentation, trackerMarkup } from './fieldhud.js';
+import { jobChoiceLevel } from '../core/character.js';
 import { statusList } from '../core/statuses.js';
 import { statusChips, statusKey } from './status-icons.js';
 
@@ -400,7 +401,7 @@ export class Hud {
         break;
       case 'joblevelup':
         this.toast(`Job Level ${e.level} · ได้ Job Point +1`, '#c59bff');
-        if (e.level === d.progression.job.jobChoiceLevel) this.banner('เลือก Job ได้แล้ว!', 'เปิด Job Tree (J) แล้วเลือกสายที่เข้ากับ Build');
+        if (e.level === jobChoiceLevel(d)) this.banner('เลือก Job ได้แล้ว!', 'เปิด Job Tree (J) แล้วเลือกสายที่เข้ากับ Build');
         break;
       case 'questDone': {
         this.lastTracker = null;

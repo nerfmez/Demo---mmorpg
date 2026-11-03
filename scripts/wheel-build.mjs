@@ -8,16 +8,17 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const W = JSON.parse(readFileSync(new URL('../data/drafts/wheel.json', import.meta.url), 'utf8'));
-const SECTOR = { center: 'กลางวง', str: 'STR', strdex: 'STR/DEX', dex: 'DEX', dexint: 'DEX/INT', int: 'INT', intstr: 'INT/STR' };
+const SECTOR = { center: 'กลางวง', str: 'STR', strdex: 'STR/DEX', dex: 'DEX', dexint: 'DEX/INT', int: 'INT', intstr: 'INT/STR', heavy: 'อาวุธหนัก', dual: 'ถือสองมือ' };
 const nodes = { origin: { name: 'Origin', nameTh: 'จุดเริ่ม', type: 'origin', effects: {}, cost: 0, requires: [], links: [] } };
 const avg = (n) => { const u = n.uptime ?? 1, e = {}; for (const [k, v] of Object.entries(n.effects || n)) e[k] = k === 'perTargetCap' || u === 1 ? v : Math.round(v * u * 10) / 10; return e; };
 const put = (id, n) => { nodes[id] = { links: [], ...n }; return id; };
 
 // the inner ring: the centre and six sectors, each a ladder bought from the centre outward
 for (const [sec, list] of Object.entries(W.inner)) {
-  let prev = sec === 'center' ? 'origin' : 'in.center.c1';
+  // a side line (the heavy weapon and dual wield lines) hangs on a node of its sector (innerFrom)
+  let prev = sec === 'center' ? 'origin' : W.innerFrom?.[sec] ? `in.${W.innerFrom[sec]}` : 'in.center.c1';
   for (const n of list) {
-    prev = put(`in.${sec}.${n.id}`, { name: n.name, nameTh: n.name, type: /เด่น/.test(n.name) ? 'notable' : 'minor', effects: avg(n), cost: 1, requires: [prev], ring: 'inner', sector: sec, sectorTh: SECTOR[sec] });
+    prev = put(`in.${sec}.${n.id}`, { name: n.name, nameTh: n.name, type: /เด่น/.test(n.name) ? 'notable' : 'minor', effects: avg(n), cost: 1, requires: [prev], ring: 'inner', sector: sec, sectorTh: SECTOR[sec], ...(W.innerFrom?.[sec] ? { sideOf: W.innerFrom[sec].split('.')[0] } : {}) });
   }
 }
 // the jobs: an entry (free, at Job Lv 40, one job only), its trunk, then branches of passes, keys and a capstone

@@ -905,6 +905,13 @@ export function derive(ch, data) {
     teamDamagePct: 0,
     teamTakenPct: 0,
     teamBuffPct: 0,
+    // the wheel's weapon lines (foldWeaponStats)
+    heavyDamagePct: 0,
+    heavyHpPct: 0,
+    heavyPenetrationPct: 0,
+    dualDamagePct: 0,
+    dualHastePct: 0,
+    dualCritPct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
@@ -977,5 +984,28 @@ export function derive(ch, data) {
   d.offhand = offOk ? (handsOf(data, off) === 'off' ? 'shield' : 'weapon') : greatshield ? 'shield' : arrow ? 'arrows' : 'none';
   d.dualWield = d.offhand === 'weapon';
   d.blockChance = d.offhand === 'shield' ? d.blockChancePct / 100 : 0;
+  foldWeaponStats(d, data);
   return d;
+}
+
+/**
+ * The wheel's weapon lines (owner, 2026-11-03: a heavy weapon line and a dual wield line): their stats count
+ * only with that kind of weapon in hand. With a heavy weapon (progression.combat.wheel.heavyWeapons) heavy
+ * damage adds to melee damage, heavy HP to max HP and heavy penetration to penetration; dual wielding (a
+ * second weapon in the off hand) adds dual damage to melee damage, dual speed to speed and dual crit to crit
+ * chance. Each stays under its cap. Called at the end of derive() and by the balance hero (core/balance.js)
+ * once its weapon is set.
+ */
+export function foldWeaponStats(d, data) {
+  const caps = data.progression.character.caps, heavy = (data.progression.combat.wheel?.heavyWeapons || []).includes(d.weaponType);
+  if (heavy) {
+    d.meleeDamagePct += d.heavyDamagePct || 0;
+    d.maxHp = Math.round(d.maxHp * (1 + (d.heavyHpPct || 0) / 100));
+    d.penetrationPct = Math.min(caps.penetrationPct ?? Infinity, d.penetrationPct + (d.heavyPenetrationPct || 0));
+  }
+  if (d.dualWield) {
+    d.meleeDamagePct += d.dualDamagePct || 0;
+    d.hastePct = Math.min(caps.hastePct ?? Infinity, d.hastePct + (d.dualHastePct || 0));
+    if (d.dualCritPct) { d.critChancePct += d.dualCritPct; d.critChance = Math.min(1, d.critChancePct / 100); }
+  }
 }

@@ -3,7 +3,7 @@
 // time-to-kill, time-to-die (standing still, no dodging) and minutes per level, so the
 // numbers in data/ can be checked against data.progression.balance.targets by a test.
 // Pure: it never touches a live game. Reproduce with `node scripts/balance-report.mjs`.
-import { createCharacter, derive, expToNext, defenseFactor, mpRegenOf } from './character.js';
+import { createCharacter, derive, expToNext, defenseFactor, mpRegenOf, foldWeaponStats } from './character.js';
 import { computeSkill } from './skills.js';
 import { gearDropCandidates, gearRecipe } from './crafting.js';
 
@@ -71,6 +71,8 @@ export function referenceHero(data, kit, level, jobNodes = null, mods = []) {
   d.defense += armour.defense * g.gradeMult;
   d.maxHp += Math.round(armour.maxHp * g.gradeMult * (1 + d.maxHpPct / 100));
   d.weaponType = build.weaponType;
+  d.dualWield = !!build.dualWield; // a reference build may hold a second weapon (the wheel's dual wield line)
+  foldWeaponStats(d, data);
   return { ch, d, itemLevel: il };
 }
 

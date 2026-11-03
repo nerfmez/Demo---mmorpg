@@ -1580,7 +1580,8 @@
               "maxHpPct": 3
             },
             {
-              "teamTakenPct": 3.7
+              "teamTakenPct": 25,
+              "teamBuffPct": 24
             },
             {
               "maxShield": 120
@@ -1590,27 +1591,29 @@
             {
               "name": "บาเรียให้เพื่อน",
               "effects": {
-                "teamBuffPct": 37
+                "teamBuffPct": 60
               }
             },
             {
               "name": "รับแทน",
               "effects": {
-                "teamTakenPct": 23
+                "teamTakenPct": 25
               }
             },
             {
               "name": "ยืนหน้าทีม",
               "effects": {
-                "teamTakenPct": 11.2,
-                "selfTakenPct": 5
+                "teamTakenPct": 25,
+                "selfTakenPct": 5,
+                "teamBuffPct": 60
               }
             }
           ],
           "cap": {
             "name": "กำแพงมีชีวิต",
             "effects": {
-              "teamTakenPct": 25
+              "teamTakenPct": 25,
+              "teamBuffPct": 60
             }
           }
         },

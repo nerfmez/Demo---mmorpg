@@ -1,6 +1,7 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 import { executeRogue, tickRogue } from './rogue.js';
+import { allyHealMult } from './wheel-rules.js';
 
 export const EXTRA_FIELDS = ['dashTime','cutDelay','shadowStep','guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura','rush','lightWall','rage','spirit','stealth','steal','shatter','afterShock','shockCharge','arrows','trap','root','bleed','pull','shock','sic','packBuff','assault','revive'];
 export function compileFrontier(s, def, activeMods) {
@@ -72,7 +73,7 @@ export function commandAllies(g,command,targetId=null) {
 export function healUnit(g,u,amount,s,mult=1) {
   if(u.dead||u.hp<=0)return;
   const e=s?.modEffects || {},part=e.healBarrier || 0;
-  const actual=amount*mult;
+  const actual=amount*mult*allyHealMult(g,u); // the wheel's teamBuffPct on heals we give allies
   if(u===g.player)g.healPlayer(actual*(1-part));
   else {const got=Math.min(u.maxHp-u.hp,actual*(1-part));u.hp+=got;if(got>0)g.emit({type:'heal',amount:Math.round(got),x:u.x,z:u.z});}
   if(part){u.barrier=Math.max(u.barrier||0,Math.min(u.maxHp*e.healBarrierCap,actual*part));u.barrierT=Math.max(u.barrierT||0,e.healBarrierDuration);}

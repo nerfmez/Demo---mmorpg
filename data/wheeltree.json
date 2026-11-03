@@ -5554,7 +5554,8 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "teamTakenPct": 3.7
+    "teamTakenPct": 25,
+    "teamBuffPct": 24
    },
    "cost": 1,
    "requires": [
@@ -5598,7 +5599,7 @@
    "nameTh": "บาเรียให้เพื่อน",
    "type": "notable",
    "effects": {
-    "teamBuffPct": 37
+    "teamBuffPct": 60
    },
    "cost": 2,
    "requires": [
@@ -5642,7 +5643,8 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "teamTakenPct": 3.7
+    "teamTakenPct": 25,
+    "teamBuffPct": 24
    },
    "cost": 1,
    "requires": [
@@ -5686,7 +5688,7 @@
    "nameTh": "รับแทน",
    "type": "notable",
    "effects": {
-    "teamTakenPct": 23
+    "teamTakenPct": 25
    },
    "cost": 2,
    "requires": [
@@ -5730,7 +5732,8 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "teamTakenPct": 3.7
+    "teamTakenPct": 25,
+    "teamBuffPct": 24
    },
    "cost": 1,
    "requires": [
@@ -5774,8 +5777,9 @@
    "nameTh": "ยืนหน้าทีม",
    "type": "notable",
    "effects": {
-    "teamTakenPct": 11.2,
-    "selfTakenPct": 5
+    "teamTakenPct": 25,
+    "selfTakenPct": 5,
+    "teamBuffPct": 60
    },
    "cost": 2,
    "requires": [
@@ -5796,7 +5800,8 @@
    "nameTh": "กำแพงมีชีวิต",
    "type": "keystone",
    "effects": {
-    "teamTakenPct": 25
+    "teamTakenPct": 25,
+    "teamBuffPct": 60
    },
    "cost": 3,
    "requires": [

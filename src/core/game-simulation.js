@@ -14,6 +14,7 @@ import { executeFrontier, strikeLane, adjustFrontierHit, spreadCurse, applyGuard
 import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
 import { monsterHit, resistOf, inflictHero, statusTaken, statusWalk, DOTS } from './defense.js';
+import { heroHitMult, allyHitMult, heroTakenMult, allyTakenMult } from './wheel-rules.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
@@ -969,6 +970,7 @@ export class Game {
     // stat perks (core/stat-perks.js) on the hero's own skill hits
     const perk = this.derived.perks && opts.skill && !opts.dot && !opts.byAlly ? perkHit(this, m, opts, crit) : null;
     if (perk) { dmg *= perk.mult; crit = perk.crit; }
+    dmg *= heroHitMult(this, m, opts) * allyHitMult(m, opts); // the wheel tree's single / pack / per-target and team marks
     if (crit) dmg *= this.derived.critMult * (perk ? perk.critMult : 1);
     const stagger = opts.stagger || 0;
     // Penetration ignores a share of the monster's defense.
@@ -1093,7 +1095,7 @@ export class Game {
   damageAlly(a, amount, source) {
     if (a.dead) return 0;
     if (this.time < (a.reviveInv || 0)) return 0; // just risen by Revive
-    let dmg = Math.max(1, Math.round(amount * 0.85 * buffTaken(a.buffs)));
+    let dmg = Math.max(1, Math.round(amount * 0.85 * buffTaken(a.buffs) * allyTakenMult(this, a)));
     if(a.barrier>0){const absorbed=Math.min(a.barrier,dmg);a.barrier-=absorbed;dmg-=absorbed;if(a.barrier<=0)breakBarrier(this,a);}
     a.hp -= dmg;
     this.emit({ type: 'allyHit', id: a.id, amount: dmg, x: a.x, z: a.z });
@@ -1122,7 +1124,7 @@ export class Game {
     }
     // the defensive line (core/defense.js): the attack's element is resisted
     const hit = monsterHit(source, opts.attack);
-    amount *= (1 - resistOf(this.derived, hit.element)) * statusTaken(this);
+    amount *= (1 - resistOf(this.derived, hit.element)) * statusTaken(this) * heroTakenMult(this);
     const guard=applyGuard(this,amount,source,opts);
     // Shield Fortress takes the whole hit on the shield: no damage, no knockback
     if (guard.full) {
@@ -1734,7 +1736,7 @@ export class Game {
       sh.t -= dt;
       if (sh.t <= 0) delete m.statuses.shock;
     }
-    for (const k of ['chill', 'hex', 'mire', 'charged', 'root']) {
+    for (const k of ['chill', 'hex', 'mire', 'charged', 'root', 'mark']) {
       if (!m.statuses[k]) continue;
       m.statuses[k].t -= dt;
       if (m.statuses[k].t <= 0) delete m.statuses[k];

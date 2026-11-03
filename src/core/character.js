@@ -896,6 +896,15 @@ export function derive(ch, data) {
     resistPoisonPct: 0,
     tenacityPct: 0,
     trapDamagePct: 0,
+    // the wheel tree's situational stats (core/wheel-rules.js)
+    singleDamagePct: 0,
+    packDamagePct: 0,
+    perTargetDamagePct: 0,
+    perTargetCap: 0,
+    selfTakenPct: 0,
+    teamDamagePct: 0,
+    teamTakenPct: 0,
+    teamBuffPct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;

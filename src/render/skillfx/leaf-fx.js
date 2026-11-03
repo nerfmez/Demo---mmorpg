@@ -64,14 +64,14 @@ export class LeafFx {
   cone(x, y, z, a, arc, range, n = 16) {
     for (let k = 0; k < n; k++) {
       const ang = a + (k / (n - 1) - 0.5) * arc * (0.85 + 0.3 * this.rnd()), sp = range * (2.1 + 0.6 * this.rnd());
-      this.leaf(x, y + (this.rnd() - 0.3) * 0.4, z, Math.sin(ang) * sp, 0.6 + this.rnd() * 1.2, Math.cos(ang) * sp, 0.34 + this.rnd() * 0.16, 0.6 + this.rnd() * 0.25, 3.2, (k % 4) * 0.012);
+      this.leaf(x, y + (this.rnd() - 0.3) * 0.4, z, Math.sin(ang) * sp, 0.6 + this.rnd() * 1.2, Math.cos(ang) * sp, 0.48 + this.rnd() * 0.2, 0.62 + this.rnd() * 0.25, 3.2, (k % 4) * 0.012);
     }
   }
   /** Leaves thrown up and out from a landing at (x, z) on ground y. */
   burst(x, y, z, n = 14, speed = 3.5) {
     for (let k = 0; k < n; k++) {
       const ang = (k / n) * 6.283 + this.rnd() * 0.4, sp = speed * (0.6 + 0.6 * this.rnd());
-      this.leaf(x + Math.sin(ang) * 0.3, y + 0.15, z + Math.cos(ang) * 0.3, Math.sin(ang) * sp, 3 + this.rnd() * 2.5, Math.cos(ang) * sp, 0.3 + this.rnd() * 0.14, 0.75 + this.rnd() * 0.3, 2.2);
+      this.leaf(x + Math.sin(ang) * 0.3, y + 0.15, z + Math.cos(ang) * 0.3, Math.sin(ang) * sp, 3 + this.rnd() * 2.5, Math.cos(ang) * sp, 0.4 + this.rnd() * 0.16, 0.75 + this.rnd() * 0.3, 2.2);
     }
   }
   /** A leaf circling (cx, cz) at radius r and height y for life s (a charge cue). */

@@ -1378,7 +1378,11 @@
     "leaf_fox": {
       "name": "Leaf Fox",
       "nameTh": "จิ้งจอกใบไม้",
-      "behavior": "stalker",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: a hunter. From range it freezes to listen, then leaps onto a marked spot (pins the hero; stuck nose-down on a miss); in the middle distance its leaf tail flings a cone of leaf blades (bleed); up close a quick snap.",
+      "kit": {
+        "circle": [3.5, 6]
+      },
       "hp": 650,
       "damage": 100,
       "defense": 40,
@@ -1390,23 +1394,40 @@
       "jobExp": 12,
       "attacks": {
         "pounce": {
-          "minRange": 3,
+          "use": {"min": 4, "max": 9},
           "range": 9,
-          "windup": 0.75,
-          "radius": 1.6,
-          "recover": 0.4,
-          "cooldown": 5,
-          "damageMult": 1.4
+          "windup": 1.0,
+          "air": 0.55,
+          "radius": 1.1,
+          "recover": 0.5,
+          "missStun": 1.2,
+          "cooldown": 7,
+          "damageMult": 1.4,
+          "inflict": {"status": "root", "chance": 1, "duration": 0.6}
         },
-        "claw": {
+        "snap": {
+          "kind": "claw",
+          "use": {"max": 1.6},
           "range": 1.6,
-          "arc": 120,
-          "windup": 0.4,
+          "arc": 100,
+          "windup": 0.45,
           "hitTime": 0.1,
           "duration": 0.32,
           "recover": 0.5,
-          "cooldown": 1.6,
+          "cooldown": 1.8,
           "damageMult": 1
+        },
+        "gust": {
+          "kind": "sweep",
+          "tell": "sector",
+          "use": {"min": 1.2, "max": 4.6},
+          "range": 5,
+          "arc": 50,
+          "windup": 0.75,
+          "recover": 0.7,
+          "cooldown": 6,
+          "damageMult": 0.9,
+          "inflict": {"status": "bleed", "chance": 1, "duration": 3, "dpsMult": 0.12}
         }
       },
       "drops": [

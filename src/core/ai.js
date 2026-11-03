@@ -391,7 +391,8 @@ function windup(game, m, dt, t, gap) {
     }
     case 'pounce':
     case 'dive': {
-      m.charge = { t: 0, dur: 0.35, fromX: m.x, fromZ: m.z, toX: w.tx, toZ: w.tz, dive: true, hit: new Set(), dmg: 0 };
+      // the leap's air time (atk.air) lands it as its marked circle goes off (beginAttack spawns it then)
+      m.charge = { t: 0, dur: atk.air ?? 0.35, fromX: m.x, fromZ: m.z, toX: w.tx, toZ: w.tz, dive: true, hit: new Set(), dmg: 0 };
       setState(m, 'act');
       m.windup = { ...w };
       return;
@@ -477,6 +478,11 @@ function act(game, m, dt, t) {
       const name = m.windup?.name && m.def.attacks[m.windup.name] ? m.windup.name : 'dive', atk = m.def.attacks[name];
       m.charge = null;
       m.cd[name] = atk.cooldown;
+      // a leap that lands on nobody (its circle's radius, as the area tests it) leaves it stuck: the punish window
+      if (atk.missStun && !game.units().some((u) => dist(c.toX, c.toZ, u.x, u.z) <= (atk.radius || 1) + u.r)) {
+        game.emit({ type: 'stunned', id: m.id, x: m.x, z: m.z, miss: name });
+        return setState(m, 'stunned', atk.missStun);
+      }
       setState(m, 'recover', atk.recover);
     }
     return;
@@ -811,4 +817,51 @@ function mole(game, m, dt, { t, gap, slowMult }) {
   }
 }
 
-const BEHAVIORS = { hare, moth, mole, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+/**
+ * A monster's own kit (behavior "kit"; owner, 2026-11-03: every monster its own attacks, docs/MONSTER-ATTACKS.md).
+ * Each attack with `use` says when it is taken: `use.min`/`use.max` (the gap to the target, metres; max defaults
+ * to the attack's range) and `use.hpBelow` (a share of its health). The first ready one in the data's order is
+ * taken, so the order is the priority. Between attacks it walks in, or circles at `kit.circle` [near, far] while
+ * everything is cooling down.
+ */
+function kit(game, m, dt, { t, gap, dToT, slowMult }) {
+  const def = m.def, names = kitOrder(def);
+  let reach = Infinity, soon = Infinity;
+  for (const name of names) {
+    const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
+    if (u.hpBelow && m.hp > m.maxHp * u.hpBelow) continue;
+    reach = Math.min(reach, max);
+    soon = Math.min(soon, m.cd[name]);
+    if (m.cd[name] > 0 || gap < (u.min ?? 0) || gap > max) continue;
+    return beginAttack(game, m, name, t);
+  }
+  const circle = def.kit?.circle;
+  if (circle && soon > 0.6) return strafe(game, m, dt, t, dToT, circle[0], circle[1], def.speed * slowMult);
+  if (gap > reach * 0.8) walkTo(game, m, t.x, t.z, def.speed * slowMult, dt);
+  else {
+    m.moving = false;
+    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 6);
+  }
+}
+
+const KIT_ORDER = new WeakMap();
+const kitOrder = (def) => {
+  let o = KIT_ORDER.get(def);
+  if (!o) KIT_ORDER.set(def, (o = Object.keys(def.attacks).filter((n) => def.attacks[n].use)));
+  return o;
+};
+
+/** Start an attack by its mechanics (attacks.<name>.kind, else its name): what is marked on the ground goes down now. */
+export function beginAttack(game, m, name, t) {
+  const atk = m.def.attacks[name], kind = atk.kind || name;
+  if (kind === 'pounce' || kind === 'dive') {
+    // the landing spot is where the target stands now, marked for the whole wind-up and the leap
+    startWindup(game, m, name, t, { tx: t.x, tz: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: atk.areaKind || 'pounce', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total + (atk.air ?? 0.35), duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    return;
+  }
+  if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  startWindup(game, m, name, t);
+}
+
+const BEHAVIORS = { kit, hare, moth, mole, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

@@ -75,6 +75,9 @@ work runs no tests. Do not make a reviewable draft wait for unrelated full suite
   These safety checks are automated; owner review covers poses, readability and feel.
 - Character actions and weapon stances (attacks, casts, guards, hit reactions in `src/render/actions.js`; carries in `data/weapon-holds.json` and `characters.hero_chibi.holds`): follow [the anime action standard](.claude/skills/anime-action/SKILL.md) - start from a CC0 reference clip retargeted with `scripts/pose-retarget` (`docs/POSE-RETARGET.md`), never guessed angles; anticipation, hold, a very short strike on the `hit` key, overshoot, a held pose - and review a frame sheet from the game camera before sending it.
 - Skill effects: follow [the skill effects standard](.claude/skills/skill-vfx/SKILL.md) - the owner's bar is Firebolt, Flame Stream and Chain Spark; build live with their techniques, review on the game camera, never paste pictures. Build and check them in the Skill Lab (`lab.html`, `docs/SKILL-LAB.md`; `node tests/browser/lab.mjs <skill>` takes ~10 s) and give the owner its link (`<site>/lab/lab.html`, published from `claude/vfx-*` branches). Do not record full-game videos for effect review.
+- Monster attacks (kits, wind-ups, strike effects): follow [the monster attack standard](docs/MONSTER-ATTACKS.md) -
+  each monster its own kit in data, pose then glow then ground warning, strike effects as shapes of light (not
+  limb trails) - and review it in the game's monster sandbox (`?fresh=1&monsterLab=<type>`).
 - Use the existing focused capture that exercises changed content. Full-map capture,
   Dreamloop and long stress/leak runs apply to map-wide/resource changes or concrete
   evidence, not every local art edit. Inspect actual screenshots before sharing.

@@ -1,5 +1,23 @@
 // Labels mirror the source UI; effect values always come from jobtree.json.
 export const EFFECT_TH = {
+  // the wheel tree's situational stats (core/wheel-rules.js) and weapon lines (character.js foldWeaponStats)
+  singleDamagePct: 'ดาเมจใส่บอส/ตัวเดี่ยว %',
+  packDamagePct: 'ดาเมจใส่ฝูง %',
+  perTargetDamagePct: 'ดาเมจต่อศัตรูรอบเป้า %',
+  perTargetCap: 'เพดานต่อศัตรูรอบเป้า',
+  selfTakenPct: 'ลดดาเมจที่ได้รับ %',
+  teamDamagePct: 'มาร์กเป้า: พวกพ้องตีแรงขึ้น %',
+  teamTakenPct: 'ลดดาเมจที่เพื่อนได้รับ %',
+  teamBuffPct: 'ฮีลพวกพ้องแรงขึ้น %',
+  heavyDamagePct: 'ดาเมจอาวุธหนัก %',
+  heavyHpPct: 'HP เมื่อถืออาวุธหนัก %',
+  heavyPenetrationPct: 'เจาะเกราะอาวุธหนัก %',
+  dualDamagePct: 'ดาเมจถือสองมือ %',
+  dualHastePct: 'ความเร็วเมื่อถือสองมือ %',
+  dualCritPct: 'โอกาสคริเมื่อถือสองมือ %',
+  hpRegenPct: 'ฟื้น HP %',
+  potionHealPct: 'ยาฟื้นฟูแรงขึ้น %',
+  dodgeChancePct: 'โอกาสหลบ %',
   attack: 'พลังโจมตี',
   damagePct: 'ดาเมจทุกแบบ %',
   attackDamagePct: 'ดาเมจสกิลโจมตี %',

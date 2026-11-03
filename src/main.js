@@ -28,6 +28,7 @@ import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, sta
 import { characterMap, selectMap } from './core/maps.js';
 import '@fontsource/mitr/thai-400.css';
 import '@fontsource/mitr/thai-500.css';
+import '@fontsource/charm/thai-400.css'; // the field journal's handwriting (ui/wheel-view.js)
 import '@fontsource/mitr/thai-600.css';
 import '@fontsource/mitr/latin-400.css';
 import '@fontsource/mitr/latin-500.css';

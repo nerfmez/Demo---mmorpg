@@ -32,7 +32,7 @@ for (const [job, J] of Object.entries(W.jobs)) {
     const line = { ...base, branchId: bid, branchTh: B.name, role: B.role };
     let after = [trunkEnd]; // the node(s) the next one hangs on (any one of a fork)
     B.keys.forEach((k, t) => {
-      B.pass.forEach((p, i) => { after = [put(`job.${job}.${bid}.t${t}p${i}`, { ...line, name: 'ผ่าน', nameTh: 'โหนดผ่าน', type: 'minor', effects: avg(p), cost: 1, ...(after.length > 1 ? { requiresAny: after } : { requires: after }) })]; });
+      B.pass.forEach((p, i) => { after = [put(`job.${job}.${bid}.t${t}p${i}`, { ...line, name: 'ผ่าน', nameTh: 'โหนดผ่าน', pass: true, type: 'minor', effects: avg(p), cost: 1, ...(after.length > 1 ? { requiresAny: after } : { requires: after }) })]; });
       if (k.forks) after = Object.entries(k.forks).map(([f, fk]) => put(`job.${job}.${bid}.t${t}k.${f}`, { ...line, name: fk.name, nameTh: fk.name, type: 'notable', effects: avg(fk), uptime: fk.uptime, cost: 2, requires: after, forkGroup: `${job}.${bid}.t${t}`, fork: f }));
       else after = [put(`job.${job}.${bid}.t${t}k`, { ...line, name: k.name, nameTh: k.name, type: 'notable', effects: avg(k), uptime: k.uptime, cost: 2, requires: after })];
     });

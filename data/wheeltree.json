@@ -2132,6 +2132,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8
@@ -2154,6 +2155,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8,
@@ -2177,6 +2179,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8
@@ -2222,6 +2225,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8
@@ -2244,6 +2248,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8,
@@ -2267,6 +2272,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8
@@ -2311,6 +2317,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8
@@ -2333,6 +2340,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8,
@@ -2356,6 +2364,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 2.8
@@ -2422,6 +2431,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 2.8
@@ -2444,6 +2454,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 4.2
@@ -2468,6 +2479,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 2.8
@@ -2567,6 +2579,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 2.8
@@ -2591,6 +2604,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 4.2
@@ -2613,6 +2627,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 2.8
@@ -2658,6 +2673,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 2.8
@@ -2680,6 +2696,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 4.2
@@ -2702,6 +2719,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 2.8
@@ -2842,6 +2860,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.2
@@ -2864,6 +2883,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 4,
@@ -2890,6 +2910,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.2
@@ -3018,6 +3039,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.2
@@ -3043,6 +3065,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 4,
@@ -3066,6 +3089,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.2
@@ -3111,6 +3135,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.2
@@ -3133,6 +3158,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 4,
@@ -3156,6 +3182,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.2
@@ -3382,6 +3409,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3.9
@@ -3404,6 +3432,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 3.9
@@ -3426,6 +3455,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3.9
@@ -3471,6 +3501,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3.9
@@ -3493,6 +3524,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 3.9
@@ -3515,6 +3547,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3.9
@@ -3559,6 +3592,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3.9
@@ -3581,6 +3615,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 3.9
@@ -3603,6 +3638,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3.9
@@ -3669,6 +3705,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
@@ -3692,6 +3729,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "selfTakenPct": 2,
@@ -3715,6 +3753,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
@@ -3761,6 +3800,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
@@ -3784,6 +3824,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "selfTakenPct": 2,
@@ -3807,6 +3848,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
@@ -3854,6 +3896,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
@@ -3877,6 +3920,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "selfTakenPct": 2,
@@ -3900,6 +3944,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
@@ -3970,6 +4015,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 7.6
@@ -3992,6 +4038,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 2.5
@@ -4014,6 +4061,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 1.5
@@ -4058,6 +4106,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 7.6
@@ -4080,6 +4129,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 2.5
@@ -4102,6 +4152,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 1.5
@@ -4146,6 +4197,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 7.6
@@ -4168,6 +4220,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 2.5
@@ -4190,6 +4243,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 1.5
@@ -4257,6 +4311,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.5
@@ -4279,6 +4334,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 4
@@ -4301,6 +4357,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -4346,6 +4403,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.5
@@ -4368,6 +4426,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 4
@@ -4390,6 +4449,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -4436,6 +4496,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.5
@@ -4458,6 +4519,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 4
@@ -4480,6 +4542,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -4623,6 +4686,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "healPct": 6.1
@@ -4645,6 +4709,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "mpRegenPct": 6
@@ -4667,6 +4732,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamBuffPct": 5.1
@@ -4711,6 +4777,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "healPct": 6.1
@@ -4733,6 +4800,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "mpRegenPct": 6
@@ -4755,6 +4823,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamBuffPct": 5.1
@@ -4799,6 +4868,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "healPct": 6.1
@@ -4821,6 +4891,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "mpRegenPct": 6
@@ -4843,6 +4914,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamBuffPct": 5.1
@@ -4908,6 +4980,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "controlDurationPct": 3.1,
@@ -4931,6 +5004,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "spellDamagePct": 3,
@@ -4954,6 +5028,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamDamagePct": 2.3
@@ -4998,6 +5073,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "controlDurationPct": 3.1,
@@ -5021,6 +5097,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "spellDamagePct": 3,
@@ -5044,6 +5121,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamDamagePct": 2.3
@@ -5088,6 +5166,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "controlDurationPct": 3.1,
@@ -5111,6 +5190,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "spellDamagePct": 3,
@@ -5134,6 +5214,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamDamagePct": 2.3
@@ -5202,6 +5283,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShieldPct": 4.7
@@ -5224,6 +5306,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShield": 9.9
@@ -5246,6 +5329,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "barrierPct": 3.3
@@ -5290,6 +5374,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShieldPct": 4.7
@@ -5312,6 +5397,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShield": 9.9
@@ -5334,6 +5420,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "barrierPct": 3.3
@@ -5378,6 +5465,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShieldPct": 4.7
@@ -5400,6 +5488,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShield": 9.9
@@ -5422,6 +5511,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "barrierPct": 3.3
@@ -5567,6 +5657,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.4
@@ -5589,6 +5680,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 105
@@ -5611,6 +5703,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.4
@@ -5656,6 +5749,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.4
@@ -5678,6 +5772,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 105
@@ -5700,6 +5795,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.4
@@ -5744,6 +5840,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.4
@@ -5766,6 +5863,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 105
@@ -5788,6 +5886,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.4
@@ -5855,6 +5954,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -5877,6 +5977,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamTakenPct": 25,
@@ -5900,6 +6001,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShield": 120
@@ -5944,6 +6046,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -5966,6 +6069,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamTakenPct": 25,
@@ -5989,6 +6093,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShield": 120
@@ -6033,6 +6138,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -6055,6 +6161,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "teamTakenPct": 25,
@@ -6078,6 +6185,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxShield": 120
@@ -6146,6 +6254,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.8
@@ -6168,6 +6277,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 90
@@ -6190,6 +6300,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.8
@@ -6234,6 +6345,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.8
@@ -6256,6 +6368,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 90
@@ -6278,6 +6391,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.8
@@ -6322,6 +6436,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.8
@@ -6344,6 +6459,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 90
@@ -6366,6 +6482,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.8
@@ -6509,6 +6626,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 2
@@ -6531,6 +6649,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 6.9
@@ -6553,6 +6672,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 2
@@ -6598,6 +6718,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 2
@@ -6620,6 +6741,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 6.9
@@ -6642,6 +6764,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 2
@@ -6687,6 +6810,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 2
@@ -6709,6 +6833,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 6.9
@@ -6731,6 +6856,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 2
@@ -6797,6 +6923,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -6819,6 +6946,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 5.2
@@ -6841,6 +6969,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "mpOnHit": 1
@@ -6885,6 +7014,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -6907,6 +7037,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 5.2
@@ -6929,6 +7060,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "mpOnHit": 1
@@ -6974,6 +7106,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -6996,6 +7129,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 5.2
@@ -7018,6 +7152,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "mpOnHit": 1
@@ -7084,6 +7219,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dodgeChancePct": 1.5
@@ -7106,6 +7242,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "goldFindPct": 2
@@ -7128,6 +7265,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "gearFindPct": 2
@@ -7173,6 +7311,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dodgeChancePct": 1.5
@@ -7195,6 +7334,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "goldFindPct": 2
@@ -7217,6 +7357,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "gearFindPct": 2
@@ -7262,6 +7403,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dodgeChancePct": 1.5
@@ -7284,6 +7426,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "goldFindPct": 2
@@ -7306,6 +7449,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "gearFindPct": 2
@@ -7450,6 +7594,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -7472,6 +7617,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 90
@@ -7494,6 +7640,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -7538,6 +7685,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -7560,6 +7708,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 90
@@ -7582,6 +7731,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -7626,6 +7776,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -7648,6 +7799,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "defense": 90
@@ -7670,6 +7822,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3
@@ -7740,6 +7893,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "singleDamagePct": 2.9
@@ -7762,6 +7916,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.5,
@@ -7785,6 +7940,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "leechPct": 0.5,
@@ -7830,6 +7986,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "singleDamagePct": 2.9
@@ -7852,6 +8009,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.5,
@@ -7875,6 +8033,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "leechPct": 0.5,
@@ -7921,6 +8080,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "singleDamagePct": 2.9
@@ -7943,6 +8103,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "meleeDamagePct": 3.5,
@@ -7966,6 +8127,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "leechPct": 0.5,
@@ -8109,6 +8271,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 13.3
@@ -8131,6 +8294,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 10.2
@@ -8153,6 +8317,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 13.3
@@ -8197,6 +8362,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 13.3
@@ -8219,6 +8385,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 10.2
@@ -8241,6 +8408,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 13.3
@@ -8286,6 +8454,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 13.3
@@ -8308,6 +8477,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 10.2
@@ -8330,6 +8500,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 13.3
@@ -8395,6 +8566,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8417,6 +8589,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8439,6 +8612,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8483,6 +8657,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8505,6 +8680,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8527,6 +8703,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8572,6 +8749,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8594,6 +8772,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8616,6 +8795,7 @@
    "role": "income",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "materialFindPct": 3
@@ -8759,6 +8939,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 7.4
@@ -8781,6 +8962,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -8803,6 +8985,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 7.4
@@ -8848,6 +9031,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 7.4
@@ -8870,6 +9054,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -8892,6 +9077,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 7.4
@@ -8936,6 +9122,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 7.4
@@ -8958,6 +9145,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -8980,6 +9168,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 7.4
@@ -9046,6 +9235,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "controlDurationPct": 15.2
@@ -9068,6 +9258,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -9090,6 +9281,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -9134,6 +9326,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "controlDurationPct": 15.2
@@ -9156,6 +9349,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -9178,6 +9372,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -9222,6 +9417,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "controlDurationPct": 15.2
@@ -9244,6 +9440,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -9266,6 +9463,7 @@
    "role": "team",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -9332,6 +9530,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 3
@@ -9354,6 +9553,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3
@@ -9376,6 +9576,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 3
@@ -9420,6 +9621,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 3
@@ -9442,6 +9644,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3
@@ -9464,6 +9667,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 3
@@ -9508,6 +9712,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 3
@@ -9530,6 +9735,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 3
@@ -9552,6 +9758,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "trapDamagePct": 3
@@ -9698,6 +9905,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 8.9
@@ -9720,6 +9928,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 8.9
@@ -9742,6 +9951,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 8.9
@@ -9786,6 +9996,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 8.9
@@ -9808,6 +10019,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 8.9
@@ -9830,6 +10042,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 8.9
@@ -9874,6 +10087,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 8.9
@@ -9896,6 +10110,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 8.9
@@ -9918,6 +10133,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 8.9
@@ -9984,6 +10200,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.6
@@ -10006,6 +10223,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.6
@@ -10028,6 +10246,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.6
@@ -10072,6 +10291,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.6
@@ -10094,6 +10314,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.6
@@ -10116,6 +10337,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.6
@@ -10160,6 +10382,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.6
@@ -10182,6 +10405,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 4.6
@@ -10204,6 +10428,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 4.6
@@ -10270,6 +10495,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 9.5
@@ -10292,6 +10518,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 9.5
@@ -10314,6 +10541,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 9.5
@@ -10358,6 +10586,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 9.5
@@ -10380,6 +10609,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 9.5
@@ -10402,6 +10632,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 9.5
@@ -10446,6 +10677,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 9.5
@@ -10468,6 +10700,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 9.5
@@ -10490,6 +10723,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 9.5
@@ -10556,6 +10790,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.4
@@ -10578,6 +10813,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 5.4
@@ -10600,6 +10836,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.4
@@ -10644,6 +10881,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.4
@@ -10666,6 +10904,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 5.4
@@ -10688,6 +10927,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.4
@@ -10733,6 +10973,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.4
@@ -10755,6 +10996,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "projectileDamagePct": 5.4
@@ -10777,6 +11019,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.4
@@ -10919,6 +11162,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 8.4
@@ -10941,6 +11185,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 5.7,
@@ -10964,6 +11209,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 8.4
@@ -11008,6 +11254,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 8.4
@@ -11030,6 +11277,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 5.7,
@@ -11053,6 +11301,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 8.4
@@ -11098,6 +11347,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 8.4
@@ -11120,6 +11370,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 5.7,
@@ -11143,6 +11394,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 8.4
@@ -11210,6 +11462,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.8
@@ -11232,6 +11485,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 3
@@ -11254,6 +11508,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "selfTakenPct": 2.6
@@ -11298,6 +11553,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.8
@@ -11320,6 +11576,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 3
@@ -11342,6 +11599,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "selfTakenPct": 2.6
@@ -11387,6 +11645,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxHpPct": 3.8
@@ -11409,6 +11668,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "summonDamagePct": 3
@@ -11431,6 +11691,7 @@
    "role": "survival",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "selfTakenPct": 2.6
@@ -11497,6 +11758,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxMpPct": 4
@@ -11519,6 +11781,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -11541,6 +11804,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxMpPct": 4
@@ -11585,6 +11849,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxMpPct": 4
@@ -11607,6 +11872,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -11629,6 +11895,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxMpPct": 4
@@ -11673,6 +11940,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxMpPct": 4
@@ -11695,6 +11963,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "manaCostReductionPct": 3
@@ -11717,6 +11986,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "maxMpPct": 4
@@ -11862,6 +12132,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -11884,6 +12155,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.7
@@ -11906,6 +12178,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -11951,6 +12224,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -11973,6 +12247,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.7
@@ -11995,6 +12270,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -12039,6 +12315,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -12061,6 +12338,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 5.7
@@ -12083,6 +12361,7 @@
    "role": "pack",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "areaDamagePct": 5.7
@@ -12149,6 +12428,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 1
@@ -12171,6 +12451,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 4.2
@@ -12193,6 +12474,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -12238,6 +12520,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 1
@@ -12260,6 +12543,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 4.2
@@ -12282,6 +12566,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -12326,6 +12611,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critChancePct": 1
@@ -12348,6 +12634,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "critMultPct": 4.2
@@ -12370,6 +12657,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "hastePct": 3
@@ -12435,6 +12723,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dotDamagePct": 4.4
@@ -12457,6 +12746,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 2.7
@@ -12479,6 +12769,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dotDamagePct": 4.4
@@ -12523,6 +12814,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dotDamagePct": 4.4
@@ -12545,6 +12837,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 2.7
@@ -12567,6 +12860,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dotDamagePct": 4.4
@@ -12611,6 +12905,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dotDamagePct": 4.4
@@ -12633,6 +12928,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "elementalDamagePct": 2.7
@@ -12655,6 +12951,7 @@
    "role": "single",
    "name": "ผ่าน",
    "nameTh": "โหนดผ่าน",
+   "pass": true,
    "type": "minor",
    "effects": {
     "dotDamagePct": 4.4

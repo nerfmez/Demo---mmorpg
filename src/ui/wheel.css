@@ -9,6 +9,7 @@
 .wheel-tree button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;min-height:0}
 .wheel-tree button:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
 .wheel-tree [hidden]{display:none!important}
+.wheel-tree .fm-exit{display:none}
 /* the book */
 .fm-book{position:relative;height:100%;border-radius:10px;padding:8px;background:linear-gradient(135deg,#596450,#70745b 42%,#536150);box-shadow:0 18px 36px #373d3840,0 3px 6px #373d3830}
 .fm-spread{position:relative;height:100%;border-radius:6px;overflow:hidden;border:1px solid var(--edge);display:grid;grid-template-rows:auto minmax(0,1fr) auto;
@@ -249,5 +250,35 @@ text.fm-halo{fill:none!important;stroke:#f6efd9;stroke-width:4px;stroke-linejoin
   .fm-note{left:10px;right:10px;width:auto;top:auto;bottom:10px;max-height:62%}
   .fm-log h3{display:none}
   .fm-legend{display:none}
+}
+/* a phone held sideways (landscape only): the same pages, the frame and the bars shrink away so the map
+   has the screen. No book cover, tape or bottom bar; the tabs and the few buttons share one thin row. */
+@media (max-height:520px){
+  .overlay.is-wheel:not(.is-atelier):not(.is-journal){padding:0;align-items:stretch;justify-content:stretch}
+  .overlay.is-wheel:not(.is-atelier):not(.is-journal) .panel{width:100vw;height:var(--viewport-h,100dvh);max-height:none;border-radius:0;border:0;display:flex;flex-direction:column}
+  .overlay.is-wheel .panel>:not(.pbody){display:none!important}
+  .overlay.is-wheel:not(.is-atelier):not(.is-journal) .pbody{flex:1 1 auto;min-height:0;height:auto}
+  .wheel-tree{padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px);background:#efe5cb}
+  .fm-book{padding:40px 0 0;background:none;box-shadow:none;border-radius:0}
+  .fm-spread{border:0;border-radius:0;box-shadow:none;overflow:visible;grid-template-rows:minmax(0,1fr)}
+  .fm-page{overflow:hidden}
+  .fm-ribbon,.fm-curl,.fm-tape,.fm-bottom,.fm-watermark,.fm-logo,.fm-crumb,.fm-tool span,.fm-points small{display:none!important}
+  .fm-tabs{top:0;left:8px;right:auto;height:40px;align-items:flex-end;gap:2px;z-index:6}
+  .wheel-tree .fm-tabs button{min-height:40px;padding:4px 8px 6px;font-size:11px;transform:translateY(4px);border-radius:6px 6px 0 0}
+  .wheel-tree .fm-tabs button[aria-current="true"]{transform:translateY(0)}
+  .fm-tabs button span{font-size:11px}
+  .fm-top{position:absolute;top:-40px;right:6px;height:40px;padding:0;gap:2px;border:0;z-index:6}
+  .wheel-tree .fm-exit{display:inline-flex;min-width:40px;justify-content:center}
+  .wheel-tree .fm-tool{min-height:40px;padding:0 8px}
+  .fm-points{border-left:0;padding:0 4px;gap:4px}.fm-n{font-size:22px}
+  .fm-points::after{content:"แต้ม";font-size:11px;color:var(--muted)}
+  .fm-sheet,.fm-flyshadow{inset:0;border:0;border-radius:0;box-shadow:none}
+  .fm-head{top:6px;left:10px;padding:3px 9px;outline:0;background:#fbf6e7b3;border-color:#b8a37c55}.fm-head h1{font-size:14px;margin:0}.fm-head p,.fm-eyebrow{display:none}
+  .fm-branches{top:6px;right:8px}.wheel-tree .fm-branches button{min-height:40px;padding:2px 10px;font-size:12px}
+  .fm-note{top:6px;bottom:6px;left:auto;right:8px;width:270px;max-height:none;padding:12px 14px}
+  .fm-note h2{font-size:16px;margin:0 0 4px}.fm-note h2 svg{width:26px;height:26px}.fm-fx{padding:4px 0;font-size:12px}.fm-fx b{font-size:15px}.fm-hand{font-size:15px;margin:6px 0}
+  .wheel-tree .fm-act{min-height:42px;font-size:13px}
+  .wheel-tree .fm-legend{display:none!important}
+  .fm-short .fm-rn{font-size:15px}.fm-short .fm-rj,.fm-short .fm-rp{font-size:12.5px}.fm-short .fm-hubcap{font-size:14px}.fm-short .fm-titlegrp{display:none}
 }
 @media (prefers-reduced-motion:reduce){.wheel-tree *,.wheel-tree *::before,.wheel-tree *::after{animation:none!important;transition:none!important}}

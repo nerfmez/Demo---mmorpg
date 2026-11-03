@@ -126,6 +126,7 @@ export function createWheel(root, ui) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let current = null, sel = null, confirm = false, turning = false, animating = 0, destroyed = false;
   const pending = new Set();
+  const short = () => pageEl.clientHeight < 340;
 
   // ---------- the field record ----------
   const entryText = (id, day) => {
@@ -146,8 +147,10 @@ export function createWheel(root, ui) {
           <span class="fm-crumb">บันทึกการสำรวจ &nbsp;/&nbsp; <b data-crumb></b></span>
           <span class="fm-sp"></span>
           <button class="fm-tool" data-f="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 5l2.5 7L12 19l-2.5-7z" fill="currentColor" fill-opacity=".25"/></svg><span>แผนที่รวม</span></button>
+          <button class="fm-tool fm-exit" data-f="hub" aria-label="เมนูหลัก"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
           <button class="fm-tool" data-f="respec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v4h4"/></svg><span>คืนแต้ม</span></button>
           <div class="fm-points"><span class="fm-n" data-pts></span><small>แต้มพร้อมบันทึก<br><i data-lv></i></small></div>
+          <button class="fm-tool fm-exit" data-f="exit" aria-label="ปิดสมุด กลับเข้าเกม"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
         </header>
         <main class="fm-page" data-page></main>
         <footer class="fm-bottom">
@@ -239,7 +242,7 @@ export function createWheel(root, ui) {
     const wm = document.createElement('div'); wm.className = 'fm-watermark'; wm.textContent = P.kind === 'camp' ? '01' : P.kind === 'sector' ? num2(SECTOR_ORDER.indexOf(P.sector) + 2) : '08'; sheet.appendChild(wm);
     const wrap = document.createElement('div'); wrap.className = 'fm-mapwrap'; sheet.appendChild(wrap);
     // natural size: captions stay readable; a long road scrolls sideways under the finger
-    const k = Math.max(0.74, Math.min(1.15, (pageEl.clientHeight - 6) / m.height));
+    const k = Math.max(short() ? 0.8 : 0.74, Math.min(1.15, (pageEl.clientHeight - 6) / m.height));
     const svg = el('svg', { class: 'fm-map' + (intro ? ' fm-intro' : ''), viewBox: `0 0 ${m.width} ${m.height}`, width: Math.round(m.width * k), height: Math.round(m.height * k), role: 'img', 'aria-label': 'แผนที่เส้นทาง' });
     wrap.appendChild(svg);
     terrain(svg, m.terrain, m.width, m.height, P.kind === 'sector' ? P.sector : P.kind === 'camp' ? 'camp' : null);
@@ -270,7 +273,7 @@ export function createWheel(root, ui) {
     refresh(true);
     // open where the road continues: the first place that can be taken, else the last one taken
     const ids = Object.keys(m.coords), next = ids.find((id) => stateOf(id) === 'open') || [...ids].reverse().find((id) => ch().jobNodes.includes(id));
-    if (next) wrap.scrollLeft = Math.max(0, m.coords[next][0] * k - wrap.clientWidth * 0.4);
+    if (next) { wrap.scrollLeft = Math.max(0, m.coords[next][0] * k - wrap.clientWidth * 0.4); wrap.scrollTop = Math.max(0, m.coords[next][1] * k - wrap.clientHeight * 0.45); }
     if (intro) setTimeout(() => svg.classList.remove('fm-intro'), 2600);
   }
 
@@ -362,7 +365,7 @@ export function createWheel(root, ui) {
     return { CX, CY };
   }
   function rose(svg, CX, CY, hubAction) {
-    const all = el('g', { class: 'fm-rose-all', style: `transform-origin:${CX}px ${CY}px` }, svg), R = 74;
+    const all = el('g', { class: 'fm-rose-all', style: `transform-origin:${CX}px ${CY}px` }, svg), R = 74, q = 1;
     for (const r of [R, R - 7, R - 30]) el('circle', { class: 'fm-rose-ring', cx: CX, cy: CY, r, pathLength: 1 }, all);
     for (let i = 0; i < 72; i++) { const a = i * 5 * Math.PI / 180, l = i % 9 === 0 ? 7 : i % 3 === 0 ? 4.5 : 2.5; el('line', { class: 'fm-rose-tick', x1: CX + Math.cos(a) * R, y1: CY + Math.sin(a) * R, x2: CX + Math.cos(a) * (R - l), y2: CY + Math.sin(a) * (R - l) }, all); }
     const point = (deg, len, wid, dark, light) => {
@@ -375,8 +378,8 @@ export function createWheel(root, ui) {
     for (let k = 0; k < 4; k++) point(k * 90, R - 4, 9, 'fm-rose-dark', 'fm-rose-light');
     const nl = el('text', { class: 'fm-rose-n', x: CX, y: CY - R - 8 }, all); nl.textContent = 'N';
     const needle = el('g', { class: 'fm-needle', style: `transform-origin:${CX}px ${CY}px` }, svg);
-    el('path', { d: `M${CX} ${CY - 46}l5 46h-10z`, fill: '#a64b3c' }, needle);
-    el('path', { d: `M${CX} ${CY + 30}l5 -30h-10z`, fill: '#5d6a5e' }, needle);
+    el('path', { d: `M${CX} ${CY - 46 * q}l5 ${46 * q}h-10z`, fill: '#a64b3c' }, needle);
+    el('path', { d: `M${CX} ${CY + 30 * q}l5 ${-30 * q}h-10z`, fill: '#5d6a5e' }, needle);
     const hub = el('g', { class: 'fm-hub', tabindex: 0, role: 'button', 'aria-label': 'ค่ายพักแรม' }, svg);
     el('circle', { cx: CX, cy: CY, r: 26, fill: 'transparent' }, hub);
     el('circle', { cx: CX, cy: CY, r: 13, fill: '#f6efd9', stroke: '#8f7350', 'stroke-width': 1.2 }, hub);
@@ -391,13 +394,13 @@ export function createWheel(root, ui) {
     const lift = el('g', { class: 'fm-lift' }, g);
     if (opt.art) { const art = el('g', { class: 'fm-art', transform: 'translate(0 -14)' }, lift); art.innerHTML = opt.art; }
     else glyph(opt.glyph, el('g', { class: 'fm-art' }, lift), 30, -15, -32);
-    const w = Math.max(opt.small ? 96 : 118, opt.name.length * 11 + 30), by = opt.small ? 14 : 36;
+    const sh = short(), w = Math.max(opt.small ? 96 : 118, opt.name.length * (sh ? 12.5 : 11) + 30), by = opt.small ? 14 : 36;
     el('path', { class: 'fm-tail', d: `M${-w / 2 + 6} ${by - 4}h-20l7 9-7 9h20z` }, lift);
     el('path', { class: 'fm-tail', d: `M${w / 2 - 6} ${by - 4}h20l-7 9 7 9h-20z` }, lift);
-    el('path', { class: 'fm-banner', d: `M${-w / 2} ${by - 10}q${w / 2} -6 ${w} 0v22q${-w / 2} -6 ${-w} 0z` }, lift);
+    el('path', { class: 'fm-banner', d: `M${-w / 2} ${by - (sh ? 12 : 10)}q${w / 2} -6 ${w} 0v${sh ? 24 : 22}q${-w / 2} -6 ${-w} 0z` }, lift);
     const rn = el('text', { class: 'fm-rn', y: by + 5 }, lift); rn.textContent = opt.name;
-    label(lift, { class: 'fm-rj', y: by + 28 }, opt.line);
-    label(lift, { class: 'fm-rp' + (opt.ok ? ' ok' : ''), y: by + 43 }, opt.progress);
+    label(lift, { class: 'fm-rj', y: by + (sh ? 30 : 28) }, opt.line);
+    label(lift, { class: 'fm-rp' + (opt.ok ? ' ok' : ''), y: by + (sh ? 46 : 43) }, opt.progress);
     return g;
   }
   function washDefs(svg, colors) {
@@ -405,7 +408,8 @@ export function createWheel(root, ui) {
   }
   function overviewSvg(sheet, intro, aria) {
     const wrap = document.createElement('div'); wrap.className = 'fm-mapwrap fm-fit'; sheet.appendChild(wrap);
-    const svg = el('svg', { class: 'fm-map' + (intro ? ' fm-intro' : ''), viewBox: '0 0 1000 600', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': aria }); wrap.appendChild(svg);
+    // on a short screen the compass is flatter and cropped to its places, its words larger
+    const svg = el('svg', { class: 'fm-map' + (intro ? ' fm-intro' : '') + (short() ? ' fm-short' : ''), viewBox: short() ? (byId[state.page].kind === 'jobs' ? '20 92 960 500' : '30 96 940 484') : '0 0 1000 600', preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': aria }); wrap.appendChild(svg);
     if (intro) setTimeout(() => svg.classList.remove('fm-intro'), 2600);
     current = { P: byId[state.page], svg, wrap, nodeEls: {}, edgeEls: {} };
     return svg;
@@ -455,9 +459,10 @@ export function createWheel(root, ui) {
       const J = tree.jobs[job], spent = c.jobNodes.filter((id) => N[id]?.job === job).length;
       const road = el('path', { class: 'fm-road' + (mine === job ? ' walked' : ''), d: curve({ x: CX, y: CY }, { x: CX + (p.x - CX) * 0.7, y: CY + (p.y - CY) * 0.7 }, job), pathLength: 1, style: `--d:${i * 0.06 + 0.5}s` }, roads);
       const g = region(regs, i, p, { small: true, wash: SECTOR_ORDER.indexOf(s), glyph: JOB_GLYPH[job], name: J.nameTh, line: Object.values(J.branches).map((b) => b.nameTh).join(' · '), progress: mine === job ? `อาชีพของคุณ · ${spent} จุด` : mine ? 'ดูได้ · เลือกไปแล้ว 1 อาชีพ' : c.jobLevel < lv ? `เปิดที่ Job Lv ${lv}` : 'เลือกได้', ok: mine === job || (!mine && c.jobLevel >= lv), ready: true, mine: mine === job, aria: J.nameTh });
-      const aim = () => { needle.style.transform = `rotate(${a + 90}deg)`; regs.querySelectorAll('.fm-region').forEach((x) => x.classList.toggle('hot', x === g)); };
+      const aim = () => { if (needle) needle.style.transform = `rotate(${a + 90}deg)`; regs.querySelectorAll('.fm-region').forEach((x) => x.classList.toggle('hot', x === g)); };
       g.addEventListener('pointerenter', aim); g.addEventListener('focus', aim);
-      const open = () => { aim(); inkRoad(roads, road.getAttribute('d'), () => turnTo(`job.${job}.${Object.keys(J.branches)[0]}`)); };
+      const go = () => turnTo(`job.${job}.${Object.keys(J.branches)[0]}`);
+      const open = () => { aim(); inkRoad(roads, road.getAttribute('d'), go); };
       g.addEventListener('click', open); g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
     });
     needle = rose(svg, CX, CY, null);
@@ -492,6 +497,7 @@ export function createWheel(root, ui) {
     const path = st.can ? [id] : route?.can ? route.path : [];
     for (const to of path) { const e = edgeTo(to); if (e) el('path', { class: 'fm-preview', d: e.r.getAttribute('d') }, current.inks); }
     note.hidden = false; note.classList.remove('in'); void note.offsetWidth; note.classList.add('in');
+    if (short() && current.wrap && current.k) { const [x, y] = current.at[id]; current.wrap.scrollTo({ left: Math.max(0, x * current.k - (current.wrap.clientWidth - note.offsetWidth) * 0.5), top: Math.max(0, y * current.k - current.wrap.clientHeight * 0.5), behavior: reduce ? 'auto' : 'smooth' }); }
   }
   const REASON = {
     prerequisite: () => 'ต้องเดินทางมาถึงจุดก่อนหน้าก่อน', job_level: (st) => `ปลายทางเปิดที่ Job Lv ${st.need}`,
@@ -649,6 +655,8 @@ export function createWheel(root, ui) {
     const P = byId[state.page];
     switch (t.dataset.f) {
       case 'home': return turnTo('overview');
+      case 'exit': return ui.close();
+      case 'hub': return ui.open('menu');
       case 'prev': return turnTo(prevOf(P));
       case 'next': return turnTo(P.kind === 'job' ? nextBranch(P) : linear[linear.indexOf(P.id) + 1]);
       case 'close': return closeNote();

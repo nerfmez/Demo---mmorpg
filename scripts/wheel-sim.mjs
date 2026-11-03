@@ -46,7 +46,8 @@ for (const [job, J] of Object.entries(W.jobs)) {
   const entry = add(`w.${job}.entry`, J.entry, 0), trunk = J.trunk.map((n, i) => add(`w.${job}.trunk${i}`, n, n.cost || 1));
   for (const bid of Object.keys(J.branches)) for (const fork of forksOf(job, bid)) {
     const B = J.branches[bid], path = branchNodes(job, bid, fork);
-    const spec0 = { kit: job, level: W.level, build: { ...J.build, stats: B.stats || J.build.stats }, loadout: B.loadout || J.loadout, support: B.support || J.support, mods: B.mods || mainMod(B.role, (B.loadout || J.loadout)[0]) }; // a line may name its own mods (slot: [ids])
+    // a line may hold one weapon where its job holds two (B.dualWield)
+    const spec0 = { kit: job, level: W.level, build: { ...J.build, stats: B.stats || J.build.stats, ...(B.dualWield !== undefined ? { dualWield: B.dualWield } : {}) }, loadout: B.loadout || J.loadout, support: B.support || J.support, mods: B.mods || mainMod(B.role, (B.loadout || J.loadout)[0]) }; // a line may name its own mods (slot: [ids])
     const jobBase = [entry, ...trunk, ...path];
     const spareOptions = { inner: null };
     for (const other of Object.keys(J.branches)) if (other !== bid) spareOptions['side:' + other] = branchNodes(job, other, forksOf(job, other)[0]).slice(0, 4).concat(branchNodes(job, other, forksOf(job, other)[0]).slice(4, 8));

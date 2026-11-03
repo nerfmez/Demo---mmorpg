@@ -80,3 +80,20 @@ test('a respec refunds what the nodes cost, and the effects count on the charact
   assert.equal(ch.jobPoints, points + spent);
   assert.deepEqual(ch.jobNodes, ['origin']);
 });
+
+test('the heavy weapon line and the dual wield line hang off their sectors, and count only with that weapon', async () => {
+  const { foldWeaponStats } = await import('../../src/core/character.js');
+  assert.deepEqual(N['in.heavy.h1'].requires, ['in.str.s4']);
+  assert.deepEqual(N['in.dual.d1'].requires, ['in.strdex.sd4']);
+  const base = { meleeDamagePct: 10, maxHp: 1000, penetrationPct: 0, hastePct: 10, critChancePct: 5, critChance: 0.05, heavyDamagePct: 20, heavyHpPct: 10, heavyPenetrationPct: 10, dualDamagePct: 15, dualHastePct: 6, dualCritPct: 4 };
+  const fold = (extra) => { const d = { ...base, ...extra }; foldWeaponStats(d, data); return d; };
+  const plain = fold({ weaponType: 'sword', dualWield: false });
+  assert.equal(plain.meleeDamagePct, 10, 'a sword in one hand gets neither');
+  for (const w of data.progression.combat.wheel.heavyWeapons) {
+    const d = fold({ weaponType: w, dualWield: false });
+    assert.equal(d.meleeDamagePct, 30, w); assert.equal(d.maxHp, 1100); assert.equal(d.penetrationPct, 10);
+  }
+  const dual = fold({ weaponType: 'dagger', dualWield: true });
+  assert.equal(dual.meleeDamagePct, 25); assert.equal(dual.hastePct, 16); assert.equal(dual.critChancePct, 9); assert.ok(Math.abs(dual.critChance - 0.09) < 1e-9);
+  assert.equal(fold({ weaponType: 'staff', dualWield: false }).maxHp, 1000, 'a staff is no heavy weapon');
+});

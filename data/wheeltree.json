@@ -219,7 +219,9 @@
   "dex": "DEX",
   "dexint": "DEX/INT",
   "int": "INT",
-  "intstr": "INT/STR"
+  "intstr": "INT/STR",
+  "heavy": "อาวุธหนัก",
+  "dual": "ถือสองมือ"
  },
  "nodes": {
   "origin": {
@@ -413,7 +415,8 @@
   "in.str.s4": {
    "links": [
     "in.str.s3",
-    "in.str.s5"
+    "in.str.s5",
+    "in.heavy.h1"
    ],
    "name": "ดาเมจประชิด (เด่น)",
    "nameTh": "ดาเมจประชิด (เด่น)",
@@ -640,7 +643,8 @@
   "in.strdex.sd4": {
    "links": [
     "in.strdex.sd3",
-    "in.strdex.sd5"
+    "in.strdex.sd5",
+    "in.dual.d1"
    ],
    "name": "คริ (เด่น)",
    "nameTh": "คริ (เด่น)",
@@ -1718,6 +1722,327 @@
    "sector": "intstr",
    "sectorTh": "INT/STR"
   },
+  "in.heavy.h1": {
+   "links": [
+    "in.str.s4",
+    "in.heavy.h2"
+   ],
+   "name": "ดาเมจอาวุธหนัก",
+   "nameTh": "ดาเมจอาวุธหนัก",
+   "type": "minor",
+   "effects": {
+    "heavyDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.str.s4"
+   ],
+   "ring": "inner",
+   "sector": "heavy",
+   "sectorTh": "อาวุธหนัก",
+   "sideOf": "str"
+  },
+  "in.heavy.h2": {
+   "links": [
+    "in.heavy.h1",
+    "in.heavy.h3"
+   ],
+   "name": "HP อาวุธหนัก",
+   "nameTh": "HP อาวุธหนัก",
+   "type": "minor",
+   "effects": {
+    "heavyHpPct": 3
+   },
+   "cost": 1,
+   "requires": [
+    "in.heavy.h1"
+   ],
+   "ring": "inner",
+   "sector": "heavy",
+   "sectorTh": "อาวุธหนัก",
+   "sideOf": "str"
+  },
+  "in.heavy.h3": {
+   "links": [
+    "in.heavy.h2",
+    "in.heavy.h4"
+   ],
+   "name": "ดาเมจอาวุธหนัก",
+   "nameTh": "ดาเมจอาวุธหนัก",
+   "type": "minor",
+   "effects": {
+    "heavyDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.heavy.h2"
+   ],
+   "ring": "inner",
+   "sector": "heavy",
+   "sectorTh": "อาวุธหนัก",
+   "sideOf": "str"
+  },
+  "in.heavy.h4": {
+   "links": [
+    "in.heavy.h3",
+    "in.heavy.h5"
+   ],
+   "name": "แรงเหวี่ยง (เด่น)",
+   "nameTh": "แรงเหวี่ยง (เด่น)",
+   "type": "notable",
+   "effects": {
+    "heavyDamagePct": 8
+   },
+   "cost": 1,
+   "requires": [
+    "in.heavy.h3"
+   ],
+   "ring": "inner",
+   "sector": "heavy",
+   "sectorTh": "อาวุธหนัก",
+   "sideOf": "str"
+  },
+  "in.heavy.h5": {
+   "links": [
+    "in.heavy.h4",
+    "in.heavy.h6"
+   ],
+   "name": "HP อาวุธหนัก",
+   "nameTh": "HP อาวุธหนัก",
+   "type": "minor",
+   "effects": {
+    "heavyHpPct": 3
+   },
+   "cost": 1,
+   "requires": [
+    "in.heavy.h4"
+   ],
+   "ring": "inner",
+   "sector": "heavy",
+   "sectorTh": "อาวุธหนัก",
+   "sideOf": "str"
+  },
+  "in.heavy.h6": {
+   "links": [
+    "in.heavy.h5",
+    "in.heavy.h7"
+   ],
+   "name": "ดาเมจอาวุธหนัก",
+   "nameTh": "ดาเมจอาวุธหนัก",
+   "type": "minor",
+   "effects": {
+    "heavyDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.heavy.h5"
+   ],
+   "ring": "inner",
+   "sector": "heavy",
+   "sectorTh": "อาวุธหนัก",
+   "sideOf": "str"
+  },
+  "in.heavy.h7": {
+   "links": [
+    "in.heavy.h6",
+    "in.heavy.h8"
+   ],
+   "name": "ดาเมจอาวุธหนัก",
+   "nameTh": "ดาเมจอาวุธหนัก",
+   "type": "minor",
+   "effects": {
+    "heavyDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.heavy.h6"
+   ],
+   "ring": "inner",
+   "sector": "heavy",
+   "sectorTh": "อาวุธหนัก",
+   "sideOf": "str"
+  },
+  "in.heavy.h8": {
+   "links": [
+    "in.heavy.h7"
+   ],
+   "name": "ทุบทะลวง (เด่น)",
+   "nameTh": "ทุบทะลวง (เด่น)",
+   "type": "notable",
+   "effects": {
+    "heavyPenetrationPct": 10,
+    "heavyDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.heavy.h7"
+   ],
+   "ring": "inner",
+   "sector": "heavy",
+   "sectorTh": "อาวุธหนัก",
+   "sideOf": "str"
+  },
+  "in.dual.d1": {
+   "links": [
+    "in.strdex.sd4",
+    "in.dual.d2"
+   ],
+   "name": "ดาเมจสองมือ",
+   "nameTh": "ดาเมจสองมือ",
+   "type": "minor",
+   "effects": {
+    "dualDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.strdex.sd4"
+   ],
+   "ring": "inner",
+   "sector": "dual",
+   "sectorTh": "ถือสองมือ",
+   "sideOf": "strdex"
+  },
+  "in.dual.d2": {
+   "links": [
+    "in.dual.d1",
+    "in.dual.d3"
+   ],
+   "name": "ความเร็วสองมือ",
+   "nameTh": "ความเร็วสองมือ",
+   "type": "minor",
+   "effects": {
+    "dualHastePct": 3
+   },
+   "cost": 1,
+   "requires": [
+    "in.dual.d1"
+   ],
+   "ring": "inner",
+   "sector": "dual",
+   "sectorTh": "ถือสองมือ",
+   "sideOf": "strdex"
+  },
+  "in.dual.d3": {
+   "links": [
+    "in.dual.d2",
+    "in.dual.d4"
+   ],
+   "name": "ดาเมจสองมือ",
+   "nameTh": "ดาเมจสองมือ",
+   "type": "minor",
+   "effects": {
+    "dualDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.dual.d2"
+   ],
+   "ring": "inner",
+   "sector": "dual",
+   "sectorTh": "ถือสองมือ",
+   "sideOf": "strdex"
+  },
+  "in.dual.d4": {
+   "links": [
+    "in.dual.d3",
+    "in.dual.d5"
+   ],
+   "name": "จังหวะคู่ (เด่น)",
+   "nameTh": "จังหวะคู่ (เด่น)",
+   "type": "notable",
+   "effects": {
+    "dualHastePct": 6,
+    "dualDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.dual.d3"
+   ],
+   "ring": "inner",
+   "sector": "dual",
+   "sectorTh": "ถือสองมือ",
+   "sideOf": "strdex"
+  },
+  "in.dual.d5": {
+   "links": [
+    "in.dual.d4",
+    "in.dual.d6"
+   ],
+   "name": "คริสองมือ",
+   "nameTh": "คริสองมือ",
+   "type": "minor",
+   "effects": {
+    "dualCritPct": 2
+   },
+   "cost": 1,
+   "requires": [
+    "in.dual.d4"
+   ],
+   "ring": "inner",
+   "sector": "dual",
+   "sectorTh": "ถือสองมือ",
+   "sideOf": "strdex"
+  },
+  "in.dual.d6": {
+   "links": [
+    "in.dual.d5",
+    "in.dual.d7"
+   ],
+   "name": "ดาเมจสองมือ",
+   "nameTh": "ดาเมจสองมือ",
+   "type": "minor",
+   "effects": {
+    "dualDamagePct": 4
+   },
+   "cost": 1,
+   "requires": [
+    "in.dual.d5"
+   ],
+   "ring": "inner",
+   "sector": "dual",
+   "sectorTh": "ถือสองมือ",
+   "sideOf": "strdex"
+  },
+  "in.dual.d7": {
+   "links": [
+    "in.dual.d6",
+    "in.dual.d8"
+   ],
+   "name": "ความเร็วสองมือ",
+   "nameTh": "ความเร็วสองมือ",
+   "type": "minor",
+   "effects": {
+    "dualHastePct": 3
+   },
+   "cost": 1,
+   "requires": [
+    "in.dual.d6"
+   ],
+   "ring": "inner",
+   "sector": "dual",
+   "sectorTh": "ถือสองมือ",
+   "sideOf": "strdex"
+  },
+  "in.dual.d8": {
+   "links": [
+    "in.dual.d7"
+   ],
+   "name": "พายุสองคม (เด่น)",
+   "nameTh": "พายุสองคม (เด่น)",
+   "type": "notable",
+   "effects": {
+    "dualDamagePct": 8,
+    "dualCritPct": 3
+   },
+   "cost": 1,
+   "requires": [
+    "in.dual.d7"
+   ],
+   "ring": "inner",
+   "sector": "dual",
+   "sectorTh": "ถือสองมือ",
+   "sideOf": "strdex"
+  },
   "job.heavy": {
    "links": [
     "job.heavy.trunk0"
@@ -1809,7 +2134,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8
+    "areaDamagePct": 2.8
    },
    "cost": 1,
    "requires": [
@@ -1831,7 +2156,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8,
+    "areaDamagePct": 2.8,
     "maxHpPct": 2
    },
    "cost": 1,
@@ -1854,7 +2179,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8
+    "areaDamagePct": 2.8
    },
    "cost": 1,
    "requires": [
@@ -1876,7 +2201,7 @@
    "nameTh": "ดาเมจต่อศัตรูที่โดน",
    "type": "notable",
    "effects": {
-    "perTargetDamagePct": 5.9,
+    "perTargetDamagePct": 4.4,
     "perTargetCap": 30
    },
    "cost": 2,
@@ -1899,7 +2224,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8
+    "areaDamagePct": 2.8
    },
    "cost": 1,
    "requires": [
@@ -1921,7 +2246,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8,
+    "areaDamagePct": 2.8,
     "maxHpPct": 2
    },
    "cost": 1,
@@ -1944,7 +2269,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8
+    "areaDamagePct": 2.8
    },
    "cost": 1,
    "requires": [
@@ -1988,7 +2313,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8
+    "areaDamagePct": 2.8
    },
    "cost": 1,
    "requires": [
@@ -2010,7 +2335,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8,
+    "areaDamagePct": 2.8,
     "maxHpPct": 2
    },
    "cost": 1,
@@ -2033,7 +2358,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 3.8
+    "areaDamagePct": 2.8
    },
    "cost": 1,
    "requires": [
@@ -2055,7 +2380,7 @@
    "nameTh": "กวาดแรงขึ้น",
    "type": "notable",
    "effects": {
-    "packDamagePct": 9.6
+    "packDamagePct": 7.1
    },
    "cost": 2,
    "requires": [
@@ -2076,7 +2401,7 @@
    "nameTh": "แรงส่ง",
    "type": "keystone",
    "effects": {
-    "packDamagePct": 23.8
+    "packDamagePct": 17.5
    },
    "uptime": 0.7,
    "cost": 3,
@@ -2167,7 +2492,7 @@
    "nameTh": "ชาร์จ",
    "type": "notable",
    "effects": {
-    "singleDamagePct": 23
+    "singleDamagePct": 9.5
    },
    "cost": 2,
    "requires": [
@@ -2191,7 +2516,7 @@
    "nameTh": "ดีบัฟ",
    "type": "notable",
    "effects": {
-    "singleDamagePct": 23,
+    "singleDamagePct": 9.5,
     "teamDamagePct": 6
    },
    "cost": 2,
@@ -2216,9 +2541,9 @@
    "nameTh": "แรงสุด",
    "type": "notable",
    "effects": {
-    "meleeDamagePct": 42,
+    "meleeDamagePct": 20,
     "hastePct": -15,
-    "singleDamagePct": 12.8
+    "singleDamagePct": 6.7
    },
    "cost": 2,
    "requires": [
@@ -2590,7 +2915,7 @@
    "nameTh": "แรง",
    "type": "notable",
    "effects": {
-    "projectileDamagePct": 23.2
+    "projectileDamagePct": 25
    },
    "cost": 2,
    "requires": [
@@ -2617,7 +2942,7 @@
    "effects": {
     "hastePct": 10,
     "mpOnHit": 4,
-    "projectileDamagePct": 9.8
+    "projectileDamagePct": 10.4
    },
    "cost": 2,
    "requires": [
@@ -2642,8 +2967,8 @@
    "nameTh": "คริ",
    "type": "notable",
    "effects": {
-    "critChancePct": 9.2,
-    "critMultPct": 27
+    "critChancePct": 11.5,
+    "critMultPct": 33
    },
    "cost": 2,
    "requires": [
@@ -2668,7 +2993,7 @@
    "nameTh": "เจาะเกราะ",
    "type": "notable",
    "effects": {
-    "penetrationPct": 16.8
+    "penetrationPct": 18
    },
    "cost": 2,
    "requires": [
@@ -2881,7 +3206,7 @@
    "nameTh": "ลูกตัดสิน",
    "type": "keystone",
    "effects": {
-    "singleDamagePct": 27.3
+    "singleDamagePct": 29
    },
    "cost": 3,
    "requires": [
@@ -2906,7 +3231,7 @@
    "nameTh": "ไม่ยั้งมือ",
    "type": "keystone",
    "effects": {
-    "singleDamagePct": 25.4,
+    "singleDamagePct": 27,
     "mpOnHit": 3
    },
    "cost": 3,
@@ -2957,7 +3282,7 @@
    "nameTh": "ทะลวงจุดอ่อน",
    "type": "keystone",
    "effects": {
-    "singleDamagePct": 27.3
+    "singleDamagePct": 29
    },
    "cost": 3,
    "requires": [
@@ -2976,7 +3301,7 @@
    "type": "job",
    "branch": "elemage",
    "effects": {
-    "spellDamagePct": 8
+    "spellDamagePct": 8.4
    },
    "entryTh": "ดาเมจเวทใส่ศัตรูที่ติดสถานะ",
    "cost": 0,
@@ -2996,7 +3321,7 @@
    "nameTh": "ดาเมจเวท",
    "type": "minor",
    "effects": {
-    "spellDamagePct": 4.6
+    "spellDamagePct": 4.9
    },
    "cost": 1,
    "requires": [
@@ -3037,7 +3362,7 @@
    "nameTh": "ลำต้น (เด่น)",
    "type": "notable",
    "effects": {
-    "spellDamagePct": 9.1
+    "spellDamagePct": 9.6
    },
    "cost": 2,
    "requires": [
@@ -3347,7 +3672,7 @@
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
-    "elementalDamagePct": 3.4
+    "elementalDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3370,7 +3695,7 @@
    "type": "minor",
    "effects": {
     "selfTakenPct": 2,
-    "areaDamagePct": 3.4
+    "areaDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3393,7 +3718,7 @@
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
-    "elementalDamagePct": 3.4
+    "elementalDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3416,7 +3741,7 @@
    "type": "notable",
    "effects": {
     "selfTakenPct": 10,
-    "packDamagePct": 9.4
+    "packDamagePct": 10.4
    },
    "cost": 2,
    "requires": [
@@ -3439,7 +3764,7 @@
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
-    "elementalDamagePct": 3.4
+    "elementalDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3462,7 +3787,7 @@
    "type": "minor",
    "effects": {
     "selfTakenPct": 2,
-    "areaDamagePct": 3.4
+    "areaDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3485,7 +3810,7 @@
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
-    "elementalDamagePct": 3.4
+    "elementalDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3509,7 +3834,7 @@
    "effects": {
     "selfTakenPct": 8,
     "singleDamagePct": 5,
-    "packDamagePct": 9.5
+    "packDamagePct": 10.6
    },
    "cost": 2,
    "requires": [
@@ -3532,7 +3857,7 @@
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
-    "elementalDamagePct": 3.4
+    "elementalDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3555,7 +3880,7 @@
    "type": "minor",
    "effects": {
     "selfTakenPct": 2,
-    "areaDamagePct": 3.4
+    "areaDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3578,7 +3903,7 @@
    "type": "minor",
    "effects": {
     "maxHpPct": 3,
-    "elementalDamagePct": 3.4
+    "elementalDamagePct": 3.7
    },
    "cost": 1,
    "requires": [
@@ -3647,7 +3972,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 13.2
+    "elementalDamagePct": 7.6
    },
    "cost": 1,
    "requires": [
@@ -3669,7 +3994,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "hastePct": 5
+    "hastePct": 2.5
    },
    "cost": 1,
    "requires": [
@@ -3691,7 +4016,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "manaCostReductionPct": 3
+    "manaCostReductionPct": 1.5
    },
    "cost": 1,
    "requires": [
@@ -3713,7 +4038,7 @@
    "nameTh": "คริเวทสายฟ้า",
    "type": "notable",
    "effects": {
-    "critChancePct": 14.6
+    "critChancePct": 15
    },
    "cost": 2,
    "requires": [
@@ -3735,7 +4060,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 13.2
+    "elementalDamagePct": 7.6
    },
    "cost": 1,
    "requires": [
@@ -3757,7 +4082,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "hastePct": 5
+    "hastePct": 2.5
    },
    "cost": 1,
    "requires": [
@@ -3779,7 +4104,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "manaCostReductionPct": 3
+    "manaCostReductionPct": 1.5
    },
    "cost": 1,
    "requires": [
@@ -3801,7 +4126,7 @@
    "nameTh": "เด้งแรงขึ้น",
    "type": "notable",
    "effects": {
-    "packDamagePct": 26
+    "packDamagePct": 35
    },
    "cost": 2,
    "requires": [
@@ -3823,7 +4148,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 13.2
+    "elementalDamagePct": 7.6
    },
    "cost": 1,
    "requires": [
@@ -3845,7 +4170,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "hastePct": 5
+    "hastePct": 2.5
    },
    "cost": 1,
    "requires": [
@@ -3867,7 +4192,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "manaCostReductionPct": 3
+    "manaCostReductionPct": 1.5
    },
    "cost": 1,
    "requires": [
@@ -3889,7 +4214,7 @@
    "nameTh": "MP สายฟ้าลดลง",
    "type": "notable",
    "effects": {
-    "manaCostReductionPct": 15
+    "manaCostReductionPct": 19.5
    },
    "cost": 2,
    "requires": [
@@ -3910,8 +4235,8 @@
    "nameTh": "ช็อต",
    "type": "keystone",
    "effects": {
-    "singleDamagePct": 13.2,
-    "teamDamagePct": 6
+    "singleDamagePct": 17.2,
+    "teamDamagePct": 7.8
    },
    "uptime": 0.6,
    "cost": 3,
@@ -4000,7 +4325,7 @@
    "nameTh": "จังหวะธาตุ",
    "type": "notable",
    "effects": {
-    "spellDamagePct": 14.4
+    "spellDamagePct": 13.8
    },
    "uptime": 0.6,
    "cost": 2,
@@ -4200,7 +4525,7 @@
    "nameTh": "ธาตุประลัย",
    "type": "keystone",
    "effects": {
-    "singleDamagePct": 19.5,
+    "singleDamagePct": 19,
     "packDamagePct": 9
    },
    "uptime": 0.5,
@@ -6103,7 +6428,7 @@
    "type": "job",
    "branch": "blade",
    "effects": {
-    "critChancePct": 8.4
+    "critChancePct": 8.1
    },
    "entryTh": "คริจากข้างหลัง",
    "cost": 0,
@@ -6142,7 +6467,7 @@
    "nameTh": "โอกาสคริ",
    "type": "minor",
    "effects": {
-    "critChancePct": 2.8
+    "critChancePct": 2.6
    },
    "cost": 1,
    "requires": [
@@ -6163,8 +6488,8 @@
    "nameTh": "ลำต้น (เด่น)",
    "type": "notable",
    "effects": {
-    "meleeDamagePct": 7.4,
-    "critChancePct": 1.9
+    "meleeDamagePct": 7.1,
+    "critChancePct": 1.8
    },
    "cost": 2,
    "requires": [
@@ -6186,7 +6511,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critChancePct": 1.5
+    "critChancePct": 2
    },
    "cost": 1,
    "requires": [
@@ -6208,7 +6533,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critMultPct": 5.7
+    "critMultPct": 6.9
    },
    "cost": 1,
    "requires": [
@@ -6230,7 +6555,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critChancePct": 1.5
+    "critChancePct": 2
    },
    "cost": 1,
    "requires": [
@@ -6252,7 +6577,7 @@
    "nameTh": "ดาเมจจากข้างหลัง",
    "type": "notable",
    "effects": {
-    "singleDamagePct": 11.6
+    "singleDamagePct": 13.8
    },
    "uptime": 0.6,
    "cost": 2,
@@ -6275,7 +6600,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critChancePct": 1.5
+    "critChancePct": 2
    },
    "cost": 1,
    "requires": [
@@ -6297,7 +6622,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critMultPct": 5.7
+    "critMultPct": 6.9
    },
    "cost": 1,
    "requires": [
@@ -6319,7 +6644,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critChancePct": 1.5
+    "critChancePct": 2
    },
    "cost": 1,
    "requires": [
@@ -6341,7 +6666,7 @@
    "nameTh": "ครั้งแรกหลังซ่อน",
    "type": "notable",
    "effects": {
-    "singleDamagePct": 9.8
+    "singleDamagePct": 11
    },
    "uptime": 0.25,
    "cost": 2,
@@ -6364,7 +6689,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critChancePct": 1.5
+    "critChancePct": 2
    },
    "cost": 1,
    "requires": [
@@ -6386,7 +6711,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critMultPct": 5.7
+    "critMultPct": 6.9
    },
    "cost": 1,
    "requires": [
@@ -6408,7 +6733,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "critChancePct": 1.5
+    "critChancePct": 2
    },
    "cost": 1,
    "requires": [
@@ -6430,7 +6755,7 @@
    "nameTh": "คมกริบ",
    "type": "notable",
    "effects": {
-    "critMultPct": 25
+    "critMultPct": 27
    },
    "cost": 2,
    "requires": [
@@ -6451,7 +6776,7 @@
    "nameTh": "เงาตามตัว",
    "type": "keystone",
    "effects": {
-    "singleDamagePct": 18.6
+    "singleDamagePct": 20.4
    },
    "uptime": 0.6,
    "cost": 3,
@@ -6496,7 +6821,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "meleeDamagePct": 5
+    "meleeDamagePct": 5.2
    },
    "cost": 1,
    "requires": [
@@ -6540,7 +6865,7 @@
    "nameTh": "เลือดไหล",
    "type": "notable",
    "effects": {
-    "packDamagePct": 18.9
+    "packDamagePct": 21
    },
    "cost": 2,
    "requires": [
@@ -6584,7 +6909,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "meleeDamagePct": 5
+    "meleeDamagePct": 5.2
    },
    "cost": 1,
    "requires": [
@@ -6628,8 +6953,8 @@
    "nameTh": "ดาเมจเลือดไหลและพิษ",
    "type": "notable",
    "effects": {
-    "dotDamagePct": 43,
-    "packDamagePct": 11
+    "dotDamagePct": 46,
+    "packDamagePct": 11.7
    },
    "cost": 2,
    "requires": [
@@ -6673,7 +6998,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "meleeDamagePct": 5
+    "meleeDamagePct": 5.2
    },
    "cost": 1,
    "requires": [
@@ -6717,7 +7042,7 @@
    "nameTh": "ว่องไวเหนือแรง",
    "type": "notable",
    "effects": {
-    "meleeDamagePct": 30
+    "meleeDamagePct": 31
    },
    "cost": 2,
    "requires": [
@@ -6738,7 +7063,7 @@
    "nameTh": "พายุใบมีด",
    "type": "keystone",
    "effects": {
-    "packDamagePct": 33.6
+    "packDamagePct": 30.6
    },
    "uptime": 0.6,
    "cost": 3,
@@ -7370,8 +7695,8 @@
    "type": "notable",
    "effects": {
     "selfTakenPct": 3,
-    "meleeDamagePct": 23.5,
-    "singleDamagePct": 5.9
+    "meleeDamagePct": 22.5,
+    "singleDamagePct": 5.6
    },
    "uptime": 0.5,
    "cost": 2,
@@ -7394,8 +7719,8 @@
    "type": "keystone",
    "effects": {
     "selfTakenPct": 10,
-    "meleeDamagePct": 47,
-    "singleDamagePct": 15.7
+    "meleeDamagePct": 45,
+    "singleDamagePct": 14.8
    },
    "cost": 3,
    "requires": [
@@ -7417,7 +7742,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "singleDamagePct": 2.8
+    "singleDamagePct": 2.9
    },
    "cost": 1,
    "requires": [
@@ -7439,7 +7764,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "meleeDamagePct": 3.7,
+    "meleeDamagePct": 3.5,
     "hastePct": 2
    },
    "cost": 1,
@@ -7463,7 +7788,7 @@
    "type": "minor",
    "effects": {
     "leechPct": 0.5,
-    "meleeDamagePct": 2.8
+    "meleeDamagePct": 2.9
    },
    "cost": 1,
    "requires": [
@@ -7485,7 +7810,7 @@
    "nameTh": "ดาเมจตาม HP ที่หาย",
    "type": "notable",
    "effects": {
-    "meleeDamagePct": 14
+    "meleeDamagePct": 12.2
    },
    "cost": 2,
    "requires": [
@@ -7507,7 +7832,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "singleDamagePct": 2.8
+    "singleDamagePct": 2.9
    },
    "cost": 1,
    "requires": [
@@ -7529,7 +7854,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "meleeDamagePct": 3.7,
+    "meleeDamagePct": 3.5,
     "hastePct": 2
    },
    "cost": 1,
@@ -7553,7 +7878,7 @@
    "type": "minor",
    "effects": {
     "leechPct": 0.5,
-    "meleeDamagePct": 2.8
+    "meleeDamagePct": 2.9
    },
    "cost": 1,
    "requires": [
@@ -7576,7 +7901,7 @@
    "type": "notable",
    "effects": {
     "hastePct": 10,
-    "singleDamagePct": 7.5
+    "singleDamagePct": 7
    },
    "cost": 2,
    "requires": [
@@ -7598,7 +7923,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "singleDamagePct": 2.8
+    "singleDamagePct": 2.9
    },
    "cost": 1,
    "requires": [
@@ -7620,7 +7945,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "meleeDamagePct": 3.7,
+    "meleeDamagePct": 3.5,
     "hastePct": 2
    },
    "cost": 1,
@@ -7644,7 +7969,7 @@
    "type": "minor",
    "effects": {
     "leechPct": 0.5,
-    "meleeDamagePct": 2.8
+    "meleeDamagePct": 2.9
    },
    "cost": 1,
    "requires": [
@@ -7667,7 +7992,7 @@
    "type": "notable",
    "effects": {
     "leechPct": 1.5,
-    "singleDamagePct": 5.6
+    "singleDamagePct": 4.7
    },
    "cost": 2,
    "requires": [
@@ -7688,7 +8013,7 @@
    "nameTh": "คลั่งไม่ตาย",
    "type": "keystone",
    "effects": {
-    "singleDamagePct": 14
+    "singleDamagePct": 12.2
    },
    "cost": 3,
    "requires": [
@@ -7704,7 +8029,7 @@
    "type": "job",
    "branch": "hunter",
    "effects": {
-    "summonDamagePct": 2.5
+    "summonDamagePct": 1.8
    },
    "entryTh": "ดาเมจและ HP คู่หู",
    "cost": 0,
@@ -7724,7 +8049,7 @@
    "nameTh": "ดาเมจคู่หู",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 2.1
+    "summonDamagePct": 1.5
    },
    "cost": 1,
    "requires": [
@@ -7763,8 +8088,8 @@
    "nameTh": "ลำต้น (เด่น)",
    "type": "notable",
    "effects": {
-    "summonDamagePct": 2.1,
-    "projectileDamagePct": 1.2
+    "summonDamagePct": 1.5,
+    "projectileDamagePct": 0.8
    },
    "cost": 2,
    "requires": [
@@ -7786,7 +8111,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 9.9
+    "summonDamagePct": 13.3
    },
    "cost": 1,
    "requires": [
@@ -7808,7 +8133,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "projectileDamagePct": 7.6
+    "projectileDamagePct": 10.2
    },
    "cost": 1,
    "requires": [
@@ -7830,7 +8155,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 9.9
+    "summonDamagePct": 13.3
    },
    "cost": 1,
    "requires": [
@@ -7852,7 +8177,7 @@
    "nameTh": "คู่หูตีเร็วขึ้น",
    "type": "notable",
    "effects": {
-    "summonDamagePct": 36
+    "summonDamagePct": 49
    },
    "cost": 2,
    "requires": [
@@ -7874,7 +8199,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 9.9
+    "summonDamagePct": 13.3
    },
    "cost": 1,
    "requires": [
@@ -7896,7 +8221,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "projectileDamagePct": 7.6
+    "projectileDamagePct": 10.2
    },
    "cost": 1,
    "requires": [
@@ -7918,7 +8243,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 9.9
+    "summonDamagePct": 13.3
    },
    "cost": 1,
    "requires": [
@@ -7940,7 +8265,7 @@
    "nameTh": "ตีเป้าที่คู่หูตีอยู่",
    "type": "notable",
    "effects": {
-    "singleDamagePct": 27.2
+    "singleDamagePct": 37.6
    },
    "uptime": 0.8,
    "cost": 2,
@@ -7963,7 +8288,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 9.9
+    "summonDamagePct": 13.3
    },
    "cost": 1,
    "requires": [
@@ -7985,7 +8310,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "projectileDamagePct": 7.6
+    "projectileDamagePct": 10.2
    },
    "cost": 1,
    "requires": [
@@ -8007,7 +8332,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 9.9
+    "summonDamagePct": 13.3
    },
    "cost": 1,
    "requires": [
@@ -8436,7 +8761,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 6.5
+    "trapDamagePct": 7.4
    },
    "cost": 1,
    "requires": [
@@ -8458,7 +8783,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 5
+    "areaDamagePct": 5.7
    },
    "cost": 1,
    "requires": [
@@ -8480,7 +8805,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 6.5
+    "trapDamagePct": 7.4
    },
    "cost": 1,
    "requires": [
@@ -8502,7 +8827,7 @@
    "nameTh": "ดาเมจต่อกับดักที่ทำงาน",
    "type": "notable",
    "effects": {
-    "packDamagePct": 9.9
+    "packDamagePct": 11.4
    },
    "uptime": 0.8,
    "cost": 2,
@@ -8525,7 +8850,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 6.5
+    "trapDamagePct": 7.4
    },
    "cost": 1,
    "requires": [
@@ -8547,7 +8872,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 5
+    "areaDamagePct": 5.7
    },
    "cost": 1,
    "requires": [
@@ -8569,7 +8894,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 6.5
+    "trapDamagePct": 7.4
    },
    "cost": 1,
    "requires": [
@@ -8591,7 +8916,7 @@
    "nameTh": "วางค้างเพิ่ม",
    "type": "notable",
    "effects": {
-    "trapDamagePct": 15.6
+    "trapDamagePct": 18
    },
    "cost": 2,
    "requires": [
@@ -8613,7 +8938,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 6.5
+    "trapDamagePct": 7.4
    },
    "cost": 1,
    "requires": [
@@ -8635,7 +8960,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "areaDamagePct": 5
+    "areaDamagePct": 5.7
    },
    "cost": 1,
    "requires": [
@@ -8657,7 +8982,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 6.5
+    "trapDamagePct": 7.4
    },
    "cost": 1,
    "requires": [
@@ -8700,7 +9025,7 @@
    "nameTh": "ทุ่งระเบิด",
    "type": "keystone",
    "effects": {
-    "packDamagePct": 13.8
+    "packDamagePct": 16.2
    },
    "uptime": 0.6,
    "cost": 3,
@@ -9009,7 +9334,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 2.9
+    "trapDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9031,7 +9356,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 2.9
+    "elementalDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9053,7 +9378,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 2.9
+    "trapDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9075,7 +9400,7 @@
    "nameTh": "ธาตุต่อกัน",
    "type": "notable",
    "effects": {
-    "packDamagePct": 11.3
+    "packDamagePct": 11.7
    },
    "cost": 2,
    "requires": [
@@ -9097,7 +9422,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 2.9
+    "trapDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9119,7 +9444,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 2.9
+    "elementalDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9141,7 +9466,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 2.9
+    "trapDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9163,7 +9488,7 @@
    "nameTh": "ธาตุแรง",
    "type": "notable",
    "effects": {
-    "elementalDamagePct": 14.8
+    "elementalDamagePct": 15.4
    },
    "cost": 2,
    "requires": [
@@ -9185,7 +9510,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 2.9
+    "trapDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9207,7 +9532,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 2.9
+    "elementalDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9229,7 +9554,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "trapDamagePct": 2.9
+    "trapDamagePct": 3
    },
    "cost": 1,
    "requires": [
@@ -9272,7 +9597,7 @@
    "nameTh": "ห่วงธาตุ",
    "type": "keystone",
    "effects": {
-    "packDamagePct": 20.4
+    "packDamagePct": 21
    },
    "uptime": 0.6,
    "cost": 3,
@@ -10514,7 +10839,7 @@
    "type": "job",
    "branch": "summoner",
    "effects": {
-    "summonDamagePct": 1
+    "summonDamagePct": 0.6
    },
    "entryTh": "สัตว์อัญเชิญเพิ่ม 1",
    "cost": 0,
@@ -10534,7 +10859,7 @@
    "nameTh": "ดาเมจอัญเชิญ",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 0.8
+    "summonDamagePct": 0.5
    },
    "cost": 1,
    "requires": [
@@ -10553,7 +10878,7 @@
    "nameTh": "สัตว์อยู่นาน",
    "type": "minor",
    "effects": {
-    "summonDamagePct": 0.7
+    "summonDamagePct": 0.4
    },
    "cost": 1,
    "requires": [
@@ -10574,7 +10899,7 @@
    "nameTh": "ลำต้น (เด่น)",
    "type": "notable",
    "effects": {
-    "summonDamagePct": 1.7
+    "summonDamagePct": 1
    },
    "cost": 2,
    "requires": [
@@ -10887,7 +11212,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "maxHpPct": 4.3
+    "maxHpPct": 3.8
    },
    "cost": 1,
    "requires": [
@@ -10931,7 +11256,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "selfTakenPct": 2.8
+    "selfTakenPct": 2.6
    },
    "cost": 1,
    "requires": [
@@ -10953,7 +11278,7 @@
    "nameTh": "ดึงความสนใจ",
    "type": "notable",
    "effects": {
-    "selfTakenPct": 13.7
+    "selfTakenPct": 12.3
    },
    "cost": 2,
    "requires": [
@@ -10975,7 +11300,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "maxHpPct": 4.3
+    "maxHpPct": 3.8
    },
    "cost": 1,
    "requires": [
@@ -11019,7 +11344,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "selfTakenPct": 2.8
+    "selfTakenPct": 2.6
    },
    "cost": 1,
    "requires": [
@@ -11041,7 +11366,7 @@
    "nameTh": "รับดาเมจลดตอนสัตว์อยู่",
    "type": "notable",
    "effects": {
-    "selfTakenPct": 11
+    "selfTakenPct": 9.8
    },
    "uptime": 0.8,
    "cost": 2,
@@ -11064,7 +11389,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "maxHpPct": 4.3
+    "maxHpPct": 3.8
    },
    "cost": 1,
    "requires": [
@@ -11108,7 +11433,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "selfTakenPct": 2.8
+    "selfTakenPct": 2.6
    },
    "cost": 1,
    "requires": [
@@ -11130,7 +11455,7 @@
    "nameTh": "อสูรถึก",
    "type": "notable",
    "effects": {
-    "maxHpPct": 10.8
+    "maxHpPct": 9.7
    },
    "cost": 2,
    "requires": [
@@ -11151,7 +11476,7 @@
    "nameTh": "ผู้พิทักษ์ยักษ์",
    "type": "keystone",
    "effects": {
-    "selfTakenPct": 18.3,
+    "selfTakenPct": 16.4,
     "summonDamagePct": 15
    },
    "cost": 3,
@@ -12112,7 +12437,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "dotDamagePct": 4.6
+    "dotDamagePct": 4.4
    },
    "cost": 1,
    "requires": [
@@ -12134,7 +12459,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 2.9
+    "elementalDamagePct": 2.7
    },
    "cost": 1,
    "requires": [
@@ -12156,7 +12481,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "dotDamagePct": 4.6
+    "dotDamagePct": 4.4
    },
    "cost": 1,
    "requires": [
@@ -12178,7 +12503,7 @@
    "nameTh": "ติดสถานะง่าย",
    "type": "notable",
    "effects": {
-    "singleDamagePct": 10.2
+    "singleDamagePct": 9.6
    },
    "cost": 2,
    "requires": [
@@ -12200,7 +12525,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "dotDamagePct": 4.6
+    "dotDamagePct": 4.4
    },
    "cost": 1,
    "requires": [
@@ -12222,7 +12547,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 2.9
+    "elementalDamagePct": 2.7
    },
    "cost": 1,
    "requires": [
@@ -12244,7 +12569,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "dotDamagePct": 4.6
+    "dotDamagePct": 4.4
    },
    "cost": 1,
    "requires": [
@@ -12266,7 +12591,7 @@
    "nameTh": "สถานะแรง",
    "type": "notable",
    "effects": {
-    "dotDamagePct": 27
+    "dotDamagePct": 25
    },
    "cost": 2,
    "requires": [
@@ -12288,7 +12613,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "dotDamagePct": 4.6
+    "dotDamagePct": 4.4
    },
    "cost": 1,
    "requires": [
@@ -12310,7 +12635,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "elementalDamagePct": 2.9
+    "elementalDamagePct": 2.7
    },
    "cost": 1,
    "requires": [
@@ -12332,7 +12657,7 @@
    "nameTh": "โหนดผ่าน",
    "type": "minor",
    "effects": {
-    "dotDamagePct": 4.6
+    "dotDamagePct": 4.4
    },
    "cost": 1,
    "requires": [
@@ -12354,7 +12679,7 @@
    "nameTh": "สถานะนาน",
    "type": "notable",
    "effects": {
-    "singleDamagePct": 13.7
+    "singleDamagePct": 12.9
    },
    "cost": 2,
    "requires": [
@@ -12375,7 +12700,7 @@
    "nameTh": "ไฟไหม้ลามทุ่ง",
    "type": "keystone",
    "effects": {
-    "singleDamagePct": 29,
+    "singleDamagePct": 27,
     "packDamagePct": 10
    },
    "cost": 3,

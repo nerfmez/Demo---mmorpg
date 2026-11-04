@@ -743,13 +743,25 @@ function kiter(game, m, dt, { t, dToT, slowMult }) {
 }
 
 /** Keep between near and far from the target, drifting sideways. */
+// how far past the circling band's edge it must stray before it changes what it does there
+const STRAFE_HYSTERESIS = 0.4;
 function strafe(game, m, dt, t, d, near, far, speed) {
   const toT = angleTo(m.x, m.z, t.x, t.z);
+  // close in, circle or back off - kept until it is well past the band's edge, so a prey moving about near an
+  // edge does not flick it between the three every frame (its walk read as a stutter, owner 2026-11-04)
+  const prev = m.strafeMode, h = STRAFE_HYSTERESIS;
+  let mode;
+  if (prev === 'close' && d > far - h) mode = 'close';
+  else if (prev === 'back' && d < near + h) mode = 'back';
+  else if (d > far + (prev === 'circle' ? h : 0)) mode = 'close';
+  else if (d < near - (prev === 'circle' ? h : 0)) mode = 'back';
+  else mode = 'circle';
+  m.strafeMode = mode;
   let moveA;
-  if (d < near) moveA = toT + Math.PI;
-  else if (d > far) moveA = toT;
+  if (mode === 'back') moveA = toT + Math.PI;
+  else if (mode === 'close') moveA = toT;
   else moveA = toT + (m.id % 2 ? 1 : -1) * Math.PI * 0.5;
-  const s = speed * (d >= near && d <= far ? 0.4 : 1);
+  const s = speed * (mode === 'circle' ? 0.4 : 1);
   const dir = dirFromAngle(moveA);
   game.moveEntity(m, dir.x * s * dt, dir.z * s * dt);
   turnToward(m, m.def.flyer ? moveA : toT, dt, 6);

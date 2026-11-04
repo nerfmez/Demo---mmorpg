@@ -497,7 +497,9 @@ Wide Spread and Far Reach share the `spread` family.
 - **`behavior: "kit"`** (`core/ai.js` `kit`): a monster's own attacks as data. Each attack with `use`
   (`min`/`max` gap in metres, `max` defaulting to its `range`; optional `hpBelow`) is taken when ready and
   in its band; the first in the data's order wins. Between attacks it walks in, or circles at `kit.circle`
-  [near, far] while everything is cooling. `beginAttack` starts an attack by its mechanics (`kind`, else
+  [near, far] while everything is cooling. Circling (`strafe`, every circling monster) closes in, circles or
+  backs off by its distance with a 0.4 m hysteresis at the band's edges (`m.strafeMode`), so a prey moving near
+  an edge does not flick it between the three every frame. `beginAttack` starts an attack by its mechanics (`kind`, else
   its name): a `pounce`/`dive` marks its landing at the target at wind-up start (`delay` = wind-up +
   `air`). In Godot keep the same table-driven choice in the monster's state machine.
 - **Leaps:** `air` (s) is the leap's flight time (default 0.35). `missStun` on a leap: if nobody stands

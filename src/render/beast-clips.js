@@ -82,14 +82,23 @@ const clipLift = (clip, u) => { const fr = clip.frames, f = u * fr.length, i = M
 export function animBeast(r, s, dt, time, opts = {}) {
   const b = r.bones, B = r.beast || setup(r), S = (B.set = opts.set || WOLF), C = S.C, FOLLOW = S.follow;
   const speed = s.moving ? Math.max(0, s.speed || 0) : 0, rate = opts.rate || 1;
+  // the gait (walk or gallop) and its direction follow the eased speed when the view gives one, so a pace that
+  // changes every frame does not flick the legs between clips (the cycle still advances with the true speed)
+  const gaitSpeed = s.moving ? Math.max(0, s.smoothSpeed ?? speed) : 0;
   // the clips to blend: locomotion by speed, then an attack or a flinch over it
   const gFrom = opts.gallopFrom ?? 3.2, gFull = opts.gallopFull ?? 5.5;
-  const gw = clamp01((speed - gFrom) / (gFull - gFrom)), mw = clamp01(speed / 0.6);
+  let gw = clamp01((gaitSpeed - gFrom) / (gFull - gFrom));
+  const mw = clamp01(gaitSpeed / 0.6);
   // the cycle is locked to the ground: walk covers stride x leg per cycle, the gallop 2.6x that
   // (opts.gallopStride: the gallop's cycle in strides, 2.6 by default; a backing beast with opts.reverse walks
   // its cycle backwards)
   const stride = (opts.stride ?? 1.9) * B.legLen, gs = (opts.gallopStride ?? 2.6) - 1;
-  const back = opts.reverse && (s.vFwd ?? 0) < -0.2 ? -1 : 1;
+  // backwards while it backs off: decided on the eased forward speed with a margin, so it never flicks
+  B.back = opts.reverse ? ((s.smoothFwd ?? s.vFwd ?? 0) < (B.back === -1 ? -0.05 : -0.35) ? -1 : 1) : 1;
+  const back = B.back;
+  if (back < 0) gw = 0; // it backs off at a walk, never a backwards gallop
+  B.gw = (B.gw ?? gw) + (gw - (B.gw ?? gw)) * Math.min(1, dt * 6); // and changes gait over a moment, not a frame
+  gw = B.gw;
   B.walkPh = (B.walkPh + back * dt * speed / (stride * (1 + gs * gw)) + 1) % 1;
   B.idlePh = (B.idlePh + dt * rate / C.idle.duration) % 1;
   // a wind-up plays the attack clip up to its strike (on the hit), then the rest after it: the bite, the

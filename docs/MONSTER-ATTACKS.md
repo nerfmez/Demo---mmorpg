@@ -112,6 +112,12 @@ session's network, so these come from search summaries of the cited pages.
   shoulders and hips swinging against each other, each end dipping as its feet land, and damped springs that make
   the head nod and the tail swing a beat late and overshoot (overlapping action) - the fixes animators name for a
   quadruped walk that reads as a machine (spine counter-rotation, hip bob, secondary motion that lags).
+- **Walks, round 4** (2026-11-04, owner: "no different, and now it all walks in jerks"): near the edge of its
+  circling band, with the hero moving, the rules flicked a monster between closing in, circling and backing off
+  every frame; the view then flicked its body turn, its gait (walk/gallop) and its walk direction with it.
+  Fixed in both places: `strafe` keeps its choice until it is 0.4 m past an edge (tested: 85 changes in 5 s
+  before, at most 2 after), and the view drives the body turn, gait and backwards walk from a velocity eased
+  over a fifth of a second, turns the body at most 70 degrees off the facing, and eases between gaits.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

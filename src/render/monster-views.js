@@ -33,10 +33,16 @@ export function measureMotion(v, x, z, facing, dt) {
     const vx = d > 3 ? 0 : dx / dt, vz = d > 3 ? 0 : dz / dt;
     const sn = Math.sin(facing), cs = Math.cos(facing);
     v.speed = Math.min(20, Math.hypot(vx, vz));
-    v.vx = vx; v.vz = vz;
     v.vFwd = vx * sn + vz * cs;
     v.vSide = vx * cs - vz * sn;
-  } else if (v.speed === undefined) v.speed = v.vFwd = v.vSide = 0;
+    // the velocity eased over about a fifth of a second, for what must not flick frame to frame (which way a
+    // walking beast turns its body, whether it walks backwards, which gait it is in)
+    const k = Math.min(1, dt * 6);
+    v.svx = (v.svx ?? vx) + (vx - (v.svx ?? vx)) * k;
+    v.svz = (v.svz ?? vz) + (vz - (v.svz ?? vz)) * k;
+    v.sspeed = Math.min(20, Math.hypot(v.svx, v.svz));
+    v.svFwd = v.svx * sn + v.svz * cs;
+  } else if (v.speed === undefined) v.speed = v.vFwd = v.vSide = v.sspeed = v.svFwd = 0;
   v.px = x;
   v.pz = z;
 }
@@ -77,14 +83,17 @@ export function syncMonsterViews(view, dt, time) {
     // a beast that walks where it goes (rig.faceMove): circling its prey it turns its body along its path and
     // only its head watches the prey (the rules keep facing the prey, so the forward walk slid sideways); backing
     // away it keeps facing and its walk runs backwards (beast-clips.js)
-    let want = m.facing;
-    if (r.faceMove && m.moving && MOVING_STATES.has(m.state) && (mv.speed || 0) > 0.3) {
-      const go = Math.atan2(mv.vx || 0, mv.vz || 0), off = Math.atan2(Math.sin(go - m.facing), Math.cos(go - m.facing));
-      if (Math.abs(off) < 2.2) want = go;
+    // (from the eased velocity, turning the body at most 70 degrees off the rules facing and only half as fast as
+    // it turns to face, so a change of mind is a smooth turn, not a flick)
+    let want = m.facing, rate = 12;
+    if (r.faceMove && m.moving && MOVING_STATES.has(m.state) && (mv.sspeed || 0) > 0.3) {
+      const go = Math.atan2(mv.svx || 0, mv.svz || 0), off = Math.atan2(Math.sin(go - m.facing), Math.cos(go - m.facing));
+      if (Math.abs(off) < 2.2) want = m.facing + Math.max(-1.2, Math.min(1.2, off));
+      rate = 5;
     }
     let d = want - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
-    r.root.rotation.y += d * Math.min(1, dt * 12);
+    r.root.rotation.y += d * Math.min(1, dt * rate);
     mv.turn = damp(mv.turn, dt > 0 ? (d * Math.min(1, dt * 12)) / dt : 0, 6, dt);
     const gy = r.flyer || m.def.hover ? view.world.surfaceY(m.x, m.z) : view.world.groundY(m.x, m.z);
     mv.y = gy > mv.y ? damp(mv.y, gy, 20, dt) : damp(mv.y, gy, 12, dt);
@@ -131,6 +140,8 @@ export function syncMonsterViews(view, dt, time) {
     state.lookYaw = m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? view.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0;
     state.turn = mv.turn;
     state.speed = mv.speed;
+    state.smoothSpeed = mv.sspeed;
+    state.smoothFwd = mv.svFwd;
     state.vFwd = mv.vFwd;
     state.vSide = mv.vSide;
     state.aggro = !!m.aggro;

@@ -69,7 +69,7 @@ const nudge = (b, x, y, z) => { _q.setFromEuler(_e.set(x, y, z)); b.quaternion.m
 // the head and neck turned toward its prey (state.lookYaw, from the body's facing), as when it circles it
 function watchPrey(b, s, pose) { if (!pose && s.lookYaw) { nudge(b.neck, 0, s.lookYaw * 0.55, 0); nudge(b.head, 0, s.lookYaw * 0.45, 0); } }
 function walking(r, s, pose, dt) {
-  const want = !pose && s.moving && s.state !== 'windup' ? clamp01((s.speed || 0) / 0.6) : 0;
+  const want = !pose && s.moving && s.state !== 'windup' ? clamp01((s.smoothSpeed ?? s.speed ?? 0) / 0.6) : 0;
   r.walkW = (r.walkW || 0) + (want - (r.walkW || 0)) * (1 - Math.exp(-dt * 10));
   return [r.walkW, (r.beast?.walkPh || 0) * Math.PI * 2];
 }

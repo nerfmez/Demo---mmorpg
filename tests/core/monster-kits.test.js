@@ -392,3 +392,24 @@ test('pearl snail king: harpoon drags its prey in; the beam sweeps once across; 
   s.step(3);
   assert.ok(s.g.areas.some((a) => a.attack === 'slime'), 'a trail of slime');
 });
+
+test('a circling monster does not flick between closing in, circling and backing off at its band edges', () => {
+  // the tanuki circles at kit.circle [3, 5.5]; its prey wanders back and forth across the far edge
+  const { g, m, step, only } = arena('leaf_tanuki', 15, { open: true });
+  only('none');
+  const [near, far] = M.leaf_tanuki.kit.circle;
+  let flips = 0, last = null;
+  for (let i = 0; i < 300; i++) {
+    const d = far + Math.sin(i * 0.9) * 0.25; // within 0.25 m of the edge, changing side every few frames
+    const a = Math.atan2(g.player.x - m.x, g.player.z - m.z) || 0;
+    Object.assign(g.player, { x: m.x + Math.sin(a) * d, z: m.z + Math.cos(a) * d });
+    step(0.016);
+    if (m.strafeMode && m.strafeMode !== last) { if (last) flips++; last = m.strafeMode; }
+  }
+  assert.ok(flips <= 2, `it changed what it does ${flips} times in 5 s at the edge`);
+  // well inside, it circles; well past the near edge it backs off
+  Object.assign(g.player, { x: m.x, z: m.z + (near + far) / 2 }); step(0.1);
+  assert.equal(m.strafeMode, 'circle');
+  Object.assign(g.player, { x: m.x, z: m.z + near - 1 }); step(0.1);
+  assert.equal(m.strafeMode, 'back');
+});

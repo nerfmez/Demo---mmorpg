@@ -280,8 +280,9 @@ function animStonePangolin(r, s, dt, time) {
   b.ball.scale.setScalar(Math.max(0.001, ballK * (1 + 0.15 * Math.sin(ballK * Math.PI))));
   b.ball.rotation.set(r.spin, 0, wobble);
   b.ball.position.y = 0.5 + Math.abs(Math.sin(r.spin * 2)) * 0.04 * (roll ? 1 : 0);
-  if (ballK > 0.5) b.body.scale.setScalar(0.001);
-  else if (wobble) nudge(b.body, 0, 0, wobble);
+  // set every frame: the body comes back to full size the moment it uncurls
+  b.body.scale.setScalar(ballK > 0.5 ? 0.001 : 1);
+  if (ballK <= 0.5 && wobble) nudge(b.body, 0, 0, wobble);
   b.body.position.y += 0.08 * curl;
 }
 

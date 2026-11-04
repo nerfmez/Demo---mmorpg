@@ -560,7 +560,10 @@ Wide Spread and Far Reach share the `spread` family.
 - **Beasts that walk where they go** (render only, `monster-views.js`): a rig with `faceMove` turns its body
   toward its velocity while it circles (within about 125 degrees of its rules facing) and its head toward its prey;
   beyond that (backing away) it keeps the rules facing and `animBeast` (`reverse`) runs the walk cycle backwards.
-  The rules' facing still aims every attack.
+  The rules' facing still aims every attack. Over the clip walk, `beast-life.js` swings the shoulders and hips
+  against each other on the clip's footfalls (front right 0, front left 0.55, hind right 0.9, hind left 0.35 of the
+  Quaternius walk cycle), dips each end as its feet land, and drives the head and tail with underdamped springs
+  (a Godot port: the same springs in `_process`, state per rig).
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`

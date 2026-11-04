@@ -107,6 +107,11 @@ session's network, so these come from search summaries of the cited pages.
   stay planted: the clip's own stride (the tanuki bounds only when it hurries in, `gallopStride`). The pangolin
   walks slowly (data speed 1.6, from 3.2: it closes in by rolling) in a heavy posture; the overlays follow the
   clip's beat (belly bounce, tail sway, head swing) instead of a rocking of their own.
+- **Walks, round 3** (2026-11-04, owner: "still not right, it is like a robot"): the trunk was one rigid block
+  and the head and tail moved exactly with it. `render/beast-life.js` adds, on the clip's own footfalls, the
+  shoulders and hips swinging against each other, each end dipping as its feet land, and damped springs that make
+  the head nod and the tail swing a beat late and overshoot (overlapping action) - the fixes animators name for a
+  quadruped walk that reads as a machine (spine counter-rotation, hip bob, secondary motion that lags).
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

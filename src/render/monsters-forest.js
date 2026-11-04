@@ -22,6 +22,7 @@
 import * as THREE from 'three';
 import { RigBuilder, clamp01 } from './rig.js';
 import { animBeast, clipSet, HIT } from './beast-clips.js';
+import { beastLife } from './beast-life.js';
 import FOX_CLIPS from '../../data/beast-clips-fox.json';
 import SHIBA_CLIPS from '../../data/beast-clips-shiba.json';
 
@@ -119,6 +120,7 @@ function animLeafFox(r, s, dt, time) {
   s.pose = pose ? P : null;
   animBeast(r, s, dt, time, { set: FOX, stride: 2.0, gallopFrom: 3, gallopFull: 5, reverse: true });
   watchPrey(r.bones, s, pose);
+  if (!pose) { const [w, ph] = walking(r, s, pose, dt); beastLife(r, s, dt, w, ph); } // spine swing, follow-through
   const b = r.bones;
   if (twist) nudge(b.chest, 0, twist, 0);
   if (tailSide || tailUp) nudge(b.tail, tailUp, 0, tailSide);
@@ -198,10 +200,10 @@ function animLeafTanuki(r, s, dt, time) {
   const b = r.bones;
   watchPrey(b, s, pose);
   const [w, ph] = walking(r, s, pose, dt);
-  if (w > 0.01) {
-    belly *= 1 + 0.04 * w * Math.max(0, Math.cos(ph * 2));
-    nudge(b.tail, 0.08 * w, Math.sin(ph - 1.2) * 0.32 * w, 0);
-  }
+  // the spine swing, the footfall dips and the head and big tail following a beat late (beast-life.js); the
+  // round belly bounces on the footfalls
+  if (!pose) beastLife(r, s, dt, w, ph, { spine: 1.1, dip: 1.2, head: 1.2, tail: 1.5 });
+  if (w > 0.01) belly *= 1 + 0.05 * w * Math.max(0, Math.cos(ph * 4 * Math.PI));
   b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
   if (arm || armSide) { nudge(b.leg0, arm, 0, armSide); nudge(b.leg1, s.windup === 'boomerang' || s.lastAttack === 'boomerang' ? arm * 0.25 : arm, 0, -armSide); }
   if (head) nudge(b.head, head, 0, 0);
@@ -314,11 +316,13 @@ function animStonePangolin(r, s, dt, time) {
   if (w > 0.01) {
     nudge(b.body, 0.05 * w, 0, 0);
     nudge(b.chest, 0.08 * w, 0, 0);
-    nudge(b.neck, 0.1 * w, Math.sin(ph) * 0.1 * w, 0);
-    nudge(b.head, 0.06 * w, Math.sin(ph - 0.5) * 0.1 * w, 0);
-    nudge(b.tail, -0.2 * w, -Math.sin(ph - 0.8) * 0.12 * w, 0);
+    nudge(b.neck, 0.1 * w, 0, 0);
+    nudge(b.head, 0.06 * w, 0, 0);
+    nudge(b.tail, -0.2 * w, 0, 0);
     nudge(b.leg0k, 0.6 * w, 0, 0); nudge(b.leg1k, 0.6 * w, 0, 0);
   }
+  // heavy: a slower spine swing, deeper dips on each footfall, the head and armoured tail following late
+  if (!pose) beastLife(r, s, dt, w, ph, { spine: 0.8, dip: 1.5, head: 1.0, tail: 0.8 });
   if (rear) nudge(b.body, -rear, 0, 0);
   if (claw) { nudge(b.leg0, claw, 0, -0.2); nudge(b.leg1, claw, 0, 0.2); }
   if (clawA || clawB) { nudge(b.leg0, clawA, 0, -0.3 * (1 - clawA)); nudge(b.leg1, clawB, 0, 0.3 * (1 - clawB)); }

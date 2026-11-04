@@ -49,7 +49,8 @@ export function startMonsterLab({ game, view, root, input, data, type }) {
       const tx = p.x + Math.sin(a) * d, tz = p.z + Math.cos(a) * d;
       if (game.world.isFree(tx, tz, m.r) && !game.isSafe(tx, tz)) { x = tx; z = tz; break; }
     }
-    Object.assign(m, { x, z, homeX: x, homeZ: z, facing: Math.atan2(p.x - x, p.z - z), aggro: true, state: 'chase', stateT: 0, windup: null, charge: null, melee: null, targetUnit: p });
+    // an attack at what is behind it (use.behind) gets the monster's back to the hero
+    Object.assign(m, { x, z, homeX: x, homeZ: z, facing: Math.atan2(p.x - x, p.z - z) + (u.behind ? Math.PI : 0), aggro: true, state: 'chase', stateT: 0, windup: null, charge: null, melee: null, targetUnit: p });
     if (m.dead || m.hp < m.maxHp * 0.2) Object.assign(m, { dead: false, hp: m.maxHp });
     // an attack kept for a hurt monster (use.hpBelow) gets it hurt; a once-a-fight one may go again; old doubles go
     if (u.hpBelow) m.hp = Math.min(m.hp, m.maxHp * u.hpBelow * 0.8);

@@ -57,7 +57,8 @@ try {
       await frame();
     }
     report.attacks[attack] = states;
-    assert.ok(states.some((s) => s.state === 'windup'), `${attack}: winds up`);
+    // an attack that never wound up is reported at the end; the others still make their video
+    if (!states.some((s) => s.state === 'windup')) { (report.missing ||= []).push(attack); delete report.attacks[attack]; }
   }
   writeFileSync(out + 'report.json', JSON.stringify(report, null, 2));
   if (VIDEO) {
@@ -72,6 +73,7 @@ try {
     console.log('video', `${out}${type}.mp4`);
   }
   assert.deepEqual(report.errors, []);
+  assert.deepEqual(report.missing || [], [], 'every attack wound up');
   console.log('PASS monster lab', type, Object.fromEntries(Object.entries(report.attacks).map(([k, v]) => [k, v.length])));
 } finally {
   await browser?.close();

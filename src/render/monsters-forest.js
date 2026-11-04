@@ -218,7 +218,7 @@ function animLeafTanuki(r, s, dt, time) {
   // the spine swing, the footfall dips and the head and big tail following a beat late (beast-life.js); the
   // round belly bounces on the footfalls
   beastLife(r, s, dt, w, ph, { spine: 1.1, dip: 1.2, head: 1.2, tail: 1.5, gain: free });
-  if (w > 0.01) belly *= 1 + 0.05 * w * Math.max(0, Math.cos(ph * 4 * Math.PI));
+  if (w > 0.01) belly *= 1 + 0.025 * w * (1 + Math.cos(ph * 4 * Math.PI)); // (a smooth bounce, no kink)
   belly = sm(r, 'belly', belly, dt); arm = sm(r, 'arm', arm, dt); armSide = sm(r, 'armSide', armSide, dt); head = sm(r, 'head', head, dt);
   b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
   if (arm || armSide) { nudge(b.leg0, arm, 0, armSide); nudge(b.leg1, s.windup === 'boomerang' || s.lastAttack === 'boomerang' ? arm * 0.25 : arm, 0, -armSide); }

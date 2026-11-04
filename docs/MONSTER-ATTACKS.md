@@ -126,6 +126,15 @@ session's network, so these come from search summaries of the cited pages.
   lets the monster walk (or circle out) to its next attack and the camera glides; attack offsets and the body's
   turn follow critically damped springs; the head-watch and follow-through fade with the attack pose. After:
   walking, the largest frame-to-frame change on screen is under 3 px with no jumps.
+- **Walks, round 6** (2026-11-04, owner: "not lag - the walk itself jerks when a monster walks"): measured each
+  bone per drawn frame while walking. With the life layer switched off the trunk moved smoothly (0.06 rad/s of
+  change per frame); with it, 2.4 - forty times rougher. Its spine swing and dips were sized for a slow walk and
+  ran at full size at four steps a second (hurrying in, backing off) and over the gallop's different footfalls, so
+  the trunk shook; a clipped-cosine dip kinked at every half step. Now the dips are a smooth raised cosine, the
+  head's nod follows their exact rate, and the whole layer fades with the square of the pace above two steps a
+  second and out in a gallop (after: 0.06, the same as without it). Also: backing off is slow (0.55 of its speed),
+  the walk turns backwards on the rules' intent at once, and walk or gallop is chosen with a margin and crossfaded
+  instead of hovering half in each.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

@@ -87,17 +87,22 @@ export function animBeast(r, s, dt, time, opts = {}) {
   const gaitSpeed = s.moving ? Math.max(0, s.smoothSpeed ?? speed) : 0;
   // the clips to blend: locomotion by speed, then an attack or a flinch over it
   const gFrom = opts.gallopFrom ?? 3.2, gFull = opts.gallopFull ?? 5.5;
-  let gw = clamp01((gaitSpeed - gFrom) / (gFull - gFrom));
+  // the gait is chosen, not blended by speed: a gallop above the middle of gFrom..gFull (with a margin either
+  // way), with a short crossfade between them (a pace hovering in between used to hold the legs half in each
+  // clip, out of step)
+  const gMid = (gFrom + gFull) / 2, gM = (gFull - gFrom) / 4;
+  B.gait = B.gait === 'gallop' ? (gaitSpeed > gMid - gM ? 'gallop' : 'walk') : (gaitSpeed > gMid + gM ? 'gallop' : 'walk');
+  let gw = B.gait === 'gallop' ? 1 : 0;
   const mw = clamp01(gaitSpeed / 0.6);
   // the cycle is locked to the ground: walk covers stride x leg per cycle, the gallop 2.6x that
   // (opts.gallopStride: the gallop's cycle in strides, 2.6 by default; a backing beast with opts.reverse walks
   // its cycle backwards)
   const stride = (opts.stride ?? 1.9) * B.legLen, gs = (opts.gallopStride ?? 2.6) - 1;
   // backwards while it backs off: decided on the eased forward speed with a margin, so it never flicks
-  B.back = opts.reverse ? ((s.smoothFwd ?? s.vFwd ?? 0) < (B.back === -1 ? -0.05 : -0.35) ? -1 : 1) : 1;
+  B.back = !opts.reverse ? 1 : s.backing !== undefined ? (s.backing ? -1 : 1) : ((s.smoothFwd ?? s.vFwd ?? 0) < (B.back === -1 ? -0.05 : -0.35) ? -1 : 1);
   const back = B.back;
   if (back < 0) gw = 0; // it backs off at a walk, never a backwards gallop
-  B.gw = (B.gw ?? gw) + (gw - (B.gw ?? gw)) * Math.min(1, dt * 6); // and changes gait over a moment, not a frame
+  B.gw = (B.gw ?? gw) + (gw - (B.gw ?? gw)) * Math.min(1, dt * 7); // and changes gait over a moment, not a frame
   gw = B.gw;
   B.walkPh = (B.walkPh + back * dt * speed / (stride * (1 + gs * gw)) + 1) % 1;
   B.idlePh = (B.idlePh + dt * rate / C.idle.duration) % 1;

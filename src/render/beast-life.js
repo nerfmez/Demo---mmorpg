@@ -33,28 +33,38 @@ function spring(st, key, target, dt, k = 90, z = 0.45) {
 export function beastLife(r, s, dt, w, ph, o = {}) {
   const b = r.bones, st = (r.life ||= {});
   if (!(dt > 0)) return;
-  const spine = (o.spine ?? 1) * w, dip = (o.dip ?? 1) * w;
+  // the cadence (cycles a second, eased) and how much of this belongs at it. The swing and dips are a walk's, at a
+  // walking pace: measured per drawn frame (2026-11-04), at the same size they shook the trunk when it hurried
+  // or backed off at four steps a second, and they do not fit a gallop's footfalls at all - so they fade with the
+  // square of the pace above about two steps a second, and out entirely in a gallop
+  const rate = st.prevPh === undefined ? 0 : ((ph - st.prevPh + 1.5) % 1) - 0.5; st.prevPh = ph;
+  st.cyc = (st.cyc ?? 0) + (Math.abs(rate) / dt - (st.cyc ?? 0)) * Math.min(1, dt * 4);
+  const pace = Math.min(1, (1.9 / Math.max(st.cyc, 0.1)) ** 2) * (1 - (r.beast?.gw ?? 0));
+  const spine = (o.spine ?? 1) * w * pace, dip = (o.dip ?? 1) * w * pace;
   const at = (f) => TAU * (ph - f);
   // shoulders and hips turn against each other: the side whose foot reaches forward leads
   const sh = Math.cos(at(FOOT.fr)), hp = Math.cos(at(FOOT.hr));
   nudge(b.body, 0, -0.07 * spine * hp, 0.035 * spine * hp);
   nudge(b.chest, 0, -0.11 * spine * sh + 0.07 * spine * hp, -0.045 * spine * sh);
-  // each end dips just after its feet land (twice a cycle each), the hips' dip under the shoulders' by a beat
-  const dipF = Math.max(0, Math.cos(2 * at(FOOT.fr + 0.06))), dipH = Math.max(0, Math.cos(2 * at(FOOT.hr + 0.06)));
+  // each end dips just after its feet land (twice a cycle each), the hips' dip under the shoulders' by a beat. A
+  // raised cosine, smooth all the way round: the first version clipped a cosine at zero, and that kink at every
+  // half step made the trunk, head and tail twitch on each footfall (owner, 2026-11-04: "the walk itself stutters")
+  const dipF = 0.5 + 0.5 * Math.cos(2 * at(FOOT.fr + 0.06)), dipH = 0.5 + 0.5 * Math.cos(2 * at(FOOT.hr + 0.06));
   nudge(b.chest, 0.05 * dip * dipF, 0, 0);
   nudge(b.body, -0.035 * dip * dipH, 0, 0);
   if (b.body) b.body.position.y -= 0.018 * dip * (dipF + dipH) * 0.5;
   // follow-through: what the trunk does, the head and tail do a beat later and a little past it
-  const bounce = (dipF + dipH) * 0.5 * w, turn = Math.max(-3, Math.min(3, s.turn || 0));
-  const prevB = st.bounce ?? bounce; st.bounce = bounce;
-  const bv = (bounce - prevB) / dt; // the trunk going down (+) or up (-)
+  const turn = Math.max(-3, Math.min(3, s.turn || 0));
+  // the trunk going down (+) or up (-), worked out from the dips' own phase (smooth), not differenced frame to
+  // frame (which carried every uneven frame time into the head); d/dt of dip * (dipF + dipH) / 2
+  const bv = -dip / (o.dip ?? 1) * 0.5 * st.cyc * TAU * (Math.sin(2 * at(FOOT.fr + 0.06)) + Math.sin(2 * at(FOOT.hr + 0.06))) * Math.sign(rate || 1);
   const nod = spring(st, 'nod', 0.05 * bv * (o.head ?? 1), dt, 70, 0.4);
   const look = spring(st, 'look', -0.08 * turn * (o.head ?? 1), dt, 60, 0.5);
   // (o.gain: eased to 0 while an attack poses the body, so the follow-through fades in and out with it)
   const g = o.gain ?? 1;
   nudge(b.neck, clamp(nod * 0.6) * g, clamp(look * 0.5) * g, 0);
   nudge(b.head, clamp(nod * 0.5) * g, clamp(look * 0.5) * g, 0);
-  const tailSway = spring(st, 'tail', (0.22 * hp * w + 0.12 * turn) * (o.tail ?? 1), dt, 45, 0.35);
+  const tailSway = spring(st, 'tail', (0.22 * hp * w * pace + 0.12 * turn) * (o.tail ?? 1), dt, 45, 0.35);
   const tailLift = spring(st, 'tailUp', -0.06 * bv * (o.tail ?? 1), dt, 55, 0.4);
   nudge(b.tail, clamp(tailLift) * g, clamp(tailSway) * g, 0);
 }

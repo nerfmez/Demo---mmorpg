@@ -761,7 +761,9 @@ function strafe(game, m, dt, t, d, near, far, speed) {
   if (mode === 'back') moveA = toT + Math.PI;
   else if (mode === 'close') moveA = toT;
   else moveA = toT + (m.id % 2 ? 1 : -1) * Math.PI * 0.5;
-  const s = speed * (mode === 'circle' ? 0.4 : 1);
+  // backing off is a few slow steps back, not a full-speed retreat (a beast walking backwards that fast read as a
+  // stutter); closing in is at full speed
+  const s = speed * (mode === 'circle' ? 0.4 : mode === 'back' ? 0.55 : 1);
   const dir = dirFromAngle(moveA);
   game.moveEntity(m, dir.x * s * dt, dir.z * s * dt);
   turnToward(m, m.def.flyer ? moveA : toT, dt, 6);

@@ -50,10 +50,14 @@ try {
     const save = (buf) => writeFileSync(`${dir}${String(n++).padStart(3, '0')}.jpg`, buf);
     for (const b of lead) save(b);
     const states = [];
-    for (let i = 0, after = 0, cap = Number(process.env.MAXSTEPS || 180); i < cap; i++) {
-      const s = await page.evaluate(() => { const m = window.__frontier.monsterLab.lab.m; return { state: m.state, t: +m.stateT.toFixed(3) }; });
-      if (i % EVERY === 0) { states.push({ n, ...s }); save(await page.screenshot({ type: 'jpeg', quality: VIDEO ? 85 : 82 })); }
+    // one round of the attack: stop once it is back to moving, or when it winds up again (the sandbox loops it)
+    for (let i = 0, after = 0, left = false, again = 0, cap = Number(process.env.MAXSTEPS || 180); i < cap; i++) {
+      const s = await page.evaluate(() => { const m = window.__frontier.monsterLab.lab.m; return { state: m.state, t: +m.stateT.toFixed(3), name: m.windup?.name }; });
+      if (i % EVERY === 0) { states.push({ n, state: s.state, t: s.t }); save(await page.screenshot({ type: 'jpeg', quality: VIDEO ? 85 : 82 })); }
       if (i > 4 && (s.state === 'chase' || s.state === 'idle') && ++after > (VIDEO ? 10 : 0)) break;
+      // (another attack it chains into, the clam's counter out of its shell, still records)
+      if (s.state !== 'windup') left = true;
+      else if (left && s.name === attack && ++again > (VIDEO ? 6 : 0)) break;
       await page.evaluate(() => { window.__frontier.monsterLab.lab.step = true; });
       await frame();
     }

@@ -25,7 +25,8 @@ try {
   page.setDefaultTimeout(120000);
   page.on('pageerror', (e) => report.errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.endsWith('/favicon.ico')) report.errors.push(m.text()); });
-  await page.goto(`${base}?fresh=1&seed=9&quality=low&load=dev&monsterLab=${type}`);
+  // a video draws on the bare ground (BARE=0 keeps the map's scenery): far quicker without a graphics card
+  await page.goto(`${base}?fresh=1&seed=9&quality=low&load=dev&monsterLab=${type}${VIDEO && process.env.BARE !== '0' ? '&bare=1' : ''}`);
   await page.waitForFunction(() => window.__frontier?.modelsReady && window.__frontier?.monsterLab && window.__frontier.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
   // one game frame per step: the game's loop asked for this frame before we did, so it runs (and takes the step) first
   const frame = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(r)));

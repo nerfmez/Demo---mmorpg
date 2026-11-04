@@ -331,7 +331,7 @@ function startGame(character, slot) {
   }
   if (fresh && params.has('monsterLab')) {
     // the monster sandbox (docs/MONSTER-ATTACKS.md): one monster, its chosen attack looped on an unharmed hero
-    session.monsterLab = startMonsterLab({ game, view, root: hudRoot, input, data, type: params.get('monsterLab') });
+    session.monsterLab = startMonsterLab({ game, view, root: hudRoot, input, data, type: params.get('monsterLab'), bare: params.get('bare') === '1' });
     F.monsterLab = session.monsterLab;
   }
 

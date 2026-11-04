@@ -15,7 +15,15 @@ function clearSpot(game, x, z, room = 3) {
   return [x, z];
 }
 
-export function startMonsterLab({ game, view, root, input, data, type }) {
+export function startMonsterLab({ game, view, root, input, data, type, bare = false }) {
+  // bare (&bare=1, for quick review videos): the map's scenery, grass and townsfolk hidden, only its ground left,
+  // so a frame draws fast without a graphics card; the monster, the hero and every effect are unchanged
+  if (bare) view.region?.staticReadyPromise?.then(() => {
+    const R = view.region, top = (o) => { while (o && o.parent !== R.root) o = o.parent; return o; };
+    for (const g of R.grass) { const t = top(g); if (t) t.visible = false; }
+    for (const w of R.waypointStones?.values?.() || []) { const t = top(w); if (t) t.visible = false; }
+    for (const n of R.npcs) n.root.visible = false;
+  });
   const defs = data.monsters.monsters;
   if (!defs[type]) type = Object.keys(defs).find((k) => defs[k].behavior === 'kit') || Object.keys(defs)[0];
   const p = game.player;

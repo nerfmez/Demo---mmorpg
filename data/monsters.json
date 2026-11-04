@@ -1625,31 +1625,61 @@
     "pearl_fish": {
       "name": "Pearl Fish",
       "nameTh": "ปลามุก",
-      "behavior": "kiter",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: a fish stranded on its side, flopping. From range it rolls belly-up, puffs its cheeks and fires a jet of water that chills; in the middle distance it bends nose to tail and flops at the hero in three marked hops; up close it slaps with its tail, knocking back.",
       "element": "cold",
+      "kit": {
+        "circle": [3.5, 6.5]
+      },
       "hp": 480,
       "damage": 110,
       "defense": 25,
-      "speed": 3.4,
+      "speed": 2.6,
       "radius": 0.6,
       "aggroRange": 9,
       "leashRange": 20,
       "exp": 20,
       "jobExp": 14,
       "attacks": {
-        "orb": {
-          "inflict": {"status": "chill", "chance": 0.6, "duration": 2, "slow": 0.3},
-          "range": 10,
-          "windup": 0.45,
-          "recover": 0.4,
-          "cooldown": 2.2,
-          "speed": 8,
+        "flop": {
+          "kind": "skip",
+          "use": {"min": 2.5, "max": 6},
+          "range": 6,
+          "windup": 0.7,
+          "hops": 3,
+          "hop": 1.7,
+          "air": 0.3,
+          "pause": 0.12,
+          "radius": 1.0,
+          "recover": 0.6,
+          "cooldown": 6,
+          "damageMult": 0.7
+        },
+        "slap": {
+          "kind": "rake",
+          "use": {"max": 1.4},
+          "range": 1.4,
+          "arc": 150,
+          "windup": 0.55,
+          "duration": 0.35,
+          "hits": [{"at": 0.12, "knock": 3}],
+          "recover": 0.6,
+          "cooldown": 2.4,
           "damageMult": 1
         },
-        "blink": {
-          "triggerRange": 3.2,
-          "distance": 5.5,
-          "cooldown": 5
+        "jet": {
+          "kind": "spit",
+          "tell": "lane",
+          "use": {"min": 3, "max": 9},
+          "range": 9,
+          "width": 0.7,
+          "windup": 0.65,
+          "speed": 15,
+          "projectileRadius": 0.4,
+          "recover": 0.4,
+          "cooldown": 3,
+          "damageMult": 1,
+          "inflict": {"status": "chill", "chance": 0.6, "duration": 2, "slow": 0.3}
         }
       },
       "drops": [
@@ -1681,8 +1711,12 @@
     "pearl_slug": {
       "name": "Pearl Sea Slug",
       "nameTh": "ทากทะเลมุก",
-      "behavior": "viper",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: a nudibranch. From range its plumes fan up, their pearl tips glowing one by one, and it looses three stinging darts in a fan; closer it ripples and slides at the hero, leaving a trail of poison mucus; hit hard (three hits in two seconds) it sheds stinging plumes round itself and slips away.",
       "element": "poison",
+      "kit": {
+        "circle": [3, 6]
+      },
       "hp": 700,
       "damage": 95,
       "defense": 50,
@@ -1692,34 +1726,50 @@
       "leashRange": 18,
       "exp": 20,
       "jobExp": 14,
-      "keepDistance": [
-        3,
-        6
-      ],
       "attacks": {
-        "venom": {
-          "minRange": 2.5,
-          "range": 9,
+        "surge": {
+          "kind": "trail",
+          "tell": "lane",
+          "use": {"min": 1.2, "max": 4.5},
+          "range": 4,
+          "width": 1.3,
           "windup": 0.8,
-          "flight": 0.6,
-          "radius": 1.8,
+          "speed": 5,
+          "duration": 0.8,
+          "every": 1.0,
+          "pool": {"kind": "mucus", "radius": 0.8, "duration": 4, "tick": 0.5, "dps": 30},
+          "recover": 0.8,
+          "cooldown": 8,
+          "damageMult": 0.8,
+          "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15}
+        },
+        "volley": {
+          "kind": "volley",
+          "use": {"min": 2.5, "max": 8},
+          "range": 8,
+          "count": 3,
+          "spread": 36,
+          "windup": 0.9,
+          "speed": 10,
+          "projectileRadius": 0.3,
+          "recover": 0.6,
+          "cooldown": 4.5,
+          "damageMult": 0.6,
+          "inflict": {"status": "poison", "chance": 0.5, "duration": 3, "dpsMult": 0.12}
+        },
+        "shed": {
+          "hitsToTrigger": 3,
+          "window": 2,
+          "patches": 3,
+          "spread": 1.2,
+          "radius": 0.9,
+          "windup": 0.45,
           "duration": 3,
           "tick": 0.5,
-          "dps": 40,
-          "cooldown": 6,
-          "recover": 0.6,
-          "damageMult": 0.4
-        },
-        "lash": {
-          "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15},
-          "minRange": 0,
-          "maxRange": 5.5,
-          "range": 5.5,
-          "width": 0.9,
-          "windup": 0.5,
-          "recover": 0.8,
-          "cooldown": 3,
-          "damageMult": 1.25
+          "dps": 35,
+          "slip": 3,
+          "slipTime": 0.8,
+          "cooldown": 9
         }
       },
       "drops": [
@@ -1751,7 +1801,8 @@
     "eye_clam": {
       "name": "One-eyed Clam",
       "nameTh": "หอยตาเดียว",
-      "behavior": "shell_spitter",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: a turret whose eye is its weak point. From range its eye opens wide and a pearl rolls onto its tongue; an aim line follows the hero, locks, and a fast pearl flies along it; up close the shell gapes and its mantle bulges, then snaps shut and blasts a cone of water that knocks back; hit hard it clamps shut, and reopens straight into that blast.",
       "element": "poison",
       "hp": 950,
       "damage": 90,
@@ -1763,22 +1814,40 @@
       "exp": 26,
       "jobExp": 17,
       "attacks": {
-        "spit": {
-          "range": 8,
-          "windup": 0.55,
-          "recover": 0.5,
-          "cooldown": 2.6,
-          "speed": 9,
-          "damageMult": 1,
-          "poisonDps": 30,
-          "poisonDuration": 3
+        "valve": {
+          "kind": "shove",
+          "tell": "sector",
+          "element": "physical",
+          "use": {"max": 3.5},
+          "range": 4,
+          "arc": 60,
+          "knock": 4,
+          "windup": 0.7,
+          "recover": 0.9,
+          "cooldown": 4,
+          "damageMult": 1.1
+        },
+        "snipe": {
+          "kind": "spit",
+          "tell": "lane",
+          "element": "physical",
+          "use": {"min": 2.5, "max": 11},
+          "range": 11,
+          "width": 0.5,
+          "windup": 1.1,
+          "speed": 20,
+          "projectileRadius": 0.32,
+          "recover": 0.6,
+          "cooldown": 3.2,
+          "damageMult": 1.2
         },
         "shell": {
           "hitsToTrigger": 3,
           "window": 2,
           "duration": 2.2,
           "damageTaken": 0.25,
-          "cooldown": 6
+          "cooldown": 6,
+          "counter": "valve"
         }
       },
       "drops": [
@@ -1810,7 +1879,13 @@
     "pearl_snail_king": {
       "name": "Pearl Snail King",
       "nameTh": "ราชาหอยทากมุก",
-      "behavior": "warden_boss",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: the grotto's boss. Its mantle skirt rears and slaps down in a wide crush up close; it draws its head back, its harpoon latched and glowing, then stabs along a lane, poisoning and dragging what it strikes toward it; it leaves slime that slows wherever it crawls; at 60% and 30% health it pulls into its shell for three seconds (hits barely hurt) and bursts out in a ring; below 60% the great pearl on its shell charges and sweeps a beam across the dais.",
+      "kit": {
+        "turn": 1.6,
+        "trail": {"every": 1.2, "attack": "slime", "pool": {"kind": "mucus", "radius": 0.9, "duration": 6, "tick": 0.5, "dps": 20}},
+        "withdraw": {"at": [0.6, 0.3], "duration": 3, "radius": 5.5, "damageMult": 1.2}
+      },
       "dormant": {
         "wake": 1.8
       },
@@ -1825,49 +1900,55 @@
       "exp": 240,
       "jobExp": 150,
       "attacks": {
-        "sweep": {
-          "range": 3.4,
+        "beam": {
+          "kind": "beam_sweep",
+          "tell": "sector",
+          "use": {"min": 3, "max": 12, "hpBelow": 0.6},
+          "range": 12,
+          "width": 1.2,
           "arc": 150,
-          "windup": 0.65,
-          "recover": 0.7,
-          "cooldown": 2.2,
-          "damageMult": 1
-        },
-        "slam": {
-          "radius": 4.8,
-          "windup": 1.1,
-          "recover": 1,
-          "cooldown": 9,
-          "damageMult": 2,
-          "shockwaveSpeed": 7,
-          "shockwaveMax": 11
-        },
-        "quake": {
-          "minRange": 3,
-          "maxRange": 13,
-          "length": 10,
-          "width": 2.4,
-          "steps": 4,
-          "stepDelay": 0.14,
-          "windup": 0.95,
-          "recover": 1.2,
-          "cooldown": 7.5,
-          "damageMult": 1.5
-        },
-        "roll": {
-          "kind": "charge",
-          "minRange": 5,
-          "maxRange": 16,
           "windup": 1.5,
-          "speed": 12,
-          "duration": 1.2,
-          "recover": 1.1,
-          "cooldown": 12,
-          "damageMult": 1.8,
-          "missStun": 1.5
+          "sweepTime": 1.6,
+          "recover": 1.0,
+          "cooldown": 10,
+          "damageMult": 1.6
+        },
+        "harpoon": {
+          "kind": "beam",
+          "tell": "lane",
+          "use": {"min": 2.5, "max": 8},
+          "range": 8,
+          "width": 1.0,
+          "windup": 1.2,
+          "pull": 2.5,
+          "recover": 1.0,
+          "cooldown": 7,
+          "damageMult": 1.4,
+          "inflict": {"status": "poison", "chance": 0.7, "duration": 4, "dpsMult": 0.12}
+        },
+        "crush": {
+          "kind": "sweep",
+          "tell": "sector",
+          "use": {"max": 3.4},
+          "range": 3.4,
+          "arc": 140,
+          "windup": 0.8,
+          "recover": 0.7,
+          "cooldown": 3,
+          "damageMult": 1.2
+        },
+        "slime": {
+          "inflict": {"status": "chill", "chance": 1, "duration": 1.5, "slow": 0.25}
+        },
+        "shell": {
+          "hitsToTrigger": 99,
+          "window": 1,
+          "duration": 3,
+          "damageTaken": 0.25,
+          "cooldown": 999
         }
       },
-      "enrageAt": 0.5,
+      "enrageAt": 0.3,
       "drops": [
         {
           "item": "skill_crystal_l",

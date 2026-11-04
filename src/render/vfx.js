@@ -22,6 +22,12 @@ import { artSurface, healingMaterial, plusGeometry, keys, faceGameCamera } from 
 import { cutRibbon, approvedCut, ContactShards } from './melee.js';
 import { arrowStreak, rockGeometry, RockChips } from './physical.js';
 
+// lingering pools by area kind: warning colours, pool colours, bubbles
+const POOLS = {
+  venom_pool: [0x9adf4a, 0xd6f07a, 0x4f8a2a, 0xb6ec4a, 0xb6ec4a],
+  mucus: [0x5fd8c8, 0xb8f4ea, 0x1f7a78, 0x6ae8d4, 0x9ff4e4],
+  sting_patch: [0xb48cff, 0xe6d8ff, 0x5a3c9a, 0xb48cff, 0xe0ccff],
+};
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
 const _base = new THREE.Vector3();
@@ -1442,14 +1448,16 @@ export class Vfx {
         boundary.material.opacity = cfg.cast.boundaryOpacity * (.7 + .3 * k);
       } };
     }
-    if (a.kind === 'venom_pool') {
-      // marked like a boulder while the venom flies, then a bubbling green pool
+    if (POOLS[a.kind]) {
+      // marked like a boulder while the venom flies, then a bubbling pool (the viper's venom; the pearl slug's
+      // mucus trail and its shed stinging plumes in their own colours)
+      const [tc, tc2, pc, pc2, bubble] = POOLS[a.kind];
       const tell = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);
-      tell.material.uniforms.uColor.value.set(0x9adf4a);
-      tell.material.uniforms.uColor2.value.set(0xd6f07a);
+      tell.material.uniforms.uColor.value.set(tc);
+      tell.material.uniforms.uColor2.value.set(tc2);
       const pool = this.decal(this.discGeo, discMaterial('mire'), a.x, a.z, a.radius, 0, 0.07);
-      pool.material.uniforms.uColor.value.set(0x4f8a2a);
-      pool.material.uniforms.uColor2.value.set(0xb6ec4a);
+      pool.material.uniforms.uColor.value.set(pc);
+      pool.material.uniforms.uColor2.value.set(pc2);
       const group = new THREE.Group();
       group.add(tell, pool);
       return {
@@ -1462,7 +1470,7 @@ export class Vfx {
           pool.material.uniforms.uA.value = landed ? Math.min(1, (ar.t - ar.delay) * 6) * Math.min(1, (ar.delay + ar.duration - ar.t) * 2) * 0.9 : 0;
           if (landed && Math.random() < dt * 10) {
             const ang = Math.random() * Math.PI * 2, rr = Math.random() * ar.radius, x = ar.x + Math.sin(ang) * rr, z = ar.z + Math.cos(ang) * rr;
-            this.fx.add(x, this.gy(x, z) + 0.15, z, 0, 0.8, 0, { color: 0xb6ec4a, size: 0.22, sizeEnd: 0.05, life: 0.6, drag: 1 });
+            this.fx.add(x, this.gy(x, z) + 0.15, z, 0, 0.8, 0, { color: bubble, size: 0.22, sizeEnd: 0.05, life: 0.6, drag: 1 });
           }
         },
       };

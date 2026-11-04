@@ -82,7 +82,7 @@ export function updateMonster(game, m, dt) {
       if (m.stateT >= m.stateDur || walkTo(game, m, m.retreatTo.x, m.retreatTo.z, def.speed * slowMult, dt)) {
         m.retreatTo = null;
         m.moving = false;
-        setState(m, 'recover', def.retreat.pause);
+        setState(m, 'recover', def.retreat?.pause ?? 0.3);
       }
       return;
     case 'emerge':
@@ -92,7 +92,9 @@ export function updateMonster(game, m, dt) {
     case 'shell':
       if (m.stateT >= m.stateDur) {
         m.shell = false;
-        const emerge = def.attacks.shell.emerge;
+        const sh = def.attacks.shell, emerge = sh.emerge, counter = sh.counter && def.attacks[sh.counter];
+        // a counter (the eye clam): it reopens straight into that attack, punishing who waited in front
+        if (counter && t && gap <= (counter.use?.max ?? counter.range)) { m.cd[sh.counter] = 0; return beginAttack(game, m, sh.counter, t); }
         setState(m, emerge ? 'emerge' : 'chase', emerge || 0);
       }
       return;
@@ -151,6 +153,14 @@ export function setAggro(game, m, unit = null, force = false) {
 export function onMonsterHit(game, m, by = null) {
   setAggro(game, m, by || game.player, !!by);
   if (m.def.behavior === 'stalker') { m.revealT = 2; m.stealth = false; }
+  // shed (the pearl slug): hit hard, it drops stinging patches round itself and slips away
+  const shed = m.def.attacks.shed;
+  if (shed && m.state !== 'windup' && m.state !== 'act' && !m.dead) {
+    m.recentHits.push(game.time);
+    m.recentHits = m.recentHits.filter((t) => game.time - t <= shed.window);
+    if (m.recentHits.length >= shed.hitsToTrigger && m.cd.shed <= 0) { m.recentHits = []; shedPatches(game, m); }
+    return;
+  }
   const sh = m.def.attacks.shell;
   if (!sh || m.state === 'shell' || m.state === 'act') return;
   m.recentHits.push(game.time);
@@ -159,6 +169,22 @@ export function onMonsterHit(game, m, by = null) {
     m.recentHits = [];
     enterShell(game, m);
   }
+}
+
+function shedPatches(game, m) {
+  const sh = m.def.attacks.shed, lvl = 1 + (m.level - 1) * 0.15;
+  m.cd.shed = sh.cooldown;
+  for (let i = 0; i < sh.patches; i++) {
+    const a = m.facing + (i / sh.patches) * Math.PI * 2, x = m.x + Math.sin(a) * sh.spread, z = m.z + Math.cos(a) * sh.spread;
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'shed', kind: 'sting_patch', x, z, radius: sh.radius, delay: sh.windup, duration: sh.duration, // marked `windup` s before they sting
+       tick: sh.tick, damage: sh.dps * sh.tick * lvl });
+  }
+  game.emit({ type: 'shed', id: m.id, x: m.x, z: m.z });
+  // then it slips away from what hit it
+  const t = m.targetUnit || game.player, away = dirFromAngle(angleTo(t.x, t.z, m.x, m.z));
+  m.melee = null; m.charge = null;
+  m.retreatTo = { x: m.x + away.x * sh.slip, z: m.z + away.z * sh.slip };
+  setState(m, 'retreat', sh.slipTime);
 }
 
 function enterShell(game, m) {
@@ -178,6 +204,7 @@ function setState(m, state, dur = 0) {
   m.stateDur = dur;
   if (state !== 'windup' && state !== 'act') m.windup = null;
   if (state === 'return' || state === 'idle') {
+    m.sweep = null;
     m.melee = null;
     m.retreatPending = false;
     m.retreatTo = null;
@@ -257,7 +284,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'mirror_ring', 'drum', 'doubles'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'mirror_ring', 'drum', 'doubles', 'skip'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -301,7 +328,9 @@ function windup(game, m, dt, t, gap) {
     case 'spit':
     case 'salt_spit':
     case 'orb': {
-      const a = w.name === 'salt_spit' ? w.angle : t ? angleTo(m.x, m.z, t.x, t.z) : w.angle;
+      // a shot warned by a lane (tell "lane": the pearl fish's jet) flies along the lane it showed
+      const aimed = w.name === 'salt_spit' || atk.tell === 'lane';
+      const a = aimed ? w.angle : t ? angleTo(m.x, m.z, t.x, t.z) : w.angle;
       const dir = dirFromAngle(a);
       game.spawnProjectile({
         owner: 'monster',
@@ -314,7 +343,7 @@ function windup(game, m, dt, t, gap) {
         angle: a,
         speed: atk.speed,
         radius: atk.projectileRadius ?? 0.35,
-        range: w.name === 'salt_spit' ? atk.range : atk.range + 3,
+        range: aimed ? atk.range : atk.range + 3,
         element: w.name === 'salt_spit' ? 'salt' : projectileLook(m, w.name),
         damage: dmg,
         poison: atk.poisonDps ? { dps: atk.poisonDps * (1 + (m.level - 1) * 0.15), duration: atk.poisonDuration } : null,
@@ -347,10 +376,21 @@ function windup(game, m, dt, t, gap) {
       game.emit({ type: 'beam', kind: w.name, id: m.id, x: m.x, z: m.z, angle: w.angle, length: atk.range, width: atk.width });
       for (const u of game.units()) {
         const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, side = Math.abs(dx * dir.z - dz * dir.x);
-        if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) game.damageUnit(u, dmg, m, { attack: w.name });
+        // pull (the snail king's harpoon): what it strikes is dragged toward it, stopping short of its body
+        const pull = atk.pull ? Math.min(atk.pull, along - m.r - u.r - 0.6) : 0;
+        if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) game.damageUnit(u, dmg, m, { attack: w.name, knock: pull > 0 ? { angle: angleTo(u.x, u.z, m.x, m.z), force: pull } : undefined });
       }
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
+    }
+    case 'beam_sweep': {
+      // a beam that sweeps `arc` degrees across the target over `sweepTime` s (the snail king's pearl): each unit is
+      // hit once, when the beam crosses it; behind the monster, or ahead of the beam's end, is safe
+      const side = m.id % 2 ? 1 : -1, half = (atk.arc * DEG) / 2;
+      m.sweep = { name: w.name, t: 0, dur: atk.sweepTime, from: w.angle - side * half, to: w.angle + side * half, hit: new Set(), dmg };
+      game.emit({ type: 'beamSweep', id: m.id, x: m.x, z: m.z, from: m.sweep.from, to: m.sweep.to, duration: atk.sweepTime, length: atk.range, width: atk.width });
+      setState(m, 'act');
+      return;
     }
     case 'erupt': {
       // the mole dug toward the marked spot during the wind-up; it surfaces there as the ground bursts
@@ -363,6 +403,24 @@ function windup(game, m, dt, t, gap) {
       }
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
+    }
+    case 'volley': {
+      // `count` darts fanned `spread` degrees about the locked aim, each its own projectile
+      for (let i = 0; i < atk.count; i++) {
+        const a = w.angle + ((i / Math.max(1, atk.count - 1)) - 0.5) * atk.spread * DEG, dir = dirFromAngle(a);
+        game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: w.name, attack: w.name, x: m.x + dir.x * (m.r + 0.2), z: m.z + dir.z * (m.r + 0.2), y: 0.8, angle: a, speed: atk.speed, radius: atk.projectileRadius ?? 0.3, range: atk.range, element: m.def.element || 'physical', damage: dmg });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'trail': {
+      // a slide along the locked lane at `speed` for `duration` s, hitting what it runs into, and leaving a
+      // lingering pool every `every` m (the pearl slug's mucus)
+      m.charge = { name: w.name, t: 0, dur: atk.duration, speed: atk.speed, angle: w.angle, hit: new Set(), dmg, trail: { left: 0, every: atk.every } };
+      m.cd[w.name] = atk.cooldown;
+      setState(m, 'act');
+      m.windup = { ...w };
+      return;
     }
     case 'drum': {
       // the leaf tanuki's belly drum: `beats` rings run out from it, `beat` s apart, to `radius`; the last is
@@ -427,6 +485,15 @@ function windup(game, m, dt, t, gap) {
       m.charge = { t: 0, dur: hop.duration, speed: hop.distance / hop.duration, angle: away + game.rng.range(-0.6, 0.6), hit: new Set(), dmg: 0, hop: true };
       setState(m, 'act');
       m.windup = { ...w };
+      return;
+    }
+    case 'skip': {
+      // the hops run one after another: `air` s in the air each, `pause` s on the ground between
+      m.charge = { skip: true, hops: w.hops || [], i: 0, t: 0, fromX: m.x, fromZ: m.z, hit: new Set(), dmg: 0 };
+      m.cd[w.name] = atk.cooldown;
+      setState(m, 'act');
+      m.windup = { ...w };
+      if (!m.charge.hops.length) { m.charge = null; return setState(m, 'recover', atk.recover); }
       return;
     }
     case 'pounce':
@@ -509,9 +576,36 @@ function act(game, m, dt, t) {
     }
     return;
   }
+  if (m.sweep) {
+    const sw = m.sweep, atk = m.def.attacks[sw.name];
+    sw.t += dt;
+    const k = Math.min(1, sw.t / sw.dur), ang = sw.from + (sw.to - sw.from) * k, dir = dirFromAngle(ang), half = atk.width / 2;
+    m.facing = ang;
+    m.moving = false;
+    for (const u of game.units()) {
+      if (sw.hit.has(u.id)) continue;
+      const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, side = Math.abs(dx * dir.z - dz * dir.x);
+      if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) { sw.hit.add(u.id); game.damageUnit(u, sw.dmg, m, { attack: sw.name }); }
+    }
+    if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
+    return;
+  }
   const c = m.charge;
   if (!c) return setState(m, 'chase');
   c.t += dt;
+  if (c.skip) {
+    const atk = m.def.attacks[m.windup?.name], hop = c.hops[c.i];
+    const k = Math.min(1, c.t / atk.air);
+    m.x = c.fromX + (hop[0] - c.fromX) * k;
+    m.z = c.fromZ + (hop[1] - c.fromZ) * k;
+    m.moving = false;
+    c.air = k < 1 ? k : -1; // 0..1 in the air, -1 on the ground (the renderer's flop)
+    if (c.t >= atk.air + (c.i < c.hops.length - 1 ? atk.pause : 0)) {
+      c.i++; c.t = 0; c.fromX = m.x; c.fromZ = m.z;
+      if (c.i >= c.hops.length) { m.charge = null; return setState(m, 'recover', atk.recover); }
+    }
+    return;
+  }
   if (c.dive) {
     const k = Math.min(1, c.t / c.dur);
     m.x = c.fromX + (c.toX - c.fromX) * k;
@@ -543,6 +637,14 @@ function act(game, m, dt, t) {
     }
   }
   const moved = dist(before.x, before.z, m.x, m.z);
+  if (c.trail) {
+    c.trail.left -= moved;
+    if (c.trail.left <= 0) {
+      c.trail.left = c.trail.every;
+      const p = m.def.attacks[c.name].pool, lvl = 1 + (m.level - 1) * 0.15;
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: c.name, kind: p.kind || 'mucus', x: m.x, z: m.z, radius: p.radius, delay: 0.2, duration: p.duration, tick: p.tick, damage: p.dps * p.tick * lvl });
+    }
+  }
   const ratk = m.def.attacks[m.windup?.name];
   if (!c.hop && ratk?.rebound && !c.back && ((res && res.blockedHard && moved < c.speed * dt * 0.4 && c.t > 0.08) || c.t >= c.dur)) {
     // a rebound roll (the pangolin): at the end of its lane, or off whatever it struck, it bounces back along
@@ -885,6 +987,19 @@ function mole(game, m, dt, { t, gap, slowMult }) {
  */
 function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   const def = m.def, names = kitOrder(def);
+  // withdraw (the snail king): at each health share in `at` it pulls into its shell once (the shell's damageTaken),
+  // a ring round it marked for the whole time, then bursts out as the ring goes off
+  const wd = def.kit?.withdraw;
+  if (wd) for (let i = 0; i < wd.at.length; i++) {
+    if (m.hp > m.maxHp * wd.at[i] || m.withdrew?.[i]) continue;
+    (m.withdrew ||= [])[i] = true;
+    m.shell = true; m.moving = false;
+    setState(m, 'shell', wd.duration);
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'withdraw', kind: 'pound', x: m.x, z: m.z, radius: wd.radius, delay: wd.duration, duration: 0.3, damage: m.damage * (wd.damageMult || 1) });
+    game.emit({ type: 'withdraw', id: m.id, x: m.x, z: m.z, duration: wd.duration, radius: wd.radius });
+    return;
+  }
+  dropTrail(game, m);
   let reach = Infinity, soon = Infinity;
   for (const name of names) {
     const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
@@ -905,6 +1020,17 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   }
 }
 
+/** kit.trail (the snail king's slime): a lingering pool every `every` m it crawls. */
+function dropTrail(game, m) {
+  const tr = m.def.kit?.trail;
+  if (!tr) return;
+  if (m.trailFrom === undefined) { m.trailFrom = { x: m.x, z: m.z }; return; }
+  if (dist(m.x, m.z, m.trailFrom.x, m.trailFrom.z) < tr.every) return;
+  m.trailFrom = { x: m.x, z: m.z };
+  const p = tr.pool, lvl = 1 + (m.level - 1) * 0.15;
+  game.spawnArea({ owner: 'monster', sourceId: m.id, attack: tr.attack, kind: p.kind || 'mucus', x: m.x, z: m.z, radius: p.radius, delay: 0.3, duration: p.duration, tick: p.tick, damage: p.dps * p.tick * lvl });
+}
+
 const KIT_ORDER = new WeakMap();
 const kitOrder = (def) => {
   let o = KIT_ORDER.get(def);
@@ -922,6 +1048,20 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'skip') {
+    // a run of hops along the line to the target (the pearl fish's flop): every landing is marked now and
+    // hurts as it lands; the run stops short where the ground is blocked
+    startWindup(game, m, name, t);
+    const d = dirFromAngle(m.windup.angle), hops = [];
+    for (let i = 1; i <= atk.hops; i++) {
+      const x = m.x + d.x * atk.hop * i, z = m.z + d.z * atk.hop * i;
+      if (!game.world.isFree(x, z, m.r * 0.6) || game.isSafe(x, z)) break;
+      hops.push([x, z]);
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: atk.areaKind || 'pounce', x, z, radius: atk.radius, delay: m.windup.total + i * atk.air + (i - 1) * atk.pause, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    }
+    m.windup.hops = hops;
+    return;
+  }
   startWindup(game, m, name, t);
 }
 

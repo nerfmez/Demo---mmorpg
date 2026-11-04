@@ -117,6 +117,7 @@ export function syncMonsterViews(view, dt, time) {
     state.attack = m.def.attacks[m.melee?.name || mv.lastAttack];
     state.enraged = m.enraged;
     state.lastAttack = mv.lastAttack;
+    state.dormant = !!m.def.dormant && !m.aggro; // asleep (the snail king in its shell)
     state.hurt = mv.hurt;
     state.lookYaw = m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? view.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0;
     state.turn = mv.turn;

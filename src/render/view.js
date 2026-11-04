@@ -640,6 +640,7 @@ export class View {
         v.lob(e);
         break;
       case 'beam':
+        if (e.kind === 'harpoon') { this.skillFx.monster.harpoon(e); break; } // the snail king's stab (skillfx/monster-fx.js)
         v.beam(e);
         this.addShake(0.08);
         break;

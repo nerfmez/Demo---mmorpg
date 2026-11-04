@@ -7662,6 +7662,396 @@
         ]
       }
     },
+    "pearl_fish": {
+      "file": "models/monsters/pearl_fish.glb",
+      "tris": 4353,
+      "scale": 0.7,
+      "yaw": 0,
+      "sharpness": 5,
+      "outline": "#3c3a72",
+      "outlineWidth": 0.012,
+      "source": "Meshy 6 image-to-3d with a Meshy 6 retexture from the owner's grotto sheet (docs/reference/grotto-pearl-fish.png; assets/meshy/grotto/pearl_fish_textured_meshy.glb), prepared with scripts/prep-monster-glb.py --yaw 90 --tex 512; joints placed from the mesh; it lies on its side in the animator",
+      "segments": {
+        "body": [
+          [
+            [
+              0,
+              0.306,
+              -0.25
+            ],
+            [
+              0,
+              0.306,
+              0.4
+            ]
+          ],
+          [
+            [
+              0,
+              0.1,
+              0.12
+            ],
+            [
+              0,
+              0.6,
+              0.12
+            ]
+          ]
+        ],
+        "head": [
+          [
+            0,
+            0.306,
+            0.4
+          ],
+          [
+            0,
+            0.3,
+            0.665
+          ]
+        ],
+        "tail": [
+          [
+            0,
+            0.28,
+            -0.3
+          ],
+          [
+            0,
+            0.3,
+            -0.665
+          ]
+        ],
+        "finL": [
+          [
+            0.1,
+            0.24,
+            0.2
+          ],
+          [
+            0.3,
+            0.15,
+            0.22
+          ]
+        ],
+        "finR": [
+          [
+            -0.1,
+            0.24,
+            0.2
+          ],
+          [
+            -0.3,
+            0.15,
+            0.22
+          ]
+        ]
+      }
+    },
+    "pearl_slug": {
+      "file": "models/monsters/pearl_slug.glb",
+      "tris": 4366,
+      "scale": 0.7,
+      "yaw": 0,
+      "sharpness": 5,
+      "outline": "#17505c",
+      "outlineWidth": 0.012,
+      "source": "Meshy 6 image-to-3d with a Meshy 6 retexture from the owner's grotto sheet (docs/reference/grotto-pearl-slug.png; assets/meshy/grotto/pearl_slug_textured_meshy.glb), prepared with scripts/prep-monster-glb.py --tex 512; joints placed from the mesh",
+      "segments": {
+        "body": [
+          [
+            [
+              0,
+              0.2,
+              -0.4
+            ],
+            [
+              0,
+              0.25,
+              0.4
+            ]
+          ],
+          [
+            [
+              -0.6,
+              0.12,
+              0
+            ],
+            [
+              0.6,
+              0.12,
+              0
+            ]
+          ]
+        ],
+        "head": [
+          [
+            [
+              0,
+              0.45,
+              0.35
+            ],
+            [
+              0,
+              0.5,
+              0.62
+            ]
+          ],
+          [
+            [
+              0,
+              0.6,
+              0.5
+            ],
+            [
+              0,
+              0.9,
+              0.55
+            ]
+          ]
+        ],
+        "cerata": [
+          [
+            [
+              0,
+              0.6,
+              -0.2
+            ],
+            [
+              0,
+              0.95,
+              0.15
+            ]
+          ],
+          [
+            [
+              -0.3,
+              0.7,
+              0
+            ],
+            [
+              0.3,
+              0.7,
+              0
+            ]
+          ]
+        ],
+        "tail": [
+          [
+            0,
+            0.15,
+            -0.4
+          ],
+          [
+            0,
+            0.1,
+            -0.66
+          ]
+        ]
+      }
+    },
+    "eye_clam": {
+      "file": "models/monsters/eye_clam.glb",
+      "tris": 4271,
+      "scale": 0.8,
+      "yaw": 0,
+      "sharpness": 6,
+      "outline": "#4a2c3e",
+      "outlineWidth": 0.014,
+      "source": "Meshy 6 image-to-3d with a Meshy 6 retexture from the owner's grotto sheet (docs/reference/grotto-eye-clam.png; assets/meshy/grotto/eye_clam_textured_meshy.glb), prepared with scripts/prep-monster-glb.py --tex 512; the upper shell hinges at the back (lid), the eye has its own bone",
+      "minWeight": 0.15,
+      "segments": {
+        "body": [
+          [
+            [
+              -0.6,
+              0.3,
+              0.1
+            ],
+            [
+              0.6,
+              0.3,
+              0.1
+            ]
+          ],
+          [
+            [
+              0,
+              0.2,
+              -0.5
+            ],
+            [
+              0,
+              0.4,
+              0.6
+            ]
+          ]
+        ],
+        "lid": [
+          [
+            [
+              -0.6,
+              1.2,
+              0.05
+            ],
+            [
+              0.6,
+              1.2,
+              0.05
+            ]
+          ],
+          [
+            [
+              0,
+              1.35,
+              -0.5
+            ],
+            [
+              0,
+              1.1,
+              0.6
+            ]
+          ]
+        ],
+        "eye": [
+          [
+            0,
+            0.87,
+            0.25
+          ],
+          [
+            0,
+            0.87,
+            0.42
+          ]
+        ]
+      }
+    },
+    "pearl_snail_king": {
+      "file": "models/monsters/pearl_snail_king.glb",
+      "tris": 4371,
+      "scale": 1.8,
+      "yaw": 0,
+      "sharpness": 6,
+      "outline": "#3e1c26",
+      "outlineWidth": 0.02,
+      "source": "Meshy 6 image-to-3d with a Meshy 6 retexture from the owner's two pictures of the grotto boss (assets/meshy/grotto/boss_snail_textured_meshy.glb), prepared with scripts/prep-monster-glb.py --tex 512; joints placed from the mesh: foot, head, stalked eyes, shell and its great pearl",
+      "minWeight": 0.15,
+      "segments": {
+        "body": [
+          [
+            [
+              -1.2,
+              0.15,
+              0
+            ],
+            [
+              1.2,
+              0.15,
+              0
+            ]
+          ],
+          [
+            [
+              0,
+              0.2,
+              -1.5
+            ],
+            [
+              0,
+              0.3,
+              1.2
+            ]
+          ]
+        ],
+        "head": [
+          [
+            0,
+            0.9,
+            1.0
+          ],
+          [
+            0,
+            0.9,
+            1.65
+          ]
+        ],
+        "eyeL": [
+          [
+            0.18,
+            1.4,
+            1.4
+          ],
+          [
+            0.27,
+            2.03,
+            1.53
+          ]
+        ],
+        "eyeR": [
+          [
+            -0.18,
+            1.4,
+            1.4
+          ],
+          [
+            -0.27,
+            2.03,
+            1.53
+          ]
+        ],
+        "shell": [
+          [
+            [
+              0,
+              1.3,
+              -1.4
+            ],
+            [
+              0,
+              1.3,
+              0.6
+            ]
+          ],
+          [
+            [
+              -0.8,
+              1.3,
+              -0.4
+            ],
+            [
+              0.8,
+              1.3,
+              -0.4
+            ]
+          ],
+          [
+            [
+              0,
+              0.6,
+              -0.4
+            ],
+            [
+              0,
+              2.1,
+              -0.4
+            ]
+          ]
+        ],
+        "pearl": [
+          [
+            0,
+            2.1,
+            0
+          ],
+          [
+            0,
+            2.3,
+            0.05
+          ]
+        ]
+      }
+    },
     "hunt_hound": {
       "file": "models/monsters/hunt_hound.glb",
       "tris": 3947,

@@ -9,8 +9,9 @@ import { updateMonster } from '../../src/core/ai.js';
 
 const M = data.monsters.monsters;
 
-function arena(type, level = 13, { realDamage = false } = {}) {
+function arena(type, level = 13, { realDamage = false, open = false } = {}) {
   const g = new Game(data, { seed: 5 });
+  if (open) g.world.isFree = () => true; // open ground: the spot near the origin has a rock in the way
   const m = g.spawnMinion(type, level, 0, 0);
   g.monsters = [m];
   g.isSafe = () => false;
@@ -254,4 +255,140 @@ test('stone pangolin rebound roll: down its lane, back along it (a unit can be h
   b.until(() => b.m.state === 'stunned', 4);
   assert.equal(b.hits.length, 0, 'beside the lane');
   void g;
+});
+
+test('pearl fish flop: three hops along a line marked at the start, hurting only as each lands', () => {
+  const a = M.pearl_fish.attacks.flop;
+  const { m, g, hits, until, step, place, only } = arena('pearl_fish', 23, { open: true });
+  only('flop'); place(4);
+  until(() => m.state === 'windup');
+  const marks = g.areas.filter((x) => x.attack === 'flop');
+  assert.equal(marks.length, a.hops, 'every landing marked at once');
+  marks.forEach((x, i) => assert.ok(Math.abs(x.delay - (m.windup.total + (i + 1) * a.air + i * a.pause)) < 1e-9, `landing ${i + 1} on time`));
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  const x0 = m.z;
+  until(() => m.state === 'recover', 4);
+  assert.ok(Math.abs(m.z - x0 - a.hop * a.hops) < 0.05, 'it flopped to the last landing');
+  step(0.4);
+  assert.ok(hits.length >= 1 && hits.length <= a.hops, 'hurt only where it landed on the hero');
+  assert.equal(m.charge, null);
+});
+
+test('pearl fish slap: one tail slap at its hit time that knocks back; pearl fish jet flies along its warned lane', () => {
+  const { m, hits, until, step, place, only } = arena('pearl_fish', 23);
+  only('slap'); place(0.8);
+  until(() => m.state === 'act');
+  step(M.pearl_fish.attacks.slap.hits[0].at - 0.03);
+  assert.equal(hits.length, 0);
+  until(() => m.state === 'recover');
+  assert.equal(hits.length, 1, 'one slap');
+  const b = arena('pearl_fish', 23, { open: true });
+  b.only('jet'); b.place(6);
+  b.until(() => b.m.state === 'windup' && b.m.stateT > b.m.windup.total * 0.6);
+  Object.assign(b.g.player, { x: 2.5, z: b.g.player.z }); // steps out of the lane after it locked
+  b.until(() => b.m.state === 'recover');
+  for (let t = 0; t < 1.5; t += 0.01) { b.g.updateProjectiles(0.01); b.step(0.01); }
+  assert.equal(b.hits.length, 0, 'out of the lane, the jet misses');
+  const c = arena('pearl_fish', 23, { open: true });
+  c.only('jet'); c.place(6);
+  c.until(() => c.m.state === 'recover');
+  for (let t = 0; t < 1.5 && !c.hits.length; t += 0.01) { c.g.updateProjectiles(0.01); c.step(0.01); }
+  assert.equal(c.hits.length, 1, 'in the lane it hits once');
+});
+
+test('pearl slug volley: three darts fanned about the locked aim at the end of the wind-up; beside them, none hit', () => {
+  const a = M.pearl_slug.attacks.volley;
+  const { m, g, hits, until, step, place, only } = arena('pearl_slug', 25, { open: true });
+  only('volley'); place(5);
+  until(() => m.state === 'windup');
+  step(a.windup - 0.03);
+  assert.equal(g.projectiles.filter((p) => p.attack === 'volley').length, 0, 'none before the release');
+  until(() => m.state === 'recover');
+  const darts = g.projectiles.filter((p) => p.attack === 'volley');
+  assert.equal(darts.length, a.count);
+  for (let t = 0; t < 1.5; t += 0.01) { g.updateProjectiles(0.01); step(0.01); }
+  assert.equal(hits.length, 1, 'the middle dart hits, the others pass beside');
+});
+
+test('pearl slug surge: slides along its lane leaving mucus pools; shed: hit hard, it drops stinging patches and slips away', () => {
+  const a = M.pearl_slug.attacks.surge;
+  const { m, g, until, place, only } = arena('pearl_slug', 25, { open: true });
+  only('surge'); place(3);
+  until(() => m.state === 'act');
+  const z0 = m.z;
+  until(() => m.state === 'recover', 3);
+  assert.ok(m.z - z0 > a.speed * a.duration * 0.5, 'it slid forward');
+  const pools = g.areas.filter((x) => x.attack === 'surge');
+  assert.ok(pools.length >= 2 && pools.length <= 5, `a trail of pools (${pools.length})`);
+  assert.equal(m.charge, null);
+  const b = arena('pearl_slug', 25, { open: true });
+  b.only('shed'); b.place(5); // only the shed is ready
+  b.m.state = 'chase';
+  for (let i = 0; i < 3; i++) b.g.hitMonster(b.m, 1, {});
+  const patches = b.g.areas.filter((x) => x.attack === 'shed');
+  assert.equal(patches.length, M.pearl_slug.attacks.shed.patches, 'stinging patches round it');
+  assert.equal(b.m.state, 'retreat', 'and it slips away');
+  b.until(() => b.m.state === 'chase' || b.m.state === 'idle', 3);
+});
+
+test('eye clam: the snipe flies along its locked aim; the valve jet blasts a cone that knocks back; its shell reopens into the jet', () => {
+  const { m, hits, until, place, only, g } = arena('eye_clam', 27, { open: true });
+  only('valve'); place(2);
+  until(() => m.state === 'recover');
+  assert.equal(hits.length, 1, 'the valve jet hits once in its cone');
+  const b = arena('eye_clam', 27, { open: true });
+  b.only('snipe'); b.place(7);
+  b.until(() => b.m.state === 'windup' && b.m.stateT > b.m.windup.total * 0.6);
+  Object.assign(b.g.player, { x: 2.5, z: b.g.player.z });
+  b.until(() => b.m.state === 'recover');
+  for (let t = 0; t < 1.2; t += 0.01) { b.g.updateProjectiles(0.01); b.step(0.01); }
+  assert.equal(b.hits.length, 0, 'stepped out of the locked line: the pearl misses');
+  // three quick hits: it clamps shut; when it opens it blasts at once
+  const c = arena('eye_clam', 27, { open: true });
+  c.only('shell'); c.place(2);
+  for (let i = 0; i < 3; i++) c.g.hitMonster(c.m, 1, {});
+  assert.equal(c.m.state, 'shell');
+  c.until(() => c.m.state !== 'shell', 4);
+  assert.equal(c.m.state, 'windup');
+  assert.equal(c.m.windup.name, 'valve', 'it reopens into the valve jet');
+  void g;
+});
+
+test('pearl snail king: harpoon drags its prey in; the beam sweeps once across; it withdraws into its shell at 60% and bursts out', () => {
+  const k = M.pearl_snail_king;
+  const { m, g, hits, until, place, only } = arena('pearl_snail_king', 30, { open: true });
+  Object.assign(m, { state: 'chase', aggro: true });
+  only('harpoon'); place(5);
+  const z0 = g.player.z;
+  // the real knock on the hero: use the game's own damage
+  const c = arena('pearl_snail_king', 30, { realDamage: true, open: true });
+  c.only('harpoon'); c.place(5);
+  const before = c.g.player.z;
+  c.until(() => c.m.state === 'recover', 4);
+  assert.ok(c.g.player.z < before - 0.5, 'dragged toward it');
+  void z0;
+  // the beam: only below 60%, one hit as it crosses
+  only('beam'); place(6);
+  m.hp = m.maxHp * 0.55; m.withdrew = [true, false]; m.state = 'chase';
+  until(() => m.state === 'windup' && m.windup.name === 'beam', 4);
+  until(() => m.state === 'recover', 6);
+  assert.equal(hits.filter((h) => h.attack === 'beam').length, 1, 'the sweep hits once');
+  // withdraw at 60%
+  const w = arena('pearl_snail_king', 30, { open: true });
+  w.only('crush'); w.place(6);
+  w.m.hp = w.m.maxHp * 0.59; w.m.state = 'chase';
+  w.step(0.05);
+  assert.equal(w.m.state, 'shell', 'into its shell');
+  assert.ok(w.m.shell, 'hits barely hurt');
+  const ring = w.g.areas.find((a) => a.attack === 'withdraw');
+  assert.ok(ring && Math.abs(ring.delay - k.kit.withdraw.duration) < 1e-9, 'the burst ring goes off as it comes out');
+  w.until(() => w.m.state !== 'shell', 4);
+  w.m.state = 'chase'; w.step(0.1);
+  assert.notEqual(w.m.state, 'shell', 'only once at 60%');
+  // its slime: a pool every so many metres it crawls
+  const s = arena('pearl_snail_king', 30, { open: true });
+  s.only('none'); s.place(11);
+  s.step(3);
+  assert.ok(s.g.areas.some((a) => a.attack === 'slime'), 'a trail of slime');
 });

@@ -521,6 +521,31 @@ Wide Spread and Far Reach share the `spread` family.
   copies of itself with `illusion: {t, of}`, 1 HP, that never attack and pop after `life` s or at a touch;
   killing one emits `illusionPop`, gives no kill, no experience and no drops). Its model moves by the Shiba Inu
   clips (`data/beast-clips-shiba.json`); it rears for the drum with the beast animator's rear (`opts.rear`).
+- **Stone pangolin**: `rake` (a `rake` combo of two hits), `tail` (`keepFacing`: made without turning, its hit
+  `off` π behind it; `use.behind`: only for a target more than 100° off its facing; `tellOff` turns its warning
+  behind it), `roll` (a `charge` with `rebound`: at the end of its lane, or off what it strikes, it rolls back along
+  the lane for `rebound` s at `reboundSpeed` of its speed, able to hit each unit again once; then `stunned` for
+  `dizzy` s; event `rebound`). `kit.turn` (rad/s) makes it slow to turn when walking and facing.
+- **Pearl fish**: `flop` (kind `skip`: at wind-up start the line to the target is locked and `hops` landings `hop` m
+  apart are marked (stopping where the ground is blocked), each going off as it lands; in `act` it moves hop by hop,
+  `air` s in the air, `pause` s between; `m.charge.air` is 0..1 in the air, -1 on the ground), `slap` (a one-hit
+  `rake` with `knock`), `jet` (a `spit` with `tell: "lane"`: a shot warned by a lane flies along the lane it showed, to
+  exactly its `range`). Drawn on its side, flopping.
+- **Pearl sea slug**: `volley` (kind `volley`: `count` projectiles fanned `spread` degrees about the locked aim),
+  `surge` (kind `trail`: a charge along its lane that leaves a lingering `pool` area every `every` m), and the
+  reaction `shed` (like a shell: `hitsToTrigger` hits within `window` s: `patches` stinging areas round it, then it
+  retreats `slip` m over `slipTime` s; event `shed`). Pools of kind `mucus` and `sting_patch` draw like the venom pool
+  in their own colours.
+- **Eye clam**: `snipe` (a lane-warned `spit`), `valve` (a `shove` cone with `knock`), and its `shell` guard with
+  `counter: "valve"`: when the guard ends it starts that attack at once if the target is in its band.
+- **Pearl Snail King** (boss): `crush` (a `sweep` with a sector warning), `harpoon` (a `beam` with `pull`: what it
+  strikes is dragged toward it, stopping short of its body), `beam` (kind `beam_sweep`, below 60% health: a beam
+  `range` long and `width` wide sweeping `arc` degrees across the target over `sweepTime` s, each unit hit once as it
+  crosses; `m.sweep` holds it, event `beamSweep`), `kit.trail` (a slime pool every `every` m it crawls, its
+  `attack`'s inflict slowing), `kit.withdraw` (at each health share in `at`, once: into its shell (`shell` state,
+  the shell's `damageTaken`) for `duration` s with a `radius` ring marked to go off as it bursts out; event
+  `withdraw`). Below `enrageAt` (30%) the usual enrage tempo.
+- **Monster shots drawn by the effects** (`skill-fx.js` `OWN_PROJECTILES`): `jet`, `volley`, `snipe`, `boomerang`.
 - **Strikes of light** (`render/skillfx/monster-fx.js`): the owner turned down limb trails for monsters,
   so kit monsters' strikes are drawn in the companions' language (a jaw of light, claw marks of light,
   `claw-fx.js`/`bite-fx.js`) plus leaves of light (`leaf-fx.js`, one instanced mesh). An attack whose

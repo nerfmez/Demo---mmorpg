@@ -563,18 +563,12 @@ Wide Spread and Far Reach share the `spread` family.
 - **Beasts that walk where they go** (render only, `monster-views.js`): a rig with `faceMove` turns its body
   toward its velocity while it circles (within about 125 degrees of its rules facing) and its head toward its prey;
   beyond that (backing away) it keeps the rules facing and `animBeast` (`reverse`) runs the walk cycle backwards.
-  The rules' facing still aims every attack. Over the clip walk, `beast-life.js` swings the shoulders and hips
-  against each other on the clip's footfalls (front right 0, front left 0.55, hind right 0.9, hind left 0.35 of the
-  Quaternius walk cycle), dips each end as its feet land, and drives the head and tail with underdamped springs
-  (a Godot port: the same springs in `_process`, state per rig). Walking, the legs are solved rather than played
-  (`plantFeet`): each foot's target in the root's space follows the walk cycle (planted for 60% of it, moving back
-  at the body's speed, then an arc up and a stride forward), the hips sink enough for the stroke to be in reach,
-  and a two-bone solve (a sideways lean about z, then hip and knee about x in that plane) poses each leg; blended
-  over the clip by the walk weight, off in a gallop. In Godot: the same solve, or SkeletonIK3D per leg.
-  The tanuki and pangolin walk with no clip at all (`render/beast-walk.js`): footfall offsets per foot (walk:
-  hind left 0, fore left 0.25, hind right 0.5, fore right 0.75, duty 0.58; trot: diagonal pairs, duty 0.45,
-  blended), cadence f0 + fk x speed, stride = speed / cadence, and the trunk's waddle, sink, twist and lean as
-  sinusoids of the cycle; port it as a small gait controller feeding the same leg solve.
+  The rules' facing still aims every attack. The fox walks on its Quaternius clip (`animBeast`). `beast-life.js`
+  (a life layer and a solved-leg walk, `plantFeet`) and `beast-walk.js` are left from rounds 4-8 and drive no
+  monster now.
+  The tanuki and pangolin use no clip: they walk on the old quadrupeds' gait (`monster-motion.js`
+  `advanceGait`/`poseLegs`, tuned in `data/monster-motion.json`), like the boar and wolves, with their attack
+  poses added on top; port them with that gait controller.
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`

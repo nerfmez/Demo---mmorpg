@@ -23,6 +23,8 @@
     "run": [0, 0.5, 0.5, 0]
   },
   "monsters": {
+    "leaf_tanuki": { "legLength": 0.33, "swing": 0.42, "knee": 0.8, "bob": 0.03, "roll": 0.06, "pitch": 0.03, "sway": 0.05, "headSteady": 0.6, "runFrom": 1.8, "runFull": 3.0, "run": [0, 0.5, 0.5, 0] },
+    "stone_pangolin": { "legLength": 0.33, "swing": 0.4, "duty": 0.65, "knee": 0.6, "bob": 0.025, "roll": 0.05, "pitch": 0.02, "sway": 0.04, "headSteady": 0.5, "runFrom": 99, "runFull": 100 },
     "tusk_boar": { "legLength": 0.5, "swing": 0.38, "bob": 0.045, "roll": 0.05, "pitch": 0.04, "sway": 0.04, "headSteady": 0.4, "runFrom": 2.4, "runFull": 3.5, "run": [0, 0.5, 0.5, 0] },
     "thornback_wolf": { "legLength": 0.62, "swing": 0.45, "runSwing": 0.75, "runFrom": 2.6, "runFull": 4.6, "run": [0.12, 0.28, 0.62, 0.78] },
     "greyfang": { "legLength": 0.62, "swing": 0.42, "runSwing": 0.72, "runFrom": 2.8, "runFull": 4.8, "bob": 0.03, "run": [0.12, 0.28, 0.62, 0.78] },

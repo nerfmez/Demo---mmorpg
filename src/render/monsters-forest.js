@@ -20,10 +20,10 @@
 //   pounce (mousing): it crouches, freezes with its head up and ears pricked (the held pose the player reads),
 //     then leaps in a high arc (the clip's leap) onto the marked spot; a miss leaves its nose stuck in the ground.
 import * as THREE from 'three';
-import { RigBuilder, clamp01 } from './rig.js';
+import { RigBuilder, clamp01, damp, Spring } from './rig.js';
+import { advanceGait, poseLegs, wander, breath } from './monster-motion.js';
 import { animBeast, clipSet, HIT } from './beast-clips.js';
-import { beastLife } from './beast-life.js';
-import { proceduralWalk } from './beast-walk.js';
+
 import FOX_CLIPS from '../../data/beast-clips-fox.json';
 import SHIBA_CLIPS from '../../data/beast-clips-shiba.json';
 
@@ -59,7 +59,6 @@ function buildLeafFox() {
   }
   const rig = rb.build();
   rig.height = 1.2;
-  rig.faceMove = true; // circling, its body turns along its path (monster-views.js)
   rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
   return rig;
 }
@@ -78,13 +77,46 @@ function sm(r, key, v, dt) {
   return (e[key] = x + nv * step);
 }
 // the head and neck turned toward its prey (state.lookYaw, from the body's facing), as when it circles it
-// (k: how free it is of an attack's pose, eased, so the head does not snap round as an attack starts or ends)
-function watchPrey(b, s, k) { if (k > 0.001 && s.lookYaw) { nudge(b.neck, 0, s.lookYaw * 0.55 * k, 0); nudge(b.head, 0, s.lookYaw * 0.45 * k, 0); } }
-function walking(r, s, pose, dt) {
-  const want = !pose && s.moving && s.state !== 'windup' ? clamp01((s.smoothSpeed ?? s.speed ?? 0) / 0.6) : 0;
-  r.walkW = (r.walkW || 0) + (want - (r.walkW || 0)) * (1 - Math.exp(-dt * 10));
-  return [r.walkW, r.beast?.walkPh || 0]; // the cycle as a share, 0..1 (beast-life.js reads it so; it was once
-  // passed in radians, which ran the spine swing and dips six times too fast - the shaking the owner saw)
+const clampAbs = (x, m) => Math.max(-m, Math.min(m, x));
+/**
+ * The tanuki's and pangolin's locomotion and idle: the same walk the game's older four-legged monsters use (the
+ * boar, the wolves - monsters.js animQuad, monster-motion.js), which the owner judges right (2026-11-04: "why do
+ * the old ones walk well?"). A gait cycle locked to the ground speed (data/monster-motion.json per type: leg
+ * length, swing, duty, bob, roll, pitch, sway), legs swinging fore and aft with the knee lifting through the
+ * swing, two bounces per stride, a rock and a roll, the head held steady, a springy tail and idle breathing and
+ * looking about. Every bone starts from its rest pose each frame, so the attack offsets laid on after it never
+ * accumulate. No CC0 dog clip, no foot solving: those rounds looked worse to the owner.
+ */
+function quadWalk(r, s, dt, time) {
+  const b = r.bones, c = r.motion;
+  for (const n in b) { const o = b[n]; if (o !== r.root && o.userData.rest) o.rotation.copy(o.userData.rest.rot); }
+  const w = advanceGait(r, s, dt, c), ph = r.phase, run = r.runK;
+  const drop = poseLegs(r, c, r.legs);
+  const busy = !!(s.windup || s.state === 'act' || s.state === 'stunned');
+  const rock = c.pitch * w * ((1 - run) * Math.sin(2 * ph) + run * 2.5 * Math.sin(ph + 0.8));
+  const bob = c.bob * w * (1 + run) * (0.5 + 0.5 * Math.cos(2 * ph));
+  const roll = c.roll * w * Math.sin(ph) * (1 - 0.6 * run);
+  const P = r.qpose || (r.qpose = { headY: 0, bodyZ: 0 });
+  P.bodyZ = damp(P.bodyZ, clampAbs(-(s.turn || 0) * 0.06 - (s.vSide || 0) * 0.025, 0.2), 10, dt);
+  const rest = b.body.userData.rest.pos;
+  b.body.position.set(rest.x, rest.y + bob - drop, rest.z);
+  b.body.rotation.x = rock + c.lean * clampAbs(r.accel || 0, 5);
+  b.body.rotation.z = P.bodyZ + roll;
+  if (b.chest) { b.chest.rotation.y = -c.sway * w * Math.sin(ph); b.chest.rotation.z = -roll * 0.6; }
+  const idle = s.aggro || busy ? 0 : 1 - w;
+  const look = s.lookYaw ? 0 : c.look * wander(time * 0.45, r.seed) * idle;
+  P.headY = damp(P.headY, (s.lookYaw || 0) * 0.8 + look + clampAbs((s.turn || 0) * 0.12, 0.3), 6, dt);
+  b.head.rotation.x = Math.sin(time * 2 + r.seed) * 0.03 - 0.05 * w - rock * c.headSteady;
+  b.head.rotation.y = P.headY;
+  const br = breath(time, r.seed, c) * (1 - 0.6 * w);
+  b.body.scale.set(1 + br, 1, 1 + br * 0.4);
+  if (b.tail) {
+    r.tailSpring ||= new Spring(70, 7); r.tailLift ||= new Spring(60, 6);
+    const wag = (s.windup ? 0.5 : 0) + Math.sin(time * (w > 0.5 ? 9 : 3.5) + r.seed) * (0.12 + 0.12 * w) + clampAbs((s.turn || 0) * 0.25, 0.4);
+    b.tail.rotation.z = r.tailSpring.update(wag, dt);
+    b.tail.rotation.x = r.tailLift.update(-0.35 * run + bob * 4 - (s.windup ? 0.2 : 0), dt);
+  }
+  return w;
 }
 
 function animLeafFox(r, s, dt, time) {
@@ -131,10 +163,8 @@ function animLeafFox(r, s, dt, time) {
   }
   if (pose) Object.assign(P, { leap: 0 }, pose);
   s.pose = pose ? P : null;
-  animBeast(r, s, dt, time, { set: FOX, stride: 2.0, gallopFrom: 3, gallopFull: 5, reverse: true });
-  const free = sm(r, 'free', pose ? 0 : 1, dt);
-  watchPrey(r.bones, s, free);
-  { const [w, ph] = walking(r, s, pose, dt); beastLife(r, s, dt, w, ph, { gain: free }); } // spine swing, follow-through
+  // (its walk as the owner approved it: the CC0 fox clips)
+  animBeast(r, s, dt, time, { set: FOX, stride: 2.0, gallopFrom: 3, gallopFull: 5 });
   const b = r.bones;
   twist = sm(r, 'twist', twist, dt); tailSide = sm(r, 'tailSide', tailSide, dt); tailUp = sm(r, 'tailUp', tailUp, dt);
   headUp = sm(r, 'headUp', headUp, dt); earPrick = sm(r, 'earPrick', earPrick, dt);
@@ -169,19 +199,18 @@ function buildLeafTanuki() {
   const rig = rb.build();
   rig.height = 0.95;
   rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
-  rig.faceMove = true; // circling, its body turns along its path (monster-views.js)
+  rig.legs = ['leg0', 'leg1', 'leg2', 'leg3']; // for the shared gait (monster-motion.js)
   return rig;
 }
 
 function animLeafTanuki(r, s, dt, time) {
-  const a = s.attack, P = r.pose, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
-  let pose = null, belly = 1, arm = 0, armSide = 0, head = 0, spin = 0, drumHit = 0;
+  const a = s.attack, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  let belly = 1, arm = 0, armSide = 0, head = 0, spin = 0, drumHit = 0;
   s.standT = 0;
   if (s.windup === 'drum' || (s.state === 'recover' && s.lastAttack === 'drum' && a?.beats)) {
     // it rears onto its hind legs and drums its belly: swelling through the wind-up, a beat on each ring
     const total = a.windup + a.beats * a.beat + 0.25, t = s.windup ? s.windupT : a.windup + s.actT;
     s.standTotal = total; s.standT = Math.max(0, total - t);
-    pose = { clip: 'idle', u: 0, w: 0 }; // no bite clip under the rear
     if (s.windup) { belly = 1 + 0.12 * smooth(k); arm = -0.9 * smooth(k); }
     else {
       const b = s.actT / a.beat, ph = b - Math.floor(b), on = s.actT < a.beats * a.beat ? Math.max(0, 1 - ph * 5) : 0;
@@ -192,35 +221,27 @@ function animLeafTanuki(r, s, dt, time) {
     const pluck = smooth(clamp01(k / 0.45)), cock = smooth(clamp01((k - 0.45) / 0.45));
     head = 0.35 * pluck * (1 - cock) - 0.15 * cock;
     arm = -2.0 * pluck * (1 - cock) - 1.6 * cock; armSide = -0.4 * cock;
-    pose = { clip: 'attack', u: 0.1 * cock, w: 0.6 * cock };
   } else if (s.state === 'recover' && s.lastAttack === 'boomerang') {
     // the fling: the foreleg snaps forward across, then settles
     const t = clamp01(s.actT / 0.12), back = clamp01((s.actT - 0.2) / 0.3);
     arm = (-1.6 + 2.4 * smooth(t)) * (1 - back); armSide = (-0.4 + 0.8 * t) * (1 - back);
-    pose = { clip: 'attack', u: 0.42 + 0.3 * t, w: 0.8 * (1 - back) };
   } else if (s.windup === 'doubles') {
     // paws together, then a whirl in place as the puff comes
     arm = -1.2 * smooth(clamp01(k / 0.3)); armSide = 0.5 * smooth(clamp01(k / 0.3));
     spin = Math.PI * 2 * smooth(clamp01((k - 0.55) / 0.45));
-    pose = { clip: 'idle', u: 0, w: 0 };
   }
-  if (pose) Object.assign(P, { leap: 0 }, pose);
-  s.pose = pose ? P : null;
-  // The walk (owner, 2026-11-04: "the walk and its rhythm are very bad"). Circling its prey, the rules keep it
-  // facing the prey, so the forward walk slid sideways: now its body turns along its path (rig.faceMove,
-  // monster-views.js) and its head watches the prey; backing off, the walk runs backwards. Its feet stay planted:
-  // the clip's walk at its own stride (about 1.6 steps a second as it circles), a bounding run only when it
-  // hurries in. Over it only follow-through on the clip's own beat: the belly bounces on the footfalls, the tail
-  // sways a beat late.
-  // its own walk (beast-walk.js): no dog clip under it; the clips still give its idle, rear and attack poses
-  animBeast(r, s, dt, time, { set: SHIBA, rate: 1.1, rear: true, reverse: true, procedural: true });
+  // its walk and idle: the older four-legged monsters' (quadWalk); the attacks lay their offsets on it
+  quadWalk(r, s, dt, time);
   const b = r.bones;
-  const free = sm(r, 'free', pose ? 0 : 1, dt);
-  watchPrey(b, s, free);
-  const [w] = walking(r, s, pose, dt);
-  // a quick, round waddle: short steps, a trot when it hurries in, the big tail swinging behind
-  proceduralWalk(r, s, dt, w, { f0: 1.3, fk: 0.6, trotAt: 1.6, lift: 0.26, bob: 0.014, roll: 0.08, lean: 0.02, tailSwing: 0.4, gain: free });
-  // (no belly bounce: its squash and stretch with each step read as an inchworm)
+  // the drum: up on its hind legs (eased in over its first 0.22 s and out over its last), forepaws to the belly
+  const left = s.standT || 0, total = s.standTotal || 1;
+  const rear = sm(r, 'rear', left > 0 ? clamp01((total - left) / 0.22) * clamp01(left / 0.22) : 0, dt);
+  if (rear > 0.001) {
+    nudge(b.body, -0.95 * rear, 0, 0);
+    b.body.position.y += 0.12 * rear;
+    nudge(b.leg2, 0.85 * rear, 0, 0); nudge(b.leg3, 0.85 * rear, 0, 0); // the hind feet stay under it
+    nudge(b.head, 0.6 * rear, 0, 0); // and it still looks ahead
+  }
   belly = sm(r, 'belly', belly, dt); arm = sm(r, 'arm', arm, dt); armSide = sm(r, 'armSide', armSide, dt); head = sm(r, 'head', head, dt);
   b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
   if (arm || armSide) { nudge(b.leg0, arm, 0, armSide); nudge(b.leg1, s.windup === 'boomerang' || s.lastAttack === 'boomerang' ? arm * 0.25 : arm, 0, -armSide); }
@@ -279,7 +300,7 @@ function buildStonePangolin() {
   }
   const rig = rb.build();
   rig.bones.ball.visible = false; // only while curled
-  rig.faceMove = true;
+  rig.legs = ['leg0', 'leg1', 'leg2', 'leg3']; // for the shared gait (monster-motion.js)
   rig.height = 0.85;
   rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
   rig.spin = 0;
@@ -287,62 +308,36 @@ function buildStonePangolin() {
 }
 
 function animStonePangolin(r, s, dt, time) {
-  const a = s.attack, P = r.pose, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
-  let pose = null, rear = 0, claw = 0, clawA = 0, clawB = 0, tailSwing = 0, look = 0, curl = 0, roll = false, wobble = 0;
+  const a = s.attack, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  let rear = 0, claw = 0, clawA = 0, clawB = 0, tailSwing = 0, look = 0, curl = 0, roll = false, wobble = 0;
   if (s.windup === 'rake') {
     // up on its hind legs, the digging claws raised
     rear = 0.5 * smooth(k); claw = -1.5 * smooth(k);
-    pose = { clip: 'idle', u: 0, w: 0 };
   } else if (s.state === 'act' && s.lastAttack === 'rake') {
     // two rakes down across, right then left, on the rules' hit times
     const h = a?.hits || [{ at: 0.12 }, { at: 0.3 }], t = s.actT;
     const one = smooth(clamp01(t / h[0].at)), two = smooth(clamp01((t - h[0].at) / (h[1].at - h[0].at)));
     rear = 0.5 - 0.35 * one;
     clawA = -1.5 + 1.9 * one; clawB = -1.5 + 1.9 * two; // the right claw rakes on the first hit, the left on the second
-    pose = { clip: 'idle', u: 0, w: 0 };
   } else if (s.windup === 'tail') {
     // it looks back over its shoulder and draws the tail round to the other side
     look = 1.1 * smooth(k); tailSwing = -0.9 * smooth(k);
-    pose = { clip: 'idle', u: 0, w: 0 };
   } else if ((s.state === 'act' || s.state === 'recover') && s.lastAttack === 'tail') {
     const t = s.state === 'act' ? s.actT : 0.45 + s.actT, sw = smooth(clamp01(t / 0.15)), back = clamp01((t - 0.45) / 0.4);
     look = 1.1 * (1 - back); tailSwing = (-0.9 + 2.2 * sw) * (1 - back);
-    pose = { clip: 'idle', u: 0, w: 0 };
   } else if (s.windup === 'roll') {
     // it tucks into a ball, rocking on the spot as it winds up
     curl = smooth(clamp01(k / 0.6)); wobble = Math.sin(time * 18) * 0.12 * clamp01((k - 0.6) / 0.4);
-    pose = { clip: 'idle', u: 0, w: 0 };
   } else if (s.state === 'act' && s.lastAttack === 'roll') {
     curl = 1; roll = true;
-    pose = { clip: 'idle', u: 0, w: 0 };
   } else if (s.state === 'stunned' && s.lastAttack === 'roll') {
     // uncurling, dizzy: it sways and its head lolls
     curl = clamp01(1 - (s.actT - 0.25) / 0.35); wobble = Math.sin(time * 9) * 0.18;
   }
-  if (pose) Object.assign(P, { leap: 0 }, pose);
-  s.pose = pose ? P : null;
-  s.standT = 0;
-  // The walk (owner, 2026-11-04: "the walk and its rhythm are very bad"): a long stride faster than its feet
-  // could step made them skate. Now it walks slowly (data speed 1.6: it closes in by rolling), its feet planted at
-  // the clip's own stride (about 2.5 steps a second); a heavy posture on top - the back arched and the nose low,
-  // the tail held up, the front claws curled under so it walks on its knuckles - and only the head swinging once a
-  // cycle as it sniffs, with the beat of the clip.
-  // its own walk (beast-walk.js): no dog clip under it; the clips still give its idle and attack poses
-  animBeast(r, s, dt, time, { set: SHIBA, rate: 0.85, reverse: true, procedural: true });
+  // its walk and idle: the older four-legged monsters' (quadWalk), slow and heavy (data/monster-motion.json);
+  // the attacks lay their offsets on it
+  quadWalk(r, s, dt, time);
   const b = r.bones;
-  const free = sm(r, 'free', pose ? 0 : 1, dt);
-  watchPrey(b, s, free);
-  const [w] = walking(r, s, pose, dt);
-  if (w > 0.01) {
-    nudge(b.body, 0.05 * w, 0, 0);
-    nudge(b.chest, 0.08 * w, 0, 0);
-    nudge(b.neck, 0.1 * w, 0, 0);
-    nudge(b.head, 0.06 * w, 0, 0);
-    nudge(b.tail, -0.2 * w, 0, 0);
-    nudge(b.leg0k, 0.6 * w, 0, 0); nudge(b.leg1k, 0.6 * w, 0, 0);
-  }
-  // heavy: a slower spine swing, deeper dips on each footfall, the head and armoured tail following late
-  proceduralWalk(r, s, dt, w, { f0: 1.0, fk: 0.5, trotAt: 99, lift: 0.24, bob: 0.02, roll: 0.06, lean: 0.01, tailSwing: 0.15, gain: free });
   rear = sm(r, 'rear', rear, dt); claw = sm(r, 'claw', claw, dt); clawA = sm(r, 'clawA', clawA, dt); clawB = sm(r, 'clawB', clawB, dt);
   look = sm(r, 'look', look, dt); tailSwing = sm(r, 'tailSwing', tailSwing, dt); curl = sm(r, 'curl', curl, dt);
   if (rear) nudge(b.body, -rear, 0, 0);

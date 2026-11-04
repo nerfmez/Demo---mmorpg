@@ -153,6 +153,13 @@ session's network, so these come from search summaries of the cited pages.
   deeper hip sink); a waddle (roll toward the bearing legs, a sink at each pair of footfalls, a slight twist and
   lean), the head level against the roll and nodding late, the tail swinging late. The head's turn toward its prey
   is eased (it snapped across when the prey passed behind). The fox keeps its clip walk.
+- **Walks, round 9** (2026-11-04, owner: "worse, the body twists all over - why do the old ones walk fine?"):
+  the separate systems of rounds 4-8 (clip plus life layer, then `beast-walk.js` with solved legs) are dropped for
+  the forest beasts. The tanuki and pangolin now walk on the same gait as the old four-legged monsters (boar,
+  wolves): `advanceGait`/`poseLegs` from `monster-motion.js`, every bone back to its rest each frame, the trunk's
+  rock, bob, roll and sway and the steady head from it, tuned per type in `data/monster-motion.json`
+  (`leaf_tanuki`, `stone_pangolin`). Their attack poses (drum rear, claw rake, tail lash, curl and roll) sit on top
+  as before. The fox is back on its approved clip walk.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

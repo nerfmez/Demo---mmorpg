@@ -72,6 +72,10 @@ session's network, so these come from search summaries of the cited pages.
    attacks that changed (`... monster-lab.mjs <type> <attack> ...`). With the video, give the owner the live
    page (owner, 2026-11-04: "ทำแยกให้ไปกดดูเว็บ"): `monsters.html` lists every monster (the overhauled ones
    first) and opens the sandbox on the one tapped; an effects branch publishes it at `<site>/lab/monsters.html`.
+   It opens on the bare arena (`&arena=1`, owner 2026-11-04: "no need to load the map, just the monster and
+   the character"): the View builds no map scene, only a flat floor with distance rings, and the rules worlds are
+   flattened to open ground (`flattenWorld`), so only the hero, the monster and the effects load (about 3x faster
+   to open); a tick on the page opens the real map instead.
 5. Record the round below and keep `docs/GODOT-PORT.md` accurate.
 
 ## Kits (proposed)

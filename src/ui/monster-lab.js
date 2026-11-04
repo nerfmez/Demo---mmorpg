@@ -7,6 +7,21 @@ import './monster-lab.css';
 const SPEEDS = [1, 0.5, 0.25];
 
 /**
+ * The arena (?arena=1): a rules world made flat, open ground - no height, water, rocks, walls or safe town - to match
+ * the View's bare arena floor. Only the sandbox page does this; the rules themselves are untouched.
+ */
+export function flattenWorld(w) {
+  const zero = () => 0, no = () => false;
+  Object.assign(w, {
+    groundY: zero, surfaceY: zero, terrainY: zero, slopeAt: zero,
+    isWater: no, isBeach: no, inSea: no, inRiver: no, inPond: no, onBridge: no, isSafe: no,
+    isFree: () => true,
+    move: (x, z, r, dx, dz) => ({ x: x + dx, z: z + dz, blocked: false, blockedHard: false }),
+  });
+  return w;
+}
+
+/**
  * Find a free, unsafe spot near (x, z) with room around it, spiralling out; the ground toward the camera (+z) and
  * to the right (where the monster stands) clear too, so no wreck or wall in the foreground hides the fight.
  */
@@ -23,7 +38,8 @@ function clearSpot(game, x, z, room = 3) {
   return [x, z];
 }
 
-export function startMonsterLab({ game, view, root, input, data, type, bare = false }) {
+export function startMonsterLab({ game, view, root, input, data, type, bare = false, arena = false }) {
+  if (arena) { flattenWorld(game.world); game.isSafe = () => false; }
   // bare (&bare=1, for quick review videos): the map's scenery, grass and townsfolk hidden, only its ground left,
   // so a frame draws fast without a graphics card; the monster, the hero and every effect are unchanged
   if (bare) view.region?.staticReadyPromise?.then(() => {

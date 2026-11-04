@@ -60,8 +60,30 @@ const ZONE_FOG = {
 
 const NO_MARKS = [];
 
+/**
+ * The monster sandbox's arena (View option `arena`): a region with nothing built - one wide flat floor round the
+ * map's spawn, the rest of a region's collections empty - so the page opens with only the hero, the monster and
+ * the effects to load. The rules world is flattened to match (ui/monster-lab.js flattenWorld).
+ */
+function arenaRegion(world) {
+  const root = new THREE.Group(), [sx, sz] = world.data.playerSpawn;
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(90, 72).rotateX(-Math.PI / 2), toon('#d9c08f'));
+  floor.position.set(sx, 0, sz); floor.receiveShadow = true;
+  root.add(floor);
+  // a faint ring every 2 m round the spawn: something on the floor to read distance and motion against
+  for (let r = 2; r <= 12; r += 2) {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(r - 0.03, r + 0.03, 96).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#b89c6a', transparent: true, opacity: 0.5, depthWrite: false }));
+    ring.position.set(sx, 0.01, sz); root.add(ring);
+  }
+  const done = Promise.resolve({ status: 'imported-ready' });
+  return { world, shift: null, root, npcs: [], npcMarkers: [], fires: [], chimneys: [], grass: [], waypointStones: new Map(), stats: {}, disposed: false,
+    importedState: 'imported-ready', staticReady: true, grassReady: true, ready: done, staticReadyPromise: done, controller: new AbortController(), importDisposers: [], acceptedAnimations: [] };
+}
+
 export class View {
-  constructor(canvas, world, { quality = 'high', custom = null, antialias = null, worlds = null, resident = worlds } = {}) {
+  constructor(canvas, world, { quality = 'high', custom = null, antialias = null, worlds = null, resident = worlds, arena = false } = {}) {
+    // arena (the monster sandbox's ?arena=1): no map scene at all, a flat floor under the hero and the monster
+    this.arena = !!arena;
     this.unified = !!worlds;
     this.coordinateOrigin = [...(world.data.atlas?.offset || [0, 0])];
     this.worldPrepared = false;
@@ -129,7 +151,7 @@ export class View {
 
     // The map's static scene; a neighbouring map streams in beside it (region.js).
     this.buildQueue = new FrameBuildQueue({budgetMs:STREAM_BUDGET_MS});
-    this.region = startRegion(this, world);
+    this.region = this.arena ? arenaRegion(world) : startRegion(this, world);
     this.scene.add(this.region.root);
     this.regions = new Map([[world.data.id, this.region]]);
     this.neighbours = new Map();
@@ -159,7 +181,8 @@ export class View {
     this.resize();
     // `resident`: the maps prepared behind the loading card (every map in the game;
     // the development load prepares the start map only, see main.js).
-    this.worldReady = this.unified ? prepareResidentWorld(this, resident) : this.region.ready.then(() => { this.worldPrepared = true; });
+    this.worldReady = this.arena ? Promise.resolve().then(() => { this.worldPrepared = true; return { status: 'world-ready', regions: 1 }; })
+      : this.unified ? prepareResidentWorld(this, resident) : this.region.ready.then(() => { this.worldPrepared = true; });
     this.cityReady = this.worldReady;
   }
 

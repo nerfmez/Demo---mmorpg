@@ -560,7 +560,8 @@ Wide Spread and Far Reach share the `spread` family.
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`
-  captures each attack frame by frame (`&bare=1` hides the map's scenery for a quick capture). `monsters.html`
+  captures each attack frame by frame (`&bare=1` hides the map's scenery for a quick capture; `&arena=1` builds
+  no map at all: a flat floor in the View and flat open rules worlds, `flattenWorld`, for the owner's quick page). `monsters.html`
   lists the monsters and opens the sandbox on one. Attack buttons show an attack's `nameTh`. A review tool
   only: no save.
 

@@ -1,6 +1,6 @@
 // Boot: data -> world -> view (the live map behind the title screen) -> menu -> a game session
 // (simulation + HUD + input + panels), then one frame loop for everything.
-import { startMonsterLab } from './ui/monster-lab.js';
+import { startMonsterLab, flattenWorld } from './ui/monster-lab.js';
 import { createPresence } from './ui/presence.js';
 import { onlineRuntime } from './network/online-runtime.js';
 import { data } from './data.js';
@@ -67,8 +67,12 @@ const hudRoot = document.getElementById('hud');
 // tests and reviews open fast. The game itself (no flag) prepares every map before
 // play, as always: walking never builds a scene. Rules worlds are complete either way.
 const loadMode = params.get('load') || document.querySelector('meta[name="frontier-load"]')?.content || 'full';
-const resident = loadMode === 'dev' ? { [world.data.id]: world } : worlds;
-const view = new View(canvas, world, { quality, custom: customQuality, antialias, worlds, resident });
+// The monster sandbox on a bare arena (?fresh=1&monsterLab=<type>&arena=1, the owner's quick review page): no map
+// scene is built at all, the rules worlds are flat open ground, only the hero, the monster and the effects load.
+const arena = fresh && params.has('monsterLab') && params.get('arena') === '1';
+if (arena) for (const w of Object.values(worlds)) flattenWorld(w);
+const resident = arena ? {} : loadMode === 'dev' ? { [world.data.id]: world } : worlds;
+const view = new View(canvas, world, { quality, custom: customQuality, antialias, worlds, resident, arena });
 view.loadMode = loadMode === 'dev' ? 'dev' : 'full';
 // The owner plays on an iPad with no console: a fault that stops the picture is
 // shown on screen (the first of each kind) so a screenshot carries its cause.
@@ -331,7 +335,7 @@ function startGame(character, slot) {
   }
   if (fresh && params.has('monsterLab')) {
     // the monster sandbox (docs/MONSTER-ATTACKS.md): one monster, its chosen attack looped on an unharmed hero
-    session.monsterLab = startMonsterLab({ game, view, root: hudRoot, input, data, type: params.get('monsterLab'), bare: params.get('bare') === '1' });
+    session.monsterLab = startMonsterLab({ game, view, root: hudRoot, input, data, type: params.get('monsterLab'), bare: params.get('bare') === '1', arena });
     F.monsterLab = session.monsterLab;
   }
 

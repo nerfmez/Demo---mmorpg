@@ -1,7 +1,8 @@
 // The monster sandbox's own page (monsters.html; published at <site>/lab/monsters.html from an effects branch):
 // every monster as a big button that opens the game's sandbox (?monsterLab, ui/monster-lab.js) on it, so the
-// owner can watch attacks live on the iPad instead of waiting for a recorded video. Monsters with their own
-// kit (the overhauled ones) come first.
+// owner can watch attacks live on the iPad instead of waiting for a recorded video. It opens on the bare arena
+// (&arena=1: no map, owner 2026-11-04 "no need to load the map, just the monster and the character"); a tick
+// opens the real map instead. Monsters with their own kit (the overhauled ones) come first.
 import monsters from '../data/monsters.json';
 
 const css = `
@@ -24,9 +25,10 @@ document.head.append(Object.assign(document.createElement('style'), { textConten
 
 const list = document.getElementById('list');
 list.innerHTML = '<h1>ห้องทดลองท่ามอน</h1><p>แตะมอนเพื่อดูท่าโจมตีสดในเกม · เลือกท่า หยุด ช้าลง และทีละเฟรมได้จากแถบด้านบน · ไม่บันทึกเซฟ</p>';
-const bare = document.createElement('label');
-bare.innerHTML = '<input type="checkbox" id="bare"> ฉากโล่ง (ซ่อนต้นไม้ รั้ว หญ้า)';
-list.append(bare);
+// the arena (no map at all: only the hero, the monster and the effects) opens fast; the real map is a tick away
+const map = document.createElement('label');
+map.innerHTML = '<input type="checkbox" id="map"> ใช้แผนที่จริง (โหลดนานกว่า)';
+list.append(map);
 
 const defs = monsters.monsters;
 const card = (id, d) => {
@@ -36,9 +38,8 @@ const card = (id, d) => {
   a.querySelector('b').textContent = d.nameTh || id;
   a.querySelector('span').textContent = `${lv} · ${Object.keys(d.attacks || {}).length} ท่า`;
   const href = `index.html?fresh=1&load=dev&monsterLab=${encodeURIComponent(id)}`;
-  a.href = href;
-  // the bare ground option rides along when ticked
-  a.addEventListener('click', () => { a.href = href + (document.getElementById('bare').checked ? '&bare=1' : ''); });
+  a.href = href + '&arena=1';
+  a.addEventListener('click', () => { a.href = href + (document.getElementById('map').checked ? '' : '&arena=1'); });
   return a;
 };
 for (const [title, pick] of [['ท่าใหม่ (ยกเครื่องแล้ว)', (d) => d.behavior === 'kit'], ['มอนเดิม (ยังไม่ยกเครื่อง)', (d) => d.behavior !== 'kit']]) {

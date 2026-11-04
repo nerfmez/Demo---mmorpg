@@ -63,8 +63,9 @@ session's network, so these come from search summaries of the cited pages.
    from a reference clip or real motion.
 3. Effects per layer, built live (never pasted pictures).
 4. Review in the game with the monster sandbox (`?fresh=1&monsterLab=<type>`): the attack looped on an
-   unharmed hero, slow motion and frame steps. **Every round goes to the owner as a video first** (owner,
-   2026-11-03: "ต้องส่ง video มาให้ดูก่อนทุกครั้ง"): `VIDEO=1 node tests/browser/monster-lab.mjs <type>` records
+   unharmed hero, slow motion and frame steps. **The owner reviews every round live on the iPad** at
+   `<site>/lab/monsters.html` (owner, 2026-11-04: "ไม่ต้องอัดคลิปแล้ว", replacing the earlier rule of a video
+   first). Check your own frames before handing it over. `VIDEO=1 node tests/browser/monster-lab.mjs <type>` records
    each attack stepped at 30 fps from the game camera and writes `<type>.mp4` (normal speed, then half speed);
    a frame sheet may go with it. The capture draws on bare ground (`&bare=1`: the map's scenery, grass and
    townsfolk hidden) so it is quick without a graphics card (`BARE=0` keeps the scenery); name only the
@@ -87,4 +88,15 @@ session's network, so these come from search summaries of the cited pages.
 
 ## Rounds
 
-(none yet)
+- **Leaf fox** (2026-11-03): snap, gust, pounce sent as a video; owner: next monster.
+- **Leaf tanuki** (2026-11-04): the owner asked why the effects looked the same (shared leaves and claw marks).
+  Its own looks: gold taiko rings with impact lines off the belly (fewer, fainter dust puffs after the first
+  video), transformation smoke for its doubles, its green head-leaf as the boomerang. Owner: OK. Then "the walk
+  is not good" (tanuki and pangolin): the dog clip's walk pattered five or six steps a second with the body
+  rigid. Tanuki: a bouncing trot (the gallop at a short stride, under three steps a second) with a waddle, a
+  bob, a head nod and the tail swinging behind. Pangolin: the walk only at a long stride, the back arched and
+  the nose low, the head swinging as it sniffs, the body rocking, knuckle-walking front claws, the tail held up.
+- **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
+  rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
+  dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after
+  a roll.

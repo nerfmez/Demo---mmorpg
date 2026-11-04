@@ -63,6 +63,12 @@ function buildLeafFox() {
 
 /** Turn bone b by Euler (x, y, z) on top of its pose. */
 const nudge = (b, x, y, z) => { _q.setFromEuler(_e.set(x, y, z)); b.quaternion.multiply(_q); };
+// how much it is walking (0..1, eased in and out) and where it is in its step cycle (radians)
+function walking(r, s, pose, dt) {
+  const want = !pose && s.moving && s.state !== 'windup' ? clamp01((s.speed || 0) / 0.6) : 0;
+  r.walkW = (r.walkW || 0) + (want - (r.walkW || 0)) * (1 - Math.exp(-dt * 10));
+  return [r.walkW, (r.beast?.walkPh || 0) * Math.PI * 2];
+}
 
 function animLeafFox(r, s, dt, time) {
   const a = s.attack, P = r.pose, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
@@ -177,8 +183,22 @@ function animLeafTanuki(r, s, dt, time) {
   }
   if (pose) Object.assign(P, { leap: 0 }, pose);
   s.pose = pose ? P : null;
-  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.4, gallopFrom: 2.4, gallopFull: 4, rate: 1.1, rear: true });
+  // (owner, 2026-11-04: "the walk is not good"): the dog clip's walk pattered its short legs five times a second
+  // and the round body slid along rigid. Now a bouncing trot (the clip's gallop at a short stride, under three
+  // steps a second when it hurries) with a chubby waddle laid over it.
+  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.0, gallopFrom: 1.3, gallopFull: 2.1, rate: 1.1, rear: true });
   const b = r.bones;
+  const [w, ph] = walking(r, s, pose, dt);
+  if (w > 0.01) {
+    // the body rolls from side to side and bobs on each footfall, the belly squashing as it lands; the head nods
+    // against it and the big tail swings behind, a beat late
+    const roll = Math.sin(ph) * 0.14 * w, bob = Math.abs(Math.sin(ph)) * w;
+    nudge(b.body, -0.04 * w, 0, roll);
+    b.body.position.y += 0.035 * bob;
+    belly *= 1 + 0.05 * (1 - bob) * w;
+    nudge(b.head, Math.sin(ph * 2) * 0.09 * w, Math.sin(ph) * 0.12 * w, -roll * 0.7);
+    nudge(b.tail, 0.12 * w + Math.sin(ph * 2 - 0.6) * 0.06 * w, Math.sin(ph - 1.0) * 0.45 * w, 0);
+  }
   b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
   if (arm || armSide) { nudge(b.leg0, arm, 0, armSide); nudge(b.leg1, s.windup === 'boomerang' || s.lastAttack === 'boomerang' ? arm * 0.25 : arm, 0, -armSide); }
   if (head) nudge(b.head, head, 0, 0);
@@ -199,15 +219,33 @@ function buildStonePangolin() {
   rb.add('chest', sph(0.26).scale(1.1, 0.8, 1), C.stone);
   rb.add('head', new THREE.ConeGeometry(0.14, 0.32, 6).rotateX(Math.PI / 2), C.stone, { pos: [0, 0, 0.12] });
   rb.add('tail', new THREE.ConeGeometry(0.22, 0.6, 6).rotateX(-Math.PI / 2), C.stone, { pos: [0, -0.12, -0.3] });
-  // the curled ball it rolls as: overlapping stone plates with moss, kept beside the model (data/models.json keep)
+  // the curled ball it rolls as, kept beside the model (data/models.json keep). Owner, 2026-11-04: the first ball
+  // (14 plates) looked bare. Now it wears the walking body's armour: rows of round, domed stone plates of
+  // varied size with dark skin showing between them (each plate outlined like the body's), a few mossy and
+  // weathered ones, and the tail curled round the outside as a ridge of bigger plates.
   rb.bone('ball', 'root', [0, 0.5, 0]);
-  rb.add('ball', new THREE.IcosahedronGeometry(0.46, 1), '#b8a580');
-  for (let i = 0; i < 14; i++) {
-    const a = i * 2.39996, y = 1 - (2 * (i + 0.5)) / 14, r = Math.sqrt(1 - y * y), d = [Math.cos(a) * r, y, Math.sin(a) * r];
-    const plate = sph(0.2, 7, 5).scale(1, 0.38, 0.85);
-    plate.lookAt(new THREE.Vector3(...d)); // the plate's flat face turned outward
-    rb.add('ball', plate, i % 5 === 2 ? C.moss : C.stone, { pos: [d[0] * 0.44, d[1] * 0.44, d[2] * 0.44] });
+  rb.add('ball', new THREE.IcosahedronGeometry(0.4, 2), C.dark);
+  const tones = [C.stone, '#cbb78e', '#e4d6b4', '#b9a37c'];
+  const t = new THREE.Vector3(), bt = new THREE.Vector3(), n = new THREE.Vector3(), M = new THREE.Matrix4();
+  const hash = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  // a domed plate facing out along n (lat from the rolling axis' equator, phi round it), at radius R
+  const plate = (lat, phi, size, R, color) => {
+    n.set(Math.sin(lat), Math.cos(lat) * Math.cos(phi), Math.cos(lat) * Math.sin(phi));
+    t.set(0, -Math.sin(phi), Math.cos(phi)); bt.crossVectors(n, t);
+    const g = sph(size, 7, 4).scale(1, 0.92, 0.5).applyMatrix4(M.makeBasis(t, bt, n));
+    rb.add('ball', g, color, { pos: [n.x * R, n.y * R, n.z * R] });
+  };
+  // rings round the rolling axis (x), spaced so the dark skin shows between the plates
+  let k = 0;
+  for (let row = 0; row < 9; row++) {
+    const lat = -1.32 + (row / 8) * 2.64, ring = Math.cos(lat), count = Math.max(4, Math.floor((Math.PI * 2 * 0.41 * ring) / 0.225));
+    for (let i = 0; i < count; i++, k++) {
+      const phi = ((i + (row % 2) * 0.5 + hash(k) * 0.2) / count) * Math.PI * 2, size = (0.082 + 0.03 * hash(k + 50)) * (0.75 + 0.25 * ring);
+      plate(lat + (hash(k + 90) - 0.5) * 0.08, phi, size, 0.41, k % 13 === 5 ? C.moss : tones[Math.floor(hash(k + 7) * tones.length)]);
+    }
   }
+  // the tail wrapped round the outside: a ridge of larger plates over one side, narrowing to its tip
+  for (let i = 0; i < 8; i++) plate(0.5 - i * 0.03, -0.3 + i * 0.4, 0.13 - i * 0.008, 0.46, i === 2 ? C.moss : tones[i % 2]);
   const legs = [['leg0', 'chest', [0.198, -0.09, 0.153], [0.018, -0.117, 0.09]], ['leg1', 'chest', [-0.198, -0.09, 0.153], [-0.018, -0.117, 0.09]],
     ['leg2', 'body', [0.315, -0.09, 0.09], [0.09, -0.162, 0.018]], ['leg3', 'body', [-0.315, -0.09, 0.09], [-0.09, -0.162, 0.018]]];
   for (const [n, parent, at, knee] of legs) {
@@ -260,8 +298,23 @@ function animStonePangolin(r, s, dt, time) {
   if (pose) Object.assign(P, { leap: 0 }, pose);
   s.pose = pose ? P : null;
   s.standT = 0;
-  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.3, gallopFrom: 3, gallopFull: 5, rate: 0.85 });
+  // (owner, 2026-11-04: "the walk is not good"): the dog clip pattered six steps a second. A pangolin walks
+  // heavy and deliberate: a long, slow stride (the walk only, never a gallop), the back arched and the nose low,
+  // the head swinging side to side as it sniffs, the whole armoured body rocking, the front claws curled under so
+  // it walks on its knuckles, the tail held up off the ground and swaying against the body.
+  animBeast(r, s, dt, time, { set: SHIBA, stride: 2.6, gallopFrom: 99, gallopFull: 100, rate: 0.85 });
   const b = r.bones;
+  const [w, ph] = walking(r, s, pose, dt);
+  if (w > 0.01) {
+    const rock = Math.sin(ph) * 0.1 * w;
+    nudge(b.body, 0.06 * w, Math.sin(ph) * 0.06 * w, rock);
+    b.body.position.y += Math.abs(Math.cos(ph)) * 0.025 * w;
+    nudge(b.chest, 0.1 * w, 0, -rock * 0.5);
+    nudge(b.neck, 0.12 * w, Math.sin(ph * 0.5) * 0.18 * w, 0);
+    nudge(b.head, 0.08 * w + Math.sin(ph * 2) * 0.05 * w, Math.sin(ph * 0.5 + 0.6) * 0.2 * w, 0);
+    nudge(b.tail, -0.22 * w, -Math.sin(ph) * 0.18 * w, 0);
+    nudge(b.leg0k, 0.7 * w, 0, 0); nudge(b.leg1k, 0.7 * w, 0, 0);
+  }
   if (rear) nudge(b.body, -rear, 0, 0);
   if (claw) { nudge(b.leg0, claw, 0, -0.2); nudge(b.leg1, claw, 0, 0.2); }
   if (clawA || clawB) { nudge(b.leg0, clawA, 0, -0.3 * (1 - clawA)); nudge(b.leg1, clawB, 0, 0.3 * (1 - clawB)); }

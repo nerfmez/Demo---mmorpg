@@ -566,7 +566,11 @@ Wide Spread and Far Reach share the `spread` family.
   The rules' facing still aims every attack. Over the clip walk, `beast-life.js` swings the shoulders and hips
   against each other on the clip's footfalls (front right 0, front left 0.55, hind right 0.9, hind left 0.35 of the
   Quaternius walk cycle), dips each end as its feet land, and drives the head and tail with underdamped springs
-  (a Godot port: the same springs in `_process`, state per rig).
+  (a Godot port: the same springs in `_process`, state per rig). Walking, the legs are solved rather than played
+  (`plantFeet`): each foot's target in the root's space follows the walk cycle (planted for 60% of it, moving back
+  at the body's speed, then an arc up and a stride forward), the hips sink enough for the stroke to be in reach,
+  and a two-bone solve (a sideways lean about z, then hip and knee about x in that plane) poses each leg; blended
+  over the clip by the walk weight, off in a gallop. In Godot: the same solve, or SkeletonIK3D per leg.
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`

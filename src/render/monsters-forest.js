@@ -65,7 +65,7 @@ function buildLeafFox() {
 
 /** Turn bone b by Euler (x, y, z) on top of its pose. */
 const nudge = (b, x, y, z) => { _q.setFromEuler(_e.set(x, y, z)); b.quaternion.multiply(_q); };
-// how much it is walking (0..1, eased in and out) and where it is in its step cycle (radians)
+// how much it is walking (0..1, eased in and out) and where it is in its step cycle (0..1)
 // an attack's offset eased toward its value (about 0.05 s), so a pose never snaps back in one frame when a state
 // ends (owner, 2026-11-04: "it stutters"; a foreleg used to jump 75 degrees in a frame as an attack ended)
 // (a critically damped follow, so it also starts moving smoothly rather than with a jump; quick into an attack's
@@ -82,7 +82,8 @@ function watchPrey(b, s, k) { if (k > 0.001 && s.lookYaw) { nudge(b.neck, 0, s.l
 function walking(r, s, pose, dt) {
   const want = !pose && s.moving && s.state !== 'windup' ? clamp01((s.smoothSpeed ?? s.speed ?? 0) / 0.6) : 0;
   r.walkW = (r.walkW || 0) + (want - (r.walkW || 0)) * (1 - Math.exp(-dt * 10));
-  return [r.walkW, (r.beast?.walkPh || 0) * Math.PI * 2];
+  return [r.walkW, r.beast?.walkPh || 0]; // the cycle as a share, 0..1 (beast-life.js reads it so; it was once
+  // passed in radians, which ran the spine swing and dips six times too fast - the shaking the owner saw)
 }
 
 function animLeafFox(r, s, dt, time) {
@@ -210,7 +211,7 @@ function animLeafTanuki(r, s, dt, time) {
   // the clip's walk at its own stride (about 1.6 steps a second as it circles), a bounding run only when it
   // hurries in. Over it only follow-through on the clip's own beat: the belly bounces on the footfalls, the tail
   // sways a beat late.
-  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.9, gallopFrom: 1.5, gallopFull: 2.1, gallopStride: 1.7, rate: 1.1, rear: true, reverse: true });
+  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.6, gallopFrom: 1.5, gallopFull: 2.1, gallopStride: 2.0, rate: 1.1, rear: true, reverse: true });
   const b = r.bones;
   const free = sm(r, 'free', pose ? 0 : 1, dt);
   watchPrey(b, s, free);
@@ -218,7 +219,7 @@ function animLeafTanuki(r, s, dt, time) {
   // the spine swing, the footfall dips and the head and big tail following a beat late (beast-life.js); the
   // round belly bounces on the footfalls
   beastLife(r, s, dt, w, ph, { spine: 1.1, dip: 1.2, head: 1.2, tail: 1.5, gain: free });
-  if (w > 0.01) belly *= 1 + 0.025 * w * (1 + Math.cos(ph * 4 * Math.PI)); // (a smooth bounce, no kink)
+  // (no belly bounce: its squash and stretch with each step read as an inchworm)
   belly = sm(r, 'belly', belly, dt); arm = sm(r, 'arm', arm, dt); armSide = sm(r, 'armSide', armSide, dt); head = sm(r, 'head', head, dt);
   b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
   if (arm || armSide) { nudge(b.leg0, arm, 0, armSide); nudge(b.leg1, s.windup === 'boomerang' || s.lastAttack === 'boomerang' ? arm * 0.25 : arm, 0, -armSide); }

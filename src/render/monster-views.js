@@ -83,12 +83,11 @@ export function syncMonsterViews(view, dt, time) {
     // a beast that walks where it goes (rig.faceMove): circling its prey it turns its body along its path and
     // only its head watches the prey (the rules keep facing the prey, so the forward walk slid sideways); backing
     // away it keeps facing and its walk runs backwards (beast-clips.js)
-    // (from the eased velocity, turning the body at most 70 degrees off the rules facing and only half as fast as
-    // it turns to face, so a change of mind is a smooth turn, not a flick)
+    // (from the eased velocity; a change of mind is a smooth turn, not a flick)
     let want = m.facing, rate = 12;
     if (r.faceMove && m.moving && MOVING_STATES.has(m.state) && (mv.sspeed || 0) > 0.3) {
       const go = Math.atan2(mv.svx || 0, mv.svz || 0), off = Math.atan2(Math.sin(go - m.facing), Math.cos(go - m.facing));
-      if (Math.abs(off) < 2.2) want = m.facing + Math.max(-1.2, Math.min(1.2, off));
+      if (Math.abs(off) < 2.2) want = go; // its feet are planted along its path (beast-life.js): no crabbing
       rate = 5;
     }
     let d = want - r.root.rotation.y;

@@ -135,6 +135,16 @@ session's network, so these come from search summaries of the cited pages.
   second and out in a gallop (after: 0.06, the same as without it). Also: backing off is slow (0.55 of its speed),
   the walk turns backwards on the rules' intent at once, and walk or gallop is chosen with a margin and crossfaded
   instead of hovering half in each.
+- **Walks, round 7** (2026-11-04, owner: "it inches along - the legs don't lift right"): measured the feet. With
+  the dog clip on these short legs the front feet slid forward with the body while "planted" (0.7 m/s at a body
+  speed of 0.96) and the hind feet raked back faster than it, under the ground; and a units bug (the walk phase
+  passed in radians where a share of the cycle was expected) had run the spine swing six times too fast since
+  round 3. Now the legs are solved, not played: `plantFeet` (beast-life.js) keeps each foot on the ground for 60%
+  of the cycle, moving back exactly as fast as the body moves forward, then lifts it in an arc (35% of the leg)
+  and sets it down a stride ahead; a two-bone solve with a sideways lean turns hip and knee to reach it, over the
+  clip's legs. The hips sink a little while walking so the planted feet stay in reach. The body faces its path
+  fully while circling. No more trunk folding (shoulder/hip pitch dips) or belly squash. After (tanuki circling):
+  feet lift 13-16 cm, planted feet slide 0.2-0.35 m/s (from 0.7-1.65), trunk smooth.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

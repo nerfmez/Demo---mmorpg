@@ -98,6 +98,7 @@ export function animBeast(r, s, dt, time, opts = {}) {
   // (opts.gallopStride: the gallop's cycle in strides, 2.6 by default; a backing beast with opts.reverse walks
   // its cycle backwards)
   const stride = (opts.stride ?? 1.9) * B.legLen, gs = (opts.gallopStride ?? 2.6) - 1;
+  B.stride = stride; // metres per walk cycle (beast-life.js plants the feet by it)
   // backwards while it backs off: decided on the eased forward speed with a margin, so it never flicks
   B.back = !opts.reverse ? 1 : s.backing !== undefined ? (s.backing ? -1 : 1) : ((s.smoothFwd ?? s.vFwd ?? 0) < (B.back === -1 ? -0.05 : -0.35) ? -1 : 1);
   const back = B.back;

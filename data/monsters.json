@@ -1394,6 +1394,7 @@
       "jobExp": 12,
       "attacks": {
         "pounce": {
+          "nameTh": "กระโจนตะครุบ",
           "use": {"min": 4, "max": 9},
           "range": 9,
           "windup": 1.0,
@@ -1407,6 +1408,7 @@
           "inflict": {"status": "root", "chance": 1, "duration": 0.6}
         },
         "snap": {
+          "nameTh": "งับ",
           "kind": "claw",
           "use": {"max": 1.6},
           "range": 1.6,
@@ -1419,6 +1421,7 @@
           "damageMult": 1
         },
         "gust": {
+          "nameTh": "ลมใบไม้",
           "kind": "sweep",
           "tell": "sector",
           "use": {"min": 1.2, "max": 4.6},
@@ -1476,6 +1479,7 @@
       "jobExp": 12,
       "attacks": {
         "doubles": {
+          "nameTh": "แยกร่าง",
           "use": {"max": 10, "hpBelow": 0.6, "once": true},
           "windup": 1.0,
           "count": 2,
@@ -1484,6 +1488,7 @@
           "cooldown": 20
         },
         "drum": {
+          "nameTh": "ตีกลองท้อง",
           "tell": "ring",
           "use": {"max": 2.6},
           "range": 4.5,
@@ -1499,6 +1504,7 @@
           "damageMult": 0.8
         },
         "boomerang": {
+          "nameTh": "ใบไม้บูมเมอแรง",
           "tell": "lane",
           "use": {"min": 2, "max": 7},
           "range": 7,
@@ -1556,6 +1562,7 @@
       "jobExp": 16,
       "attacks": {
         "tail": {
+          "nameTh": "ฟาดหาง",
           "kind": "rake",
           "tell": "sector",
           "tellOff": 3.1416,
@@ -1571,6 +1578,7 @@
           "damageMult": 1.1
         },
         "rake": {
+          "nameTh": "ตะปบเล็บ",
           "kind": "rake",
           "use": {"max": 1.7},
           "range": 1.7,
@@ -1583,6 +1591,7 @@
           "damageMult": 0.75
         },
         "roll": {
+          "nameTh": "กลิ้งเด้งกลับ",
           "kind": "charge",
           "use": {"min": 3, "max": 9},
           "windup": 0.9,
@@ -1642,6 +1651,7 @@
       "jobExp": 14,
       "attacks": {
         "flop": {
+          "nameTh": "ดีดตัวกระโดด",
           "kind": "skip",
           "use": {"min": 2.5, "max": 6},
           "range": 6,
@@ -1656,6 +1666,7 @@
           "damageMult": 0.7
         },
         "slap": {
+          "nameTh": "ฟาดหาง",
           "kind": "rake",
           "use": {"max": 1.4},
           "range": 1.4,
@@ -1668,6 +1679,7 @@
           "damageMult": 1
         },
         "jet": {
+          "nameTh": "พ่นน้ำมุก",
           "kind": "spit",
           "tell": "lane",
           "use": {"min": 3, "max": 9},
@@ -1728,6 +1740,7 @@
       "jobExp": 14,
       "attacks": {
         "surge": {
+          "nameTh": "ไถลเมือกพิษ",
           "kind": "trail",
           "tell": "lane",
           "use": {"min": 1.2, "max": 4.5},
@@ -1744,6 +1757,7 @@
           "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15}
         },
         "volley": {
+          "nameTh": "ยิงหนวดพิษ",
           "kind": "volley",
           "use": {"min": 2.5, "max": 8},
           "range": 8,
@@ -1758,6 +1772,7 @@
           "inflict": {"status": "poison", "chance": 0.5, "duration": 3, "dpsMult": 0.12}
         },
         "shed": {
+          "nameTh": "สลัดหนวด",
           "hitsToTrigger": 3,
           "window": 2,
           "patches": 3,
@@ -1815,6 +1830,7 @@
       "jobExp": 17,
       "attacks": {
         "valve": {
+          "nameTh": "พ่นน้ำหุบเปลือก",
           "kind": "shove",
           "tell": "sector",
           "element": "physical",
@@ -1828,6 +1844,7 @@
           "damageMult": 1.1
         },
         "snipe": {
+          "nameTh": "เล็งยิงมุก",
           "kind": "spit",
           "tell": "lane",
           "element": "physical",
@@ -1842,6 +1859,7 @@
           "damageMult": 1.2
         },
         "shell": {
+          "nameTh": "หุบเปลือกกัน",
           "hitsToTrigger": 3,
           "window": 2,
           "duration": 2.2,
@@ -1901,6 +1919,7 @@
       "jobExp": 150,
       "attacks": {
         "beam": {
+          "nameTh": "ลำแสงมุก",
           "kind": "beam_sweep",
           "tell": "sector",
           "use": {"min": 3, "max": 12, "hpBelow": 0.6},
@@ -1914,6 +1933,7 @@
           "damageMult": 1.6
         },
         "harpoon": {
+          "nameTh": "งวงฉมวก",
           "kind": "beam",
           "tell": "lane",
           "use": {"min": 2.5, "max": 8},
@@ -1927,6 +1947,7 @@
           "inflict": {"status": "poison", "chance": 0.7, "duration": 4, "dpsMult": 0.12}
         },
         "crush": {
+          "nameTh": "ฟาดระบาย",
           "kind": "sweep",
           "tell": "sector",
           "use": {"max": 3.4},
@@ -1938,9 +1959,11 @@
           "damageMult": 1.2
         },
         "slime": {
+          "nameTh": "ทางเมือก",
           "inflict": {"status": "chill", "chance": 1, "duration": 1.5, "slow": 0.25}
         },
         "shell": {
+          "nameTh": "หดเข้ากระดอง",
           "hitsToTrigger": 99,
           "window": 1,
           "duration": 3,

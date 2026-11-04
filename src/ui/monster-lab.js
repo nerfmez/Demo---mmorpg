@@ -6,11 +6,19 @@ import './monster-lab.css';
 
 const SPEEDS = [1, 0.5, 0.25];
 
-/** Find a free, unsafe spot near (x, z) with room around it, spiralling out. */
+/**
+ * Find a free, unsafe spot near (x, z) with room around it, spiralling out; the ground toward the camera (+z) and
+ * to the right (where the monster stands) clear too, so no wreck or wall in the foreground hides the fight.
+ */
 function clearSpot(game, x, z, room = 3) {
+  const W = game.world, open = (px, pz) => W.isFree(px, pz, room) && W.isFree(px, pz + 4, 3) && W.isFree(px + 4, pz, 3) && W.isFree(px + 3, pz + 4, 3) && !game.isSafe(px, pz);
+  for (let r = 0; r < 160; r += 2) for (let a = 0; a < 6.28; a += r ? 1.2 / r : 7) {
+    const px = x + Math.sin(a) * r, pz = z + Math.cos(a) * r;
+    if (open(px, pz)) return [px, pz];
+  }
   for (let r = 0; r < 120; r += 2) for (let a = 0; a < 6.28; a += r ? 1.2 / r : 7) {
     const px = x + Math.sin(a) * r, pz = z + Math.cos(a) * r;
-    if (game.world.isFree(px, pz, room) && !game.isSafe(px, pz)) return [px, pz];
+    if (W.isFree(px, pz, room) && !game.isSafe(px, pz)) return [px, pz];
   }
   return [x, z];
 }

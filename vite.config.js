@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 // base './' so the build works from any sub-path (GitHub Pages, Vercel, a folder).
 // lab.html is the Skill Lab: a bare page for trying skill effects (src/lab/).
+// monsters.html lists every monster and opens the game's monster sandbox on it (src/monster-index.js).
 // dungeon.html previews the Pearlshell Grotto on its own before it joins the game (src/dungeon/).
 // src/entry.js imports '@frontier/entry': only `--mode player` gets the lazy relay entry.
 // FRONTIER_LOAD=dev (CI browser tests): the preview server marks served pages for the
@@ -31,6 +32,6 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: 'es2020',
     chunkSizeWarningLimit: 1200,
-    rollupOptions: { input: { main: 'index.html', offline: 'offline.html', lab: 'lab.html', fxtest: 'fx-test.html', dungeon: 'dungeon.html' } },
+    rollupOptions: { input: { main: 'index.html', offline: 'offline.html', lab: 'lab.html', fxtest: 'fx-test.html', dungeon: 'dungeon.html', monsters: 'monsters.html' } },
   },
 }));

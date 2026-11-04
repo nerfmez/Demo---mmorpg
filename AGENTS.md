@@ -78,7 +78,9 @@ work runs no tests. Do not make a reviewable draft wait for unrelated full suite
 - Monster attacks (kits, wind-ups, strike effects): follow [the monster attack standard](docs/MONSTER-ATTACKS.md) -
   each monster its own kit in data, pose then glow then ground warning, strike effects as shapes of light (not
   limb trails) - and review it in the game's monster sandbox (`?fresh=1&monsterLab=<type>`). Always send the
-  owner a video of each round first (owner, 2026-11-03): `VIDEO=1 node tests/browser/monster-lab.mjs <type>`.
+  owner a video of each round first (owner, 2026-11-03): `VIDEO=1 node tests/browser/monster-lab.mjs <type>`
+  (bare ground by default; pass only the changed attacks), with the live page `<site>/lab/monsters.html`
+  (published from `claude/vfx-*` branches) so the owner can watch it on the iPad too.
 - Use the existing focused capture that exercises changed content. Full-map capture,
   Dreamloop and long stress/leak runs apply to map-wide/resource changes or concrete
   evidence, not every local art edit. Inspect actual screenshots before sharing.

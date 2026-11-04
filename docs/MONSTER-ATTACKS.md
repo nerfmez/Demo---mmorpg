@@ -66,7 +66,11 @@ session's network, so these come from search summaries of the cited pages.
    unharmed hero, slow motion and frame steps. **Every round goes to the owner as a video first** (owner,
    2026-11-03: "ต้องส่ง video มาให้ดูก่อนทุกครั้ง"): `VIDEO=1 node tests/browser/monster-lab.mjs <type>` records
    each attack stepped at 30 fps from the game camera and writes `<type>.mp4` (normal speed, then half speed);
-   a frame sheet may go with it.
+   a frame sheet may go with it. The capture draws on bare ground (`&bare=1`: the map's scenery, grass and
+   townsfolk hidden) so it is quick without a graphics card (`BARE=0` keeps the scenery); name only the
+   attacks that changed (`... monster-lab.mjs <type> <attack> ...`). With the video, give the owner the live
+   page (owner, 2026-11-04: "ทำแยกให้ไปกดดูเว็บ"): `monsters.html` lists every monster (the overhauled ones
+   first) and opens the sandbox on the one tapped; an effects branch publishes it at `<site>/lab/monsters.html`.
 5. Record the round below and keep `docs/GODOT-PORT.md` accurate.
 
 ## Kits (proposed)

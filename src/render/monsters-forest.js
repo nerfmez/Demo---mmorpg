@@ -199,6 +199,15 @@ function buildStonePangolin() {
   rb.add('chest', sph(0.26).scale(1.1, 0.8, 1), C.stone);
   rb.add('head', new THREE.ConeGeometry(0.14, 0.32, 6).rotateX(Math.PI / 2), C.stone, { pos: [0, 0, 0.12] });
   rb.add('tail', new THREE.ConeGeometry(0.22, 0.6, 6).rotateX(-Math.PI / 2), C.stone, { pos: [0, -0.12, -0.3] });
+  // the curled ball it rolls as: overlapping stone plates with moss, kept beside the model (data/models.json keep)
+  rb.bone('ball', 'root', [0, 0.5, 0]);
+  rb.add('ball', new THREE.IcosahedronGeometry(0.46, 1), '#b8a580');
+  for (let i = 0; i < 14; i++) {
+    const a = i * 2.39996, y = 1 - (2 * (i + 0.5)) / 14, r = Math.sqrt(1 - y * y), d = [Math.cos(a) * r, y, Math.sin(a) * r];
+    const plate = sph(0.2, 7, 5).scale(1, 0.38, 0.85);
+    plate.lookAt(new THREE.Vector3(...d)); // the plate's flat face turned outward
+    rb.add('ball', plate, i % 5 === 2 ? C.moss : C.stone, { pos: [d[0] * 0.44, d[1] * 0.44, d[2] * 0.44] });
+  }
   const legs = [['leg0', 'chest', [0.198, -0.09, 0.153], [0.018, -0.117, 0.09]], ['leg1', 'chest', [-0.198, -0.09, 0.153], [-0.018, -0.117, 0.09]],
     ['leg2', 'body', [0.315, -0.09, 0.09], [0.09, -0.162, 0.018]], ['leg3', 'body', [-0.315, -0.09, 0.09], [-0.09, -0.162, 0.018]]];
   for (const [n, parent, at, knee] of legs) {
@@ -208,6 +217,7 @@ function buildStonePangolin() {
     rb.add(n + 'k', new THREE.ConeGeometry(0.06, 0.14, 5).translate(0, -0.07, 0.04), C.dark);
   }
   const rig = rb.build();
+  rig.bones.ball.visible = false; // only while curled
   rig.height = 0.85;
   rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
   rig.spin = 0;
@@ -245,7 +255,7 @@ function animStonePangolin(r, s, dt, time) {
     pose = { clip: 'idle', u: 0, w: 0 };
   } else if (s.state === 'stunned' && s.lastAttack === 'roll') {
     // uncurling, dizzy: it sways and its head lolls
-    curl = clamp01(1 - s.actT / 0.35); wobble = Math.sin(time * 9) * 0.18;
+    curl = clamp01(1 - (s.actT - 0.25) / 0.35); wobble = Math.sin(time * 9) * 0.18;
   }
   if (pose) Object.assign(P, { leap: 0 }, pose);
   s.pose = pose ? P : null;
@@ -263,10 +273,15 @@ function animStonePangolin(r, s, dt, time) {
     nudge(b.tail, -1.6 * curl, 0, 0);
     for (const n of ['leg0', 'leg1', 'leg2', 'leg3']) nudge(b[n], (n < 'leg2' ? 1.2 : -1.2) * curl, 0, 0);
   }
-  // rolling: the ball spins about its own middle, faster the faster it goes
-  r.spin = roll ? r.spin + dt * 16 : r.spin * Math.exp(-dt * 10);
-  if (roll || Math.abs(r.spin % (Math.PI * 2)) > 0.01) nudge(b.body, roll ? r.spin : 0, 0, 0);
-  if (wobble) nudge(b.body, 0, 0, wobble);
+  // fully curled it is the ball (the model drawn in to nothing), spinning about its middle as it rolls
+  const ballK = clamp01((curl - 0.75) / 0.25);
+  r.spin = roll ? r.spin + dt * 16 : r.spin;
+  b.ball.visible = ballK > 0;
+  b.ball.scale.setScalar(Math.max(0.001, ballK * (1 + 0.15 * Math.sin(ballK * Math.PI))));
+  b.ball.rotation.set(r.spin, 0, wobble);
+  b.ball.position.y = 0.5 + Math.abs(Math.sin(r.spin * 2)) * 0.04 * (roll ? 1 : 0);
+  if (ballK > 0.5) b.body.scale.setScalar(0.001);
+  else if (wobble) nudge(b.body, 0, 0, wobble);
   b.body.position.y += 0.08 * curl;
 }
 

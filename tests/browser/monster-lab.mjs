@@ -49,7 +49,7 @@ try {
     const save = (buf) => writeFileSync(`${dir}${String(n++).padStart(3, '0')}.jpg`, buf);
     for (const b of lead) save(b);
     const states = [];
-    for (let i = 0, after = 0; i < 180; i++) {
+    for (let i = 0, after = 0, cap = Number(process.env.MAXSTEPS || 180); i < cap; i++) {
       const s = await page.evaluate(() => { const m = window.__frontier.monsterLab.lab.m; return { state: m.state, t: +m.stateT.toFixed(3) }; });
       if (i % EVERY === 0) { states.push({ n, ...s }); save(await page.screenshot({ type: 'jpeg', quality: VIDEO ? 85 : 82 })); }
       if (i > 4 && (s.state === 'chase' || s.state === 'idle') && ++after > (VIDEO ? 10 : 0)) break;

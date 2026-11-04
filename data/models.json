@@ -7475,6 +7475,9 @@
       "outline": "#3a3226",
       "outlineWidth": 0.014,
       "source": "Meshy 6 image-to-3d with a Meshy 6 retexture from the owner's forest sheet (docs/reference/forest-stone-pangolin.png; assets/meshy/forest/stone_pangolin_textured_meshy.glb), prepared with scripts/prep-monster-glb.py --tex 512; joints placed from the mesh (front claws under the head, hind feet mid-body, the armoured tail section behind)",
+      "keep": [
+        "ball"
+      ],
       "segments": {
         "body": [
           [

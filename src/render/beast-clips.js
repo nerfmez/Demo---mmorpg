@@ -130,8 +130,9 @@ export function animBeast(r, s, dt, time, opts = {}) {
   for (const n of BONES) {
     // locomotion: idle -> walk -> gallop
     const d = clipDir(B, C.idle, B.idlePh, n, _b.set(0, 0, 0));
-    if (mw > 0) { clipDir(B, C.walk, B.walkPh, n, _a); d.lerp(_a, mw * (1 - gw)); }
-    if (gw > 0) { clipDir(B, C.gallop, B.walkPh, n, _a); d.lerp(_a, gw); }
+    // (opts.procedural: no walk or gallop clip at all - the beast's own walk is built in beast-walk.js)
+    if (mw > 0 && !opts.procedural) { clipDir(B, C.walk, B.walkPh, n, _a); d.lerp(_a, mw * (1 - gw)); }
+    if (gw > 0 && !opts.procedural) { clipDir(B, C.gallop, B.walkPh, n, _a); d.lerp(_a, gw); }
     if (aw > 0) { if (abs) poseDir(clip, atk, n, _a); else clipDir(B, clip, atk, n, _a); d.lerp(_a, aw); }
     if (howl > 0 && HOWLV[n]) d.lerp(HOWLV[n], howl);
     if (hw > 0) { clipDir(B, C.hit, clamp01(1 - (s.hurt || 0)) * 0.99, n, _a); d.lerp(_a, hw); }
@@ -139,7 +140,7 @@ export function animBeast(r, s, dt, time, opts = {}) {
     d.normalize();
     B.dir[n].lerp(d, k).normalize();
   }
-  lift = clipLift(C.idle, B.idlePh) * (1 - mw) + (clipLift(C.walk, B.walkPh) * (1 - gw) + clipLift(C.gallop, B.walkPh) * gw) * mw;
+  lift = opts.procedural ? clipLift(C.idle, B.idlePh) : clipLift(C.idle, B.idlePh) * (1 - mw) + (clipLift(C.walk, B.walkPh) * (1 - gw) + clipLift(C.gallop, B.walkPh) * gw) * mw;
   if (aw > 0) lift += ((abs ? 0 : clipLift(clip, atk)) - lift) * aw;
   lift *= 1 - rw;
   B.lift += (lift - B.lift) * k;

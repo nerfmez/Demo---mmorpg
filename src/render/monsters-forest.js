@@ -23,6 +23,7 @@ import * as THREE from 'three';
 import { RigBuilder, clamp01 } from './rig.js';
 import { animBeast, clipSet, HIT } from './beast-clips.js';
 import { beastLife } from './beast-life.js';
+import { proceduralWalk } from './beast-walk.js';
 import FOX_CLIPS from '../../data/beast-clips-fox.json';
 import SHIBA_CLIPS from '../../data/beast-clips-shiba.json';
 
@@ -211,14 +212,14 @@ function animLeafTanuki(r, s, dt, time) {
   // the clip's walk at its own stride (about 1.6 steps a second as it circles), a bounding run only when it
   // hurries in. Over it only follow-through on the clip's own beat: the belly bounces on the footfalls, the tail
   // sways a beat late.
-  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.6, gallopFrom: 1.5, gallopFull: 2.1, gallopStride: 2.0, rate: 1.1, rear: true, reverse: true });
+  // its own walk (beast-walk.js): no dog clip under it; the clips still give its idle, rear and attack poses
+  animBeast(r, s, dt, time, { set: SHIBA, rate: 1.1, rear: true, reverse: true, procedural: true });
   const b = r.bones;
   const free = sm(r, 'free', pose ? 0 : 1, dt);
   watchPrey(b, s, free);
-  const [w, ph] = walking(r, s, pose, dt);
-  // the spine swing, the footfall dips and the head and big tail following a beat late (beast-life.js); the
-  // round belly bounces on the footfalls
-  beastLife(r, s, dt, w, ph, { spine: 1.1, dip: 1.2, head: 1.2, tail: 1.5, gain: free });
+  const [w] = walking(r, s, pose, dt);
+  // a quick, round waddle: short steps, a trot when it hurries in, the big tail swinging behind
+  proceduralWalk(r, s, dt, w, { f0: 1.3, fk: 0.6, trotAt: 1.6, lift: 0.26, bob: 0.014, roll: 0.08, lean: 0.02, tailSwing: 0.4, gain: free });
   // (no belly bounce: its squash and stretch with each step read as an inchworm)
   belly = sm(r, 'belly', belly, dt); arm = sm(r, 'arm', arm, dt); armSide = sm(r, 'armSide', armSide, dt); head = sm(r, 'head', head, dt);
   b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
@@ -326,11 +327,12 @@ function animStonePangolin(r, s, dt, time) {
   // the clip's own stride (about 2.5 steps a second); a heavy posture on top - the back arched and the nose low,
   // the tail held up, the front claws curled under so it walks on its knuckles - and only the head swinging once a
   // cycle as it sniffs, with the beat of the clip.
-  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.9, gallopFrom: 99, gallopFull: 100, rate: 0.85, reverse: true });
+  // its own walk (beast-walk.js): no dog clip under it; the clips still give its idle and attack poses
+  animBeast(r, s, dt, time, { set: SHIBA, rate: 0.85, reverse: true, procedural: true });
   const b = r.bones;
   const free = sm(r, 'free', pose ? 0 : 1, dt);
   watchPrey(b, s, free);
-  const [w, ph] = walking(r, s, pose, dt);
+  const [w] = walking(r, s, pose, dt);
   if (w > 0.01) {
     nudge(b.body, 0.05 * w, 0, 0);
     nudge(b.chest, 0.08 * w, 0, 0);
@@ -340,7 +342,7 @@ function animStonePangolin(r, s, dt, time) {
     nudge(b.leg0k, 0.6 * w, 0, 0); nudge(b.leg1k, 0.6 * w, 0, 0);
   }
   // heavy: a slower spine swing, deeper dips on each footfall, the head and armoured tail following late
-  beastLife(r, s, dt, w, ph, { spine: 0.8, dip: 1.5, head: 1.0, tail: 0.8, gain: free });
+  proceduralWalk(r, s, dt, w, { f0: 1.0, fk: 0.5, trotAt: 99, lift: 0.24, bob: 0.02, roll: 0.06, lean: 0.01, tailSwing: 0.15, gain: free });
   rear = sm(r, 'rear', rear, dt); claw = sm(r, 'claw', claw, dt); clawA = sm(r, 'clawA', clawA, dt); clawB = sm(r, 'clawB', clawB, dt);
   look = sm(r, 'look', look, dt); tailSwing = sm(r, 'tailSwing', tailSwing, dt); curl = sm(r, 'curl', curl, dt);
   if (rear) nudge(b.body, -rear, 0, 0);

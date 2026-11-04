@@ -145,7 +145,10 @@ export function syncMonsterViews(view, dt, time) {
     state.lastAttack = mv.lastAttack;
     state.dormant = !!m.def.dormant && !m.aggro; // asleep (the snail king in its shell)
     state.hurt = mv.hurt;
-    state.lookYaw = m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? view.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0;
+    // (eased: when its prey passes behind it the clamped turn jumped from one side to the other in a frame)
+    const lookAt = m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? view.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0;
+    mv.lookYaw = damp(mv.lookYaw ?? lookAt, lookAt, 8, dt);
+    state.lookYaw = mv.lookYaw;
     state.turn = mv.turn;
     state.speed = mv.speed;
     state.smoothSpeed = mv.sspeed;

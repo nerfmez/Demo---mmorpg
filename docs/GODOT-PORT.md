@@ -571,6 +571,10 @@ Wide Spread and Far Reach share the `spread` family.
   at the body's speed, then an arc up and a stride forward), the hips sink enough for the stroke to be in reach,
   and a two-bone solve (a sideways lean about z, then hip and knee about x in that plane) poses each leg; blended
   over the clip by the walk weight, off in a gallop. In Godot: the same solve, or SkeletonIK3D per leg.
+  The tanuki and pangolin walk with no clip at all (`render/beast-walk.js`): footfall offsets per foot (walk:
+  hind left 0, fore left 0.25, hind right 0.5, fore right 0.75, duty 0.58; trot: diagonal pairs, duty 0.45,
+  blended), cadence f0 + fk x speed, stride = speed / cadence, and the trunk's waddle, sink, twist and lean as
+  sinusoids of the cycle; port it as a small gait controller feeding the same leg solve.
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`

@@ -16,6 +16,7 @@ const TAU = Math.PI * 2;
 // the walk clip's footfalls (where each foot is front-most), as a share of its cycle: front right, front left,
 // hind right, hind left (measured from data/beast-clips-shiba.json and -fox.json, the same Quaternius timing)
 const FOOT = { fr: 0, fl: 0.55, hr: 0.9, hl: 0.35 };
+export { legRig };
 // each leg's bones and its footfall
 const LEGS = [
   { up: 'leg0', low: 'leg0k', foot: 'fr' }, { up: 'leg1', low: 'leg1k', foot: 'fl' },
@@ -57,25 +58,34 @@ function legRig(r) {
  * lifted in an arc (height: liftHeight of the leg) and set down a stride ahead. A two-bone solve in the leg's
  * own plane turns the hip and knee to reach it; the result is blended over the clip's legs by w.
  */
-export function plantFeet(r, w, ph, liftHeight) {
+export function plantFeet(r, w, ph, liftHeight, g = null) {
   if (w < 0.01 || !r.beast) return;
-  const C = r.beast.stride || 0.6, legs = legRig(r);
+  // g (optional, the procedural walk, beast-walk.js): its stride, its share on the ground and each foot's footfall
+  const C = g?.stride ?? (r.beast.stride || 0.6), duty = g?.duty ?? DUTY, foot = g?.feet ?? FOOT, legs = legRig(r);
   // A walking beast sinks a little at the hips: standing, these short legs are almost straight, so a foot planted
   // half a stroke ahead or behind is out of reach and gets dragged (measured: the front feet slid 0.7 m/s). The
   // drop is what the shortest-reaching leg needs to cover half a stroke, eased in with w.
   let drop = 0;
   for (const L of legs) {
-    const R = (L.L1 + L.L2) * 0.98, half = (C * DUTY) / 2 * 1.05;
+    // (to 88% of the leg's length: near full stretch a two-bone solve turns the knee wildly for a tiny change in
+    // reach, and the legs twitched - measured per frame, 2026-11-04)
+    const R = (L.L1 + L.L2) * 0.88, half = (C * duty) / 2 * 1.05;
     if (R > half) drop = Math.max(drop, L.hip.y - Math.sqrt(R * R - half * half));
   }
-  if (r.bones.body) r.bones.body.position.y -= Math.max(0, drop) * w;
+  if (r.bones.body) r.bones.body.position.y -= Math.min(Math.max(0, drop), legs[0] ? legs[0].hip.y * 0.3 : 0) * w;
   r.root.updateWorldMatrix(true, false);
   for (const L of legs) {
     const up = r.bones[L.up], low = r.bones[L.low], parent = up.parent;
-    const u = (((ph - FOOT[L.foot]) % 1) + 1) % 1;
+    const u = (((ph - foot[L.foot]) % 1) + 1) % 1;
     let z, y;
-    if (u < DUTY) { z = C * DUTY * (0.5 - u / DUTY); y = 0; }
-    else { const s = (u - DUTY) / (1 - DUTY), e = s * s * (3 - 2 * s); z = C * DUTY * (e - 0.5); y = Math.sin(Math.PI * s) * liftHeight * (L.L1 + L.L2); }
+    if (u < duty) { z = C * duty * (0.5 - u / duty); y = 0; }
+    else {
+      // the swing: a cubic that leaves and lands moving back as fast as the ground (no kink at lift-off or
+      // touchdown, so no jerk in the leg) and an arc that rises and settles smoothly
+      const s = (u - duty) / (1 - duty), s2 = s * s, s3 = s2 * s, m = -(C / duty) * (1 - duty), z0 = -C * duty / 2;
+      z = (2 * s3 - 3 * s2 + 1) * z0 + (s3 - 2 * s2 + s) * m + (-2 * s3 + 3 * s2) * -z0 + (s3 - s2) * m;
+      y = Math.sin(Math.PI * s) ** 2 * liftHeight * (L.L1 + L.L2);
+    }
     // the target in the leg's parent's space, relative to the hip
     _t.set(L.hip.x, y, L.hip.z + z);
     parent.updateWorldMatrix(true, false); // it and its parents were just posed
@@ -84,12 +94,15 @@ export function plantFeet(r, w, ph, liftHeight) {
     // the hip first leans the leg's plane out or in to the foot (the spine's swing turns the hips under it; left
     // out, the planted feet slid sideways), then the hip and knee bend in that plane
     const lean = Math.atan2(_t.x, -_t.y), vz = _t.z, vy = -Math.hypot(_t.x, _t.y);
-    const d = Math.max(Math.abs(L.L1 - L.L2) + 1e-3, Math.min(L.L1 + L.L2 - 1e-3, Math.hypot(vz, vy)));
+    // soft reach: past 85% of the leg's length the reach eases toward 97% instead of running into the straight leg
+    const R = L.L1 + L.L2, raw = Math.hypot(vz, vy), ds = 0.85 * R, top = 0.97 * R;
+    const soft = raw <= ds ? raw : ds + (top - ds) * (1 - Math.exp(-(raw - ds) / (top - ds)));
+    const d = Math.max(Math.abs(L.L1 - L.L2) + 1e-3, soft);
     const phi = Math.atan2(vz, -vy), A = Math.acos(Math.max(-1, Math.min(1, (L.L1 * L.L1 + d * d - L.L2 * L.L2) / (2 * L.L1 * d))));
     const upper = phi + L.bend * A;
     // the knee, and the lower leg's angle from it to the foot
     const kz = Math.sin(upper) * L.L1, ky = -Math.cos(upper) * L.L1;
-    const lower = Math.atan2(vz * (d / Math.max(1e-6, Math.hypot(vz, vy))) - kz, -(vy * (d / Math.max(1e-6, Math.hypot(vz, vy))) - ky));
+    const lower = Math.atan2(vz * (d / Math.max(1e-6, raw)) - kz, -(vy * (d / Math.max(1e-6, raw)) - ky));
     // a turn of t about x points straight down to the angle -t (toward -z), so: hip = a0 - upper; knee follows
     const t1 = L.a0 - upper;
     _qa.setFromAxisAngle(_z, lean).multiply(_qb.setFromAxisAngle(_x, t1)); up.quaternion.slerp(_qa, w);

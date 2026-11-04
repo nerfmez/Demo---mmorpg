@@ -145,6 +145,14 @@ session's network, so these come from search summaries of the cited pages.
   clip's legs. The hips sink a little while walking so the planted feet stay in reach. The body faces its path
   fully while circling. No more trunk folding (shoulder/hip pitch dips) or belly squash. After (tanuki circling):
   feet lift 13-16 cm, planted feet slide 0.2-0.35 m/s (from 0.7-1.65), trunk smooth.
+- **Walks, round 8** (2026-11-04, owner: "change the walk - four legs, all new"): the tanuki and pangolin no
+  longer play the borrowed dog walk at all (`animBeast` `procedural`); `render/beast-walk.js` builds their walk:
+  a lateral-sequence walk (hind left, fore left, hind right, fore right; feet down 58% of the cycle) easing into a
+  diagonal trot when the tanuki hurries; cadence and stride grow with speed; planted feet and lifted steps
+  (`plantFeet`, now with a swing that leaves and lands at ground speed, a soft reach short of a straight leg, and a
+  deeper hip sink); a waddle (roll toward the bearing legs, a sink at each pair of footfalls, a slight twist and
+  lean), the head level against the roll and nodding late, the tail swinging late. The head's turn toward its prey
+  is eased (it snapped across when the prey passed behind). The fox keeps its clip walk.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

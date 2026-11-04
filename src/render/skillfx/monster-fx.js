@@ -487,8 +487,9 @@ export class MonsterFx {
       const y = this.host.groundAt?.(a.x, a.z) ?? 0, life = (a.maxRadius - a.radius) / a.growth, last = !!a.knock;
       this.call.ring(a.x, y + 0.1, a.z, a.maxRadius, DRUM, life + 0.1);
       this.call.ring(a.x, y + 0.06, a.z, a.maxRadius * 0.82, DRUM, life + 0.18, 0.08);
-      const dust = this.host.vfx?.dust, n = last ? 16 : 11;
-      if (dust) for (let i = 0; i < n; i++) { const ang = (i / n) * 6.283 + a.beat; dust.add(a.x + Math.sin(ang) * 0.7, y + 0.15, a.z + Math.cos(ang) * 0.7, Math.sin(ang) * a.growth, 0.3, Math.cos(ang) * a.growth, { color: 0xc8b088, size: 0.35, sizeEnd: 0.9, life: life * 0.9, drag: 0.2 }); }
+      // (few, soft and faint: a crowd of dust dots read as spots on the sand)
+      const dust = this.host.vfx?.dust, n = last ? 9 : 6;
+      if (dust) for (let i = 0; i < n; i++) { const ang = (i / n) * 6.283 + a.beat; dust.add(a.x + Math.sin(ang) * 0.7, y + 0.15, a.z + Math.cos(ang) * 0.7, Math.sin(ang) * a.growth, 0.3, Math.cos(ang) * a.growth, { color: 0xd8c49c, size: 0.5, sizeEnd: 1.3, life: life * 0.6, drag: 0.2, alpha: 0.45 }); }
       const belly = this.bonePos(a.sourceId, 'chest', _w);
       if (belly) {
         this.companion.axes();

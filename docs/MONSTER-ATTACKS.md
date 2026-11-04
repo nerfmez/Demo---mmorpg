@@ -118,6 +118,14 @@ session's network, so these come from search summaries of the cited pages.
   Fixed in both places: `strafe` keeps its choice until it is 0.4 m past an edge (tested: 85 changes in 5 s
   before, at most 2 after), and the view drives the body turn, gait and backwards walk from a velocity eased
   over a fifth of a second, turns the body at most 70 degrees off the facing, and eases between gaits.
+- **Walks, round 5** (2026-11-04, owner: "it still stutters - did you really check?"): I had checked numbers at a
+  fixed step, not what is drawn. Now measured on the real game loop under a controlled clock, every drawn frame:
+  the monster on screen, the camera, each bone. Causes found: the sandbox warped the monster beside the hero (and
+  snapped the camera) every round, a 30 px jump on screen every few seconds; attack offsets snapped back in one
+  frame (a foreleg 75 degrees); the head-watch and follow-through cut off as an attack began. Fixed: the sandbox
+  lets the monster walk (or circle out) to its next attack and the camera glides; attack offsets and the body's
+  turn follow critically damped springs; the head-watch and follow-through fade with the attack pose. After:
+  walking, the largest frame-to-frame change on screen is under 3 px with no jumps.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

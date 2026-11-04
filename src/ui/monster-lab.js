@@ -64,8 +64,35 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
     const m = game.spawnMinion(lab.type, level, p.x + Math.sin(ang) * 5, p.z + Math.cos(ang) * 5);
     game.monsters = [m];
     lab.m = m;
-    lab.attack = lab.attack && def.attacks[lab.attack] ? lab.attack : Object.keys(def.attacks)[0];
+    // first shown: an attack it can come round to on its own (one at its back has to be set up every time)
+    const own = Object.keys(def.attacks).find((k) => !def.attacks[k].use?.behind) || Object.keys(def.attacks)[0];
+    lab.attack = lab.attack && def.attacks[lab.attack] ? lab.attack : own;
     lab.cool = 0.8;
+  };
+
+  // ready the monster for another go: alive, hurt enough for an attack kept for a hurt monster (use.hpBelow), a
+  // once-a-fight attack allowed again, old doubles gone
+  const refresh = () => {
+    const m = lab.m, u = m.def.attacks[lab.attack].use || {};
+    if (m.dead || m.hp < m.maxHp * 0.2) Object.assign(m, { dead: false, hp: m.maxHp });
+    if (u.hpBelow) m.hp = Math.min(m.hp, m.maxHp * u.hpBelow * 0.8);
+    m.used = null;
+    for (const o of game.monsters) if (o.illusion && !o.dead) game.killMonster(o);
+    Object.assign(m, { aggro: true, targetUnit: p });
+  };
+  // Each new go: if the monster can get to where the attack starts on its own feet, it walks there - the sandbox
+  // no longer moves it (owner, 2026-11-04: the walk "still stutters"; it was this jump, every few seconds, with
+  // the camera). Only an attack at its back (use.behind) or one it is too close to start puts it in place.
+  // Returns false while a monster that circles is still backing off to where the attack can start (it walks
+  // there on its own, for up to 3 s).
+  const again = (dt) => {
+    const m = lab.m, atk = m.def.attacks[lab.attack], u = atk.use || {}, lo = u.min ?? atk.minRange ?? 0;
+    const gap = Math.hypot(m.x - p.x, m.z - p.z) - m.r - p.r;
+    if (!m.dead && !u.behind && gap < lo && m.def.kit?.circle && (lab.wait = (lab.wait || 0) + dt) < 3) { refresh(); return false; }
+    lab.wait = 0;
+    if (m.dead || u.behind || gap < lo || gap > 14) arrange();
+    else refresh();
+    return true;
   };
 
   // put the monster at the attack's distance from the hero, facing them, ready to use only that attack
@@ -82,16 +109,9 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
       if (game.world.isFree(tx, tz, m.r) && !game.isSafe(tx, tz)) { x = tx; z = tz; break; }
     }
     // an attack at what is behind it (use.behind) gets the monster's back to the hero
-    Object.assign(m, { x, z, homeX: x, homeZ: z, facing: Math.atan2(p.x - x, p.z - z) + (u.behind ? Math.PI : 0), aggro: true, state: 'chase', stateT: 0, windup: null, charge: null, melee: null, targetUnit: p });
-    if (m.dead || m.hp < m.maxHp * 0.2) Object.assign(m, { dead: false, hp: m.maxHp });
-    // an attack kept for a hurt monster (use.hpBelow) gets it hurt; a once-a-fight one may go again; old doubles go
-    if (u.hpBelow) m.hp = Math.min(m.hp, m.maxHp * u.hpBelow * 0.8);
-    m.used = null;
-    for (const o of game.monsters) if (o.illusion && !o.dead) game.killMonster(o);
-    // the camera goes straight to the middle of the two
-    view.focusShift ||= { x: 0, z: 0 };
-    view.focusShift.x = (x - p.x) * 0.5; view.focusShift.z = (z - p.z) * 0.5;
-    view.camTarget.x = p.x + view.focusShift.x; view.camTarget.z = p.z + view.focusShift.z;
+    Object.assign(m, { x, z, homeX: x, homeZ: z, facing: Math.atan2(p.x - x, p.z - z) + (u.behind ? Math.PI : 0), state: 'chase', stateT: 0, windup: null, charge: null, melee: null });
+    refresh();
+    // the camera glides to the middle of the two (tick keeps focusShift there), it does not jump
   };
 
   // --- the bar ---
@@ -163,7 +183,8 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
         for (const k in m.cd) if (k !== lab.attack) m.cd[k] = 99;
         if (m.state === 'chase' || m.state === 'idle') {
           lab.cool -= dt;
-          if (lab.cool <= 0) { if (lab.auto) arrange(); m.cd[lab.attack] = 0; lab.cool = 1.2; }
+          // (not ready yet: the chosen attack stays cooling a moment longer, so the monster circles out to its band)
+          if (lab.cool <= 0) { if (!lab.auto || again(dt)) { m.cd[lab.attack] = 0; lab.cool = 1.2; } else m.cd[lab.attack] = 0.7; }
           else m.cd[lab.attack] = Math.max(m.cd[lab.attack], 0.05);
         }
       }

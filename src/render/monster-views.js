@@ -93,8 +93,17 @@ export function syncMonsterViews(view, dt, time) {
     }
     let d = want - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
-    r.root.rotation.y += d * Math.min(1, dt * rate);
-    mv.turn = damp(mv.turn, dt > 0 ? (d * Math.min(1, dt * 12)) / dt : 0, 6, dt);
+    if (r.faceMove && dt > 0) {
+      // a walking beast turns with a critically damped follow: it eases into and out of every turn, so a change
+      // between walking its path and facing to attack is never a flick (measured per drawn frame, 2026-11-04)
+      const w = 9, step = Math.min(dt, 0.05);
+      mv.yawV = ((mv.yawV || 0) + w * w * d * step) / (1 + 2 * w * step);
+      r.root.rotation.y += mv.yawV * step;
+      mv.turn = damp(mv.turn, mv.yawV, 6, dt);
+    } else {
+      r.root.rotation.y += d * Math.min(1, dt * rate);
+      mv.turn = damp(mv.turn, dt > 0 ? (d * Math.min(1, dt * 12)) / dt : 0, 6, dt);
+    }
     const gy = r.flyer || m.def.hover ? view.world.surfaceY(m.x, m.z) : view.world.groundY(m.x, m.z);
     mv.y = gy > mv.y ? damp(mv.y, gy, 20, dt) : damp(mv.y, gy, 12, dt);
     mv.kx = damp(mv.kx || 0, 0, 14, dt);

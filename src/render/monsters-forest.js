@@ -66,8 +66,19 @@ function buildLeafFox() {
 /** Turn bone b by Euler (x, y, z) on top of its pose. */
 const nudge = (b, x, y, z) => { _q.setFromEuler(_e.set(x, y, z)); b.quaternion.multiply(_q); };
 // how much it is walking (0..1, eased in and out) and where it is in its step cycle (radians)
+// an attack's offset eased toward its value (about 0.05 s), so a pose never snaps back in one frame when a state
+// ends (owner, 2026-11-04: "it stutters"; a foreleg used to jump 75 degrees in a frame as an attack ended)
+// (a critically damped follow, so it also starts moving smoothly rather than with a jump; quick into an attack's
+// pose so a strike stays sharp, gentler back out of it)
+function sm(r, key, v, dt) {
+  const e = (r.eased ||= {}), x = e[key] ?? v, vel = e[key + 'v'] || 0, w = Math.abs(v) < Math.abs(x) ? 16 : 34;
+  const step = Math.min(dt, 0.05), nv = (vel + w * w * (v - x) * step) / (1 + 2 * w * step); // implicit damping: stable
+  e[key + 'v'] = nv;
+  return (e[key] = x + nv * step);
+}
 // the head and neck turned toward its prey (state.lookYaw, from the body's facing), as when it circles it
-function watchPrey(b, s, pose) { if (!pose && s.lookYaw) { nudge(b.neck, 0, s.lookYaw * 0.55, 0); nudge(b.head, 0, s.lookYaw * 0.45, 0); } }
+// (k: how free it is of an attack's pose, eased, so the head does not snap round as an attack starts or ends)
+function watchPrey(b, s, k) { if (k > 0.001 && s.lookYaw) { nudge(b.neck, 0, s.lookYaw * 0.55 * k, 0); nudge(b.head, 0, s.lookYaw * 0.45 * k, 0); } }
 function walking(r, s, pose, dt) {
   const want = !pose && s.moving && s.state !== 'windup' ? clamp01((s.smoothSpeed ?? s.speed ?? 0) / 0.6) : 0;
   r.walkW = (r.walkW || 0) + (want - (r.walkW || 0)) * (1 - Math.exp(-dt * 10));
@@ -119,9 +130,12 @@ function animLeafFox(r, s, dt, time) {
   if (pose) Object.assign(P, { leap: 0 }, pose);
   s.pose = pose ? P : null;
   animBeast(r, s, dt, time, { set: FOX, stride: 2.0, gallopFrom: 3, gallopFull: 5, reverse: true });
-  watchPrey(r.bones, s, pose);
-  if (!pose) { const [w, ph] = walking(r, s, pose, dt); beastLife(r, s, dt, w, ph); } // spine swing, follow-through
+  const free = sm(r, 'free', pose ? 0 : 1, dt);
+  watchPrey(r.bones, s, free);
+  { const [w, ph] = walking(r, s, pose, dt); beastLife(r, s, dt, w, ph, { gain: free }); } // spine swing, follow-through
   const b = r.bones;
+  twist = sm(r, 'twist', twist, dt); tailSide = sm(r, 'tailSide', tailSide, dt); tailUp = sm(r, 'tailUp', tailUp, dt);
+  headUp = sm(r, 'headUp', headUp, dt); earPrick = sm(r, 'earPrick', earPrick, dt);
   if (twist) nudge(b.chest, 0, twist, 0);
   if (tailSide || tailUp) nudge(b.tail, tailUp, 0, tailSide);
   if (headUp) nudge(b.head, -headUp, Math.sin(time * 1.3) * 0.04 * earPrick, 0.12 * earPrick);
@@ -198,12 +212,14 @@ function animLeafTanuki(r, s, dt, time) {
   // sways a beat late.
   animBeast(r, s, dt, time, { set: SHIBA, stride: 1.9, gallopFrom: 1.5, gallopFull: 2.1, gallopStride: 1.7, rate: 1.1, rear: true, reverse: true });
   const b = r.bones;
-  watchPrey(b, s, pose);
+  const free = sm(r, 'free', pose ? 0 : 1, dt);
+  watchPrey(b, s, free);
   const [w, ph] = walking(r, s, pose, dt);
   // the spine swing, the footfall dips and the head and big tail following a beat late (beast-life.js); the
   // round belly bounces on the footfalls
-  if (!pose) beastLife(r, s, dt, w, ph, { spine: 1.1, dip: 1.2, head: 1.2, tail: 1.5 });
+  beastLife(r, s, dt, w, ph, { spine: 1.1, dip: 1.2, head: 1.2, tail: 1.5, gain: free });
   if (w > 0.01) belly *= 1 + 0.05 * w * Math.max(0, Math.cos(ph * 4 * Math.PI));
+  belly = sm(r, 'belly', belly, dt); arm = sm(r, 'arm', arm, dt); armSide = sm(r, 'armSide', armSide, dt); head = sm(r, 'head', head, dt);
   b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
   if (arm || armSide) { nudge(b.leg0, arm, 0, armSide); nudge(b.leg1, s.windup === 'boomerang' || s.lastAttack === 'boomerang' ? arm * 0.25 : arm, 0, -armSide); }
   if (head) nudge(b.head, head, 0, 0);
@@ -311,7 +327,8 @@ function animStonePangolin(r, s, dt, time) {
   // cycle as it sniffs, with the beat of the clip.
   animBeast(r, s, dt, time, { set: SHIBA, stride: 1.9, gallopFrom: 99, gallopFull: 100, rate: 0.85, reverse: true });
   const b = r.bones;
-  watchPrey(b, s, pose);
+  const free = sm(r, 'free', pose ? 0 : 1, dt);
+  watchPrey(b, s, free);
   const [w, ph] = walking(r, s, pose, dt);
   if (w > 0.01) {
     nudge(b.body, 0.05 * w, 0, 0);
@@ -322,7 +339,9 @@ function animStonePangolin(r, s, dt, time) {
     nudge(b.leg0k, 0.6 * w, 0, 0); nudge(b.leg1k, 0.6 * w, 0, 0);
   }
   // heavy: a slower spine swing, deeper dips on each footfall, the head and armoured tail following late
-  if (!pose) beastLife(r, s, dt, w, ph, { spine: 0.8, dip: 1.5, head: 1.0, tail: 0.8 });
+  beastLife(r, s, dt, w, ph, { spine: 0.8, dip: 1.5, head: 1.0, tail: 0.8, gain: free });
+  rear = sm(r, 'rear', rear, dt); claw = sm(r, 'claw', claw, dt); clawA = sm(r, 'clawA', clawA, dt); clawB = sm(r, 'clawB', clawB, dt);
+  look = sm(r, 'look', look, dt); tailSwing = sm(r, 'tailSwing', tailSwing, dt); curl = sm(r, 'curl', curl, dt);
   if (rear) nudge(b.body, -rear, 0, 0);
   if (claw) { nudge(b.leg0, claw, 0, -0.2); nudge(b.leg1, claw, 0, 0.2); }
   if (clawA || clawB) { nudge(b.leg0, clawA, 0, -0.3 * (1 - clawA)); nudge(b.leg1, clawB, 0, 0.3 * (1 - clawB)); }

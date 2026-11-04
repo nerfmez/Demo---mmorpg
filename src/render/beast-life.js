@@ -50,10 +50,12 @@ export function beastLife(r, s, dt, w, ph, o = {}) {
   const bv = (bounce - prevB) / dt; // the trunk going down (+) or up (-)
   const nod = spring(st, 'nod', 0.05 * bv * (o.head ?? 1), dt, 70, 0.4);
   const look = spring(st, 'look', -0.08 * turn * (o.head ?? 1), dt, 60, 0.5);
-  nudge(b.neck, clamp(nod * 0.6), clamp(look * 0.5), 0);
-  nudge(b.head, clamp(nod * 0.5), clamp(look * 0.5), 0);
+  // (o.gain: eased to 0 while an attack poses the body, so the follow-through fades in and out with it)
+  const g = o.gain ?? 1;
+  nudge(b.neck, clamp(nod * 0.6) * g, clamp(look * 0.5) * g, 0);
+  nudge(b.head, clamp(nod * 0.5) * g, clamp(look * 0.5) * g, 0);
   const tailSway = spring(st, 'tail', (0.22 * hp * w + 0.12 * turn) * (o.tail ?? 1), dt, 45, 0.35);
   const tailLift = spring(st, 'tailUp', -0.06 * bv * (o.tail ?? 1), dt, 55, 0.4);
-  nudge(b.tail, clamp(tailLift), clamp(tailSway), 0);
+  nudge(b.tail, clamp(tailLift) * g, clamp(tailSway) * g, 0);
 }
 const clamp = (x) => Math.max(-0.6, Math.min(0.6, x));

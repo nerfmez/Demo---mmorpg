@@ -71,5 +71,18 @@
     "ripple": 0.07,
     "slosh": 0.08,
     "hitKick": 2.6
+  },
+  "styles": {
+    "_doc": "Walk choices the monster sandbox offers per type (motionStyle; the lab's walk mode switches between them). Each overrides the type's tuning. hop (m) bounces the body off each pair of footfalls with a squash on landing (squash); headRoll keeps the head level against the roll; headSwing swings it from side to side; upright (rad) walks on the hind legs only (legs 2 and 3 take walk[0..1]) with upLift, the forepaws tucked (tuck) and the tail down (tailDown).",
+    "leaf_tanuki": {
+      "quad": { "nameTh": "แบบมอนเก่า" },
+      "hop": { "nameTh": "เหยาะเด้ง", "walk": [0, 0.5, 0.5, 0], "run": [0, 0.5, 0.5, 0], "duty": 0.42, "runDuty": 0.38, "swing": 0.8, "runSwing": 0.9, "knee": 1.6, "legLength": 0.3, "hop": 0.14, "squash": 0.16, "bob": 0, "roll": 0.03, "pitch": 0.06, "sway": 0.02 },
+      "waddle": { "nameTh": "เดินต้วมเตี้ยม", "swing": 0.5, "knee": 1.2, "duty": 0.62, "legLength": 0.36, "roll": 0.3, "headRoll": 0.85, "bob": 0.03, "sway": 0, "pitch": 0.02 }
+    },
+    "stone_pangolin": {
+      "quad": { "nameTh": "แบบมอนเก่า" },
+      "heavy": { "nameTh": "เดินหนักโยก", "swing": 0.45, "knee": 1.6, "duty": 0.68, "legLength": 0.3, "roll": 0.26, "headRoll": 0.6, "headSwing": 0.35, "bob": 0.03, "sway": 0.1, "pitch": 0.03 },
+      "biped": { "nameTh": "เดินสองขาหลัง", "upright": 0.9, "upLift": 0.05, "tuck": 1.0, "tailDown": -0.6, "walk": [0, 0.5, 0, 0.5], "run": [0, 0.5, 0, 0.5], "swing": 0.5, "knee": 1.0, "duty": 0.6, "legLength": 0.3, "roll": 0.1, "headRoll": 0.6, "bob": 0.03 }
+    }
   }
 }

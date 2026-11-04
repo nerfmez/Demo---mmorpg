@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { data } from './helpers.js';
-import { motionConfig, advanceGait, legCycle, gaitOffsets } from '../../src/render/monster-motion.js';
+import { motionConfig, motionStyle, advanceGait, legCycle, gaitOffsets } from '../../src/render/monster-motion.js';
 
 const MOTION = JSON.parse(readFileSync(new URL('../../data/monster-motion.json', import.meta.url), 'utf8'));
 const MONSTERS = data.monsters.monsters;
@@ -67,4 +67,25 @@ test('standing still settles the gait; backing away runs the cycle backwards', (
   const lab = { baseScale: 1 };
   for (let i = 0; i < 60; i++) advanceGait(lab, { moving: true, speedFactor: 1 }, 1 / 60, c);
   assert.ok(lab.walkW > 0.9 && lab.phase > 0);
+});
+
+test('walk styles (the monster sandbox walk choices) are named and keep the feet planted at the monster speed', () => {
+  for (const [type, styles] of Object.entries(MOTION.styles)) {
+    if (type === '_doc') continue;
+    assert.ok(MONSTERS[type], `${type} is a real monster`);
+    for (const [id, st] of Object.entries(styles)) {
+      assert.ok(st.nameTh, `${type}/${id} has a Thai name for its chip`);
+      const c = motionStyle(MOTION, type, id);
+      assert.equal(c.walk.length, 4, `${type}/${id}`);
+      assert.equal(c.run.length, 4, `${type}/${id}`);
+      assert.ok(c.duty > 0.3 && c.duty < 0.8 && c.runDuty > 0.3 && c.runDuty < 0.8, `${type}/${id}: stance share`);
+      const r = { baseScale: 1.1 }, v = MONSTERS[type].speed;
+      for (let i = 0; i < 300; i++) advanceGait(r, { speed: v, vFwd: v }, 1 / 60, c);
+      const p0 = r.phase;
+      advanceGait(r, { speed: v, vFwd: v }, 1 / 60, c);
+      assert.ok((r.phase - p0) * 60 < c.maxRate, `${type}/${id}: cadence not capped at its own speed`);
+    }
+  }
+  // an unknown style is the type's own tuning
+  assert.equal(motionStyle(MOTION, 'leaf_tanuki', 'nope'), motionConfig(MOTION, 'leaf_tanuki'));
 });

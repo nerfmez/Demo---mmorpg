@@ -3,8 +3,12 @@
 // strike and effect can be reviewed on the iPad from the game camera. Pause, slow motion and a frame step
 // drive the game's clock (main.js asks tick(dt) for the step to run). Nothing here is saved.
 import './monster-lab.css';
+import MOTION from '../../data/monster-motion.json';
+import { motionStyle } from '../render/monster-motion.js';
 
 const SPEEDS = [1, 0.5, 0.25];
+// the walk mode's path: across in front of the hero (toward the camera), this far either side of them
+const WALK_HALF = 2.6, WALK_FRONT = 1.6;
 
 /**
  * The arena (?arena=1): a rules world made flat, open ground - no height, water, rocks, walls or safe town - to match
@@ -55,7 +59,9 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
   Object.assign(p, { x: sx, z: sz });
   view.snapCamera();
   game.spawnPoints = []; // only the monster under review
-  const lab = { type, attack: null, m: null, speed: 0, paused: false, step: false, cool: 0.6, auto: true };
+  const lab = { type, attack: null, m: null, speed: 0, paused: false, step: false, cool: 0.6, auto: true, walk: null, style: null, leg: 1 };
+  // walk choices for this type (data/monster-motion.json styles), the first being the game's own
+  const stylesOf = (t) => Object.keys(MOTION.styles?.[t] || {}).filter((k) => k !== '_doc');
 
   const spawn = () => {
     const def = defs[lab.type];
@@ -68,6 +74,27 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
     const own = Object.keys(def.attacks).find((k) => !def.attacks[k].use?.behind) || Object.keys(def.attacks)[0];
     lab.attack = lab.attack && def.attacks[lab.attack] ? lab.attack : own;
     lab.cool = 0.8;
+    if (!stylesOf(lab.type).includes(lab.style)) lab.style = stylesOf(lab.type)[0] || null;
+    if (lab.walk) startWalk(lab.walk);
+  };
+
+  // The walk mode (owner, 2026-11-04: the walks are judged on their own): no attacks; the monster walks across in
+  // front of the hero and back, side on to the camera, at its strolling pace ('walk', as it wanders) or its
+  // chasing pace ('run'). It is put on a copy of its type that never takes notice of the hero.
+  const startWalk = (mode) => {
+    const m = lab.m, base = defs[lab.type];
+    lab.walk = mode;
+    m.def = { ...base, aggroRange: 0, speed: mode === 'run' ? base.speed / 0.45 : base.speed };
+    // from the left end, already facing along the path (the first lap is the same as the rest)
+    Object.assign(m, { x: p.x - WALK_HALF, z: p.z + WALK_FRONT, facing: Math.PI / 2, aggro: false, targetUnit: null, state: 'idle', stateT: 0, windup: null, charge: null, melee: null, wanderTo: null, wanderT: 99 });
+    lab.leg = -1;
+  };
+  const stopWalk = () => {
+    if (!lab.walk) return;
+    lab.walk = null;
+    lab.m.def = defs[lab.type];
+    lab.cool = 0.6;
+    arrange();
   };
 
   // ready the monster for another go: alive, hurt enough for an attack kept for a hurt monster (use.hpBelow), a
@@ -133,6 +160,8 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
   head.append(note, pick);
   const chips = document.createElement('div');
   chips.className = 'ml-attacks';
+  const walkRow = document.createElement('div');
+  walkRow.className = 'ml-attacks ml-walk';
   const tools = document.createElement('div');
   tools.className = 'ml-tools';
   const btn = (label, fn, aria) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if (aria) b.setAttribute('aria-label', aria); b.addEventListener('click', (e) => { e.stopPropagation(); fn(b); }); tools.append(b); return b; };
@@ -141,7 +170,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
   const stepB = btn('ทีละเฟรม', () => { lab.paused = true; lab.step = true; sync(); });
   btn('อีกครั้ง', () => { lab.cool = 0; arrange(); });
   const zoomB = btn('ซูม', () => { view.zoom = view.zoom < 1 ? 1 : 0.5; zoomB.classList.toggle('on', view.zoom < 1); });
-  bar.append(head, chips, tools);
+  bar.append(head, chips, walkRow, tools);
   for (const ev of ['pointerdown', 'touchstart']) bar.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
 
   const renderChips = () => {
@@ -150,17 +179,33 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
       const c = document.createElement('button');
       c.type = 'button';
       c.textContent = a.nameTh || id;
-      c.classList.toggle('on', id === lab.attack);
-      c.addEventListener('click', (e) => { e.stopPropagation(); lab.attack = id; lab.cool = 0; renderChips(); arrange(); });
+      c.classList.toggle('on', !lab.walk && id === lab.attack);
+      c.addEventListener('click', (e) => { e.stopPropagation(); lab.attack = id; lab.cool = 0; if (lab.walk) stopWalk(); else arrange(); renderChips(); });
       chips.append(c);
     }
+    renderWalk();
+  };
+  // walk / run (the walk mode) and the walk choices, when the type has some
+  const renderWalk = () => {
+    walkRow.textContent = '';
+    const chip = (label, on, fn) => {
+      const c = document.createElement('button');
+      c.type = 'button';
+      c.textContent = label;
+      c.classList.toggle('on', on);
+      c.addEventListener('click', (e) => { e.stopPropagation(); fn(); renderChips(); });
+      walkRow.append(c);
+    };
+    chip('เดิน', lab.walk === 'walk', () => (lab.walk === 'walk' ? stopWalk() : startWalk('walk')));
+    chip('วิ่ง', lab.walk === 'run', () => (lab.walk === 'run' ? stopWalk() : startWalk('run')));
+    for (const st of stylesOf(lab.type)) chip('ท่า: ' + (MOTION.styles[lab.type][st].nameTh || st), st === lab.style, () => { lab.style = st; });
   };
   const sync = () => {
     playB.textContent = lab.paused ? 'เล่น' : 'หยุด';
     speedB.textContent = '×' + SPEEDS[lab.speed];
     stepB.disabled = !lab.paused && false;
   };
-  pick.addEventListener('change', () => { input.reset(); lab.type = pick.value; lab.attack = null; spawn(); renderChips(); });
+  pick.addEventListener('change', () => { input.reset(); lab.type = pick.value; lab.attack = null; lab.walk = null; spawn(); renderChips(); });
   root.append(bar);
   spawn();
   renderChips();
@@ -175,10 +220,21 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
       p.hp = p.maxHp;
       p.dead = false;
       const m = lab.m;
-      // the camera frames the hero and the monster together
-      if (m) { view.focusShift ||= { x: 0, z: 0 }; view.focusShift.x = (m.x - p.x) * 0.5; view.focusShift.z = (m.z - p.z) * 0.5; }
+      // the camera frames the hero and the monster together (walking, it holds still while the monster crosses)
+      view.focusShift ||= { x: 0, z: 0 };
+      if (m && lab.walk) { view.focusShift.x = 0; view.focusShift.z = WALK_FRONT * 0.25; }
+      else if (m) { view.focusShift.x = (m.x - p.x) * 0.5; view.focusShift.z = (m.z - p.z) * 0.5; }
+      // the chosen walk on its rig (rigs are pooled and posed by the view; this only swaps the walk's tuning)
+      const mv = m && lab.style && view.monsterViews?.get(m.id);
+      if (mv && mv.rig.labStyle !== lab.style) { mv.rig.motion = motionStyle(MOTION, lab.type, lab.style); mv.rig.labStyle = lab.style; }
       if (!m || m.dead) { if (m?.dead && m.deathT > 1.2) spawn(); }
-      else {
+      else if (lab.walk) {
+        // across in front of the hero and back: a new end each time it gets there
+        for (const k in m.cd) m.cd[k] = 99;
+        Object.assign(m, { aggro: false, targetUnit: null, wanderT: 99 });
+        if (m.state !== 'idle') Object.assign(m, { state: 'idle', stateT: 0, windup: null });
+        if (!m.wanderTo) { lab.leg = -lab.leg; m.wanderTo = { x: p.x + lab.leg * WALK_HALF, z: p.z + WALK_FRONT }; }
+      } else {
         // only the chosen attack is ever ready; after it ends, a short pause, then it goes again
         for (const k in m.cd) if (k !== lab.attack) m.cd[k] = 99;
         if (m.state === 'chase' || m.state === 'idle') {

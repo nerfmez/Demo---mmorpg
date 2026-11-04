@@ -87,29 +87,43 @@ const clampAbs = (x, m) => Math.max(-m, Math.min(m, x));
  * looking about. Every bone starts from its rest pose each frame, so the attack offsets laid on after it never
  * accumulate. No CC0 dog clip, no foot solving: those rounds looked worse to the owner.
  */
+const HIND = ['leg2', 'leg3'];
 function quadWalk(r, s, dt, time) {
   const b = r.bones, c = r.motion;
   for (const n in b) { const o = b[n]; if (o !== r.root && o.userData.rest) o.rotation.copy(o.userData.rest.rot); }
   const w = advanceGait(r, s, dt, c), ph = r.phase, run = r.runK;
-  const drop = poseLegs(r, c, r.legs);
   const busy = !!(s.windup || s.state === 'act' || s.state === 'stunned');
+  const P = r.qpose || (r.qpose = { headY: 0, bodyZ: 0, up: 0 });
+  // a walk style up on its hind legs (c.upright: the ground pangolin's), down on all fours to attack
+  P.up = damp(P.up, busy ? 0 : c.upright || 0, 6, dt);
+  const drop = poseLegs(r, c, c.upright ? HIND : r.legs);
   const rock = c.pitch * w * ((1 - run) * Math.sin(2 * ph) + run * 2.5 * Math.sin(ph + 0.8));
   const bob = c.bob * w * (1 + run) * (0.5 + 0.5 * Math.cos(2 * ph));
   const roll = c.roll * w * Math.sin(ph) * (1 - 0.6 * run);
-  const P = r.qpose || (r.qpose = { headY: 0, bodyZ: 0 });
+  // a hop (walk styles, c.hop): the body bounces off each pair of footfalls like a ball, squashing as it lands
+  const hop = (c.hop || 0) * w * Math.abs(Math.sin(ph)), land = (c.squash || 0) * w * Math.cos(ph) ** 8;
   P.bodyZ = damp(P.bodyZ, clampAbs(-(s.turn || 0) * 0.06 - (s.vSide || 0) * 0.025, 0.2), 10, dt);
   const rest = b.body.userData.rest.pos;
-  b.body.position.set(rest.x, rest.y + bob - drop, rest.z);
-  b.body.rotation.x = rock + c.lean * clampAbs(r.accel || 0, 5);
+  b.body.position.set(rest.x, rest.y + bob + hop - drop + (c.upLift || 0) * P.up, rest.z);
+  b.body.rotation.x = rock + c.lean * clampAbs(r.accel || 0, 5) - P.up;
   b.body.rotation.z = P.bodyZ + roll;
   if (b.chest) { b.chest.rotation.y = -c.sway * w * Math.sin(ph); b.chest.rotation.z = -roll * 0.6; }
   const idle = s.aggro || busy ? 0 : 1 - w;
   const look = s.lookYaw ? 0 : c.look * wander(time * 0.45, r.seed) * idle;
   P.headY = damp(P.headY, (s.lookYaw || 0) * 0.8 + look + clampAbs((s.turn || 0) * 0.12, 0.3), 6, dt);
-  b.head.rotation.x = Math.sin(time * 2 + r.seed) * 0.03 - 0.05 * w - rock * c.headSteady;
-  b.head.rotation.y = P.headY;
+  // the head kept level against the body's roll (c.headRoll) and swinging low from side to side (c.headSwing)
+  b.head.rotation.x = Math.sin(time * 2 + r.seed) * 0.03 - 0.05 * w - rock * c.headSteady + 0.75 * P.up;
+  b.head.rotation.y = P.headY + (c.headSwing || 0) * w * Math.sin(ph);
+  b.head.rotation.z = -roll * (c.headRoll || 0);
+  if (P.up > 0.001) {
+    // upright: the hind legs stay under it, the forepaws tucked to the chest, the tail down behind as a prop
+    const k = P.up / (c.upright || 1);
+    for (const n of HIND) b[n].rotation.x += P.up;
+    b.leg0.rotation.x -= (c.tuck || 0) * k; b.leg1.rotation.x -= (c.tuck || 0) * k;
+    if (b.tail) b.tail.rotation.x += (c.tailDown || 0) * k;
+  }
   const br = breath(time, r.seed, c) * (1 - 0.6 * w);
-  b.body.scale.set(1 + br, 1, 1 + br * 0.4);
+  b.body.scale.set(1 + br + 0.5 * land, 1 - land, 1 + br * 0.4 + 0.5 * land);
   if (b.tail) {
     r.tailSpring ||= new Spring(70, 7); r.tailLift ||= new Spring(60, 6);
     const wag = (s.windup ? 0.5 : 0) + Math.sin(time * (w > 0.5 ? 9 : 3.5) + r.seed) * (0.12 + 0.12 * w) + clampAbs((s.turn || 0) * 0.25, 0.4);
@@ -358,8 +372,9 @@ function animStonePangolin(r, s, dt, time) {
   b.ball.scale.setScalar(Math.max(0.001, ballK * (1 + 0.15 * Math.sin(ballK * Math.PI))));
   b.ball.rotation.set(r.spin, 0, wobble);
   b.ball.position.y = 0.5 + Math.abs(Math.sin(r.spin * 2)) * 0.04 * (roll ? 1 : 0);
-  // set every frame: the body comes back to full size the moment it uncurls
-  b.body.scale.setScalar(ballK > 0.5 ? 0.001 : 1);
+  // drawn in while it is the ball (quadWalk sets the body's scale afresh every frame, so it is back the moment
+  // it uncurls)
+  if (ballK > 0.5) b.body.scale.setScalar(0.001);
   if (ballK <= 0.5 && wobble) nudge(b.body, 0, 0, wobble);
   b.body.position.y += 0.08 * curl;
 }

@@ -19,6 +19,21 @@ export function motionConfig(motion, type) {
 }
 
 /**
+ * A walk style's tuning (data/monster-motion.json styles[type][style], for the monster sandbox's walk choices) on
+ * top of the type's own. An unknown style is the type's own tuning.
+ */
+export function motionStyle(motion, type, style) {
+  const st = motion.styles?.[type]?.[style];
+  if (!st) return motionConfig(motion, type);
+  let byType = cache.get(motion);
+  if (!byType) cache.set(motion, (byType = new Map()));
+  const key = `${type}~${style}`;
+  let c = byType.get(key);
+  if (!c) byType.set(key, (c = { ...motionConfig(motion, type), ...st }));
+  return c;
+}
+
+/**
  * Advance r.phase by the ground speed. s.speed (m/s) and s.vFwd come from the view; poses that
  * do not measure speed (the Skill Lab, allies) fall back to the old moving flag.
  * Sets r.speed (smoothed), r.walkW (0 standing .. 1 walking), r.runK (0 walk .. 1 run gait),

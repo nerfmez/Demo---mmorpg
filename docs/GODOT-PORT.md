@@ -569,12 +569,16 @@ Wide Spread and Far Reach share the `spread` family.
   The tanuki and pangolin use no clip: they walk on the old quadrupeds' gait (`monster-motion.js`
   `advanceGait`/`poseLegs`, tuned in `data/monster-motion.json`), like the boar and wolves, with their attack
   poses added on top; port them with that gait controller.
+  Walk styles (`styles` in `data/monster-motion.json`, `motionStyle`) override a type's tuning; quadWalk adds a hop
+  (|sin| of the cycle, squash at cos^8), the head kept level against the roll and swung from side to side, and an
+  upright walk on the hind legs only (body pitched by `upright`, hind legs turned back under it, forepaws tucked,
+  tail down; eased to all fours while it attacks). The monster sandbox swaps a rig's style for review only.
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`
   captures each attack frame by frame (`&bare=1` hides the map's scenery for a quick capture; `&arena=1` builds
   no map at all: a flat floor in the View and flat open rules worlds, `flattenWorld`, for the owner's quick page). `monsters.html`
-  lists the monsters and opens the sandbox on one. Attack buttons show an attack's `nameTh`. A review tool
+  lists the monsters and opens the sandbox on one. Attack buttons show an attack's `nameTh`. Its walk mode (เดิน / วิ่ง) puts the monster on a copy of its type that ignores the hero and walks it across in front of them and back (idle `wanderTo`), with the type's walk styles as chips. A review tool
   only: no save.
 
 ### Mid/high monsters (attack kinds and presentation)

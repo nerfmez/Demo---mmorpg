@@ -160,6 +160,17 @@ session's network, so these come from search summaries of the cited pages.
   rock, bob, roll and sway and the steady head from it, tuned per type in `data/monster-motion.json`
   (`leaf_tanuki`, `stone_pangolin`). Their attack poses (drum rear, claw rake, tail lash, curl and roll) sit on top
   as before. The fox is back on its approved clip walk.
+- **Walks, round 10** (2026-11-04, owner: "only the fox passes; the other two are no different"): seen from the game
+  camera next to the boar, the tanuki's and pangolin's legs are short and hidden under a round body, so every leg
+  system so far changed little that shows: the body slid along with paw tips peeking out. A walk has to read through
+  the body. The monster sandbox now has a walk mode (เดิน / วิ่ง: no attacks, the monster crosses in front of the
+  hero and back, side on, at its strolling or chasing pace) and walk choices per type (`styles` in
+  `data/monster-motion.json`) for the owner to pick from live: tanuki - the old monsters' walk, a bouncing trot
+  (เหยาะเด้ง: diagonal pairs, the body hopping 14 cm off each pair with a squash on landing) and a waddle
+  (เดินต้วมเตี้ยม: a 0.3 rad roll with the head kept level); pangolin - the old monsters' walk, a heavy rocking walk
+  (เดินหนักโยก: roll, the head swinging low, claws lifted high) and walking on its hind legs like a ground pangolin
+  (เดินสองขาหลัง: forepaws tucked, tail down; it drops to all fours to attack). The game keeps the first until the
+  owner picks.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

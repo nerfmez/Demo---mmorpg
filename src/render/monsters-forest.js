@@ -57,6 +57,7 @@ function buildLeafFox() {
   }
   const rig = rb.build();
   rig.height = 1.2;
+  rig.faceMove = true; // circling, its body turns along its path (monster-views.js)
   rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
   return rig;
 }
@@ -64,6 +65,8 @@ function buildLeafFox() {
 /** Turn bone b by Euler (x, y, z) on top of its pose. */
 const nudge = (b, x, y, z) => { _q.setFromEuler(_e.set(x, y, z)); b.quaternion.multiply(_q); };
 // how much it is walking (0..1, eased in and out) and where it is in its step cycle (radians)
+// the head and neck turned toward its prey (state.lookYaw, from the body's facing), as when it circles it
+function watchPrey(b, s, pose) { if (!pose && s.lookYaw) { nudge(b.neck, 0, s.lookYaw * 0.55, 0); nudge(b.head, 0, s.lookYaw * 0.45, 0); } }
 function walking(r, s, pose, dt) {
   const want = !pose && s.moving && s.state !== 'windup' ? clamp01((s.speed || 0) / 0.6) : 0;
   r.walkW = (r.walkW || 0) + (want - (r.walkW || 0)) * (1 - Math.exp(-dt * 10));
@@ -114,7 +117,8 @@ function animLeafFox(r, s, dt, time) {
   }
   if (pose) Object.assign(P, { leap: 0 }, pose);
   s.pose = pose ? P : null;
-  animBeast(r, s, dt, time, { set: FOX, stride: 2.0, gallopFrom: 3, gallopFull: 5 });
+  animBeast(r, s, dt, time, { set: FOX, stride: 2.0, gallopFrom: 3, gallopFull: 5, reverse: true });
+  watchPrey(r.bones, s, pose);
   const b = r.bones;
   if (twist) nudge(b.chest, 0, twist, 0);
   if (tailSide || tailUp) nudge(b.tail, tailUp, 0, tailSide);
@@ -147,6 +151,7 @@ function buildLeafTanuki() {
   const rig = rb.build();
   rig.height = 0.95;
   rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
+  rig.faceMove = true; // circling, its body turns along its path (monster-views.js)
   return rig;
 }
 
@@ -183,21 +188,19 @@ function animLeafTanuki(r, s, dt, time) {
   }
   if (pose) Object.assign(P, { leap: 0 }, pose);
   s.pose = pose ? P : null;
-  // (owner, 2026-11-04: "the walk is not good"): the dog clip's walk pattered its short legs five times a second
-  // and the round body slid along rigid. Now a bouncing trot (the clip's gallop at a short stride, under three
-  // steps a second when it hurries) with a chubby waddle laid over it.
-  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.0, gallopFrom: 1.3, gallopFull: 2.1, rate: 1.1, rear: true });
+  // The walk (owner, 2026-11-04: "the walk and its rhythm are very bad"). Circling its prey, the rules keep it
+  // facing the prey, so the forward walk slid sideways: now its body turns along its path (rig.faceMove,
+  // monster-views.js) and its head watches the prey; backing off, the walk runs backwards. Its feet stay planted:
+  // the clip's walk at its own stride (about 1.6 steps a second as it circles), a bounding run only when it
+  // hurries in. Over it only follow-through on the clip's own beat: the belly bounces on the footfalls, the tail
+  // sways a beat late.
+  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.9, gallopFrom: 1.5, gallopFull: 2.1, gallopStride: 1.7, rate: 1.1, rear: true, reverse: true });
   const b = r.bones;
+  watchPrey(b, s, pose);
   const [w, ph] = walking(r, s, pose, dt);
   if (w > 0.01) {
-    // the body rolls from side to side and bobs on each footfall, the belly squashing as it lands; the head nods
-    // against it and the big tail swings behind, a beat late
-    const roll = Math.sin(ph) * 0.14 * w, bob = Math.abs(Math.sin(ph)) * w;
-    nudge(b.body, -0.04 * w, 0, roll);
-    b.body.position.y += 0.035 * bob;
-    belly *= 1 + 0.05 * (1 - bob) * w;
-    nudge(b.head, Math.sin(ph * 2) * 0.09 * w, Math.sin(ph) * 0.12 * w, -roll * 0.7);
-    nudge(b.tail, 0.12 * w + Math.sin(ph * 2 - 0.6) * 0.06 * w, Math.sin(ph - 1.0) * 0.45 * w, 0);
+    belly *= 1 + 0.04 * w * Math.max(0, Math.cos(ph * 2));
+    nudge(b.tail, 0.08 * w, Math.sin(ph - 1.2) * 0.32 * w, 0);
   }
   b.chest.scale.set(belly, 1 / Math.sqrt(belly), belly);
   if (arm || armSide) { nudge(b.leg0, arm, 0, armSide); nudge(b.leg1, s.windup === 'boomerang' || s.lastAttack === 'boomerang' ? arm * 0.25 : arm, 0, -armSide); }
@@ -256,6 +259,7 @@ function buildStonePangolin() {
   }
   const rig = rb.build();
   rig.bones.ball.visible = false; // only while curled
+  rig.faceMove = true;
   rig.height = 0.85;
   rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
   rig.spin = 0;
@@ -298,22 +302,22 @@ function animStonePangolin(r, s, dt, time) {
   if (pose) Object.assign(P, { leap: 0 }, pose);
   s.pose = pose ? P : null;
   s.standT = 0;
-  // (owner, 2026-11-04: "the walk is not good"): the dog clip pattered six steps a second. A pangolin walks
-  // heavy and deliberate: a long, slow stride (the walk only, never a gallop), the back arched and the nose low,
-  // the head swinging side to side as it sniffs, the whole armoured body rocking, the front claws curled under so
-  // it walks on its knuckles, the tail held up off the ground and swaying against the body.
-  animBeast(r, s, dt, time, { set: SHIBA, stride: 2.6, gallopFrom: 99, gallopFull: 100, rate: 0.85 });
+  // The walk (owner, 2026-11-04: "the walk and its rhythm are very bad"): a long stride faster than its feet
+  // could step made them skate. Now it walks slowly (data speed 1.6: it closes in by rolling), its feet planted at
+  // the clip's own stride (about 2.5 steps a second); a heavy posture on top - the back arched and the nose low,
+  // the tail held up, the front claws curled under so it walks on its knuckles - and only the head swinging once a
+  // cycle as it sniffs, with the beat of the clip.
+  animBeast(r, s, dt, time, { set: SHIBA, stride: 1.9, gallopFrom: 99, gallopFull: 100, rate: 0.85, reverse: true });
   const b = r.bones;
+  watchPrey(b, s, pose);
   const [w, ph] = walking(r, s, pose, dt);
   if (w > 0.01) {
-    const rock = Math.sin(ph) * 0.1 * w;
-    nudge(b.body, 0.06 * w, Math.sin(ph) * 0.06 * w, rock);
-    b.body.position.y += Math.abs(Math.cos(ph)) * 0.025 * w;
-    nudge(b.chest, 0.1 * w, 0, -rock * 0.5);
-    nudge(b.neck, 0.12 * w, Math.sin(ph * 0.5) * 0.18 * w, 0);
-    nudge(b.head, 0.08 * w + Math.sin(ph * 2) * 0.05 * w, Math.sin(ph * 0.5 + 0.6) * 0.2 * w, 0);
-    nudge(b.tail, -0.22 * w, -Math.sin(ph) * 0.18 * w, 0);
-    nudge(b.leg0k, 0.7 * w, 0, 0); nudge(b.leg1k, 0.7 * w, 0, 0);
+    nudge(b.body, 0.05 * w, 0, 0);
+    nudge(b.chest, 0.08 * w, 0, 0);
+    nudge(b.neck, 0.1 * w, Math.sin(ph) * 0.1 * w, 0);
+    nudge(b.head, 0.06 * w, Math.sin(ph - 0.5) * 0.1 * w, 0);
+    nudge(b.tail, -0.2 * w, -Math.sin(ph - 0.8) * 0.12 * w, 0);
+    nudge(b.leg0k, 0.6 * w, 0, 0); nudge(b.leg1k, 0.6 * w, 0, 0);
   }
   if (rear) nudge(b.body, -rear, 0, 0);
   if (claw) { nudge(b.leg0, claw, 0, -0.2); nudge(b.leg1, claw, 0, 0.2); }

@@ -557,6 +557,10 @@ Wide Spread and Far Reach share the `spread` family.
   tanuki's drum rings with impact lines off its belly and its transformation smoke. Charge cues follow the wind-up
   (`windup` event): the fox's tail glows and gathers leaves before the gust; arcs pulse by its ears while
   it listens before the pounce. Monster area bursts carry `source` and `attack` for this.
+- **Beasts that walk where they go** (render only, `monster-views.js`): a rig with `faceMove` turns its body
+  toward its velocity while it circles (within about 125 degrees of its rules facing) and its head toward its prey;
+  beyond that (backing away) it keeps the rules facing and `animBeast` (`reverse`) runs the walk cycle backwards.
+  The rules' facing still aims every attack.
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`

@@ -33,6 +33,7 @@ export function measureMotion(v, x, z, facing, dt) {
     const vx = d > 3 ? 0 : dx / dt, vz = d > 3 ? 0 : dz / dt;
     const sn = Math.sin(facing), cs = Math.cos(facing);
     v.speed = Math.min(20, Math.hypot(vx, vz));
+    v.vx = vx; v.vz = vz;
     v.vFwd = vx * sn + vz * cs;
     v.vSide = vx * cs - vz * sn;
   } else if (v.speed === undefined) v.speed = v.vFwd = v.vSide = 0;
@@ -73,7 +74,15 @@ export function syncMonsterViews(view, dt, time) {
     const r = mv.rig;
     mv.spawnT += dt || 1 / 60; // models seen while paused still grow in
     if (m.windup) mv.lastAttack = m.windup.name;
-    let d = m.facing - r.root.rotation.y;
+    // a beast that walks where it goes (rig.faceMove): circling its prey it turns its body along its path and
+    // only its head watches the prey (the rules keep facing the prey, so the forward walk slid sideways); backing
+    // away it keeps facing and its walk runs backwards (beast-clips.js)
+    let want = m.facing;
+    if (r.faceMove && m.moving && MOVING_STATES.has(m.state) && (mv.speed || 0) > 0.3) {
+      const go = Math.atan2(mv.vx || 0, mv.vz || 0), off = Math.atan2(Math.sin(go - m.facing), Math.cos(go - m.facing));
+      if (Math.abs(off) < 2.2) want = go;
+    }
+    let d = want - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * 12);
     mv.turn = damp(mv.turn, dt > 0 ? (d * Math.min(1, dt * 12)) / dt : 0, 6, dt);

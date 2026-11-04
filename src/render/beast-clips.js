@@ -86,8 +86,11 @@ export function animBeast(r, s, dt, time, opts = {}) {
   const gFrom = opts.gallopFrom ?? 3.2, gFull = opts.gallopFull ?? 5.5;
   const gw = clamp01((speed - gFrom) / (gFull - gFrom)), mw = clamp01(speed / 0.6);
   // the cycle is locked to the ground: walk covers stride x leg per cycle, the gallop 2.6x that
-  const stride = (opts.stride ?? 1.9) * B.legLen;
-  B.walkPh = (B.walkPh + dt * speed / (stride * (1 + 1.6 * gw))) % 1;
+  // (opts.gallopStride: the gallop's cycle in strides, 2.6 by default; a backing beast with opts.reverse walks
+  // its cycle backwards)
+  const stride = (opts.stride ?? 1.9) * B.legLen, gs = (opts.gallopStride ?? 2.6) - 1;
+  const back = opts.reverse && (s.vFwd ?? 0) < -0.2 ? -1 : 1;
+  B.walkPh = (B.walkPh + back * dt * speed / (stride * (1 + gs * gw)) + 1) % 1;
   B.idlePh = (B.idlePh + dt * rate / C.idle.duration) % 1;
   // a wind-up plays the attack clip up to its strike (on the hit), then the rest after it: the bite, the
   // bear's swipe, or a pounce (chosen as the wind-up starts: Sic 'Em clears its flag on the bite)

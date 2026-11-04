@@ -100,6 +100,13 @@ session's network, so these come from search summaries of the cited pages.
   rigid. Tanuki: a bouncing trot (the gallop at a short stride, under three steps a second) with a waddle, a
   bob, a head nod and the tail swinging behind. Pangolin: the walk only at a long stride, the back arched and
   the nose low, the head swinging as it sniffs, the body rocking, knuckle-walking front claws, the tail held up.
+- **Walks, round 2** (2026-11-04, owner: "the walk and its rhythm are very bad"): circling its prey the rules keep
+  a monster facing the prey, so the forward walk slid sideways; and the pangolin's long stride outran its feet.
+  Now a beast with `rig.faceMove` (fox, tanuki, pangolin) turns its body along its path while circling and only
+  its head watches the prey (`state.lookYaw`); backing away, its walk runs backwards (`animBeast` `reverse`). Feet
+  stay planted: the clip's own stride (the tanuki bounds only when it hurries in, `gallopStride`). The pangolin
+  walks slowly (data speed 1.6, from 3.2: it closes in by rolling) in a heavy posture; the overlays follow the
+  clip's beat (belly bounce, tail sway, head swing) instead of a rocking of their own.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

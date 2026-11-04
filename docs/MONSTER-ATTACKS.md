@@ -171,6 +171,13 @@ session's network, so these come from search summaries of the cited pages.
   (เดินหนักโยก: roll, the head swinging low, claws lifted high) and walking on its hind legs like a ground pangolin
   (เดินสองขาหลัง: forepaws tucked, tail down; it drops to all fours to attack). The game keeps the first until the
   owner picks.
+- **Walks, round 11** (2026-11-04, owner: the tanuki's bouncing trot, "but bounce lighter"; the pangolin passed none
+  and "rolls instead of walking"): the tanuki walks in the bouncing trot in the game, the hop down from 14 to 8 cm
+  (the sandbox keeps a lighter and the earlier one to compare). The pangolin no longer walks: whenever it travels it
+  is curled into its ball, rolling along the ground (the ball turns exactly as far as it rolls, about the axis
+  across its measured path, so it never skids, sideways too while circling), and it uncurls once it has stopped a
+  moment, to attack. Curling and opening take about a third of a second, the ball growing out of the tucked body
+  while the body shrinks into it, so it never pops. Rolling, it moves at 2.4 m/s (was 1.6, a walking pace).
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

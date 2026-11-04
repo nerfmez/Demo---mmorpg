@@ -2,15 +2,14 @@
 // assets/meshy/forest, prepared for the game with scripts/prep-monster-glb.py and weighted by
 // data/models.json). Their attacks follow docs/MONSTER-ATTACKS.md: the body's pose tells each one.
 //
-// Leaf tanuki: the same bones, moved by the pack's Shiba Inu clips (the stockiest dog in it;
-// data/beast-clips-shiba.json): it rears up to drum its belly (the beast animator's rear, as the bear), beating
-// on each ring; it bows to pluck the leaf off its head, cocks a foreleg back and flings it; it whirls about in
-// place before its doubles pop out of a puff of leaves.
+// Leaf tanuki: the same bones; it walks in a bouncing trot (the older monsters' gait, monster-motion.js, with a hop
+// off each pair of footfalls). It rears up to drum its belly, beating on each ring; it bows to pluck the leaf off its
+// head, cocks a foreleg back and flings it; it whirls about in place before its doubles pop out of a puff of leaves.
 //
-// Stone pangolin: the same bones on a low, armoured body; it walks by the Shiba Inu clips (no free pangolin clip
-// exists), its attacks are posed here: it rears and rakes with its digging claws, swings its tail round behind it
-// without turning (head looking back over its shoulder), and for the roll it tucks its head in and its tail over
-// into a ball that spins along the lane, bounces and rolls back, then uncurls wobbling.
+// Stone pangolin: the same bones on a low, armoured body. It rolls instead of walking: travelling, it is curled into
+// a ball of stone plates rolling along the ground, and it uncurls to attack: it rears and rakes with its digging
+// claws, swings its tail round behind it without turning (head looking back over its shoulder), and for the Rebound
+// Roll the ball spins down the lane, bounces and rolls back, then it uncurls wobbling.
 //
 // Leaf fox: the wolf rig's bones, moved by the CC0 Fox clips of Quaternius' Ultimate Animated Animals
 // (data/beast-clips-fox.json, scripts/beast-clips/extract.mjs) - walk, gallop, idle, the bite, the leap and
@@ -25,12 +24,12 @@ import { advanceGait, poseLegs, wander, breath } from './monster-motion.js';
 import { animBeast, clipSet, HIT } from './beast-clips.js';
 
 import FOX_CLIPS from '../../data/beast-clips-fox.json';
-import SHIBA_CLIPS from '../../data/beast-clips-shiba.json';
 
-const FOX = clipSet(FOX_CLIPS), SHIBA = clipSet(SHIBA_CLIPS);
+const FOX = clipSet(FOX_CLIPS);
 const sph = (r, w = 10, h = 8) => new THREE.SphereGeometry(r, w, h);
 const smooth = (x) => x * x * (3 - 2 * x);
-const _q = new THREE.Quaternion(), _e = new THREE.Euler();
+const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v3 = new THREE.Vector3(), Z_AXIS = new THREE.Vector3(0, 0, 1);
+const BALL_R = 0.47; // the pangolin's ball: core 0.4, plates out to about 0.47 (rig units)
 
 function buildLeafFox() {
   // bones where the model's joints are (data/models.json leaf_fox segments, rig space after its 0.85 scale);
@@ -70,8 +69,8 @@ const nudge = (b, x, y, z) => { _q.setFromEuler(_e.set(x, y, z)); b.quaternion.m
 // ends (owner, 2026-11-04: "it stutters"; a foreleg used to jump 75 degrees in a frame as an attack ended)
 // (a critically damped follow, so it also starts moving smoothly rather than with a jump; quick into an attack's
 // pose so a strike stays sharp, gentler back out of it)
-function sm(r, key, v, dt) {
-  const e = (r.eased ||= {}), x = e[key] ?? v, vel = e[key + 'v'] || 0, w = Math.abs(v) < Math.abs(x) ? 16 : 34;
+function sm(r, key, v, dt, wIn = 34, wOut = 16) {
+  const e = (r.eased ||= {}), x = e[key] ?? v, vel = e[key + 'v'] || 0, w = Math.abs(v) < Math.abs(x) ? wOut : wIn;
   const step = Math.min(dt, 0.05), nv = (vel + w * w * (v - x) * step) / (1 + 2 * w * step); // implicit damping: stable
   e[key + 'v'] = nv;
   return (e[key] = x + nv * step);
@@ -87,41 +86,29 @@ const clampAbs = (x, m) => Math.max(-m, Math.min(m, x));
  * looking about. Every bone starts from its rest pose each frame, so the attack offsets laid on after it never
  * accumulate. No CC0 dog clip, no foot solving: those rounds looked worse to the owner.
  */
-const HIND = ['leg2', 'leg3'];
 function quadWalk(r, s, dt, time) {
   const b = r.bones, c = r.motion;
   for (const n in b) { const o = b[n]; if (o !== r.root && o.userData.rest) o.rotation.copy(o.userData.rest.rot); }
   const w = advanceGait(r, s, dt, c), ph = r.phase, run = r.runK;
   const busy = !!(s.windup || s.state === 'act' || s.state === 'stunned');
-  const P = r.qpose || (r.qpose = { headY: 0, bodyZ: 0, up: 0 });
-  // a walk style up on its hind legs (c.upright: the ground pangolin's), down on all fours to attack
-  P.up = damp(P.up, busy ? 0 : c.upright || 0, 6, dt);
-  const drop = poseLegs(r, c, c.upright ? HIND : r.legs);
+  const P = r.qpose || (r.qpose = { headY: 0, bodyZ: 0 });
+  const drop = poseLegs(r, c, r.legs);
   const rock = c.pitch * w * ((1 - run) * Math.sin(2 * ph) + run * 2.5 * Math.sin(ph + 0.8));
   const bob = c.bob * w * (1 + run) * (0.5 + 0.5 * Math.cos(2 * ph));
   const roll = c.roll * w * Math.sin(ph) * (1 - 0.6 * run);
-  // a hop (walk styles, c.hop): the body bounces off each pair of footfalls like a ball, squashing as it lands
+  // a hop (c.hop, the tanuki's bouncing trot): the body bounces off each pair of footfalls, squashing as it lands
   const hop = (c.hop || 0) * w * Math.abs(Math.sin(ph)), land = (c.squash || 0) * w * Math.cos(ph) ** 8;
   P.bodyZ = damp(P.bodyZ, clampAbs(-(s.turn || 0) * 0.06 - (s.vSide || 0) * 0.025, 0.2), 10, dt);
   const rest = b.body.userData.rest.pos;
-  b.body.position.set(rest.x, rest.y + bob + hop - drop + (c.upLift || 0) * P.up, rest.z);
-  b.body.rotation.x = rock + c.lean * clampAbs(r.accel || 0, 5) - P.up;
+  b.body.position.set(rest.x, rest.y + bob + hop - drop, rest.z);
+  b.body.rotation.x = rock + c.lean * clampAbs(r.accel || 0, 5);
   b.body.rotation.z = P.bodyZ + roll;
   if (b.chest) { b.chest.rotation.y = -c.sway * w * Math.sin(ph); b.chest.rotation.z = -roll * 0.6; }
   const idle = s.aggro || busy ? 0 : 1 - w;
   const look = s.lookYaw ? 0 : c.look * wander(time * 0.45, r.seed) * idle;
   P.headY = damp(P.headY, (s.lookYaw || 0) * 0.8 + look + clampAbs((s.turn || 0) * 0.12, 0.3), 6, dt);
-  // the head kept level against the body's roll (c.headRoll) and swinging low from side to side (c.headSwing)
-  b.head.rotation.x = Math.sin(time * 2 + r.seed) * 0.03 - 0.05 * w - rock * c.headSteady + 0.75 * P.up;
-  b.head.rotation.y = P.headY + (c.headSwing || 0) * w * Math.sin(ph);
-  b.head.rotation.z = -roll * (c.headRoll || 0);
-  if (P.up > 0.001) {
-    // upright: the hind legs stay under it, the forepaws tucked to the chest, the tail down behind as a prop
-    const k = P.up / (c.upright || 1);
-    for (const n of HIND) b[n].rotation.x += P.up;
-    b.leg0.rotation.x -= (c.tuck || 0) * k; b.leg1.rotation.x -= (c.tuck || 0) * k;
-    if (b.tail) b.tail.rotation.x += (c.tailDown || 0) * k;
-  }
+  b.head.rotation.x = Math.sin(time * 2 + r.seed) * 0.03 - 0.05 * w - rock * c.headSteady;
+  b.head.rotation.y = P.headY;
   const br = breath(time, r.seed, c) * (1 - 0.6 * w);
   b.body.scale.set(1 + br + 0.5 * land, 1 - land, 1 + br * 0.4 + 0.5 * land);
   if (b.tail) {
@@ -317,13 +304,12 @@ function buildStonePangolin() {
   rig.legs = ['leg0', 'leg1', 'leg2', 'leg3']; // for the shared gait (monster-motion.js)
   rig.height = 0.85;
   rig.pose = { clip: 'attack', u: 0, w: 0, leap: 0 };
-  rig.spin = 0;
   return rig;
 }
 
 function animStonePangolin(r, s, dt, time) {
   const a = s.attack, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
-  let rear = 0, claw = 0, clawA = 0, clawB = 0, tailSwing = 0, look = 0, curl = 0, roll = false, wobble = 0;
+  let rear = 0, claw = 0, clawA = 0, clawB = 0, tailSwing = 0, look = 0, curl = 0, wobble = 0;
   if (s.windup === 'rake') {
     // up on its hind legs, the digging claws raised
     rear = 0.5 * smooth(k); claw = -1.5 * smooth(k);
@@ -343,17 +329,23 @@ function animStonePangolin(r, s, dt, time) {
     // it tucks into a ball, rocking on the spot as it winds up
     curl = smooth(clamp01(k / 0.6)); wobble = Math.sin(time * 18) * 0.12 * clamp01((k - 0.6) / 0.4);
   } else if (s.state === 'act' && s.lastAttack === 'roll') {
-    curl = 1; roll = true;
+    curl = 1;
   } else if (s.state === 'stunned' && s.lastAttack === 'roll') {
     // uncurling, dizzy: it sways and its head lolls
     curl = clamp01(1 - (s.actT - 0.25) / 0.35); wobble = Math.sin(time * 9) * 0.18;
   }
-  // its walk and idle: the older four-legged monsters' (quadWalk), slow and heavy (data/monster-motion.json);
-  // the attacks lay their offsets on it
+  // It rolls instead of walking (owner, 2026-11-04, after three walks failed): whenever it travels it is curled into
+  // its ball, rolling along the ground; it uncurls only once it has stopped a moment (a pause while circling does not
+  // make it flicker open), to attack. Heading into its Rebound Roll it stays curled.
+  r.rollHold = (s.smoothSpeed ?? s.speed ?? 0) > 0.35 ? 0.35 : Math.max(0, (r.rollHold || 0) - dt);
+  if (s.windup === 'roll' && r.rollHold > 0) r.rollHold = 0.35;
+  if (r.rollHold > 0 && (!s.windup || s.windup === 'roll') && s.state !== 'act' && s.state !== 'stunned') curl = 1;
+  // standing, turning and its attacks: the older four-legged monsters' body motion (quadWalk); the attacks lay
+  // their offsets on it
   quadWalk(r, s, dt, time);
   const b = r.bones;
   rear = sm(r, 'rear', rear, dt); claw = sm(r, 'claw', claw, dt); clawA = sm(r, 'clawA', clawA, dt); clawB = sm(r, 'clawB', clawB, dt);
-  look = sm(r, 'look', look, dt); tailSwing = sm(r, 'tailSwing', tailSwing, dt); curl = sm(r, 'curl', curl, dt);
+  look = sm(r, 'look', look, dt); tailSwing = sm(r, 'tailSwing', tailSwing, dt); curl = sm(r, 'curl', curl, dt, 16, 9); // tucking in and opening out both take about a third of a second
   if (rear) nudge(b.body, -rear, 0, 0);
   if (claw) { nudge(b.leg0, claw, 0, -0.2); nudge(b.leg1, claw, 0, 0.2); }
   if (clawA || clawB) { nudge(b.leg0, clawA, 0, -0.3 * (1 - clawA)); nudge(b.leg1, clawB, 0, 0.3 * (1 - clawB)); }
@@ -365,16 +357,27 @@ function animStonePangolin(r, s, dt, time) {
     nudge(b.tail, -1.6 * curl, 0, 0);
     for (const n of ['leg0', 'leg1', 'leg2', 'leg3']) nudge(b[n], (n < 'leg2' ? 1.2 : -1.2) * curl, 0, 0);
   }
-  // fully curled it is the ball (the model drawn in to nothing), spinning about its middle as it rolls
-  const ballK = clamp01((curl - 0.75) / 0.25);
-  r.spin = roll ? r.spin + dt * 16 : r.spin;
+  // Curling up, the ball grows out of the tucked body while the body shrinks into it (both drawn for a moment, so it
+  // never pops from one to the other); fully curled it is only the ball. The ball turns exactly as far as it has
+  // rolled, about the axis across its path (from the measured ground velocity), so it never skids: forward, sideways
+  // while circling, back along the lane on the rebound. It bobs a little as its plates come round.
+  const ballK = smooth(clamp01((curl - 0.5) / 0.45));
+  const q = r.ballQ || (r.ballQ = new THREE.Quaternion());
+  _v3.set(s.vFwd || 0, 0, -(s.vSide || 0));
+  const v = _v3.length();
+  if (v > 0.05 && ballK > 0) { _q.setFromAxisAngle(_v3.multiplyScalar(1 / v), (v * dt) / (BALL_R * (r.root.scale.x || 1))); q.premultiply(_q); }
+  r.rollDist = (r.rollDist || 0) + v * dt * ballK;
   b.ball.visible = ballK > 0;
-  b.ball.scale.setScalar(Math.max(0.001, ballK * (1 + 0.15 * Math.sin(ballK * Math.PI))));
-  b.ball.rotation.set(r.spin, 0, wobble);
-  b.ball.position.y = 0.5 + Math.abs(Math.sin(r.spin * 2)) * 0.04 * (roll ? 1 : 0);
-  // drawn in while it is the ball (quadWalk sets the body's scale afresh every frame, so it is back the moment
-  // it uncurls)
-  if (ballK > 0.5) b.body.scale.setScalar(0.001);
+  const ballS = 0.65 + 0.35 * ballK + 0.06 * Math.sin(ballK * Math.PI);
+  b.ball.scale.setScalar(ballS);
+  b.ball.quaternion.copy(q);
+  if (wobble) b.ball.quaternion.premultiply(_q.setFromAxisAngle(Z_AXIS, wobble));
+  // resting on the ground at its size
+  b.ball.position.y = 0.03 + BALL_R * ballS + Math.abs(Math.sin(r.rollDist * 2.4)) * 0.035 * (v > 0.3 ? ballK : 0);
+  // the body shrinks into the ball and is drawn in once the ball has closed round it (quadWalk sets its scale afresh
+  // every frame, so it is back the moment it opens)
+  if (ballK > 0.97) b.body.scale.setScalar(0.001);
+  else if (ballK > 0) b.body.scale.multiplyScalar(1 - 0.45 * ballK);
   if (ballK <= 0.5 && wobble) nudge(b.body, 0, 0, wobble);
   b.body.position.y += 0.08 * curl;
 }

@@ -23,8 +23,8 @@
     "run": [0, 0.5, 0.5, 0]
   },
   "monsters": {
-    "leaf_tanuki": { "legLength": 0.33, "swing": 0.42, "knee": 0.8, "bob": 0.03, "roll": 0.06, "pitch": 0.03, "sway": 0.05, "headSteady": 0.6, "runFrom": 1.8, "runFull": 3.0, "run": [0, 0.5, 0.5, 0] },
-    "stone_pangolin": { "legLength": 0.33, "swing": 0.4, "duty": 0.65, "knee": 0.6, "bob": 0.025, "roll": 0.05, "pitch": 0.02, "sway": 0.04, "headSteady": 0.5, "runFrom": 99, "runFull": 100 },
+    "leaf_tanuki": { "_doc": "owner, 2026-11-04: the bouncing trot (เหยาะเด้ง), bouncing less than its first try (hop 0.14)", "legLength": 0.3, "walk": [0, 0.5, 0.5, 0], "run": [0, 0.5, 0.5, 0], "duty": 0.42, "runDuty": 0.38, "swing": 0.8, "runSwing": 0.9, "knee": 1.6, "hop": 0.08, "squash": 0.1, "bob": 0, "roll": 0.03, "pitch": 0.05, "sway": 0.02, "headSteady": 0.6, "runFrom": 1.8, "runFull": 3.0 },
+    "stone_pangolin": { "_doc": "travelling it rolls as its ball (monsters-forest.js); these legs only shuffle it round on the spot", "legLength": 0.4, "swing": 0.5, "duty": 0.65, "knee": 0.6, "bob": 0.025, "roll": 0.05, "pitch": 0.02, "sway": 0.04, "headSteady": 0.5, "runFrom": 99, "runFull": 100 },
     "tusk_boar": { "legLength": 0.5, "swing": 0.38, "bob": 0.045, "roll": 0.05, "pitch": 0.04, "sway": 0.04, "headSteady": 0.4, "runFrom": 2.4, "runFull": 3.5, "run": [0, 0.5, 0.5, 0] },
     "thornback_wolf": { "legLength": 0.62, "swing": 0.45, "runSwing": 0.75, "runFrom": 2.6, "runFull": 4.6, "run": [0.12, 0.28, 0.62, 0.78] },
     "greyfang": { "legLength": 0.62, "swing": 0.42, "runSwing": 0.72, "runFrom": 2.8, "runFull": 4.8, "bob": 0.03, "run": [0.12, 0.28, 0.62, 0.78] },
@@ -73,16 +73,11 @@
     "hitKick": 2.6
   },
   "styles": {
-    "_doc": "Walk choices the monster sandbox offers per type (motionStyle; the lab's walk mode switches between them). Each overrides the type's tuning. hop (m) bounces the body off each pair of footfalls with a squash on landing (squash); headRoll keeps the head level against the roll; headSwing swings it from side to side; upright (rad) walks on the hind legs only (legs 2 and 3 take walk[0..1]) with upLift, the forepaws tucked (tuck) and the tail down (tailDown).",
+    "_doc": "Walk choices the monster sandbox offers per type (motionStyle; chips in the lab's walk mode), each overriding the type's tuning, for the owner to compare live. hop (m, any type) bounces the body off each pair of footfalls with a squash on landing (squash).",
     "leaf_tanuki": {
-      "quad": { "nameTh": "แบบมอนเก่า" },
-      "hop": { "nameTh": "เหยาะเด้ง", "walk": [0, 0.5, 0.5, 0], "run": [0, 0.5, 0.5, 0], "duty": 0.42, "runDuty": 0.38, "swing": 0.8, "runSwing": 0.9, "knee": 1.6, "legLength": 0.3, "hop": 0.14, "squash": 0.16, "bob": 0, "roll": 0.03, "pitch": 0.06, "sway": 0.02 },
-      "waddle": { "nameTh": "เดินต้วมเตี้ยม", "swing": 0.5, "knee": 1.2, "duty": 0.62, "legLength": 0.36, "roll": 0.3, "headRoll": 0.85, "bob": 0.03, "sway": 0, "pitch": 0.02 }
-    },
-    "stone_pangolin": {
-      "quad": { "nameTh": "แบบมอนเก่า" },
-      "heavy": { "nameTh": "เดินหนักโยก", "swing": 0.45, "knee": 1.6, "duty": 0.68, "legLength": 0.3, "roll": 0.26, "headRoll": 0.6, "headSwing": 0.35, "bob": 0.03, "sway": 0.1, "pitch": 0.03 },
-      "biped": { "nameTh": "เดินสองขาหลัง", "upright": 0.9, "upLift": 0.05, "tuck": 1.0, "tailDown": -0.6, "walk": [0, 0.5, 0, 0.5], "run": [0, 0.5, 0, 0.5], "swing": 0.5, "knee": 1.0, "duty": 0.6, "legLength": 0.3, "roll": 0.1, "headRoll": 0.6, "bob": 0.03 }
+      "game": { "nameTh": "เด้งเบา (ในเกม)" },
+      "lighter": { "nameTh": "เด้งเบากว่านี้", "hop": 0.05, "squash": 0.07 },
+      "before": { "nameTh": "เด้งแรงแบบรอบก่อน", "hop": 0.14, "squash": 0.16 }
     }
   }
 }

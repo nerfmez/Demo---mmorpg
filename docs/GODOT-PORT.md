@@ -566,13 +566,14 @@ Wide Spread and Far Reach share the `spread` family.
   The rules' facing still aims every attack. The fox walks on its Quaternius clip (`animBeast`). `beast-life.js`
   (a life layer and a solved-leg walk, `plantFeet`) and `beast-walk.js` are left from rounds 4-8 and drive no
   monster now.
-  The tanuki and pangolin use no clip: they walk on the old quadrupeds' gait (`monster-motion.js`
+  The tanuki and pangolin use no clip: they move on the old quadrupeds' gait (`monster-motion.js`
   `advanceGait`/`poseLegs`, tuned in `data/monster-motion.json`), like the boar and wolves, with their attack
-  poses added on top; port them with that gait controller.
-  Walk styles (`styles` in `data/monster-motion.json`, `motionStyle`) override a type's tuning; quadWalk adds a hop
-  (|sin| of the cycle, squash at cos^8), the head kept level against the roll and swung from side to side, and an
-  upright walk on the hind legs only (body pitched by `upright`, hind legs turned back under it, forepaws tucked,
-  tail down; eased to all fours while it attacks). The monster sandbox swaps a rig's style for review only.
+  poses added on top; port them with that gait controller. The tanuki's adds a hop (`hop`: |sin| of the cycle, a
+  bounce off each pair of footfalls; `squash` at cos^8 of it). The pangolin travels as its ball: past 0.35 m/s
+  (held 0.35 s after it stops) it curls, the ball growing out of the shrinking body; the ball's orientation is a
+  quaternion advanced each frame by the rotation (up x velocity) * dt / radius, in the root's space from the
+  measured forward and sideways speeds; it uncurls to attack. Walk styles (`styles` in `data/monster-motion.json`,
+  `motionStyle`) override a type's tuning for the monster sandbox only.
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`

@@ -1554,7 +1554,7 @@
       "hp": 1100,
       "damage": 100,
       "defense": 100,
-      "speed": 1.6,
+      "speed": 2.4,
       "radius": 0.8,
       "aggroRange": 8,
       "leashRange": 18,

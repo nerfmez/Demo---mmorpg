@@ -11,13 +11,23 @@
 // Cosmetic only; pooled, no allocation per frame.
 import * as THREE from 'three';
 import { LeafFx } from './leaf-fx.js';
+import { BubbleFx } from './bubble-fx.js';
 import { BITE_SHUT } from './bite-fx.js';
 import { lightSprite, glowTexture } from './light-kit.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
-const SLIME_HALO = new THREE.Color('#e0447a'), SLIME_RIM = new THREE.Color('#ffe0ea'), PEARL = 0xffe6a0;
-const WATER_HALO = new THREE.Color('#5cc8ff'), WATER_RIM = new THREE.Color('#f0fbff');
+// the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
+const DRUM = new THREE.Color('#ffc860'), DRUM_CORE = { core: [1.0, 0.95, 0.8], glow: [1.0, 0.72, 0.3] };
+const HEAD_LEAF = new THREE.Color('#5ad04a'), HEAD_LEAF_RIM = new THREE.Color('#eaffd8');
+const SLIME_HALO = new THREE.Color('#e0447a'), PEARL = 0xffe6a0;
+const WATER_HALO = new THREE.Color('#5cc8ff');
 const STONE_HALO = new THREE.Color('#e0b070'), STONE_RIM = new THREE.Color('#fff4dc'), DUST = 0xc8b48a;
+// each monster's own contact look (owner, 2026-11-04: "why do they have the same effects"): claw marks only for
+// real claws; a blunt blow is a burst star, a slap of water a crown splash, the clam's blast bubbles, the
+// king's frill a slime splat
+const STONE = { core: [1.0, 0.96, 0.86], glow: [0.95, 0.66, 0.3] };
+const WATER = { core: [0.93, 0.99, 1.0], glow: [0.3, 0.72, 1.0] };
+const SLIME = { core: [1.0, 0.86, 0.92], glow: [0.95, 0.22, 0.5] };
 const PIN_HALO = new THREE.Color('#ff7a2a'), EAR = new THREE.Color('#ffd28a'), EAR_RIM = new THREE.Color('#fff4dc');
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 // monster shots drawn here (the View skips them, skill-fx.js OWN_PROJECTILES): colour, width and length of the shape,
@@ -34,6 +44,11 @@ export class MonsterFx {
   constructor(scene, camera, companion, call, host) {
     this.camera = camera; this.companion = companion; this.call = call; this.host = host; this.onShake = null;
     this.leaves = new LeafFx(scene);
+    // the clam's bubbles burst into a few droplets
+    this.bubbles = new BubbleFx(scene, (x, y, z, size) => {
+      const fx = this.host.vfx?.fx;
+      if (fx) for (let i = 0; i < 4; i++) { const a = (i / 4) * 6.283 + Math.random(); fx.add(x, y, z, Math.sin(a) * 1.4, 0.6, Math.cos(a) * 1.4, { color: 0xe8fbff, size: 0.08 + size * 0.15, sizeEnd: 0.02, life: 0.22, drag: 3 }); }
+    });
     this.cues = []; // live charge cues: { id, kind, t, total, next }
     this.glow = lightSprite(scene, glowTexture('fire'), true, 8);
     this.glow.material.opacity = 0;
@@ -68,29 +83,37 @@ export class MonsterFx {
     if (look?.kind === 'light') { if (e.at) this.rake(e, look); return true; }
     if (e.type === 'stone_pangolin') return this.pangolinSwing(e);
     if (e.type === 'pearl_snail_king' && e.name === 'crush') {
-      // the frill slaps down: a wide crescent of slime light across the front, slime thrown along its edge
+      // the frill slaps down: slime thrown along its edge, and a splat of slime on what it hits
       const fx = this.host.vfx?.fx, arc = (e.arc * Math.PI) / 180, y = this.host.groundAt?.(e.x, e.z) ?? 0;
       if (fx) for (let i = 0; i < 18; i++) { const a = e.angle + (i / 17 - 0.5) * arc, R = e.range * 0.9; fx.add(e.x + Math.sin(a) * R, y + 0.3, e.z + Math.cos(a) * R, Math.sin(a) * 2, 1.5 + Math.random() * 1.5, Math.cos(a) * 2, { color: i % 2 ? 0xe0447a : 0xffb8cc, size: 0.24, sizeEnd: 0.08, life: 0.55, gravity: 8, drag: 1 }); }
-      if (e.at) { this.companion.axes(); _v.set(e.at[0], 0.8, e.at[1]); this.companion.rake(_v, Math.sin(e.angle) >= 0 ? 1 : -1, 1, 1.0, 1.6, 0, SLIME_HALO, SLIME_RIM, 0); }
-      this.call.ring(e.x + Math.sin(e.angle) * 1.6, y + 0.08, e.z + Math.cos(e.angle) * 1.6, 2.4, undefined, 0.4);
+      if (e.at) this.slimeSplat(e.at[0], e.at[1]);
+      this.call.ring(e.x + Math.sin(e.angle) * 1.6, y + 0.08, e.z + Math.cos(e.angle) * 1.6, 2.4, SLIME_HALO, 0.4);
       this.onShake?.(0.16, 0.14);
       return true;
     }
     if (e.type === 'eye_clam' && e.name === 'valve') {
-      // the shell slams shut and a cone of water and bubbles blasts out
+      // the shell slams shut and blasts a cone of bubbles and spray; bubbles burst round what it hits
       const fx = this.host.vfx?.fx, arc = (e.arc * Math.PI) / 180, y = (this.host.groundAt?.(e.x, e.z) ?? 0) + 0.6;
-      if (fx) for (let i = 0; i < 26; i++) {
+      if (fx) for (let i = 0; i < 14; i++) {
         const a = e.angle + (Math.random() - 0.5) * arc, sp = e.range * (2.2 + Math.random() * 1.6);
-        fx.add(e.x + Math.sin(a) * 0.6, y, e.z + Math.cos(a) * 0.6, Math.sin(a) * sp, 0.6 + Math.random(), Math.cos(a) * sp, { color: i % 3 ? 0x9fe6ff : 0xf0fbff, size: 0.18 + Math.random() * 0.14, sizeEnd: 0.05, life: 0.45, gravity: 4, drag: 3 });
+        fx.add(e.x + Math.sin(a) * 0.6, y, e.z + Math.cos(a) * 0.6, Math.sin(a) * sp, 0.6 + Math.random(), Math.cos(a) * sp, { color: i % 3 ? 0x9fe6ff : 0xf0fbff, size: 0.12 + Math.random() * 0.1, sizeEnd: 0.03, life: 0.4, gravity: 4, drag: 3 });
       }
-      if (e.at) { this.companion.axes(); _v.set(e.at[0], 0.7, e.at[1]); this.companion.rake(_v, Math.sin(e.angle) >= 0 ? 1 : -1, 2, 0.6, 1.2, 0.3, WATER_HALO, WATER_RIM, 0.03); this.splash(e.at[0], e.at[1], 0.7); }
+      for (let i = 0; i < 9; i++) {
+        const a = e.angle + (Math.random() - 0.5) * arc, sp = e.range * (2.4 + Math.random() * 1.8);
+        this.bubbles.add(e.x + Math.sin(a) * 0.6, y, e.z + Math.cos(a) * 0.6, Math.sin(a) * sp, 0.3 + Math.random() * 0.6, Math.cos(a) * sp, 0.22 + Math.random() * 0.3, 0.55 + Math.random() * 0.35);
+      }
+      if (e.at) {
+        const gy = this.host.groundAt?.(e.at[0], e.at[1]) ?? 0;
+        for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.283 + Math.random() * 0.5, r = 0.25 + Math.random() * 0.25; this.bubbles.add(e.at[0] + Math.sin(a) * r, gy + 0.4 + Math.random() * 0.6, e.at[1] + Math.cos(a) * r, Math.sin(a) * 1.2, 0.5 + Math.random() * 0.6, Math.cos(a) * 1.2, 0.18 + Math.random() * 0.22, 0.3 + Math.random() * 0.3, 0xe0f8ff); }
+        this.companion.glint(e.at[0], gy + 0.7, e.at[1], 0.7, 0.02);
+      }
       this.onShake?.(0.08, 0.1);
       return true;
     }
     if (e.type === 'pearl_fish' && e.name === 'slap') {
-      // a crescent of water across the prey, droplets thrown the way the tail went
-      if (e.at) { this.companion.axes(); _v.set(e.at[0], 0.6, e.at[1]); this.companion.rake(_v, Math.sin(e.angle) >= 0 ? 1 : -1, 1, 0.75, 1.5, 0, WATER_HALO, WATER_RIM, 0); this.onShake?.(0.06, 0.08); }
-      this.splash(e.x + Math.sin(e.angle) * 0.9, e.z + Math.cos(e.angle) * 0.9, 0.8);
+      // the tail slaps water over the prey: a crown of water splashing up off it, droplets raining down
+      if (e.at) { this.waterCrown(e.at[0], e.at[1]); this.onShake?.(0.06, 0.08); }
+      else this.splash(e.x + Math.sin(e.angle) * 0.9, e.z + Math.cos(e.angle) * 0.9, 0.6);
       return true;
     }
     if (e.type !== 'leaf_fox') return false;
@@ -186,17 +209,62 @@ export class MonsterFx {
     this.call.ring(x, y + 0.06, z, 1.1 * size, WATER_HALO, 0.45);
   }
 
+  /**
+   * A blunt blow at (x, y, z): a manga burst star (a zig-zag outline of light, its points flashing out from the
+   * hit), a white flash and chips thrown out and falling. R its outer radius (m); look the stroke colours; chip
+   * colours a and b.
+   */
+  burstStar(x, y, z, R, look, a, b) {
+    const c = this.companion; c.axes();
+    _v.set(x, y, z);
+    const n = 6, rot = Math.random() * 1.0;
+    for (let i = 0; i < n * 2; i++) {
+      const a0 = rot + (i / (n * 2)) * 6.283, a1 = rot + ((i + 1) / (n * 2)) * 6.283, r0 = i % 2 ? R * 0.5 : R, r1 = i % 2 ? R : R * 0.5;
+      c.stroke(_v, Math.cos(a0) * r0, Math.sin(a0) * r0, Math.cos(a1) * r1, Math.sin(a1) * r1, 0, 0.05, look, 0.26, 0.04, 0, null);
+    }
+    c.glint(x, y, z, R * 1.6, 0);
+    const fx = this.host.vfx?.fx;
+    if (fx) for (let i = 0; i < 12; i++) { const t = Math.random() * 6.283, sp = 2 + Math.random() * 2.5; fx.add(x, y, z, Math.sin(t) * sp, 1.5 + Math.random() * 2.5, Math.cos(t) * sp, { color: i % 2 ? a : b, size: 0.12 + Math.random() * 0.1, sizeEnd: 0.08, life: 0.55, gravity: 14, drag: 0.8 }); }
+  }
+  /** A crown of water splashing up off the prey at (x, z): arcs of water curling out, droplets up and raining down. */
+  waterCrown(x, z) {
+    const c = this.companion, y = (this.host.groundAt?.(x, z) ?? 0) + 0.45; c.axes();
+    _v.set(x, y, z);
+    for (let i = 0; i < 6; i++) {
+      const s = i < 3 ? -1 : 1, k = (i % 3) / 2, x0 = s * (0.08 + 0.1 * k), x1 = s * (0.35 + 0.35 * k);
+      c.stroke(_v, x0, 0, x1, 0.55 + 0.35 * (1 - k), s * 0.12, 0.045, WATER, 0.32, 0.07, k * 0.02, null);
+    }
+    const fx = this.host.vfx?.fx;
+    if (fx) for (let i = 0; i < 18; i++) { const a = (i / 18) * 6.283, sp = 0.8 + Math.random() * 1.2; fx.add(x + Math.sin(a) * 0.25, y, z + Math.cos(a) * 0.25, Math.sin(a) * sp, 3.2 + Math.random() * 2, Math.cos(a) * sp, { color: i % 3 ? 0x8fdcff : 0xf0fffb, size: 0.13 + Math.random() * 0.08, sizeEnd: 0.06, life: 0.7, gravity: 11, drag: 0.5 }); }
+    this.call.ring(x, y - 0.4, z, 0.9, WATER_HALO, 0.4);
+  }
+  /** A splat of slime on the prey at (x, z): thick spikes of slime light out from the hit, blobs flung off their tips and dripping. */
+  slimeSplat(x, z) {
+    const c = this.companion, gy = this.host.groundAt?.(x, z) ?? 0, y = gy + 0.8; c.axes();
+    _v.set(x, y, z);
+    const n = 7, rot = Math.random();
+    for (let i = 0; i < n; i++) {
+      const a = rot + (i / n) * 6.283, L = 0.5 + Math.random() * 0.3;
+      c.stroke(_v, Math.cos(a) * 0.08, Math.sin(a) * 0.08, Math.cos(a) * L, Math.sin(a) * L, (Math.random() - 0.5) * 0.15, 0.09, SLIME, 0.42, 0.06, 0, null);
+    }
+    c.glint(x, y, z, 1.0, 0);
+    const fx = this.host.vfx?.fx, dust = this.host.vfx?.dust;
+    if (fx) for (let i = 0; i < 14; i++) { const a = Math.random() * 6.283, sp = 1.5 + Math.random() * 2; fx.add(x, y, z, Math.sin(a) * sp, 1 + Math.random() * 2, Math.cos(a) * sp, { color: i % 2 ? 0xe0447a : 0xffb8cc, size: 0.26, sizeEnd: 0.14, life: 0.7, gravity: 10, drag: 0.8 }); }
+    // the slime it leaves on the ground round the prey
+    if (dust) for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.283; dust.add(x + Math.sin(a) * 0.3, gy + 0.06, z + Math.cos(a) * 0.3, Math.sin(a) * 0.6, 0, Math.cos(a) * 0.6, { color: 0xd03a70, size: 0.5, sizeEnd: 1.1, life: 0.9, drag: 3, alpha: 0.7 }); }
+  }
+
   /** The pangolin's rake (two claw marks of light per hit, stone chips) and tail lash (a wide sweep behind it). */
   pangolinSwing(e) {
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
     if (e.name === 'tail') {
-      // the tail swung round behind it: dust thrown along the arc's edge, a heavy mark on what it hits
+      // the tail swung round behind it: dust thrown along the arc's edge; a blunt blow (no cut) on what it hits
       const arc = (e.arc * Math.PI) / 180;
       for (let i = 0; i < 9; i++) {
         const a = e.angle + (i / 8 - 0.5) * arc, R = e.range * 0.85;
         this.call.dust(e.x + Math.sin(a) * R, y + 0.15, e.z + Math.cos(a) * R, Math.sin(a) * 1.6, 0.5, Math.cos(a) * 1.6, 0.8, 0.5);
       }
-      if (e.at) { this.companion.axes(); _v.set(e.at[0], 0.7, e.at[1]); this.companion.rake(_v, Math.sin(e.angle) >= 0 ? 1 : -1, 1, 0.85, 1.4, 0, STONE_HALO, STONE_RIM, 0); this.companion.glint(_v.x, _v.y, _v.z, 1.1, 0.03); this.onShake?.(0.1, 0.1); }
+      if (e.at) { this.burstStar(e.at[0], 0.7, e.at[1], 0.75, STONE, 0xb89a6a, 0xeedcb4); this.onShake?.(0.12, 0.12); }
       return true;
     }
     if (e.name === 'rake') {
@@ -222,9 +290,11 @@ export class MonsterFx {
   leafCut(e, g) {
     const p = g.player;
     if (Math.hypot(p.x - e.x, p.z - e.z) > 1.5) return;
+    // one clean green cut the way the leaf passed, green motes off it
     this.companion.axes();
-    this.companion.clawFx.mark(p.x, 0.85, p.z, 0.5, 0.9, e.back ? 0.6 : -0.6, e.back ? -1 : 1, LEAF_HALO, LEAF_RIM, 0, 0.3);
-    this.leaves.burst(p.x, 0.6, p.z, 4, 1.4);
+    this.companion.clawFx.mark(p.x, 0.85, p.z, 0.6, 0.7, e.back ? 0.25 : -0.25, e.back ? -1 : 1, HEAD_LEAF, HEAD_LEAF_RIM, 0, 0.28);
+    const fx = this.host.vfx?.fx;
+    if (fx) for (let i = 0; i < 6; i++) { const a = Math.random() * 6.283; fx.add(p.x, 0.85, p.z, Math.sin(a) * 2, 0.8 + Math.random(), Math.cos(a) * 2, { color: 0xb8f08a, size: 0.14, sizeEnd: 0.03, life: 0.35, drag: 2 }); }
     this.onShake?.(0.04, 0.06);
   }
   /** The pearl slug sheds its stinging plumes (core shed): they spring off its back in a puff of violet light. */
@@ -259,11 +329,18 @@ export class MonsterFx {
     this.onShake?.(0.05, 0.07);
   }
 
-  /** The tanuki's doubles step out of a puff of leaves (core doubles), and an illusion popping (illusionPop). */
+  /**
+   * The tanuki's transformation smoke (folklore: it changes shape in a puff): soft white-and-pink cloud puffs swell
+   * out and drift up, with a pop of sparkle stars - for its doubles stepping out (core doubles) and an illusion
+   * popping (illusionPop). Its own look: no leaves.
+   */
   puff(x, z, n = 12) {
-    const y = this.host.groundAt?.(x, z) ?? 0;
-    this.leaves.burst(x, y + 0.3, z, n, 2.6);
-    for (let i = 0; i < 7; i++) { const a = (i / 7) * 6.283; this.call.dust(x + Math.cos(a) * 0.3, y + 0.4, z + Math.sin(a) * 0.3, Math.cos(a) * 1.2, 0.8, Math.sin(a) * 1.2, 0.9, 0.55); }
+    const y = this.host.groundAt?.(x, z) ?? 0, dust = this.host.vfx?.dust;
+    if (dust) for (let i = 0; i < n; i++) {
+      const a = (i / n) * 6.283 + Math.random() * 0.5, sp = 0.8 + Math.random() * 1.2;
+      dust.add(x + Math.sin(a) * 0.25, y + 0.35 + Math.random() * 0.6, z + Math.cos(a) * 0.25, Math.sin(a) * sp, 0.6 + Math.random() * 0.8, Math.cos(a) * sp, { color: i % 3 ? 0xfff4fa : 0xffcfe2, size: 0.55, sizeEnd: 1.5, life: 0.75 + Math.random() * 0.3, drag: 3 });
+    }
+    for (let i = 0; i < 3; i++) this.companion.glint(x + (Math.random() - 0.5) * 0.9, y + 0.6 + Math.random() * 0.7, z + (Math.random() - 0.5) * 0.9, 0.7, i * 0.06);
   }
   doubles(e, g) { this.puff(e.x, e.z, 16); for (const m of g.monsters) if (m.illusion?.of === e.id && !m.dead) this.puff(m.x, m.z, 10); }
 
@@ -279,6 +356,7 @@ export class MonsterFx {
       this.call.dust(m.x, y + 0.15, m.z, (Math.random() - 0.5) * 0.8, 0.5, (Math.random() - 0.5) * 0.8, 0.7, 0.45);
     }
     this.leaves.update(dt);
+    this.bubbles.update(dt);
     let glowAt = null, glowK = 0, glowTint = 0xffffff;
     let live = 0;
     for (const c of this.cues) {
@@ -312,15 +390,15 @@ export class MonsterFx {
       } else if (c.kind === 'tanuki_drum') {
         // the belly glows warm as it swells
         const b = this.bonePos(c.id, 'chest', _w);
-        if (b) { glowAt = b; glowK = k; }
+        if (b) { glowAt = b; glowK = k; glowTint = 0xffd890; }
       } else if (c.kind === 'tanuki_boomerang') {
         // the leaf on its head lights up, then leaves gather round the cocked foreleg
         const h = this.bonePos(c.id, k < 0.45 ? 'head' : 'leg0k', _w);
-        if (h) { if (k < 0.45) h.y += 0.35; glowAt = h; glowK = 0.5 + 0.5 * k; }
+        if (h) { if (k < 0.45) h.y += 0.35; glowAt = h; glowK = 0.5 + 0.5 * k; glowTint = 0x9cf07a; }
       } else if (c.kind === 'tanuki_doubles') {
         c.next -= dt;
         const b = this.bonePos(c.id, 'body', _w);
-        if (b && c.next <= 0) { c.next = 0.06; this.leaves.orbit(b.x, b.y, b.z, 0.7, 9, 0.35, 0.26); }
+        if (b && c.next <= 0) { c.next = 0.05; const a = Math.random() * 6.283; this.host.vfx?.dust.add(b.x + Math.sin(a) * 0.6, b.y - 0.2, b.z + Math.cos(a) * 0.6, Math.cos(a) * 1.5, 0.9, -Math.sin(a) * 1.5, { color: 0xfff0f6, size: 0.3, sizeEnd: 0.8, life: 0.5, drag: 2 }); }
       } else if (c.kind === 'pounce') {
         // listening: two little arcs of light pulse by its ears through the frozen part of the wind-up
         c.next -= dt;
@@ -399,30 +477,38 @@ export class MonsterFx {
     if (this.splashes.size > 64) this.splashes.clear();
   }
 
-  /** The tanuki's drum rings (leaves running out on each ring as it leaves) and its leaf boomerang. */
+  /** The tanuki's drum rings (taiko sound waves) and its head-leaf boomerang. */
   tanuki(g) {
     for (const a of g.areas) {
       if (a.look !== 'drum' || a.t < a.delay || this.rings.has(a.id)) continue;
       this.rings.add(a.id);
-      const y = this.host.groundAt?.(a.x, a.z) ?? 0, n = 14 + a.beat * 3, life = (a.maxRadius - a.radius) / a.growth;
-      for (let i = 0; i < n; i++) {
-        // a broken ring: leaves on about two thirds of the circle, riding out with the ring's edge
-        const ang = (i / n) * 6.283 + a.beat * 0.7;
-        if ((i + a.beat) % 3 === 0) continue;
-        this.leaves.leaf(a.x + Math.sin(ang) * 0.6, y + 0.25, a.z + Math.cos(ang) * 0.6, Math.sin(ang) * a.growth, 0.6, Math.cos(ang) * a.growth, 0.36 + 0.06 * a.beat, life + 0.15, 0.2);
+      // a taiko beat: a ring of warm gold sound running out with the wave's edge (a thin echo ring behind it), dust
+      // kicked up where the edge passes, and manga impact lines bursting off its belly; the last beat bigger
+      const y = this.host.groundAt?.(a.x, a.z) ?? 0, life = (a.maxRadius - a.radius) / a.growth, last = !!a.knock;
+      this.call.ring(a.x, y + 0.1, a.z, a.maxRadius, DRUM, life + 0.1);
+      this.call.ring(a.x, y + 0.06, a.z, a.maxRadius * 0.82, DRUM, life + 0.18, 0.08);
+      const dust = this.host.vfx?.dust, n = last ? 16 : 11;
+      if (dust) for (let i = 0; i < n; i++) { const ang = (i / n) * 6.283 + a.beat; dust.add(a.x + Math.sin(ang) * 0.7, y + 0.15, a.z + Math.cos(ang) * 0.7, Math.sin(ang) * a.growth, 0.3, Math.cos(ang) * a.growth, { color: 0xc8b088, size: 0.35, sizeEnd: 0.9, life: life * 0.9, drag: 0.2 }); }
+      const belly = this.bonePos(a.sourceId, 'chest', _w);
+      if (belly) {
+        this.companion.axes();
+        const L = last ? 1.0 : 0.75;
+        for (let i = 0; i < 10; i++) { const t = (i / 10) * 6.283 + a.beat * 0.3, cx = Math.cos(t), cy = Math.sin(t); this.companion.stroke(belly, cx * 0.35, cy * 0.35, cx * L, cy * L, 0, last ? 0.05 : 0.04, DRUM_CORE, 0.18, 0.04); }
+        this.companion.glint(belly.x, belly.y, belly.z, last ? 1.3 : 0.9, 0);
       }
-      this.call.ring(a.x, y + 0.08, a.z, a.maxRadius, undefined, life + 0.1);
-      this.onShake?.(a.knock ? 0.1 : 0.05, 0.08);
+      this.onShake?.(last ? 0.12 : 0.06, 0.08);
     }
     if (this.rings.size > 64) this.rings.clear();
     // the leaf boomerang: one big leaf spinning flat along the projectile, a few small ones shed behind it
     const pr = g.projectiles.find((q) => q.boomerang);
     if (pr) {
       const y = (this.host.groundAt?.(pr.x, pr.z) ?? 0) + (pr.y ?? 0.9);
-      if (this.spinLeaf < 0) this.spinLeaf = this.leaves.leaf(pr.x, y, pr.z, 0, 0, 0, 1.5, 9, 0, 0, null);
+      // its own green head-leaf, spinning flat, a green swirl of wind shed behind it
+      if (this.spinLeaf < 0) this.spinLeaf = this.leaves.leaf(pr.x, y, pr.z, 0, 0, 0, 1.5, 9, 0, 0, HEAD_LEAF);
       this.leaves.hold(this.spinLeaf, pr.x, y, pr.z, g.time * 22);
-      if (Math.random() < 0.35) this.leaves.leaf(pr.x, y, pr.z, -pr.vx * 0.1, 0.4, -pr.vz * 0.1, 0.22, 0.45, 2.5);
+      const sw = g.time * 22;
+      this.host.vfx?.fx.add(pr.x + Math.sin(sw) * 0.5, y, pr.z + Math.cos(sw) * 0.5, -pr.vx * 0.15, 0.2, -pr.vz * 0.15, { color: 0xb8f08a, size: 0.16, sizeEnd: 0.03, life: 0.35, drag: 2 });
     } else if (this.spinLeaf >= 0) { this.leaves.release(this.spinLeaf); this.spinLeaf = -1; }
   }
-  clear() { this.leaves.clear(); this.cues.length = 0; this.glow.visible = false; }
+  clear() { this.leaves.clear(); this.bubbles.clear(); this.cues.length = 0; this.glow.visible = false; }
 }

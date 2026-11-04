@@ -44,6 +44,12 @@ session's network, so these come from search summaries of the cited pages.
 4. **Strike effects are shapes of light, not limb trails.** The owner turned down the monster limb-trail
    ribbons (VFX-REFERENCE, companions round 3); the approved language is the companions' claw marks and
    bite jaw of see-through light (`skillfx/claw-fx.js`, `bite-fx.js`) in each monster's own colour.
+   **Each monster gets its own contact look** (owner, 2026-11-04: "why do they have the same effects"):
+   claw marks only for real claws (pangolin rake, mole swipe), a jaw only for bites; a blunt blow is a burst
+   star with chips (pangolin tail), a slap of water a crown splash (pearl fish), the clam's blast bubbles
+   (`skillfx/bubble-fx.js`), the king's frill a slime splat, the tanuki's drum gold taiko rings and impact
+   lines, its doubles transformation smoke, its boomerang its own green head-leaf. Never reuse another
+   monster's leaves or marks for a different kind of blow.
 5. **Effect layers**: charge cue, ground warning, travel (head stretched along the motion, a stop at the
    contact), impact (compressed core, then the full shape within one or two drawings), residue (puddles,
    leaves, slime) lower in contrast so it never hides the next wind-up. Light on iPad: pooled, few draw calls.

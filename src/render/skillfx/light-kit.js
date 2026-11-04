@@ -50,6 +50,15 @@ export const flareTexture = (el) => canvasTexture('flare|' + el, (g) => {
   const c = g.createRadialGradient(64, 64, 0, 64, 64, 26); c.addColorStop(0, st[0]); c.addColorStop(0.4, st[1]); c.addColorStop(1, st[3]);
   g.fillStyle = c; g.fillRect(0, 0, 128, 128);
 });
+// a bubble: a see-through disc with a bright rim and a highlight up and to the left (white, tinted by the sprite)
+export const bubbleTexture = () => canvasTexture('bubble', (g) => {
+  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 60);
+  grad.addColorStop(0, 'rgba(255,255,255,0.06)'); grad.addColorStop(0.72, 'rgba(255,255,255,0.18)');
+  grad.addColorStop(0.88, 'rgba(255,255,255,0.95)'); grad.addColorStop(0.97, 'rgba(255,255,255,0.35)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad; g.beginPath(); g.arc(64, 64, 60, 0, 6.283); g.fill();
+  g.fillStyle = 'rgba(255,255,255,0.95)'; g.beginPath(); g.ellipse(42, 40, 13, 8, -0.7, 0, 6.283); g.fill();
+  g.beginPath(); g.arc(86, 88, 4, 0, 6.283); g.fill();
+});
 export function lightSprite(scene, map, additive, order = 9) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthWrite: false, transparent: true, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, depthTest: !!additive, toneMapped: false }));
   sp.visible = false; sp.renderOrder = order; scene.add(sp); return sp;

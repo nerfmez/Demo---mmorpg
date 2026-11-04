@@ -550,7 +550,11 @@ Wide Spread and Far Reach share the `spread` family.
   so kit monsters' strikes are drawn in the companions' language (a jaw of light, claw marks of light,
   `claw-fx.js`/`bite-fx.js`) plus leaves of light (`leaf-fx.js`, one instanced mesh). An attack whose
   `data/combat-fx.json` look is `kind: "light"` (`marks`, `halo`, `rim`, `len`, `wid`, `gap`, `height`) is
-  raked across the prey that way (the hare's kick, the mole's swipe). Charge cues follow the wind-up
+  raked across the prey that way (the hare's kick, the mole's swipe). Other blows have their own contact
+  shapes: `burstStar` (a zig-zag outline of light and falling chips: a blunt blow), `waterCrown` (arcs of
+  water curling up and droplets: a slap of water), `slimeSplat` (thick slime spikes, blobs, a ground smear),
+  bubbles (`bubble-fx.js`: pooled sprites of a drawn ring, rising, wobbling, popping into droplets), the
+  tanuki's drum rings with impact lines off its belly and its transformation smoke. Charge cues follow the wind-up
   (`windup` event): the fox's tail glows and gathers leaves before the gust; arcs pulse by its ears while
   it listens before the pounce. Monster area bursts carry `source` and `attack` for this.
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,

@@ -141,6 +141,8 @@ export class View {
       game: () => this.game, anim: () => this.heroAnim, rig: () => this.hero, weapon: () => this.game.derived.weaponType,
       body: (id) => this.monsterBody(id),
       monsterRig: (id) => this.monsterViews.get(id)?.rig || null,
+      // the moth's mirror decoy borrows a pooled rig of its own type (skillfx/moth-fx.js)
+      takeRig: (type) => this.takeRig(type, 1, false), releaseRig: (rig) => this.releaseRig(rig),
       groundAt: (x, z) => this.groundAt(x, z),
       float: (x, y, z, text, color, big) => this.floatText?.(x, y, z, text, color, big),
       banner: (text) => { const p = this.game.player; this.floatText?.(p.x, 2.6, p.z, text, '#fff2b0', true); },

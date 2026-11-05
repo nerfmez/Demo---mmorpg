@@ -11,7 +11,7 @@ mkdirSync(out, { recursive: true });
 const port = 4217, base = `http://localhost:${port}/`;
 const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
 const CASES = [
-  ['fern_ear_hare', 'box', 0.4], ['fern_ear_hare', 'hop', 5], ['mirrorwing_moth', 'shard_rain', 5], ['mirrorwing_moth', 'mirror_ring', 1], ['mirrorwing_moth', 'glare', 6],
+  ['fern_ear_hare', 'box', 0.4], ['fern_ear_hare', 'hop', 5], ['mirrorwing_moth', 'shard_rain', 5], ['mirrorwing_moth', 'decoy', 1], ['mirrorwing_moth', 'glare', 6],
   ['rootdigger_mole', 'swipe', 0.6], ['rootdigger_mole', 'erupt', 6],
 ];
 const report = { engine: engine.name(), sizes: {}, errors: [] };

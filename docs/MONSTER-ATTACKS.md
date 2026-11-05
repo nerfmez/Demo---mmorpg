@@ -91,7 +91,7 @@ session's network, so these come from search summaries of the cited pages.
 | Pearl Snail King (boss Lv30) | Frill Crush; Proboscis Harpoon (latched, then a stab that pulls in); slime trail; withdraws into its shell at 60% and 30%; Pearl Beam Sweep below 60% |
 | Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
 | Fern-ear hare | ต่อยรัว Box (rears up on its haunches, paws raised in a guard, a one-two of jabs with a burst star of light on each); กระทืบเตือนภัย Warning Thump (up on its haunches, trembling, ears up, a hop up, then slams down: a shock ring to the true edge, earth and fern leaves thrown out); กระโดดทับ Leap (crouch, rump wiggle, springs onto the marked spot, lands in earth and leaves) |
-| Mirrorwing moth | แสงสะท้อนปีก Wing Glare (new: turns its glass wings on the prey like a mirror, glints flare on the panes, then a beam of moonlight along the lane); ห่าเกล็ดกระจก Glass Rain (wings raised and held while a glass shard forms over each marked circle, then they drop one after another and shatter in stars of cold light); วงแหวนแสงจันทร์ Moonlight Ring (wings spread flat to the moon, motes rising round the band, one downstroke: a wall of light runs out to the edge, safe under it) |
+| Mirrorwing moth | แสงสะท้อนปีก Wing Glare (turns its glass wings on the prey like a mirror, glints flare on the panes, then a beam of moonlight along the lane); ห่าเกล็ดกระจก Glass Rain (wings raised and held while a glass shard forms over each marked circle, then they drop one after another and shatter in stars of cold light); ร่างเงากระจก Mirror Decoy (too close: its wings flare as a glass image of it splits off, it flies back, and the image flickers faster and faster like a fuse and bursts) |
 
 ## Rounds
 
@@ -250,6 +250,14 @@ session's network, so these come from search summaries of the cited pages.
   the forward plane), dark lumps with the eye colour on their edges: they are tilted back toward flat (order ZYX: tilt
   about X, beat about the body's long axis) so the panes face the camera, and each attack has its own wing pose. It
   lost the warm wind-up flicker that turned it brown (kit monsters do not wear it). Effects in `skillfx/moth-fx.js`.
+- **Mirrorwing moth, round 2** (2026-11-05, owner: "attacks around itself are repeated too much; there are many
+  ways to show who it is - fly back and leave light behind that damages after a while; monster skills must be
+  creative", then: "make it a mirror image of itself that explodes, like a time bomb"): the Moonlight Ring is gone.
+  Mirror Decoy (kind `mirror_decoy`, prey within 3.2 m): wings flare and the body pulls back (0.55 s), then it flies
+  4.5 m straight away from the prey in 0.5 s and leaves a glass image of itself where it hung: a pooled moth rig lit
+  pale cold blue, nearly opaque, with a halo pulsing faster and faster over its 1.6 s fuse, swelling on the last beat;
+  its circle (2.6 m, marked on the ground) bursts in a big star of cold light with glass flying out, and chills.
+  Design note for later kits: avoid another ring round the monster; read the creature for a mechanic of its own.
 - **Monster Lab as its own page** (2026-11-05, owner: "why not a separate test site like the skill tests, why the
   whole game"): the Pages route rebuilt and redeployed the whole 340 MB site for each round (~20 minutes). The
   sandbox is now also a standalone artifact like the Skill FX bench: `scripts/monster-lab-artifact.mjs` packs the

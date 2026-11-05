@@ -341,7 +341,7 @@ export class Game {
   spawnArea(o) {
     const a = { id: this.newId(), t: 0, delay: 0, fired: false, hit: new Set(), nextTick: 0, ...o };
     this.areas.push(a);
-    this.emit({ type: 'area', id: a.id, kind: a.kind, owner: a.owner, x: a.x, z: a.z, radius: a.radius, inner: a.inner, delay: a.delay, duration: a.duration });
+    this.emit({ type: 'area', id: a.id, kind: a.kind, owner: a.owner, source: a.sourceId, x: a.x, z: a.z, radius: a.radius, inner: a.inner, delay: a.delay, duration: a.duration });
     return a;
   }
 

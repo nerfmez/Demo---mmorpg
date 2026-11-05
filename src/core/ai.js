@@ -284,7 +284,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'mirror_ring', 'drum', 'doubles', 'skip'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -456,9 +456,7 @@ function windup(game, m, dt, t, gap) {
       return setState(m, 'recover', atk.recover);
     }
     case 'shard_rain':
-    case 'mirror_ring':
-      // the moth's marks (falling glass shards; a ring of light around itself) were spawned at
-      // wind-up start and go off by themselves
+      // the moth's falling glass shards were marked at wind-up start and go off by themselves
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     case 'quake':
@@ -494,6 +492,15 @@ function windup(game, m, dt, t, gap) {
       setState(m, 'act');
       m.windup = { ...w };
       if (!m.charge.hops.length) { m.charge = null; return setState(m, 'recover', atk.recover); }
+      return;
+    }
+    case 'mirror_decoy': {
+      // the moth leaves a mirror image of itself where it hung, a bomb going off after `fuse` s, and flies back
+      // to the spot marked at wind-up start (beginAttack) over `air` s
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'mirror_bomb', x: m.x, z: m.z, radius: atk.radius, delay: atk.fuse, duration: 0.3, damage: dmg });
+      m.charge = { t: 0, dur: atk.air, fromX: m.x, fromZ: m.z, toX: w.tx, toZ: w.tz, dive: true, hit: new Set(), dmg: 0 };
+      setState(m, 'act');
+      m.windup = { ...w };
       return;
     }
     case 'pounce':
@@ -1017,12 +1024,16 @@ export function beginAttack(game, m, name, t) {
     game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'erupt', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
     return;
   }
-  if (kind === 'mirror_ring') {
-    // the moth's ring of moonlight round itself: the band from `inner` to `radius` is marked for the wind-up and
-    // goes off as it ends; right under the moth is safe
-    startWindup(game, m, name, t);
-    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'mirror_ring', x: m.x, z: m.z, radius: atk.radius, inner: atk.inner, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
-    return;
+  if (kind === 'mirror_decoy') {
+    // where it will fly back to: `distance` m straight away from the target (a little to either side if that is not
+    // open ground, or half as far); a flyer passes over what blocks the walkers
+    const away = angleTo(t.x, t.z, m.x, m.z);
+    let tx = m.x, tz = m.z;
+    search: for (const d of [atk.distance, atk.distance * 0.5]) for (const off of [0, 0.5, -0.5, 1, -1]) {
+      const x = m.x + Math.sin(away + off) * d, z = m.z + Math.cos(away + off) * d;
+      if ((m.def.flyer || game.world.isFree(x, z, m.r)) && !game.isSafe(x, z)) { tx = x; tz = z; break search; }
+    }
+    return startWindup(game, m, name, t, { tx, tz });
   }
   if (kind === 'shard_rain') {
     // glass shards rained on `count` marks round the target, one after another (`step` s apart): the first on the

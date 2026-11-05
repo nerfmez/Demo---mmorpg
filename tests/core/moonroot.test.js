@@ -112,7 +112,7 @@ test('hare boxing lands its two jabs once each at their authored times; its hop 
 test('moth shard rain marks circles around the player that land one after another, only on their marks', () => {
   const rain = M.mirrorwing_moth.attacks.shard_rain;
   const a = arena('mirrorwing_moth');
-  a.place(5); a.m.cd.mirror_ring = 99;
+  a.place(5); a.m.cd.decoy = 99;
   a.step(0.01);
   assert.equal(a.m.windup?.name, 'shard_rain');
   const marks = a.g.areas.filter((x) => x.kind === 'glass_shard');
@@ -129,22 +129,24 @@ test('moth shard rain marks circles around the player that land one after anothe
   assert.equal(a.hits.length, 1);
 });
 
-test('moth moonlight ring hits the band around it once; right under it and outside are safe', () => {
-  const ring = M.mirrorwing_moth.attacks.mirror_ring;
-  for (const [d, expect] of [[2.8, 1], [0.6, 0], [ring.radius + 1.5, 0]]) {
+test('moth mirror decoy: it flies back and leaves a mirror image that goes off only after its fuse', () => {
+  const dec = M.mirrorwing_moth.attacks.decoy;
+  for (const [stay, expect] of [[true, 1], [false, 0]]) {
     const a = arena('mirrorwing_moth');
-    a.place(1); a.m.cd.shard_rain = 99;
+    a.m.cd.shard_rain = a.m.cd.glare = 99;
+    a.place(1);
     a.step(0.01);
-    assert.equal(a.m.windup?.name, 'mirror_ring');
-    const mark = a.g.areas.find((x) => x.kind === 'mirror_ring');
-    assert.ok(mark && mark.inner === ring.inner && Math.abs(mark.delay - a.m.windup.total) < 1e-9);
-    a.step(a.m.windup.total * 0.5);
-    Object.assign(a.g.player, { x: 0, z: d });
-    a.step(a.m.windup.total * 0.5 - 0.05);
-    assert.equal(a.hits.length, 0, 'nothing before the ring goes off');
+    assert.equal(a.m.windup?.name, 'decoy', 'too close: it leaves its decoy');
+    a.until(() => a.m.state === 'act');
+    const bomb = a.g.areas.find((x) => x.kind === 'mirror_bomb');
+    assert.ok(bomb && Math.abs(bomb.delay - dec.fuse) < 1e-9 && bomb.radius === dec.radius, 'the decoy is marked where the moth hung');
     a.until(() => a.m.state === 'recover');
-    a.step(0.5);
-    assert.equal(a.hits.length, expect, `player at ${d} m`);
+    assert.ok(Math.hypot(a.m.x - bomb.x, a.m.z - bomb.z) > dec.distance * 0.9, 'the moth flew back away from it');
+    if (!stay) Object.assign(a.g.player, { x: bomb.x + dec.radius + 1.5, z: bomb.z });
+    a.step(dec.fuse - dec.air - 0.15);
+    assert.equal(a.hits.length, 0, 'nothing before the fuse runs out');
+    a.step(0.6);
+    assert.equal(a.hits.length, expect, stay ? 'staying by the decoy is hit once' : 'stepping out of its circle is safe');
   }
 });
 
@@ -152,7 +154,7 @@ test('moth wing glare: a lane of reflected light that hits once at the end of it
   const glare = M.mirrorwing_moth.attacks.glare;
   for (const [side, expect] of [[0, 1], [glare.width / 2 + 1.2, 0]]) {
     const a = arena('mirrorwing_moth');
-    a.m.cd.mirror_ring = a.m.cd.shard_rain = 99;
+    a.m.cd.decoy = a.m.cd.shard_rain = 99;
     a.place(6);
     a.step(0.01);
     assert.equal(a.m.windup?.name, 'glare', 'it turns its wings on the prey from range');

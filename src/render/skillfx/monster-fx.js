@@ -216,7 +216,7 @@ export class MonsterFx {
     if (m?.type === 'rootdigger_mole' && e.attack === 'erupt') return this.mole.burst(e);
     if (m?.type === 'fern_ear_hare' && (e.attack === 'thump' || e.attack === 'hop')) return this.hareLand(e, e.attack === 'thump');
     if (e.attack === 'shard_rain') return this.glassShatter(e);
-    if (e.attack === 'mirror_ring') return this.moonRing(e, g);
+    if (e.attack === 'decoy') return this.decoyBurst(e);
     if (e.attack === 'withdraw') return this.shellBurst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
@@ -270,15 +270,19 @@ export class MonsterFx {
     this.onShake?.(0.05, 0.07);
     return true;
   }
-  /** The moth's moonlight ring goes off: a wall of light runs out to the band's edge, a pale rim marks the safe middle. */
-  moonRing(e, g) {
-    const y = this.host.groundAt?.(e.x, e.z) ?? 0;
-    this.moth.ring(e);
-    this.call.ring(e.x, y + 0.06, e.z, e.radius, MOON, 0.45);
-    if (e.inner) this.call.ring(e.x, y + 0.07, e.z, e.inner, GLASS_HALO, 0.3, 0.05);
-    const b = e.source != null ? this.bonePos(e.source, 'body', _w) : null;
-    if (b) this.companion.glint(b.x, b.y, b.z, 1.6, 0);
-    this.onShake?.(0.12, 0.12);
+  /** The moth's mirror decoy bursts: the glass image shatters in a big star of cold light, glass flying out to the edge. */
+  decoyBurst(e) {
+    const y = this.host.groundAt?.(e.x, e.z) ?? 0, fx = this.host.vfx?.fx;
+    this.moth.pop(e.x, e.z);
+    this.burstStar(e.x, y + 1.4, e.z, 1.1, GLASS, 0xbfe9ff, 0xffffff);
+    this.companion.glint(e.x, y + 1.4, e.z, 2.2, 0);
+    this.call.ring(e.x, y + 0.06, e.z, e.radius, GLASS_HALO, 0.45);
+    this.call.ring(e.x, y + 0.08, e.z, e.radius * 0.55, MOON, 0.3, 0.05);
+    if (fx) for (let i = 0; i < 22; i++) {
+      const a = (i / 22) * 6.283 + Math.random() * 0.3, sp = 2.5 + Math.random() * 3;
+      fx.add(e.x, y + 1.3, e.z, Math.sin(a) * sp, 1 + Math.random() * 3, Math.cos(a) * sp, { color: i % 3 ? 0xd6f4ff : 0xffffff, size: 0.16 + Math.random() * 0.08, sizeEnd: 0.04, life: 0.6, gravity: 10, drag: 0.5 });
+    }
+    this.onShake?.(0.16, 0.14);
     return true;
   }
   /** The moth's wing glare (core beam, kind glare): the beam from its chest along the lane. */
@@ -508,17 +512,10 @@ export class MonsterFx {
         c.next -= dt;
         const b = this.bonePos(c.id, 'body', _w);
         if (b && c.next <= 0) { c.next = 0.05; const a = Math.random() * 6.283; this.host.vfx?.dust.add(b.x + Math.sin(a) * 0.6, b.y - 0.2, b.z + Math.cos(a) * 0.6, Math.cos(a) * 1.5, 0.9, -Math.sin(a) * 1.5, { color: 0xfff0f6, size: 0.3, sizeEnd: 0.8, life: 0.5, drag: 2 }); }
-      } else if (c.kind === 'moth_mirror_ring') {
-        // moonlight gathers in its spread wings, motes rising round the band faster as the ring nears
+      } else if (c.kind === 'moth_decoy') {
+        // its wings flare white as the reflection splits off it
         const b = this.bonePos(c.id, 'body', _w);
-        if (b) { glowAt = b; glowK = 0.3 + 0.7 * k; glowTint = 0xd6f2ff; glowSize = 1.3; }
-        c.next -= dt;
-        const m2 = g.monsterById?.(c.id), atk = m2?.def.attacks.mirror_ring, fx = this.host.vfx?.fx;
-        if (atk && fx && c.next <= 0) {
-          c.next = 0.07 - 0.04 * k;
-          const a = Math.random() * 6.283, r = atk.inner + (atk.radius - atk.inner) * Math.random(), x = m2.x + Math.sin(a) * r, z = m2.z + Math.cos(a) * r;
-          fx.add(x, (this.host.groundAt?.(x, z) ?? 0) + 0.1, z, 0, 0.8 + 1.2 * k, 0, { color: k > 0.6 ? 0xffffff : 0xcdeeff, size: 0.16, sizeEnd: 0.03, life: 0.55, drag: 1 });
-        }
+        if (b) { glowAt = b; glowK = 0.2 + 0.8 * k * k; glowTint = 0xf2fbff; glowSize = 1.5; }
       } else if (c.kind === 'moth_shard_rain') {
         // a cold shine in the raised wings while the shards form overhead
         const b = this.bonePos(c.id, 'body', _w);

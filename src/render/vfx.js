@@ -743,7 +743,7 @@ export class Vfx {
     if (e.kind === 'shards') return this.shardBurst(e);
     if (e.kind === 'quake') return this.quakeBurst(e);
     if (e.kind === 'pounce') return this.dive(e);
-    if (e.kind === 'glass_shard' || e.kind === 'mirror_ring') return; // the moth's shatter and ring are drawn in skillfx (monster-fx.js, moth-fx.js)
+    if (e.kind === 'glass_shard' || e.kind === 'mirror_bomb') return; // the moth's shatter and decoy are drawn in skillfx (monster-fx.js, moth-fx.js)
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
@@ -1452,24 +1452,7 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'mirror_ring') {
-      // the moth's moonlight ring: the band that will hit fills in red, the safe middle under the
-      // moth stays clear with a pale rim
-      const inner = (a.inner || 0) / a.radius;
-      const band = this.decal(ringGeometry(inner, 1, 64), new THREE.MeshBasicMaterial({ color: 0xff6a3a, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide }), a.x, a.z, a.radius, 0, 0.06);
-      const rim = this.decal(ringGeometry(Math.max(0, inner - 0.03), inner, 64), additive(0xe9fbff, 0.8), a.x, a.z, a.radius, 0, 0.065);
-      const group = new THREE.Group();
-      group.add(band, rim);
-      return {
-        obj: group,
-        update: (ar) => {
-          const k = Math.min(1, ar.t / Math.max(0.01, ar.delay)), live = ar.t < ar.delay;
-          band.material.opacity = live ? 0.15 + 0.45 * k : 0;
-          rim.material.opacity = live ? 0.5 + 0.4 * Math.sin(ar.t * 18) * 0.5 : 0;
-        },
-      };
-    }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard') {
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);

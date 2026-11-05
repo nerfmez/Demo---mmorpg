@@ -1,23 +1,19 @@
 // The mirrorwing moth's effects (docs/MONSTER-ATTACKS.md), cosmetic only, from core events:
 // - Glass Rain: a shard of glass forms in the air high over each marked circle while the moth holds its wings up,
 //   then falls onto its mark as it goes off (area events give the marks and their delays; MonsterFx draws the shatter).
-// - Moonlight Ring: a wall of moonlight runs out from the safe middle to the band's true edge (core burst).
+// - Mirror Decoy: a glass image of the moth is left where it hung (core area kind mirror_bomb), flickering faster and
+//   faster like a fuse burning down, then it bursts (MonsterFx draws the explosion). The image is a pooled moth rig
+//   from the View (host.takeRig), lit pale and see-through.
 // - Wing Glare: the moonlight caught in its wings is thrown along the lane as a beam (core beam, kind glare).
 // Pools only, shared geometry, no allocation per frame.
 import * as THREE from 'three';
+import { lightSprite, glowTexture } from './light-kit.js';
 
-const SHARDS = 12, WALLS = 2, BEAMS = 2;
+const SHARDS = 12, BEAMS = 2, DECOYS = 3;
 const FORM = 0.75, FALL = 0.28, HIGH = 3.2; // s a shard shows before it lands, s it falls, m above its mark
 const _a = new THREE.Vector3(), _b = new THREE.Vector3();
 
-const WALL_VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
-// a band of light standing round the ring: bright at the foot, fading up, broken into soft pillars
-const WALL_FS = `varying vec2 vUv; uniform vec3 uC; uniform float uA; uniform float uSeed;
-void main(){
-  float up = pow(1.0 - vUv.y, 1.7);
-  float pillars = 0.55 + 0.45 * sin(vUv.x * 6.2832 * 14.0 + uSeed);
-  gl_FragColor = vec4(uC, uA * up * pillars);
-}`;
+const GHOST = { moving: false, speed: 0, smoothSpeed: 0, state: 'idle', windup: null, lookYaw: 0, hurt: 0, actT: 0 };
 
 export class MothFx {
   constructor(scene, host) {
@@ -35,15 +31,9 @@ export class MothFx {
       return { g, x: 0, z: 0, land: -1, spin: 0, next: 0 };
     });
     this.shardI = 0;
-    // ring walls: an open cylinder of light (radius 1, height 1, its foot at y 0)
-    const wallGeo = new THREE.CylinderGeometry(1, 1, 1, 64, 1, true).translate(0, 0.5, 0); wallGeo.userData.shared = true;
-    this.walls = Array.from({ length: WALLS }, () => {
-      const mat = new THREE.ShaderMaterial({ vertexShader: WALL_VS, fragmentShader: WALL_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
-        uniforms: { uC: { value: new THREE.Color(0xcdf2ff) }, uA: { value: 0 }, uSeed: { value: 0 } } });
-      const m = new THREE.Mesh(wallGeo, mat); m.visible = false; m.renderOrder = 8; scene.add(m);
-      return { m, t: 9, x: 0, z: 0, y: 0, inner: 0, outer: 1 };
-    });
-    this.wallI = 0;
+    this.decoys = []; // { rig, x, z, y, t, fuse, phase, source, next, halo }
+    // a cold halo pulsing round each decoy, the fuse's beat
+    this.halos = Array.from({ length: DECOYS }, () => { const h = lightSprite(scene, glowTexture('cold'), true, 9); h.visible = false; return h; });
     // glare beams: a white core inside a cold sheath, a unit tube along +Z
     const tube = new THREE.CylinderGeometry(1, 1, 1, 10, 1, true).rotateX(Math.PI / 2).translate(0, 0, 0.5); tube.userData.shared = true;
     const beamMat = (c, o) => { const m = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }); return m; };
@@ -62,12 +52,34 @@ export class MothFx {
     Object.assign(q, { x: e.x, z: e.z, land: this.time + e.delay, spin: Math.random() * 6.283, next: 0 });
   }
 
-  /** The moonlight ring goes off (core burst of mirror_ring): a wall of light runs out from the safe middle to the edge. */
-  ring(e) {
-    const w = this.walls[this.wallI++ % WALLS];
-    Object.assign(w, { t: 0, x: e.x, z: e.z, y: this.gy(e.x, e.z), inner: e.inner || 0.3, outer: e.radius });
-    w.m.material.uniforms.uSeed.value = Math.random() * 10;
-    w.m.visible = true;
+  /**
+   * The mirror decoy is left (core area kind mirror_bomb): a glass moth where the real one hung, facing as it did,
+   * until it bursts (pop) or its fuse is long past.
+   */
+  decoy(e) {
+    const take = this.host.takeRig, real = e.source != null ? this.host.monsterRig?.(e.source) : null;
+    if (!take || !real || this.decoys.length >= DECOYS) return;
+    const rig = take('mirrorwing_moth');
+    rig.root.position.set(e.x, this.gy(e.x, e.z), e.z);
+    rig.root.rotation.y = real.root.rotation.y;
+    rig.root.scale.copy(real.root.scale);
+    rig.decoyScale = real.root.scale.x;
+    this.host.scene.add(rig.root);
+    const halo = this.halos.find((h) => !h.visible);
+    this.decoys.push({ rig, x: e.x, z: e.z, t: 0, fuse: e.delay, phase: 0, source: e.source, next: 0, halo });
+  }
+  /** The decoy at (x, z) bursts: its rig goes back to the View's pool; true when there was one. */
+  pop(x, z) {
+    const i = this.decoys.findIndex((d) => Math.hypot(d.x - x, d.z - z) < 0.5);
+    if (i < 0) return false;
+    this.free(i);
+    return true;
+  }
+  free(i) {
+    const d = this.decoys[i];
+    this.decoys.splice(i, 1);
+    if (d.halo) d.halo.visible = false;
+    this.host.releaseRig?.(d.rig);
   }
 
   /** The wing glare (core beam, kind glare): from the moth's chest down along the lane to its end. */
@@ -85,6 +97,15 @@ export class MothFx {
       const u = (i + Math.random() * 0.5) / 16;
       fx.add(_a.x + (_b.x - _a.x) * u, _a.y + (_b.y - _a.y) * u, _a.z + (_b.z - _a.z) * u, (Math.random() - 0.5) * 0.4, 0.5 + Math.random() * 0.6, (Math.random() - 0.5) * 0.4,
         { color: i % 3 ? 0xd8f6ff : 0xfff6d8, size: 0.16 + 0.12 * u, sizeEnd: 0.03, life: 0.35 + 0.25 * u, drag: 2 });
+    }
+  }
+
+  fade(rig, a) {
+    for (const [mat, hull] of [[rig.material, rig.hull], [rig.modelMaterial, rig.modelHull]]) {
+      if (!mat) continue;
+      if (!mat.transparent) { mat.transparent = true; mat.depthWrite = false; mat.needsUpdate = true; if (hull) { hull.transparent = true; hull.depthWrite = false; hull.needsUpdate = true; } }
+      mat.opacity = a;
+      if (hull) hull.opacity = a * a;
     }
   }
 
@@ -113,15 +134,32 @@ export class MothFx {
         if (fx && q.next <= 0) { q.next = 0.025; fx.add(q.x + (Math.random() - 0.5) * 0.15, q.g.position.y + 0.5, q.z + (Math.random() - 0.5) * 0.15, 0, 0.3, 0, { color: 0xcff2ff, size: 0.14, sizeEnd: 0.02, life: 0.3, drag: 3 }); }
       }
     }
-    for (const w of this.walls) {
-      if (!w.m.visible) continue;
-      w.t += dt;
-      const k = Math.min(1, w.t / 0.45), out = 1 - (1 - k) * (1 - k) * (1 - k);
-      if (k >= 1) { w.m.visible = false; continue; }
-      const R = w.inner + (w.outer - w.inner) * out;
-      w.m.position.set(w.x, w.y + 0.02, w.z);
-      w.m.scale.set(R, 1.7 - 1.1 * out, R);
-      w.m.material.uniforms.uA.value = (k < 0.1 ? k / 0.1 : 1) * (1 - k) * 1.1;
+    for (let i = this.decoys.length - 1; i >= 0; i--) {
+      const d = this.decoys[i], r = d.rig;
+      d.t += dt;
+      if (d.t > d.fuse + 0.6) { this.free(i); continue; }
+      // the fuse: a pale glass glow pulsing faster and faster, brightest as it runs out; it swells on the last beat
+      const k = Math.min(1, d.t / d.fuse);
+      d.phase += dt * (3 + 16 * k * k) * Math.PI * 2;
+      const pulse = 0.5 + 0.5 * Math.sin(d.phase);
+      r.material.userData.flash.value.set(0.7 + 0.3 * pulse + 0.3 * k, 0, 1.1 + 0.3 * pulse);
+      const see = 0.88 + 0.12 * pulse;
+      this.fade(r, see);
+      const swell = k > 0.85 ? 1 + 0.18 * (k - 0.85) / 0.15 : 1 + 0.02 * pulse;
+      r.root.scale.setScalar(r.decoyScale * swell);
+      r.animate(r, GHOST, dt, this.time);
+      if (d.halo) {
+        r.bones.body.getWorldPosition(_a);
+        d.halo.visible = true; d.halo.position.copy(_a);
+        d.halo.scale.setScalar((1.6 + 0.6 * pulse + 0.8 * k) * r.decoyScale);
+        d.halo.material.opacity = 0.35 + 0.45 * pulse * (0.5 + 0.5 * k);
+      }
+      d.next -= dt;
+      if (fx && d.next <= 0) {
+        d.next = 0.12 - 0.08 * k;
+        const a = Math.random() * 6.283, y = this.gy(d.x, d.z) + 1.2 + Math.random() * 0.8;
+        fx.add(d.x + Math.sin(a) * 0.5, y, d.z + Math.cos(a) * 0.5, Math.sin(a) * 0.4, 0.3, Math.cos(a) * 0.4, { color: k > 0.6 ? 0xffffff : 0xcdeeff, size: 0.12 + 0.1 * k, sizeEnd: 0.02, life: 0.4, drag: 2 });
+      }
     }
     for (const b of this.beams) {
       if (!b.g.visible) continue;

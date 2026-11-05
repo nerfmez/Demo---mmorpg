@@ -241,15 +241,18 @@ function animMoth(r, s, dt, time) {
   } else if (s.state === 'recover' && s.lastAttack === 'shard_rain') {
     const back = ease((t - 0.12) / 0.35);
     lift += 0.45 * (1 - back); open = -0.35 * (1 - back) + 0.15 * back; amp = 0.15 + 0.4 * back;
-  } else if (s.windup === 'mirror_ring') {
-    // spreads its wings flat and wide, panes up to the moon, sinking a little; they shimmer faster and faster as the
-    // moonlight gathers in them, then one great downstroke sends the ring out
-    const spread = ease(k / 0.3), down = ease((k - 0.9) / 0.1);
-    tilt = -1.0 - 0.45 * spread; open = 0.15 - 0.05 * spread - 0.9 * down; amp = 0.55 - 0.47 * spread; hz = 2.2 + 9 * spread * k;
-    lift -= 0.25 * spread; lean = 0;
-  } else if (s.state === 'recover' && s.lastAttack === 'mirror_ring') {
-    const back = ease((t - 0.1) / 0.4);
-    tilt = -1.45 + 0.45 * back; open = -0.75 * (1 - back) + 0.15 * back; amp = 0.08 + 0.47 * back; lift -= 0.25 * (1 - back);
+  } else if (s.windup === 'decoy') {
+    // too close: it pulls back with its wings thrown wide and forward (the flash as its mirror image splits off),
+    // held for a beat, then it beats hard and flies backward away from the prey
+    const flare = ease(k / 0.4);
+    tilt = -1.0 + 0.4 * flare; open = 0.15 + 0.75 * flare; amp = 0.55 * (1 - flare) + 0.05 * flare; hz = 2.2 + 8 * flare;
+    lean = -0.3 * flare; lift += 0.1 * flare; headX = 0.2 * flare;
+  } else if (s.state === 'act' && s.lastAttack === 'decoy') {
+    // flying back fast: big, quick wing beats, the body tipped back, facing the prey it leaves the decoy with
+    hz = 6.5; amp = 0.85; open = 0.1; tilt = -0.85; lean = -0.35; lift += 0.2;
+  } else if (s.state === 'recover' && s.lastAttack === 'decoy') {
+    const back = ease(t / 0.4);
+    hz = 6.5 - 4.3 * back; amp = 0.85 - 0.3 * back; lean = -0.35 * (1 - back); lift += 0.2 * (1 - back);
   } else if (s.windup === 'glare') {
     // turns its wings on the prey like a mirror: brought up to face forward (the panes toward the prey), cupped a
     // little, the body tipped back so they catch the moon; held trembling until the flash
@@ -266,7 +269,7 @@ function animMoth(r, s, dt, time) {
   r.phase = (r.phase || 0) + dt * hz * Math.PI * 2;
   // a moth's downstroke is quicker than its upstroke; the body lifts on each downstroke
   const sw = Math.sin(r.phase), beat = open + amp * (sw >= 0 ? sw : sw * 0.75);
-  const fast = s.windup === 'mirror_ring' || s.windup === 'shard_rain' || (s.state === 'recover' && t < 0.15);
+  const fast = s.windup === 'decoy' || s.windup === 'shard_rain' || (s.state === 'recover' && t < 0.15);
   const wr = fast ? 30 : 18;
   b.wingL.rotation.z = damp(b.wingL.rotation.z, beat, wr, dt);
   b.wingR.rotation.z = damp(b.wingR.rotation.z, -beat, wr, dt);

@@ -1296,25 +1296,27 @@
       "jobExp": 12,
       "flyer": true,
       "attacks": {
-        "mirror_ring": {
-          "nameTh": "วงแหวนแสงจันทร์",
-          "kind": "mirror_ring",
+        "decoy": {
+          "nameTh": "ร่างเงากระจก",
+          "kind": "mirror_decoy",
           "use": {
             "max": 3.2
           },
+          "range": 3.2,
+          "windup": 0.55,
+          "distance": 4.5,
+          "air": 0.5,
+          "fuse": 1.6,
+          "radius": 2.6,
+          "recover": 0.5,
+          "cooldown": 7,
+          "damageMult": 1.5,
           "inflict": {
             "status": "chill",
             "chance": 1,
             "duration": 2.5,
             "slow": 0.4
-          },
-          "range": 3.2,
-          "radius": 4.2,
-          "inner": 1.5,
-          "windup": 0.95,
-          "recover": 0.7,
-          "cooldown": 6,
-          "damageMult": 1.4
+          }
         },
         "shard_rain": {
           "nameTh": "ห่าเกล็ดกระจก",

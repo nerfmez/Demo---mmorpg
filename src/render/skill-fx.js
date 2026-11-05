@@ -514,6 +514,7 @@ export class SkillFx {
       case 'arrowPin': this.frain.pin(e, this.skillOf(e.skill)?.arrows?.blast || 1.4); return true;
       case 'area': {
         if (e.owner === 'monster' && e.kind === 'glass_shard') this.monster.moth.shard(e); // the moth's shard forms over its mark
+        if (e.owner === 'monster' && e.kind === 'mirror_bomb') this.monster.moth.decoy(e); // the moth's glass image, a bomb
         if (e.owner !== 'player') return false;
         if (e.kind === 'faith_wall') { const a = g.areas.find((q) => q.id === e.id); if (a) this.gs.wallBegin(a); return true; }
         const el = this.skillOf(e.kind)?.element;

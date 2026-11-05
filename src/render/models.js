@@ -52,7 +52,13 @@ export function capModelTextures(gltf) {
 }
 
 /** Register lazy weapons; load character/monster templates at boot as before. */
-export function loadModels(registry = {}, { onWeaponReady, onMonsterReady } = {}) {
+const monsterEntries = new Map(); // every registered monster model, loaded or not (for requestMonsterModel)
+const failedMonsters = new Set();
+/**
+ * Load the registry's models. `onlyMonsters` (a Set of types; the monster sandbox page) loads just those monsters
+ * up front; the others are registered and load on demand the first time one is built (requestMonsterModel).
+ */
+export function loadModels(registry = {}, { onWeaponReady, onMonsterReady, onlyMonsters = null } = {}) {
   if (onWeaponReady) weaponListeners.add(onWeaponReady);
   if (onMonsterReady) monsterListeners.add(onMonsterReady);
   const jobs = [];
@@ -66,33 +72,54 @@ export function loadModels(registry = {}, { onWeaponReady, onMonsterReady } = {}
       if ((m.chibi || m.chibiHair) && !useChibi) continue; // the chibi hero and its hair (all but ?hero=classic / vrm)
       if (m.hairsample && useChibi) continue; // the HairSample hero only with ?hero=classic
       const key = `${group}/${id}`;
+      if (group === 'monsters') {
+        monsterEntries.set(id, m);
+        if (onlyMonsters && !onlyMonsters.has(id)) continue;
+        const job = requestMonsterModel(id);
+        if (job) jobs.push(job);
+        continue;
+      }
       if (loaded.has(key)) continue;
       if (loading.has(key)) { jobs.push(loading.get(key)); continue; }
-      if (group === 'monsters') pendingMonsters.add(id);
-      const job = Promise.all([loader.loadAsync(m.file), group === 'monsters' && m.ball ? loader.loadAsync(m.ball.file) : null])
-          .then(([gltf, ball]) => {
-            if (group === 'monsters') {
-              // a second form (the warden's rolled boulder) loads with the monster, so every rig has both
-              const T = prepareMonsterModel(gltf, m);
-              if (ball) T.ball = prepareMonsterForm(ball, m.ball);
-              loaded.set(`${group}/${id}`, T);
-              pendingMonsters.delete(id);
-              for (const fn of monsterListeners) fn(id);
-              return;
-            }
+      const job = loader.loadAsync(m.file)
+          .then((gltf) => {
             if (group === 'characters') {
               loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : m.chibi ? prepareChibiBody : m.chibiHair ? prepareChibiHair : prepareHeroBase)(gltf, m));
               return;
             }
             loaded.set(`${group}/${id}`, prepareWeaponModel(gltf.scene, m));
           })
-          .catch((err) => { console.warn('model not loaded:', m.file, err); if (group === 'monsters') pendingMonsters.delete(id); })
+          .catch((err) => console.warn('model not loaded:', m.file, err))
           .finally(() => loading.delete(key));
       loading.set(key, job);
       jobs.push(job);
     }
   }
   return Promise.all(jobs);
+}
+
+/**
+ * Start loading a registered monster's model if it is not loaded, loading or failed; returns the job (or null).
+ * While it loads the monster is pending (its rigs wait hidden), and listeners hear its type when it is ready.
+ */
+export function requestMonsterModel(id) {
+  const m = monsterEntries.get(id), key = `monsters/${id}`;
+  if (!m || loaded.has(key) || failedMonsters.has(id)) return null;
+  if (loading.has(key)) return loading.get(key);
+  pendingMonsters.add(id);
+  const job = Promise.all([loader.loadAsync(m.file), m.ball ? loader.loadAsync(m.ball.file) : null])
+    .then(([gltf, ball]) => {
+      // a second form (the warden's rolled boulder) loads with the monster, so every rig has both
+      const T = prepareMonsterModel(gltf, m);
+      if (ball) T.ball = prepareMonsterForm(ball, m.ball);
+      loaded.set(key, T);
+      pendingMonsters.delete(id);
+      for (const fn of monsterListeners) fn(id);
+    })
+    .catch((err) => { console.warn('model not loaded:', m.file, err); pendingMonsters.delete(id); failedMonsters.add(id); })
+    .finally(() => loading.delete(key));
+  loading.set(key, job);
+  return job;
 }
 
 /** Demand is keyed by item ID; completion caches a template, never an old hand/rig. */

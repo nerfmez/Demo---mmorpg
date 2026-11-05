@@ -5,7 +5,7 @@
 // squash/stretch, head tracking, springy tails/ears and hit reactions.
 import * as THREE from 'three';
 import { RigBuilder, damp, clamp01, Spring } from './rig.js';
-import { monsterModel, monsterModelPending } from './models.js';
+import { monsterModel, monsterModelPending, requestMonsterModel } from './models.js';
 import { attachMonsterModel } from './monsterSkin.js';
 import { MIDHIGH_BUILDERS, MIDHIGH_SCALE } from './monsters-midhigh.js';
 import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
@@ -1278,7 +1278,9 @@ const MOTION_LIKE = { spirit_wisp: 'marsh_wisp', spirit_wolf: 'thornback_wolf', 
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;
   const rig = build();
-  // an imported model, once loaded, replaces the procedural parts on the same bones
+  // an imported model, once loaded, replaces the procedural parts on the same bones (one not asked for yet, on the
+  // monster sandbox page, starts loading now)
+  requestMonsterModel(type);
   const model = monsterModel(type);
   if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = type; }
   else if (monsterModelPending(type)) {

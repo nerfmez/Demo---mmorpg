@@ -1241,7 +1241,8 @@ export class View {
     const [x, z] = this.world.data.playerSpawn;
     const y = this.world.groundY(x, z);
     const rigs = [];
-    for (const type of new Set([...this.world.data.spawns.map(s => s.monster), ...(this.world.data.bosses || []).map(b => b.monster)])) {
+    // (the monster sandbox's arena warms no monsters: building them would fetch every model its page leaves for later)
+    for (const type of this.arena ? [] : new Set([...this.world.data.spawns.map(s => s.monster), ...(this.world.data.bosses || []).map(b => b.monster)])) {
       const rig = buildMonster(type, 1);
       rigs.push(rig);
       rig.root.position.set(x, y, z);

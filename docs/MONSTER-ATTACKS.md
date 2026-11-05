@@ -178,6 +178,10 @@ session's network, so these come from search summaries of the cited pages.
   across its measured path, so it never skids, sideways too while circling), and it uncurls once it has stopped a
   moment, to attack. Curling and opening take about a third of a second, the ball growing out of the tucked body
   while the body shrinks into it, so it never pops. Rolling, it moves at 2.4 m/s (was 1.6, a walking pace).
+- **Walks, round 12** (2026-11-05, owner: the tanuki "still bounces hard, and its belly caves in as it walks"): the
+  hop is down to 3.5 cm (from 8), the landing squash is gone (it flattened the whole body each step), and the legs
+  swing less (0.6 rad, knee 1.2, from 0.8 and 1.6): the wide swing pulled the belly in where the legs join it. The
+  sandbox compares it with an even lighter bounce and none.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

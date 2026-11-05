@@ -37,6 +37,8 @@ const card = (id, d) => {
   a.innerHTML = `<b></b><span></span>`;
   a.querySelector('b').textContent = d.nameTh || id;
   a.querySelector('span').textContent = `${lv} · ${Object.keys(d.attacks || {}).length} ท่า`;
+  // the standalone artifact page (scripts/monster-lab-artifact.mjs) opens game.html#<type>: the arena only
+  if (window.__monsterLabArtifact) { a.href = `game.html#${encodeURIComponent(id)}`; return a; }
   const href = `index.html?fresh=1&load=dev&monsterLab=${encodeURIComponent(id)}`;
   a.href = href + '&arena=1';
   a.addEventListener('click', () => { a.href = href + (document.getElementById('map').checked ? '' : '&arena=1'); });

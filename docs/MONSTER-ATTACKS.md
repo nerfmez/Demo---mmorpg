@@ -243,6 +243,11 @@ session's network, so these come from search summaries of the cited pages.
   landing: a deep crouch, rump wiggle while it aims, earth kicked back as it springs, stretched long in the air, a
   squash on landing with earth and leaves. A keyed bound locked to its ground speed replaced its run, but the owner
   preferred the old one ("the old run was better"): the old bounding run is back, the new attacks stay.
+- **Monster Lab as its own page** (2026-11-05, owner: "why not a separate test site like the skill tests, why the
+  whole game"): the Pages route rebuilt and redeployed the whole 340 MB site for each round (~20 minutes). The
+  sandbox is now also a standalone artifact like the Skill FX bench: `scripts/monster-lab-artifact.mjs` packs the
+  list page, the game page in arena mode and only what the arena loads (about 40 MB; `.glb`/`.bin` as base64 text
+  that the page's fetch decodes), published in seconds.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

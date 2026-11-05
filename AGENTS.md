@@ -78,8 +78,9 @@ work runs no tests. Do not make a reviewable draft wait for unrelated full suite
 - Monster attacks (kits, wind-ups, strike effects): follow [the monster attack standard](docs/MONSTER-ATTACKS.md) -
   each monster its own kit in data, pose then glow then ground warning, strike effects as shapes of light (not
   limb trails) - and review it in the game's monster sandbox (`?fresh=1&monsterLab=<type>`). The owner
-  reviews each round live on the iPad at `<site>/lab/monsters.html` (published from `claude/vfx-*` branches;
-  owner, 2026-11-04: no more recorded clips); check your own frames first (`tests/browser/monster-lab.mjs`).
+  reviews each round live on the iPad in the Monster Lab artifact (`npm run build && node
+  scripts/monster-lab-artifact.mjs`, then publish `dist-monster-lab/` to the same artifact: seconds, not the ~20 minute
+  `<site>/lab/monsters.html` deploy; owner, 2026-11-05; 2026-11-04: no more recorded clips); check your own frames first (`tests/browser/monster-lab.mjs`).
 - Use the existing focused capture that exercises changed content. Full-map capture,
   Dreamloop and long stress/leak runs apply to map-wide/resource changes or concrete
   evidence, not every local art edit. Inspect actual screenshots before sharing.

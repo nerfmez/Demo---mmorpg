@@ -68,9 +68,15 @@ must be creative". The kits so far lean on the same few families. Count before d
 | Beam or lane | moth, snail king (2) |
 | Ring round itself | (moth's, removed by the owner) |
 
+Then (owner, 2026-11-05): "It is not that they are not allowed, but the pattern must be creative, not the same
+pattern with a different effect." So a dash or a shot is fine; a dash that is another straight charge at the prey, or a
+shot that is another fan of darts flying straight, is not. What has to differ is the pattern: the path's shape (an
+arc, a zigzag, a bounce, a return), its timing (a delay, a rhythm, a hold), what it leaves behind or does after (it
+hovers, it sticks, it splits, it comes back), what the player must do about it (step back, not sideways; wait; go
+round; break it).
+
 Rules for every new kit:
-- At most one attack from the dash/leap family and one from the shot family, and only when the creature really does
-  that; prefer neither.
+- Every attack's pattern is its own: not a pattern another monster already has with a new look on it.
 - At least one mechanic no other monster has, read from the creature itself (its body, habit, what it drops).
 - No ring round itself.
 - Families not used yet, to draw from: a grab or engulf (held, struggle free); a counter or guard stance (hitting

@@ -305,6 +305,11 @@ Rules for every new kit:
   only had sand. Now its open claws warm with light in the wind-up; while it sweeps both claw tips carve a continuous
   orange streak of light through the air, flashing at each snap; a pass that clips the prey sends a `monsterSwing`
   (look `sidestep`: two crossing marks of light on it).
+- **Reef crab, round 4** (2026-11-05, owner: "effects on the claws do not help; the area that does damage has no
+  effect, as if the attack happened in the air, unseen"): the claw streaks are gone. While it sweeps, the strip that is
+  really hit (its reach ahead, the claws' width across) is a band of orange light on the ground in front of it, moving
+  with it and leaving fading copies along the ground it has swept; sand is thrown off its far edge. Rule for every
+  attack: the effect must show the area that does the damage, while it does it, not only the body that makes it.
 - **Monster Lab as its own page** (2026-11-05, owner: "why not a separate test site like the skill tests, why the
   whole game"): the Pages route rebuilt and redeployed the whole 340 MB site for each round (~20 minutes). The
   sandbox is now also a standalone artifact like the Skill FX bench: `scripts/monster-lab-artifact.mjs` packs the

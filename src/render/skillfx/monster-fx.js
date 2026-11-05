@@ -49,7 +49,7 @@ const SHOTS = {};
 export class MonsterFx {
   /** companion: the CompanionFx whose jaw, claw marks and glints these share; call: its dust and rings. */
   constructor(scene, camera, companion, call, host) {
-    this.camera = camera; this.companion = companion; this.call = call; this.host = host; this.onShake = null;
+    this.scene = scene; this.camera = camera; this.companion = companion; this.call = call; this.host = host; this.onShake = null;
     this.leaves = new LeafFx(scene);
     // the clam's bubbles burst into a few droplets
     this.bubbles = new BubbleFx(scene, (x, y, z, size) => {
@@ -481,6 +481,7 @@ export class MonsterFx {
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);
+    this.ageSweep(dt);
     this.king(g, dt);
     // a rolling pangolin kicks up dust behind it
     for (const m of g.monsters) if (m.type === 'stone_pangolin' && m.charge && !m.charge.hop && Math.random() < 0.7) {
@@ -661,25 +662,69 @@ export class MonsterFx {
       if (m.type !== 'reef_crab' || !m.charge?.scuttle) continue;
       const c = m.charge, y = this.host.groundAt?.(m.x, m.z) ?? 0;
       if (Math.random() < 0.8) { const a = Math.random() * 6.283; this.call.dust(m.x + Math.sin(a) * 0.5, y + 0.12, m.z + Math.cos(a) * 0.5, Math.sin(a) * 0.9, 0.5, Math.cos(a) * 0.9, 0.5, 0.4); }
-      // the sweep itself: both claws carve a streak of light through the air as it scuttles across, and flash as
-      // they snap shut (about seven snaps over the two passes)
+      // the sweep itself is drawn where it hurts: a band of light on the ground in front of it, exactly the strip
+      // that is hit (its reach ahead, the claws' width across), moving with it and leaving fading copies along the
+      // ground it has swept (owner, 2026-11-05: the hit area had no effect, as if the attack happened unseen)
+      const atk = m.def.attacks[m.windup?.name] || {};
+      const S = this.sweep || (this.sweep = this.makeSweepBands());
+      const reach = c.reach ?? 3, wide = 1.4 + 0.4, gy2 = y + 0.05;
+      const live = S.live;
+      live.visible = true; live.position.set(m.x, gy2, m.z); live.rotation.y = c.angle; live.scale.set(wide, 1, reach);
+      live.material.opacity = 0.55 + 0.25 * Math.abs(Math.sin(c.t * 11));
+      live.userData.t = c.t;
+      S.next -= dt;
+      if (S.next <= 0) {
+        S.next = 0.045;
+        const gh = S.ghosts[S.i++ % S.ghosts.length];
+        gh.visible = true; gh.position.copy(live.position); gh.rotation.y = c.angle; gh.scale.copy(live.scale); gh.userData.age = 0;
+      }
+      // sand thrown forward off the band's far edge, where the claws reach
+      if (fx && Math.random() < 0.7) {
+        const dir = Math.sin(c.angle), dirz = Math.cos(c.angle), lat = (Math.random() - 0.5) * wide;
+        const px = m.x + dir * reach * (0.6 + 0.4 * Math.random()) + dirz * lat, pz = m.z + dirz * reach * (0.6 + 0.4 * Math.random()) - dir * lat;
+        this.call.dust(px, gy2 + 0.1, pz, dir * 1.2, 0.6, dirz * 1.2, 0.45, 0.35);
+      }
+      S.seen = true;
+      // the claws flash as they snap shut (about seven snaps over the two passes)
       const rig = this.rig(m.id);
       for (const [bone, sx] of [['mandL', 1], ['mandR', -1]]) {
         const b = rig?.bones?.[bone];
         if (!b || !fx) continue;
         b.updateWorldMatrix(true, false);
         _v.set(sx * 0.08, 0.12, 0.6).applyMatrix4(b.matrixWorld);
-        // a continuous ribbon of glow: fill in between where the claw tip was last frame and where it is now
-        const prev = (c.tips ||= {})[bone] || (c.tips[bone] = _v.clone());
-        for (let i = 1; i <= 4; i++) {
-          const u = i / 4, x = prev.x + (_v.x - prev.x) * u, yy = prev.y + (_v.y - prev.y) * u, z = prev.z + (_v.z - prev.z) * u;
-          fx.add(x, yy, z, 0, 0.02, 0, { color: 0xff9a4a, size: 0.55, sizeEnd: 0.1, life: 0.3, drag: 4 });
-          fx.add(x, yy, z, 0, 0.02, 0, { color: 0xfff4e6, size: 0.24, sizeEnd: 0.04, life: 0.2, drag: 4 });
-        }
-        prev.copy(_v);
         const snap = Math.floor(c.t / 0.17);
         if (snap !== (c.snap?.[bone] ?? -1)) { (c.snap ||= {})[bone] = snap; this.companion.glint(_v.x, _v.y, _v.z, 0.55, 0); }
       }
+    }
+  }
+  /** The crab sweep's ground bands: the live strip that hurts and its fading copies (a shared soft-edged texture). */
+  makeSweepBands() {
+    const c = document.createElement('canvas'); c.width = 64; c.height = 128;
+    const g = c.getContext('2d');
+    // across: soft edges; along: brightest at the far end where the claws reach, fading toward the crab
+    const along = g.createLinearGradient(0, 128, 0, 0);
+    along.addColorStop(0, 'rgba(255,255,255,0.15)'); along.addColorStop(0.55, 'rgba(255,255,255,0.6)'); along.addColorStop(0.9, 'rgba(255,255,255,1)'); along.addColorStop(1, 'rgba(255,255,255,0.4)');
+    g.fillStyle = along; g.fillRect(0, 0, 64, 128);
+    g.globalCompositeOperation = 'destination-in';
+    const across = g.createLinearGradient(0, 0, 64, 0);
+    across.addColorStop(0, 'rgba(0,0,0,0)'); across.addColorStop(0.2, 'rgba(0,0,0,1)'); across.addColorStop(0.8, 'rgba(0,0,0,1)'); across.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = across; g.fillRect(0, 0, 64, 128);
+    const tex = new THREE.CanvasTexture(c); tex.userData.shared = true;
+    const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0, 0.5); geo.userData.shared = true;
+    const mk = (color, o) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, map: tex, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); m.visible = false; m.renderOrder = 7; this.scene.add(m); return m; };
+    return { live: mk(0xff8a3a, 0.7), ghosts: Array.from({ length: 8 }, () => mk(0xff7a2a, 0.35)), i: 0, next: 0, seen: false };
+  }
+  ageSweep(dt) {
+    const S = this.sweep;
+    if (!S) return;
+    if (!S.seen) S.live.visible = false;
+    S.seen = false;
+    for (const gh of S.ghosts) {
+      if (!gh.visible) continue;
+      gh.userData.age += dt;
+      const k = gh.userData.age / 0.32;
+      if (k >= 1) { gh.visible = false; continue; }
+      gh.material.opacity = 0.35 * (1 - k);
     }
   }
   /** A bubble mine left alone floats off: a soft pop, a few droplets. */

@@ -464,6 +464,13 @@ export class Hud {
         if (m) this.float(m.x, 2, m.z, 'หดกระดอง!', 'shell');
         break;
       }
+      // the pearl grotto's answers (core/ai.js): the clam's nacre coat, its breaking, the slug's acid skin
+      case 'nacre':
+        this.float(e.x, 2, e.z, e.coat ? 'เคลือบมุก!' : e.broken ? 'เปลือกแตก!' : 'มุกดูดซับ', 'shell');
+        break;
+      case 'acidSkin':
+        this.float(e.x, 1.8, e.z, 'ผิวกรด!', 'poison');
+        break;
       case 'summon':
         this.float(e.x, 1.8, e.z, 'อัญเชิญ!', 'ally');
         break;

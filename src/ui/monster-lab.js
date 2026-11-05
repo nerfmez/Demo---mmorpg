@@ -5,6 +5,7 @@
 import './monster-lab.css';
 import MOTION from '../../data/monster-motion.json';
 import { motionStyle } from '../render/monster-motion.js';
+import { labTrigger } from '../core/ai.js';
 
 const SPEEDS = [1, 0.5, 0.25];
 // the walk mode's path: across in front of the hero (toward the camera), this far either side of them
@@ -84,9 +85,10 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
   const startWalk = (mode) => {
     const m = lab.m, base = defs[lab.type];
     lab.walk = mode;
+    lab.front = mode === 'trail' ? m.r + 0.9 : WALK_FRONT; // a slime trail is laid just past the hero's feet
     m.def = { ...base, aggroRange: 0, speed: mode === 'run' ? base.speed / 0.45 : base.speed };
     // from the left end, already facing along the path (the first lap is the same as the rest)
-    Object.assign(m, { x: p.x - WALK_HALF, z: p.z + WALK_FRONT, facing: Math.PI / 2, aggro: false, targetUnit: null, state: 'idle', stateT: 0, windup: null, charge: null, melee: null, wanderTo: null, wanderT: 99 });
+    Object.assign(m, { x: p.x - WALK_HALF, z: p.z + lab.front, facing: Math.PI / 2, aggro: false, targetUnit: null, state: 'idle', stateT: 0, windup: null, charge: null, melee: null, wanderTo: null, wanderT: 99 });
     lab.leg = -1;
   };
   const stopWalk = () => {
@@ -179,8 +181,10 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
       const c = document.createElement('button');
       c.type = 'button';
       c.textContent = a.nameTh || id;
-      c.classList.toggle('on', !lab.walk && id === lab.attack);
-      c.addEventListener('click', (e) => { e.stopPropagation(); lab.attack = id; lab.cool = 0; if (lab.walk) stopWalk(); else arrange(); renderChips(); });
+      // a trail (kit.trail: the snail king's slime) is shown by crawling past the hero
+      const trail = defs[lab.type].kit?.trail?.attack === id;
+      c.classList.toggle('on', trail ? lab.walk === 'trail' : !lab.walk && id === lab.attack);
+      c.addEventListener('click', (e) => { e.stopPropagation(); lab.attack = id; lab.cool = 0; if (trail) startWalk('trail'); else if (lab.walk) stopWalk(); else arrange(); renderChips(); });
       chips.append(c);
     }
     renderWalk();
@@ -222,7 +226,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
       const m = lab.m;
       // the camera frames the hero and the monster together (walking, it holds still while the monster crosses)
       view.focusShift ||= { x: 0, z: 0 };
-      if (m && lab.walk) { view.focusShift.x = 0; view.focusShift.z = WALK_FRONT * 0.25; }
+      if (m && lab.walk) { view.focusShift.x = 0; view.focusShift.z = lab.front * 0.25; }
       else if (m) { view.focusShift.x = (m.x - p.x) * 0.5; view.focusShift.z = (m.z - p.z) * 0.5; }
       // the chosen walk on its rig (rigs are pooled and posed by the view; this only swaps the walk's tuning)
       const mv = m && lab.style && view.monsterViews?.get(m.id);
@@ -233,14 +237,19 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
         for (const k in m.cd) m.cd[k] = 99;
         Object.assign(m, { aggro: false, targetUnit: null, wanderT: 99 });
         if (m.state !== 'idle') Object.assign(m, { state: 'idle', stateT: 0, windup: null });
-        if (!m.wanderTo) { lab.leg = -lab.leg; m.wanderTo = { x: p.x + lab.leg * WALK_HALF, z: p.z + WALK_FRONT }; }
+        if (!m.wanderTo) { lab.leg = -lab.leg; m.wanderTo = { x: p.x + lab.leg * WALK_HALF * (lab.walk === 'trail' ? 1.6 : 1), z: p.z + lab.front }; }
       } else {
         // only the chosen attack is ever ready; after it ends, a short pause, then it goes again
         for (const k in m.cd) if (k !== lab.attack) m.cd[k] = 99;
-        if (m.state === 'chase' || m.state === 'idle') {
+        // what an attack leaves on the ground (eggs, pools) is gone before it goes again, so a review is not cluttered
+        const lingering = game.areas.some((a) => a.sourceId === m.id && a.attack === lab.attack);
+        if ((m.state === 'chase' || m.state === 'idle') && !lingering) {
           lab.cool -= dt;
           // (not ready yet: the chosen attack stays cooling a moment longer, so the monster circles out to its band)
-          if (lab.cool <= 0) { if (!lab.auto || again(dt)) { m.cd[lab.attack] = 0; lab.cool = 1.2; } else m.cd[lab.attack] = 0.7; }
+          // an attack that answers what is done to it (no `use`: hit hard, brought low) is set off as if that happened
+          const reactive = !m.def.attacks[lab.attack].use;
+          if (lab.cool <= 0 && reactive) { refresh(); if (labTrigger(game, m, lab.attack)) lab.cool = 4.5; else lab.cool = 1; }
+          else if (lab.cool <= 0) { if (!lab.auto || again(dt)) { m.cd[lab.attack] = 0; lab.cool = 1.2; } else m.cd[lab.attack] = 0.7; }
           else m.cd[lab.attack] = Math.max(m.cd[lab.attack], 0.05);
         }
       }

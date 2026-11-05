@@ -531,35 +531,60 @@ Wide Spread and Far Reach share the `spread` family.
   `dizzy` s; event `rebound`). `kit.turn` (rad/s) makes it slow to turn when walking and facing.
 - **Pearl fish**: `flop` (kind `skip`: at wind-up start the line to the target is locked and `hops` landings `hop` m
   apart are marked (stopping where the ground is blocked), each going off as it lands; in `act` it moves hop by hop,
-  `air` s in the air, `pause` s between; `m.charge.air` is 0..1 in the air, -1 on the ground), `slap` (a one-hit
-  `rake` with `knock`), `jet` (a `spit` with `tell: "lane"`: a shot warned by a lane flies along the lane it showed, to
-  exactly its `range`). Drawn on its side, flopping.
-- **Pearl sea slug**: `volley` (kind `volley`: `count` projectiles fanned `spread` degrees about the locked aim),
-  `surge` (kind `trail`: a charge along its lane that leaves a lingering `pool` area every `every` m), and the
-  reaction `shed` (like a shell: `hitsToTrigger` hits within `window` s: `patches` stinging areas round it, then it
-  retreats `slip` m over `slipTime` s; event `shed`). Pools of kind `mucus` and `sting_patch` draw like the venom pool
-  in their own colours.
-- **Eye clam**: `snipe` (a lane-warned `spit`), `valve` (a `shove` cone with `knock`), and its `shell` guard with
-  `counter: "valve"`: when the guard ends it starts that attack at once if the target is in its band.
-- **Pearl Snail King** (boss): `crush` (a `sweep` with a sector warning), `harpoon` (a `beam` with `pull`: what it
-  strikes is dragged toward it, stopping short of its body), `beam` (kind `beam_sweep`, below 60% health: a beam
-  `range` long and `width` wide sweeping `arc` degrees across the target over `sweepTime` s, each unit hit once as it
-  crosses; `m.sweep` holds it, event `beamSweep`), `kit.trail` (a slime pool every `every` m it crawls, its
-  `attack`'s inflict slowing), `kit.withdraw` (at each health share in `at`, once: into its shell (`shell` state,
-  the shell's `damageTaken`) for `duration` s with a `radius` ring marked to go off as it bursts out; event
-  `withdraw`). Below `enrageAt` (30%) the usual enrage tempo.
-- **Monster shots drawn by the effects** (`skill-fx.js` `OWN_PROJECTILES`): `jet`, `volley`, `snipe`, `boomerang`.
+  `air` s in the air, `pause` s between; `m.charge.air` is 0..1 in the air, -1 on the ground), `gulp` (kind
+  `suction`: after the wind-up, `act` for `duration` s with `m.suck`: every unit inside its cone (`range`, `arc`) is
+  moved toward its mouth `pull` m/s, stopping short of it; then one snap on what is within `bite` m of the mouth,
+  emitted as a `monsterSwing`), `wave` (kind `wave`: a `shockwave` area with `look: "wave"`, `angle` and `arc`: the
+  ring grows at `speed` m/s to `range` but only hits inside the arc, once a unit, with `knock`). Drawn on its side,
+  flopping.
+- **Pearl sea slug**: `surge` (kind `trail`: a charge along its lane that leaves a lingering `pool` area every `every`
+  m), `stingers` (kind `drifters`: `count` projectiles fanned `spread` degrees with `homing` {unit, turn}: each frame
+  the shot turns toward that unit by at most `turn` rad/s; slow, `range` m long), and the reaction `acid`
+  (`acidHit`: `hitsToTrigger` hits within `window` s set `acidFrom` = now + `windup` and `acidUntil` = that +
+  `duration`, event `acidSkin`; between them a hit from a unit within `reach` m is answered, at most every `every`
+  s, with `damageMult` damage to that unit, event `acidSquirt`).
+- **Eye clam**: `valve` (a `shove` cone with `knock`), `gaze` (kind `gaze`: at the end of the wind-up every unit in
+  the cone (`range`, `arc`) whose facing is within 90° of the clam takes the hit and its `inflict` (root); event
+  `gaze` with `at`), and the reaction `nacre` (`hitsToTrigger` hits in `window` s: `m.nacre` {hp, max} =
+  `shield` x max health and the `shell` state for `duration` s, event `nacre` {coat}; `hitMonster` gives every hit to
+  the coat (event `nacreHit` {left}); breaking it (`nacreAbsorb`) ends the coat, event `nacre` {broken}, and
+  `stunned` for `crackStun` s with `m.exposed` = `exposedTaken` as a damage multiplier (cleared by `setState` when
+  it leaves the stun); if the state ends first, what is left of the coat heals it (event `nacre` {held})).
+- **Pearl Snail King** (boss): `grind` (kind `grind`: `act` for `duration` s with `m.grind`; `ticks` passes spread
+  evenly, the first half a pass in, each hitting units in the lane `range` long and `width` wide, each a
+  `monsterSwing` with `hit`), `eggs` (kind `eggs`: `count` areas of kind `pearl_egg` with `egg` {crush}, set
+  evenly round the target `spread` m out (a little seeded), landing after `flight` s; a unit within `crush` m of one
+  breaks it, event `eggCrush`, no damage; otherwise at `fuse` s it bursts over `radius`), `beam` (kind `beam_sweep`,
+  below 60% health: a beam `range` long and `width` wide sweeping `arc` degrees across the target over `sweepTime`
+  s, each unit hit once as it crosses; `m.sweep` holds it, event `beamSweep`), `kit.trail` (a pool of kind
+  `pearl_slime` every `every` m it moves, in any state but its shell, its `attack`'s inflict slowing),
+  `kit.withdraw` (at each health share in `at`, once: into its shell (`shell` state, the shell's `damageTaken`) for
+  `duration` s, and `spiral`: for each wave start in `waves`, `arms` spiral arms of `rings` marked `pearl_burst`
+  areas, `start` + k x `step` m out at the arm's angle + k x `twist` (the second wave turned half an arm and
+  twisting the other way), each going off `gap` s after the one inside it; event `withdraw`). Below `enrageAt`
+  (30%) the usual enrage tempo.
+- **The monster sandbox's reactive moves** (`ai.js labTrigger`): sets off `acid`, `nacre`, `shed`, a shell, or a
+  `kit.withdraw` (its health brought under the first share) as if that had happened, for review; not used by play.
+- **Monster shots drawn by the effects** (`skill-fx.js` `OWN_PROJECTILES`): `stingers`, `boomerang`.
 - **Strikes of light** (`render/skillfx/monster-fx.js`): the owner turned down limb trails for monsters,
   so kit monsters' strikes are drawn in the companions' language (a jaw of light, claw marks of light,
   `claw-fx.js`/`bite-fx.js`) plus leaves of light (`leaf-fx.js`, one instanced mesh). An attack whose
   `data/combat-fx.json` look is `kind: "light"` (`marks`, `halo`, `rim`, `len`, `wid`, `gap`, `height`) is
   raked across the prey that way (the mole's swipe); with `blunt` (`size`, `chips`) it is a punch, a `burstStar` on the prey instead (the hare's box, left then right per hit). Other blows have their own contact
   shapes: `burstStar` (a zig-zag outline of light and falling chips: a blunt blow), `waterCrown` (arcs of
-  water curling up and droplets: a slap of water), `slimeSplat` (thick slime spikes, blobs, a ground smear),
+  water curling up and droplets: a slap of water),
   bubbles (`bubble-fx.js`: pooled sprites of a drawn ring, rising, wobbling, popping into droplets), the
   tanuki's drum rings with impact lines off its belly and its transformation smoke. Charge cues follow the wind-up
   (`windup` event): the fox's tail glows and gathers leaves before the gust; arcs pulse by its ears while
-  it listens before the pounce. Monster area bursts carry `source` and `attack` for this.
+  it listens before the pounce. Monster area bursts carry `source` and `attack` for this. The pearl grotto's
+  monsters have `skillfx/grotto-fx.js` (GrottoFx, owned by MonsterFx): ground decals for the area each attack hurts
+  while it hurts (the gulp's cone with streaks scrolling in along it and the bite ring at its mouth, the clam's gaze
+  cone with rays scrolling out, the grind's lane with a rasp bar running up and down it, the eggs' filling burst
+  discs with a small ring to step in, the acid skin's reach ring); the tail wave's crest as one dynamic mesh (five
+  rows across its profile, rebuilt each frame at the area's radius, vertex colours with alpha); each slime trail as
+  one strip through its pools in order (joined where close, its width their radius, alpha their age) with a shader
+  whose look is a uniform (toxic bubbling cells, or a mother-of-pearl sheen); the stingers as glow and bubble
+  sprites over a touch ring. In Godot: decals or flat meshes, an `ImmediateMesh` for the crest and the strips.
 - **Beasts that walk where they go** (render only, `monster-views.js`): a rig with `faceMove` turns its body
   toward its velocity while it circles (within about 125 degrees of its rules facing) and its head toward its prey;
   beyond that (backing away) it keeps the rules facing and `animBeast` (`reverse`) runs the walk cycle backwards.

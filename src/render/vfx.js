@@ -25,8 +25,6 @@ import { arrowStreak, rockGeometry, RockChips } from './physical.js';
 // lingering pools by area kind: warning colours, pool colours, bubbles
 const POOLS = {
   venom_pool: [0x9adf4a, 0xd6f07a, 0x4f8a2a, 0xb6ec4a, 0xb6ec4a],
-  mucus: [0x5fd8c8, 0xb8f4ea, 0x1f7a78, 0x6ae8d4, 0x9ff4e4],
-  sting_patch: [0xb48cff, 0xe6d8ff, 0x5a3c9a, 0xb48cff, 0xe0ccff],
 };
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -744,6 +742,7 @@ export class Vfx {
     if (e.kind === 'quake') return this.quakeBurst(e);
     if (e.kind === 'pounce') return this.dive(e);
     if (e.kind === 'glass_shard' || e.kind === 'mirror_bomb' || e.kind === 'bubble_mine') return; // the moth's shatter and decoy are drawn in skillfx (monster-fx.js, moth-fx.js)
+    if (e.kind === 'pearl_egg' || e.kind === 'pearl_burst') return; // the snail king's eggs and spiral pearls (skillfx/grotto-fx.js)
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
@@ -1367,6 +1366,8 @@ export class Vfx {
   }
 
   makeArea(a) {
+    // the pearl grotto's trails, eggs and tail wave are drawn in skillfx/grotto-fx.js
+    if (a.kind === 'mucus' || a.kind === 'pearl_slime' || a.kind === 'pearl_egg' || a.look === 'wave') return null;
     const fadeInOut = (ar) => {
       const live = ar.t - ar.delay;
       return Math.max(0, Math.min(1, live * 5) * Math.min(1, (ar.duration - live) * 2));
@@ -1452,7 +1453,7 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb') {
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb' || a.kind === 'pearl_burst') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);

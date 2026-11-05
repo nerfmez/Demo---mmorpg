@@ -34,6 +34,7 @@ export function updateMonster(game, m, dt) {
   }
   m.stateT += dt;
   m.tauntT=Math.max(0,(m.tauntT||0)-dt);
+  if (def.kit?.trail && m.state !== 'shell') dropTrail(game, m); // slime wherever it crawls
   if (def.flyer) m.alt = approach(m.alt ?? def.hover, m.state === 'act' ? 0.5 : m.state === 'recover' ? 0.9 : def.hover, (m.state === 'act' ? 12 : 3) * dt);
 
   const t = pickTarget(game, m);
@@ -92,8 +93,16 @@ export function updateMonster(game, m, dt) {
     case 'shell':
       if (m.stateT >= m.stateDur) {
         m.shell = false;
-        const sh = def.attacks.shell, emerge = sh.emerge, counter = sh.counter && def.attacks[sh.counter];
-        // a counter (the eye clam): it reopens straight into that attack, punishing who waited in front
+        if (m.nacre) {
+          // the nacre coat held (the eye clam): what is left of it goes into its body, then it opens again
+          const back = Math.min(m.nacre.hp, m.maxHp - m.hp);
+          m.hp += back;
+          game.emit({ type: 'nacre', id: m.id, x: m.x, z: m.z, held: true, healed: back });
+          m.nacre = null;
+          return setState(m, 'chase');
+        }
+        const sh = def.attacks.shell || {}, emerge = sh.emerge, counter = sh.counter && def.attacks[sh.counter];
+        // a counter: it reopens straight into that attack, punishing who waited in front
         if (counter && t && gap <= (counter.use?.max ?? counter.range)) { m.cd[sh.counter] = 0; return beginAttack(game, m, sh.counter, t); }
         setState(m, emerge ? 'emerge' : 'chase', emerge || 0);
       }
@@ -161,6 +170,15 @@ export function onMonsterHit(game, m, by = null) {
     if (m.recentHits.length >= shed.hitsToTrigger && m.cd.shed <= 0) { m.recentHits = []; shedPatches(game, m); }
     return;
   }
+  if (m.def.attacks.acid) return acidHit(game, m, by || game.player);
+  const nacre = m.def.attacks.nacre;
+  if (nacre) {
+    if (m.state === 'shell' || m.state === 'act' || m.dead) return;
+    m.recentHits.push(game.time);
+    m.recentHits = m.recentHits.filter((t) => game.time - t <= nacre.window);
+    if (m.recentHits.length >= nacre.hitsToTrigger && m.cd.nacre <= 0) { m.recentHits = []; coatNacre(game, m); }
+    return;
+  }
   const sh = m.def.attacks.shell;
   if (!sh || m.state === 'shell' || m.state === 'act') return;
   m.recentHits.push(game.time);
@@ -187,6 +205,60 @@ function shedPatches(game, m) {
   setState(m, 'retreat', sh.slipTime);
 }
 
+/**
+ * acid (the pearl slug): hit `hitsToTrigger` times within `window` s, its skin froths with acid after `windup` s and
+ * stays so for `duration` s; while it does, each hit from a unit within `reach` m squirts acid back at that unit (at
+ * most every `every` s). Out of reach, or holding off, is safe.
+ */
+function acidHit(game, m, by) {
+  const ac = m.def.attacks.acid;
+  if (m.dead) return;
+  if (game.time >= (m.acidFrom ?? Infinity) && game.time <= m.acidUntil) {
+    if (!by || by.dead || game.time < (m.acidNext || 0) || dist(m.x, m.z, by.x, by.z) - m.r - (by.r || 0) > ac.reach) return;
+    m.acidNext = game.time + ac.every;
+    game.emit({ type: 'acidSquirt', id: m.id, x: m.x, z: m.z, tx: by.x, tz: by.z });
+    game.damageUnit(by, m.damage * (ac.damageMult || 1), m, { attack: 'acid' });
+    return;
+  }
+  if (m.state === 'windup' || m.state === 'act') return;
+  m.recentHits.push(game.time);
+  m.recentHits = m.recentHits.filter((t) => game.time - t <= ac.window);
+  if (m.recentHits.length < ac.hitsToTrigger || m.cd.acid > 0) return;
+  m.recentHits = [];
+  m.cd.acid = ac.cooldown;
+  m.acidFrom = game.time + ac.windup;
+  m.acidUntil = m.acidFrom + ac.duration;
+  game.emit({ type: 'acidSkin', id: m.id, x: m.x, z: m.z, delay: ac.windup, duration: ac.duration, reach: ac.reach });
+}
+
+/**
+ * nacre (the eye clam): hit `hitsToTrigger` times within `window` s, it clamps shut and coats itself with nacre worth
+ * `shield` of its health for `duration` s (core hitMonster: the coat takes the damage). Broken through, it cracks open
+ * stunned for `crackStun` s, taking `exposedTaken` times damage; if the coat holds, what is left of it heals it.
+ */
+function coatNacre(game, m) {
+  const nc = m.def.attacks.nacre;
+  m.cd.nacre = nc.cooldown;
+  m.moving = false;
+  m.melee = null;
+  m.nacre = { hp: m.maxHp * nc.shield, max: m.maxHp * nc.shield };
+  setState(m, 'shell', nc.duration);
+  game.emit({ type: 'nacre', id: m.id, x: m.x, z: m.z, coat: m.nacre.max, duration: nc.duration });
+}
+
+/** The eye clam's nacre takes `dmg`; returns what gets through (the rest of a blow that breaks it does not). */
+export function nacreAbsorb(game, m, dmg) {
+  const nc = m.def.attacks.nacre, n = m.nacre;
+  n.hp -= dmg;
+  if (n.hp > 0) return 0;
+  m.nacre = null;
+  m.shell = false;
+  game.emit({ type: 'nacre', id: m.id, x: m.x, z: m.z, broken: true });
+  setState(m, 'stunned', nc.crackStun);
+  m.exposed = nc.exposedTaken;
+  return 0;
+}
+
 function enterShell(game, m) {
   const sh = m.def.attacks.shell;
   m.cd.shell = sh.cooldown;
@@ -199,6 +271,7 @@ function enterShell(game, m) {
 }
 
 function setState(m, state, dur = 0) {
+  if (state !== 'stunned') m.exposed = 0; // the eye clam's cracked shell closes again
   m.state = state;
   m.stateT = 0;
   m.stateDur = dur;
@@ -206,6 +279,8 @@ function setState(m, state, dur = 0) {
   if (state === 'return' || state === 'idle') {
     m.sweep = null;
     m.melee = null;
+    m.suck = null;
+    m.grind = null;
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -527,6 +602,67 @@ function windup(game, m, dt, t, gap) {
       m.windup = { ...w };
       return;
     }
+    case 'suction': {
+      // the pearl fish's gulp: for `duration` s what stands in its cone is drawn toward its mouth (act: m.suck), then
+      // its jaws snap shut on what is within `bite` m of the mouth
+      m.suck = { name: w.name, angle: w.angle, dmg };
+      return setState(m, 'act', atk.duration);
+    }
+    case 'wave': {
+      // the pearl fish slaps the ground with its tail: a crest of water rolls out along its facing at `speed` m/s to
+      // `range` m, `arc` degrees wide (so it widens as it goes), striking each unit once as it passes (a shockwave
+      // with an arc); behind it and beside the cone is safe
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'shockwave', look: 'wave', angle: w.angle, arc: atk.arc, x: m.x, z: m.z, radius: m.r, maxRadius: m.r + atk.range, growth: atk.speed, duration: atk.range / atk.speed, damage: dmg, knock: atk.knock || 0 });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'drifters': {
+      // stingers lifted off the pearl slug's plumes, `count` fanned `spread` degrees: each drifts after the prey at
+      // `speed` m/s, turning at most `turn` rad/s (core projectile `homing`), and stings the first thing it touches,
+      // or fades after `range` m
+      const prey = t || game.player;
+      for (let i = 0; i < atk.count; i++) {
+        const a = w.angle + ((i / Math.max(1, atk.count - 1)) - 0.5) * atk.spread * DEG, dir = dirFromAngle(a);
+        game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: w.name, attack: w.name, x: m.x + dir.x * (m.r + 0.2), z: m.z + dir.z * (m.r + 0.2), y: 1.0, angle: a, speed: atk.speed, radius: atk.projectileRadius ?? 0.35, range: atk.range, element: m.def.element || 'physical', damage: dmg, homing: { unit: prey, turn: atk.turn } });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'gaze': {
+      // the eye clam's stare: what stands in its cone (`range`, `arc`) and faces it (within 90 degrees) is struck and
+      // held fast (the attack's inflict); a back turned to it is safe
+      const arc = (atk.arc || 60) * DEG, at = [];
+      for (const u of game.units()) {
+        const toward = angleTo(u.x, u.z, m.x, m.z);
+        if (dist(m.x, m.z, u.x, u.z) - m.r - u.r > atk.range || Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) > arc / 2) continue;
+        if (Math.abs(angleDiff(u.facing ?? toward, toward)) > Math.PI / 2) continue; // it looked away
+        at.push([u.x, u.z]);
+        game.damageUnit(u, dmg, m, { attack: w.name });
+      }
+      game.emit({ type: 'gaze', id: m.id, x: m.x, z: m.z, angle: w.angle, range: atk.range + m.r, arc: atk.arc, at });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'grind': {
+      // the snail king's radula: it rasps along the lane before it (`range` x `width`) for `duration` s, striking what
+      // is in the lane at each of its `ticks` passes (act: m.grind)
+      m.grind = { name: w.name, angle: w.angle, dmg, done: 0 };
+      return setState(m, 'act', atk.duration);
+    }
+    case 'eggs': {
+      // the snail king's pearl eggs: `count` flung `spread` m round its prey (evenly, a little seeded), landing after
+      // `flight` s; each bursts over `radius` m `fuse` s later, unless a unit steps on it (within `crush` m) first and
+      // breaks it harmlessly (core area `egg`)
+      const prey = t || game.player;
+      for (let i = 0; i < atk.count; i++) {
+        const ang = w.angle + Math.PI + (i / atk.count) * Math.PI * 2 + game.rng.range(-0.3, 0.3), d = atk.spread * (0.85 + 0.3 * game.rng.next());
+        const x = prey.x + Math.sin(ang) * d, z = prey.z + Math.cos(ang) * d;
+        if (!game.world.isFree(x, z, 0.3) || game.isSafe(x, z)) continue;
+        game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'pearl_egg', egg: { crush: atk.crush }, x, z, radius: atk.radius, delay: atk.flight, duration: atk.fuse, damage: dmg });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'pounce':
     case 'dive': {
       // the leap's air time (atk.air) lands it as its marked circle goes off (beginAttack spawns it then)
@@ -619,6 +755,41 @@ function act(game, m, dt, t) {
       if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) { sw.hit.add(u.id); game.damageUnit(u, sw.dmg, m, { attack: sw.name }); }
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
+    return;
+  }
+  if (m.suck) {
+    const sk = m.suck, atk = m.def.attacks[sk.name], dir = dirFromAngle(sk.angle), mx = m.x + dir.x * m.r, mz = m.z + dir.z * m.r;
+    m.moving = false;
+    if (m.stateT < atk.duration) {
+      // drawn in: what is in the cone is pulled toward the mouth, stopping short of it
+      for (const u of game.units()) {
+        const d = dist(mx, mz, u.x, u.z);
+        if (d - u.r > atk.range || Math.abs(angleDiff(sk.angle, angleTo(m.x, m.z, u.x, u.z))) > (atk.arc * DEG) / 2) continue;
+        const a = angleTo(u.x, u.z, mx, mz), step = Math.min(atk.pull * dt, Math.max(0, d - u.r - 0.35));
+        if (step > 0) game.moveEntity(u, Math.sin(a) * step, Math.cos(a) * step);
+      }
+      return;
+    }
+    // the gulp: the jaws shut on what is at the mouth
+    game.emit({ type: 'monsterSwing', id: m.id, name: sk.name, angle: sk.angle, range: atk.bite + m.r, arc: atk.arc, x: m.x, z: m.z });
+    for (const u of game.units()) if (dist(mx, mz, u.x, u.z) - u.r <= atk.bite) game.damageUnit(u, sk.dmg, m, { attack: sk.name });
+    m.suck = null;
+    m.cd[sk.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
+  }
+  if (m.grind) {
+    const gr = m.grind, atk = m.def.attacks[gr.name], dir = dirFromAngle(gr.angle), half = atk.width / 2;
+    m.moving = false;
+    // the passes are spread evenly over the rasp, the first a beat after it starts
+    while (gr.done < atk.ticks && m.stateT >= ((gr.done + 0.5) / atk.ticks) * atk.duration) {
+      gr.done++;
+      game.emit({ type: 'monsterSwing', id: m.id, name: gr.name, angle: gr.angle, range: atk.range + m.r, arc: 40, x: m.x, z: m.z, hit: gr.done, hits: atk.ticks });
+      for (const u of game.units()) {
+        const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, side = Math.abs(dx * dir.z - dz * dir.x);
+        if (along >= 0 && along <= m.r + atk.range + u.r && side <= half + u.r) game.damageUnit(u, gr.dmg, m, { attack: gr.name });
+      }
+    }
+    if (m.stateT >= atk.duration) { m.grind = null; m.cd[gr.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
     return;
   }
   const c = m.charge;
@@ -1007,11 +1178,22 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     (m.withdrew ||= [])[i] = true;
     m.shell = true; m.moving = false;
     setState(m, 'shell', wd.duration);
-    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'withdraw', kind: 'pound', x: m.x, z: m.z, radius: wd.radius, delay: wd.duration, duration: 0.3, damage: m.damage * (wd.damageMult || 1) });
-    game.emit({ type: 'withdraw', id: m.id, x: m.x, z: m.z, duration: wd.duration, radius: wd.radius });
+    // while it is in its shell, the shell's spiral throws pearls out along `arms` spiral arms (`rings` each, `step` m
+    // apart from `start` m, turning `twist` rad a ring), wave after wave (`waves`: s after it withdraws), each wave
+    // turning the other way; each pearl is marked, then bursts `gap` s after the ring inside it
+    const sp = wd.spiral;
+    sp.waves.forEach((at, w) => {
+      const turn = w % 2 ? -1 : 1, base = m.facing + w * (Math.PI / sp.arms);
+      for (let arm = 0; arm < sp.arms; arm++) for (let k = 0; k < sp.rings; k++) {
+        const a = base + (arm / sp.arms) * Math.PI * 2 + turn * k * sp.twist, d = sp.start + k * sp.step;
+        const x = m.x + Math.sin(a) * d, z = m.z + Math.cos(a) * d;
+        if (game.isSafe(x, z)) continue;
+        game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'withdraw', kind: 'pearl_burst', wave: w, x, z, radius: sp.radius, delay: at + k * sp.gap, duration: 0.3, damage: m.damage * (wd.damageMult || 1) });
+      }
+    });
+    game.emit({ type: 'withdraw', id: m.id, x: m.x, z: m.z, duration: wd.duration });
     return;
   }
-  dropTrail(game, m);
   let reach = Infinity, reachAll = Infinity, soon = Infinity;
   for (const name of names) {
     const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
@@ -1047,6 +1229,21 @@ function dropTrail(game, m) {
   m.trailFrom = { x: m.x, z: m.z };
   const p = tr.pool, lvl = 1 + (m.level - 1) * 0.15;
   game.spawnArea({ owner: 'monster', sourceId: m.id, attack: tr.attack, kind: p.kind || 'mucus', x: m.x, z: m.z, radius: p.radius, delay: 0.3, duration: p.duration, tick: p.tick, damage: p.dps * p.tick * lvl });
+}
+
+/**
+ * The monster sandbox (ui/monster-lab.js): set off an attack that answers what is done to the monster (one without
+ * `use`: hit hard, or brought low), as if that had just happened. False for one it cannot set off.
+ */
+export function labTrigger(game, m, name) {
+  const atk = m.def.attacks;
+  if (name === 'acid') { m.cd.acid = 0; m.recentHits = []; for (let i = 0; i < atk.acid.hitsToTrigger; i++) acidHit(game, m, null); return true; }
+  if (name === 'nacre') { coatNacre(game, m); return true; }
+  if (name === 'shed') { shedPatches(game, m); return true; }
+  // the withdraw comes with the health share it is kept for (kit() withdraws on its next step)
+  if (name === 'shell' && m.def.kit?.withdraw) { m.withdrew = []; m.hp = Math.min(m.hp, m.maxHp * (m.def.kit.withdraw.at[0] - 0.01)); return true; }
+  if (name === 'shell') { enterShell(game, m); return true; }
+  return false;
 }
 
 const KIT_ORDER = new WeakMap();

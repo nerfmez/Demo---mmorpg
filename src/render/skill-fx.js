@@ -75,7 +75,7 @@ export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
 const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
-export const OWN_PROJECTILES = new Set(['jet', 'volley', 'snipe', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
+export const OWN_PROJECTILES = new Set(['stingers', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
 const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter', 'flame_slash', 'thunder_slash']);
 const SWING_LEAD = 0.12;
@@ -481,9 +481,9 @@ export class SkillFx {
       case 'doubles': this.monster.doubles(e, g); return true; // the tanuki's doubles step out of a puff of leaves
       case 'illusionPop': this.monster.puff(e.x, e.z, 10); return true;
       case 'rebound': this.monster.rebound(e); return true;
-      case 'shed': this.monster.shed(e); return true;
       case 'beamSweep': return true; // the snail king's pearl beam is drawn each frame by skillfx/monster-fx.js
-      case 'withdraw': return true; // the pearl slug sheds its stinging plumes // the pangolin's ball bounces back along its lane // its charge cue; the ground warning stays the View's
+      // the pearl grotto's own: the slug's acid skin, the clam's gaze and nacre, the king's eggs and spiral (skillfx/grotto-fx.js)
+      case 'acidSkin': case 'acidSquirt': case 'gaze': case 'nacre': case 'nacreHit': case 'eggCrush': case 'withdraw': return this.monster.grotto.event(e, g);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);
@@ -563,9 +563,7 @@ export class SkillFx {
       }
       case 'impact': {
         if (e.kind === 'boomerang') { this.monster.leafCut(e, g); return true; }
-        if (e.kind === 'jet') { this.monster.splash(e.x, e.z, 1); return true; }
-        if (e.kind === 'snipe') { this.monster.nacre(e.x, e.z); return true; } // the eye clam's pearl
-        if (e.kind === 'volley') { this.monster.splash(e.x, e.z, 0.4); return true; } // a slug dart // the pearl fish's jet bursts on what it hits // the tanuki's leaf cuts going out and back
+        if (e.kind === 'stingers') { this.monster.grotto.sting(e); return true; } // a pearl slug's stinger on what it touches
         if (e.kind === 'venom_mire') { this.venom.impact(e); return true; }
         if (e.kind === 'charged_shot') { this.power.impact(e, this.powerRatio); return true; }
         if (e.kind === 'frost_shatter_arrow') return true; // its hits and shatter draw it

@@ -64,9 +64,14 @@ must be creative". The kits so far lean on the same few families. Count before d
 | Family | Used by |
 |---|---|
 | Dash / leap at the prey (charge, pounce, skip, roll) | fox, pangolin, fish, hare |
-| Shot / spray / volley | mole, slug, clam, fish |
-| Beam or lane | moth, snail king (2) |
+| Shot / spray / volley | mole, clam (valve), slug (homing stingers) |
+| Beam or lane | moth, snail king (beam, grind) |
 | Ring round itself | (moth's moonlight ring, replaced: its pattern was not its own) |
+| Pull / suction | pearl fish gulp |
+| A wave that travels | pearl fish tail wave (a crest across a cone) |
+| Counter or guard | pearl slug acid skin (blows answered), eye clam nacre (break the coat) |
+| Facing check | eye clam gaze (turn your back) |
+| Things to break or avoid on the ground | crab bubble mines, snail king eggs (step on to break), slime trails |
 
 Then (owner, 2026-11-05): "It is not that they are not allowed, but the pattern must be creative, not the same
 pattern with a different effect." So a dash or a shot is fine; a dash that is another straight charge at the prey, or a
@@ -117,10 +122,10 @@ Rules for every new kit:
 | Leaf fox (Lv12-14) | Snap Bite (jaw of light); Leaf Gust (5 m cone of leaf blades, bleed); Mousing Pounce (freezes to listen, a high leap onto a marked spot; pins on a hit, nose stuck on a miss) |
 | Leaf tanuki (Lv14-16) | Ponpoko Drum (three timed rings); Leaf Boomerang (hits going out and coming back); Leaf Doubles (illusions, once) |
 | Stone pangolin (Lv16-19) | Claw Rake (two hits); Tail Lash (hits behind it); Rebound Roll (rolls along a lane and back, then dizzy) |
-| Pearl fish (Lv22-24) | Pearl Jet (aimed chilling shot); Skipping Flop (three marked hops); Tail Slap (knockback) |
-| Pearl slug (Lv24-26) | Cerata Volley (three darts in a fan); Mucus Surge (slide leaving a poison trail); Cerata Shed (sting patches when hit hard) |
-| Eye clam (Lv26-28) | Pearl Snipe (tracked aim line, then locks); Valve Jet (knockback cone); shell guard that reopens into Valve Jet |
-| Pearl Snail King (boss Lv30) | Frill Crush; Proboscis Harpoon (latched, then a stab that pulls in); slime trail; withdraws into its shell at 60% and 30%; Pearl Beam Sweep below 60% |
+| Pearl fish (Lv22-24) | ดูดกลืน Gulp (a fish's suction feeding: a cone of water streams into its mouth, drawing the hero in, then the jaws snap on what reached them; walk out of the cone or against the pull); ฟาดหางคลื่นน้ำ Tail Wave (curls, tail raised, slams it down: a crest of water rolls out across a 50 degree cone, widening, hitting once as it passes, knocking back); ดีดตัวกระโดด Skipping Flop (three marked hops) |
+| Pearl slug (Lv24-26) | ไถลเมือกพิษ Mucus Surge (slide leaving a ribbon of poison mucus); เข็มพิษลอย Drifting Stingers (the stinging cells a nudibranch keeps from the jellyfish it eats: three drift off its plumes and follow the hero slowly, slower than a running hero); ผิวกรด Acid Skin (hit three times in two seconds: its skin froths, and for three seconds every blow from within 3.5 m is answered by a squirt of acid; hold off or hit from afar) |
+| Eye clam (Lv26-28) | ตาสะกด Gaze (the eye opens wide and a cone of hypnotic light grows; whoever faces it when it flashes is struck and held fast; turn your back to it); พ่นน้ำหุบเปลือก Valve Jet (knockback cone); เคลือบมุก Nacre Coat (hit hard, it clamps shut coated in nacre worth 12% of its health: break it within 3.5 s and it cracks open stunned with its eye bare, taking 1.5x; or the rest of the coat heals it) |
+| Pearl Snail King (boss Lv30) | ลิ้นตะไบ Radula Grind (rears, then rasps up and down the lane before it, four passes); วางไข่มุก Pearl Eggs (three eggs flung round the hero; step on one to break it, the rest burst over 3.2 m after 5 s, so break them or get out); ทางเมือก slime glaze wherever it crawls (slows); เกลียวมุก Pearl Spiral (at 60% and 30% it withdraws, hits barely hurt, and its turning shell throws pearls out along three spiral arms, two waves turning opposite ways); ลำแสงมุก Pearl Beam Sweep below 60% |
 | Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
 | Fern-ear hare | ต่อยรัว Box (rears up on its haunches, paws raised in a guard, a one-two of jabs with a burst star of light on each); กระทืบเตือนภัย Warning Thump (up on its haunches, trembling, ears up, a hop up, then slams down: a shock ring to the true edge, earth and fern leaves thrown out); กระโดดทับ Leap (crouch, rump wiggle, springs onto the marked spot, lands in earth and leaves) |
 | Mirrorwing moth | แสงสะท้อนปีก Wing Glare (turns its glass wings on the prey like a mirror, glints flare on the panes, then a beam of moonlight along the lane); ห่าเกล็ดกระจก Glass Rain (wings raised and held while a glass shard forms over each marked circle, then they drop one after another and shatter in stars of cold light); ร่างเงากระจก Mirror Decoy (too close: its wings flare as a glass image of it splits off, it flies back, and the image flickers faster and faster like a fuse and bursts) |
@@ -310,6 +315,18 @@ Rules for every new kit:
   really hit (its reach ahead, the claws' width across) is a band of orange light on the ground in front of it, moving
   with it and leaving fading copies along the ground it has swept; sand is thrown off its far edge. Rule for every
   attack: the effect must show the area that does the damage, while it does it, not only the body that makes it.
+- **Pearl grotto, round 2** (2026-11-05, owner: of the 14 grotto attacks the flop, the surge (its effect redone),
+  the valve jet, the pearl beam and the king's slime (its effect redone, and not like the surge) stay; the other nine
+  are new). Fish: the slap and jet became the gulp (suction, core `suction`) and the tail wave (a shockwave with an
+  arc, core `shockwave` + `arc`). Slug: the dart volley became drifting stingers (homing shots, core projectile
+  `homing`), the shed became the acid skin (core `acidHit`: blows answered). Clam: the snipe became the gaze (core
+  `gaze`: only who faces it), the shell guard became the nacre coat (core `nacre`: a coat to break, else it heals).
+  King: the crush became the radula grind (core `grind`: passes along a lane), the harpoon became the pearl eggs
+  (core area `egg`: stepped on, broken; else a burst), the withdraw's ring became a pearl spiral (two waves of marked
+  pearls along turning spiral arms). The trails are ribbons now (one strip along each trail, `grotto-fx.js`): the
+  slug's dark, toxic and bubbling; the king's a mother-of-pearl glaze with sliding colours and glints. The reactive
+  moves (acid, nacre, the withdraw) and the slime never showed in the sandbox (they wait for hits or a health
+  share): the sandbox now sets them off itself (`labTrigger`), and shows the slime by crawling past the hero.
 - **Monster Lab as its own page** (2026-11-05, owner: "why not a separate test site like the skill tests, why the
   whole game"): the Pages route rebuilt and redeployed the whole 340 MB site for each round (~20 minutes). The
   sandbox is now also a standalone artifact like the Skill FX bench: `scripts/monster-lab-artifact.mjs` packs the

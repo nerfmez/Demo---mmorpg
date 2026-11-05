@@ -15,7 +15,7 @@ import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
 import { monsterHit, resistOf, inflictHero, statusTaken, statusWalk, DOTS } from './defense.js';
 import { heroHitMult, allyHitMult, heroTakenMult, allyTakenMult } from './wheel-rules.js';
-import { updateMonster, onMonsterHit, setAggro } from './ai.js';
+import { updateMonster, onMonsterHit, setAggro, nacreAbsorb } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
@@ -977,6 +977,14 @@ export class Game {
     const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100) * (1 - (opts.modEffects?.penetrate || 0) / 100) * (1 - (perk?.penetrate || 0)); // Piercing Line: a mod's own share
     if (!opts.dot) dmg *= defenseFactor(def, this.data);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
+    if (m.nacre) {
+      // the eye clam's nacre coat takes the blow (core/ai.js nacreAbsorb): no health lost, no flinch
+      const left = m.nacre.hp - dmg;
+      this.emit({ type: 'nacreHit', id: m.id, x: m.x, z: m.z, amount: Math.round(dmg), left: Math.max(0, left / m.nacre.max) });
+      nacreAbsorb(this, m, dmg);
+      return 0;
+    }
+    if (m.exposed) dmg *= m.exposed; // ... and cracked open, its eye bare
     if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
     if (m.statuses.hex) dmg *= m.statuses.hex.taken;
     dmg = Math.max(1, Math.round(dmg));
@@ -1938,6 +1946,12 @@ export class Game {
     const keep = [];
     for (const pr of this.projectiles) {
       const step = pr.speed * dt;
+      // a homing shot (the pearl slug's stingers): it turns toward its prey, at most `turn` rad/s
+      if (pr.homing && !pr.homing.unit.dead) {
+        const want = angleTo(pr.x, pr.z, pr.homing.unit.x, pr.homing.unit.z), cur = Math.atan2(pr.vx, pr.vz);
+        const a = cur + clamp(angleDiff(cur, want), -pr.homing.turn * dt, pr.homing.turn * dt);
+        pr.vx = Math.sin(a) * pr.speed; pr.vz = Math.cos(a) * pr.speed; pr.angle = a;
+      }
       pr.x += pr.vx * dt;
       pr.z += pr.vz * dt;
       pr.travelled += step;
@@ -2055,10 +2069,28 @@ export class Game {
         else this.emit({ type: 'areaEnd', id: a.id });
         continue;
       }
+      if (a.egg) {
+        // a pearl egg (the snail king's): a unit stepping on it breaks it harmlessly; left alone it bursts over its
+        // radius at the end of its fuse (duration)
+        const u = this.units().find((q) => dist(a.x, a.z, q.x, q.z) <= a.egg.crush + q.r);
+        if (u) {
+          this.emit({ type: 'eggCrush', id: a.id, x: a.x, z: a.z, source: a.sourceId });
+          this.emit({ type: 'areaEnd', id: a.id });
+          continue;
+        }
+        if (live < a.duration) { keep.push(a); continue; }
+        const src = this.monsterById(a.sourceId);
+        for (const q of this.units()) if (dist(a.x, a.z, q.x, q.z) <= a.radius + q.r) this.damageUnit(q, a.damage, src, { attack: a.attack });
+        this.emit({ type: 'burst', kind: a.kind, x: a.x, z: a.z, radius: a.radius, source: a.sourceId, attack: a.attack });
+        this.emit({ type: 'areaEnd', id: a.id });
+        continue;
+      }
       if (a.kind === 'shockwave') {
         a.radius = Math.min(a.maxRadius, a.radius + a.growth * dt);
         for (const u of this.units()) {
           const d = dist(a.x, a.z, u.x, u.z);
+          // a wave with an arc (the pearl fish's) runs out only across that cone
+          if (a.arc && Math.abs(angleDiff(a.angle, angleTo(a.x, a.z, u.x, u.z))) > (a.arc * DEG) / 2 + Math.atan2(u.r || 0, Math.max(0.5, d))) continue;
           if (!a.hit.has(u.id) && Math.abs(d - a.radius) < 0.7) {
             a.hit.add(u.id);
             this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { attack: a.attack, knock: a.knock ? { angle: Math.atan2(u.x - a.x, u.z - a.z), force: a.knock } : undefined });

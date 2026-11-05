@@ -1786,7 +1786,7 @@
       "name": "Pearl Fish",
       "nameTh": "ปลามุก",
       "behavior": "kit",
-      "_kit": "docs/MONSTER-ATTACKS.md: a fish stranded on its side, flopping. From range it rolls belly-up, puffs its cheeks and fires a jet of water that chills; in the middle distance it bends nose to tail and flops at the hero in three marked hops; up close it slaps with its tail, knocking back.",
+      "_kit": "docs/MONSTER-ATTACKS.md: a fish stranded on its side, flopping. Up close it opens its mouth and sucks: a cone of water streams into its mouth, drawing the hero in, and its jaws snap shut on what reaches them; at range it slaps the ground with its tail and a crest of water rolls out across a cone, widening as it goes; in the middle distance it bends nose to tail and flops at the hero in three marked hops.",
       "element": "cold",
       "kit": {
         "circle": [3.5, 6.5]
@@ -1816,33 +1816,35 @@
           "cooldown": 6,
           "damageMult": 0.7
         },
-        "slap": {
-          "nameTh": "ฟาดหาง",
-          "kind": "rake",
-          "use": {"max": 1.4},
-          "range": 1.4,
-          "arc": 150,
-          "windup": 0.55,
-          "duration": 0.35,
-          "hits": [{"at": 0.12, "knock": 3}],
-          "recover": 0.6,
-          "cooldown": 2.4,
-          "damageMult": 1
-        },
-        "jet": {
-          "nameTh": "พ่นน้ำมุก",
-          "kind": "spit",
-          "tell": "lane",
-          "use": {"min": 3, "max": 9},
-          "range": 9,
-          "width": 0.7,
-          "windup": 0.65,
-          "speed": 15,
-          "projectileRadius": 0.4,
-          "recover": 0.4,
-          "cooldown": 3,
-          "damageMult": 1,
+        "gulp": {
+          "nameTh": "ดูดกลืน",
+          "kind": "suction",
+          "tell": "sector",
+          "use": {"max": 3.6},
+          "range": 4.2,
+          "arc": 70,
+          "windup": 0.6,
+          "duration": 1.1,
+          "pull": 2.4,
+          "bite": 1.3,
+          "recover": 0.8,
+          "cooldown": 6,
+          "damageMult": 1.3,
           "inflict": {"status": "chill", "chance": 0.6, "duration": 2, "slow": 0.3}
+        },
+        "wave": {
+          "nameTh": "ฟาดหางคลื่นน้ำ",
+          "kind": "wave",
+          "tell": "sector",
+          "use": {"min": 2.5, "max": 7.5},
+          "range": 7.5,
+          "arc": 50,
+          "speed": 7,
+          "windup": 0.85,
+          "knock": 2.5,
+          "recover": 0.7,
+          "cooldown": 5,
+          "damageMult": 1.0
         }
       },
       "drops": [
@@ -1875,7 +1877,7 @@
       "name": "Pearl Sea Slug",
       "nameTh": "ทากทะเลมุก",
       "behavior": "kit",
-      "_kit": "docs/MONSTER-ATTACKS.md: a nudibranch. From range its plumes fan up, their pearl tips glowing one by one, and it looses three stinging darts in a fan; closer it ripples and slides at the hero, leaving a trail of poison mucus; hit hard (three hits in two seconds) it sheds stinging plumes round itself and slips away.",
+      "_kit": "docs/MONSTER-ATTACKS.md: a nudibranch. It slides at the hero leaving a ribbon of poison mucus; from range its plumes fan up and three stinging cells it keeps from the jellyfish it ate drift off them and follow the hero slowly; hit hard (three hits in two seconds) its skin froths with acid, and for three seconds every blow from close by is answered with a squirt of acid.",
       "element": "poison",
       "kit": {
         "circle": [3, 6]
@@ -1900,42 +1902,40 @@
           "windup": 0.8,
           "speed": 5,
           "duration": 0.8,
-          "every": 1.0,
+          "every": 1,
           "pool": {"kind": "mucus", "radius": 0.8, "duration": 4, "tick": 0.5, "dps": 30},
           "recover": 0.8,
           "cooldown": 8,
           "damageMult": 0.8,
           "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15}
         },
-        "volley": {
-          "nameTh": "ยิงหนวดพิษ",
-          "kind": "volley",
-          "use": {"min": 2.5, "max": 8},
-          "range": 8,
+        "stingers": {
+          "nameTh": "เข็มพิษลอย",
+          "kind": "drifters",
+          "use": {"min": 2.5, "max": 9},
+          "range": 14,
           "count": 3,
-          "spread": 36,
-          "windup": 0.9,
-          "speed": 10,
-          "projectileRadius": 0.3,
+          "spread": 100,
+          "speed": 3.2,
+          "turn": 1.4,
+          "projectileRadius": 0.35,
+          "windup": 1.0,
           "recover": 0.6,
-          "cooldown": 4.5,
-          "damageMult": 0.6,
-          "inflict": {"status": "poison", "chance": 0.5, "duration": 3, "dpsMult": 0.12}
+          "cooldown": 7,
+          "damageMult": 0.7,
+          "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.12}
         },
-        "shed": {
-          "nameTh": "สลัดหนวด",
+        "acid": {
+          "nameTh": "ผิวกรด",
           "hitsToTrigger": 3,
           "window": 2,
-          "patches": 3,
-          "spread": 1.2,
-          "radius": 0.9,
-          "windup": 0.45,
+          "windup": 0.5,
           "duration": 3,
-          "tick": 0.5,
-          "dps": 35,
-          "slip": 3,
-          "slipTime": 0.8,
-          "cooldown": 9
+          "reach": 3.5,
+          "every": 0.35,
+          "cooldown": 10,
+          "damageMult": 0.5,
+          "inflict": {"status": "poison", "chance": 0.5, "duration": 3, "dpsMult": 0.12}
         }
       },
       "drops": [
@@ -1968,7 +1968,7 @@
       "name": "One-eyed Clam",
       "nameTh": "หอยตาเดียว",
       "behavior": "kit",
-      "_kit": "docs/MONSTER-ATTACKS.md: a turret whose eye is its weak point. From range its eye opens wide and a pearl rolls onto its tongue; an aim line follows the hero, locks, and a fast pearl flies along it; up close the shell gapes and its mantle bulges, then snaps shut and blasts a cone of water that knocks back; hit hard it clamps shut, and reopens straight into that blast.",
+      "_kit": "docs/MONSTER-ATTACKS.md: a turret whose eye is its weak point. From range its eye opens wide and a cone of hypnotic light grows from it: whoever faces it when it flashes is struck and held fast (turn your back to it); up close the shell gapes and its mantle bulges, then snaps shut and blasts a cone of water that knocks back; hit hard it clamps shut and coats itself in nacre: break the coat in time and it cracks open stunned, its eye bare, or what is left heals it.",
       "element": "poison",
       "hp": 950,
       "damage": 90,
@@ -1994,29 +1994,28 @@
           "cooldown": 4,
           "damageMult": 1.1
         },
-        "snipe": {
-          "nameTh": "เล็งยิงมุก",
-          "kind": "spit",
-          "tell": "lane",
-          "element": "physical",
-          "use": {"min": 2.5, "max": 11},
-          "range": 11,
-          "width": 0.5,
-          "windup": 1.1,
-          "speed": 20,
-          "projectileRadius": 0.32,
-          "recover": 0.6,
-          "cooldown": 3.2,
-          "damageMult": 1.2
+        "gaze": {
+          "nameTh": "ตาสะกด",
+          "kind": "gaze",
+          "tell": "sector",
+          "use": {"min": 2.5, "max": 8},
+          "range": 8,
+          "arc": 56,
+          "windup": 1.3,
+          "recover": 0.8,
+          "cooldown": 6,
+          "damageMult": 1.1,
+          "inflict": {"status": "root", "chance": 1, "duration": 1.2}
         },
-        "shell": {
-          "nameTh": "หุบเปลือกกัน",
+        "nacre": {
+          "nameTh": "เคลือบมุก",
           "hitsToTrigger": 3,
           "window": 2,
-          "duration": 2.2,
-          "damageTaken": 0.25,
-          "cooldown": 6,
-          "counter": "valve"
+          "shield": 0.12,
+          "duration": 3.5,
+          "crackStun": 2,
+          "exposedTaken": 1.5,
+          "cooldown": 9
         }
       },
       "drops": [
@@ -2049,11 +2048,20 @@
       "name": "Pearl Snail King",
       "nameTh": "ราชาหอยทากมุก",
       "behavior": "kit",
-      "_kit": "docs/MONSTER-ATTACKS.md: the grotto's boss. Its mantle skirt rears and slaps down in a wide crush up close; it draws its head back, its harpoon latched and glowing, then stabs along a lane, poisoning and dragging what it strikes toward it; it leaves slime that slows wherever it crawls; at 60% and 30% health it pulls into its shell for three seconds (hits barely hurt) and bursts out in a ring; below 60% the great pearl on its shell charges and sweeps a beam across the dais.",
+      "_kit": "docs/MONSTER-ATTACKS.md: the grotto's boss. It leaves a glaze of sticky pearl slime that slows wherever it crawls; up close it rears and rasps its radula along the lane before it, striking again and again; it lays pearl eggs round the hero that burst unless stepped on in time; at 60% and 30% health it pulls into its shell (hits barely hurt) and the shell's spiral throws pearls out along turning spiral arms, wave after wave; below 60% the great pearl on its shell charges and sweeps a beam across the dais.",
       "kit": {
         "turn": 1.6,
-        "trail": {"every": 1.2, "attack": "slime", "pool": {"kind": "mucus", "radius": 0.9, "duration": 6, "tick": 0.5, "dps": 20}},
-        "withdraw": {"at": [0.6, 0.3], "duration": 3, "radius": 5.5, "damageMult": 1.2}
+        "trail": {
+          "every": 1.2,
+          "attack": "slime",
+          "pool": {"kind": "pearl_slime", "radius": 0.9, "duration": 6, "tick": 0.5, "dps": 20}
+        },
+        "withdraw": {
+          "at": [0.6, 0.3],
+          "duration": 3,
+          "damageMult": 1.0,
+          "spiral": {"arms": 3, "rings": 5, "start": 2.2, "step": 1.25, "twist": 0.5, "radius": 0.85, "gap": 0.12, "waves": [0.7, 1.8]}
+        }
       },
       "dormant": {
         "wake": 1.8
@@ -2079,42 +2087,47 @@
           "arc": 150,
           "windup": 1.5,
           "sweepTime": 1.6,
-          "recover": 1.0,
+          "recover": 1,
           "cooldown": 10,
           "damageMult": 1.6
         },
-        "harpoon": {
-          "nameTh": "งวงฉมวก",
-          "kind": "beam",
-          "tell": "lane",
-          "use": {"min": 2.5, "max": 8},
-          "range": 8,
-          "width": 1.0,
-          "windup": 1.2,
-          "pull": 2.5,
-          "recover": 1.0,
-          "cooldown": 7,
-          "damageMult": 1.4,
+        "eggs": {
+          "nameTh": "วางไข่มุก",
+          "kind": "eggs",
+          "use": {"min": 2, "max": 12},
+          "range": 12,
+          "count": 3,
+          "spread": 3,
+          "flight": 0.7,
+          "fuse": 5,
+          "radius": 3.2,
+          "crush": 0.6,
+          "windup": 1.1,
+          "recover": 0.8,
+          "cooldown": 14,
+          "damageMult": 1.3,
           "inflict": {"status": "poison", "chance": 0.7, "duration": 4, "dpsMult": 0.12}
         },
-        "crush": {
-          "nameTh": "ฟาดระบาย",
-          "kind": "sweep",
-          "tell": "sector",
-          "use": {"max": 3.4},
-          "range": 3.4,
-          "arc": 140,
+        "grind": {
+          "nameTh": "ลิ้นตะไบ",
+          "kind": "grind",
+          "tell": "lane",
+          "use": {"max": 3.6},
+          "range": 3.6,
+          "width": 2.4,
           "windup": 0.8,
-          "recover": 0.7,
-          "cooldown": 3,
-          "damageMult": 1.2
+          "duration": 1.2,
+          "ticks": 4,
+          "recover": 0.8,
+          "cooldown": 5,
+          "damageMult": 0.45
         },
         "slime": {
           "nameTh": "ทางเมือก",
           "inflict": {"status": "chill", "chance": 1, "duration": 1.5, "slow": 0.25}
         },
         "shell": {
-          "nameTh": "หดเข้ากระดอง",
+          "nameTh": "เกลียวมุก",
           "hitsToTrigger": 99,
           "window": 1,
           "duration": 3,

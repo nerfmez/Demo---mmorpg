@@ -66,7 +66,7 @@ must be creative". The kits so far lean on the same few families. Count before d
 | Dash / leap at the prey (charge, pounce, skip, roll) | fox, pangolin, fish, hare, crab |
 | Shot / spray / volley | mole, slug, clam, fish, crab |
 | Beam or lane | moth, snail king (2) |
-| Ring round itself | (moth's, removed by the owner) |
+| Ring round itself | (moth's moonlight ring, replaced: its pattern was not its own) |
 
 Then (owner, 2026-11-05): "It is not that they are not allowed, but the pattern must be creative, not the same
 pattern with a different effect." So a dash or a shot is fine; a dash that is another straight charge at the prey, or a
@@ -75,10 +75,14 @@ arc, a zigzag, a bounce, a return), its timing (a delay, a rhythm, a hold), what
 hovers, it sticks, it splits, it comes back), what the player must do about it (step back, not sideways; wait; go
 round; break it).
 
+And (owner, 2026-11-05): the same holds for a ring round itself - allowed, if its pattern is its own; and a kit does
+not have to hold one of each (a strike, a dash, a shot, a ring) as a template. A monster may have any of them or none;
+how many attacks and which follow from the creature.
+
 Rules for every new kit:
 - Every attack's pattern is its own: not a pattern another monster already has with a new look on it.
 - At least one mechanic no other monster has, read from the creature itself (its body, habit, what it drops).
-- No ring round itself.
+- No fixed template: the kit's size and families follow the creature, not the last monster's kit.
 - Families not used yet, to draw from: a grab or engulf (held, struggle free); a counter or guard stance (hitting
   its front is punished, go round or wait); an ambush (hidden, a tell when it is near); splitting or calling help;
   changing the ground (a slow or slippery patch, a wall, a pit); a tether or link between two points; pulling or

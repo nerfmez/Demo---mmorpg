@@ -67,19 +67,6 @@ function buildHare() {
   return rig;
 }
 
-// A hare's bound, as keys over one bound (u 0..1): gathered with the hind feet under it, the push-off, stretched out in
-// the air, the forefeet landing one after the other, the hind feet swinging past them to gather again.
-// Leg angles about X: + swings the foot back, - forward; pitch + noses down; Y a fraction of the hop height.
-const BOUND_U = [0, 0.22, 0.5, 0.7, 0.86, 1];
-const BOUND_FORE = [0.45, 0.55, -0.9, -0.25, 0.3, 0.45];
-const BOUND_HIND = [-0.55, 0.85, 0.95, 0.15, -0.45, -0.55];
-const BOUND_PITCH = [0.1, -0.14, 0, 0.16, 0.16, 0.1];
-const BOUND_Y = [0, 0.45, 1, 0.45, 0.05, 0];
-function bound(keys, u) {
-  let i = 0;
-  while (u > BOUND_U[i + 1]) i++;
-  return keys[i] + (keys[i + 1] - keys[i]) * hease((u - BOUND_U[i]) / (BOUND_U[i + 1] - BOUND_U[i]));
-}
 const hease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 /** A jab's reach at time t for a contact at `at` (0 cocked .. 1 out, past 1 the overshoot): a snap in, a short hold, a slower return. */
 function jab(t, at) {
@@ -93,18 +80,14 @@ const HIP_Y = -0.12, HIP_Z = -0.3; // the hind hips in the body's space: a rear-
 
 function animHare(r, s, dt, time) {
   const b = r.bones, k = windK(s), t = s.actT || 0, a = s.attack;
-  // Moving: a bound locked to its ground speed (longer bounds the faster it goes), so the feet do not skate.
-  const v = s.smoothSpeed ?? s.speed ?? (s.moving ? 2 : 0);
-  const w = (r.runW = damp(r.runW || 0, clamp01(v / 0.5), 8, dt));
-  const back = s.backing || (s.smoothFwd ?? 1) < -0.3 * v;
-  r.u = ((((r.u || 0) + dt * Math.min(3.2, v / (0.7 + 0.18 * v)) * (back ? -1 : 1)) % 1) + 1) % 1;
-  const hopH = Math.min(0.2, 0.06 + 0.035 * v) * w;
-  let foreL = bound(BOUND_FORE, r.u) * w, foreR = bound(BOUND_FORE, (r.u + 0.94) % 1) * w, hind = bound(BOUND_HIND, r.u) * w;
-  let pitch = bound(BOUND_PITCH, r.u) * w, lift = bound(BOUND_Y, r.u) * hopH, squash = 1 - 0.06 * w * Math.max(0, 1 - lift / Math.max(0.01, hopH) * 3);
-  // standing: sits up a little on its haunches, ears up, the nose twitching in bursts, now and then an ear flicks round
-  pitch += -0.14 * (1 - w);
-  let piv = 1 - w, ears = 0.12 * (1 - w) - 0.35 * w, earSplit = Math.pow(Math.max(0, Math.sin(time * 0.6 + r.seed)), 12) * 0.5 * (1 - w);
-  let headX = Math.max(0, Math.sin(time * 2.3 + r.seed * 3)) * Math.sin(time * 26) * 0.035 * (1 - w), twist = 0, roll = 0, reachL = 1, reachR = 1, z = 0;
+  // Running: the bounding gait the owner preferred (2026-11-05: "the old run was better"), restored as it was: the
+  // whole body arcs on each hop at a steady beat while it moves.
+  r.phase = (r.phase || 0) + dt * (s.moving ? 9 + s.speedFactor * 4 : 0);
+  const w = (r.runW = damp(r.runW || 0, s.moving ? 1 : 0, 10, dt)), hop = Math.abs(Math.sin(r.phase));
+  let lift = hop * 0.22 * w, pitch = -Math.cos(r.phase) * 0.18 * w, squash = 1;
+  let foreL = Math.sin(r.phase) * 0.7 * w, foreR = foreL, hind = -Math.sin(r.phase) * 0.9 * w;
+  let piv = 0, ears = Math.sin(time * 2.2 + r.seed) * 0.06 - 0.25 * w, earSplit = 0;
+  let headX = 0, twist = 0, roll = 0, reachL = 1, reachR = 1, z = 0;
   if (s.windup === 'box') {
     // boxing: rears straight up on its haunches, forepaws raised in a guard, ears flat; a bob of the paws in the hold,
     // then it leans back to load the first jab
@@ -170,7 +153,7 @@ function animHare(r, s, dt, time) {
   }
   if (s.hurt > 0) { pitch -= 0.2 * s.hurt; ears -= 0.4 * s.hurt; }
   const fast = s.state === 'act' || s.windup === 'thump' || (s.state === 'recover' && t < 0.15);
-  const rate = fast ? 40 : 14;
+  const rate = fast ? 40 : 12;
   b.body.rotation.x = damp(b.body.rotation.x, pitch, rate, dt);
   b.body.rotation.y = damp(b.body.rotation.y, twist, rate, dt);
   b.body.rotation.z = damp(b.body.rotation.z, roll, 20, dt);
@@ -178,7 +161,7 @@ function animHare(r, s, dt, time) {
   // a rear-up turns about the hind hips (piv), so the hind feet stay on the ground and the hind legs stay upright
   r.piv = damp(r.piv ?? 1, piv, 10, dt);
   const th = Math.min(0, b.body.rotation.x) * r.piv, cs = Math.cos(th), sn = Math.sin(th);
-  r.lift = damp(r.lift || 0, lift, fast ? 40 : 16, dt);
+  r.lift = damp(r.lift || 0, lift, fast ? 40 : 14, dt);
   r.z = damp(r.z || 0, z, rate, dt);
   b.body.position.y = 0.44 + r.lift + (HIP_Y - (HIP_Y * cs - HIP_Z * sn));
   b.body.position.z = r.z + (HIP_Z - (HIP_Y * sn + HIP_Z * cs));
@@ -186,9 +169,8 @@ function animHare(r, s, dt, time) {
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.7 - twist * 0.6, 5, dt);
   b.earL.rotation.x = damp(b.earL.rotation.x, -0.25 + ears + earSplit, 9, dt);
   b.earR.rotation.x = damp(b.earR.rotation.x, -0.25 + ears + Math.sin(time * 3.1) * 0.04, 9, dt);
-  b.tail.rotation.y = Math.sin(time * 4 + r.seed) * 0.25 * (1 - w);
-  b.tail.rotation.x = damp(b.tail.rotation.x, -0.4 * w, 8, dt);
-  const legRate = fast ? 45 : 18;
+  b.tail.rotation.y = Math.sin(time * 4 + r.seed) * 0.25;
+  const legRate = fast ? 45 : 16;
   b[r.legs[0]].rotation.x = damp(b[r.legs[0]].rotation.x, foreL, legRate, dt);
   b[r.legs[1]].rotation.x = damp(b[r.legs[1]].rotation.x, foreR, legRate, dt);
   b[r.legs[0]].scale.y = damp(b[r.legs[0]].scale.y, reachL, legRate, dt);

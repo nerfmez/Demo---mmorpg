@@ -6905,6 +6905,7 @@
       "tris": 4899,
       "scale": 1.15,
       "yaw": 0,
+      "grade": { "sat": 0.45, "gain": 1.4, "blue": 1.06 },
       "sharpness": 5,
       "outline": "#2e2638",
       "outlineWidth": 0.016,

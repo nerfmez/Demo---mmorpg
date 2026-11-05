@@ -209,6 +209,9 @@ session's network, so these come from search summaries of the cited pages.
   paw. Effects: Burrow Burst sends roots stabbing up round the mark and sinking back, and a hump of earth now runs
   underground to the mark; the spray's clods are solid, faceted chunks of earth tumbling as they fly; the scoop
   leaves three furrows raked into the ground that fade.
+  Owner again: "the colour is still off, surely a bug". Besides the wind-up flicker, its Meshy texture is a dark,
+  saturated plum against the concept's grey-violet: `data/models.json` `grade` now lifts and desaturates only the
+  purple fur once on load (`monsterSkin.js` `gradeMap`), cream stripe and ivory claws untouched.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

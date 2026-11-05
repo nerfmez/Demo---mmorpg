@@ -75,9 +75,42 @@ export function prepareMonsterModel(gltf, cfg) {
   g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
   g.userData.shared = true;
-  const map = mesh.material.map || null;
+  let map = mesh.material.map || null;
+  if (map && cfg.grade) map = gradeMap(map, cfg.grade);
   if (map) map.userData.shared = true;
   return { geometry: g, map, bones: names, cfg };
+}
+
+/**
+ * A colour grade for a Meshy texture that came out off its concept (data/models.json "grade"; owner, 2026-11-05:
+ * the rootdigger mole's fur rendered a dark saturated plum, not the concept's grey-violet). Only texels of the
+ * graded hue are touched (purple: red and blue above green, by `k`), so cream stripes and ivory claws keep their
+ * colour: `sat` scales their saturation, `gain` their brightness, `blue` their blue. Done once on load (CPU), so no
+ * shader variant.
+ */
+function gradeMap(map, { sat = 1, gain = 1, blue = 1, k = 10 }) {
+  const img = map.image;
+  if (typeof document === 'undefined' || !img || !img.width) return map;
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const d = ctx.getImageData(0, 0, c.width, c.height), px = d.data;
+  for (let i = 0; i < px.length; i += 4) {
+    const r = px[i] / 255, gr = px[i + 1] / 255, b = px[i + 2] / 255;
+    const p = Math.max(0, Math.min(1, (Math.min(r, b) - gr) * k));
+    if (p <= 0) continue;
+    const l = 0.3 * r + 0.59 * gr + 0.11 * b, s = 1 - (1 - sat) * p, gn = 1 + (gain - 1) * p;
+    px[i] = Math.min(255, (l + (r - l) * s) * gn * 255);
+    px[i + 1] = Math.min(255, (l + (gr - l) * s) * gn * 255);
+    px[i + 2] = Math.min(255, (l + (b - l) * s) * gn * (1 + (blue - 1) * p) * 255);
+  }
+  ctx.putImageData(d, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  for (const key of ['colorSpace', 'flipY', 'wrapS', 'wrapT', 'magFilter', 'minFilter', 'channel', 'anisotropy']) t[key] = map[key];
+  t.needsUpdate = true;
+  map.dispose();
+  return t;
 }
 
 /**

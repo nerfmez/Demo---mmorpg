@@ -30,6 +30,8 @@ const STONE = { core: [1.0, 0.96, 0.86], glow: [0.95, 0.66, 0.3] };
 const WATER = { core: [0.93, 0.99, 1.0], glow: [0.3, 0.72, 1.0] };
 const SLIME = { core: [1.0, 0.86, 0.92], glow: [0.95, 0.22, 0.5] };
 const PIN_HALO = new THREE.Color('#ff7a2a'), EAR = new THREE.Color('#ffd28a'), EAR_RIM = new THREE.Color('#fff4dc');
+const FERN_HALO = new THREE.Color('#8fd14a'), FERN_RIM = new THREE.Color('#f4ffe0');
+const FERN_LEAVES = [new THREE.Color('#7fd04a'), new THREE.Color('#b8ec6a'), new THREE.Color('#4fae3c')];
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 // monster shots drawn here (the View skips them, skill-fx.js OWN_PROJECTILES): colour, width and length of the shape,
 // how often it sheds a droplet or sparkle, and that trail's colour
@@ -86,6 +88,7 @@ export class MonsterFx {
     // a strike whose look is 'light' (data/combat-fx.json monsters): claw marks of light raked across the prey
     const look = this.host.vfx?.monsterLook?.(e.type, e.name);
     if (look?.kind === 'light') {
+      if (look.blunt) { if (e.at) this.punch(e, look); return true; }
       if (e.at) this.rake(e, look);
       if (e.type === 'rootdigger_mole') this.mole.scoop(e);
       return true;
@@ -162,12 +165,27 @@ export class MonsterFx {
     this.companion.glint(_v.x, _v.y, _v.z, 0.8 * (look.len || 0.6) / 0.6, 0.04);
     this.onShake?.(look.shake ?? 0.05, 0.08);
   }
+  /** A punch lands on the prey (a 'blunt' light look): a burst star on it, left then right for a one-two (e.hit). */
+  punch(e, look) {
+    const c = this.colors(look), side = e.hits > 1 ? (e.hit % 2 ? -1 : 1) * 0.16 : 0;
+    const x = e.at[0] + this.camRightX() * side, z = e.at[1] + this.camRightZ() * side;
+    const y = (this.host.groundAt?.(x, z) ?? 0) + (look.height ?? 0.6) + (e.hit === 2 ? 0.08 : 0);
+    this.burstStar(x, y, z, look.size || 0.4, c.star, c.chipA, c.chipB);
+    this.onShake?.(look.shake ?? 0.05, 0.07);
+  }
   camRightX() { return this.camera.matrixWorld.elements[0]; }
   camRightZ() { return this.camera.matrixWorld.elements[2]; }
   colors(look) {
     this.colorCache ??= new Map();
     let c = this.colorCache.get(look);
-    if (!c) this.colorCache.set(look, (c = { halo: new THREE.Color(look.halo || '#ff6a3a'), rim: new THREE.Color(look.rim || '#fff6e8') }));
+    if (!c) {
+      c = { halo: new THREE.Color(look.halo || '#ff6a3a'), rim: new THREE.Color(look.rim || '#fff6e8') };
+      // a burst star's stroke colours are display values (like STONE), its chips plain hex
+      c.star = { core: c.rim.getRGB({}, THREE.SRGBColorSpace), glow: c.halo.getRGB({}, THREE.SRGBColorSpace) };
+      c.star = { core: [c.star.core.r, c.star.core.g, c.star.core.b], glow: [c.star.glow.r, c.star.glow.g, c.star.glow.b] };
+      c.chipA = new THREE.Color(look.chips?.[0] || look.halo || '#ffffff').getHex(); c.chipB = new THREE.Color(look.chips?.[1] || look.rim || '#ffffff').getHex();
+      this.colorCache.set(look, c);
+    }
     return c;
   }
 
@@ -178,6 +196,7 @@ export class MonsterFx {
     if (m?.type === 'eye_clam' && e.name === 'snipe') this.cues.push({ id: e.id, kind: 'clam_snipe', t: 0, total: e.total, next: 0 });
     if (m?.type === 'pearl_fish' && e.name === 'jet') this.cues.push({ id: e.id, kind: 'fish_jet', t: 0, total: e.total, next: 0 });
     if (m?.type === 'leaf_tanuki' && (e.name === 'drum' || e.name === 'boomerang' || e.name === 'doubles')) this.cues.push({ id: e.id, kind: 'tanuki_' + e.name, t: 0, total: e.total, next: 0 });
+    if (m?.type === 'fern_ear_hare') this.cues.push({ id: e.id, kind: 'hare_' + e.name, t: 0, total: e.total, next: 0, off: false });
     if (m?.type === 'rootdigger_mole') {
       if (e.name === 'erupt') this.mole.windup(e, g);
       else this.cues.push({ id: e.id, kind: 'mole_' + e.name, t: 0, total: e.total, next: 0 });
@@ -190,6 +209,7 @@ export class MonsterFx {
   burst(e, g) {
     const m = e.source != null ? g.monsterById?.(e.source) : null;
     if (m?.type === 'rootdigger_mole' && e.attack === 'erupt') return this.mole.burst(e);
+    if (m?.type === 'fern_ear_hare' && (e.attack === 'thump' || e.attack === 'hop')) return this.hareLand(e, e.attack === 'thump');
     if (e.attack === 'withdraw') return this.shellBurst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
@@ -204,6 +224,42 @@ export class MonsterFx {
       this.companion.glint(p.x, 0.85, p.z, 1.1, 0.02);
     }
     this.onShake?.(0.09, 0.1);
+  }
+
+  /**
+   * The hare comes down on the ground: its warning thump (the shock runs out to the area's true edge, earth puffs and
+   * clods thrown out round it, a shallow dent, fern leaves shaken up) or the landing of its leap (smaller, no shock ring).
+   */
+  hareLand(e, thump) {
+    const y = this.host.groundAt?.(e.x, e.z) ?? 0, R = e.radius || 1, r = Math.random;
+    this.mole.pit(e.x, e.z, thump ? 0.75 : 0.55, thump ? 1.4 : 1.0);
+    if (thump) {
+      this.call.ring(e.x, y + 0.08, e.z, R, FERN_HALO, 0.42);
+      this.call.ring(e.x, y + 0.08, e.z, R * 0.55, FERN_RIM, 0.3, 0.04);
+    }
+    const n = thump ? 12 : 8, sp = thump ? R * 1.5 : 2.2;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * 6.283 + r() * 0.3;
+      this.mole.puff(e.x + Math.sin(a) * 0.35, y + 0.12, e.z + Math.cos(a) * 0.35, Math.sin(a) * sp, Math.cos(a) * sp, thump ? 0.55 : 0.45, 0.55, 0.25);
+    }
+    for (let i = 0; i < (thump ? 6 : 4); i++) {
+      const a = r() * 6.283, v = 1 + r() * 1.5;
+      this.mole.clod(e.x + Math.sin(a) * 0.3, y + 0.15, e.z + Math.cos(a) * 0.3, Math.sin(a) * v, 2.5 + r() * 2, Math.cos(a) * v, 0.05 + r() * 0.04, 0.9);
+    }
+    for (let i = 0; i < (thump ? 8 : 5); i++) {
+      const a = r() * 6.283, v = (thump ? 2.2 : 1.6) * (0.6 + 0.6 * r());
+      this.leaves.leaf(e.x + Math.sin(a) * 0.3, y + 0.2, e.z + Math.cos(a) * 0.3, Math.sin(a) * v, 2.5 + r() * 2, Math.cos(a) * v, 0.3 + r() * 0.12, 0.8 + r() * 0.3, 2.2, 0, FERN_LEAVES[i % 3]);
+    }
+    this.onShake?.(thump ? 0.12 : 0.07, 0.1);
+    return true;
+  }
+
+  /** The far end of a leg bone (its foot or paw), len m down the bone, in world space. */
+  limbTip(id, bone, len, out) {
+    const b = this.rig(id)?.bones?.[bone];
+    if (!b) return null;
+    b.updateWorldMatrix(true, false);
+    return out.set(0, -len, 0).applyMatrix4(b.matrixWorld);
   }
 
   /** A monster was stunned (core stunned; e.miss names the attack that missed). */
@@ -372,7 +428,7 @@ export class MonsterFx {
     }
     this.leaves.update(dt);
     this.bubbles.update(dt);
-    let glowAt = null, glowK = 0, glowTint = 0xffffff;
+    let glowAt = null, glowK = 0, glowTint = 0xffffff, glowSize = 1;
     let live = 0;
     for (const c of this.cues) {
       c.t += dt;
@@ -414,6 +470,27 @@ export class MonsterFx {
         c.next -= dt;
         const b = this.bonePos(c.id, 'body', _w);
         if (b && c.next <= 0) { c.next = 0.05; const a = Math.random() * 6.283; this.host.vfx?.dust.add(b.x + Math.sin(a) * 0.6, b.y - 0.2, b.z + Math.cos(a) * 0.6, Math.cos(a) * 1.5, 0.9, -Math.sin(a) * 1.5, { color: 0xfff0f6, size: 0.3, sizeEnd: 0.8, life: 0.5, drag: 2 }); }
+      } else if (c.kind === 'hare_box') {
+        // the raised forepaws light up in the guard
+        const h = this.limbTip(c.id, 'leg0', 0.26, _w);
+        if (h && k > 0.3) { glowAt = h; glowK = 0.25 + 0.6 * k; glowTint = 0xd8ffa8; glowSize = 0.45; }
+      } else if (c.kind === 'hare_thump') {
+        // the hind feet warm through the alarm, brightest as it hops up for the slam
+        const h = this.limbTip(c.id, 'leg2', 0.28, _w);
+        if (h && k > 0.35) { glowAt = h; glowK = 0.3 + 0.7 * k; glowTint = 0xb8f070; glowSize = 0.45; }
+      } else if (c.kind === 'hare_hop') {
+        // coiled hind feet light up and scrabble at the earth while it aims; earth kicked back as it springs
+        const h = this.limbTip(c.id, k > 0.5 && Math.random() < 0.5 ? 'leg3' : 'leg2', 0.28, _w);
+        if (h && k > 0.3) {
+          glowAt = h; glowK = 0.3 + 0.6 * k; glowTint = 0xb8f070; glowSize = 0.45;
+          c.next -= dt;
+          if (c.next <= 0) { c.next = 0.1; this.mole.puff(h.x, (this.host.groundAt?.(h.x, h.z) ?? 0) + 0.08, h.z, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, 0.3, 0.4, 0.3); }
+          if (!c.off && k > 0.96) {
+            c.off = true;
+            const a = m.windup?.angle ?? m.facing ?? 0, gy = this.host.groundAt?.(h.x, h.z) ?? 0;
+            for (let i = 0; i < 5; i++) { const s = a + Math.PI + (Math.random() - 0.5) * 1.4, v = 1.4 + Math.random(); this.mole.puff(h.x, gy + 0.1, h.z, Math.sin(s) * v, Math.cos(s) * v, 0.4, 0.5, 0.35); }
+          }
+        }
       } else if (c.kind === 'mole_swipe') {
         // the raised claws warm with amber light as it rears
         const h = this.bonePos(c.id, 'handR', _w);
@@ -445,7 +522,9 @@ export class MonsterFx {
       }
     }
     this.cues.length = live;
-    if (glowAt) { this.glow.material.color.setHex(glowTint); this.glow.position.copy(glowAt); this.glow.scale.setScalar(1.2 + 0.8 * glowK); this.glow.material.opacity = 0.25 + 0.45 * glowK; this.glow.visible = true; }
+    if (glowAt) { this.glow.material.color.setHex(glowTint); const S = (1.2 + 0.8 * glowK) * glowSize;
+      // never let the glow's square cut through the ground (a straight edge under small creatures' feet)
+      this.glow.position.copy(glowAt); this.glow.position.y = Math.max(glowAt.y, (this.host.groundAt?.(glowAt.x, glowAt.z) ?? 0) + S * 0.5); this.glow.scale.setScalar(S); this.glow.material.opacity = 0.25 + 0.45 * glowK; this.glow.visible = true; }
     else if (this.kingGlow) this.kingGlow = false; // the king's pearl or latch lit it this frame
     else if (this.glow.visible) { this.glow.material.opacity *= Math.exp(-dt * 18); if (this.glow.material.opacity < 0.02) this.glow.visible = false; }
   }

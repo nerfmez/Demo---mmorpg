@@ -67,51 +67,135 @@ function buildHare() {
   return rig;
 }
 
+// A hare's bound, as keys over one bound (u 0..1): gathered with the hind feet under it, the push-off, stretched out in
+// the air, the forefeet landing one after the other, the hind feet swinging past them to gather again.
+// Leg angles about X: + swings the foot back, - forward; pitch + noses down; Y a fraction of the hop height.
+const BOUND_U = [0, 0.22, 0.5, 0.7, 0.86, 1];
+const BOUND_FORE = [0.45, 0.55, -0.9, -0.25, 0.3, 0.45];
+const BOUND_HIND = [-0.55, 0.85, 0.95, 0.15, -0.45, -0.55];
+const BOUND_PITCH = [0.1, -0.14, 0, 0.16, 0.16, 0.1];
+const BOUND_Y = [0, 0.45, 1, 0.45, 0.05, 0];
+function bound(keys, u) {
+  let i = 0;
+  while (u > BOUND_U[i + 1]) i++;
+  return keys[i] + (keys[i + 1] - keys[i]) * hease((u - BOUND_U[i]) / (BOUND_U[i + 1] - BOUND_U[i]));
+}
+const hease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+/** A jab's reach at time t for a contact at `at` (0 cocked .. 1 out, past 1 the overshoot): a snap in, a short hold, a slower return. */
+function jab(t, at) {
+  if (t < at - 0.055) return 0;
+  if (t < at) return hease((t - (at - 0.055)) / 0.055);
+  if (t < at + 0.03) return 1 + 0.15 * hease((t - at) / 0.03);
+  if (t < at + 0.06) return 1.15 - 0.15 * hease((t - at - 0.03) / 0.03);
+  return 1 - hease((t - at - 0.06) / 0.09);
+}
+const HIP_Y = -0.12, HIP_Z = -0.3; // the hind hips in the body's space: a rear-up turns the body about them
+
 function animHare(r, s, dt, time) {
-  const b = r.bones, k = windK(s);
-  // a bounding gait: the whole body arcs on each hop
-  r.phase = (r.phase || 0) + dt * (s.moving ? 9 + s.speedFactor * 4 : 0);
-  const w = (r.runW = damp(r.runW || 0, s.moving ? 1 : 0, 10, dt)), hop = Math.abs(Math.sin(r.phase));
-  let bodyY = 0.44 + hop * 0.22 * w, bodyX = -Math.cos(r.phase) * 0.18 * w, headX = 0, ears = Math.sin(time * 2.2 + r.seed) * 0.06, squash = 1;
-  let fore = Math.sin(r.phase) * 0.7 * w, hind = -Math.sin(r.phase) * 0.9 * w;
-  if (s.windup === 'hop') {
-    // crouch low, ears laid back, hind legs coiled
-    bodyY = 0.44 - 0.16 * k;
-    squash = 1 - 0.15 * k;
-    ears = -0.9 * k;
-    hind = 0.6 * k;
-    headX = 0.2 * k;
-  } else if (s.windup === 'kick') {
-    // rears up, forepaws lifted, ready to strike out
-    bodyX = -0.55 * k;
-    bodyY = 0.44 + 0.12 * k;
-    fore = -1.2 * k;
-    ears = 0.3 * k;
-    headX = 0.3 * k;
-  } else if (s.state === 'act' && s.lastAttack === 'kick') {
-    const c = clamp01(s.actT / Math.max(0.01, s.hitTime || 0.1));
-    bodyX = -0.55 + 0.9 * c;
-    fore = -1.2 + 2.2 * c;
-    hind = -0.5 * c;
-  } else if (s.state === 'act') {
-    // mid-leap: stretched out
-    bodyX = -0.2;
-    fore = -1;
-    hind = 1.1;
-    ears = -0.7;
+  const b = r.bones, k = windK(s), t = s.actT || 0, a = s.attack;
+  // Moving: a bound locked to its ground speed (longer bounds the faster it goes), so the feet do not skate.
+  const v = s.smoothSpeed ?? s.speed ?? (s.moving ? 2 : 0);
+  const w = (r.runW = damp(r.runW || 0, clamp01(v / 0.5), 8, dt));
+  const back = s.backing || (s.smoothFwd ?? 1) < -0.3 * v;
+  r.u = ((((r.u || 0) + dt * Math.min(3.2, v / (0.7 + 0.18 * v)) * (back ? -1 : 1)) % 1) + 1) % 1;
+  const hopH = Math.min(0.2, 0.06 + 0.035 * v) * w;
+  let foreL = bound(BOUND_FORE, r.u) * w, foreR = bound(BOUND_FORE, (r.u + 0.94) % 1) * w, hind = bound(BOUND_HIND, r.u) * w;
+  let pitch = bound(BOUND_PITCH, r.u) * w, lift = bound(BOUND_Y, r.u) * hopH, squash = 1 - 0.06 * w * Math.max(0, 1 - lift / Math.max(0.01, hopH) * 3);
+  // standing: sits up a little on its haunches, ears up, the nose twitching in bursts, now and then an ear flicks round
+  pitch += -0.14 * (1 - w);
+  let piv = 1 - w, ears = 0.12 * (1 - w) - 0.35 * w, earSplit = Math.pow(Math.max(0, Math.sin(time * 0.6 + r.seed)), 12) * 0.5 * (1 - w);
+  let headX = Math.max(0, Math.sin(time * 2.3 + r.seed * 3)) * Math.sin(time * 26) * 0.035 * (1 - w), twist = 0, roll = 0, reachL = 1, reachR = 1, z = 0;
+  if (s.windup === 'box') {
+    // boxing: rears straight up on its haunches, forepaws raised in a guard, ears flat; a bob of the paws in the hold,
+    // then it leans back to load the first jab
+    const rise = hease(k / 0.4), load = hease((k - 0.78) / 0.22);
+    pitch = -1.0 * rise - 0.14 * load; piv = 1;
+    const bob = Math.sin(time * 17) * 0.12 * rise * (1 - load);
+    foreL = -1.3 * rise + bob + 0.25 * load; foreR = -1.3 * rise - bob + 0.1 * load;
+    hind = 0.25 * rise; ears = -0.75 * rise; headX = 0.2 * rise; twist = 0.18 * load; lift = -0.03 * rise;
+  } else if (s.state === 'act' && s.lastAttack === 'box') {
+    // one-two: each forepaw snaps straight out at its contact (the rules' hits), the body lunging and twisting into it
+    const hits = a?.hits || [{ at: 0.1 }, { at: 0.24 }];
+    const jL = jab(t, hits[0].at), jR = jab(t, hits[1]?.at ?? 0.24), j = Math.max(jL, jR);
+    pitch = -1.14 + 0.5 * j; piv = 1; z = 0.09 * j;
+    foreL = -1.25 + 0.65 * jL - 0.1 * jR; foreR = -1.25 + 0.65 * jR - 0.1 * jL; // the other paw stays up in the guard
+    reachL = 1 + 0.35 * jL; reachR = 1 + 0.35 * jR;
+    twist = 0.18 - 0.42 * jL + 0.42 * jR; hind = 0.25; ears = -0.8; headX = 0.25;
+  } else if (s.state === 'recover' && s.lastAttack === 'box') {
+    // the guard held a beat, then down onto all fours
+    const down = hease((t - 0.12) / 0.3);
+    pitch = -1.0 * (1 - down) + pitch * down; piv = 1 - down * w;
+    foreL = -1.25 * (1 - down) + foreL * down; foreR = -1.25 * (1 - down) + foreR * down;
+    hind = 0.25 * (1 - down) + hind * down; ears = -0.75 * (1 - down) + ears * down; twist = 0.1 * (1 - down);
+  } else if (s.windup === 'thump') {
+    // the warning thump: up on its haunches, forepaws tucked, ears straight up and still (the hold), a hop up off the
+    // hind feet, then the whole body slams down on the wind-up's last beat
+    const rise = hease(k / 0.4), pop = hease((k - 0.76) / 0.13), slam = hease((k - 0.9) / 0.1);
+    pitch = -0.75 * rise - 0.12 * pop + 1.07 * slam; piv = 1;
+    foreL = foreR = 0.45 * rise + 0.3 * pop - 0.2 * slam;
+    hind = 0.1 * rise - 0.55 * pop + 0.75 * slam;
+    lift = 0.16 * pop - 0.24 * slam; squash = 1 - 0.14 * slam;
+    ears = 0.3 * rise - 0.4 * slam; headX = -0.15 * rise + 0.3 * slam;
+    roll = Math.sin(time * 40) * 0.025 * rise * (1 - pop); // trembling with alarm through the hold
+  } else if (s.state === 'recover' && s.lastAttack === 'thump') {
+    // the slam pose held, then it rises back to stand
+    const up = hease((t - 0.15) / 0.4);
+    pitch = 0.2 * (1 - up) + pitch * up; piv = 1 - up;
+    foreL = -0.2 * (1 - up) + foreL * up; foreR = -0.2 * (1 - up) + foreR * up; hind = 0.2 * (1 - up) + hind * up;
+    lift = -0.08 * (1 - up); squash = 1 - 0.14 * (1 - hease(t / 0.15)) * (1 - up); ears = -0.1 * (1 - up) + ears * up;
+  } else if (s.windup === 'hop') {
+    // the leap: a deep crouch, rump low and hind feet coiled under it, ears laid back; a wiggle of the rump while it
+    // aims; a last dip before it springs
+    const crouch = hease(k / 0.35), aim = hease((k - 0.35) / 0.15) * (1 - hease((k - 0.85) / 0.1)), dip = hease((k - 0.88) / 0.12);
+    pitch = -0.12 * crouch + 0.1 * dip; piv = 0.5;
+    hind = -0.65 * crouch - 0.15 * dip; foreL = foreR = 0.25 * crouch + 0.2 * dip;
+    lift = -0.12 * crouch - 0.05 * dip; squash = 1 - 0.1 * crouch;
+    ears = -0.9 * crouch; headX = 0.12 * crouch; twist = Math.sin(time * 22) * 0.07 * aim;
+  } else if (s.state === 'act' && s.lastAttack === 'hop') {
+    // in the air over the rules' air time: stretched long, nose up off the ground and nose down onto the prey,
+    // forepaws reaching, the hind feet swinging forward under it to land
+    const c = clamp01(t / ((a?.air) || 0.35));
+    pitch = -0.4 + 0.75 * c; piv = 0;
+    lift = 1.1 * Math.sin(Math.PI * c);
+    foreL = foreR = -1.1 + 0.8 * hease((c - 0.55) / 0.45);
+    hind = 1.0 - 1.4 * hease((c - 0.6) / 0.4);
+    ears = -1.0; squash = 1.04; headX = -0.15;
+  } else if (s.state === 'recover' && s.lastAttack === 'hop') {
+    // landed: a squash, then up
+    const up = hease((t - 0.1) / 0.3);
+    pitch = 0.22 * (1 - up) + pitch * up; lift = -0.1 * (1 - up); squash = 1 - 0.15 * (1 - up);
+    foreL = foreR = 0.2 * (1 - up) + foreL * up; hind = -0.5 * (1 - up) + hind * up; ears = -0.6 * (1 - up) + ears * up;
   } else if (s.state === 'stunned') {
-    headX = 0.4 + Math.sin(time * 9) * 0.1;
+    headX = 0.4 + Math.sin(time * 9) * 0.1; ears = -0.9; roll = Math.sin(time * 5) * 0.08; lift = -0.06;
   }
-  if (s.hurt > 0) bodyX -= 0.2 * s.hurt;
-  b.body.position.y = damp(b.body.position.y, bodyY, 14, dt);
-  b.body.rotation.x = damp(b.body.rotation.x, bodyX, 12, dt);
-  b.body.scale.y = damp(b.body.scale.y, squash, 12, dt);
-  b.head.rotation.x = damp(b.head.rotation.x, headX, 12, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.7, 5, dt);
-  b.earL.rotation.x = damp(b.earL.rotation.x, -0.25 + ears - 0.25 * w, 9, dt);
-  b.earR.rotation.x = damp(b.earR.rotation.x, -0.25 + ears - 0.25 * w + Math.sin(time * 3.1) * 0.04, 9, dt);
-  b.tail.rotation.y = Math.sin(time * 4 + r.seed) * 0.25;
-  r.legs.forEach((n, i) => { b[n].rotation.x = damp(b[n].rotation.x, i < 2 ? fore : hind, 16, dt); });
+  if (s.hurt > 0) { pitch -= 0.2 * s.hurt; ears -= 0.4 * s.hurt; }
+  const fast = s.state === 'act' || s.windup === 'thump' || (s.state === 'recover' && t < 0.15);
+  const rate = fast ? 40 : 14;
+  b.body.rotation.x = damp(b.body.rotation.x, pitch, rate, dt);
+  b.body.rotation.y = damp(b.body.rotation.y, twist, rate, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, roll, 20, dt);
+  b.body.scale.y = damp(b.body.scale.y, squash, rate, dt);
+  // a rear-up turns about the hind hips (piv), so the hind feet stay on the ground and the hind legs stay upright
+  r.piv = damp(r.piv ?? 1, piv, 10, dt);
+  const th = Math.min(0, b.body.rotation.x) * r.piv, cs = Math.cos(th), sn = Math.sin(th);
+  r.lift = damp(r.lift || 0, lift, fast ? 40 : 16, dt);
+  r.z = damp(r.z || 0, z, rate, dt);
+  b.body.position.y = 0.44 + r.lift + (HIP_Y - (HIP_Y * cs - HIP_Z * sn));
+  b.body.position.z = r.z + (HIP_Z - (HIP_Y * sn + HIP_Z * cs));
+  b.head.rotation.x = damp(b.head.rotation.x, headX - 0.6 * Math.min(0, pitch), rate, dt);
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.7 - twist * 0.6, 5, dt);
+  b.earL.rotation.x = damp(b.earL.rotation.x, -0.25 + ears + earSplit, 9, dt);
+  b.earR.rotation.x = damp(b.earR.rotation.x, -0.25 + ears + Math.sin(time * 3.1) * 0.04, 9, dt);
+  b.tail.rotation.y = Math.sin(time * 4 + r.seed) * 0.25 * (1 - w);
+  b.tail.rotation.x = damp(b.tail.rotation.x, -0.4 * w, 8, dt);
+  const legRate = fast ? 45 : 18;
+  b[r.legs[0]].rotation.x = damp(b[r.legs[0]].rotation.x, foreL, legRate, dt);
+  b[r.legs[1]].rotation.x = damp(b[r.legs[1]].rotation.x, foreR, legRate, dt);
+  b[r.legs[0]].scale.y = damp(b[r.legs[0]].scale.y, reachL, legRate, dt);
+  b[r.legs[1]].scale.y = damp(b[r.legs[1]].scale.y, reachR, legRate, dt);
+  const hindX = hind - th;
+  b[r.legs[2]].rotation.x = damp(b[r.legs[2]].rotation.x, hindX, legRate, dt);
+  b[r.legs[3]].rotation.x = damp(b[r.legs[3]].rotation.x, hindX, legRate, dt);
 }
 
 // ---------- mirrorwing moth: a navy fuzzy body, cream ruff, four glass wings ----------

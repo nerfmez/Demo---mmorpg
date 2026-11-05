@@ -15,7 +15,7 @@ test('every weapon type has a blade trail look, and every melee strike a look of
     assert.ok(c.fullSpeed > c.minSpeed && c.life > 0, `${w}: speed band and life`);
   }
   // attacks that emit monsterSwing (src/core/ai.js): bite, sweep, shove and the planted contacts
-  for (const name of ['bite', 'sweep', 'shove', 'slap', 'peck', 'pinch', 'scythe', 'claw', 'rend', 'rake', 'kick', 'swipe']) {
+  for (const name of ['bite', 'sweep', 'shove', 'slap', 'peck', 'pinch', 'scythe', 'claw', 'rend', 'rake', 'box', 'swipe']) {
     assert.ok(KINDS.has(fx.monsters[name]?.kind), `${name} has a known effect kind`);
   }
   // every placed monster's melee strike has its own look: none falls back to the plain wedge (vfx.js genericSwing)

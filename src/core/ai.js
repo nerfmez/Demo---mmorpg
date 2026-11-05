@@ -935,20 +935,6 @@ function sentinel(game, m, dt, { t, gap, dToT, slowMult }) {
   }
 }
 
-/** Fern-ear Hare: bounds around the target, leaps onto a marked spot, kicks up close and springs back. */
-function hare(game, m, dt, { t, gap, dToT, slowMult }) {
-  const a = m.def.attacks;
-  if (gap <= a.kick.range && m.cd.kick <= 0) return startWindup(game, m, 'kick', t);
-  if (m.cd.hop <= 0 && gap >= a.hop.minRange && gap <= a.hop.range) {
-    startWindup(game, m, 'hop', t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'hop', kind: 'pounce', x: t.x, z: t.z, radius: a.hop.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.hop.damageMult });
-    return;
-  }
-  const [near, far] = m.def.circle;
-  if (m.cd.kick > 0.6 && m.cd.hop > 0.8) return strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
-  walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
-}
-
 /**
  * Mirrorwing Moth: from range it rains glass shards on a few marked circles around the player, one
  * after another; up close a ring of moonlight goes off around it, safe only right under it.
@@ -1075,4 +1061,4 @@ export function beginAttack(game, m, name, t) {
   startWindup(game, m, name, t);
 }
 
-const BEHAVIORS = { kit, hare, moth, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+const BEHAVIORS = { kit, moth, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

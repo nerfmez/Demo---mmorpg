@@ -553,7 +553,7 @@ Wide Spread and Far Reach share the `spread` family.
   so kit monsters' strikes are drawn in the companions' language (a jaw of light, claw marks of light,
   `claw-fx.js`/`bite-fx.js`) plus leaves of light (`leaf-fx.js`, one instanced mesh). An attack whose
   `data/combat-fx.json` look is `kind: "light"` (`marks`, `halo`, `rim`, `len`, `wid`, `gap`, `height`) is
-  raked across the prey that way (the hare's kick, the mole's swipe). Other blows have their own contact
+  raked across the prey that way (the mole's swipe); with `blunt` (`size`, `chips`) it is a punch, a `burstStar` on the prey instead (the hare's box, left then right per hit). Other blows have their own contact
   shapes: `burstStar` (a zig-zag outline of light and falling chips: a blunt blow), `waterCrown` (arcs of
   water curling up and droplets: a slap of water), `slimeSplat` (thick slime spikes, blobs, a ground smear),
   bubbles (`bubble-fx.js`: pooled sprites of a drawn ring, rising, wobbling, popping into droplets), the
@@ -576,6 +576,7 @@ Wide Spread and Far Reach share the `spread` family.
   `motionStyle`) override a type's tuning for the monster sandbox only.
 - **Model colour grade** (`data/models.json` `grade`: sat, gain, blue, k): a texture whose fur rendered off its concept is regraded once on load, only texels of the graded hue (purple: min(r, b) - g, times k); in Godot, regrade the imported texture or do the same in an import script.
 - **Mole earth** (`skillfx/mole-fx.js`, MoleFx): pooled ground-kit pieces (dust billboards on DUST_FS, rockGeometry clods and slabGeometry slabs on a three-step toon shader with the soil colours as uniforms, craterMesh pits with uBurn 0); a burrow's heave starts once the mole is under (a third of its wind-up) and runs to the mark by the end.
+- **Fern-ear hare** (kit): box `rake` (two hits), thump `stomp` (its area kind is the attack's name, `thump`, drawn by MonsterFx `hareLand`, not the generic slam), hop `pounce`. Its rear-ups turn the body about the hind hips (body offset so the hips stay put, hind legs counter-rotated to stay upright); its walk is a keyed bound sampled by a phase advanced by ground speed / stride.
 - **Rootdigger mole** (kit): `erupt` is a kit kind now (`beginAttack` marks the target's spot for the wind-up, skipped
   when the target is in a safe town); Dirt Spray is a `volley` of solid clods drawn by MonsterFx (`SHOT_LOOKS.spray`,
   lobbed in a sine arc, a puff of earth where each ends). Kit monsters close to `0.8 x` the range of their nearest
@@ -1846,8 +1847,8 @@ clear); points and spawn points carry a `pack` id (`group:index`). A monster who
 `packAssist` (metres) pulls every calm packmate within that range into the fight the moment it
 aggroes (`setAggro()` in `core/ai.js`). Packmates respawn at their own points.
 
-Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `kick` is a
-planted `claw` strike, its `hop` a marked `pounce`; the mole's `swipe` is a `sweep`; Greyfang's
+Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `box` is a
+two-hit `rake`, its `thump` a `stomp`, its `hop` a marked `pounce`; the mole's `swipe` is a `sweep`; Greyfang's
 `leap` is a `pounce`). Names stay their own for cooldowns, telegraph lookups and looks. An attack's
 `hpBelow` (Greyfang's `leap`: 0.5) means it is only used at or under that share of health.
 

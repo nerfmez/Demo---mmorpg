@@ -74,19 +74,20 @@ test('three new monsters with their own patterns, a visible wind-up and their ow
   }
 });
 
-test('hare kick lands once at its authored time; its hop is marked before it lands and dodgeable', () => {
+test('hare boxing lands its two jabs once each at their authored times; its hop is marked before it lands and dodgeable', () => {
+  const box = M.fern_ear_hare.attacks.box;
   const k = arena('fern_ear_hare');
-  k.place(0.3); k.m.cd.hop = 99;
+  k.place(0.3); k.m.cd.hop = 99; k.m.cd.thump = 99;
   k.step(0.01);
-  assert.equal(k.m.windup?.name, 'kick');
+  assert.equal(k.m.windup?.name, 'box');
   k.until(() => k.m.state === 'act');
-  k.step(M.fern_ear_hare.attacks.kick.hitTime - 0.02);
-  assert.equal(k.hits.length, 0, 'nothing before contact');
+  k.step(box.hits[0].at - 0.02);
+  assert.equal(k.hits.length, 0, 'nothing before the first jab');
   k.until(() => k.m.state !== 'act');
-  assert.equal(k.hits.length, 1, 'one kick');
+  assert.equal(k.hits.length, 2, 'two jabs, each once');
 
   const h = arena('fern_ear_hare');
-  h.place(5); h.m.cd.kick = 99;
+  h.place(5); h.m.cd.box = 99; h.m.cd.thump = 99;
   h.step(0.01);
   assert.equal(h.m.windup?.name, 'hop');
   const mark = h.g.areas.find((a) => a.kind === 'pounce');
@@ -95,6 +96,17 @@ test('hare kick lands once at its authored time; its hop is marked before it lan
   h.until(() => h.m.state === 'recover', 5);
   h.step(0.4);
   assert.equal(h.hits.length, 0, 'leaving the mark dodges the hop');
+
+  // the thump: a ring round it, marked through the wind-up, hits once as the foot comes down; out of it, safe
+  const t = arena('fern_ear_hare');
+  t.place(1); t.m.cd.box = 99; t.m.cd.hop = 99;
+  t.step(0.01);
+  assert.equal(t.m.windup?.name, 'thump');
+  t.step(M.fern_ear_hare.attacks.thump.windup - 0.05);
+  assert.equal(t.hits.length, 0, 'nothing during the wind-up');
+  t.until(() => t.m.state === 'recover');
+  t.step(0.2);
+  assert.equal(t.hits.length, 1, 'the thump hits once');
 });
 
 test('moth shard rain marks circles around the player that land one after another, only on their marks', () => {

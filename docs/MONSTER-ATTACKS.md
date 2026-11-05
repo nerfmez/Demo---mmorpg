@@ -90,6 +90,7 @@ session's network, so these come from search summaries of the cited pages.
 | Eye clam (Lv26-28) | Pearl Snipe (tracked aim line, then locks); Valve Jet (knockback cone); shell guard that reopens into Valve Jet |
 | Pearl Snail King (boss Lv30) | Frill Crush; Proboscis Harpoon (latched, then a stab that pulls in); slime trail; withdraws into its shell at 60% and 30%; Pearl Beam Sweep below 60% |
 | Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
+| Fern-ear hare | ต่อยรัว Box (rears up on its haunches, paws raised in a guard, a one-two of jabs with a burst star of light on each); กระทืบเตือนภัย Warning Thump (up on its haunches, trembling, ears up, a hop up, then slams down: a shock ring to the true edge, earth and fern leaves thrown out); กระโดดทับ Leap (crouch, rump wiggle, springs onto the marked spot, lands in earth and leaves) |
 
 ## Rounds
 
@@ -231,6 +232,17 @@ session's network, so these come from search summaries of the cited pages.
   sides and back while the body surges forward, the hind feet shuffling under it; at the height of each sweep
   MoleFx `walkDig` throws a puff of dust and clods off each paw, outward and back, and now and then leaves a shallow
   scrape. Drawn 1.3x (was 0.95), its rules radius 1.1 m (was 0.85).
+- **Fern-ear hare, round 1** (2026-11-05, owner: "OK, do the next one"): on its own kit (`behavior: "kit"`, the old
+  `hare` behaviour and its claw `kick` removed). Box (new, kind `rake`, two hits): it rears straight up about its
+  hind hips (the body turns about them, so the hind feet stay planted), forepaws raised in a guard that bobs, leans
+  back to load, then each paw snaps out at its hit with the body lunging and twisting into it; a hare has no claws,
+  so the contact is a punch: a burst star of light with chips (`box` in `data/combat-fx.json`, `blunt`). Warning
+  Thump (new, kind `stomp`, 2.2 m round it): up on its haunches with ears straight up, trembling (the hold), a hop up
+  off the hind feet, the whole body slammed down on the wind-up's last beat; a shock ring runs out to the true edge,
+  earth puffs, clods and fern leaves of light are thrown out and a shallow dent is left. Leap keeps its marked
+  landing: a deep crouch, rump wiggle while it aims, earth kicked back as it springs, stretched long in the air, a
+  squash on landing with earth and leaves. Its walk is a bound locked to its ground speed: gathered, push-off,
+  stretched in the air, forefeet landing one after the other, hind feet swinging past them.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

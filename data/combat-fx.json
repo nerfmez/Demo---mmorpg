@@ -1,5 +1,5 @@
 {
-  "_doc": "Look of combat effects; skills holds element-specific cast, projectile and impact presentation. Melee attacks: read only by src/render/vfx.js (no game rule reads it). 'weapons' sets the blade trail that follows the real weapon tip while a melee skill swings: tip/base are distances along the weapon (m, grip at 0, blade along +Z), life is how long a trail segment glows, minSpeed/fullSpeed (m/s of the tip) fade the trail in only while the blade is really moving, zone is the strength of the ground wedge that flashes where the hit area is (its size is the skill's range and arc), dust is the puff kicked up on contact. 'monsters' gives one look per melee attack name from data/monsters.json, showing what the creature hits with. claw, fangs and pincer strikes are trails that come out of the monster's own limbs (src/render/monster-trails.js): 'trail' gives streaks (parallel claw/fang lines per limb), spread (m between them), width/reach (how far the stroke runs inside/past the limb tip), life, minSpeed/fullSpeed (m/s of the tip: bright only while the limb really strikes) and opacity; 'limbs' (set per monster in overrides) names the rig bones that strike, the tip being the far end of that bone's model segment, or {bone, at} for a point in rest space. Where the strike lands there is a small contact burst (sparks, droplets). splash, thrust and smear are ground/area looks. 'overrides' tweaks a look for one monster (type.attack).",
+  "_doc": "Look of combat effects; skills holds element-specific cast, projectile and impact presentation. Melee attacks: read only by src/render/vfx.js (no game rule reads it). 'weapons' sets the blade trail that follows the real weapon tip while a melee skill swings: tip/base are distances along the weapon (m, grip at 0, blade along +Z), life is how long a trail segment glows, minSpeed/fullSpeed (m/s of the tip) fade the trail in only while the blade is really moving, zone is the strength of the ground wedge that flashes where the hit area is (its size is the skill's range and arc), dust is the puff kicked up on contact. 'monsters' gives one look per melee attack name from data/monsters.json, showing what the creature hits with. claw, fangs and pincer strikes are trails that come out of the monster's own limbs (src/render/monster-trails.js): 'trail' gives streaks (parallel claw/fang lines per limb), spread (m between them), width/reach (how far the stroke runs inside/past the limb tip), life, minSpeed/fullSpeed (m/s of the tip: bright only while the limb really strikes) and opacity; 'limbs' (set per monster in overrides) names the rig bones that strike, the tip being the far end of that bone's model segment, or {bone, at} for a point in rest space. Where the strike lands there is a small contact burst (sparks, droplets). splash, thrust and smear are ground/area looks. A 'light' look is claw marks of light on the prey (src/render/skillfx/monster-fx.js), or with 'blunt' a punch: a burst star of light 'size' m round on the prey, chips in the 'chips' colours. 'overrides' tweaks a look for one monster (type.attack).",
   "weapons": {
     "sword": {
       "tip": 0.95,
@@ -241,16 +241,15 @@
       "dust": 10,
       "dur": 0.36
     },
-    "kick": {
+    "box": {
       "kind": "light",
-      "marks": 2,
+      "blunt": true,
       "halo": "#8fd14a",
       "rim": "#f4ffe0",
-      "len": 0.42,
-      "wid": 0.85,
-      "gap": 0.22,
-      "height": 0.55,
-      "shake": 0.04
+      "chips": ["#9fdc5a", "#f4ecd8"],
+      "size": 0.38,
+      "height": 0.62,
+      "shake": 0.05
     },
     "swipe": {
       "kind": "light",

@@ -15,6 +15,7 @@ import { BubbleFx } from './bubble-fx.js';
 import { BITE_SHUT } from './bite-fx.js';
 import { lightSprite, glowTexture } from './light-kit.js';
 import { MoleFx } from './mole-fx.js';
+import { MothFx } from './moth-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -30,6 +31,7 @@ const STONE = { core: [1.0, 0.96, 0.86], glow: [0.95, 0.66, 0.3] };
 const WATER = { core: [0.93, 0.99, 1.0], glow: [0.3, 0.72, 1.0] };
 const SLIME = { core: [1.0, 0.86, 0.92], glow: [0.95, 0.22, 0.5] };
 const PIN_HALO = new THREE.Color('#ff7a2a'), EAR = new THREE.Color('#ffd28a'), EAR_RIM = new THREE.Color('#fff4dc');
+const GLASS = { core: [0.96, 1.0, 1.0], glow: [0.42, 0.78, 1.0] }, GLASS_HALO = new THREE.Color('#9fdcff'), MOON = new THREE.Color('#d6f2ff');
 const FERN_HALO = new THREE.Color('#8fd14a'), FERN_RIM = new THREE.Color('#f4ffe0');
 const FERN_LEAVES = [new THREE.Color('#7fd04a'), new THREE.Color('#b8ec6a'), new THREE.Color('#4fae3c')];
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
@@ -76,6 +78,8 @@ export class MonsterFx {
     for (const m of [this.beam.glow, this.beam.core]) { m.visible = false; m.renderOrder = 10; scene.add(m); }
     // the mole's earth (skillfx/mole-fx.js: the ground kit's dust, clods, slabs and dug pits)
     this.mole = new MoleFx(scene, camera, host);
+    // the mirrorwing moth's glass shards, moonlight ring wall and wing glare (skillfx/moth-fx.js)
+    this.moth = new MothFx(scene, host);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -196,6 +200,7 @@ export class MonsterFx {
     if (m?.type === 'eye_clam' && e.name === 'snipe') this.cues.push({ id: e.id, kind: 'clam_snipe', t: 0, total: e.total, next: 0 });
     if (m?.type === 'pearl_fish' && e.name === 'jet') this.cues.push({ id: e.id, kind: 'fish_jet', t: 0, total: e.total, next: 0 });
     if (m?.type === 'leaf_tanuki' && (e.name === 'drum' || e.name === 'boomerang' || e.name === 'doubles')) this.cues.push({ id: e.id, kind: 'tanuki_' + e.name, t: 0, total: e.total, next: 0 });
+    if (m?.type === 'mirrorwing_moth') this.cues.push({ id: e.id, kind: 'moth_' + e.name, t: 0, total: e.total, next: 0 });
     if (m?.type === 'fern_ear_hare') this.cues.push({ id: e.id, kind: 'hare_' + e.name, t: 0, total: e.total, next: 0, off: false });
     if (m?.type === 'rootdigger_mole') {
       if (e.name === 'erupt') this.mole.windup(e, g);
@@ -210,6 +215,8 @@ export class MonsterFx {
     const m = e.source != null ? g.monsterById?.(e.source) : null;
     if (m?.type === 'rootdigger_mole' && e.attack === 'erupt') return this.mole.burst(e);
     if (m?.type === 'fern_ear_hare' && (e.attack === 'thump' || e.attack === 'hop')) return this.hareLand(e, e.attack === 'thump');
+    if (e.attack === 'shard_rain') return this.glassShatter(e);
+    if (e.attack === 'mirror_ring') return this.moonRing(e, g);
     if (e.attack === 'withdraw') return this.shellBurst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
@@ -252,6 +259,36 @@ export class MonsterFx {
     }
     this.onShake?.(thump ? 0.12 : 0.07, 0.1);
     return true;
+  }
+
+  /** A glass shard lands on its mark (the moth's Glass Rain): it shatters in a star of cold light, chips flying. */
+  glassShatter(e) {
+    const y = this.host.groundAt?.(e.x, e.z) ?? 0, fx = this.host.vfx?.fx;
+    this.burstStar(e.x, y + 0.45, e.z, 0.6, GLASS, 0xbfe9ff, 0xffffff);
+    this.call.ring(e.x, y + 0.06, e.z, e.radius, GLASS_HALO, 0.35);
+    if (fx) for (let i = 0; i < 10; i++) { const a = (i / 10) * 6.283 + Math.random() * 0.4, sp = 1.5 + Math.random() * 2; fx.add(e.x, y + 0.25, e.z, Math.sin(a) * sp, 1.5 + Math.random() * 2, Math.cos(a) * sp, { color: i % 3 ? 0xd6f4ff : 0xfff2fb, size: 0.13, sizeEnd: 0.04, life: 0.5, gravity: 12, drag: 0.6 }); }
+    this.onShake?.(0.05, 0.07);
+    return true;
+  }
+  /** The moth's moonlight ring goes off: a wall of light runs out to the band's edge, a pale rim marks the safe middle. */
+  moonRing(e, g) {
+    const y = this.host.groundAt?.(e.x, e.z) ?? 0;
+    this.moth.ring(e);
+    this.call.ring(e.x, y + 0.06, e.z, e.radius, MOON, 0.45);
+    if (e.inner) this.call.ring(e.x, y + 0.07, e.z, e.inner, GLASS_HALO, 0.3, 0.05);
+    const b = e.source != null ? this.bonePos(e.source, 'body', _w) : null;
+    if (b) this.companion.glint(b.x, b.y, b.z, 1.6, 0);
+    this.onShake?.(0.12, 0.12);
+    return true;
+  }
+  /** The moth's wing glare (core beam, kind glare): the beam from its chest along the lane. */
+  glare(e) {
+    const b = this.bonePos(e.id, 'body', _w);
+    this.moth.glare(e, b);
+    if (b) this.companion.glint(b.x, b.y, b.z, 1.4, 0);
+    const L = e.length, ex = e.x + Math.sin(e.angle) * L, ez = e.z + Math.cos(e.angle) * L;
+    this.companion.glint(ex, (this.host.groundAt?.(ex, ez) ?? 0) + 0.5, ez, 1.0, 0.03);
+    this.onShake?.(0.07, 0.08);
   }
 
   /** The far end of a leg bone (its foot or paw), len m down the bone, in world space. */
@@ -420,6 +457,7 @@ export class MonsterFx {
     this.tanuki(g);
     this.fish(g);
     this.mole.update(dt, g);
+    this.moth.update(dt);
     this.king(g, dt);
     // a rolling pangolin kicks up dust behind it
     for (const m of g.monsters) if (m.type === 'stone_pangolin' && m.charge && !m.charge.hop && Math.random() < 0.7) {
@@ -470,6 +508,31 @@ export class MonsterFx {
         c.next -= dt;
         const b = this.bonePos(c.id, 'body', _w);
         if (b && c.next <= 0) { c.next = 0.05; const a = Math.random() * 6.283; this.host.vfx?.dust.add(b.x + Math.sin(a) * 0.6, b.y - 0.2, b.z + Math.cos(a) * 0.6, Math.cos(a) * 1.5, 0.9, -Math.sin(a) * 1.5, { color: 0xfff0f6, size: 0.3, sizeEnd: 0.8, life: 0.5, drag: 2 }); }
+      } else if (c.kind === 'moth_mirror_ring') {
+        // moonlight gathers in its spread wings, motes rising round the band faster as the ring nears
+        const b = this.bonePos(c.id, 'body', _w);
+        if (b) { glowAt = b; glowK = 0.3 + 0.7 * k; glowTint = 0xd6f2ff; glowSize = 1.3; }
+        c.next -= dt;
+        const m2 = g.monsterById?.(c.id), atk = m2?.def.attacks.mirror_ring, fx = this.host.vfx?.fx;
+        if (atk && fx && c.next <= 0) {
+          c.next = 0.07 - 0.04 * k;
+          const a = Math.random() * 6.283, r = atk.inner + (atk.radius - atk.inner) * Math.random(), x = m2.x + Math.sin(a) * r, z = m2.z + Math.cos(a) * r;
+          fx.add(x, (this.host.groundAt?.(x, z) ?? 0) + 0.1, z, 0, 0.8 + 1.2 * k, 0, { color: k > 0.6 ? 0xffffff : 0xcdeeff, size: 0.16, sizeEnd: 0.03, life: 0.55, drag: 1 });
+        }
+      } else if (c.kind === 'moth_shard_rain') {
+        // a cold shine in the raised wings while the shards form overhead
+        const b = this.bonePos(c.id, 'body', _w);
+        if (b && k > 0.25) { glowAt = b; glowK = 0.2 + 0.5 * k; glowTint = 0xbfe9ff; glowSize = 1.1; }
+      } else if (c.kind === 'moth_glare') {
+        // the wings catch the moon: their glass brightens, glints flaring on the panes faster and faster
+        const b = this.bonePos(c.id, 'body', _w);
+        if (b) { glowAt = b; glowK = 0.15 + 0.85 * k * k; glowTint = 0xf2fbff; glowSize = 1.4; }
+        c.next -= dt;
+        if (k > 0.35 && c.next <= 0) {
+          c.next = 0.16 - 0.1 * k;
+          const side = Math.random() < 0.5 ? 'wingL' : 'wingR', bone = this.rig(c.id)?.bones?.[side];
+          if (bone) { bone.updateWorldMatrix(true, false); _v.set((side === 'wingL' ? 1 : -1) * (0.3 + 0.4 * Math.random()), 0.3 + 0.4 * Math.random(), 0).applyMatrix4(bone.matrixWorld); this.companion.glint(_v.x, _v.y, _v.z, 0.5 + 0.5 * k, 0); }
+        }
       } else if (c.kind === 'hare_box') {
         // the raised forepaws light up in the guard
         const h = this.limbTip(c.id, 'leg0', 0.26, _w);

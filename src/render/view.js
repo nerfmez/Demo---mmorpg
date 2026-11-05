@@ -664,6 +664,7 @@ export class View {
         break;
       case 'beam':
         if (e.kind === 'harpoon') { this.skillFx.monster.harpoon(e); break; } // the snail king's stab (skillfx/monster-fx.js)
+        if (e.kind === 'glare') { this.skillFx.monster.glare(e); break; } // the mirrorwing moth's wing glare (skillfx/moth-fx.js)
         v.beam(e);
         this.addShake(0.08);
         break;

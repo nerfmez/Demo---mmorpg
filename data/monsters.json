@@ -1282,7 +1282,7 @@
     "mirrorwing_moth": {
       "name": "Mirrorwing Moth",
       "nameTh": "ผีเสื้อราตรีปีกกระจก",
-      "behavior": "moth",
+      "behavior": "kit",
       "element": "cold",
       "hp": 400,
       "damage": 90,
@@ -1295,13 +1295,40 @@
       "exp": 17,
       "jobExp": 12,
       "flyer": true,
-      "keepDistance": [
-        5,
-        8
-      ],
       "attacks": {
+        "mirror_ring": {
+          "nameTh": "วงแหวนแสงจันทร์",
+          "kind": "mirror_ring",
+          "use": {
+            "max": 3.2
+          },
+          "inflict": {
+            "status": "chill",
+            "chance": 1,
+            "duration": 2.5,
+            "slow": 0.4
+          },
+          "range": 3.2,
+          "radius": 4.2,
+          "inner": 1.5,
+          "windup": 0.95,
+          "recover": 0.7,
+          "cooldown": 6,
+          "damageMult": 1.4
+        },
         "shard_rain": {
-          "inflict": {"status": "chill", "chance": 0.5, "duration": 2, "slow": 0.25},
+          "nameTh": "ห่าเกล็ดกระจก",
+          "kind": "shard_rain",
+          "use": {
+            "min": 3.5,
+            "max": 9
+          },
+          "inflict": {
+            "status": "chill",
+            "chance": 0.5,
+            "duration": 2,
+            "slow": 0.25
+          },
           "range": 9,
           "windup": 0.8,
           "count": 4,
@@ -1312,16 +1339,33 @@
           "cooldown": 4.5,
           "damageMult": 1.1
         },
-        "mirror_ring": {
-          "inflict": {"status": "chill", "chance": 1, "duration": 2.5, "slow": 0.4},
-          "range": 3.2,
-          "radius": 4.2,
-          "inner": 1.5,
-          "windup": 0.95,
+        "glare": {
+          "nameTh": "แสงสะท้อนปีก",
+          "kind": "beam",
+          "tell": "lane",
+          "use": {
+            "min": 3,
+            "max": 9
+          },
+          "range": 9,
+          "width": 1.1,
+          "windup": 1.0,
           "recover": 0.7,
-          "cooldown": 6,
-          "damageMult": 1.4
+          "cooldown": 6.5,
+          "damageMult": 1.2,
+          "inflict": {
+            "status": "chill",
+            "chance": 0.5,
+            "duration": 2,
+            "slow": 0.3
+          }
         }
+      },
+      "kit": {
+        "circle": [
+          5,
+          8
+        ]
       },
       "drops": [
         {

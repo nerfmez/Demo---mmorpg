@@ -936,33 +936,6 @@ function sentinel(game, m, dt, { t, gap, dToT, slowMult }) {
 }
 
 /**
- * Mirrorwing Moth: from range it rains glass shards on a few marked circles around the player, one
- * after another; up close a ring of moonlight goes off around it, safe only right under it.
- */
-function moth(game, m, dt, { t, gap, dToT, slowMult }) {
-  const a = m.def.attacks;
-  const ring = a.mirror_ring, rain = a.shard_rain;
-  if (gap <= ring.range && m.cd.mirror_ring <= 0) {
-    startWindup(game, m, 'mirror_ring', t);
-    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'mirror_ring', kind: 'mirror_ring', x: m.x, z: m.z, radius: ring.radius, inner: ring.inner, delay: m.windup.total, duration: 0.3, damage: m.damage * ring.damageMult });
-    return;
-  }
-  if (m.cd.shard_rain <= 0 && dToT <= rain.range) {
-    startWindup(game, m, 'shard_rain', t);
-    for (let i = 0; i < rain.count; i++) {
-      // the first shard on the player, the rest scattered around (seeded)
-      const ang = i * 2.4 + game.rng.range(-0.4, 0.4), d = i ? rain.spread * (0.6 + 0.4 * game.rng.next()) : 0;
-      const x = t.x + Math.sin(ang) * d, z = t.z + Math.cos(ang) * d;
-      if (game.isSafe(x, z)) continue;
-      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'shard_rain', kind: 'glass_shard', x, z, radius: rain.radius, delay: m.windup.total + i * rain.step, duration: 0.3, damage: m.damage * rain.damageMult });
-    }
-    return;
-  }
-  const [near, far] = m.def.keepDistance;
-  strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
-}
-
-/**
  * A monster's own kit (behavior "kit"; owner, 2026-11-03: every monster its own attacks, docs/MONSTER-ATTACKS.md).
  * Each attack with `use` says when it is taken: `use.min`/`use.max` (the gap to the target, metres; max defaults
  * to the attack's range) and `use.hpBelow` (a share of its health). The first ready one in the data's order is
@@ -1044,6 +1017,25 @@ export function beginAttack(game, m, name, t) {
     game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'erupt', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
     return;
   }
+  if (kind === 'mirror_ring') {
+    // the moth's ring of moonlight round itself: the band from `inner` to `radius` is marked for the wind-up and
+    // goes off as it ends; right under the moth is safe
+    startWindup(game, m, name, t);
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'mirror_ring', x: m.x, z: m.z, radius: atk.radius, inner: atk.inner, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    return;
+  }
+  if (kind === 'shard_rain') {
+    // glass shards rained on `count` marks round the target, one after another (`step` s apart): the first on the
+    // target, the rest scattered `spread` m round it (seeded), never in a safe town
+    startWindup(game, m, name, t);
+    for (let i = 0; i < atk.count; i++) {
+      const ang = i * 2.4 + game.rng.range(-0.4, 0.4), d = i ? atk.spread * (0.6 + 0.4 * game.rng.next()) : 0;
+      const x = t.x + Math.sin(ang) * d, z = t.z + Math.cos(ang) * d;
+      if (game.isSafe(x, z)) continue;
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'glass_shard', x, z, radius: atk.radius, delay: m.windup.total + i * atk.step, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    }
+    return;
+  }
   if (kind === 'skip') {
     // a run of hops along the line to the target (the pearl fish's flop): every landing is marked now and
     // hurts as it lands; the run stops short where the ground is blocked
@@ -1061,4 +1053,4 @@ export function beginAttack(game, m, name, t) {
   startWindup(game, m, name, t);
 }
 
-const BEHAVIORS = { kit, moth, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+const BEHAVIORS = { kit, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

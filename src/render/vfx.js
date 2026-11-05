@@ -743,8 +743,7 @@ export class Vfx {
     if (e.kind === 'shards') return this.shardBurst(e);
     if (e.kind === 'quake') return this.quakeBurst(e);
     if (e.kind === 'pounce') return this.dive(e);
-    if (e.kind === 'glass_shard') return this.glassShard(e);
-    if (e.kind === 'mirror_ring') return this.mirrorRing(e);
+    if (e.kind === 'glass_shard' || e.kind === 'mirror_ring') return; // the moth's shatter and ring are drawn in skillfx (monster-fx.js, moth-fx.js)
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
@@ -977,28 +976,6 @@ export class Vfx {
       const d = (i / 9) * e.length, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
       this.fx.add(x, this.gy(x, z) + 0.2, z, 0, 1.2, 0, { color: 0x9ff0ff, size: 0.28, sizeEnd: 0.05, life: 0.4, drag: 2 });
     }
-  }
-
-  /** A mirrorwing glass shard landing: a pale-blue shatter with prism sparks. */
-  glassShard(e) {
-    const y = this.gy(e.x, e.z), prism = [0xffd6f0, 0xd6f0ff, 0xfff4c2, 0xd9ffe6];
-    for (let i = 0; i < 12; i++) {
-      const a = (i / 12) * Math.PI * 2 + Math.random() * 0.4, sp = 1.5 + Math.random() * 2.5;
-      this.fx.add(e.x, y + 0.3, e.z, Math.sin(a) * sp, 2 + Math.random() * 2.5, Math.cos(a) * sp, { color: i % 3 ? 0xbfe9f5 : prism[i % 4], size: 0.22, sizeEnd: 0.04, life: 0.55, gravity: 10, drag: 0.6 });
-    }
-    this.ring(e.x, e.z, e.radius, 0xbfe9f5, 0.3);
-  }
-
-  /** The mirrorwing's moonlight ring going off: light along the band, the middle left dark. */
-  mirrorRing(e) {
-    const inner = e.inner || 0;
-    for (let i = 0; i < 28; i++) {
-      const a = (i / 28) * Math.PI * 2, r = inner + (e.radius - inner) * (0.3 + 0.7 * Math.random());
-      const x = e.x + Math.sin(a) * r, z = e.z + Math.cos(a) * r;
-      this.fx.add(x, this.gy(x, z) + 0.2, z, 0, 2.2 + Math.random(), 0, { color: i % 2 ? 0xe9fbff : 0x9fdcf0, size: 0.26, sizeEnd: 0.04, life: 0.5, drag: 2 });
-    }
-    this.ring(e.x, e.z, e.radius, 0xbfe9f5, 0.4);
-    if (inner) this.ring(e.x, e.z, inner, 0xe9fbff, 0.3);
   }
 
   /** Viper fang lash: a quick pale-green streak with a few venom drops. */

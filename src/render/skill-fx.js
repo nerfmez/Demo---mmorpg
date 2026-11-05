@@ -513,6 +513,7 @@ export class SkillFx {
       case 'shatter': if (e.skill !== 'frost_shatter_arrow') return false; this.iarrow.shatter(e); host.shake(0.06, 0.08); return true;
       case 'arrowPin': this.frain.pin(e, this.skillOf(e.skill)?.arrows?.blast || 1.4); return true;
       case 'area': {
+        if (e.owner === 'monster' && e.kind === 'glass_shard') this.monster.moth.shard(e); // the moth's shard forms over its mark
         if (e.owner !== 'player') return false;
         if (e.kind === 'faith_wall') { const a = g.areas.find((q) => q.id === e.id); if (a) this.gs.wallBegin(a); return true; }
         const el = this.skillOf(e.kind)?.element;

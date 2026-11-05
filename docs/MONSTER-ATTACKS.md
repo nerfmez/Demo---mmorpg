@@ -91,6 +91,7 @@ session's network, so these come from search summaries of the cited pages.
 | Pearl Snail King (boss Lv30) | Frill Crush; Proboscis Harpoon (latched, then a stab that pulls in); slime trail; withdraws into its shell at 60% and 30%; Pearl Beam Sweep below 60% |
 | Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
 | Fern-ear hare | ต่อยรัว Box (rears up on its haunches, paws raised in a guard, a one-two of jabs with a burst star of light on each); กระทืบเตือนภัย Warning Thump (up on its haunches, trembling, ears up, a hop up, then slams down: a shock ring to the true edge, earth and fern leaves thrown out); กระโดดทับ Leap (crouch, rump wiggle, springs onto the marked spot, lands in earth and leaves) |
+| Mirrorwing moth | แสงสะท้อนปีก Wing Glare (new: turns its glass wings on the prey like a mirror, glints flare on the panes, then a beam of moonlight along the lane); ห่าเกล็ดกระจก Glass Rain (wings raised and held while a glass shard forms over each marked circle, then they drop one after another and shatter in stars of cold light); วงแหวนแสงจันทร์ Moonlight Ring (wings spread flat to the moon, motes rising round the band, one downstroke: a wall of light runs out to the edge, safe under it) |
 
 ## Rounds
 
@@ -243,6 +244,12 @@ session's network, so these come from search summaries of the cited pages.
   landing: a deep crouch, rump wiggle while it aims, earth kicked back as it springs, stretched long in the air, a
   squash on landing with earth and leaves. A keyed bound locked to its ground speed replaced its run, but the owner
   preferred the old one ("the old run was better"): the old bounding run is back, the new attacks stay.
+- **Mirrorwing moth, round 1** (2026-11-05, owner: "next one"): on its own kit (`behavior: "kit"`, the old `moth`
+  behaviour removed; `shard_rain` and `mirror_ring` are kit kinds marked in `beginAttack`). New Wing Glare (kind
+  `beam`, lane tell, 9 m, chills). From the game camera its glass wings were seen edge on (the model's wings stand in
+  the forward plane), dark lumps with the eye colour on their edges: they are tilted back toward flat (order ZYX: tilt
+  about X, beat about the body's long axis) so the panes face the camera, and each attack has its own wing pose. It
+  lost the warm wind-up flicker that turned it brown (kit monsters do not wear it). Effects in `skillfx/moth-fx.js`.
 - **Monster Lab as its own page** (2026-11-05, owner: "why not a separate test site like the skill tests, why the
   whole game"): the Pages route rebuilt and redeployed the whole 340 MB site for each round (~20 minutes). The
   sandbox is now also a standalone artifact like the Skill FX bench: `scripts/monster-lab-artifact.mjs` packs the

@@ -148,6 +148,24 @@ test('moth moonlight ring hits the band around it once; right under it and outsi
   }
 });
 
+test('moth wing glare: a lane of reflected light that hits once at the end of its wind-up, not beside the lane', () => {
+  const glare = M.mirrorwing_moth.attacks.glare;
+  for (const [side, expect] of [[0, 1], [glare.width / 2 + 1.2, 0]]) {
+    const a = arena('mirrorwing_moth');
+    a.m.cd.mirror_ring = a.m.cd.shard_rain = 99;
+    a.place(6);
+    a.step(0.01);
+    assert.equal(a.m.windup?.name, 'glare', 'it turns its wings on the prey from range');
+    a.step(a.m.windup.total * 0.6);
+    Object.assign(a.g.player, { x: side });
+    a.step(a.m.windup.total * 0.4 - 0.05);
+    assert.equal(a.hits.length, 0, 'nothing before the glare');
+    a.until(() => a.m.state === 'recover');
+    a.step(0.5);
+    assert.equal(a.hits.length, expect, `player ${side} m off the lane`);
+  }
+});
+
 test('greyfang leaps at the player only below half health, landing on the marked spot', () => {
   const leap = M.greyfang.attacks.leap;
   const a = arena('greyfang', 10);

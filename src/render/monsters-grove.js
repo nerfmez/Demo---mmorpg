@@ -226,32 +226,58 @@ function buildMoth() {
 }
 
 function animMoth(r, s, dt, time) {
-  const b = r.bones, k = windK(s);
-  let flap = 9, amp = 0.55, open = 0.15, bob = Math.sin(time * 2.6 + r.seed) * 0.12, lean = s.moving ? 0.15 : 0;
+  // The model's glass wings stand in the plane facing forward (its concept's front view), so from the high game
+  // camera they were seen edge on, dark. They are tilted back toward flat (about X first, order ZYX) so the panes
+  // face up, and beat about the body's long axis (Z) like a real moth.
+  const b = r.bones, k = windK(s), t = s.actT || 0, ease = hease;
+  for (const w of [b.wingL, b.wingR]) if (w.rotation.order !== 'ZYX') w.rotation.order = 'ZYX';
+  const v = s.smoothSpeed ?? s.speed ?? (s.moving ? 2 : 0), go = clamp01(v / 1.5);
+  let hz = 2.2 + 0.6 * go, amp = 0.55, open = 0.15, tilt = -1.0, cup = 0, lift = Math.sin(time * 2.4 + r.seed) * 0.08, lean = 0.12 * go, roll = 0, headX = 0;
   if (s.windup === 'shard_rain') {
-    // rises, wings raised high and held still while the glass shards gather overhead
-    flap = 2;
-    amp = 0.12 * (1 - k);
-    open = 0.15 + 0.45 * k;
-    lean = -0.25 * k;
-    bob += 0.35 * k;
-  } else if (s.windup === 'mirror_ring') {
-    // wings opened flat and wide, beating faster and faster as the moonlight ring gathers
-    flap = 6 + 20 * k;
-    amp = 0.2 + 0.15 * k;
-    open = 0.15 - 0.4 * k;
-    bob *= 0.3;
+    // rises with its wings raised high over its back, held and shivering while the shards form above the marks;
+    // on the last beat the wings sweep down and the shards drop
+    const up = ease(k / 0.35), down = ease((k - 0.88) / 0.12);
+    lift += 0.45 * up; hz = 2.2 + 5 * up; amp = 0.55 - 0.48 * up; open = 0.15 + 0.85 * up - 1.25 * down; tilt = -1.0 + 0.35 * up; lean = -0.15 * up;
   } else if (s.state === 'recover' && s.lastAttack === 'shard_rain') {
-    // wings swept down: the shards are thrown
-    open = -0.35;
-    flap = 4;
+    const back = ease((t - 0.12) / 0.35);
+    lift += 0.45 * (1 - back); open = -0.35 * (1 - back) + 0.15 * back; amp = 0.15 + 0.4 * back;
+  } else if (s.windup === 'mirror_ring') {
+    // spreads its wings flat and wide, panes up to the moon, sinking a little; they shimmer faster and faster as the
+    // moonlight gathers in them, then one great downstroke sends the ring out
+    const spread = ease(k / 0.3), down = ease((k - 0.9) / 0.1);
+    tilt = -1.0 - 0.45 * spread; open = 0.15 - 0.05 * spread - 0.9 * down; amp = 0.55 - 0.47 * spread; hz = 2.2 + 9 * spread * k;
+    lift -= 0.25 * spread; lean = 0;
+  } else if (s.state === 'recover' && s.lastAttack === 'mirror_ring') {
+    const back = ease((t - 0.1) / 0.4);
+    tilt = -1.45 + 0.45 * back; open = -0.75 * (1 - back) + 0.15 * back; amp = 0.08 + 0.47 * back; lift -= 0.25 * (1 - back);
+  } else if (s.windup === 'glare') {
+    // turns its wings on the prey like a mirror: brought up to face forward (the panes toward the prey), cupped a
+    // little, the body tipped back so they catch the moon; held trembling until the flash
+    const raise = ease(k / 0.35), hold = clamp01((k - 0.35) / 0.65);
+    tilt = -1.0 + 0.55 * raise; cup = 0.3 * raise; open = 0.15 + 0.3 * raise; amp = 0.55 * (1 - raise) + 0.04 * raise; hz = 2.2 + 12 * hold;
+    lean = -0.3 * raise; headX = 0.25 * raise;
+  } else if (s.state === 'recover' && s.lastAttack === 'glare') {
+    const back = ease((t - 0.08) / 0.45);
+    tilt = -0.45 - 0.55 * back; cup = 0.3 * (1 - back); open = 0.45 - 0.3 * back; amp = 0.04 + 0.51 * back; lean = -0.3 * (1 - back) + 0.2 * (1 - back) * (t < 0.08 ? 1 : 0);
+  } else if (s.state === 'stunned') {
+    open = -0.45; amp = 0.15; hz = 1.2; lift -= 0.5; roll = Math.sin(time * 4) * 0.15;
   }
-  r.phase = (r.phase || 0) + dt * flap;
-  const beat = Math.sin(r.phase) * amp + open;
-  b.wingL.rotation.z = damp(b.wingL.rotation.z, beat, 18, dt);
-  b.wingR.rotation.z = damp(b.wingR.rotation.z, -beat, 18, dt);
-  b.body.position.y = damp(b.body.position.y, 1.6 + bob - (s.hurt || 0) * 0.15, 8, dt);
+  if (s.hurt > 0) { lift -= 0.15 * s.hurt; open -= 0.3 * s.hurt; }
+  r.phase = (r.phase || 0) + dt * hz * Math.PI * 2;
+  // a moth's downstroke is quicker than its upstroke; the body lifts on each downstroke
+  const sw = Math.sin(r.phase), beat = open + amp * (sw >= 0 ? sw : sw * 0.75);
+  const fast = s.windup === 'mirror_ring' || s.windup === 'shard_rain' || (s.state === 'recover' && t < 0.15);
+  const wr = fast ? 30 : 18;
+  b.wingL.rotation.z = damp(b.wingL.rotation.z, beat, wr, dt);
+  b.wingR.rotation.z = damp(b.wingR.rotation.z, -beat, wr, dt);
+  r.tilt = damp(r.tilt ?? tilt, tilt, 10, dt);
+  r.cup = damp(r.cup || 0, cup, 10, dt);
+  b.wingL.rotation.x = b.wingR.rotation.x = r.tilt;
+  b.wingL.rotation.y = -r.cup; b.wingR.rotation.y = r.cup;
+  b.body.position.y = damp(b.body.position.y, 1.6 + lift - 0.05 * Math.cos(r.phase) * amp, 8, dt);
   b.body.rotation.x = damp(b.body.rotation.x, lean, 6, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, roll, 6, dt);
+  b.head.rotation.x = damp(b.head.rotation.x, headX, 8, dt);
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.8, 5, dt);
 }
 

@@ -575,6 +575,7 @@ Wide Spread and Far Reach share the `spread` family.
   measured forward and sideways speeds; it uncurls to attack. Walk styles (`styles` in `data/monster-motion.json`,
   `motionStyle`) override a type's tuning for the monster sandbox only.
 - **Model colour grade** (`data/models.json` `grade`: sat, gain, blue, k): a texture whose fur rendered off its concept is regraded once on load, only texels of the graded hue (purple: min(r, b) - g, times k); in Godot, regrade the imported texture or do the same in an import script.
+- **Mole earth** (`skillfx/mole-fx.js`, MoleFx): pooled ground-kit pieces (dust billboards on DUST_FS, rockGeometry clods and slabGeometry slabs on a three-step toon shader with the soil colours as uniforms, craterMesh pits with uBurn 0); a burrow's heave starts once the mole is under (a third of its wind-up) and runs to the mark by the end.
 - **Rootdigger mole** (kit): `erupt` is a kit kind now (`beginAttack` marks the target's spot for the wind-up, skipped
   when the target is in a safe town); Dirt Spray is a `volley` of solid clods drawn by MonsterFx (`SHOT_LOOKS.spray`,
   lobbed in a sine arc, a puff of earth where each ends). Kit monsters close to `0.8 x` the range of their nearest

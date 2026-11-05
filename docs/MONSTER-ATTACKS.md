@@ -212,6 +212,19 @@ session's network, so these come from search summaries of the cited pages.
   Owner again: "the colour is still off, surely a bug". Besides the wind-up flicker, its Meshy texture is a dark,
   saturated plum against the concept's grey-violet: `data/models.json` `grade` now lifts and desaturates only the
   purple fur once on load (`monsterSkin.js` `gradeMap`), cream stripe and ivory claws untouched.
+- **Rootdigger mole, round 3** (2026-11-05, owner: "the effects are very bad, the animation is still bad and
+  unnatural, and in the burrow the earth moves before it has finished digging in"): the effects are rebuilt from the
+  ground kit approved for Earth Heave (`skillfx/mole-fx.js`): noise-cut dust puffs, lumpy toon-lit clods and slabs of
+  soil, and a freshly dug pit decal, replacing the dots of colour, flat cones and mound. Burrow Burst: a pit where it
+  goes under; it is fully under by a third of the wind-up (it sank slowly before), and only then the ground heaves
+  along its path (slabs pushed up either side and settling, dust); the mark bursts into a dug pit with a ring of
+  slabs pried up outward, clods thrown high and dust. Dirt Spray: dust and clods kicked up under its claws while it
+  digs; its shots are tumbling clods trailing dust that break into a puff and crumbs. Dig Scoop: a fan of dug soil
+  where the claws scooped, clods and dust flung across it (the amber claw marks stay). The poses are real mole
+  digging, not raised arms: sideways strokes with the paws turned out (breaststroke); the scoop hunkers down with the
+  paws drawn in under the chest, then sweeps them forward and out in one snap with a lunge; the spray digs with
+  quickening alternating strokes and flings both paws up and forward; the burrow digs in fast and bursts up with the
+  paws flung out to the sides. The old particle burst and dig dust (`vfx.erupt`, `digDust`) no longer draw for it.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

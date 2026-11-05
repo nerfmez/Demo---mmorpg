@@ -259,46 +259,54 @@ function animMole(r, s, dt, time) {
   const headY = -0.08 * sn * w;
   const after = s.state === 'recover' ? s.actT || 0 : -1;
   if (s.windup || after >= 0) { armLz = armRz = armLy = armRy = 0; legL = legR = 0; }
+  // Real mole digging, not raised arms (owner, 2026-11-05: "unnatural"): a mole's front paws are turned outward and
+  // dig with sideways strokes, like breaststroke; the strike is that stroke done hard.
   if (s.windup === 'erupt') {
-    // digs in: claws churn, the body sinks below the ground
-    sink = k;
-    armL = Math.sin(time * 22) * 0.9;
-    armR = -Math.sin(time * 22) * 0.9;
-    headX = 0.4; fast = true;
+    // digs in with fast alternating strokes, nose down, and is fully under by a third of the wind-up (only then
+    // does the ground start to heave toward the mark)
+    r.churn = (r.churn || 0) + dt * 24;
+    sink = clamp01(k / 0.32);
+    armLy = 0.15 + 0.45 * Math.max(0, Math.sin(r.churn)); armRy = -(0.15 + 0.45 * Math.max(0, -Math.sin(r.churn)));
+    armL = 0.35 * Math.sin(r.churn); armR = -0.35 * Math.sin(r.churn);
+    headX = 0.45; bodyX = 0.3; fast = true;
   } else if (s.windup === 'swipe') {
-    // anticipation (to 0.6 of the wind-up): rears back, both claws raised high, twisted to its right; then held,
-    // trembling a little, until the strike
-    const a = ease(Math.min(1, k / 0.6)), held = k > 0.6 ? Math.sin(time * 34) * 0.04 : 0;
-    armR = -2.3 * a + held; armL = -1.7 * a - held;
-    bodyX = -0.32 * a; lift = 0.1 * a; twist = 0.35 * a; headX = -0.25 * a; bodyZ = -0.08 * a;
+    // anticipation (to 0.55 of the wind-up): it hunkers down, nose low, and draws both paws in under its chest,
+    // turned to scoop; held, quivering, until the strike
+    const a = ease(Math.min(1, k / 0.55)), held = k > 0.55 ? Math.sin(time * 34) * 0.03 : 0;
+    armL = 0.35 * a; armR = 0.35 * a; armLy = -0.35 * a + held; armRy = 0.35 * a - held;
+    bodyX = 0.16 * a; lift = -0.05 * a; headX = 0.22 * a; bodyZ = 0;
   } else if (after >= 0 && s.lastAttack === 'swipe') {
-    // the strike: one snap (0.07 s) down and across to the contact, overshooting low; held to 0.3 s, then eased home
-    const snap = ease(Math.min(1, after / 0.07)), back = ease(Math.min(1, Math.max(0, after - 0.3) / 0.3));
-    armR = (-2.3 + 3.5 * snap) * (1 - back); armL = (-1.7 + 2.9 * snap) * (1 - back);
-    bodyX = (-0.32 + 0.55 * snap) * (1 - back); twist = (0.35 - 0.75 * snap) * (1 - back);
-    lift = 0.1 * (1 - snap); headX = (-0.25 + 0.45 * snap) * (1 - back); bodyZ = 0.1 * snap * (1 - back);
+    // the strike: both paws sweep forward and out to the sides in one snap (0.07 s), the body lunging with them;
+    // carried a touch past, held to 0.3 s, then home
+    const snap = ease(Math.min(1, after / 0.07)), back = ease(Math.min(1, Math.max(0, after - 0.3) / 0.35));
+    const o = 1 + 0.12 * Math.sin(Math.min(1, after / 0.16) * Math.PI);
+    armL = (0.35 - 0.95 * snap) * (1 - back); armR = armL;
+    armLy = (-0.35 + 1.05 * snap * o) * (1 - back); armRy = -armLy;
+    bodyX = (0.16 - 0.24 * snap) * (1 - back); headX = (0.22 - 0.3 * snap) * (1 - back); lift = (-0.05 + 0.07 * snap) * (1 - back);
     fast = after < 0.12;
   } else if (s.windup === 'spray') {
-    // hunched, nose down, claws churning the ground ever faster
-    const a = ease(Math.min(1, k / 0.25)), rate = 14 + 16 * k;
+    // nose down, digging hard with alternating sideways strokes, faster and faster
+    const a = ease(Math.min(1, k / 0.2)), rate = 14 + 14 * k;
     r.churn = (r.churn || 0) + dt * rate;
-    armL = 0.6 * a + Math.sin(r.churn) * 0.9 * a; armR = 0.6 * a - Math.sin(r.churn) * 0.9 * a;
-    bodyX = 0.28 * a; headX = 0.45 * a; sink = 0.06 * a; bodyZ = Math.sin(r.churn) * 0.05 * a; fast = true;
+    armLy = (0.1 + 0.5 * Math.max(0, Math.sin(r.churn))) * a; armRy = -(0.1 + 0.5 * Math.max(0, -Math.sin(r.churn))) * a;
+    armL = 0.3 * Math.sin(r.churn) * a; armR = -0.3 * Math.sin(r.churn) * a;
+    bodyX = 0.22 * a; headX = 0.4 * a; sink = 0.04 * a; bodyZ = 0.05 * Math.sin(r.churn) * a; fast = true;
   } else if (after >= 0 && s.lastAttack === 'spray') {
-    // the fling: both claws thrown up and forward together, the head up; held a beat, then settles
-    const snap = ease(Math.min(1, after / 0.06)), back = ease(Math.min(1, Math.max(0, after - 0.22) / 0.28));
-    armL = armR = (0.6 - 2.2 * snap) * (1 - back);
-    bodyX = (0.28 - 0.42 * snap) * (1 - back); headX = (0.45 - 0.7 * snap) * (1 - back); lift = 0.06 * snap * (1 - back);
+    // the fling: both paws scoop up and forward together, the head coming up; held a beat, then settles
+    const snap = ease(Math.min(1, after / 0.06)), back = ease(Math.min(1, Math.max(0, after - 0.22) / 0.3));
+    armL = armR = (0.3 - 1.0 * snap) * (1 - back); armLy = 0.25 * snap * (1 - back); armRy = -armLy;
+    bodyX = (0.22 - 0.3 * snap) * (1 - back); headX = (0.4 - 0.55 * snap) * (1 - back); lift = 0.04 * snap * (1 - back);
     fast = after < 0.1;
   } else if (after >= 0 && s.lastAttack === 'erupt') {
-    // bursts out of the ground: claws flung up
-    armL = armR = -1.6;
-    headX = -0.4; fast = true;
+    // bursts up out of the pit, paws flung out to the sides, then shakes the earth off
+    const t = Math.min(1, after / 0.12), back = ease(Math.min(1, Math.max(0, after - 0.35) / 0.35));
+    armL = armR = -0.7 * t * (1 - back); armLy = 0.6 * t * (1 - back); armRy = -armLy;
+    headX = -0.3 * t * (1 - back); bodyZ = Math.sin(after * 30) * 0.08 * back * (1 - back) * 4; fast = true;
   } else if (s.state === 'stunned') {
     headX = 0.3 + Math.sin(time * 10) * 0.1;
   }
   // sinking is quick on the way down and quicker on the way up (the burst)
-  r.sink = damp(r.sink || 0, sink, sink ? 3.5 : 14, dt);
+  r.sink = damp(r.sink || 0, sink, s.windup === 'erupt' ? 12 : sink ? 3.5 : 14, dt);
   const f = fast ? 40 : 12; // strikes follow their keys almost at once; idle and walking ease
   r.lift = damp(r.lift || 0, lift, f, dt);
   b.body.position.y = 0.52 - r.sink * 1.3 + r.lift;

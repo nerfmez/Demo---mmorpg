@@ -748,7 +748,7 @@ export class Vfx {
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
-    if (e.kind === 'erupt') return this.erupt(e);
+    if (e.kind === 'erupt') return; // the mole's burst is drawn by skillfx/mole-fx.js
     const c = el(e.element);
     // a new skill without its own effect yet (fxPending): an element ring the size of the hit
     if (e.generic) {

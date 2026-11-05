@@ -118,3 +118,25 @@ test('leashing during shell clears its damage reduction and temporary attack sta
   assert.equal(m.shell, false);
   assert.equal(g.hitMonster(m, 10, { dot: true }), 10);
 });
+
+test('reef crab kit: a sideways dash through its prey from mid range, slow bubbles from further off', () => {
+  const dash = arena('reef_crab');
+  Object.assign(dash.g.player, { x: 0, z: dash.m.r + dash.g.player.r + 3 });
+  const hits = [];
+  dash.g.damageUnit = (u, amount) => hits.push(amount);
+  dash.step(.01);
+  assert.equal(dash.m.windup?.name, 'sidestep', 'mid range: it squares up for the dash');
+  dash.until(() => dash.m.state === 'act');
+  assert.equal(hits.length, 0, 'no damage during the wind-up');
+  dash.until(() => dash.m.state === 'recover');
+  assert.equal(hits.length, 1, 'the dash clips its prey once');
+  const spit = arena('reef_crab');
+  spit.m.cd.sidestep = 99;
+  Object.assign(spit.g.player, { x: 0, z: spit.m.r + spit.g.player.r + 4.5 });
+  spit.step(.01);
+  assert.equal(spit.m.windup?.name, 'bubbles');
+  spit.until(() => spit.g.projectiles.length > 0);
+  const atk = spit.m.def.attacks.bubbles;
+  assert.equal(spit.g.projectiles.length, atk.count, 'a spread of bubbles');
+  assert.ok(spit.g.projectiles.every((p) => p.speed === atk.speed && p.speed < 6), 'slow enough to step round');
+});

@@ -50,6 +50,7 @@ test('creatures strike with what they have: trails come out of their own claws, 
       const base = fx.monsters[name];
       if (!['claw', 'fangs', 'pincer'].includes(base?.kind)) continue;
       const f = { ...base, ...(fx.overrides[`${type}.${name}`] || {}) };
+      if (f.kind === 'light') continue; // drawn as marks of light on the prey instead (skillfx/monster-fx.js)
       assert.ok(f.limbs?.length, `${type}.${name}: names the limbs that strike`);
       for (const limb of f.limbs) {
         const bone = typeof limb === 'string' ? limb : limb.bone;

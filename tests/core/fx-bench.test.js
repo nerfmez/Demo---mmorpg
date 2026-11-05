@@ -266,7 +266,8 @@ test('Breakbeat Slam on the bench: every dummy it hits is stunned for 1.2 s, the
 });
 
 test('Flank Thrust on the bench: a quick main stab, weaker, 0.7x from the front and 1.6x from behind', () => {
-  const r = run('weakpoint', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 0.6);
+  // no critical hits: only the angle may change the damage (a crit on one dummy made this depend on the seed)
+  const r = run('weakpoint', [], (g) => { g.derived.critChance = 0; g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 0.6);
   assert.equal(r.g.derived.weaponType, 'dagger');
   assert.ok(r.g.skills[0].cooldown <= 0.8, 'a quick main attack (stats may shorten it further)');
   const hits = r.of('hit').filter((e) => !e.dot);

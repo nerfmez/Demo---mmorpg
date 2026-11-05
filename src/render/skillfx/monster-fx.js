@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { LeafFx } from './leaf-fx.js';
 import { BubbleFx } from './bubble-fx.js';
 import { BITE_SHUT } from './bite-fx.js';
-import { lightSprite, glowTexture } from './light-kit.js';
+import { lightSprite, glowTexture, bubbleTexture } from './light-kit.js';
 import { MoleFx } from './mole-fx.js';
 import { MothFx } from './moth-fx.js';
 
@@ -78,6 +78,8 @@ export class MonsterFx {
     for (const m of [this.beam.glow, this.beam.core]) { m.visible = false; m.renderOrder = 10; scene.add(m); }
     // the mole's earth (skillfx/mole-fx.js: the ground kit's dust, clods, slabs and dug pits)
     this.mole = new MoleFx(scene, camera, host);
+    // the reef crab's spat bubbles: a see-through bubble riding each shot
+    this.crabBubbles = Array.from({ length: 6 }, () => lightSprite(scene, bubbleTexture(), true, 10));
     // the mirrorwing moth's glass shards, moonlight ring wall and wing glare (skillfx/moth-fx.js)
     this.moth = new MothFx(scene, host);
     this.splashes = new Set(); // flop landings already drawn (area ids)
@@ -92,6 +94,7 @@ export class MonsterFx {
     // a strike whose look is 'light' (data/combat-fx.json monsters): claw marks of light raked across the prey
     const look = this.host.vfx?.monsterLook?.(e.type, e.name);
     if (look?.kind === 'light') {
+      if (look.scissor) { if (e.at) this.scissor(e, look); return true; }
       if (look.blunt) { if (e.at) this.punch(e, look); return true; }
       if (e.at) this.rake(e, look);
       if (e.type === 'rootdigger_mole') this.mole.scoop(e);
@@ -169,6 +172,16 @@ export class MonsterFx {
     this.companion.glint(_v.x, _v.y, _v.z, 0.8 * (look.len || 0.6) / 0.6, 0.04);
     this.onShake?.(look.shake ?? 0.05, 0.08);
   }
+  /** A pincer closes on the prey (a 'scissor' light look): two marks of light crossing shut on it, a glint, spray. */
+  scissor(e, look) {
+    const c = this.colors(look), y = (this.host.groundAt?.(e.at[0], e.at[1]) ?? 0) + (look.height ?? 0.55), fx = this.host.vfx?.fx;
+    this.companion.axes();
+    this.companion.clawFx.mark(e.at[0], y, e.at[1], look.len || 0.6, look.wid || 0.9, -0.75, 1, c.halo, c.rim, 0, 0.3);
+    this.companion.clawFx.mark(e.at[0], y, e.at[1], look.len || 0.6, look.wid || 0.9, -Math.PI + 0.75, -1, c.halo, c.rim, 0.03, 0.3);
+    this.companion.glint(e.at[0], y, e.at[1], 0.9, 0.05);
+    if (fx) for (let i = 0; i < 6; i++) { const a = Math.random() * 6.283; fx.add(e.at[0], y, e.at[1], Math.sin(a) * 1.6, 1.2 + Math.random(), Math.cos(a) * 1.6, { color: i % 2 ? 0xbfeeff : 0xfff2e0, size: 0.1, sizeEnd: 0.03, life: 0.4, gravity: 9, drag: 0.8 }); }
+    this.onShake?.(look.shake ?? 0.05, 0.07);
+  }
   /** A punch lands on the prey (a 'blunt' light look): a burst star on it, left then right for a one-two (e.hit). */
   punch(e, look) {
     const c = this.colors(look), side = e.hits > 1 ? (e.hit % 2 ? -1 : 1) * 0.16 : 0;
@@ -200,6 +213,7 @@ export class MonsterFx {
     if (m?.type === 'eye_clam' && e.name === 'snipe') this.cues.push({ id: e.id, kind: 'clam_snipe', t: 0, total: e.total, next: 0 });
     if (m?.type === 'pearl_fish' && e.name === 'jet') this.cues.push({ id: e.id, kind: 'fish_jet', t: 0, total: e.total, next: 0 });
     if (m?.type === 'leaf_tanuki' && (e.name === 'drum' || e.name === 'boomerang' || e.name === 'doubles')) this.cues.push({ id: e.id, kind: 'tanuki_' + e.name, t: 0, total: e.total, next: 0 });
+    if (m?.type === 'reef_crab' && e.name !== 'pinch') this.cues.push({ id: e.id, kind: 'crab_' + e.name, t: 0, total: e.total, next: 0 });
     if (m?.type === 'mirrorwing_moth') this.cues.push({ id: e.id, kind: 'moth_' + e.name, t: 0, total: e.total, next: 0 });
     if (m?.type === 'fern_ear_hare') this.cues.push({ id: e.id, kind: 'hare_' + e.name, t: 0, total: e.total, next: 0, off: false });
     if (m?.type === 'rootdigger_mole') {
@@ -462,6 +476,7 @@ export class MonsterFx {
     this.fish(g);
     this.mole.update(dt, g);
     this.moth.update(dt);
+    this.crab(g, dt);
     this.king(g, dt);
     // a rolling pangolin kicks up dust behind it
     for (const m of g.monsters) if (m.type === 'stone_pangolin' && m.charge && !m.charge.hop && Math.random() < 0.7) {
@@ -512,6 +527,16 @@ export class MonsterFx {
         c.next -= dt;
         const b = this.bonePos(c.id, 'body', _w);
         if (b && c.next <= 0) { c.next = 0.05; const a = Math.random() * 6.283; this.host.vfx?.dust.add(b.x + Math.sin(a) * 0.6, b.y - 0.2, b.z + Math.cos(a) * 0.6, Math.cos(a) * 1.5, 0.9, -Math.sin(a) * 1.5, { color: 0xfff0f6, size: 0.3, sizeEnd: 0.8, life: 0.5, drag: 2 }); }
+      } else if (c.kind === 'crab_sidestep') {
+        // legs dig in, scuffing sand in place, faster as it is about to dash
+        c.next -= dt;
+        const m2 = g.monsterById?.(c.id);
+        if (m2 && c.next <= 0) { c.next = 0.1 - 0.06 * k; const a = Math.random() * 6.283, y = this.host.groundAt?.(m2.x, m2.z) ?? 0; this.call.dust(m2.x + Math.sin(a) * 0.6, y + 0.1, m2.z + Math.cos(a) * 0.6, Math.sin(a) * 0.8, 0.4, Math.cos(a) * 0.8, 0.4, 0.35); }
+      } else if (c.kind === 'crab_bubbles') {
+        // foam gathers at its mouth, small bubbles welling up and swelling
+        c.next -= dt;
+        const h = this.bonePos(c.id, 'head', _w);
+        if (h && c.next <= 0) { c.next = 0.09 - 0.05 * k; this.bubbles.add(h.x + (Math.random() - 0.5) * 0.25, h.y, h.z + (Math.random() - 0.5) * 0.25, (Math.random() - 0.5) * 0.3, 0.15, (Math.random() - 0.5) * 0.3, 0.12 + 0.14 * k, 0.45); }
       } else if (c.kind === 'moth_decoy') {
         // its wings flare white as the reflection splits off it
         const b = this.bonePos(c.id, 'body', _w);
@@ -588,6 +613,31 @@ export class MonsterFx {
     else if (this.kingGlow) this.kingGlow = false; // the king's pearl or latch lit it this frame
     else if (this.glow.visible) { this.glow.material.opacity *= Math.exp(-dt * 18); if (this.glow.material.opacity < 0.02) this.glow.visible = false; }
   }
+  /** The reef crab: its spat bubbles wobbling along, and sand thrown up behind its sideways dash. */
+  crab(g, dt) {
+    let n = 0;
+    for (const pr of g.projectiles) {
+      if (pr.kind !== 'bubbles' || n >= this.crabBubbles.length) continue;
+      const sp = this.crabBubbles[n++], y = (this.host.groundAt?.(pr.x, pr.z) ?? 0) + 0.7, wob = Math.sin(pr.travelled * 4 + pr.id) * 0.08;
+      sp.visible = true; sp.position.set(pr.x + wob, y + Math.sin(pr.travelled * 3 + pr.id) * 0.1, pr.z - wob);
+      sp.scale.set(0.62 * (1 + 0.08 * Math.sin(pr.travelled * 9)), 0.62 * (1 - 0.06 * Math.sin(pr.travelled * 9)), 1);
+      sp.material.color.setHex(0xbfeeff); sp.material.opacity = 0.95;
+      if (Math.random() < dt * 8) this.bubbles.add(pr.x, y, pr.z, (Math.random() - 0.5) * 0.4, 0.2, (Math.random() - 0.5) * 0.4, 0.14 + Math.random() * 0.08, 0.5 + Math.random() * 0.3);
+    }
+    for (let i = n; i < this.crabBubbles.length; i++) this.crabBubbles[i].visible = false;
+    for (const m of g.monsters) if (m.type === 'reef_crab' && m.charge && !m.charge.dive && Math.random() < 0.8) {
+      const y = this.host.groundAt?.(m.x, m.z) ?? 0, a = (m.charge.angle ?? m.facing) + Math.PI + (Math.random() - 0.5) * 1.2;
+      this.call.dust(m.x, y + 0.12, m.z, Math.sin(a) * 1.4, 0.5, Math.cos(a) * 1.4, 0.55, 0.4);
+    }
+  }
+  /** A spat bubble pops on what it hits: a ring of droplets and a few small bubbles. */
+  bubblePop(x, z) {
+    const y = (this.host.groundAt?.(x, z) ?? 0) + 0.7, fx = this.host.vfx?.fx;
+    if (fx) for (let i = 0; i < 10; i++) { const a = (i / 10) * 6.283; fx.add(x, y, z, Math.sin(a) * 1.8, 0.8 + Math.random(), Math.cos(a) * 1.8, { color: i % 2 ? 0x9fe6ff : 0xf0fbff, size: 0.11, sizeEnd: 0.03, life: 0.4, gravity: 8, drag: 1 }); }
+    for (let i = 0; i < 3; i++) this.bubbles.add(x, y, z, (Math.random() - 0.5) * 1.5, 0.4, (Math.random() - 0.5) * 1.5, 0.16, 0.4 + Math.random() * 0.3);
+    this.companion.glint(x, y, z, 0.6, 0);
+  }
+
   /** The snail king's sweeping pearl beam (core m.sweep), and its pearl charging before it. */
   king(g, dt) {
     const B = this.beam;

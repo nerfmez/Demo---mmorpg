@@ -39,7 +39,8 @@ jobs:
           key: ${{ runner.os }}-lab-playwright-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium webkit
       - name: Firebolt Lab review (Chromium)
-        if: "!startsWith(github.ref_name, 'claude/vfx-physical') && !startsWith(github.ref_name, 'claude/vfx-balance')"
+        # monster work never touches Firebolt: its branch skips this review (about 3 minutes)
+        if: "!startsWith(github.ref_name, 'claude/vfx-physical') && !startsWith(github.ref_name, 'claude/vfx-balance') && !startsWith(github.ref_name, 'claude/vfx-monsters')"
         run: node tests/browser/firebolt-lab.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -47,8 +48,10 @@ jobs:
           name: firebolt-lab-chromium
           path: tests/browser/out/firebolt-lab/
           retention-days: 7
+          if-no-files-found: ignore
       - name: Firebolt Lab review (WebKit)
-        if: "!startsWith(github.ref_name, 'claude/vfx-physical') && !startsWith(github.ref_name, 'claude/vfx-balance')"
+        # monster work never touches Firebolt: its branch skips this review (about 3 minutes)
+        if: "!startsWith(github.ref_name, 'claude/vfx-physical') && !startsWith(github.ref_name, 'claude/vfx-balance') && !startsWith(github.ref_name, 'claude/vfx-monsters')"
         run: BROWSER=webkit node tests/browser/firebolt-lab.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -56,6 +59,7 @@ jobs:
           name: firebolt-lab-webkit
           path: tests/browser/out/firebolt-lab/
           retention-days: 7
+          if-no-files-found: ignore
       - name: Physical attack Lab (Chromium)
         if: startsWith(github.ref_name, 'claude/vfx-physical')
         run: |

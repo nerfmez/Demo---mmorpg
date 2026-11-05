@@ -56,6 +56,28 @@ session's network, so these come from search summaries of the cited pages.
 6. **Safety tests for every attack kind** (`tests/core`): no damage before the hit time, no double hit, misses
    outside range or arc, state cleanup.
 
+## Mechanic variety (owner, 2026-11-05)
+
+"Your patterns are starting to repeat: a dash and a ranged shot on almost every monster." and earlier "monster skills
+must be creative". The kits so far lean on the same few families. Count before designing a new kit:
+
+| Family | Used by |
+|---|---|
+| Dash / leap at the prey (charge, pounce, skip, roll) | fox, pangolin, fish, hare, crab |
+| Shot / spray / volley | mole, slug, clam, fish, crab |
+| Beam or lane | moth, snail king (2) |
+| Ring round itself | (moth's, removed by the owner) |
+
+Rules for every new kit:
+- At most one attack from the dash/leap family and one from the shot family, and only when the creature really does
+  that; prefer neither.
+- At least one mechanic no other monster has, read from the creature itself (its body, habit, what it drops).
+- No ring round itself.
+- Families not used yet, to draw from: a grab or engulf (held, struggle free); a counter or guard stance (hitting
+  its front is punished, go round or wait); an ambush (hidden, a tell when it is near); splitting or calling help;
+  changing the ground (a slow or slippery patch, a wall, a pit); a tether or link between two points; pulling or
+  pushing the player; a weak point that opens for a moment; stealing or copying; a rhythm the player must read.
+
 ## Process, one monster at a time
 
 1. Kit in data plus any new attack kind in `src/core/ai.js`, with its tests.

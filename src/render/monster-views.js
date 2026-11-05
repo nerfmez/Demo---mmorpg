@@ -185,7 +185,9 @@ export function syncMonsterViews(view, dt, time) {
     } else r.root.rotation.z = 0;
     r.root.scale.setScalar(sc);
     if (mv.flash > 0) setFlash(r.material, 0.55, 0, 0);
-    else if (m.windup && m.state === 'windup') setFlash(r.material, 0, 0.12 + 0.12 * Math.max(0, Math.sin(time * 24)), 0);
+    // the old whole-body warm flicker while winding up; a kit monster (docs/MONSTER-ATTACKS.md) shows its wind-up on
+    // the body part that attacks instead, and keeps its own colours (owner, 2026-11-05: the purple mole turned brown)
+    else if (m.windup && m.state === 'windup' && m.def.behavior !== 'kit') setFlash(r.material, 0, 0.12 + 0.12 * Math.max(0, Math.sin(time * 24)), 0);
     else if (m.statuses?.chill) setFlash(r.material, 0, 0, 0.25);
     else if (m.statuses?.hex) setFlash(r.material, 0, 0, 0.12);
     else setFlash(r.material, 0, 0, 0);

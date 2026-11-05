@@ -6910,6 +6910,8 @@
       "outlineWidth": 0.016,
       "source": "Meshy 6 image-to-3d (task 01a1210e-555a-7624-9892-315472014dfd) from the Moonroot concept sheet assets/moonroot/rootdigger_mole_concept.jpg (main pose only); prepared with scripts/prep-monster-glb.py --tris 4900 --tex 512",
       "bones": {
+        "legL": [0.42, -0.27, -0.24],
+        "legR": [-0.42, -0.27, -0.24],
         "head": [
           0,
           -0.02,
@@ -6942,6 +6944,8 @@
         ]
       },
       "segments": {
+        "legL": [[0.42, 0.26, -0.24], [0.47, 0.02, -0.22]],
+        "legR": [[-0.42, 0.26, -0.24], [-0.47, 0.02, -0.22]],
         "body": [
           [
             0,

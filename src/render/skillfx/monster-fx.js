@@ -14,6 +14,7 @@ import { LeafFx } from './leaf-fx.js';
 import { BubbleFx } from './bubble-fx.js';
 import { BITE_SHUT } from './bite-fx.js';
 import { lightSprite, glowTexture } from './light-kit.js';
+import { toon } from '../toon.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -73,6 +74,19 @@ export class MonsterFx {
     const beamMat = (c, o) => { const m = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }); return m; };
     this.beam = { glow: new THREE.Mesh(beamGeo, beamMat(0xffc860, 0.5)), core: new THREE.Mesh(beamGeo, beamMat(0xfff6dc, 0.9)), id: null };
     for (const m of [this.beam.glow, this.beam.core]) { m.visible = false; m.renderOrder = 10; scene.add(m); }
+    // the mole's earth: roots that burst up round its Burrow Burst, the mound that runs underground to the mark, solid
+    // clods for its Dirt Spray, and furrows its scoop leaves in the ground (all pooled, toon-shaded like the world)
+    const rootGeo = new THREE.ConeGeometry(0.1, 1, 5).translate(0, 0.5, 0); rootGeo.userData.shared = true;
+    const moundGeo = new THREE.SphereGeometry(0.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2); moundGeo.userData.shared = true;
+    const clodGeo = new THREE.IcosahedronGeometry(0.15, 0); clodGeo.userData.shared = true;
+    const furrowGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2); furrowGeo.userData.shared = true;
+    const furrowMat = new THREE.MeshBasicMaterial({ color: 0x4a3524, transparent: true, opacity: 0.6, depthWrite: false });
+    const mesh = (geo, mat, order = 0) => { const m = new THREE.Mesh(geo, mat); m.visible = false; m.renderOrder = order; scene.add(m); return m; };
+    this.roots = Array.from({ length: 9 }, (_, i) => ({ m: mesh(rootGeo, toon(i % 3 ? '#5c4330' : '#6f8a3c')), t: 1, life: 0 }));
+    this.mound = { m: mesh(moundGeo, toon('#8a6644')), on: false };
+    this.clodMeshes = Array.from({ length: 6 }, () => mesh(clodGeo, toon('#6b4e33')));
+    this.furrows = Array.from({ length: 6 }, () => ({ m: mesh(furrowGeo, furrowMat.clone(), 1), t: 1 }));
+    for (const f of this.furrows) f.m.material.userData.shared = false;
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -160,6 +174,49 @@ export class MonsterFx {
       fx.add(e.x + Math.sin(a) * R, y + 0.35, e.z + Math.cos(a) * R, Math.sin(a) * sp, 2 + Math.random() * 2.5, Math.cos(a) * sp, { color: EARTH[i % 3], size: 0.2 + Math.random() * 0.1, sizeEnd: 0.14, life: 0.6, gravity: 14, drag: 0.6 });
     }
     for (let i = 0; i < 4; i++) { const a = e.angle + (i / 3 - 0.5) * arc * 0.8; this.call.dust(e.x + Math.sin(a) * 1.2, y + 0.15, e.z + Math.cos(a) * 1.2, Math.sin(a) * 1.4, 0.4, Math.cos(a) * 1.4, 0.8, 0.5); }
+    // three furrows raked into the ground in front of it, pointing back at where the claws dragged
+    for (let i = 0; i < 3; i++) {
+      const f = this.furrows.find((q) => q.t >= 1) || this.furrows[i];
+      const a = e.angle + (i - 1) * 0.22, d = Math.min(1.6, e.range * 0.7), x = e.x + Math.sin(a) * d, z = e.z + Math.cos(a) * d;
+      f.t = 0; f.m.visible = true; f.m.position.set(x, (this.host.groundAt?.(x, z) ?? 0) + 0.03, z); f.m.rotation.set(0, a, 0); f.m.scale.set(0.09, 1, 1.0);
+    }
+  }
+
+  /** The mole's Burrow Burst: roots stab up out of the ground round the mark and sink back, earth and dust thrown up. */
+  rootBurst(e) {
+    const R = e.radius || 1.8, y0 = this.host.groundAt?.(e.x, e.z) ?? 0;
+    this.roots.forEach((r, i) => {
+      const a = (i / this.roots.length) * 6.283 + Math.random() * 0.4, d = R * (0.35 + 0.55 * ((i * 7) % 9) / 8);
+      const x = e.x + Math.sin(a) * d, z = e.z + Math.cos(a) * d;
+      r.t = 0; r.life = 1.1 + Math.random() * 0.3; r.h = 0.7 + Math.random() * 0.6; r.delay = i * 0.02;
+      r.m.position.set(x, this.host.groundAt?.(x, z) ?? y0, z);
+      // leaning out from the middle, a little twisted
+      r.m.rotation.set(Math.cos(a) * 0.45, Math.random() * 3, -Math.sin(a) * 0.45);
+      r.m.visible = true; r.m.scale.set(1, 0.001, 1);
+    });
+    this.onShake?.(0.12, 0.12);
+  }
+
+  /** The mole's earth each frame: roots rising and sinking, furrows fading, the mound riding its cue. */
+  moleUpdate(dt) {
+    for (const r of this.roots) {
+      if (r.t >= r.life) { r.m.visible = false; continue; }
+      r.t += dt;
+      const t = r.t - r.delay;
+      if (t < 0) continue;
+      // up in a stab (0.1 s), held, then sinking away over the last 0.45 s
+      const up = Math.min(1, t / 0.1), down = Math.max(0, (t - (r.life - r.delay - 0.45)) / 0.45);
+      const k = up * (1 - down * down), wob = 1 + 0.15 * Math.sin(t * 30) * Math.max(0, 1 - t * 4);
+      r.m.scale.set(1.3 * k + 0.001, r.h * k * wob + 0.001, 1.3 * k + 0.001);
+    }
+    for (const f of this.furrows) {
+      if (f.t >= 1) { f.m.visible = false; continue; }
+      f.t += dt / 1.6;
+      f.m.material.opacity = 0.6 * (1 - f.t * f.t);
+    }
+    const M = this.mound;
+    if (!M.on && M.m.visible) { M.m.scale.multiplyScalar(Math.exp(-dt * 12)); if (M.m.scale.x < 0.05) M.m.visible = false; }
+    M.on = false;
   }
 
   rake(e, look) {
@@ -199,6 +256,7 @@ export class MonsterFx {
   /** A marked area went off (core burst with its source monster). */
   burst(e, g) {
     const m = e.source != null ? g.monsterById?.(e.source) : null;
+    if (m?.type === 'rootdigger_mole' && e.attack === 'erupt') return this.rootBurst(e);
     if (e.attack === 'withdraw') return this.shellBurst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
@@ -372,6 +430,7 @@ export class MonsterFx {
   update(dt, g) {
     this.tanuki(g);
     this.fish(g);
+    this.moleUpdate(dt);
     this.king(g, dt);
     // a rolling pangolin kicks up dust behind it
     for (const m of g.monsters) if (m.type === 'stone_pangolin' && m.charge && !m.charge.hop && Math.random() < 0.7) {
@@ -443,6 +502,14 @@ export class MonsterFx {
         // a mound of loose earth runs underground from where it went in to the mark, arriving as the dig ends
         c.next -= dt;
         const p = Math.max(0, Math.min(1, (k - 0.25) / 0.7)), x = c.x + (c.tx - c.x) * p, z = c.z + (c.tz - c.z) * p;
+        if (k > 0.25) {
+          // the mound itself: a hump of earth pushed up ahead of it, wobbling as it goes
+          const M = this.mound, s = Math.min(1, (k - 0.25) / 0.1) * (1 + 0.08 * Math.sin(c.t * 22));
+          M.on = true; M.m.visible = true;
+          M.m.position.set(x, (this.host.groundAt?.(x, z) ?? 0) - 0.05, z);
+          M.m.rotation.set(0, Math.atan2(c.tx - c.x, c.tz - c.z), 0);
+          M.m.scale.set(1.0 * s, 0.75 * s, 1.35 * s);
+        }
         if (k > 0.25 && c.next <= 0) {
           c.next = 0.05;
           const gy = this.host.groundAt?.(x, z) ?? 0, fx = this.host.vfx?.fx;
@@ -505,11 +572,19 @@ export class MonsterFx {
   /** The pearl fish's jets in flight and its flop landings. */
   fish(g) {
     let n = 0;
+    let nc = 0;
     for (const pr of g.projectiles) {
       const look = SHOTS[pr.kind];
-      if (!look || n >= this.slugs.length) continue;
+      if (look?.solid && nc < this.clodMeshes.length) {
+        const c = this.clodMeshes[nc++], k = Math.min(1, pr.travelled / pr.range), y = (this.host.groundAt?.(pr.x, pr.z) ?? 0) + (pr.y ?? 0.7) * 0.6 + Math.sin(k * Math.PI) * look.arc;
+        c.visible = true; c.position.set(pr.x, y, pr.z); c.rotation.set(pr.travelled * 3.1, pr.travelled * 2.3, 0);
+        (this.clods ??= new Set()).add(pr); pr.lastX = pr.x; pr.lastZ = pr.z;
+        if (Math.random() < look.drops) this.host.vfx?.fx.add(pr.x, y, pr.z, -pr.vx * 0.05, 0.3, -pr.vz * 0.05, { color: look.trail, size: 0.1, life: 0.3, gravity: 8, drag: 1.5 });
+        continue;
+      }
+      if (!look || look.solid || n >= this.slugs.length) continue;
       const m = this.slugs[n++], k = Math.min(1, pr.travelled / pr.range), y = (this.host.groundAt?.(pr.x, pr.z) ?? 0) + (pr.y ?? 0.7) + (look.arc ? Math.sin(k * Math.PI) * look.arc : 0);
-      if (look.solid) { (this.clods ??= new Map()).set(pr, (this.clodsT ??= 0)); pr.lastX = pr.x; pr.lastZ = pr.z; }
+
       m.visible = true; m.position.set(pr.x, y, pr.z);
       m.rotation.set(0, Math.atan2(pr.vx, pr.vz), 0);
       m.material = look.mat;
@@ -519,11 +594,11 @@ export class MonsterFx {
       if (Math.random() < look.drops) this.host.vfx?.fx.add(pr.x, y, pr.z, -pr.vx * 0.05 + (Math.random() - 0.5) * 0.6, 0.4, -pr.vz * 0.05 + (Math.random() - 0.5) * 0.6, { color: look.trail, size: 0.11, life: 0.32, gravity: pr.kind === 'jet' ? 6 : 0, drag: 1.5 });
     }
     for (let i = n; i < this.slugs.length; i++) this.slugs[i].visible = false;
+    for (let i = nc; i < this.clodMeshes.length; i++) this.clodMeshes[i].visible = false;
     // a clod that ended (hit or fell): it breaks into a puff of earth where it was
     if (this.clods?.size) {
-      this.clodsT++;
-      for (const [pr, t] of this.clods) {
-        if (g.projectiles.includes(pr)) { this.clods.set(pr, this.clodsT); continue; }
+      for (const pr of this.clods) {
+        if (g.projectiles.includes(pr)) continue;
         this.clods.delete(pr);
         const gy = this.host.groundAt?.(pr.lastX, pr.lastZ) ?? 0, fx = this.host.vfx?.fx;
         this.call.dust(pr.lastX, gy + 0.3, pr.lastZ, 0, 0.6, 0, 0.7, 0.45);

@@ -221,7 +221,11 @@ function buildMole() {
     rb.add(`hand${n}`, sph(0.17, 10, 8).scale(1.1, 0.55, 1), C.hand);
     for (let i = 0; i < 3; i++) rb.add(`hand${n}`, cone(0.055, 0.46, 6).rotateX(Math.PI / 2 + 0.5), C.claw, { pos: [(i - 1) * 0.11, -0.08, 0.28] });
   }
-  for (const s of [1, -1]) rb.add('body', sph(0.14, 8, 6).scale(1, 0.6, 1.3), C.hand, { pos: [s * 0.4, -0.46, -0.42] });
+  // hind legs (their own bones, so the feet step; data/models.json legL/legR)
+  for (const [s, n] of [[1, 'L'], [-1, 'R']]) {
+    rb.bone(`leg${n}`, 'body', [s * 0.42, -0.27, -0.24]);
+    rb.add(`leg${n}`, sph(0.14, 8, 6).scale(1, 0.6, 1.3), C.hand, { pos: [0, -0.19, -0.05] });
+  }
   const rig = rb.build();
   rig.height = 1.25;
   return rig;
@@ -238,11 +242,23 @@ function buildMole() {
 const ease = (x) => x * x * (3 - 2 * x);
 function animMole(r, s, dt, time) {
   const b = r.bones, k = windK(s);
-  r.phase = (r.phase || 0) + dt * (s.moving ? 8 + s.speedFactor * 3 : 0);
-  const w = (r.runW = damp(r.runW || 0, s.moving ? 1 : 0, 10, dt));
-  let sink = 0, armL = Math.sin(r.phase) * 0.6 * w, armR = -Math.sin(r.phase) * 0.6 * w, headX = Math.sin(time * 1.4 + r.seed) * 0.04;
-  let bodyZ = Math.sin(r.phase) * 0.06 * w, bodyX = 0, twist = 0, lift = 0, fast = false;
+  // Walking (owner, 2026-11-05: the walk was not good): a mole paddles. Locked to its ground speed (one stride every
+  // 0.95 m), each front paw reaches forward and out, then sweeps back and in under the body like a swimmer's stroke;
+  // the hind feet step with the opposite front paw (diagonal pairs); the body rolls and twists toward the paw that
+  // is pulling, bobs on each stroke, and the head stays steady, turning a little against the sway.
+  const sp = s.smoothSpeed ?? s.speed ?? (s.moving ? 1.5 : 0);
+  const w = (r.runW = damp(r.runW || 0, clamp01(sp / 0.5), 8, dt));
+  r.phase = (r.phase || 0) + dt * Math.min(14, (sp * Math.PI * 2) / 0.95) * (s.backing ? -1 : 1);
+  const sn = Math.sin(r.phase), cs = Math.cos(r.phase);
+  let sink = 0, armL = -0.6 * sn * w, armR = 0.6 * sn * w, headX = Math.sin(time * 1.4 + r.seed) * 0.04 + 0.05 * cs * w;
+  let armLz = (0.12 + 0.22 * Math.max(0, sn)) * w, armRz = -(0.12 + 0.22 * Math.max(0, -sn)) * w;
+  let legL = 0.45 * sn * w, legR = -0.45 * sn * w;
+  // seen from the high camera the stroke reads sideways: each paw sweeps out and back, then comes in to reach again
+  let armLy = (0.2 + 0.32 * sn) * w, armRy = -(0.2 - 0.32 * sn) * w;
+  let bodyZ = 0.08 * sn * w, bodyX = 0.04 * w, twist = 0.1 * sn * w, lift = 0.025 * w * Math.abs(cs), fast = false;
+  const headY = -0.08 * sn * w;
   const after = s.state === 'recover' ? s.actT || 0 : -1;
+  if (s.windup || after >= 0) { armLz = armRz = armLy = armRy = 0; legL = legR = 0; }
   if (s.windup === 'erupt') {
     // digs in: claws churn, the body sinks below the ground
     sink = k;
@@ -290,9 +306,14 @@ function animMole(r, s, dt, time) {
   b.body.rotation.x = damp(b.body.rotation.x, bodyX + (s.hurt || 0) * -0.15 + r.sink * 0.3, f, dt);
   b.body.rotation.y = damp(b.body.rotation.y, twist, f, dt);
   b.head.rotation.x = damp(b.head.rotation.x, headX, f, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6, 5, dt);
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6 + headY, 5, dt);
   b.armL.rotation.x = damp(b.armL.rotation.x, armL, fast ? 40 : 14, dt);
   b.armR.rotation.x = damp(b.armR.rotation.x, armR, fast ? 40 : 14, dt);
+  b.armL.rotation.z = damp(b.armL.rotation.z, armLz, 14, dt);
+  b.armR.rotation.z = damp(b.armR.rotation.z, armRz, 14, dt);
+  b.armL.rotation.y = damp(b.armL.rotation.y, armLy, 14, dt);
+  b.armR.rotation.y = damp(b.armR.rotation.y, armRy, 14, dt);
+  if (b.legL) { b.legL.rotation.x = damp(b.legL.rotation.x, legL, 16, dt); b.legR.rotation.x = damp(b.legR.rotation.x, legR, 16, dt); }
   b.tail.rotation.y = Math.sin(time * 3 + r.seed) * 0.2;
 }
 

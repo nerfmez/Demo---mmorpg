@@ -200,6 +200,15 @@ session's network, so these come from search summaries of the cited pages.
   safe town): it sinks while a mound of loose earth runs underground to the mark, then bursts up there. Kits now
   close only to the range of an attack that is ready or nearly (one second), so the mole stops at spray range while
   its scoop cools instead of always walking up to claw range.
+- **Rootdigger mole, round 2** (2026-11-05, owner: "why is the mole's colour off; the effects are not good yet; the
+  walk is not good"): the colour was the old whole-body warm flicker every monster wore while winding up, which
+  turned the purple mole brown; kit monsters no longer wear it (their wind-up shows on the attacking part). The walk
+  is new: hind-leg bones (`legL`/`legR` in `data/models.json`, weighted to the hind feet) and a paddling gait locked
+  to its ground speed: each front paw reaches forward and in, then sweeps out and back (the stroke reads sideways
+  from the high camera), the hind feet step with the opposite front paw, the body rolls and twists toward the pulling
+  paw. Effects: Burrow Burst sends roots stabbing up round the mark and sinking back, and a hump of earth now runs
+  underground to the mark; the spray's clods are solid, faceted chunks of earth tumbling as they fly; the scoop
+  leaves three furrows raked into the ground that fade.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

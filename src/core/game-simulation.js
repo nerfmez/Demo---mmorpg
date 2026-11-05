@@ -2044,6 +2044,17 @@ export class Game {
         continue;
       }
       const live = a.t - a.delay;
+      if (a.mine) {
+        // a mine (the reef crab's bubbles): bursts on the first unit that touches it, else ends unsprung
+        const u = this.units().find((q) => dist(a.x, a.z, q.x, q.z) <= a.radius + q.r);
+        if (u) {
+          this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { attack: a.attack });
+          this.emit({ type: 'burst', kind: a.kind, x: a.x, z: a.z, radius: a.radius, source: a.sourceId, attack: a.attack });
+          this.emit({ type: 'areaEnd', id: a.id });
+        } else if (live < a.duration) keep.push(a);
+        else this.emit({ type: 'areaEnd', id: a.id });
+        continue;
+      }
       if (a.kind === 'shockwave') {
         a.radius = Math.min(a.maxRadius, a.radius + a.growth * dt);
         for (const u of this.units()) {

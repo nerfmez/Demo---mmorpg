@@ -78,8 +78,11 @@ export class MonsterFx {
     for (const m of [this.beam.glow, this.beam.core]) { m.visible = false; m.renderOrder = 10; scene.add(m); }
     // the mole's earth (skillfx/mole-fx.js: the ground kit's dust, clods, slabs and dug pits)
     this.mole = new MoleFx(scene, camera, host);
-    // the reef crab's spat bubbles: a see-through bubble riding each shot
+    // the reef crab's bubble mines: a see-through bubble each, over a pale ring of its true radius
     this.crabBubbles = Array.from({ length: 6 }, () => lightSprite(scene, bubbleTexture(), true, 10));
+    const mineRing = new THREE.RingGeometry(0.86, 1, 40).rotateX(-Math.PI / 2); mineRing.userData.shared = true;
+    this.mineRings = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(mineRing, new THREE.MeshBasicMaterial({ color: 0xbfeeff, transparent: true, opacity: 0.6, depthWrite: false, toneMapped: false })); m.visible = false; m.renderOrder = 7; scene.add(m); return m; });
+    this.mines = new Map(); this.popped = new Set();
     // the mirrorwing moth's glass shards, moonlight ring wall and wing glare (skillfx/moth-fx.js)
     this.moth = new MothFx(scene, host);
     this.splashes = new Set(); // flop landings already drawn (area ids)
@@ -231,6 +234,7 @@ export class MonsterFx {
     if (m?.type === 'fern_ear_hare' && (e.attack === 'thump' || e.attack === 'hop')) return this.hareLand(e, e.attack === 'thump');
     if (e.attack === 'shard_rain') return this.glassShatter(e);
     if (e.attack === 'decoy') return this.decoyBurst(e);
+    if (e.kind === 'bubble_mine') return this.mineBurst(e);
     if (e.attack === 'withdraw') return this.shellBurst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
@@ -613,22 +617,60 @@ export class MonsterFx {
     else if (this.kingGlow) this.kingGlow = false; // the king's pearl or latch lit it this frame
     else if (this.glow.visible) { this.glow.material.opacity *= Math.exp(-dt * 18); if (this.glow.material.opacity < 0.02) this.glow.visible = false; }
   }
-  /** The reef crab: its spat bubbles wobbling along, and sand thrown up behind its sideways dash. */
+  /**
+   * The reef crab: its bubble mines (core areas kind bubble_mine) drift out from its mouth to where they will hang,
+   * bob there over a pale ring on the ground (their true radius), and pop when they go (touched: a burst; left:
+   * a soft pop); sand thrown up under its side-to-side sweep.
+   */
   crab(g, dt) {
+    const live = this.mineLive || (this.mineLive = new Set());
+    live.clear();
     let n = 0;
-    for (const pr of g.projectiles) {
-      if (pr.kind !== 'bubbles' || n >= this.crabBubbles.length) continue;
-      const sp = this.crabBubbles[n++], y = (this.host.groundAt?.(pr.x, pr.z) ?? 0) + 0.7, wob = Math.sin(pr.travelled * 4 + pr.id) * 0.08;
-      sp.visible = true; sp.position.set(pr.x + wob, y + Math.sin(pr.travelled * 3 + pr.id) * 0.1, pr.z - wob);
-      sp.scale.set(0.62 * (1 + 0.08 * Math.sin(pr.travelled * 9)), 0.62 * (1 - 0.06 * Math.sin(pr.travelled * 9)), 1);
+    for (const a of g.areas) {
+      if (a.kind !== 'bubble_mine' || n >= this.crabBubbles.length) continue;
+      live.add(a.id);
+      let q = this.mines.get(a.id);
+      if (!q) {
+        const mouth = this.bonePos(a.sourceId, 'head', _w) || _w.set(a.x, 0.7, a.z);
+        q = { fx: mouth.x, fy: mouth.y, fz: mouth.z, ph: Math.random() * 6.283 };
+        this.mines.set(a.id, q);
+      }
+      const sp = this.crabBubbles[n], ring = this.mineRings[n]; n++;
+      const gy = this.host.groundAt?.(a.x, a.z) ?? 0, k = Math.min(1, a.t / Math.max(0.01, a.delay)), e = 1 - (1 - k) * (1 - k);
+      const hy = gy + 0.75 + Math.sin(a.t * 2.2 + q.ph) * 0.08;
+      sp.visible = true;
+      sp.position.set(q.fx + (a.x - q.fx) * e, q.fy + (hy - q.fy) * e + Math.sin(Math.PI * k) * 0.5, q.fz + (a.z - q.fz) * e);
+      // swells as it is blown out; then breathes; the last second it wobbles harder before floating off
+      const left = a.delay + a.duration - a.t, warn = left < 1 ? 1 - left : 0, size = a.radius * 2 * (0.35 + 0.65 * e);
+      sp.scale.set(size * (1 + 0.06 * Math.sin(a.t * 7 + q.ph) + 0.12 * warn * Math.sin(a.t * 30)), size * (1 - 0.05 * Math.sin(a.t * 7 + q.ph)), 1);
       sp.material.color.setHex(0xbfeeff); sp.material.opacity = 0.95;
-      if (Math.random() < dt * 8) this.bubbles.add(pr.x, y, pr.z, (Math.random() - 0.5) * 0.4, 0.2, (Math.random() - 0.5) * 0.4, 0.14 + Math.random() * 0.08, 0.5 + Math.random() * 0.3);
+      ring.visible = k >= 1; ring.position.set(a.x, gy + 0.06, a.z); ring.scale.setScalar(a.radius);
+      ring.material.opacity = 0.55 + 0.25 * Math.sin(a.t * 5 + q.ph);
     }
-    for (let i = n; i < this.crabBubbles.length; i++) this.crabBubbles[i].visible = false;
-    for (const m of g.monsters) if (m.type === 'reef_crab' && m.charge && !m.charge.dive && Math.random() < 0.8) {
-      const y = this.host.groundAt?.(m.x, m.z) ?? 0, a = (m.charge.angle ?? m.facing) + Math.PI + (Math.random() - 0.5) * 1.2;
-      this.call.dust(m.x, y + 0.12, m.z, Math.sin(a) * 1.4, 0.5, Math.cos(a) * 1.4, 0.55, 0.4);
+    for (let i = n; i < this.crabBubbles.length; i++) { this.crabBubbles[i].visible = false; this.mineRings[i].visible = false; }
+    for (const [id, q] of this.mines) if (!live.has(id)) {
+      // gone: a burst already drew its pop; one left alone floats off with a soft pop
+      if (!this.popped.has(id)) this.softPop(q.lx ?? q.fx, q.lz ?? q.fz);
+      this.mines.delete(id); this.popped.delete(id);
     }
+    for (const a of g.areas) if (a.kind === 'bubble_mine') { const q = this.mines.get(a.id); if (q) { q.lx = a.x; q.lz = a.z; q.lid = a.id; } }
+    for (const m of g.monsters) if (m.type === 'reef_crab' && m.charge?.scuttle && Math.random() < 0.8) {
+      const y = this.host.groundAt?.(m.x, m.z) ?? 0, a = Math.random() * 6.283;
+      this.call.dust(m.x + Math.sin(a) * 0.5, y + 0.12, m.z + Math.cos(a) * 0.5, Math.sin(a) * 0.9, 0.5, Math.cos(a) * 0.9, 0.5, 0.4);
+    }
+  }
+  /** A bubble mine left alone floats off: a soft pop, a few droplets. */
+  softPop(x, z) {
+    const y = (this.host.groundAt?.(x, z) ?? 0) + 0.75, fx = this.host.vfx?.fx;
+    if (fx) for (let i = 0; i < 5; i++) { const a = (i / 5) * 6.283; fx.add(x, y, z, Math.sin(a) * 0.8, 0.6, Math.cos(a) * 0.8, { color: 0xd8f6ff, size: 0.08, sizeEnd: 0.02, life: 0.3, gravity: 6, drag: 1 }); }
+  }
+  /** A bubble mine is touched (core burst of kind bubble_mine): it bursts in a splash of water on what touched it. */
+  mineBurst(e) {
+    for (const [id, q] of this.mines) if (Math.hypot((q.lx ?? 1e9) - e.x, (q.lz ?? 1e9) - e.z) < 0.05) this.popped.add(id);
+    this.bubblePop(e.x, e.z);
+    this.call.ring(e.x, (this.host.groundAt?.(e.x, e.z) ?? 0) + 0.06, e.z, e.radius * 1.6, WATER_HALO, 0.35);
+    this.onShake?.(0.05, 0.07);
+    return true;
   }
   /** A spat bubble pops on what it hits: a ring of droplets and a few small bubbles. */
   bubblePop(x, z) {

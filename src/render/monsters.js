@@ -441,14 +441,17 @@ function animCrab(r, s, dt, time) {
   const busy = s.windup || s.state === 'act' || s.state === 'shell' || s.state === 'stunned';
   r.sidleSide = r.sidleSide || (r.seed % 2 < 1 ? 1 : -1);
   if (w < 0.05 && !busy) r.sidleSide = (s.vSide || 0) > 0.3 ? -1 : (s.vSide || 0) < -0.3 ? 1 : r.sidleSide;
-  // the sideways dash (sidestep): it squares side-on to its prey, crouches with claws spread, then scuttles across
-  const side = s.windup === 'sidestep' ? clamp01(s.windupT / s.windupTotal) : s.lastAttack === 'sidestep' && (s.state === 'act' || (s.state === 'recover' && s.actT < 0.3)) ? 1 : 0;
-  r.sidle = damp(r.sidle || 0, side ? r.sidleSide * 1.45 * Math.min(1, side * 2.5) : busy ? 0 : r.sidleSide * c.sidle * w, side ? 14 : 6, dt);
+  // the sweep (sidestep): it faces its prey, crouches with both claws thrown wide and forward, swaying a little to
+  // the side it will go; then it scuttles side to side in front of the prey, claws out and snapping at each pass
+  const wind = s.windup === 'sidestep' ? clamp01(s.windupT / s.windupTotal) : 0;
+  const sweep = s.state === 'act' && s.lastAttack === 'sidestep' ? 1 : s.state === 'recover' && s.lastAttack === 'sidestep' ? Math.max(0, 1 - s.actT / 0.3) : 0;
+  const side = Math.max(wind, sweep);
+  r.sidle = damp(r.sidle || 0, busy ? 0 : r.sidleSide * c.sidle * w, 6, dt);
   b.body.rotation.y = r.sidle;
   const P = r.pose || (r.pose = { y: .32 });
   // bubbles: it rears a little, claws framing its mouth while the foam wells up, and jerks forward as it spits
   const foam = s.windup === 'bubbles' ? clamp01(s.windupT / s.windupTotal) : 0, spat = s.state === 'recover' && s.lastAttack === 'bubbles' ? Math.max(0, 1 - s.actT / 0.25) : 0;
-  const crouch = s.windup === 'sidestep' ? side : 0;
+  const crouch = wind;
   P.y = damp(P.y, .32 - tucked * .08 - ready * .05 - crouch * .07, 16, dt);
   b.body.position.y = P.y + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph));
   const br = breath(time, r.seed, c) * (1 - w);
@@ -460,8 +463,9 @@ function animCrab(r, s, dt, time) {
   b.head.rotation.z = Math.max(0, Math.sin(time * 1.1 + r.seed * 2)) ** 18 * 0.12;
   // claws held up, bobbing with the steps, with an idle click now and then
   const click = busy ? 0 : Math.max(0, Math.sin(time * 1.4 + r.seed)) ** 16;
-  P.clawX = damp(P.clawX || 0, -.85 * ready + .25 * hit - .6 * foam + .3 * spat - .25 * side, 20, dt);
-  P.clawY = damp(P.clawY || 0, -.55 * ready + .35 * hit - .35 * foam + .7 * side, 20, dt);
+  const snap = sweep ? Math.abs(Math.sin(s.actT * 11)) : 0; // the claws open and shut as it goes
+  P.clawX = damp(P.clawX || 0, -.85 * ready + .25 * hit - .6 * foam + .3 * spat - .45 * side, 20, dt);
+  P.clawY = damp(P.clawY || 0, -.55 * ready + .35 * hit - .35 * foam + .55 * side - .4 * snap, 20, dt);
   for (const [side, name] of CRAB_CLAWS) {
     const claw = b[name];
     claw.rotation.x = P.clawX + Math.sin(2 * ph + side) * 0.06 * w;
@@ -469,7 +473,7 @@ function animCrab(r, s, dt, time) {
     claw.position.z = claw.userData.rest.pos.z + .32 * hit;
     claw.scale.setScalar(1 - tucked * .85);
   }
-  b.body.rotation.z = c.roll * w * Math.sin(ph) + Math.sin(time * 1.5) * .008;
+  b.body.rotation.z = c.roll * w * Math.sin(ph) + Math.sin(time * 1.5) * .008 + (wind ? Math.sin(time * 9) * 0.06 * wind : 0);
   b.body.rotation.x = damp(b.body.rotation.x, -0.08 * ready + 0.1 * hit - 0.15 * foam + 0.14 * spat, 18, dt);
   // legs dug in and trembling before the dash
   if (crouch > 0.3) for (const n of r.legs) b[n].rotation.z += Math.sin(time * 42 + n.length) * 0.05 * crouch;

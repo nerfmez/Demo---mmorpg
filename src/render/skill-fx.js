@@ -75,7 +75,7 @@ export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
 const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
-export const OWN_PROJECTILES = new Set(['jet', 'volley', 'bubbles', 'snipe', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
+export const OWN_PROJECTILES = new Set(['jet', 'volley', 'snipe', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
 const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter', 'flame_slash', 'thunder_slash']);
 const SWING_LEAD = 0.12;
@@ -565,7 +565,6 @@ export class SkillFx {
         if (e.kind === 'boomerang') { this.monster.leafCut(e, g); return true; }
         if (e.kind === 'jet') { this.monster.splash(e.x, e.z, 1); return true; }
         if (e.kind === 'snipe') { this.monster.nacre(e.x, e.z); return true; } // the eye clam's pearl
-        if (e.kind === 'bubbles') { this.monster.bubblePop(e.x, e.z); return true; } // the reef crab's bubble
         if (e.kind === 'volley') { this.monster.splash(e.x, e.z, 0.4); return true; } // a slug dart // the pearl fish's jet bursts on what it hits // the tanuki's leaf cuts going out and back
         if (e.kind === 'venom_mire') { this.venom.impact(e); return true; }
         if (e.kind === 'charged_shot') { this.power.impact(e, this.powerRatio); return true; }

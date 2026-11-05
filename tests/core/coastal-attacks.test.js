@@ -119,24 +119,49 @@ test('leashing during shell clears its damage reduction and temporary attack sta
   assert.equal(g.hitMonster(m, 10, { dot: true }), 10);
 });
 
-test('reef crab kit: a sideways dash through its prey from mid range, slow bubbles from further off', () => {
-  const dash = arena('reef_crab');
-  Object.assign(dash.g.player, { x: 0, z: dash.m.r + dash.g.player.r + 3 });
+test('reef crab sweep: it scuttles side to side in front of its prey; a step aside is caught, a step back is not', () => {
+  for (const [escape, expect] of [['none', 2], ['side', 1], ['back', 0]]) {
+    const c = arena('reef_crab');
+    c.m.cd.pinch = 99;
+    Object.assign(c.g.player, { x: 0, z: c.m.r + c.g.player.r + 1.2 });
+    const hits = [];
+    c.g.damageUnit = (u, amount) => hits.push(amount);
+    c.step(.01);
+    assert.equal(c.m.windup?.name, 'sidestep', 'close, its pinch cooling: the sweep');
+    c.until(() => c.m.state === 'act');
+    assert.equal(hits.length, 0, 'nothing during the wind-up');
+    if (escape === 'side') { c.step(.05); c.g.player.x = 1.8; }
+    if (escape === 'back') c.g.player.z = c.m.def.attacks.sidestep.range + c.g.player.r + .3;
+    c.until(() => c.m.state === 'recover');
+    assert.equal(hits.length, expect, `${escape}: ${hits.length} clips`);
+    assert.ok(Math.hypot(c.m.x, c.m.z) < 1e-6, 'it ends back where it started');
+  }
+});
+
+test('reef crab bubble mines hang where it blew them and burst only on touch, once', () => {
+  const c = arena('reef_crab');
+  c.m.cd.sidestep = 99;
+  const atk = c.m.def.attacks.bubbles;
+  Object.assign(c.g.player, { x: 0, z: c.m.r + c.g.player.r + 4 });
   const hits = [];
-  dash.g.damageUnit = (u, amount) => hits.push(amount);
-  dash.step(.01);
-  assert.equal(dash.m.windup?.name, 'sidestep', 'mid range: it squares up for the dash');
-  dash.until(() => dash.m.state === 'act');
-  assert.equal(hits.length, 0, 'no damage during the wind-up');
-  dash.until(() => dash.m.state === 'recover');
-  assert.equal(hits.length, 1, 'the dash clips its prey once');
-  const spit = arena('reef_crab');
-  spit.m.cd.sidestep = 99;
-  Object.assign(spit.g.player, { x: 0, z: spit.m.r + spit.g.player.r + 4.5 });
-  spit.step(.01);
-  assert.equal(spit.m.windup?.name, 'bubbles');
-  spit.until(() => spit.g.projectiles.length > 0);
-  const atk = spit.m.def.attacks.bubbles;
-  assert.equal(spit.g.projectiles.length, atk.count, 'a spread of bubbles');
-  assert.ok(spit.g.projectiles.every((p) => p.speed === atk.speed && p.speed < 6), 'slow enough to step round');
+  c.g.damageUnit = (u, amount) => hits.push(amount);
+  const tick = (s) => { for (let t = 0; t < s - 1e-8; t += .01) { c.g.time += .01; c.g.updateAreas(.01); updateMonster(c.g, c.m, .01); } };
+  tick(.01);
+  assert.equal(c.m.windup?.name, 'bubbles');
+  c.g.player.x = 6; // out of the way while they are blown
+  c.until(() => c.g.areas.some((a) => a.kind === 'bubble_mine'));
+  const mines = c.g.areas.filter((a) => a.kind === 'bubble_mine');
+  assert.equal(mines.length, atk.count);
+  c.m.cd.pinch = c.m.cd.bubbles = 99; c.m.state = 'idle'; c.m.aggro = false;
+  tick(atk.drift + 1);
+  assert.equal(hits.length, 0, 'they wait in the air');
+  Object.assign(c.g.player, { x: mines[1].x, z: mines[1].z });
+  tick(.05);
+  assert.equal(hits.length, 1, 'walking into one bursts it');
+  tick(.5);
+  assert.equal(hits.length, 1, 'once');
+  assert.equal(c.g.areas.filter((a) => a.kind === 'bubble_mine').length, atk.count - 1, 'the rest still hang');
+  c.g.player.x = 30;
+  tick(atk.life);
+  assert.equal(c.g.areas.filter((a) => a.kind === 'bubble_mine').length, 0, 'and float off in the end');
 });

@@ -743,7 +743,7 @@ export class Vfx {
     if (e.kind === 'shards') return this.shardBurst(e);
     if (e.kind === 'quake') return this.quakeBurst(e);
     if (e.kind === 'pounce') return this.dive(e);
-    if (e.kind === 'glass_shard' || e.kind === 'mirror_bomb') return; // the moth's shatter and decoy are drawn in skillfx (monster-fx.js, moth-fx.js)
+    if (e.kind === 'glass_shard' || e.kind === 'mirror_bomb' || e.kind === 'bubble_mine') return; // the moth's shatter and decoy are drawn in skillfx (monster-fx.js, moth-fx.js)
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);

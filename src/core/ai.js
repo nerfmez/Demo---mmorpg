@@ -494,6 +494,30 @@ function windup(game, m, dt, t, gap) {
       if (!m.charge.hops.length) { m.charge = null; return setState(m, 'recover', atk.recover); }
       return;
     }
+    case 'scuttle': {
+      // a crab's sweep: facing its prey it scuttles `sway` m to one side and back across to the other and home (two
+      // passes, `duration` s), claws out; whatever is in front of it within `range` m as it passes is clipped, once a
+      // pass. Stepping aside does not escape it; stepping back out of reach does.
+      m.charge = { scuttle: true, t: 0, dur: atk.duration, ox: m.x, oz: m.z, angle: w.angle, half: atk.sway, reach: atk.range, hits: [new Set(), new Set()], dmg };
+      setState(m, 'act');
+      m.windup = { ...w };
+      return;
+    }
+    case 'bubble_mines': {
+      // bubbles blown out to hang in the air: `count` of them `spread` m apart across the aim, as far as the prey is
+      // (2 m to `range`); each drifts there over `drift` s, then waits `life` s and bursts on the first thing that
+      // touches it (core area `mine`), or floats off harmlessly
+      const dir = dirFromAngle(w.angle), px = dir.z, pz = -dir.x;
+      const D = Math.max(2, Math.min(atk.range, t ? dist(m.x, m.z, t.x, t.z) : atk.range));
+      for (let i = 0; i < atk.count; i++) {
+        const lat = (i - (atk.count - 1) / 2) * atk.spread, fwd = D - Math.abs(lat) * 0.25;
+        const x = m.x + dir.x * fwd + px * lat, z = m.z + dir.z * fwd + pz * lat;
+        if (game.isSafe(x, z)) continue;
+        game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'bubble_mine', mine: true, x, z, radius: atk.radius, delay: atk.drift, duration: atk.life, damage: dmg });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'mirror_decoy': {
       // the moth leaves a mirror image of itself where it hung, a bomb going off after `fuse` s, and flies back
       // to the spot marked at wind-up start (beginAttack) over `air` s
@@ -610,6 +634,28 @@ function act(game, m, dt, t) {
     if (c.t >= atk.air + (c.i < c.hops.length - 1 ? atk.pause : 0)) {
       c.i++; c.t = 0; c.fromX = m.x; c.fromZ = m.z;
       if (c.i >= c.hops.length) { m.charge = null; return setState(m, 'recover', atk.recover); }
+    }
+    return;
+  }
+  if (c.scuttle) {
+    const k = Math.min(1, c.t / c.dur), side = Math.sin(k * Math.PI * 2) * c.half;
+    const dir = dirFromAngle(c.angle), px = dir.z, pz = -dir.x;
+    m.x = c.ox + px * side; m.z = c.oz + pz * side;
+    m.moving = false;
+    const pass = k < 0.5 ? 0 : 1;
+    for (const u of game.units()) {
+      if (c.hits[pass].has(u.id)) continue;
+      const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, lat = Math.abs(dx * px + dz * pz);
+      if (along >= 0 && along <= c.reach + u.r && lat <= 0.7 + u.r) {
+        c.hits[pass].add(u.id);
+        game.damageUnit(u, c.dmg, m, { attack: m.windup?.name });
+      }
+    }
+    if (k >= 1) {
+      const name = m.windup.name, atk = m.def.attacks[name];
+      m.charge = null;
+      m.cd[name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
     }
     return;
   }

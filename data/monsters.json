@@ -145,36 +145,38 @@
           "damageMult": 1
         },
         "sidestep": {
-          "nameTh": "วิ่งข้างหนีบ",
-          "kind": "charge",
+          "nameTh": "ส่ายก้ามกวาด",
+          "kind": "scuttle",
+          "tell": "lane",
           "use": {
-            "min": 2,
-            "max": 5
+            "max": 1.9
           },
-          "range": 5,
-          "windup": 0.75,
-          "speed": 8,
-          "duration": 0.5,
-          "recover": 0.8,
+          "range": 3.0,
+          "width": 5,
+          "sway": 2,
+          "windup": 0.8,
+          "duration": 1.2,
+          "recover": 0.7,
           "cooldown": 7,
-          "damageMult": 0.9
+          "damageMult": 0.6
         },
         "bubbles": {
-          "nameTh": "พ่นฟอง",
-          "kind": "volley",
+          "nameTh": "ฟองทุ่นระเบิด",
+          "kind": "bubble_mines",
           "use": {
-            "min": 2.5,
+            "min": 2,
             "max": 6
           },
           "range": 6,
           "count": 3,
-          "spread": 40,
+          "spread": 1.6,
+          "drift": 0.5,
+          "life": 3.5,
+          "radius": 0.6,
           "windup": 0.7,
-          "speed": 4.5,
-          "projectileRadius": 0.35,
           "recover": 0.6,
-          "cooldown": 6,
-          "damageMult": 0.45
+          "cooldown": 8,
+          "damageMult": 0.7
         }
       },
       "drops": [

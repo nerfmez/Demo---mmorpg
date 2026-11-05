@@ -63,8 +63,8 @@ must be creative". The kits so far lean on the same few families. Count before d
 
 | Family | Used by |
 |---|---|
-| Dash / leap at the prey (charge, pounce, skip, roll) | fox, pangolin, fish, hare, crab |
-| Shot / spray / volley | mole, slug, clam, fish, crab |
+| Dash / leap at the prey (charge, pounce, skip, roll) | fox, pangolin, fish, hare |
+| Shot / spray / volley | mole, slug, clam, fish |
 | Beam or lane | moth, snail king (2) |
 | Ring round itself | (moth's moonlight ring, replaced: its pattern was not its own) |
 
@@ -124,7 +124,7 @@ Rules for every new kit:
 | Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
 | Fern-ear hare | ต่อยรัว Box (rears up on its haunches, paws raised in a guard, a one-two of jabs with a burst star of light on each); กระทืบเตือนภัย Warning Thump (up on its haunches, trembling, ears up, a hop up, then slams down: a shock ring to the true edge, earth and fern leaves thrown out); กระโดดทับ Leap (crouch, rump wiggle, springs onto the marked spot, lands in earth and leaves) |
 | Mirrorwing moth | แสงสะท้อนปีก Wing Glare (turns its glass wings on the prey like a mirror, glints flare on the panes, then a beam of moonlight along the lane); ห่าเกล็ดกระจก Glass Rain (wings raised and held while a glass shard forms over each marked circle, then they drop one after another and shatter in stars of cold light); ร่างเงากระจก Mirror Decoy (too close: its wings flare as a glass image of it splits off, it flies back, and the image flickers faster and faster like a fuse and bursts) |
-| Reef crab (Lv1-3) | หนีบ Pinch (claws raised and opened, a snap: two marks of light crossing shut on the prey); วิ่งข้างหนีบ Sidestep (squares side-on, crouches with claws spread and legs dug in, then scuttles sideways along a lane through its prey, sand flying); พ่นฟอง Bubble Spit (foam wells at its mouth, then three slow bubbles that pop on what they hit) |
+| Reef crab (Lv1-3) | หนีบ Pinch (claws raised and opened, a snap: two marks of light crossing shut on the prey); ส่ายก้ามกวาด Claw Sweep (crouches with claws thrown wide, swaying; then scuttles side to side twice in front of its prey, claws snapping: a step aside is caught, a step back is safe); ฟองทุ่นระเบิด Bubble Mines (foam wells at its mouth; three bubbles drift out and hang in the air over pale rings for 3.5 s, bursting on whatever walks into them) |
 
 ## Rounds
 
@@ -295,6 +295,12 @@ Rules for every new kit:
   first monster on Azure Coast; `primaryAttack` stays for the coastal tests). It moves like a crab: Sidestep is a
   `charge` it makes side-on (the body turned 83 degrees from its path), its lane marked; Bubble Spit is a slow `volley`
   (4.5 m/s) of see-through bubbles. The pinch's limb trail became two crossing marks of light (`scissor` look).
+- **Reef crab, round 2** (2026-11-05, owner: dashes and shots are fine but each pattern must be its own): its
+  sideways charge and straight bubble volley repeated other monsters' patterns with a new look. Claw Sweep (kind
+  `scuttle`): facing its prey it scuttles `sway` m to one side, across to the other and home in `duration` s, clipping
+  what is in front within `range` once a pass; its lane tell is the box it sweeps. Bubble Mines (kind `bubble_mines`):
+  areas with `mine` that burst on the first unit touching them, else end unsprung (a new area rule in
+  `updateAreas`).
 - **Monster Lab as its own page** (2026-11-05, owner: "why not a separate test site like the skill tests, why the
   whole game"): the Pages route rebuilt and redeployed the whole 340 MB site for each round (~20 minutes). The
   sandbox is now also a standalone artifact like the Skill FX bench: `scripts/monster-lab-artifact.mjs` packs the

@@ -1463,9 +1463,12 @@ export class Vfx {
       return {
         obj: m,
         update: (ar) => {
-          const k = Math.min(1, ar.t / Math.max(0.01, ar.delay));
+          // the snail king's spiral pearls are marked only in the last moments before each bursts, so the arms read
+          // as they sweep out (all thirty at once read as a scatter)
+          const lead = ar.kind === 'pearl_burst' ? Math.min(ar.delay, 0.8) : ar.delay, from = ar.delay - lead;
+          const k = Math.max(0, Math.min(1, (ar.t - from) / Math.max(0.01, lead)));
           m.material.uniforms.uFill.value = k;
-          m.material.uniforms.uA.value = ar.t < ar.delay ? (hostile ? 0.9 : 0.7) : 0;
+          m.material.uniforms.uA.value = ar.t < ar.delay && ar.t >= from ? (hostile ? 0.9 : 0.7) : 0;
         },
       };
     }

@@ -86,7 +86,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
     const m = lab.m, base = defs[lab.type];
     lab.walk = mode;
     lab.front = mode === 'trail' ? m.r + 0.9 : WALK_FRONT; // a slime trail is laid just past the hero's feet
-    m.def = { ...base, aggroRange: 0, speed: mode === 'run' ? base.speed / 0.45 : base.speed };
+    m.def = { ...base, aggroRange: 0, dormant: undefined, speed: mode === 'run' ? base.speed / 0.45 : base.speed }; // a dormant boss would not wander
     // from the left end, already facing along the path (the first lap is the same as the rest)
     Object.assign(m, { x: p.x - WALK_HALF, z: p.z + lab.front, facing: Math.PI / 2, aggro: false, targetUnit: null, state: 'idle', stateT: 0, windup: null, charge: null, melee: null, wanderTo: null, wanderT: 99 });
     lab.leg = -1;
@@ -226,7 +226,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
       const m = lab.m;
       // the camera frames the hero and the monster together (walking, it holds still while the monster crosses)
       view.focusShift ||= { x: 0, z: 0 };
-      if (m && lab.walk) { view.focusShift.x = 0; view.focusShift.z = lab.front * 0.25; }
+      if (m && lab.walk) { view.focusShift.x = 0; view.focusShift.z = lab.front * (lab.walk === 'trail' ? 0.5 : 0.25); }
       else if (m) { view.focusShift.x = (m.x - p.x) * 0.5; view.focusShift.z = (m.z - p.z) * 0.5; }
       // the chosen walk on its rig (rigs are pooled and posed by the view; this only swaps the walk's tuning)
       const mv = m && lab.style && view.monsterViews?.get(m.id);

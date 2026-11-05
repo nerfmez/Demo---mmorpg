@@ -113,7 +113,7 @@ float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }
 void main(){
   float across = abs(vUv.x * 2.0 - 1.0);
-  float edge = 1.0 - smoothstep(0.78, 1.0, across + 0.12 * (n(vW.xz * 3.0) - 0.5));
+  float edge = 1.0 - smoothstep(0.7, 1.0, across + 0.35 * (n(vW.xz * 1.7) - 0.5) + 0.12 * (n(vW.xz * 5.0) - 0.5));
   if (edge <= 0.01) discard;
   float rim = smoothstep(0.55, 0.85, across) * edge;
   float flow = n(vW.xz * 1.6 + vec2(uT * 0.15, -uT * 0.1)) * 0.6 + n(vW.xz * 4.0 - uT * 0.3) * 0.4;
@@ -131,8 +131,8 @@ void main(){
     float hue = flow * 2.0 + vW.x * 0.35 + vW.z * 0.25 + uT * 0.12;
     vec3 iri = 0.62 + 0.3 * cos(6.2831 * (hue + vec3(0.0, 0.33, 0.67)));
     float sheen = pow(max(0.0, sin((vW.x + vW.z) * 2.2 - uT * 1.4 + flow * 3.0)), 12.0);
-    c = mix(uA, iri, 0.55) + vec3(1.0) * sheen * 0.6 + uRim * rim;
-    a = (0.55 + 0.25 * flow + 0.2 * rim) * edge;
+    c = mix(uA, iri, 0.3) + vec3(1.0, 0.95, 0.85) * sheen * 0.7 + uRim * rim;
+    a = (0.5 + 0.25 * flow + 0.25 * rim) * edge;
   }
   gl_FragColor = vec4(c, a * vA);
 }`;
@@ -171,7 +171,7 @@ export class GrottoFx {
     // --- trails: the slug's mucus and the king's slime ---
     this.trailMats = [0, 1].map((look) => new THREE.ShaderMaterial({
       vertexShader: TRAIL_VS, fragmentShader: TRAIL_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide,
-      uniforms: { uT: { value: 0 }, uLook: { value: look }, uA: { value: new THREE.Color(look ? 0xf4ead8 : 0x1e5a58) }, uB: { value: new THREE.Color(look ? 0xffffff : 0x4a2a78) }, uRim: { value: new THREE.Color(look ? 0xfff6e6 : 0x6ae8b0) } },
+      uniforms: { uT: { value: 0 }, uLook: { value: look }, uA: { value: new THREE.Color(look ? 0xf6e8d2 : 0x1f7a5a) }, uB: { value: new THREE.Color(look ? 0xffffff : 0x6a2aa8) }, uRim: { value: new THREE.Color(look ? 0xfff6e6 : 0x9cff7a) } },
     }));
     this.trails = Array.from({ length: 4 }, () => this.makeTrail());
     this.trailPts = [];
@@ -553,12 +553,13 @@ export class GrottoFx {
         let dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz);
         if (L < 1e-4) { dx = 0; dz = 1; L = 1; }
         dx /= L; dz /= L;
-        const w = ar.radius * (0.55 + 0.45 * Math.min(1, fade * 2)), cx = ar.x + (!joinP ? -dx * ar.radius * 0.7 : !joinN ? dx * ar.radius * 0.7 : 0), cz = ar.z + (!joinP ? -dz * ar.radius * 0.7 : !joinN ? dz * ar.radius * 0.7 : 0);
+        const endFade = joinP && joinN ? 1 : 0.35; // the ends of a trail thin out rather than stop square
+        const w = ar.radius * (0.55 + 0.45 * Math.min(1, fade * 2)) * (joinP && joinN ? 1 : 0.75), cx = ar.x + (!joinP ? -dx * ar.radius * 0.7 : !joinN ? dx * ar.radius * 0.7 : 0), cz = ar.z + (!joinP ? -dz * ar.radius * 0.7 : !joinN ? dz * ar.radius * 0.7 : 0);
         if (prev && joinP) along += Math.hypot(ar.x - prev.x, ar.z - prev.z);
         for (const sgn of [-1, 1]) {
           const x = cx + dz * w * sgn, z = cz - dx * w * sgn;
           pos[v * 3] = x; pos[v * 3 + 1] = this.gy(x, z) + (pearl ? 0.05 : 0.045); pos[v * 3 + 2] = z;
-          uv[v * 2] = sgn < 0 ? 0 : 1; uv[v * 2 + 1] = along; al[v] = fade; v++;
+          uv[v * 2] = sgn < 0 ? 0 : 1; uv[v * 2 + 1] = along; al[v] = fade * endFade; v++;
         }
         if (joinN) { const a = v - 2; idx[ii++] = a; idx[ii++] = a + 1; idx[ii++] = a + 2; idx[ii++] = a + 1; idx[ii++] = a + 3; idx[ii++] = a + 2; }
         else if (!joinP) {

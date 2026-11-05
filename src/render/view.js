@@ -368,13 +368,14 @@ export class View {
    * a model, build and compile one model rig for each so the first encounter does not hitch, and
    * rebuild the ones already on screen. Other types keep their warmed pool.
    */
-  refreshModelRigs() {
+  /** Rigs built before their model arrived are rebuilt with it: every type, or only `only` (a type that just loaded). */
+  refreshModelRigs(only = null) {
     const tmp = new THREE.Group();
     const [x, z] = this.world.data.playerSpawn;
     const fresh = [];
     for (const [key, pool] of this.rigPool || []) {
       const type = key.split('#')[0];
-      if (!monsterModel(type) || pool.every((r) => r.model)) continue;
+      if ((only && type !== only) || !monsterModel(type) || pool.every((r) => r.model)) continue;
       for (const rig of pool) disposeObject(rig.root);
       this.rigPool.delete(key);
       const rig = buildMonster(type, 1, key.endsWith('#boss'));
@@ -390,7 +391,7 @@ export class View {
     }
     // monsters already on screen with the procedural body are rebuilt on the next frame
     for (const [id, mv] of this.monsterViews) {
-      if (mv.rig.model || !monsterModel(mv.rig.type)) continue;
+      if ((only && mv.rig.type !== only) || mv.rig.model || !monsterModel(mv.rig.type)) continue;
       disposeObject(mv.rig.root);
       disposeObject(mv.halo);
       this.monsterViews.delete(id);

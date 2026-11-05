@@ -119,7 +119,7 @@ if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamB
 // Character/monster models load at boot. Current weapons and chibi outfits load on demand; procedural shapes stand in,
 // current hero, creation preview and portraits refresh when their requested templates arrive.
 view.startupDependencies={};
-trackStartupReadiness({models:loadModels(data.models, { onWeaponReady: (id) => {
+trackStartupReadiness({models:loadModels(data.models, { onMonsterReady: (type) => view.refreshModelRigs(type), onWeaponReady: (id) => {
   const bases = F.game?.gearLook().bases;
   // a weapon, or the chibi outfit model (outfit_<item>) of the worn armour, boots, gloves or helm
   const worn = bases && [bases.weapon, bases.offhand, `outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`, `outfit_${bases.gloves}`, `outfit_${bases.helm}`];

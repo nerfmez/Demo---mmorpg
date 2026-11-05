@@ -5,7 +5,7 @@
 // squash/stretch, head tracking, springy tails/ears and hit reactions.
 import * as THREE from 'three';
 import { RigBuilder, damp, clamp01, Spring } from './rig.js';
-import { monsterModel } from './models.js';
+import { monsterModel, monsterModelPending } from './models.js';
 import { attachMonsterModel } from './monsterSkin.js';
 import { MIDHIGH_BUILDERS, MIDHIGH_SCALE } from './monsters-midhigh.js';
 import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
@@ -1281,6 +1281,13 @@ export function buildMonster(type, level = 1, boss = false) {
   // an imported model, once loaded, replaces the procedural parts on the same bones
   const model = monsterModel(type);
   if (model) { attachMonsterModel(rig, model); if (rig.ballForm) rig.rollFx = createRollFx(rig, rig.ballForm, rig.ballForm.children[0], FX.roll); rig.modelSource = type; }
+  else if (monsterModelPending(type)) {
+    // its model is still loading: the procedural body is only a skeleton for it and is never shown (owner,
+    // 2026-11-05: the old code-built monster flashed up before the real one); the View swaps the rig for one with
+    // the model the moment that model arrives (View.refreshModelRigs)
+    rig.awaitingModel = true;
+    rig.root.traverse((o) => { if (o.isMesh || o.isSprite || o.isLine || o.isPoints) o.visible = false; });
+  }
   rig.animate = anim;
   // the hunter's companions move like the beasts they are drawn from (data/monster-motion.json)
   rig.motion = motionConfig(MOTION, MOTION_LIKE[type] || type);

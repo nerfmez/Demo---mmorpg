@@ -20,6 +20,10 @@ const outfits = new Map(); // chibi outfit models (characters with `chibiOutfit`
 const hairStyles = new Map(); // look.hairStyle -> its chibi hair model id (characters with `chibiHairStyle`), loaded when first chosen
 const failedOutfits = new Set();
 const weaponListeners = new Set();
+// monster models still on their way (registered, neither loaded nor failed): their rigs wait hidden instead of
+// showing the procedural stand-in body, and listeners hear each type the moment its model is ready
+const pendingMonsters = new Set();
+const monsterListeners = new Set();
 const gltfLoader = new GLTFLoader();
 // Hero, outfit, weapon and monster maps cover a few hundred screen pixels at most,
 // while a 2048² map costs 22 MB of GPU memory (four of them pushed the iPad into a
@@ -48,8 +52,9 @@ export function capModelTextures(gltf) {
 }
 
 /** Register lazy weapons; load character/monster templates at boot as before. */
-export function loadModels(registry = {}, { onWeaponReady } = {}) {
+export function loadModels(registry = {}, { onWeaponReady, onMonsterReady } = {}) {
   if (onWeaponReady) weaponListeners.add(onWeaponReady);
+  if (onMonsterReady) monsterListeners.add(onMonsterReady);
   const jobs = [];
   for (const [group, entries] of Object.entries(registry)) {
     if (group.startsWith('_')) continue;
@@ -63,6 +68,7 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
       const key = `${group}/${id}`;
       if (loaded.has(key)) continue;
       if (loading.has(key)) { jobs.push(loading.get(key)); continue; }
+      if (group === 'monsters') pendingMonsters.add(id);
       const job = Promise.all([loader.loadAsync(m.file), group === 'monsters' && m.ball ? loader.loadAsync(m.ball.file) : null])
           .then(([gltf, ball]) => {
             if (group === 'monsters') {
@@ -70,6 +76,8 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
               const T = prepareMonsterModel(gltf, m);
               if (ball) T.ball = prepareMonsterForm(ball, m.ball);
               loaded.set(`${group}/${id}`, T);
+              pendingMonsters.delete(id);
+              for (const fn of monsterListeners) fn(id);
               return;
             }
             if (group === 'characters') {
@@ -78,7 +86,7 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
             }
             loaded.set(`${group}/${id}`, prepareWeaponModel(gltf.scene, m));
           })
-          .catch((err) => console.warn('model not loaded:', m.file, err))
+          .catch((err) => { console.warn('model not loaded:', m.file, err); if (group === 'monsters') pendingMonsters.delete(id); })
           .finally(() => loading.delete(key));
       loading.set(key, job);
       jobs.push(job);
@@ -207,6 +215,11 @@ export function weaponModelsReady(bases = {}) {
 }
 
 /** A prepared monster model template (see monsterSkin.js), or null until it has loaded. */
+/** True while a monster's model is still loading: its rig shows nothing rather than the procedural stand-in. */
+export function monsterModelPending(type) {
+  return pendingMonsters.has(type);
+}
+
 export function monsterModel(type) {
   return loaded.get(`monsters/${type}`) || null;
 }

@@ -1319,7 +1319,7 @@
     "rootdigger_mole": {
       "name": "Rootdigger Mole",
       "nameTh": "ตุ่นขุดราก",
-      "behavior": "mole",
+      "behavior": "kit",
       "hp": 950,
       "damage": 110,
       "defense": 90,
@@ -1330,8 +1330,30 @@
       "exp": 22,
       "jobExp": 15,
       "attacks": {
+        "erupt": {
+          "nameTh": "มุดดินโผล่ราก",
+          "use": {
+            "min": 4,
+            "max": 10
+          },
+          "inflict": {
+            "status": "root",
+            "chance": 1,
+            "duration": 1
+          },
+          "range": 10,
+          "windup": 1.1,
+          "radius": 1.8,
+          "recover": 0.8,
+          "cooldown": 7,
+          "damageMult": 1.5
+        },
         "swipe": {
+          "nameTh": "ตะปบขุด",
           "kind": "sweep",
+          "use": {
+            "max": 1.9
+          },
           "range": 1.9,
           "arc": 140,
           "windup": 0.55,
@@ -1339,16 +1361,29 @@
           "cooldown": 2,
           "damageMult": 1.1
         },
-        "erupt": {
-          "inflict": {"status": "root", "chance": 1, "duration": 1},
-          "minRange": 4,
-          "range": 10,
-          "windup": 1.1,
-          "radius": 1.8,
-          "recover": 0.8,
-          "cooldown": 7,
-          "damageMult": 1.5
+        "spray": {
+          "nameTh": "สาดดิน",
+          "kind": "volley",
+          "use": {
+            "min": 2.5,
+            "max": 7
+          },
+          "range": 7,
+          "count": 5,
+          "spread": 50,
+          "windup": 0.8,
+          "speed": 11,
+          "projectileRadius": 0.3,
+          "recover": 0.5,
+          "cooldown": 5,
+          "damageMult": 0.45
         }
+      },
+      "kit": {
+        "circle": [
+          2.5,
+          4.5
+        ]
       },
       "drops": [
         {

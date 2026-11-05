@@ -75,7 +75,7 @@ export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
 const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
-export const OWN_PROJECTILES = new Set(['jet', 'volley', 'snipe', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
+export const OWN_PROJECTILES = new Set(['jet', 'volley', 'snipe', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
 const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter', 'flame_slash', 'thunder_slash']);
 const SWING_LEAD = 0.12;

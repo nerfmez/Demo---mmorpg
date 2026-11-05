@@ -227,42 +227,72 @@ function buildMole() {
   return rig;
 }
 
+// Its kit (docs/MONSTER-ATTACKS.md), each move on the anime beat - anticipation, a held pose, a very short strike,
+// overshoot, a held finish, recovery:
+//   ตะปบขุด (swipe): it rears back with both digging claws raised high and held, then scoops them down and across
+//     in one snap on the hit, carrying through low before it settles;
+//   สาดดิน (spray): hunched, nose down, its claws churn the ground faster and faster, then both fling forward
+//     together as the clods fly;
+//   มุดดินโผล่ราก (erupt): it digs in, claws churning, and sinks out of sight; it bursts up at the marked spot with
+//     its claws flung high.
+const ease = (x) => x * x * (3 - 2 * x);
 function animMole(r, s, dt, time) {
   const b = r.bones, k = windK(s);
   r.phase = (r.phase || 0) + dt * (s.moving ? 8 + s.speedFactor * 3 : 0);
   const w = (r.runW = damp(r.runW || 0, s.moving ? 1 : 0, 10, dt));
-  let sink = 0, armL = Math.sin(r.phase) * 0.6 * w, armR = -Math.sin(r.phase) * 0.6 * w, headX = Math.sin(time * 1.4 + r.seed) * 0.04, bodyZ = Math.sin(r.phase) * 0.06 * w;
+  let sink = 0, armL = Math.sin(r.phase) * 0.6 * w, armR = -Math.sin(r.phase) * 0.6 * w, headX = Math.sin(time * 1.4 + r.seed) * 0.04;
+  let bodyZ = Math.sin(r.phase) * 0.06 * w, bodyX = 0, twist = 0, lift = 0, fast = false;
+  const after = s.state === 'recover' ? s.actT || 0 : -1;
   if (s.windup === 'erupt') {
     // digs in: claws churn, the body sinks below the ground
     sink = k;
     armL = Math.sin(time * 22) * 0.9;
     armR = -Math.sin(time * 22) * 0.9;
-    headX = 0.4;
+    headX = 0.4; fast = true;
   } else if (s.windup === 'swipe') {
-    // raises the right claw high, braced on the left
-    armR = -2 * k;
-    armL = 0.3 * k;
-    bodyZ = -0.15 * k;
-    headX = -0.15 * k;
-  } else if (s.state === 'recover' && s.lastAttack === 'swipe') {
-    armR = 0.9;
-    bodyZ = 0.12;
-  } else if (s.state === 'recover' && s.lastAttack === 'erupt') {
+    // anticipation (to 0.6 of the wind-up): rears back, both claws raised high, twisted to its right; then held,
+    // trembling a little, until the strike
+    const a = ease(Math.min(1, k / 0.6)), held = k > 0.6 ? Math.sin(time * 34) * 0.04 : 0;
+    armR = -2.3 * a + held; armL = -1.7 * a - held;
+    bodyX = -0.32 * a; lift = 0.1 * a; twist = 0.35 * a; headX = -0.25 * a; bodyZ = -0.08 * a;
+  } else if (after >= 0 && s.lastAttack === 'swipe') {
+    // the strike: one snap (0.07 s) down and across to the contact, overshooting low; held to 0.3 s, then eased home
+    const snap = ease(Math.min(1, after / 0.07)), back = ease(Math.min(1, Math.max(0, after - 0.3) / 0.3));
+    armR = (-2.3 + 3.5 * snap) * (1 - back); armL = (-1.7 + 2.9 * snap) * (1 - back);
+    bodyX = (-0.32 + 0.55 * snap) * (1 - back); twist = (0.35 - 0.75 * snap) * (1 - back);
+    lift = 0.1 * (1 - snap); headX = (-0.25 + 0.45 * snap) * (1 - back); bodyZ = 0.1 * snap * (1 - back);
+    fast = after < 0.12;
+  } else if (s.windup === 'spray') {
+    // hunched, nose down, claws churning the ground ever faster
+    const a = ease(Math.min(1, k / 0.25)), rate = 14 + 16 * k;
+    r.churn = (r.churn || 0) + dt * rate;
+    armL = 0.6 * a + Math.sin(r.churn) * 0.9 * a; armR = 0.6 * a - Math.sin(r.churn) * 0.9 * a;
+    bodyX = 0.28 * a; headX = 0.45 * a; sink = 0.06 * a; bodyZ = Math.sin(r.churn) * 0.05 * a; fast = true;
+  } else if (after >= 0 && s.lastAttack === 'spray') {
+    // the fling: both claws thrown up and forward together, the head up; held a beat, then settles
+    const snap = ease(Math.min(1, after / 0.06)), back = ease(Math.min(1, Math.max(0, after - 0.22) / 0.28));
+    armL = armR = (0.6 - 2.2 * snap) * (1 - back);
+    bodyX = (0.28 - 0.42 * snap) * (1 - back); headX = (0.45 - 0.7 * snap) * (1 - back); lift = 0.06 * snap * (1 - back);
+    fast = after < 0.1;
+  } else if (after >= 0 && s.lastAttack === 'erupt') {
     // bursts out of the ground: claws flung up
     armL = armR = -1.6;
-    headX = -0.4;
+    headX = -0.4; fast = true;
   } else if (s.state === 'stunned') {
     headX = 0.3 + Math.sin(time * 10) * 0.1;
   }
   // sinking is quick on the way down and quicker on the way up (the burst)
   r.sink = damp(r.sink || 0, sink, sink ? 3.5 : 14, dt);
-  b.body.position.y = 0.52 - r.sink * 1.3;
-  b.body.rotation.z = damp(b.body.rotation.z, bodyZ, 10, dt);
-  b.body.rotation.x = damp(b.body.rotation.x, (s.hurt || 0) * -0.15 + r.sink * 0.3, 10, dt);
-  b.head.rotation.x = damp(b.head.rotation.x, headX, 10, dt);
+  const f = fast ? 40 : 12; // strikes follow their keys almost at once; idle and walking ease
+  r.lift = damp(r.lift || 0, lift, f, dt);
+  b.body.position.y = 0.52 - r.sink * 1.3 + r.lift;
+  b.body.rotation.z = damp(b.body.rotation.z, bodyZ, f, dt);
+  b.body.rotation.x = damp(b.body.rotation.x, bodyX + (s.hurt || 0) * -0.15 + r.sink * 0.3, f, dt);
+  b.body.rotation.y = damp(b.body.rotation.y, twist, f, dt);
+  b.head.rotation.x = damp(b.head.rotation.x, headX, f, dt);
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6, 5, dt);
-  b.armL.rotation.x = damp(b.armL.rotation.x, armL, 14, dt);
-  b.armR.rotation.x = damp(b.armR.rotation.x, armR, 14, dt);
+  b.armL.rotation.x = damp(b.armL.rotation.x, armL, fast ? 40 : 14, dt);
+  b.armR.rotation.x = damp(b.armR.rotation.x, armR, fast ? 40 : 14, dt);
   b.tail.rotation.y = Math.sin(time * 3 + r.seed) * 0.2;
 }
 

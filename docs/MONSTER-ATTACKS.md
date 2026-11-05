@@ -89,6 +89,7 @@ session's network, so these come from search summaries of the cited pages.
 | Pearl slug (Lv24-26) | Cerata Volley (three darts in a fan); Mucus Surge (slide leaving a poison trail); Cerata Shed (sting patches when hit hard) |
 | Eye clam (Lv26-28) | Pearl Snipe (tracked aim line, then locks); Valve Jet (knockback cone); shell guard that reopens into Valve Jet |
 | Pearl Snail King (boss Lv30) | Frill Crush; Proboscis Harpoon (latched, then a stab that pulls in); slime trail; withdraws into its shell at 60% and 30%; Pearl Beam Sweep below 60% |
+| Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
 
 ## Rounds
 
@@ -188,6 +189,17 @@ session's network, so these come from search summaries of the cited pages.
   belly's sides were weighted to the legs (its skin followed the nearest segment, and the body's ran only along the
   spine): the body and chest now carry bars across the belly in `data/models.json`, so only the legs move with the
   legs. The game walks it with no bounce; the sandbox offers a 1.5 cm and a 3.5 cm bounce.
+- **Rootdigger mole, round 1** (2026-11-05, owner: "now redo the mole"): the first old monster on its own kit
+  (`behavior: "kit"`, the old `mole` behaviour removed). Dig Scoop keeps its sweep: an anticipation rearing back
+  with both claws raised (to 0.6 of the wind-up), held and trembling, a 0.07 s snap down and across on the hit,
+  carried low and held, then home; its claws glow amber as it rears; the contact is amber claw marks of light
+  (`rootdigger_mole.swipe` in `data/combat-fx.json`) and a fan of earth across the arc. Dirt Spray (new, kind
+  `volley`: five clods fanned 50 degrees, 2.5-7 m): hunched, nose down, claws churning faster and faster with earth
+  kicked up under them, then both claws fling forward; the clods are solid earth lobbed in a low arc and break into
+  a puff where they end. Burrow Burst keeps its rules (now through the kit: `beginAttack` marks the spot, never in a
+  safe town): it sinks while a mound of loose earth runs underground to the mark, then bursts up there. Kits now
+  close only to the range of an attack that is ready or nearly (one second), so the mole stops at spray range while
+  its scoop cools instead of always walking up to claw range.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

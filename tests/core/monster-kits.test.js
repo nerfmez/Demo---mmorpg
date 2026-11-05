@@ -413,3 +413,25 @@ test('a circling monster does not flick between closing in, circling and backing
   Object.assign(g.player, { x: m.x, z: m.z + near - 1 }); step(0.1);
   assert.equal(m.strafeMode, 'back');
 });
+
+test('rootdigger mole kit: the scoop hits its front arc once at the end of the wind-up; the dirt spray fans five clods at release', () => {
+  const s = M.rootdigger_mole.attacks.swipe, a = M.rootdigger_mole.attacks.spray;
+  const { m, hits, until, step, place, only } = arena('rootdigger_mole', 14, { open: true });
+  only('swipe'); place(1);
+  until(() => m.state === 'windup');
+  step(s.windup - 0.03);
+  assert.equal(hits.length, 0, 'no damage during the wind-up');
+  until(() => m.state === 'recover');
+  step(0.2);
+  assert.equal(hits.length, 1, 'the scoop hits once');
+  const b = arena('rootdigger_mole', 14, { open: true });
+  b.only('spray'); b.place(5);
+  b.until(() => b.m.state === 'windup');
+  assert.equal(b.m.windup.name, 'spray');
+  b.step(a.windup - 0.03);
+  assert.equal(b.g.projectiles.filter((p) => p.attack === 'spray').length, 0, 'none before the release');
+  b.until(() => b.m.state === 'recover');
+  assert.equal(b.g.projectiles.filter((p) => p.attack === 'spray').length, a.count);
+  for (let t = 0; t < 1.5; t += 0.01) { b.g.updateProjectiles(0.01); b.step(0.01); }
+  assert.ok(b.hits.length >= 1 && b.hits.length <= 2, `the middle clods hit, the outer ones pass (${b.hits.length})`);
+});

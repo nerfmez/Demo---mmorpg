@@ -574,6 +574,10 @@ Wide Spread and Far Reach share the `spread` family.
   quaternion advanced each frame by the rotation (up x velocity) * dt / radius, in the root's space from the
   measured forward and sideways speeds; it uncurls to attack. Walk styles (`styles` in `data/monster-motion.json`,
   `motionStyle`) override a type's tuning for the monster sandbox only.
+- **Rootdigger mole** (kit): `erupt` is a kit kind now (`beginAttack` marks the target's spot for the wind-up, skipped
+  when the target is in a safe town); Dirt Spray is a `volley` of solid clods drawn by MonsterFx (`SHOT_LOOKS.spray`,
+  lobbed in a sine arc, a puff of earth where each ends). Kit monsters close to `0.8 x` the range of their nearest
+  attack that is ready within a second (all of them when none is).
 - **Monster sandbox** (`?fresh=1&monsterLab=<type>`, `ui/monster-lab.js`): one monster in the real game,
   its chosen attack looped on a hero kept at full health; pause, x1/x0.5/x0.25, a 1/30 s frame step, a
   closer zoom, the camera framing both (`view.focusShift`). `tests/browser/monster-lab.mjs <type>`

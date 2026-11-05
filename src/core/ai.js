@@ -976,22 +976,6 @@ function moth(game, m, dt, { t, gap, dToT, slowMult }) {
   strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
 }
 
-/** Rootdigger Mole: claws up close; from range it digs under and bursts out of a marked spot. */
-function mole(game, m, dt, { t, gap, slowMult }) {
-  const a = m.def.attacks;
-  if (gap <= a.swipe.range && m.cd.swipe <= 0) return startWindup(game, m, 'swipe', t);
-  if (m.cd.erupt <= 0 && gap >= a.erupt.minRange && gap <= a.erupt.range && !game.isSafe(t.x, t.z)) {
-    startWindup(game, m, 'erupt', t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'erupt', kind: 'erupt', x: t.x, z: t.z, radius: a.erupt.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * a.erupt.damageMult });
-    return;
-  }
-  if (gap > a.swipe.range * 0.8) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
-  else {
-    m.moving = false;
-    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 4);
-  }
-}
-
 /**
  * A monster's own kit (behavior "kit"; owner, 2026-11-03: every monster its own attacks, docs/MONSTER-ATTACKS.md).
  * Each attack with `use` says when it is taken: `use.min`/`use.max` (the gap to the target, metres; max defaults
@@ -1014,19 +998,25 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     return;
   }
   dropTrail(game, m);
-  let reach = Infinity, soon = Infinity;
+  let reach = Infinity, reachAll = Infinity, soon = Infinity;
   for (const name of names) {
     const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
     if ((u.hpBelow && m.hp > m.maxHp * u.hpBelow) || (u.once && m.used?.[name])) continue;
     // behind: only for a target at its back (more than 100 degrees off its facing)
     if (u.behind && Math.abs(angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z))) < 1.75) continue;
-    reach = Math.min(reach, max);
+    // a burrow (erupt) never comes up in a safe town
+    if ((atk.kind || name) === 'erupt' && game.isSafe(t.x, t.z)) continue;
+    // it closes only as far as an attack that is ready, or nearly, needs (a mole with its scoop cooling stops at
+    // dirt-spray range instead of walking up to claw range)
+    if (m.cd[name] < 1) reach = Math.min(reach, max);
+    reachAll = Math.min(reachAll, max);
     soon = Math.min(soon, m.cd[name]);
     if (m.cd[name] > 0 || gap < (u.min ?? 0) || gap > max) continue;
     return beginAttack(game, m, name, t);
   }
   const circle = def.kit?.circle;
   if (circle && soon > 0.6) return strafe(game, m, dt, t, dToT, circle[0], circle[1], def.speed * slowMult);
+  if (reach === Infinity) reach = reachAll; // everything is cooling: close to its nearest reach as before
   if (gap > reach * 0.8) walkTo(game, m, t.x, t.z, def.speed * slowMult, dt, def.kit?.turn);
   else {
     m.moving = false;
@@ -1062,6 +1052,12 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'erupt') {
+    // the mole digs toward where the target stands now: the spot is marked for the whole dig and bursts as it surfaces
+    startWindup(game, m, name, t, { tx: t.x, tz: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'erupt', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    return;
+  }
   if (kind === 'skip') {
     // a run of hops along the line to the target (the pearl fish's flop): every landing is marked now and
     // hurts as it lands; the run stops short where the ground is blocked
@@ -1079,4 +1075,4 @@ export function beginAttack(game, m, name, t) {
   startWindup(game, m, name, t);
 }
 
-const BEHAVIORS = { kit, hare, moth, mole, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+const BEHAVIORS = { kit, hare, moth, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

@@ -36,7 +36,11 @@ const SHOT_LOOKS = {
   jet: { color: 0x9fe6ff, w: 1, l: 3, drops: 0.6, trail: 0xbff0ff },
   volley: { color: 0x6ae8d4, w: 0.45, l: 2.6, drops: 0.35, trail: 0xe0ccff },
   snipe: { color: 0xfff2f8, w: 0.95, l: 1.6, drops: 0.7, trail: 0xffd8ec },
+  // the mole's dirt spray: solid clods of earth (not light) lobbed in a low arc, shedding crumbs
+  spray: { color: 0x6b4e33, w: 0.85, l: 1.05, drops: 0.5, trail: 0x9a7a52, solid: true, arc: 0.9 },
 };
+// the mole's own colours: amber claw light over warm earth
+const MOLE_HALO = new THREE.Color('#e8963c'), MOLE_RIM = new THREE.Color('#fff2d8'), EARTH = [0x6b4e33, 0x8a6a4a, 0x9a7a52];
 const SHOTS = {};
 
 export class MonsterFx {
@@ -59,7 +63,7 @@ export class MonsterFx {
     this.slugGeo = new THREE.SphereGeometry(0.16, 10, 8); this.slugGeo.userData.shared = true;
     this.slugs = Array.from({ length: 3 }, () => { const m = new THREE.Mesh(this.slugGeo, slugMat); m.visible = false; m.renderOrder = 9; scene.add(m); return m; });
     for (const [kind, c] of Object.entries(SHOT_LOOKS)) {
-      const mat = new THREE.MeshBasicMaterial({ color: c.color, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+      const mat = c.solid ? new THREE.MeshBasicMaterial({ color: c.color }) : new THREE.MeshBasicMaterial({ color: c.color, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
       mat.userData.shared = true;
       SHOTS[kind] = { ...c, mat };
     }
@@ -80,7 +84,11 @@ export class MonsterFx {
   swing(e, g) {
     // a strike whose look is 'light' (data/combat-fx.json monsters): claw marks of light raked across the prey
     const look = this.host.vfx?.monsterLook?.(e.type, e.name);
-    if (look?.kind === 'light') { if (e.at) this.rake(e, look); return true; }
+    if (look?.kind === 'light') {
+      if (e.at) this.rake(e, look);
+      if (e.type === 'rootdigger_mole') this.dirtFan(e);
+      return true;
+    }
     if (e.type === 'stone_pangolin') return this.pangolinSwing(e);
     if (e.type === 'pearl_snail_king' && e.name === 'crush') {
       // the frill slaps down: slime thrown along its edge, and a splat of slime on what it hits
@@ -144,6 +152,16 @@ export class MonsterFx {
     return false;
   }
 
+  /** The mole's scoop throws a fan of earth across its arc, clods and dust, low and short. */
+  dirtFan(e) {
+    const fx = this.host.vfx?.fx, arc = (e.arc * Math.PI) / 180, y = this.host.groundAt?.(e.x, e.z) ?? 0;
+    if (fx) for (let i = 0; i < 16; i++) {
+      const a = e.angle + (Math.random() - 0.5) * arc, R = 0.6 + Math.random() * 0.5, sp = 2.5 + Math.random() * 2.5;
+      fx.add(e.x + Math.sin(a) * R, y + 0.35, e.z + Math.cos(a) * R, Math.sin(a) * sp, 2 + Math.random() * 2.5, Math.cos(a) * sp, { color: EARTH[i % 3], size: 0.2 + Math.random() * 0.1, sizeEnd: 0.14, life: 0.6, gravity: 14, drag: 0.6 });
+    }
+    for (let i = 0; i < 4; i++) { const a = e.angle + (i / 3 - 0.5) * arc * 0.8; this.call.dust(e.x + Math.sin(a) * 1.2, y + 0.15, e.z + Math.cos(a) * 1.2, Math.sin(a) * 1.4, 0.4, Math.cos(a) * 1.4, 0.8, 0.5); }
+  }
+
   rake(e, look) {
     const c = this.colors(look);
     this.companion.axes();
@@ -169,6 +187,11 @@ export class MonsterFx {
     if (m?.type === 'eye_clam' && e.name === 'snipe') this.cues.push({ id: e.id, kind: 'clam_snipe', t: 0, total: e.total, next: 0 });
     if (m?.type === 'pearl_fish' && e.name === 'jet') this.cues.push({ id: e.id, kind: 'fish_jet', t: 0, total: e.total, next: 0 });
     if (m?.type === 'leaf_tanuki' && (e.name === 'drum' || e.name === 'boomerang' || e.name === 'doubles')) this.cues.push({ id: e.id, kind: 'tanuki_' + e.name, t: 0, total: e.total, next: 0 });
+    if (m?.type === 'rootdigger_mole') {
+      // the dig carries a mound of earth from where it went under to the marked spot
+      const a = e.name === 'erupt' ? g.areas?.find((q) => q.sourceId === e.id && q.attack === 'erupt') : null;
+      this.cues.push({ id: e.id, kind: 'mole_' + e.name, t: 0, total: e.total, next: 0, x: e.x, z: e.z, tx: a ? a.x : e.x, tz: a ? a.z : e.z });
+    }
     if (m?.type !== 'leaf_fox') return;
     if (e.name === 'gust' || e.name === 'pounce') this.cues.push({ id: e.id, kind: e.name, t: 0, total: e.total, next: 0 });
   }
@@ -399,6 +422,33 @@ export class MonsterFx {
         c.next -= dt;
         const b = this.bonePos(c.id, 'body', _w);
         if (b && c.next <= 0) { c.next = 0.05; const a = Math.random() * 6.283; this.host.vfx?.dust.add(b.x + Math.sin(a) * 0.6, b.y - 0.2, b.z + Math.cos(a) * 0.6, Math.cos(a) * 1.5, 0.9, -Math.sin(a) * 1.5, { color: 0xfff0f6, size: 0.3, sizeEnd: 0.8, life: 0.5, drag: 2 }); }
+      } else if (c.kind === 'mole_swipe') {
+        // the raised claws warm with amber light as it rears
+        const h = this.bonePos(c.id, 'handR', _w);
+        if (h) { glowAt = h; glowK = 0.3 + 0.7 * k; glowTint = 0xffb060; }
+      } else if (c.kind === 'mole_spray') {
+        // earth churned up under its claws, faster and higher as it nears the fling
+        c.next -= dt;
+        if (c.next <= 0) {
+          c.next = 0.06 - 0.03 * k;
+          const fx = this.host.vfx?.fx;
+          for (const hand of ['handL', 'handR']) {
+            const h = this.bonePos(c.id, hand, _w);
+            if (!h || !fx) continue;
+            const gy = this.host.groundAt?.(h.x, h.z) ?? 0, a = Math.random() * 6.283;
+            fx.add(h.x, gy + 0.2, h.z, Math.sin(a) * 1.2, 1.5 + 2.5 * k * Math.random(), Math.cos(a) * 1.2, { color: EARTH[(Math.random() * 3) | 0], size: 0.14 + 0.08 * k, sizeEnd: 0.1, life: 0.45, gravity: 12, drag: 0.8 });
+          }
+        }
+      } else if (c.kind === 'mole_erupt') {
+        // a mound of loose earth runs underground from where it went in to the mark, arriving as the dig ends
+        c.next -= dt;
+        const p = Math.max(0, Math.min(1, (k - 0.25) / 0.7)), x = c.x + (c.tx - c.x) * p, z = c.z + (c.tz - c.z) * p;
+        if (k > 0.25 && c.next <= 0) {
+          c.next = 0.05;
+          const gy = this.host.groundAt?.(x, z) ?? 0, fx = this.host.vfx?.fx;
+          this.call.dust(x, gy + 0.12, z, (Math.random() - 0.5) * 0.8, 0.5, (Math.random() - 0.5) * 0.8, 0.75, 0.45);
+          if (fx) for (let i = 0; i < 2; i++) { const a = Math.random() * 6.283; fx.add(x + Math.sin(a) * 0.25, gy + 0.15, z + Math.cos(a) * 0.25, Math.sin(a) * 1.1, 1.6 + Math.random() * 1.2, Math.cos(a) * 1.1, { color: EARTH[i % 3], size: 0.15, sizeEnd: 0.1, life: 0.5, gravity: 12, drag: 0.5 }); }
+        }
       } else if (c.kind === 'pounce') {
         // listening: two little arcs of light pulse by its ears through the frozen part of the wind-up
         c.next -= dt;
@@ -458,7 +508,8 @@ export class MonsterFx {
     for (const pr of g.projectiles) {
       const look = SHOTS[pr.kind];
       if (!look || n >= this.slugs.length) continue;
-      const m = this.slugs[n++], k = Math.min(1, pr.travelled / pr.range), y = (this.host.groundAt?.(pr.x, pr.z) ?? 0) + (pr.y ?? 0.7);
+      const m = this.slugs[n++], k = Math.min(1, pr.travelled / pr.range), y = (this.host.groundAt?.(pr.x, pr.z) ?? 0) + (pr.y ?? 0.7) + (look.arc ? Math.sin(k * Math.PI) * look.arc : 0);
+      if (look.solid) { (this.clods ??= new Map()).set(pr, (this.clodsT ??= 0)); pr.lastX = pr.x; pr.lastZ = pr.z; }
       m.visible = true; m.position.set(pr.x, y, pr.z);
       m.rotation.set(0, Math.atan2(pr.vx, pr.vz), 0);
       m.material = look.mat;
@@ -468,6 +519,17 @@ export class MonsterFx {
       if (Math.random() < look.drops) this.host.vfx?.fx.add(pr.x, y, pr.z, -pr.vx * 0.05 + (Math.random() - 0.5) * 0.6, 0.4, -pr.vz * 0.05 + (Math.random() - 0.5) * 0.6, { color: look.trail, size: 0.11, life: 0.32, gravity: pr.kind === 'jet' ? 6 : 0, drag: 1.5 });
     }
     for (let i = n; i < this.slugs.length; i++) this.slugs[i].visible = false;
+    // a clod that ended (hit or fell): it breaks into a puff of earth where it was
+    if (this.clods?.size) {
+      this.clodsT++;
+      for (const [pr, t] of this.clods) {
+        if (g.projectiles.includes(pr)) { this.clods.set(pr, this.clodsT); continue; }
+        this.clods.delete(pr);
+        const gy = this.host.groundAt?.(pr.lastX, pr.lastZ) ?? 0, fx = this.host.vfx?.fx;
+        this.call.dust(pr.lastX, gy + 0.3, pr.lastZ, 0, 0.6, 0, 0.7, 0.45);
+        if (fx) for (let i = 0; i < 5; i++) { const a = (i / 5) * 6.283; fx.add(pr.lastX, gy + 0.5, pr.lastZ, Math.sin(a) * 1.6, 1.5 + Math.random() * 1.5, Math.cos(a) * 1.6, { color: EARTH[i % 3], size: 0.14, sizeEnd: 0.1, life: 0.45, gravity: 12, drag: 0.6 }); }
+      }
+    }
     for (const a of g.areas) {
       if (a.attack !== 'flop' || a.t < a.delay || this.splashes.has(a.id)) continue;
       this.splashes.add(a.id);

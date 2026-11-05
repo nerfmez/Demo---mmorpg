@@ -242,21 +242,24 @@ function buildMole() {
 const ease = (x) => x * x * (3 - 2 * x);
 function animMole(r, s, dt, time) {
   const b = r.bones, k = windK(s);
-  // Walking (owner, 2026-11-05: the walk was not good): a mole paddles. Locked to its ground speed (one stride every
-  // 0.95 m), each front paw reaches forward and out, then sweeps back and in under the body like a swimmer's stroke;
-  // the hind feet step with the opposite front paw (diagonal pairs); the body rolls and twists toward the paw that
-  // is pulling, bobs on each stroke, and the head stays steady, turning a little against the sway.
+  // Walking (owner, 2026-11-05: "it must part the earth with its hands as it walks"): a breaststroke through the soil.
+  // Locked to its ground speed (one stroke every 0.75 m): both front paws reach forward together, close in under the
+  // nose (u 0..0.4), then part the earth, sweeping wide out to the sides and back (0.4..0.85) while the body surges
+  // forward with the push, and recover in (to 1); the hind feet shuffle alternately under it. MonsterFx throws the
+  // parted earth off each paw at the height of the sweep (skillfx/mole-fx.js walkDig).
   const sp = s.smoothSpeed ?? s.speed ?? (s.moving ? 1.5 : 0);
   const w = (r.runW = damp(r.runW || 0, clamp01(sp / 0.5), 8, dt));
-  r.phase = (r.phase || 0) + dt * Math.min(14, (sp * Math.PI * 2) / 0.95) * (s.backing ? -1 : 1);
-  const sn = Math.sin(r.phase), cs = Math.cos(r.phase);
-  let sink = 0, armL = -0.6 * sn * w, armR = 0.6 * sn * w, headX = Math.sin(time * 1.4 + r.seed) * 0.04 + 0.05 * cs * w;
-  let armLz = (0.12 + 0.22 * Math.max(0, sn)) * w, armRz = -(0.12 + 0.22 * Math.max(0, -sn)) * w;
-  let legL = 0.45 * sn * w, legR = -0.45 * sn * w;
-  // seen from the high camera the stroke reads sideways: each paw sweeps out and back, then comes in to reach again
-  let armLy = (0.2 + 0.32 * sn) * w, armRy = -(0.2 - 0.32 * sn) * w;
-  let bodyZ = 0.08 * sn * w, bodyX = 0.04 * w, twist = 0.1 * sn * w, lift = 0.025 * w * Math.abs(cs), fast = false;
-  const headY = -0.08 * sn * w;
+  r.phase = (r.phase || 0) + dt * Math.min(12, (sp * Math.PI * 2) / 0.75) * (s.backing ? -1 : 1);
+  const u = (((r.phase / (Math.PI * 2)) % 1) + 1) % 1, sn = Math.sin(r.phase);
+  const reach = u < 0.4 ? ease(u / 0.4) : 1 - ease(Math.min(1, (u - 0.4) / 0.45));  // 1 = paws forward and in
+  const part = u < 0.4 ? 0 : u < 0.85 ? ease((u - 0.4) / 0.45) : 1 - ease((u - 0.85) / 0.15); // 1 = swept wide
+  const push = u > 0.4 && u < 0.85 ? Math.sin(((u - 0.4) / 0.45) * Math.PI) : 0;
+  let sink = 0, armL = (-0.55 * reach + 0.35 * part) * w, armR = armL, headX = Math.sin(time * 1.4 + r.seed) * 0.04 + 0.04 * push * w;
+  let armLz = (0.05 + 0.3 * part) * w, armRz = -armLz;
+  let legL = 0.4 * sn * w, legR = -0.4 * sn * w;
+  let armLy = (-0.25 * reach + 0.85 * part) * w, armRy = -armLy;
+  let bodyZ = 0.04 * sn * w, bodyX = (0.06 + 0.06 * push) * w, twist = 0, lift = 0.03 * push * w, fast = false;
+  const headY = 0;
   const after = s.state === 'recover' ? s.actT || 0 : -1;
   if (s.windup || after >= 0) { armLz = armRz = armLy = armRy = 0; legL = legR = 0; }
   // Real mole digging, not raised arms (owner, 2026-11-05: "unnatural"): a mole's front paws are turned outward and
@@ -330,4 +333,4 @@ export const GROVE_BUILDERS = {
   mirrorwing_moth: [buildMoth, animMoth],
   rootdigger_mole: [buildMole, animMole],
 };
-export const GROVE_SCALE = { fern_ear_hare: 0.7, mirrorwing_moth: 1, rootdigger_mole: 0.95 };
+export const GROVE_SCALE = { fern_ear_hare: 0.7, mirrorwing_moth: 1, rootdigger_mole: 1.3 }; // the mole bigger (owner, 2026-11-05)

@@ -1324,7 +1324,7 @@
       "damage": 110,
       "defense": 90,
       "speed": 2.6,
-      "radius": 0.85,
+      "radius": 1.1,
       "aggroRange": 8,
       "leashRange": 18,
       "exp": 22,

@@ -19,7 +19,7 @@ const EARTH_FS = `varying vec3 vN; uniform vec3 uLit; uniform vec3 uMid; uniform
   void main(){ float l = dot(normalize(vN), normalize(vec3(-0.33, 0.82, 0.49)));
     gl_FragColor = vec4(l > 0.55 ? uLit : (l > 0.1 ? uMid : uDark), 1.0); }`;
 const SOIL = { lit: [0.56, 0.41, 0.27], mid: [0.4, 0.28, 0.19], dark: [0.25, 0.17, 0.12] };
-const CLODS = 10, SLABS = 16, DUST = 28, PITS = 3;
+const CLODS = 14, SLABS = 16, DUST = 32, PITS = 6;
 
 export class MoleFx {
   constructor(scene, camera, host) {
@@ -98,8 +98,29 @@ export class MoleFx {
     for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.283 + r(); this.puff(e.x + Math.sin(a) * 0.4, 0.3, e.z + Math.cos(a) * 0.4, Math.sin(a) * 2.6, Math.cos(a) * 2.6, 1.2 + r() * 0.5, 0.9, 0.9); }
   }
 
+  /** Walking, its paws part the earth: at the height of each stroke a puff and a few clods are thrown off each paw,
+   *  outward and back, and a shallow scrape is left where it pushed. */
+  walkDig(g) {
+    for (const m of g.monsters) {
+      if (m.type !== 'rootdigger_mole' || m.dead || m.state === 'windup') continue;
+      const rig = this.host.monsterRig?.(m.id);
+      if (!rig || !(rig.runW > 0.5)) { if (rig) rig.digU = undefined; continue; }
+      const u = (((rig.phase / (Math.PI * 2)) % 1) + 1) % 1, was = rig.digU;
+      rig.digU = u;
+      if (was === undefined || !(was < 0.55 && u >= 0.55)) continue;
+      const r = this.rnd, f = m.facing, fx = Math.sin(f), fz = Math.cos(f), rx = Math.cos(f), rz = -Math.sin(f);
+      for (const side of [1, -1]) {
+        const hx = m.x + fx * 1.1 + rx * side * 0.85, hz = m.z + fz * 1.1 + rz * side * 0.85;
+        this.puff(hx, 0.25, hz, rx * side * 2 - fx * 0.5, rz * side * 2 - fz * 0.5, 1.0 + r() * 0.35, 0.7, 0.35);
+        for (let i = 0; i < 3; i++) this.clod(hx, 0.3, hz, rx * side * (2 + r() * 1.5) - fx * 0.8, 1.8 + r() * 1.8, rz * side * (2 + r() * 1.5) - fz * 0.8, 0.07 + r() * 0.05, 0.9);
+      }
+      if (r() < 0.5) this.pit(m.x + fx * 0.7, m.z + fz * 0.7, 0.9, 1.4, { angle: f + Math.PI, arc: 140 });
+    }
+  }
+
   update(dt, g) {
     const r = this.rnd;
+    this.walkDig(g);
     // the burrow: the pit where it went under, then (once it is down) the ground heaving along its path
     for (const [id, d] of this.digs) {
       const m = g.monsterById?.(id);

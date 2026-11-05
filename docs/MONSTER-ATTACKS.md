@@ -225,6 +225,12 @@ session's network, so these come from search summaries of the cited pages.
   paws drawn in under the chest, then sweeps them forward and out in one snap with a lunge; the spray digs with
   quickening alternating strokes and flings both paws up and forward; the burrow digs in fast and bursts up with the
   paws flung out to the sides. The old particle burst and dig dust (`vfx.erupt`, `digDust`) no longer draw for it.
+- **Rootdigger mole, round 4** (2026-11-05, owner: "walking it must part the earth with its hands, with an effect of
+  earth being dug, and make the mole bigger"): the walk is a breaststroke through the soil, locked to its ground
+  speed (a stroke every 0.75 m): both paws reach forward and close in under the nose, then sweep wide out to the
+  sides and back while the body surges forward, the hind feet shuffling under it; at the height of each sweep
+  MoleFx `walkDig` throws a puff of dust and clods off each paw, outward and back, and now and then leaves a shallow
+  scrape. Drawn 1.3x (was 0.95), its rules radius 1.1 m (was 0.85).
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

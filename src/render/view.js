@@ -368,14 +368,18 @@ export class View {
    * a model, build and compile one model rig for each so the first encounter does not hitch, and
    * rebuild the ones already on screen. Other types keep their warmed pool.
    */
-  /** Rigs built before their model arrived are rebuilt with it: every type, or only `only` (a type that just loaded). */
+  /**
+   * Rigs built before their model arrived are rebuilt with it. With `only` (a type whose model just loaded) only the
+   * monsters of that type on screen are rebuilt, at once and without compiling the scene again (that cost the whole
+   * scene a compile pass per type at load); the pooled rigs are rebuilt and compiled once, when everything is in.
+   */
   refreshModelRigs(only = null) {
     const tmp = new THREE.Group();
     const [x, z] = this.world.data.playerSpawn;
     const fresh = [];
-    for (const [key, pool] of this.rigPool || []) {
+    for (const [key, pool] of only ? [] : this.rigPool || []) {
       const type = key.split('#')[0];
-      if ((only && type !== only) || !monsterModel(type) || pool.every((r) => r.model)) continue;
+      if (!monsterModel(type) || pool.every((r) => r.model)) continue;
       for (const rig of pool) disposeObject(rig.root);
       this.rigPool.delete(key);
       const rig = buildMonster(type, 1, key.endsWith('#boss'));
@@ -401,7 +405,9 @@ export class View {
   /** Monster models are pooled per type: building one costs time and GPU memory. */
   takeRig(type, level, boss) {
     const pool = this.rigPool?.get(type + (boss ? '#boss' : ''));
-    const rig = pool?.pop();
+    let rig = pool?.pop();
+    // a pooled rig built while its model was still loading is not handed out once the model is in
+    if (rig?.awaitingModel && monsterModel(type)) { disposeObject(rig.root); rig = null; }
     if (!rig) return buildMonster(type, level, boss);
     rig.baseScale = monsterScale(type, level, boss);
     rig.root.scale.setScalar(rig.baseScale);

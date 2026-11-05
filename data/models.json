@@ -7245,28 +7245,13 @@
       "source": "Meshy 6 image-to-3d with a Meshy 6 retexture from the owner's forest sheet (docs/reference/forest-leaf-tanuki.png; assets/meshy/forest/leaf_tanuki_textured_meshy.glb), prepared with scripts/prep-monster-glb.py --tex 512; joints placed from the mesh, the wolf rig's bones so the CC0 Shiba Inu clips play on it",
       "segments": {
         "body": [
-          [
-            0,
-            0.42,
-            -0.3
-          ],
-          [
-            0,
-            0.45,
-            0.15
-          ]
+          [[0, 0.42, -0.3], [0, 0.45, 0.15]],
+          [[-0.2, 0.3, -0.1], [0.2, 0.3, -0.1]],
+          [[-0.2, 0.3, 0.12], [0.2, 0.3, 0.12]]
         ],
         "chest": [
-          [
-            0,
-            0.45,
-            0.15
-          ],
-          [
-            0,
-            0.48,
-            0.42
-          ]
+          [[0, 0.45, 0.15], [0, 0.48, 0.42]],
+          [[-0.18, 0.33, 0.34], [0.18, 0.33, 0.34]]
         ],
         "neck": [
           [

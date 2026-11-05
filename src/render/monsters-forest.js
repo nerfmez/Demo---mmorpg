@@ -92,7 +92,8 @@ function quadWalk(r, s, dt, time) {
   const w = advanceGait(r, s, dt, c), ph = r.phase, run = r.runK;
   const busy = !!(s.windup || s.state === 'act' || s.state === 'stunned');
   const P = r.qpose || (r.qpose = { headY: 0, bodyZ: 0 });
-  const drop = poseLegs(r, c, r.legs);
+  // (c.dropK: how much the body sinks as the legs spread; under 1 the body rides level instead of dipping each step)
+  const drop = poseLegs(r, c, r.legs) * (c.dropK ?? 1);
   const rock = c.pitch * w * ((1 - run) * Math.sin(2 * ph) + run * 2.5 * Math.sin(ph + 0.8));
   const bob = c.bob * w * (1 + run) * (0.5 + 0.5 * Math.cos(2 * ph));
   const roll = c.roll * w * Math.sin(ph) * (1 - 0.6 * run);

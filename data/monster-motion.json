@@ -23,7 +23,7 @@
     "run": [0, 0.5, 0.5, 0]
   },
   "monsters": {
-    "leaf_tanuki": { "_doc": "owner, 2026-11-04/05: the bouncing trot (เหยาะเด้ง), only a light bounce (0.14, then 0.08 were too much), no squash (its belly looked to cave in) and a shorter leg swing (a wide one dented the belly where the legs join it)", "legLength": 0.3, "walk": [0, 0.5, 0.5, 0], "run": [0, 0.5, 0.5, 0], "duty": 0.42, "runDuty": 0.38, "swing": 0.6, "runSwing": 0.7, "knee": 1.2, "hop": 0.035, "squash": 0, "bob": 0, "roll": 0.03, "pitch": 0.05, "sway": 0.02, "headSteady": 0.6, "runFrom": 1.8, "runFull": 3.0 },
+    "leaf_tanuki": { "_doc": "owner, 2026-11-04/05: the bouncing trot (เหยาะเด้ง), only a light bounce (0.14, then 0.08 were too much), no squash (its belly looked to cave in) and a shorter leg swing (a wide one dented the belly where the legs join it); 2026-11-05: the body rides level (dropK 0: it dipped with every step even with no hop)", "legLength": 0.3, "walk": [0, 0.5, 0.5, 0], "run": [0, 0.5, 0.5, 0], "duty": 0.42, "runDuty": 0.38, "swing": 0.5, "runSwing": 0.6, "knee": 1.1, "dropK": 0, "hop": 0, "squash": 0, "bob": 0, "roll": 0.03, "pitch": 0.015, "sway": 0.02, "headSteady": 0.6, "runFrom": 1.8, "runFull": 3.0 },
     "stone_pangolin": { "_doc": "travelling it rolls as its ball (monsters-forest.js); these legs only shuffle it round on the spot", "legLength": 0.4, "swing": 0.5, "duty": 0.65, "knee": 0.6, "bob": 0.025, "roll": 0.05, "pitch": 0.02, "sway": 0.04, "headSteady": 0.5, "runFrom": 99, "runFull": 100 },
     "tusk_boar": { "legLength": 0.5, "swing": 0.38, "bob": 0.045, "roll": 0.05, "pitch": 0.04, "sway": 0.04, "headSteady": 0.4, "runFrom": 2.4, "runFull": 3.5, "run": [0, 0.5, 0.5, 0] },
     "thornback_wolf": { "legLength": 0.62, "swing": 0.45, "runSwing": 0.75, "runFrom": 2.6, "runFull": 4.6, "run": [0.12, 0.28, 0.62, 0.78] },
@@ -75,9 +75,9 @@
   "styles": {
     "_doc": "Walk choices the monster sandbox offers per type (motionStyle; chips in the lab's walk mode), each overriding the type's tuning, for the owner to compare live. hop (m, any type) bounces the body off each pair of footfalls with a squash on landing (squash).",
     "leaf_tanuki": {
-      "game": { "nameTh": "เด้งนิดเดียว (ในเกม)" },
-      "lighter": { "nameTh": "เด้งน้อยลงอีก", "hop": 0.015 },
-      "none": { "nameTh": "ไม่เด้ง", "hop": 0 }
+      "game": { "nameTh": "ไม่เด้ง (ในเกม)" },
+      "light": { "nameTh": "เด้งนิดเดียว", "hop": 0.015 },
+      "more": { "nameTh": "เด้ง 3 ซม.", "hop": 0.035 }
     }
   }
 }

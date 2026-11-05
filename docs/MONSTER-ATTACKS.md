@@ -182,6 +182,12 @@ session's network, so these come from search summaries of the cited pages.
   hop is down to 3.5 cm (from 8), the landing squash is gone (it flattened the whole body each step), and the legs
   swing less (0.6 rad, knee 1.2, from 0.8 and 1.6): the wide swing pulled the belly in where the legs join it. The
   sandbox compares it with an even lighter bounce and none.
+- **Walks, round 13** (2026-11-05, owner: "even with no bounce it still bounces, and the belly caves in and twists"):
+  the bounce left with no hop was the gait's own sink as the legs spread (5 cm each step on these short legs):
+  `dropK` 0 now keeps the tanuki's body level (measured: no change in height over the cycle without the hop). The
+  belly's sides were weighted to the legs (its skin followed the nearest segment, and the body's ran only along the
+  spine): the body and chest now carry bars across the belly in `data/models.json`, so only the legs move with the
+  legs. The game walks it with no bounce; the sandbox offers a 1.5 cm and a 3.5 cm bounce.
 - **Stone pangolin** (2026-11-04): the tail lash became a blunt burst star with chips (claw marks stay on the
   rake). The roll ball looked bare (14 plates): it now wears the body's armour, rows of round domed plates with
   dark skin between them, moss, and the tail curled round it as a ridge. Fixed: the body stayed invisible after

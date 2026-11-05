@@ -241,6 +241,16 @@
       "dust": 10,
       "dur": 0.36
     },
+    "sidestep": {
+      "kind": "light",
+      "scissor": true,
+      "halo": "#ff8a3a",
+      "rim": "#fff4e6",
+      "len": 0.7,
+      "wid": 1.05,
+      "height": 0.6,
+      "shake": 0.06
+    },
     "box": {
       "kind": "light",
       "blunt": true,

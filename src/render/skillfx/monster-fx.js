@@ -532,7 +532,9 @@ export class MonsterFx {
         const b = this.bonePos(c.id, 'body', _w);
         if (b && c.next <= 0) { c.next = 0.05; const a = Math.random() * 6.283; this.host.vfx?.dust.add(b.x + Math.sin(a) * 0.6, b.y - 0.2, b.z + Math.cos(a) * 0.6, Math.cos(a) * 1.5, 0.9, -Math.sin(a) * 1.5, { color: 0xfff0f6, size: 0.3, sizeEnd: 0.8, life: 0.5, drag: 2 }); }
       } else if (c.kind === 'crab_sidestep') {
-        // legs dig in, scuffing sand in place, faster as it is about to dash
+        // legs dig in, scuffing sand in place, faster as it is about to sweep; its open claws warm with light
+        const cl = this.bonePos(c.id, 'mandL', _w);
+        if (cl && k > 0.3) { glowAt = cl; glowK = 0.3 + 0.6 * k; glowTint = 0xffa860; glowSize = 0.6; }
         c.next -= dt;
         const m2 = g.monsterById?.(c.id);
         if (m2 && c.next <= 0) { c.next = 0.1 - 0.06 * k; const a = Math.random() * 6.283, y = this.host.groundAt?.(m2.x, m2.z) ?? 0; this.call.dust(m2.x + Math.sin(a) * 0.6, y + 0.1, m2.z + Math.cos(a) * 0.6, Math.sin(a) * 0.8, 0.4, Math.cos(a) * 0.8, 0.4, 0.35); }
@@ -654,9 +656,30 @@ export class MonsterFx {
       this.mines.delete(id); this.popped.delete(id);
     }
     for (const a of g.areas) if (a.kind === 'bubble_mine') { const q = this.mines.get(a.id); if (q) { q.lx = a.x; q.lz = a.z; q.lid = a.id; } }
-    for (const m of g.monsters) if (m.type === 'reef_crab' && m.charge?.scuttle && Math.random() < 0.8) {
-      const y = this.host.groundAt?.(m.x, m.z) ?? 0, a = Math.random() * 6.283;
-      this.call.dust(m.x + Math.sin(a) * 0.5, y + 0.12, m.z + Math.cos(a) * 0.5, Math.sin(a) * 0.9, 0.5, Math.cos(a) * 0.9, 0.5, 0.4);
+    const fx = this.host.vfx?.fx;
+    for (const m of g.monsters) {
+      if (m.type !== 'reef_crab' || !m.charge?.scuttle) continue;
+      const c = m.charge, y = this.host.groundAt?.(m.x, m.z) ?? 0;
+      if (Math.random() < 0.8) { const a = Math.random() * 6.283; this.call.dust(m.x + Math.sin(a) * 0.5, y + 0.12, m.z + Math.cos(a) * 0.5, Math.sin(a) * 0.9, 0.5, Math.cos(a) * 0.9, 0.5, 0.4); }
+      // the sweep itself: both claws carve a streak of light through the air as it scuttles across, and flash as
+      // they snap shut (about seven snaps over the two passes)
+      const rig = this.rig(m.id);
+      for (const [bone, sx] of [['mandL', 1], ['mandR', -1]]) {
+        const b = rig?.bones?.[bone];
+        if (!b || !fx) continue;
+        b.updateWorldMatrix(true, false);
+        _v.set(sx * 0.08, 0.12, 0.6).applyMatrix4(b.matrixWorld);
+        // a continuous ribbon of glow: fill in between where the claw tip was last frame and where it is now
+        const prev = (c.tips ||= {})[bone] || (c.tips[bone] = _v.clone());
+        for (let i = 1; i <= 4; i++) {
+          const u = i / 4, x = prev.x + (_v.x - prev.x) * u, yy = prev.y + (_v.y - prev.y) * u, z = prev.z + (_v.z - prev.z) * u;
+          fx.add(x, yy, z, 0, 0.02, 0, { color: 0xff9a4a, size: 0.55, sizeEnd: 0.1, life: 0.3, drag: 4 });
+          fx.add(x, yy, z, 0, 0.02, 0, { color: 0xfff4e6, size: 0.24, sizeEnd: 0.04, life: 0.2, drag: 4 });
+        }
+        prev.copy(_v);
+        const snap = Math.floor(c.t / 0.17);
+        if (snap !== (c.snap?.[bone] ?? -1)) { (c.snap ||= {})[bone] = snap; this.companion.glint(_v.x, _v.y, _v.z, 0.55, 0); }
+      }
     }
   }
   /** A bubble mine left alone floats off: a soft pop, a few droplets. */

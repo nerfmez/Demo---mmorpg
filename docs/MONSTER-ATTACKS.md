@@ -301,6 +301,10 @@ Rules for every new kit:
   what is in front within `range` once a pass; its lane tell is the box it sweeps. Bubble Mines (kind `bubble_mines`):
   areas with `mine` that burst on the first unit touching them, else end unsprung (a new area rule in
   `updateAreas`).
+- **Reef crab, round 3** (2026-11-05, owner: "the claw sweep shows no effect on the attack, it looks odd"): the sweep
+  only had sand. Now its open claws warm with light in the wind-up; while it sweeps both claw tips carve a continuous
+  orange streak of light through the air, flashing at each snap; a pass that clips the prey sends a `monsterSwing`
+  (look `sidestep`: two crossing marks of light on it).
 - **Monster Lab as its own page** (2026-11-05, owner: "why not a separate test site like the skill tests, why the
   whole game"): the Pages route rebuilt and redeployed the whole 340 MB site for each round (~20 minutes). The
   sandbox is now also a standalone artifact like the Skill FX bench: `scripts/monster-lab-artifact.mjs` packs the

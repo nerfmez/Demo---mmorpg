@@ -648,6 +648,8 @@ function act(game, m, dt, t) {
       const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, lat = Math.abs(dx * px + dz * pz);
       if (along >= 0 && along <= c.reach + u.r && lat <= 0.7 + u.r) {
         c.hits[pass].add(u.id);
+        // the claws' contact, for the renderer's marks on what was clipped
+        game.emit({ type: 'monsterSwing', id: m.id, name: m.windup?.name, angle: c.angle, range: c.reach + m.r, arc: 140, x: m.x, z: m.z, hit: pass + 1 });
         game.damageUnit(u, c.dmg, m, { attack: m.windup?.name });
       }
     }

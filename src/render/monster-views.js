@@ -168,7 +168,6 @@ export function syncMonsterViews(view, dt, time) {
     state.dragging = !!m.drag; // the shore gull riding its prey's head
     state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0;
     state.naked = m.naked ? m.naked.phase : null; // the hermit crab out of its shell: loose, home, climb // the boar running a leg, or skidding
-    r.animState = state; // what it was posed from (skillfx/hermit-fx.js poses the bare hermit crab's body from it)
     r.animate(
       r,
       state,

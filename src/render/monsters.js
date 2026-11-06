@@ -498,7 +498,7 @@ function animCrab(r, s, dt, time) {
   const sting = r.hermit && s.windup === 'anemone' ? clamp01(s.windupT / s.windupTotal) : 0;
   const stung = r.hermit && s.state === 'recover' && s.lastAttack === 'anemone' ? Math.max(0, 1 - s.actT / 0.35) : 0;
   const shed = r.hermit && s.windup === 'shell_shed' ? clamp01(s.windupT / s.windupTotal) : 0;
-  const bare = r.hermit && ((s.naked && s.naked !== 'climb') || s.bare) ? 1 : 0; // s.bare: the bare body drawn in its place
+  const bare = r.hermit && s.naked && s.naked !== 'climb' ? 1 : 0;
   poseSplayedLegs(r, c, r.legs, SIDES6, 'z');
   for (const n of r.legs) b[n].scale.setScalar(1 - tucked * .8);
   // a crab scuttles sideways: the body turns side-on while it travels and squares up to strike
@@ -545,10 +545,15 @@ function animCrab(r, s, dt, time) {
     // the shell: quivering as the anemones swell, jerked back by their sting, shaking ever harder before it sheds
     b.shell.rotation.x = Math.sin(time * 30) * 0.03 * sting - 0.22 * stung + Math.sin(time * 37) * 0.07 * shed;
     b.shell.rotation.z = Math.sin(time * 43) * 0.09 * shed * shed;
-    // out of its shell the model is hidden: it has no soft body under the shell (its body bone carries the shell's
-    // lower half), so skillfx/hermit-fx.js draws the bare crab in its place (a crab's body, a soft curled abdomen)
-    // and the shell it left where it left it
-    if (s.naked && !(s.naked === 'climb' && s.actT >= s.actionTotal - 0.05)) r.root.visible = false;
+    // out of its shell: its model without the shell, and its soft parts (r.bareSet, skillfx/hermit-fx.js: the model
+    // has no body under the shell); the shell it left is drawn where it left it
+    const out = !!s.naked && !(s.naked === 'climb' && s.actT >= s.actionTotal - 0.05);
+    if (r.bareSet && r.bareOut !== out) {
+      r.bareOut = out;
+      for (const o of r.bareSet.full) o.visible = !out;
+      for (const o of r.bareSet.bare) o.visible = out;
+      if (r.anemones) for (const g of r.anemones.groups) g.visible = !out; // they went with the shell
+    }
   }
   // legs dug in and trembling before the dash
   if (crouch > 0.3) for (const n of r.legs) b[n].rotation.z += Math.sin(time * 42 + n.length) * 0.05 * crouch;

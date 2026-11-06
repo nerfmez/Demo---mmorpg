@@ -10,7 +10,6 @@
 // Pools only; no allocation per frame.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { requestMonsterModel } from '../models.js';
 
 const PINK = 0xff8ad0, PINK_HOT = new THREE.Color(0xffd8f0), PINK_IDLE = new THREE.Color(0xe86ab8), STALK = 0x9a4a8a;
 const CORAL = [0xff8a7a, 0xffc0a8, 0xf4ece0, 0xe86a5a];
@@ -50,21 +49,35 @@ function mergeAll(list) {
   g.setIndex(new THREE.BufferAttribute(index, 1));
   return g;
 }
-// a hermit crab's soft abdomen, curling back, down and round to one side behind a crab's body (body bone space):
-// banded soft segments and a little tail fan, coloured for the rig's toon material (shared by every procedural part)
-let ABDOMEN = null;
-function abdomenGeometry() {
-  if (ABDOMEN) return ABDOMEN;
+// The hermit crab out of its shell (rig rest space, metres, facing +z): what it is under the shell - a small hard
+// cephalothorax shield, two long antennae, and the soft, pale abdomen coiled to its right (to fit a snail shell's
+// spiral) with hooks at its tip that grip the shell. Coloured for the rig's toon material (every procedural part's).
+let BARE_PARTS = null;
+function bareParts() {
+  if (BARE_PARTS) return BARE_PARTS;
   const parts = [];
-  const seg = [[0, 0.2, -0.6, 0.24], [0.04, 0.14, -0.84, 0.22], [0.1, 0.05, -1.03, 0.19], [0.17, -0.03, -1.16, 0.15], [0.23, -0.06, -1.24, 0.11]];
-  seg.forEach(([x, y, z, r], i) => {
-    const g = new THREE.SphereGeometry(r, 12, 9).scale(1.05, 0.82, 0.95).translate(x, y, z).toNonIndexed();
-    parts.push(paint(g, i % 2 ? 0xe88f78 : 0xf6b49a));
-  });
-  parts.push(paint(new THREE.ConeGeometry(0.1, 0.16, 6).rotateX(-1.9).translate(0.27, -0.07, -1.34).toNonIndexed(), 0xd8705c));
-  ABDOMEN = mergeGeometries(parts);
-  ABDOMEN.userData.shared = true;
-  return ABDOMEN;
+  // the abdomen: banded soft segments, thick at the front, coiling back and round to the right (-x)
+  const coil = [[0, 0.62, -0.25, 0.3], [-0.05, 0.6, -0.52, 0.29], [-0.15, 0.56, -0.76, 0.26], [-0.3, 0.5, -0.92, 0.22], [-0.46, 0.44, -0.98, 0.18], [-0.58, 0.4, -0.92, 0.14], [-0.64, 0.38, -0.8, 0.1]];
+  coil.forEach(([x, y, z, r], i) => parts.push(paint(new THREE.SphereGeometry(r, 12, 9).scale(1, 0.8, 1).translate(x, y, z).toNonIndexed(), i % 2 ? 0xe9bba6 : 0xf6dccb)));
+  for (const s of [1, -1]) parts.push(paint(new THREE.ConeGeometry(0.035, 0.14, 5).rotateZ(s * 0.9).translate(-0.67 + s * 0.05, 0.36, -0.72).toNonIndexed(), 0x9a5040)); // the hooks
+  // the cephalothorax: a small hard shield over its front, lighter on top
+  parts.push(paint(new THREE.SphereGeometry(0.3, 14, 10).scale(1.15, 0.55, 1).translate(0, 0.62, 0.05).toNonIndexed(), 0xd8643a));
+  parts.push(paint(new THREE.SphereGeometry(0.2, 12, 8).scale(1.1, 0.4, 0.9).translate(0, 0.7, 0.07).toNonIndexed(), 0xf09a5a));
+  // two long antennae: thin whips rising from between the eyes, bending out and forward (no outline: it would
+  // thicken them into rods)
+  const whips = [];
+  for (const s of [1, -1]) {
+    const pts = [[s * 0.05, 0.9, 0.3], [s * 0.16, 1.12, 0.52], [s * 0.36, 1.2, 0.82], [s * 0.55, 1.12, 1.05]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const from = new THREE.Vector3(...pts[i]), d = new THREE.Vector3(...pts[i + 1]).sub(from), L = d.length(), r0 = 0.011 - i * 0.003;
+      const g = new THREE.CylinderGeometry(r0 - 0.003, r0, L, 4).translate(0, L / 2, 0);
+      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize())).translate(from.x, from.y, from.z);
+      whips.push(paint(g.toNonIndexed(), 0xa8321e));
+    }
+  }
+  BARE_PARTS = { soft: mergeGeometries(parts), whips: mergeGeometries(whips) };
+  BARE_PARTS.soft.userData.shared = true; BARE_PARTS.whips.userData.shared = true;
+  return BARE_PARTS;
 }
 function paint(g, hex) {
   g.deleteAttribute('uv');
@@ -73,7 +86,26 @@ function paint(g, hex) {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   return g;
 }
-const BARE = 1.2; // the bare body (a reef crab's rig) against the hermit's size
+// the model without its shell: only the triangles of its claws, head and legs (all three corners skinned mostly to
+// neither the shell nor the body bone, which carries the shell's lower half), sharing the model's buffers
+const BARE_GEO = new WeakMap();
+function bareGeometry(src, iShell, iBody) {
+  let g = BARE_GEO.get(src);
+  if (g) return g;
+  const si = src.attributes.skinIndex, sw = src.attributes.skinWeight, idx = src.index;
+  const shellW = (v) => { let w = 0; for (let k = 0; k < 4; k++) { const j = si.getComponent(v, k); if (j === iShell || j === iBody) w += sw.getComponent(v, k); } return w; };
+  const n = idx ? idx.count : src.attributes.position.count, keep = [];
+  for (let t = 0; t < n; t += 3) {
+    const a = idx ? idx.getX(t) : t, b = idx ? idx.getX(t + 1) : t + 1, c = idx ? idx.getX(t + 2) : t + 2;
+    if (shellW(a) < 0.25 && shellW(b) < 0.25 && shellW(c) < 0.25) keep.push(a, b, c);
+  }
+  g = new THREE.BufferGeometry();
+  for (const k in src.attributes) g.setAttribute(k, src.attributes[k]);
+  g.setIndex(keep);
+  g.userData.shared = true;
+  BARE_GEO.set(src, g);
+  return g;
+}
 // where they sit on the shell (shell bone space), and how they lean
 const SPOTS = [[0.26, 0.4, -0.02, 0.5], [-0.22, 0.4, 0.04, -0.45], [0.03, 0.42, 0.2, 0.1]];
 
@@ -81,8 +113,6 @@ export class HermitFx {
   constructor(scene, host, monster) {
     this.scene = scene; this.host = host; this.monster = monster; this.time = 0;
     this.shells = new Map(); // monster id -> { rig, t }
-    this.bodies = new Map(); // monster id -> the bare crab's body (a pooled reef crab rig with a soft abdomen)
-    this.bareState = {};
     this.clankT = new Map();
     // tentacle lashes: flat strips bent along a curve each frame, a violet glow under a hot pink core (plain
     // blending: added light washes out to white on the pale sand)
@@ -102,21 +132,48 @@ export class HermitFx {
   gy(x, z) { return this.host.groundAt?.(x, z) ?? 0; }
   get fx() { return this.host.vfx?.fx; }
 
-  /** Sea anemones on a hermit rig's shell (once per rig; pooled rigs keep them). */
+  /**
+   * Sea anemones on a hermit rig's shell, and what it looks like out of it (rig.bareSet, switched by the animator):
+   * its model without the shell plus its soft parts (once per rig, once its model is on; pooled rigs keep them).
+   */
   dress(rig) {
+    if (!rig.bareSet && rig.modelMaterial) {
+      const full = [];
+      rig.root.traverse((o) => { if (o.isSkinnedMesh && !o.userData.bare) full.push(o); });
+      if (full.length) {
+        const bones = full[0].skeleton.bones, iShell = bones.indexOf(rig.bones.shell), iBody = bones.indexOf(rig.bones.body);
+        const bare = full.map((o) => {
+          const m = new THREE.SkinnedMesh(bareGeometry(o.geometry, iShell, iBody), o.material);
+          m.bind(o.skeleton, o.bindMatrix);
+          m.position.copy(o.position); m.quaternion.copy(o.quaternion); m.scale.copy(o.scale);
+          m.frustumCulled = o.frustumCulled; m.castShadow = o.castShadow; m.renderOrder = o.renderOrder;
+          m.userData.bare = true; m.visible = false;
+          o.parent.add(m);
+          return m;
+        });
+        // its soft parts ride the body bone (placed from rest space)
+        const soft = new THREE.Group(), geo = bareParts(), rest = rig.bones.body.userData.rest.pos;
+        soft.add(new THREE.Mesh(geo.soft, rig.material), new THREE.Mesh(geo.whips, rig.material));
+        if (rig.hull) soft.add(new THREE.Mesh(geo.soft, rig.hull));
+        soft.position.set(-rest.x, -rest.y, -rest.z);
+        soft.visible = false;
+        rig.bones.body.add(soft);
+        bare.push(soft);
+        rig.bareSet = { full, bare };
+      }
+    }
     if (rig.anemones || !rig.bones?.shell) return;
-    requestMonsterModel('reef_crab'); // its bare body is drawn on the reef crab's rig: loaded before it is needed
     const G = anemoneGeometry();
     const stalkMat = new THREE.MeshBasicMaterial({ color: STALK });
     const crownMat = new THREE.MeshBasicMaterial({ color: PINK_IDLE.clone(), toneMapped: false });
-    rig.anemones = { crownMat, crowns: [] };
+    rig.anemones = { crownMat, crowns: [], groups: [] };
     for (const [x, y, z, lean] of SPOTS) {
       const g = new THREE.Group();
       g.position.set(x, y, z); g.rotation.set(0, 0, -lean);
       const s = new THREE.Mesh(G.stalk, stalkMat), c = new THREE.Mesh(G.crown, crownMat);
       g.add(s, c);
       rig.bones.shell.add(g);
-      rig.anemones.crowns.push(c);
+      rig.anemones.crowns.push(c); rig.anemones.groups.push(g);
     }
   }
 
@@ -212,8 +269,6 @@ export class HermitFx {
           this.fx?.add(m.x + Math.sin(a) * 0.5, this.gy(m.x, m.z) + 1.1, m.z + Math.cos(a) * 0.5, Math.sin(a) * 0.8, 0.5, Math.cos(a) * 0.8, { color: CORAL[(Math.random() * 4) | 0], size: 0.08, sizeEnd: 0.04, life: 0.5, gravity: 10, drag: 0.5 });
         }
       }
-      // out of its shell (its own model hidden, monsters.js animCrab): a crab's body in its place, posed as it is
-      if (m.naked && !m.dead && r) this.bare(m, r, dt);
       // the empty shell it left
       if (!m.naked || m.dead) continue;
       seen.add(m.id);
@@ -222,6 +277,13 @@ export class HermitFx {
         const rig = this.host.takeRig('hermit_crab');
         this.host.scene.add(rig.root);
         this.dress(rig);
+        // a pooled rig let go while its crab was out of its shell comes back showing its bare body: whole again
+        if (rig.bareSet && rig.bareOut) {
+          rig.bareOut = false;
+          for (const o of rig.bareSet.full) o.visible = true;
+          for (const o of rig.bareSet.bare) o.visible = false;
+          for (const g of rig.anemones.groups) g.visible = true;
+        }
         // only the shell shows: the head (and with it the claws) and the legs shrunk to nothing; the soft body stays
         // inside it (shrinking the body crumpled the shell, whose rim is skinned half to the body)
         this.shrink(rig, 0.01);
@@ -237,12 +299,7 @@ export class HermitFx {
       this.pose(s.rig, 0, m.id);
     }
     for (let i = ng; i < this.guards.length; i++) this.guards[i].visible = false;
-    for (const [id, B] of this.bodies) {
-      if (B.used) { B.used = false; continue; }
-      B.rig.hermit = false; B.rig.hermitTail.visible = false;
-      this.host.releaseRig?.(B.rig);
-      this.bodies.delete(id);
-    }
+
     for (const [id, s] of this.shells) {
       if (seen.has(id)) continue;
       this.shrink(s.rig, 1);
@@ -262,38 +319,6 @@ export class HermitFx {
       L.m.material.opacity = 0.95 * Math.min(1, out * 1.5);
       L.glow.material.opacity = 0.5 * Math.min(1, out * 1.5);
     }
-  }
-
-  /** The bare hermit crab: a reef crab's rig (a crab's front: carapace, claws, legs) with a soft curled abdomen. */
-  bare(m, r, dt) {
-    let B = this.bodies.get(m.id);
-    if (!B && this.host.takeRig) {
-      const rig = this.host.takeRig('reef_crab');
-      if (!rig.hermitTail) {
-        // its abdomen on the rig's own toon material and outline (the program every procedural part already uses)
-        const tail = new THREE.Group(), geo = abdomenGeometry();
-        tail.add(new THREE.Mesh(geo, rig.material));
-        if (rig.hull) tail.add(new THREE.Mesh(geo, rig.hull));
-        rig.bones.body.add(tail);
-        rig.hermitTail = tail;
-      }
-      rig.hermitTail.visible = true;
-      rig.hermit = true; // posed with the hermit's moves (claw guard, frantic claws)
-      this.host.scene.add(rig.root);
-      B = { rig, used: false };
-      this.bodies.set(m.id, B);
-    }
-    if (!B) return;
-    B.used = true;
-    // gone again the moment its own model shows (climbing in)
-    const climbed = m.naked.phase === 'climb' && m.stateT >= m.stateDur - 0.05;
-    B.rig.root.visible = !climbed && r.root.visible === false;
-    B.rig.root.position.copy(r.root.position);
-    B.rig.root.rotation.set(0, r.root.rotation.y, 0);
-    B.rig.root.scale.setScalar(r.root.scale.x * BARE);
-    const st = Object.assign(this.bareState, r.animState);
-    st.naked = null; st.bare = m.naked.phase !== 'climb';
-    if (st.speed !== undefined) B.rig.animate(B.rig, st, dt, this.time);
   }
 
   shrink(rig, k) {

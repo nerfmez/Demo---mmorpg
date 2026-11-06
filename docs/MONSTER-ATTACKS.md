@@ -364,8 +364,11 @@ for the normal one.
   (the front is guarded only through the wind-up: go round it), anemones that sting what goes round it (so circling
   to its back has its own answer), and the shell left behind (a window it opens itself: soft and fast until it gets
   home). The model has no soft body under its shell (its body bone carries the shell's lower half). Shrinking that
-  bone away left stretched shards and a blob ("it isn't a crab at all"), so the bare crab is drawn as a crab's body
-  (the reef crab's rig in its pose) with a soft, banded abdomen curling out behind.
+  bone away left stretched shards and a blob ("it isn't a crab at all"); a reef crab's body in its place was the
+  wrong animal ("research the hermit crab first"). Out of its shell a hermit crab is a small hard front (cephalothorax),
+  stalked eyes, two pairs of antennae, unequal claws, walking legs, and a soft, pale abdomen coiled to the right to
+  fit a snail shell, with hooks at the tip that grip it. So the bare crab is its own model with the shell's triangles
+  left out, a small orange front shield, two thin antennae and that coiled abdomen.
 - **Moss beetle, round 1** (2026-11-06, owner: "next"): its spit and shell guard became a bombardier beetle's rear spray
   (an attack made with its back turned: what looks like an opening is the danger), a dung beetle's moss ball (a
   rolling, growing shot that leaves a slowing patch) and a click beetle's play dead (a fake-out reaction whose leap is

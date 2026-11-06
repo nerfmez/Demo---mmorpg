@@ -1246,10 +1246,12 @@ wind-up start (`radius`, `delay` = wind-up); at the end `m.naked` {x, z, facing,
 `shellShed`: for `loose` s it fights at `nakedSpeed` x its speed and `hitMonster` multiplies blows by `nakedTaken`;
 then (phase `home`, in `kit()`) it walks back to the shell at that speed, and climbs in (state `act` for `climb` s,
 event `shellClimb`, then `reshell`); attacks marked `needsShell` are not taken while it is out; idle/return clears
-it). While it is out the View hides the hermit model (it has no soft body under its shell: its body bone carries the
-shell's lower half) and draws a pooled reef crab rig in its place, posed from the hermit's animation state, with a
-soft curled abdomen on that rig's toon material; the left shell is a pooled hermit rig with its head and legs shrunk
-(skillfx/hermit-fx.js).
+it). While it is out the View swaps the hermit's model for a copy without its shell (`rig.bareSet`: the same skinned
+buffers and skeleton, keeping only triangles whose corners are skinned under 0.25 to the `shell` and `body` bones,
+which carry the shell; the model has no body under it) plus its soft parts on the body bone, drawn on the rig's toon
+material: a small hard cephalothorax shield, two thin antennae, and the pale abdomen coiled to its right with hooks at
+the tip (a real hermit crab's anatomy); its anemones hide with the shell. The left shell is a pooled hermit rig with
+its head and legs shrunk (skillfx/hermit-fx.js).
 Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.

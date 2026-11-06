@@ -141,6 +141,7 @@ export function syncMonsterViews(view, dt, time) {
     state.actionTotal = m.melee ? m.def.attacks[m.melee.name].duration : m.stateDur;
     state.hitTime = m.melee ? m.def.attacks[m.melee.name].hitTime : 0;
     state.attack = m.def.attacks[m.melee?.name || mv.lastAttack];
+    state.kit = m.def.behavior === 'kit'; // a monster on its own kit (docs/MONSTER-ATTACKS.md)
     state.enraged = m.enraged;
     state.lastAttack = mv.lastAttack;
     state.dormant = !!m.def.dormant && !m.aggro; // asleep (the snail king in its shell)

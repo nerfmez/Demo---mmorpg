@@ -365,6 +365,16 @@ for the normal one.
   distance and shoots its spined forelegs; rears up and flashes eyespot wings, hissing, when threatened; can fly). Its
   scythe, whirl and hit-and-back-off became a swaying long-reach strike, a startle display that freezes the hero for its
   strike, and a flight that lands behind the hero.
+- **Thicket mantis, round 2** (owner: "too few effects, the animation is unclear, the wings aren't pretty"): its poses
+  are set in the model's own angles (the model is bound with its forelegs reaching: the old offsets left the strike
+  looking like its rest): it rests with its forelegs folded tight (praying), sways wide, holds cocked high, then they
+  snap out, open, with the body lunging in, hold a beat and fold back; the display throws them up and wide; the
+  leap reaches in flight and slashes an X on landing. Its wings are painted (a rose-to-gold fanned hindwing with
+  radiating veins, a scalloped edge and a ringed eyespot under a narrow leafy forewing) and unfold in steps. More
+  beats: glints on its blades through the sway and in its eyes as the lane locks, glowing streaks with a rush of
+  wind down the lane, a burst star and torn leaves on a hit; a gust of leaves as the wings snap open, pulsing
+  eyespots, flares and a shock ring at the freeze, dizzy sparks round the frozen hero; dust whirling under the
+  crouch, a gust ring at take-off, beating wings shedding leaves, a glowing X with sparks on landing.
 - **Hermit crab, round 1** (2026-11-06, owner: "go on"): its pinch and shell guard became a claw held as a shield
   (the front is guarded only through the wind-up: go round it), anemones that sting what goes round it (so circling
   to its back has its own answer), and the shell left behind (a window it opens itself: soft and fast until it gets

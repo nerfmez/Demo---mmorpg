@@ -1264,8 +1264,9 @@ along it (`range` x `width`, from its body, which never moves) and the first uni
 inflict, a `root` on the hero (frozen in fright); the cooldown of its `follow` attack is cleared so that strike comes
 next; event `startle`) and `wing_leap` (kind `pounce` with `past`: the landing is marked `past` m beyond its prey on
 the line from it, unless that is safe ground; on landing it turns to face its prey, event `wingLand`; area kind
-`mantis_land`). The View fans procedural hind wings with eyespots (skillfx/mantis-fx.js, `rig.wingSpread` from the
-animator) for the display and the flight.
+`mantis_land`). The View fans painted wings (canvas textures: a forewing over a fanned hindwing with an eyespot;
+skillfx/mantis-fx.js, `rig.wingSpread` from the animator) for the display and the flight; its kit poses are set in
+the imported model's own arm and blade angles (`state.kit`, monsters-midhigh.js animMantis).
 Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.

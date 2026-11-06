@@ -78,27 +78,43 @@ function animMantis(r, s, dt, time) {
   let rear = Math.sin(time * 1.6 + r.seed) * 0.05, bodyY = 0.6;
   let arm = 0.95, blade = -0.25, spread = 0.1, head = 0, spin = 0; // rest: praying, scythes folded in front
   let sway = 0, wings = 0, lift = 0; // its peering sway (m), its wings spread for the display (0..1), its flight
+  // the thicket mantis's own moves are posed in the imported model's angles directly (`direct`; measured on the model,
+  // 2026-11-06): 0.35/0.5 is its bound pose, forelegs reaching forward and open; 1.05/-0.6 folded tight in front
+  // (praying, its rest); 0.7/-1.3 cocked high; -0.8/-1.0 with a wide spread thrown up and out (the display)
+  let direct = !!r.model && !!s.kit;
   const k = windK(s);
-  const struck = s.state === 'recover' && s.lastAttack === 'peer_strike' ? clamp01(1 - (s.actT || 0) / 0.35) : 0;
-  if (s.windup === 'peer_strike') {
-    // peering: the body sways side to side, ever wider, to judge the gap (the head held on its prey), scythes folded
-    // and drawn in tight; at the end they are cocked back
-    sway = Math.sin((s.windupT || 0) * 9) * (0.06 + 0.1 * k) * (1 - Math.max(0, (k - 0.85) / 0.15));
-    arm = 0.95 - 0.45 * k; blade = -0.05; spread = 0.05; rear = -0.1 * k; head = 0.12 * k;
-  } else if (struck) {
-    // the strike: both forelegs shot out forward and open down the lane (rotation.x > 0 swings them forward), the
-    // body leaning in, then folding back
-    arm = 0.95 + 0.85 * struck; blade = -0.25 - 1.9 * struck; spread = 0.12; rear = 0.3 * struck;
-  } else if (s.windup === 'startle' || (s.state === 'recover' && s.lastAttack === 'startle')) {
-    // the startle display: reared up tall, scythes thrown wide and high, wings fanned out behind with their eyespots
-    const d = s.windup === 'startle' ? Math.min(1, k * 2.2) : 1;
-    rear = -0.5 * d; arm = 0.95 - 1.6 * d; blade = -0.25 - 1.7 * d; spread = 0.1 + 0.9 * d; head = -0.25 * d; wings = d;
-  } else if (s.windup === 'wing_leap') {
-    // crouched, wings half open and buzzing, before it takes off
-    rear = 0.25 * k; bodyY -= 0.14 * k; arm = 0.95 - 0.5 * k; blade = -0.25 - 0.8 * k; wings = 0.45 * k;
-  } else if (s.state === 'act' && s.lastAttack === 'wing_leap' && s.hop >= 0) {
-    // in the air: wings out, scythes reaching ahead
-    lift = Math.sin(Math.PI * s.hop) * 1.3; wings = 0.9; arm = -0.4; blade = -1.9; spread = 0.35; rear = 0.2;
+  const FOLD = [1.05, -0.6], COCK = [0.6, -1.35], REACH = [0.18, 0.85], UP = [-0.85, -1.0];
+  const mix = (A, B, t) => { arm = A[0] + (B[0] - A[0]) * t; blade = A[1] + (B[1] - A[1]) * t; };
+  if (direct) { arm = FOLD[0]; blade = FOLD[1]; spread = 0.04; }
+  const sinceStrike = s.state === 'recover' && s.lastAttack === 'peer_strike' ? s.actT || 0 : -1;
+  const landed = s.state === 'recover' && s.lastAttack === 'wing_leap' ? s.actT || 0 : -1;
+  if (direct && s.windup === 'peer_strike') {
+    // peering: the body sways side to side, wider and wider, to judge the gap, the head held on its prey, forelegs
+    // folded tight; for the last fifth it holds still, leaning back with them cocked high
+    const hold = clamp01((k - 0.78) / 0.12);
+    sway = Math.sin((s.windupT || 0) * 8) * (0.1 + 0.14 * k) * (1 - hold);
+    mix(FOLD, COCK, hold); rear = -0.22 * hold; head = 0.1 * k;
+  } else if (direct && sinceStrike >= 0 && sinceStrike < 0.55) {
+    // the strike: in a flash both forelegs shoot out forward, open, the body lunging in behind them; held a beat;
+    // then folded back
+    const out = clamp01(sinceStrike / 0.05), back = clamp01((sinceStrike - 0.25) / 0.3);
+    mix(COCK, REACH, out); if (back > 0) mix(REACH, FOLD, back * back * (3 - 2 * back));
+    rear = 0.45 * out * (1 - back); spread = 0.06;
+  } else if (direct && (s.windup === 'startle' || (s.state === 'recover' && s.lastAttack === 'startle'))) {
+    // the startle display: reared up tall, forelegs thrown up and wide, wings fanned out behind with their eyespots
+    const d = s.windup === 'startle' ? clamp01(k * 2.4) : 1;
+    mix(FOLD, UP, d); spread = 0.04 + 0.9 * d; rear = -0.55 * d; head = -0.25 * d; wings = d;
+    bodyY += 0.12 * d;
+  } else if (direct && s.windup === 'wing_leap') {
+    // crouched low, forelegs cocked, wings opening and buzzing, before it takes off
+    mix(FOLD, COCK, k); rear = 0.3 * k; bodyY -= 0.18 * k; wings = 0.7 * k;
+  } else if (direct && s.state === 'act' && s.lastAttack === 'wing_leap' && s.hop >= 0) {
+    // in the air: body stretched, forelegs reaching ahead, wings beating
+    lift = Math.sin(Math.PI * s.hop) * 1.4; wings = 1; mix(COCK, REACH, clamp01(s.hop * 2)); spread = 0.25; rear = 0.35;
+  } else if (direct && landed >= 0 && landed < 0.35) {
+    // the landing: both scythes slash down and across (the X)
+    const t = clamp01(landed / 0.12), back = clamp01((landed - 0.15) / 0.2);
+    mix(UP, REACH, t); if (back > 0) mix(REACH, FOLD, back); spread = 0.5 * (1 - t) + 0.05; rear = 0.3 * (1 - back); bodyY -= 0.1 * (1 - back);
   } else if (s.windup === 'scythe') {
     rear = -0.3 * k; // rears up, both scythes high and open
     arm = 0.95 - 1.15 * k;
@@ -142,7 +158,7 @@ function animMantis(r, s, dt, time) {
     rear = 0.2 + Math.sin(time * 12) * 0.1;
   }
   if (s.hurt > 0) rear -= 0.25 * s.hurt;
-  if (r.model) {
+  if (r.model && !direct) {
     // the imported model is bound with its scythes already raised and open (its display pose):
     // rest lowers and folds them a little, the wind-up lifts them higher, the strike swings down
     arm = 0.35 + (arm - 0.95) * 0.75;

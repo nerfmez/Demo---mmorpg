@@ -296,6 +296,71 @@ test('stone pangolin rebound roll: down its lane, back along it (a unit can be h
   void g;
 });
 
+test('wolf circling lunge: a lap round the hero, a crouch with its lane locking, then one bite on the lunge', () => {
+  const a = M.thornback_wolf.attacks.circle_lunge;
+  const { m, g, hits, until, step, place, only } = arena('thornback_wolf', 10, { open: true });
+  only('circle_lunge'); place(3);
+  until(() => m.lap);
+  const a0 = Math.atan2(m.x - g.player.x, m.z - g.player.z);
+  until(() => m.lap?.phase === 'aim', 3);
+  const a1 = Math.atan2(m.x - g.player.x, m.z - g.player.z), turned = Math.abs(Math.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0)));
+  assert.ok(turned > 1, `it ran round the hero (${turned.toFixed(2)} rad)`);
+  assert.equal(hits.length, 0, 'nothing while circling');
+  step(a.aim - 0.02);
+  assert.equal(hits.length, 0, 'nothing in the crouch');
+  until(() => m.state === 'recover', 2);
+  assert.equal(hits.length, 1, 'one bite on the lunge');
+  const b = arena('thornback_wolf', 10, { open: true });
+  b.only('circle_lunge'); b.place(3);
+  b.until(() => b.m.lap?.phase === 'aim', 4);
+  b.step(a.aim * 0.7); // locked
+  b.g.player.x += 3; // a step aside
+  b.until(() => b.m.state === 'recover', 2);
+  assert.equal(b.hits.length, 0, 'a late step aside dodges the locked lunge');
+});
+
+test('wolf shadow pincer: two shadow wolves cross where the hero stood; moving off the crossing is safe', () => {
+  const a = M.thornback_wolf.attacks.pincer;
+  const { m, g, hits, until, step, place, only } = arena('thornback_wolf', 10, { open: true });
+  only('pincer'); place(5);
+  until(() => m.state === 'windup');
+  assert.equal(m.windup.lanes.length, 2, 'two lanes marked');
+  until(() => m.state === 'recover');
+  assert.equal(g.projectiles.filter((p) => p.kind === 'shadow_wolf').length, 2);
+  for (let t = 0; t < 1.5; t += 0.01) { g.updateProjectiles(0.01); step(0.01); }
+  assert.equal(hits.length, 2, 'standing on the crossing, both run over the hero');
+  const b = arena('thornback_wolf', 10, { open: true });
+  b.only('pincer'); b.place(5);
+  b.until(() => b.m.state === 'windup');
+  Object.assign(b.g.player, { z: b.g.player.z + 3 }); // walked off the crossing, along the wolf's line
+  b.until(() => b.m.state === 'recover');
+  for (let t = 0; t < 1.5; t += 0.01) { b.g.updateProjectiles(0.01); b.step(0.01); }
+  assert.equal(b.hits.length, 0, 'off the crossing: safe');
+  void a;
+});
+
+test('wolf drag bite: it bites and backs away dragging the hero; a dodge tears free', () => {
+  const a = M.thornback_wolf.attacks.drag;
+  const { m, g, hits, until, step, place, only } = arena('thornback_wolf', 10, { open: true });
+  only('drag'); place(0.8);
+  until(() => m.state === 'windup');
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.drag, 1);
+  const z0 = g.player.z;
+  until(() => m.state === 'recover', 2);
+  assert.equal(hits.length, 1, 'one bite');
+  assert.ok(z0 - g.player.z > a.back * 0.8, 'dragged back with it');
+  const b = arena('thornback_wolf', 10, { open: true });
+  b.only('drag'); b.place(0.8);
+  b.until(() => b.m.drag, 2);
+  const z1 = b.g.player.z;
+  b.g.player.dash = { t: 0, dur: 0.3 };
+  b.step(0.05);
+  assert.equal(b.m.drag, null, 'torn free');
+  assert.ok(Math.abs(b.g.player.z - z1) < 0.2, 'not dragged on');
+});
+
 test('moss beetle bombard: it turns its back and sprays three bursts down the lane behind it; beside the lane is safe', () => {
   const a = M.moss_beetle.attacks.bombard;
   const { m, g, hits, until, step, place, only } = arena('moss_beetle', 10, { open: true });

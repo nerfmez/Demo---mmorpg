@@ -1181,6 +1181,16 @@ landing within 0.9 m of a unit, `m.perch` {unit, n}: it sits on the unit, `ticks
 units in its arc take the hit; the hero gets `player.tossed` {from, to, t, dur}: `updatePlayer` moves them along it,
 no walking or casting, event `tossLand`; the View lifts them on an arc and turns them head over heels).
 
+The masked wolf (`thornback_wolf`) is a kit monster (no longer `pack_wolf`): `circle_lunge` (kind `circle_lunge`:
+`m.lap` {phase run/aim/dash}; running, it goes round its prey at a distance clamped to `near`..`far` at `lapSpeed` m/s
+for `sweep` degrees; aiming `aim` s, its angle tracks the prey for the first 60%, then locks (event `lapAim`); the
+dash covers `dash` m in `dashTime` s and bites the first unit it touches once (event `lunge`, a `monsterSwing`)),
+`pincer` (kind `pincer`: at wind-up start two lanes are fixed from points `lane` m out on either side of the prey,
+`cross` degrees off square to the wolf's line, aimed at the prey's spot; at the end, two `shadow_wolf` projectiles with
+`trample` along them; the View draws pooled wolf rigs see-through) and `drag` (kind `drag`: a bite in its arc; on a
+hit `m.drag` {unit, angle} for `dragTime` s: it backs off `back` m and the unit is set at its jaws each frame; the
+hero's `dash` tears free; events `dragStart`, `dragFree`, `dragEnd`).
+
 The moss beetle is a kit monster (no longer `shell_spitter`): `bombard` (kind `bombard`, `backward`: in its wind-up
 it faces away from its aim (`startWindup` and the tracking add π to its facing); in `act` (`m.bombard`) `pulses` bursts
 `gap` s apart, each down a lane `range` x `width` from it along the aim swept across `sweep` degrees, each hitting

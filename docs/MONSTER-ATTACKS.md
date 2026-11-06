@@ -81,6 +81,8 @@ must be creative". The kits so far lean on the same few families. Count before d
 | A ring with a safe middle | sporecap fairy ring |
 | An attack made facing away | moss beetle bombardier spray |
 | A fake-out | moss beetle play dead |
+| Moved by force | wolf drag, boar toss, fish gulp |
+| Crossing lanes | wolf shadow pincer |
 | Lanes with gaps to read | tusk boar piglet stampede |
 
 Then (owner, 2026-11-05): "It is not that they are not allowed, but the pattern must be creative, not the same
@@ -149,6 +151,7 @@ for the normal one.
 | Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
 | Fern-ear hare | ต่อยรัว Box (rears up on its haunches, paws raised in a guard, a one-two of jabs with a burst star of light on each); กระทืบเตือนภัย Warning Thump (up on its haunches, trembling, ears up, a hop up, then slams down: a shock ring to the true edge, earth and fern leaves thrown out); กระโดดทับ Leap (crouch, rump wiggle, springs onto the marked spot, lands in earth and leaves) |
 | Mirrorwing moth | แสงสะท้อนปีก Wing Glare (turns its glass wings on the prey like a mirror, glints flare on the panes, then a beam of moonlight along the lane); ห่าเกล็ดกระจก Glass Rain (wings raised and held while a glass shard forms over each marked circle, then they drop one after another and shatter in stars of cold light); ร่างเงากระจก Mirror Decoy (too close: its wings flare as a glass image of it splits off, it flies back, and the image flickers faster and faster like a fuse and bursts) |
+| Masked wolf (Lv9-11) | วิ่งวนล่าเหยื่อ Circling Lunge (normal; runs a lap round the hero, its path glowing round them, then crouches with its lunge's lane lit, locking, and lunges: three fang marks on a hit; a late step aside dodges it); หอนเงาประกบ Shadow Pincer (howls, rings off its head, two lanes crossing where the hero stands; two see-through shadow wolves run in from either side and cross there); ขย้ำลากถอย Drag Bite (bites what is right before it and backs away 3 m dragging it by the jaws, heels furrowing the dust; a dodge tears free) |
 | Moss beetle (Lv9-11) | ฉีดกรดก้น Bombardier Spray (normal; it turns its back on the hero, which looks like an opening, abdomen up and quivering, then three bursts of acid down the lane behind it, sweeping a little, each lighting the lane it hits); กลิ้งก้อนมอส Moss Ball (shoves a ball of moss with its head, then kicks it rolling down its lane, growing as it rolls, flattening what it rolls over, and it bursts into a slowing moss patch where it stops); แกล้งตายดีดตัว Play Dead (hit three times in two seconds it flips on its back, legs twitching; the spot under the hero is marked at once, and after 1.4 s it clicks and springs onto it) |
 | Sporecap (Lv5-9) | วงเห็ดนางฟ้า Fairy Ring (normal; stamps, arms up: little mushrooms sprout round the hero and puff together: the band between the ring's edges hurts, the middle is safe); เพาะเห็ดลูก Sow Sprouts (bows its cap and shakes out spores: two little sprouts of itself stand and puff small clouds every 3 s until broken or wilted after 14 s); สปอร์ง่วง Sleepy Spores (breathes in, then out a pink cloud that drifts slowly ahead; Zs rise over a hero getting drowsy in it, and after 1.4 s in it they fall asleep, a bubble at the nose) |
 | Tusk boar (Lv3-7) | ขวิดเสย Tusk Toss (head right down, tusks under its prey, then a fling over its back: the hero sails over and lands behind it, dazed a moment; a dodge or a block is not thrown); วิ่งอาละวาด Rampage (backs off for a run; paws the ground, snorting; charges in three legs, skidding to a stop between them and swinging round to its prey, the next lane warned through the skid; a rock in the way stops it stunned); ลูกหมูแตกตื่น Piglet Stampede (rears and squeals; three piglets burst out beside it and run down three warned lanes, the outer ones first, the middle last; the gaps between lanes are safe) |
@@ -352,6 +355,10 @@ for the normal one.
   slug's dark, toxic and bubbling; the king's a mother-of-pearl glaze with sliding colours and glints. The reactive
   moves (acid, nacre, the withdraw) and the slime never showed in the sandbox (they wait for hits or a health
   share): the sandbox now sets them off itself (`labTrigger`), and shows the slime by crawling past the hero.
+- **Masked wolf, round 1** (2026-11-06, owner: "go on"): its bite, rend combo and speed howl became a lap round the hero
+  then a lunge (the strike comes from wherever the lap ends), a howl calling two shadow wolves across a crossing
+  point (a pincer: lanes that cross rather than run side by side), and a drag (the hero hauled away by the jaws; a
+  dodge tears free).
 - **Moss beetle, round 1** (2026-11-06, owner: "next"): its spit and shell guard became a bombardier beetle's rear spray
   (an attack made with its back turned: what looks like an opening is the danger), a dung beetle's moss ball (a
   rolling, growing shot that leaves a slowing patch) and a click beetle's play dead (a fake-out reaction whose leap is

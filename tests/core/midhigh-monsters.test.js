@@ -213,7 +213,7 @@ test('killing a monster during its wind-up cancels the area it marked; a launche
 });
 
 test('wolf rend and Greyfang rake are multi-hit combos; the warden quake is a line of delayed eruptions', () => {
-  for (const [type, name, n] of [['thornback_wolf', 'rend', 2], ['greyfang', 'rake', 3]]) {
+  for (const [type, name, n] of [['greyfang', 'rake', 3]]) { // the wolf is a kit monster now (monster-kits.test.js)
     const a = arena(type);
     const atk = a.m.def.attacks[name];
     a.place(1.2); a.m.cd.bite = 99;
@@ -293,7 +293,7 @@ test('the warden rolls as a boulder along a locked lane: one hit, none in the wi
 });
 
 test('new contact attacks miss out of range/arc and death cancels remaining combo contacts', () => {
-  for (const [type, name, gap] of [['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.2], ['thicket_mantis', 'whirl', 0.6], ['ironhorn_ram', 'shove', 1.5]]) {
+  for (const [type, name, gap] of [['greyfang', 'rake', 1.2], ['thicket_mantis', 'whirl', 0.6], ['ironhorn_ram', 'shove', 1.5]]) {
     for (const miss of ['range', 'arc']) {
       if (name === 'whirl' && miss === 'arc') continue; // authored 360 degree ring
       const a = arena(type);

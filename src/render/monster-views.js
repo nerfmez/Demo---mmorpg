@@ -131,7 +131,7 @@ export function syncMonsterViews(view, dt, time) {
     drawn++;
     const tgt = m.targetUnit || p;
     const state = mv.animationState || (mv.animationState = {});
-    state.moving = m.moving && MOVING_STATES.has(m.state);
+    state.moving = m.moving && (MOVING_STATES.has(m.state) || (m.state === 'act' && (m.lap?.phase === 'run' || !!m.drag))); // the wolf's lap and drag run its legs
     state.speedFactor = m.aggro ? 1 : 0.4;
     state.state = m.state;
     state.windup = m.state === 'windup' && m.windup ? m.windup.name : null;
@@ -163,7 +163,9 @@ export function syncMonsterViews(view, dt, time) {
     state.hop = m.charge?.dive ? Math.min(1, m.charge.t / m.charge.dur) : -1; // 0..1 through a leap
     state.dropT = m.drop ? m.drop.t : -1; // the shore gull up in the air with its clam, then gliding down
     state.loot = m.loot || 0;
-    state.perching = !!m.perch; // the shore gull riding its prey's head
+    state.perching = !!m.perch;
+    state.lapPhase = m.lap?.phase || null; // the wolf: run, aim, dash
+    state.dragging = !!m.drag; // the shore gull riding its prey's head
     state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0; // the boar running a leg, or skidding
     r.animate(
       r,

@@ -321,6 +321,8 @@ function setState(m, state, dur = 0) {
     m.stampede = null;
     m.perch = null;
     m.bombard = null;
+    m.lap = null;
+    m.drag = null;
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -399,7 +401,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -732,6 +734,34 @@ function windup(game, m, dt, t, gap) {
       m.stampede = { name: w.name, i: 0, t: 0, angle: w.angle, dmg };
       return setState(m, 'act');
     }
+    case 'circle_lunge': {
+      // the wolf runs a lap round its prey (`sweep` degrees at `lapSpeed` m/s, its distance kept between `near` and
+      // `far` m), stops and crouches for `aim` s (its lunge's lane shown, locking through the first 60%), then lunges
+      // `dash` m along it in `dashTime` s, biting the first unit it reaches (act: m.lap)
+      const prey = t || game.player, R = Math.max(atk.near, Math.min(atk.far, dist(m.x, m.z, prey.x, prey.z)));
+      m.lap = { name: w.name, phase: 'run', t: 0, a: angleTo(prey.x, prey.z, m.x, m.z), dir: m.id % 2 ? 1 : -1, R, run: 0, angle: 0, hit: false, dmg };
+      return setState(m, 'act');
+    }
+    case 'pincer': {
+      // two shadow wolves run in from either side of the spot marked at wind-up start (beginAttack), crossing it:
+      // projectiles that trample each unit once (`speed`, `range`)
+      for (const [x, z, a] of w.lanes) game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: 'shadow_wolf', attack: w.name, trample: true, x, z, y: 0, angle: a, speed: atk.speed, radius: atk.projectileRadius ?? 0.5, range: atk.range, element: 'physical', damage: dmg });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'drag': {
+      // the wolf bites what is right in front of it (`range` m, `arc` degrees) and backs away `back` m over `dragTime` s
+      // dragging it by the jaws (act: m.drag); a dodge (the hero's movement skill) tears free
+      const arc = (atk.arc || 70) * DEG;
+      const prey = game.units().find((u) => dist(m.x, m.z, u.x, u.z) - m.r - u.r <= atk.range && Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) <= arc / 2);
+      game.emit({ type: 'monsterSwing', id: m.id, name: w.name, angle: w.angle, range: atk.range + m.r, arc: atk.arc, x: m.x, z: m.z });
+      if (!prey) { m.cd[w.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+      const dealt = game.damageUnit(prey, dmg, m, { attack: w.name });
+      if (!dealt && prey === game.player) { m.cd[w.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+      m.drag = { name: w.name, unit: prey, angle: w.angle };
+      game.emit({ type: 'dragStart', id: m.id, x: prey.x, z: prey.z });
+      return setState(m, 'act', atk.dragTime);
+    }
     case 'bombard': {
       // the beetle's rear spray: `pulses` bursts `gap` s apart down a lane `range` x `width` behind it (its aim),
       // sweeping `sweep` degrees across from the first to the last; each burst can hit a unit once (act: m.bombard)
@@ -911,6 +941,57 @@ function act(game, m, dt, t) {
       if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) { sw.hit.add(u.id); game.damageUnit(u, sw.dmg, m, { attack: sw.name }); }
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
+    return;
+  }
+  if (m.lap) {
+    const L = m.lap, atk = m.def.attacks[L.name], prey = t || game.player;
+    L.t += dt;
+    if (L.phase === 'run') {
+      // round the prey at a steady distance, facing along the run
+      const step = (atk.lapSpeed * dt) / L.R;
+      L.a += step * L.dir; L.run += step;
+      const x = prey.x + Math.sin(L.a) * L.R, z = prey.z + Math.cos(L.a) * L.R;
+      m.facing = angleTo(m.x, m.z, x, z) || m.facing;
+      game.moveEntity(m, x - m.x, z - m.z);
+      m.moving = true;
+      if (L.run >= atk.sweep * DEG) { L.phase = 'aim'; L.t = 0; m.moving = false; L.angle = angleTo(m.x, m.z, prey.x, prey.z); game.emit({ type: 'lapAim', id: m.id }); }
+      return;
+    }
+    if (L.phase === 'aim') {
+      m.moving = false;
+      if (L.t < atk.aim * 0.6) L.angle = angleTo(m.x, m.z, prey.x, prey.z);
+      m.facing = L.angle;
+      if (L.t >= atk.aim) { L.phase = 'dash'; L.t = 0; game.emit({ type: 'lunge', id: m.id, angle: L.angle }); }
+      return;
+    }
+    // the lunge
+    const d = dirFromAngle(L.angle), sp = atk.dash / atk.dashTime;
+    game.moveEntity(m, d.x * sp * dt, d.z * sp * dt);
+    m.moving = false;
+    if (!L.hit) for (const u of game.units()) {
+      if (dist(m.x, m.z, u.x, u.z) > m.r + u.r + 0.3) continue;
+      L.hit = true;
+      game.emit({ type: 'monsterSwing', id: m.id, name: L.name, angle: L.angle, range: m.r + 0.8, arc: 90, x: m.x, z: m.z });
+      game.damageUnit(u, L.dmg, m, { attack: L.name });
+      break;
+    }
+    if (L.t >= atk.dashTime) { m.lap = null; m.cd[L.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+    return;
+  }
+  if (m.drag) {
+    const dg = m.drag, atk = m.def.attacks[dg.name], u = dg.unit;
+    // a dodge tears free
+    if (u === game.player && u.dash) { m.drag = null; m.cd[dg.name] = atk.cooldown; game.emit({ type: 'dragFree', id: m.id, x: u.x, z: u.z }); return setState(m, 'recover', atk.recover); }
+    const back = dirFromAngle(dg.angle + Math.PI), sp = atk.back / atk.dragTime;
+    game.moveEntity(m, back.x * sp * dt, back.z * sp * dt);
+    m.facing = dg.angle; m.moving = true;
+    if (!u.dead) { const f = dirFromAngle(dg.angle); u.x = m.x + f.x * (m.r + u.r); u.z = m.z + f.z * (m.r + u.r); }
+    if (m.stateT >= atk.dragTime || u.dead) {
+      // a toss of the head lets it go
+      m.drag = null; m.cd[dg.name] = atk.cooldown;
+      game.emit({ type: 'dragEnd', id: m.id, x: u.x, z: u.z });
+      return setState(m, 'recover', atk.recover);
+    }
     return;
   }
   if (m.bombard) {
@@ -1616,6 +1697,17 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'pincer') {
+    // two lanes crossing at where its prey stands now, from either side across the wolf's line to it, `lane` m out
+    startWindup(game, m, name, t);
+    const a = angleTo(m.x, m.z, t.x, t.z), lanes = [];
+    for (const s of [1, -1]) {
+      const off = a + s * (Math.PI / 2 - atk.cross * DEG), x = t.x + Math.sin(off) * atk.lane, z = t.z + Math.cos(off) * atk.lane;
+      lanes.push([x, z, angleTo(x, z, t.x, t.z)]);
+    }
+    m.windup.lanes = lanes; m.windup.tx = t.x; m.windup.tz = t.z;
+    return;
+  }
   if (kind === 'fairy_ring') {
     // a ring of mushrooms sprouts round where its prey stands now: the band from `inner` to `radius` m goes off as
     // they puff (`grow` s after the wind-up), the middle safe

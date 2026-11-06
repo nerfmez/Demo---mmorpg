@@ -291,12 +291,6 @@
         "jaw"
       ]
     },
-    "thornback_wolf.bite": {
-      "limbs": [
-        "head",
-        "jaw"
-      ]
-    },
     "greyfang.rake": {
       "scale": 1.2,
       "limbs": [
@@ -313,12 +307,6 @@
       "wid": 0.95,
       "height": 0.55,
       "shake": 0.05
-    },
-    "thornback_wolf.rend": {
-      "limbs": [
-        "leg0k",
-        "leg1k"
-      ]
     },
     "duskmane_stalker.claw": {
       "limbs": [

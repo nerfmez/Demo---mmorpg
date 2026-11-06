@@ -242,7 +242,18 @@ function animQuad(r, s, dt, time, cfg) {
     b[legs[0]].rotation.x = -0.8; b[legs[1]].rotation.x = -0.8;
     b[legs[2]].rotation.x = 0.5; b[legs[3]].rotation.x = 0.5;
     bodyZ = clampAbs(-s.turn * 0.12, 0.3); zK = 20;
-  } else if (wu === 'howl') {
+  } else if (s.state === 'act' && s.lapPhase === 'aim') {
+    // crouched to lunge: belly low, hind legs coiled, eyes on its prey
+    headX = 0.3; bodyX = 0.14; bodyY -= 0.22; squash = 0.9; jaw = 0.3;
+    b[legs[2]].rotation.x = 0.6; b[legs[3]].rotation.x = 0.6;
+  } else if (s.state === 'act' && s.lapPhase === 'dash') {
+    // the lunge: stretched out, jaws wide
+    bodyX = -0.15; headX = -0.15; jaw = 0.9; lunge = 0.25;
+    b[legs[0]].rotation.x = -1.1; b[legs[1]].rotation.x = -1.1; b[legs[2]].rotation.x = 0.9; b[legs[3]].rotation.x = 0.9;
+  } else if (s.state === 'act' && s.dragging) {
+    // jaws clamped, head low, hauling backwards
+    headX = 0.35; bodyX = -0.2; jaw = 0.05; bodyY -= 0.06;
+  } else if (wu === 'howl' || wu === 'pincer') {
     headX = -0.9 * k;
     jaw = 0.7 * k;
     bodyX = -0.2 * k;

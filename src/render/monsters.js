@@ -420,6 +420,7 @@ function buildCrab(hermit = false) {
 }
 
 const SIDES6 = [1, -1, 1, -1, 1, -1];
+const HIND = ['leg4', 'leg5'];
 
 function animBeetle(r, s, dt, time) {
   const b = r.bones;
@@ -554,6 +555,8 @@ function animCrab(r, s, dt, time) {
       for (const o of r.bareSet.bare) o.visible = out;
       if (r.anemones) for (const g of r.anemones.groups) g.visible = !out; // they went with the shell
     }
+    // a hermit crab's hindmost legs are small and stay tucked against its abdomen (they grip the shell)
+    if (r.bareOut) for (const n of HIND) b[n].scale.multiplyScalar(0.02);
   }
   // legs dug in and trembling before the dash
   if (crouch > 0.3) for (const n of r.legs) b[n].rotation.z += Math.sin(time * 42 + n.length) * 0.05 * crouch;

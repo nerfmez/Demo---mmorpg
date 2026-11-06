@@ -57,12 +57,13 @@ function bareParts() {
   if (BARE_PARTS) return BARE_PARTS;
   const parts = [];
   // the abdomen: banded soft segments, thick at the front, coiling back and round to the right (-x)
-  const coil = [[0, 0.62, -0.25, 0.3], [-0.05, 0.6, -0.52, 0.29], [-0.15, 0.56, -0.76, 0.26], [-0.3, 0.5, -0.92, 0.22], [-0.46, 0.44, -0.98, 0.18], [-0.58, 0.4, -0.92, 0.14], [-0.64, 0.38, -0.8, 0.1]];
+  const coil = [[0, 0.64, -0.5, 0.3], [-0.05, 0.62, -0.76, 0.29], [-0.15, 0.58, -1.0, 0.26], [-0.3, 0.52, -1.16, 0.22], [-0.46, 0.46, -1.22, 0.18], [-0.58, 0.42, -1.16, 0.14], [-0.64, 0.4, -1.04, 0.1]];
   coil.forEach(([x, y, z, r], i) => parts.push(paint(new THREE.SphereGeometry(r, 12, 9).scale(1, 0.8, 1).translate(x, y, z).toNonIndexed(), i % 2 ? 0xe9bba6 : 0xf6dccb)));
-  for (const s of [1, -1]) parts.push(paint(new THREE.ConeGeometry(0.035, 0.14, 5).rotateZ(s * 0.9).translate(-0.67 + s * 0.05, 0.36, -0.72).toNonIndexed(), 0x9a5040)); // the hooks
-  // the cephalothorax: a small hard shield over its front, lighter on top
-  parts.push(paint(new THREE.SphereGeometry(0.3, 14, 10).scale(1.15, 0.55, 1).translate(0, 0.62, 0.05).toNonIndexed(), 0xd8643a));
-  parts.push(paint(new THREE.SphereGeometry(0.2, 12, 8).scale(1.1, 0.4, 0.9).translate(0, 0.7, 0.07).toNonIndexed(), 0xf09a5a));
+  for (const s of [1, -1]) parts.push(paint(new THREE.ConeGeometry(0.035, 0.14, 5).rotateZ(s * 0.9).translate(-0.67 + s * 0.05, 0.38, -0.96).toNonIndexed(), 0x9a5040)); // the hooks
+  // the cephalothorax: the hard front its walking legs grow from, reaching back to the legs' roots at its sides
+  // (x +-0.5), lighter on top
+  parts.push(paint(new THREE.SphereGeometry(0.3, 16, 10).scale(1.6, 0.62, 1.5).translate(0, 0.52, -0.1).toNonIndexed(), 0xd8643a));
+  parts.push(paint(new THREE.SphereGeometry(0.22, 14, 8).scale(1.5, 0.4, 1.4).translate(0, 0.66, -0.06).toNonIndexed(), 0xf09a5a));
   // two long antennae: thin whips rising from between the eyes, bending out and forward (no outline: it would
   // thicken them into rods)
   const whips = [];

@@ -371,7 +371,8 @@ for the normal one.
   left out, a small orange front shield, two thin antennae and that coiled abdomen. Then (owner: "its legs come
   off; going back it must get into the shell where it was"): the leg roots, skinned half to the body, are kept, the
   shell's rim scraps dropped, and giving up the fight no longer snaps it back into a shell: it always walks back to
-  the one it left (the sandbox waits for that too).
+  the one it left (the sandbox waits for that too). Then (owner: "its legs float off the body"): the hard thorax
+  reaches back to the walking legs' roots, the abdomen starts behind it, and the hindmost pair stays tucked away.
 - **Moss beetle, round 1** (2026-11-06, owner: "next"): its spit and shell guard became a bombardier beetle's rear spray
   (an attack made with its back turned: what looks like an opening is the danger), a dung beetle's moss ball (a
   rolling, growing shot that leaves a slowing patch) and a click beetle's play dead (a fake-out reaction whose leap is

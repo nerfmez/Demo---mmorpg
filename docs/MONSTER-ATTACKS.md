@@ -378,6 +378,10 @@ for the normal one.
   (two, three enraged), a moon orbit with an unpredictable cut-in, the rally, a phase roar at half health, a moon
   leap out of reach, and a phantom rush (two shadow copies and itself down three crossing lanes). Speed is what the
   effects sell: moon-blue afterimages (copies of its model), wind streaks, claw marks of light, a crater.
+- **Greyfang, round 3b** (owner: "the landing looks slow and light; the walk is odd (the run is fine); the charge-up
+  pose is odd"): the fall gathers speed all the way down (it slowed near the ground) and lands in a deep, squashed
+  crouch with a bigger shake; the wind-up crouch is a real predator crouch (the attack clip's bent legs, spine and
+  head lowered) instead of the gallop jump's mid-air tuck; it walks with the old gait again and gallops on the clips.
 - **Thicket mantis, round 1** (2026-11-06, owner: "next"): researched first (sit-and-wait hunter that sways to judge
   distance and shoots its spined forelegs; rears up and flashes eyespot wings, hissing, when threatened; can fly). Its
   scythe, whirl and hit-and-back-off became a swaying long-reach strike, a startle display that freezes the hero for its

@@ -186,7 +186,7 @@ export class GreyfangFx {
         const C = this.crater; place(C, e.x, 0.05, e.z); C.scale.setScalar(e.radius * 0.5 * 1.7 * 2); conformPlane(C); C.visible = true;
         C.material.uniforms.uBurn.value = 0; C.material.uniforms.uGlow.value = 0; this.craterT = 0;
         for (let i = 0; i < 4; i++) this.clawMark(e.x + Math.sin(m.facing + (i - 1.5) * 0.5) * 1.2, e.z + Math.cos(m.facing + (i - 1.5) * 0.5) * 1.2, m.facing + (i - 1.5) * 0.5, 1.0, 1.8);
-        this.monster.onShake?.(0.32, 0.25);
+        this.monster.onShake?.(0.5, 0.3); // the whole weight of it coming down
         return true;
       }
       case 'phantomMarks': {

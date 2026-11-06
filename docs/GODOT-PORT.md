@@ -1287,10 +1287,11 @@ and `phantom_rush` (kind `phantom_rush`: at wind-up start three lanes through wh
 m out a third of a circle either side of it and its own; event `phantomMarks`; in `act` (`m.rush`) the first two
 run `gap` s apart as `phantom_wolf` projectiles (trample, `speed`, radius `width`/2, on `past` m beyond the spot),
 then it runs the last itself at `speed` (event `phantomGo`), hitting each unit once).
-Its body (render/greyfang-anim.js) plays the CC0 wolf clips (beast-clips.js `animBeast`) with its kit's beats on top
-(`s.pose` at phases of the gallop-jump clip for crouches, leaps and skids; body roll/pitch, head and jaw nudges); the
+Its body (render/greyfang-anim.js) gallops and attacks on the CC0 wolf clips (beast-clips.js `animBeast`) and walks
+with the older gait (monsters.js `animQuad`, blended in by weight while it only walks), its kit's beats on top
+(`s.pose`: two one-frame clips of its own, `crouch` and the deeper `land`, and phases of the gallop-jump clip for leaps and skids; body roll/pitch, head and jaw nudges); the
 view passes `skid`, `side`, `swoopK`, `lapT`, `lapDir`, `leap`, `leapT`, `rushDash` and `roar`. The moon leap lifts
-the root by `leapHeight()` (up to `LEAP_HEIGHT` m, hidden while it is up there). Its effects (skillfx/greyfang-fx.js)
+the root by `leapHeight()` (up to `LEAP_HEIGHT` m, hidden while it is up there; the fall accelerates to the ground). Its effects (skillfx/greyfang-fx.js)
 take eight pooled copies of its own model once (`takeRig`, see-through and tinted moon-blue): six afterimages posed
 from the live rig while it runs flat out, two the phantom rush's shadows (crouched at the lane starts, then run with
 the `phantom_wolf` projectiles). In Godot: duplicate the model scene with a ghost material and copy bone poses.

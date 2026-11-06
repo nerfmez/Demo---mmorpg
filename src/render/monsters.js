@@ -128,6 +128,8 @@ function buildWolf(kind = 'wolf') {
   return rig;
 }
 
+const greyfangWalk = (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true });
+
 function animQuad(r, s, dt, time, cfg) {
   const b = r.bones;
   const c = r.motion;
@@ -1365,7 +1367,8 @@ const BUILDERS = {
   lure_dummy: [buildLureDummy, animLureDummy],
   tusk_boar: [buildBoar, (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.62, paw: true })],
   thornback_wolf: [() => buildWolf('wolf'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
-  greyfang: [() => buildWolf('greyfang'), animGreyfang], // the wolf's CC0 clips and its kit's beats (greyfang-anim.js)
+  // its kit's beats and gallop on the wolf's CC0 clips, its walk the old gait (greyfang-anim.js)
+  greyfang: [() => buildWolf('greyfang'), (r, s, dt, t) => animGreyfang(r, s, dt, t, greyfangWalk)],
   spirit_wolf: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)], // the owner's blue-flame wolf (models.json)
   // the hunter's companions move by the Quaternius wolf's clips (beast-clips.js); the bear heavier and slower
   hunt_hound: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)],

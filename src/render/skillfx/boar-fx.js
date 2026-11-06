@@ -11,7 +11,7 @@ import * as THREE from 'three';
 const LANES = 3;
 const PIGLET = 0.42;
 const _p = new THREE.Vector3(); // a piglet's size against the boar
-const SQUEAL = new THREE.Color(0xfff0d0);
+const SQUEAL = new THREE.Color(0xfff0d0), LAND = new THREE.Color(0xd8c0a0);
 const RUN = { moving: true, speed: 7.5, smoothSpeed: 7.5, speedFactor: 1, state: 'chase', windup: null, windupT: 0, windupTotal: 1, lookYaw: 0, turn: 0, vSide: 0, vFwd: 7.5, aggro: true, hurt: 0, actT: 0 };
 
 export class BoarFx {
@@ -41,6 +41,23 @@ export class BoarFx {
       return true;
     }
     if (e.type === 'rampageLeg') return true;
+    if (e.type === 'toss') {
+      // the scoop: earth and a crescent of dust thrown up where the tusks went under, a glint on the one flung
+      const y = this.gy(e.x, e.z), fx = this.fx;
+      if (fx) for (let i = 0; i < 14; i++) { const a = Math.random() * 6.283, v = 1 + Math.random() * 2; fx.add(e.x, y + 0.2, e.z, Math.sin(a) * v, 3 + Math.random() * 2, Math.cos(a) * v, { color: i % 2 ? 0x8a6a48 : 0x6a5038, size: 0.12, sizeEnd: 0.06, life: 0.6, gravity: 12, drag: 0.5 }); }
+      for (let i = 0; i < 5; i++) { const a = (i / 5) * 6.283; this.monster.call?.dust(e.x + Math.sin(a) * 0.4, y + 0.15, e.z + Math.cos(a) * 0.4, Math.sin(a) * 1.2, 0.8, Math.cos(a) * 1.2, 0.8, 0.5); }
+      this.monster.companion?.glint(e.x, y + 1.2, e.z, 1.1, 0);
+      this.monster.onShake?.(0.1, 0.1);
+      return true;
+    }
+    if (e.type === 'tossLand') {
+      // the landing: a thump of dust round where it came down
+      const y = this.gy(e.x, e.z);
+      for (let i = 0; i < 8; i++) { const a = (i / 8) * 6.283; this.monster.call?.dust(e.x + Math.sin(a) * 0.3, y + 0.12, e.z + Math.cos(a) * 0.3, Math.sin(a) * 1.8, 0.4, Math.cos(a) * 1.8, 0.8, 0.5); }
+      this.monster.call?.ring(e.x, y + 0.06, e.z, 1.2, LAND, 0.35);
+      this.monster.onShake?.(0.12, 0.1);
+      return true;
+    }
     return false;
   }
 

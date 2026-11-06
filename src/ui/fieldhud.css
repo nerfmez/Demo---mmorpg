@@ -123,6 +123,10 @@ body.ingame #hud .hint {bottom:10px;font-size:9px;color:#d7e4f4b3}
 #hud .bossbar .bn {font-size:11px;font-weight:400;color:#f7e1d6}
 #hud .mbar {width:78px}
 #hud .mbar .mn {font-size:10px;font-weight:400;text-shadow:0 1px 3px #0c2030,0 0 3px #0c2030}
+/* elite (starred) monsters: a gold star and name, a gold edge on the bar */
+#hud .mbar.elite .mn {color:#ffe08a}
+#hud .mbar.elite .mn .star {color:#ffd24a;margin-right:2px;font-weight:700}
+#hud .mbar.elite .bar {box-shadow:0 0 0 1px #ffd24a}
 #hud .mbar .mn em {color:#e6ecf4}
 #hud .mbar .bar {height:5px;border:1px solid #244056;border-radius:4px;background:#132c43e0}
 #hud .mbar .bar>.fill {background:linear-gradient(#ff9c91,#e54c61)}

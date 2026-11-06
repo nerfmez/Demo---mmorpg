@@ -43,6 +43,16 @@ function buffTaken(buffs) {
   return n;
 }
 
+/** An elite (data monsters.elite): tougher, bigger, its whole kit (core/ai.js canUse). */
+function makeElite(m, E) {
+  if (m.elite || !E) return;
+  m.elite = true;
+  m.maxHp = Math.round(m.maxHp * E.hp); m.hp = m.maxHp;
+  m.damage *= E.damage;
+  m.exp = Math.round(m.exp * E.exp); m.jobExp = Math.round(m.jobExp * E.exp);
+  m.size = E.size; // drawn bigger; its reach and body size stay the type's (its attacks' warnings stay true)
+}
+
 export class Game {
   /**
    * @param {object} data game data
@@ -303,11 +313,18 @@ export class Game {
       targetUnit: null,
     };
     m.hp = m.maxHp;
+    // an elite (starred) one, now and then: a kit monster with a one-attack normal form, never a boss or a minion.
+    // Rolled from its id, not the game's rng, so no other seeded outcome shifts.
+    const E = this.data.monsters.elite;
+    if (E && def.normal && !def.boss && !sp.minion && ((Math.imul(m.id + 0x9e37, 0x85ebca6b) >>> 0) / 4294967296) < E.chance) makeElite(m, E);
     if (!at) sp.entity = m;
     this.monsters.push(m);
     this.emit({ type: 'spawn', id: m.id });
     return m;
   }
+
+  /** Make a monster an elite (the sandbox, and spawns that roll it). */
+  makeElite(m) { makeElite(m, this.data.monsters.elite); }
 
   /** A monster called in by another (Greyfang's howl). Never respawns. */
   spawnMinion(type, level, x, z) {
@@ -1056,6 +1073,8 @@ export class Game {
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
     const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng, {}, m.worldId).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId);
     if (m.loot) drops.push({ item: 'gold', qty: m.loot }); // what a shore gull snatched comes back
+    // an elite's drops are rolled again (data monsters.elite.drops times in all)
+    if (m.elite && !m.minion) for (let i = 1; i < (this.data.monsters.elite?.drops || 1); i++) drops.push(...rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId));
     // Mark Prey: a monster dying marked may drop one more of its own parts
     const prey = m.statuses?.exposure?.t > 0 ? m.statuses.exposure.prey : 0;
     if (prey && !m.minion && this.rng.chance(prey)) { const parts = (this.data.monsters.monsters[m.type]?.drops || []).filter((x) => x.item !== 'gold'); if (parts.length) { drops.push({ item: this.rng.pick(parts).item, qty: 1 }); this.emit({ type: 'preyDrop', id: m.id, x: m.x, z: m.z }); } }
@@ -1611,6 +1630,16 @@ export class Game {
     this.tickPlayerStatuses(dt);
     if (p.dead) return;
 
+    // tossed (the tusk boar's tusk toss, core/ai.js): flung through the air to where it lands, no walking or casting
+    if (p.tossed) {
+      const tz = p.tossed;
+      tz.t += dt;
+      const k = Math.min(1, tz.t / tz.dur);
+      p.x = tz.fromX + (tz.toX - tz.fromX) * k; p.z = tz.fromZ + (tz.toZ - tz.fromZ) * k;
+      p.moving = false;
+      if (k >= 1) { p.tossed = null; this.emit({ type: 'tossLand', x: p.x, z: p.z }); }
+      return;
+    }
     if (p.dash) {
       p.dash.t += dt;
       if (p.dash.kind === 'blink' && !p.dash.moved && p.dash.t >= p.dash.delay) this.blinkPlayer(p);

@@ -9,10 +9,12 @@ import { updateMonster } from '../../src/core/ai.js';
 
 const M = data.monsters.monsters;
 
-function arena(type, level = 13, { realDamage = false, open = false } = {}) {
+function arena(type, level = 13, { realDamage = false, open = false, normal = false } = {}) {
   const g = new Game(data, { seed: 5 });
   if (open) g.world.isFree = () => true; // open ground: the spot near the origin has a rock in the way
   const m = g.spawnMinion(type, level, 0, 0);
+  if (!normal) g.makeElite(m); // the whole kit (a normal one uses only its `normal` attack)
+  if (realDamage) g.player.hp = g.player.maxHp = 1e6; // a level-1 hero would fall to a level-27 elite's first blow
   g.monsters = [m];
   g.isSafe = () => false;
   g.moveEntity = (u, dx, dz) => { u.x += dx; u.z += dz; return {}; };
@@ -30,6 +32,43 @@ function arena(type, level = 13, { realDamage = false, open = false } = {}) {
   const only = (name) => { for (const k in m.cd) m.cd[k] = k === name ? 0 : 99; };
   return { g, m, hits, step, until, place, only };
 }
+
+test('elites: a normal kit monster uses only its one attack; an elite (rolled now and then, never a boss) its whole kit, tougher', () => {
+  const E = data.monsters.elite;
+  for (const [type, def] of Object.entries(M)) {
+    if (def.behavior !== 'kit' || def.boss) continue;
+    assert.ok(def.normal && def.attacks[def.normal]?.use, `${type}: a normal attack it can take on its own`);
+    const used = Object.values(def.attacks).filter((a) => a.use || a.hitsToTrigger || a.at);
+    assert.ok(used.length >= 3, `${type}: three attacks (owner, 2026-11-06)`);
+  }
+  // a normal fox only pounces, whatever the gap
+  const n = arena('leaf_fox', 13, { normal: true });
+  for (const gap of [0.8, 3, 6]) {
+    n.m.state = 'chase'; n.m.windup = null;
+    for (const k in n.m.cd) n.m.cd[k] = 0;
+    n.place(gap); n.step(0.05);
+    assert.ok(!n.m.windup || n.m.windup.name === 'pounce', `a gap of ${gap} m: ${n.m.windup?.name}`);
+  }
+  // elites are rolled at spawn, about `chance` of the kit monsters, with their stats raised
+  const g = new Game(data, { seed: 3 });
+  let kit = 0, elite = 0;
+  for (let i = 0; i < 400; i++) {
+    const m = g.spawnAt({ monster: 'reef_crab', zone: 'meadow', level: [2, 2], x: 0, z: 0, respawn: 5 });
+    kit++; if (m.elite) elite++;
+  }
+  assert.ok(Math.abs(elite / kit - E.chance) < 0.06, `about ${E.chance} elite (${elite}/${kit})`);
+  const a = g.spawnMinion('reef_crab', 2, 0, 0), b = g.spawnMinion('reef_crab', 2, 0, 0);
+  assert.ok(!a.elite, 'a minion is never an elite');
+  g.makeElite(b);
+  assert.equal(b.maxHp, Math.round(a.maxHp * E.hp));
+  assert.ok(Math.abs(b.damage / a.damage - E.damage) < 1e-9 && b.size === E.size);
+  // and drops more
+  g.drops = [];
+  b.minion = false; g.killMonster(b);
+  const many = g.drops.length;
+  g.drops = []; a.minion = false; g.killMonster(a);
+  assert.ok(many > g.drops.length, 'an elite drops more');
+});
 
 test('kit monsters pick each attack by its use band, in the data order', () => {
   for (const [type, def] of Object.entries(M)) {
@@ -304,6 +343,51 @@ test('tusk boar stampede: three piglets down three lanes, a gap apart, each tram
   b.until(() => b.m.state === 'recover', 3);
   for (let t = 0; t < 2; t += 0.01) { b.g.updateProjectiles(0.01); b.step(0.01); }
   assert.equal(b.hits.length, 0, 'in the gap: safe');
+});
+
+test('shore gull perch: hops onto the hero\'s head and pecks while riding; a dodge shakes it off dazed', () => {
+  const a = M.shore_gull.attacks.perch;
+  const { m, g, hits, until, step, place, only } = arena('shore_gull', 3, { open: true });
+  only('perch'); place(0.8);
+  until(() => m.state === 'windup');
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.perch, 2);
+  g.player.x += 1.5; // it rides along
+  until(() => m.state === 'recover', 4);
+  assert.equal(hits.length, a.ticks, 'one peck a beat');
+  assert.ok(Math.abs(m.x - g.player.x) < 1.5, 'it rode along with the hero');
+  const b = arena('shore_gull', 3, { open: true });
+  b.only('perch'); b.place(0.8);
+  b.until(() => b.m.perch, 3);
+  b.g.player.dash = { t: 0, dur: 0.3 }; // a dodge
+  b.step(0.02);
+  assert.equal(b.m.state, 'stunned', 'shaken off, dazed');
+  assert.ok(b.hits.length < a.ticks);
+});
+
+test('tusk boar toss: scoops the hero in its arc and flings them over its back to land behind it', () => {
+  const a = M.tusk_boar.attacks.toss;
+  const { m, g, hits, until, step, place, only } = arena('tusk_boar', 5, { open: true, realDamage: true });
+  only('toss'); place(0.6);
+  until(() => m.state === 'windup');
+  const hp = g.player.hp;
+  step(a.windup - 0.03);
+  assert.equal(g.player.hp, hp, 'nothing in the wind-up');
+  until(() => g.player.tossed, 2);
+  void hits;
+  for (let t = 0; t < a.air + 0.1; t += 0.01) { g.time += 0.01; g.updatePlayer(0.01); }
+  assert.equal(g.player.tossed, null, 'landed');
+  const along = (g.player.x - m.x) * Math.sin(m.facing) + (g.player.z - m.z) * Math.cos(m.facing);
+  assert.ok(along < -a.throw * 0.8, 'behind it');
+  assert.ok(g.player.statuses.root, 'dazed where it lands');
+  const b = arena('tusk_boar', 5, { open: true });
+  b.only('toss'); b.place(0.6);
+  b.until(() => b.m.state === 'windup' && b.m.stateT > b.m.windup.total * 0.6);
+  Object.assign(b.g.player, { x: 2.5 }); // out of its arc
+  b.until(() => b.m.state === 'recover', 2);
+  assert.equal(b.hits.length, 0);
+  assert.ok(!b.g.player.tossed);
 });
 
 test('shore gull snatch: swoops along a curve through the hero, clipping once and stealing gold it drops again when it dies', () => {

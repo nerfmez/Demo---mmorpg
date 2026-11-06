@@ -9,6 +9,7 @@ import { updateMonster } from '../../src/core/ai.js';
 function arena(type) {
   const g = new Game(data, { seed: 9 });
   const m = g.monsters.find(m => m.type === type);
+  if (m.def.normal) g.makeElite(m); // a kit monster's whole kit (a normal one uses only its `normal` attack)
   g.monsters = [m];
   g.isSafe = () => false;
   g.moveEntity = (u, dx, dz) => { u.x += dx; u.z += dz; return {}; };

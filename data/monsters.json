@@ -1,10 +1,20 @@
 {
   "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up. levels: each kind's one fixed level range (owner, 2026-10-29: no kind returns at other levels); a map spawn stays inside it unless marked temporary (a placeholder until a new monster fills that zone). element: what its attacks deal (physical when absent); an attack's own element overrides it, and an attack's inflict { status, chance, duration, slow | dpsMult } puts a status on the hero (core/defense.js: resisted by element resistance, shortened by tenacity). Elements follow each monster's body and home: the marsh wisp's swamp fire, the coast's cold brine, spore and venom poison, the storm hawk's and the rune sentinel's lightning, the moonlit moth's cold glass; fangs and claws make bleed, the mole's burrowing roots the hero for a moment.",
+  "elite": {
+    "_doc": "Elite (starred) monsters (owner, 2026-11-06): a kit monster with `normal` set uses only that one attack; its elite, rolled at spawn (`chance`, never a boss or a minion), uses its whole kit and is bigger and tougher: health x `hp`, damage x `damage`, exp x `exp`, its drops rolled `drops` times, drawn `size` times as large with a star on its bar.",
+    "chance": 0.12,
+    "hp": 3,
+    "damage": 1.3,
+    "exp": 3,
+    "drops": 2,
+    "size": 1.22
+  },
   "monsters": {
     "tusk_boar": {
       "name": "Boarbull",
       "nameTh": "หมูกระทิง",
       "behavior": "kit",
+      "normal": "rampage",
       "_kit": "docs/MONSTER-ATTACKS.md: a boar. It backs off to get a run at its prey; it paws the ground, snorting, then rampages in three legs, skidding to a stop between them and swinging round to charge again (a rock in its way stops it stunned); from further off it rears and squeals, and three piglets burst out beside it and stampede down three lanes one after another.",
       "kit": {
         "circle": [3.5, 7]
@@ -36,6 +46,21 @@
           "recover": 0.9,
           "cooldown": 6,
           "damageMult": 1.1
+        },
+        "toss": {
+          "nameTh": "ขวิดเสย",
+          "kind": "toss",
+          "tell": "sector",
+          "use": {"max": 1.8},
+          "range": 1.8,
+          "arc": 80,
+          "throw": 2.6,
+          "air": 0.55,
+          "windup": 0.7,
+          "recover": 0.8,
+          "cooldown": 5,
+          "damageMult": 1.0,
+          "inflict": {"status": "root", "chance": 1, "duration": 1.2}
         },
         "stampede": {
           "nameTh": "ลูกหมูแตกตื่น",
@@ -140,6 +165,7 @@
       "name": "Reef Crab",
       "nameTh": "ปูแนวปะการัง",
       "behavior": "kit",
+      "normal": "pinch",
       "hp": 420,
       "damage": 60,
       "defense": 30,
@@ -746,6 +772,7 @@
       "name": "Tidal Slime",
       "nameTh": "สไลม์คลื่นทะเล",
       "behavior": "kit",
+      "normal": "engulf",
       "_kit": "docs/MONSTER-ATTACKS.md: a slime of seawater with salt crystals on its back. Up close it flattens, quivering, then hops onto the marked spot and wraps over whoever is there, holding them inside and squeezing, then spits them out (a miss leaves it splatted flat); from range it spits brine that spreads into a puddle and crystallizes into salt from the edge in, holding fast whoever still stands in it; brought under half health it pinches off a small bud of itself.",
       "hp": 320,
       "damage": 50,
@@ -826,6 +853,7 @@
       "name": "นกชายฝั่ง",
       "nameTh": "นกชายฝั่ง",
       "behavior": "kit",
+      "normal": "snatch",
       "_kit": "docs/MONSTER-ATTACKS.md: a gull, a thief and a shell-dropper. It crouches, eyes on the hero's purse, then swoops along a curve past them and snatches a little gold, carrying the coin off in its beak (kill it to get it back); from range it flies up and drops a clam onto a marked spot, then glides down to the cracked shell and eats, its back turned, open to blows.",
       "kit": {
         "circle": [3, 6]
@@ -854,6 +882,20 @@
           "recover": 0.5,
           "cooldown": 5,
           "damageMult": 0.7
+        },
+        "perch": {
+          "nameTh": "เกาะหัวจิก",
+          "kind": "perch",
+          "use": {"max": 1.6},
+          "range": 1.6,
+          "windup": 0.6,
+          "hop": 0.3,
+          "ride": 2.2,
+          "ticks": 4,
+          "shakeStun": 1.4,
+          "recover": 0.5,
+          "cooldown": 7,
+          "damageMult": 0.35
         },
         "shell_drop": {
           "nameTh": "ทิ้งหอย",
@@ -1279,6 +1321,7 @@
       "name": "Fern-ear Hare",
       "nameTh": "กระต่ายหูเฟิร์น",
       "behavior": "kit",
+      "normal": "hop",
       "hp": 120,
       "damage": 30,
       "defense": 0,
@@ -1376,6 +1419,7 @@
       "name": "Mirrorwing Moth",
       "nameTh": "ผีเสื้อราตรีปีกกระจก",
       "behavior": "kit",
+      "normal": "shard_rain",
       "element": "cold",
       "hp": 400,
       "damage": 90,
@@ -1491,6 +1535,7 @@
       "name": "Rootdigger Mole",
       "nameTh": "ตุ่นขุดราก",
       "behavior": "kit",
+      "normal": "erupt",
       "hp": 950,
       "damage": 110,
       "defense": 90,
@@ -1585,6 +1630,7 @@
       "name": "Leaf Fox",
       "nameTh": "จิ้งจอกใบไม้",
       "behavior": "kit",
+      "normal": "pounce",
       "_kit": "docs/MONSTER-ATTACKS.md: a hunter. From range it freezes to listen, then leaps onto a marked spot (pins the hero; stuck nose-down on a miss); in the middle distance its leaf tail flings a cone of leaf blades (bleed); up close a quick snap.",
       "kit": {
         "circle": [3.5, 6]
@@ -1670,6 +1716,7 @@
       "name": "Leaf Tanuki",
       "nameTh": "ทานุกิใบไม้",
       "behavior": "kit",
+      "normal": "boomerang",
       "_kit": "docs/MONSTER-ATTACKS.md: a trickster. Up close it rears and drums its belly (three rings run out, the last wider, knocking back); from range it throws the leaf from its head, which cuts going out and coming back; hurt, it puffs into leaves and two copies of itself stand beside it (they never attack and pop at a touch).",
       "kit": {
         "circle": [3, 5.5]
@@ -1753,6 +1800,7 @@
       "name": "Stone Pangolin",
       "nameTh": "ตัวนิ่มหิน",
       "behavior": "kit",
+      "normal": "roll",
       "_kit": "docs/MONSTER-ATTACKS.md: armoured and slow to turn. Up close it rears and rakes twice with its digging claws; anyone standing behind it gets the tail lashed across without it turning; from range it curls into a ball and rolls down a lane, bounces back along it, then uncurls dizzy.",
       "kit": {
         "turn": 2.2
@@ -1841,6 +1889,7 @@
       "name": "Pearl Fish",
       "nameTh": "ปลามุก",
       "behavior": "kit",
+      "normal": "flop",
       "_kit": "docs/MONSTER-ATTACKS.md: a fish stranded on its side, flopping. Up close it opens its mouth and sucks: a cone of water streams into its mouth, drawing the hero in, and its jaws snap shut on what reaches them; at range it slaps the ground with its tail and a crest of water rolls out across a cone, widening as it goes; in the middle distance it bends nose to tail and flops at the hero in three marked hops.",
       "element": "cold",
       "kit": {
@@ -1932,6 +1981,7 @@
       "name": "Pearl Sea Slug",
       "nameTh": "ทากทะเลมุก",
       "behavior": "kit",
+      "normal": "surge",
       "_kit": "docs/MONSTER-ATTACKS.md: a nudibranch. It slides at the hero leaving a ribbon of poison mucus; from range its plumes fan up and three stinging cells it keeps from the jellyfish it ate drift off them and follow the hero slowly; hit hard (three hits in two seconds) its skin froths with acid, and for three seconds every blow from close by is answered with a squirt of acid.",
       "element": "poison",
       "kit": {
@@ -2023,6 +2073,7 @@
       "name": "One-eyed Clam",
       "nameTh": "หอยตาเดียว",
       "behavior": "kit",
+      "normal": "gaze",
       "_kit": "docs/MONSTER-ATTACKS.md: a turret whose eye is its weak point. From range its eye opens wide and a cone of hypnotic light grows from it: whoever faces it when it flashes is struck and held fast (turn your back to it); up close the shell gapes and its mantle bulges, then snaps shut and blasts a cone of water that knocks back; hit hard it clamps shut and coats itself in nacre: break the coat in time and it cracks open stunned, its eye bare, or what is left heals it.",
       "element": "poison",
       "hp": 950,

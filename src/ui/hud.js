@@ -474,6 +474,12 @@ export class Hud {
       case 'feast':
         this.float(e.x, 1.6, e.z, 'กินหอย!', 'shell');
         break;
+      case 'perch':
+        this.float(e.x, 2.4, e.z, 'โดนเกาะหัว! หลบเพื่อสะบัด', 'shell');
+        break;
+      case 'shaken':
+        this.float(e.x, 1.6, e.z, 'สะบัดหลุด!', 'crit');
+        break;
       case 'split':
         this.float(e.x, 1.6, e.z, 'แตกตัว!', 'shell');
         break;
@@ -590,7 +596,8 @@ export class Hud {
     const seen = new Set();
     for (const m of g.monsters) {
       if (m.dead || m.boss) continue;
-      const show = m.id === p.targetId || m.hp < m.maxHp || m.aggro;
+      // an elite (starred) monster always shows its bar near the hero, so it can be seen coming
+      const show = m.id === p.targetId || m.hp < m.maxHp || m.aggro || (m.elite && (m.x - p.x) ** 2 + (m.z - p.z) ** 2 < 20 * 20);
       if (!show) continue;
       if ((m.x - p.x) ** 2 + (m.z - p.z) ** 2 > 32 * 32) continue;
       const mv = this.view.monsterViews.get(m.id);
@@ -599,12 +606,13 @@ export class Hud {
       let b = this.mbars.get(m.id);
       if (!b) {
         b = h(`<div class="mbar"><div class="mst"></div><div class="mn"></div><div class="bar"><i class="fill"></i></div></div>`);
-        b.querySelector('.mn').innerHTML = `<em>Lv.${m.level}</em> ${esc(m.def.nameTh)}`;
+        b.querySelector('.mn').innerHTML = `<em>Lv.${m.level}</em> ${m.elite ? '<b class="star">★</b>' : ''}${esc(m.def.nameTh)}`;
+        b.classList.toggle('elite', !!m.elite);
         this.el.floats.appendChild(b);
         this.mbars.set(m.id, b);
       }
       const sc = mv.rig.baseScale || 1;
-      const s = this.view.project(m.x, mv.y + ((m.alt || 0) + (HEAD[m.type] || 1.5)) * sc, m.z);
+      const s = this.view.project(m.x, mv.y + ((m.alt || 0) + (HEAD[m.type] || 1.5)) * sc * (m.size || 1), m.z);
       b.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -100%)`;
       b.querySelector('.fill').style.width = pct(m.hp, m.maxHp);
       b.classList.toggle('target', m.id === p.targetId);

@@ -214,6 +214,13 @@ function animQuad(r, s, dt, time, cfg) {
     b[legs[1]].rotation.x = -1.1;
     b[legs[2]].rotation.x = 0.9;
     b[legs[3]].rotation.x = 0.9;
+  } else if (wu === 'toss') {
+    // the scoop: head right down, tusks under its prey, braced
+    headX = 0.7 * k; bodyX = 0.18 * k; bodyY -= 0.1 * k; lunge = 0.1 * k;
+  } else if (s.state === 'recover' && s.lastAttack === 'toss') {
+    // the fling: the head whips up and back, the forequarters rising, then settles
+    const t = clamp01((s.actT || 0) / 0.18), back = clamp01(((s.actT || 0) - 0.3) / 0.5);
+    headX = (0.7 - 1.6 * t) * (1 - back); bodyX = (0.18 - 0.45 * t) * (1 - back); bodyY += 0.12 * t * (1 - back);
   } else if (wu === 'stampede') {
     // the boar rears up on its hind legs, head thrown back squealing, forelegs pawing the air
     bodyX = -0.55 * k;
@@ -1246,8 +1253,11 @@ function animShoreGull(r, s, dt, time) {
   const swooping = s.state === 'act' && s.lastAttack === 'snatch', hit = s.state === 'recover' && s.lastAttack === 'snatch' ? 1 - clamp01((s.actT || 0) / 0.4) : 0;
   const atk = s.attack, up = s.dropT >= 0 && atk ? clamp01(s.dropT / atk.air) : -1, glide = s.dropT >= 0 && atk && s.dropT > atk.air ? clamp01((s.dropT - atk.air) / atk.glide) : -1;
   const eating = s.state === 'stunned' && s.lastAttack === 'shell_drop';
-  const flying = swooping || (up >= 0 && glide < 0) || glide >= 0;
-  const H = glide >= 0 ? 1.9 * (1 - glide * glide) : up >= 0 ? 1.9 * Math.sin(Math.min(1, up * 1.4) * Math.PI / 2) : swooping ? 0.35 : 0;
+  // perch: a hop up onto its prey's head, then riding there pecking down; shaken off, it flaps about dazed
+  const perchHop = s.state === 'act' && s.lastAttack === 'perch' && !s.perching && s.hop >= 0 ? s.hop : -1;
+  const riding = s.perching, dazed = s.state === 'stunned' && s.lastAttack === 'perch';
+  const flying = swooping || (up >= 0 && glide < 0) || glide >= 0 || perchHop >= 0 || dazed;
+  const H = riding ? 1.35 : perchHop >= 0 ? 1.35 * perchHop + Math.sin(perchHop * Math.PI) * 0.6 : dazed ? 0.25 + 0.15 * Math.sin(time * 9) : glide >= 0 ? 1.9 * (1 - glide * glide) : up >= 0 ? 1.9 * Math.sin(Math.min(1, up * 1.4) * Math.PI / 2) : swooping ? 0.35 : 0;
   r.flyH = damp(r.flyH || 0, H, swooping ? 14 : 8, dt);
   // a waddle: rocks over each foot, and the head thrusts forward and holds still while the body
   // catches up (the bird-walk head bob)
@@ -1259,12 +1269,12 @@ function animShoreGull(r, s, dt, time) {
   for (const [side, n] of GULL_WINGS) {
     const ruffle = Math.max(0, Math.sin(time * 0.8 + r.seed * 2)) ** 20 * 0.35;
     // beating in the air (fast going up, slower in the swoop, held wide in the glide)
-    const beat = up >= 0 && glide < 0 ? 1.0 + Math.sin(time * 26) * 0.7 : swooping ? 1.1 + Math.sin(time * 18) * 0.45 : glide >= 0 ? 1.25 + Math.sin(time * 6) * 0.05 : 0;
-    b['wing' + n].rotation.z = damp(b['wing' + n].rotation.z, side * (flying ? beat : .05 + (s.windup === 'shell_drop' ? .9 : .45) * ready + ruffle + 0.06 * w + 0.6 * hit), flying ? 30 : 12, dt);
+    const beat = riding ? 0.5 + Math.sin(time * 16) * 0.35 : dazed ? 0.9 + Math.sin(time * 20) * 0.6 : perchHop >= 0 ? 1.1 + Math.sin(time * 24) * 0.5 : up >= 0 && glide < 0 ? 1.0 + Math.sin(time * 26) * 0.7 : swooping ? 1.1 + Math.sin(time * 18) * 0.45 : glide >= 0 ? 1.25 + Math.sin(time * 6) * 0.05 : 0;
+    b['wing' + n].rotation.z = damp(b['wing' + n].rotation.z, side * (flying || riding ? beat : .05 + (s.windup === 'shell_drop' ? .9 : .45) * ready + ruffle + 0.06 * w + 0.6 * hit), flying ? 30 : 12, dt);
   }
   const P = r.pose || (r.pose = { x: 0, headX: 0 });
-  const peck = eating ? Math.max(0, Math.sin(time * 9)) : 0;
-  P.x = damp(P.x, .35 * ready + (swooping ? .45 : 0) + (glide >= 0 ? .25 : 0) - .25 * hit + .55 * eating + clampAbs(r.accel || 0, 4) * 0.03, 16, dt);
+  const peck = eating ? Math.max(0, Math.sin(time * 9)) : riding ? Math.max(0, Math.sin(time * 11)) : 0;
+  P.x = damp(P.x, .35 * ready + (swooping ? .45 : 0) + (glide >= 0 ? .25 : 0) - .25 * hit + .55 * eating + .45 * (riding ? 1 : 0) + clampAbs(r.accel || 0, 4) * 0.03, 16, dt);
   P.headX = damp(P.headX, .45 * ready - .5 * hit + (swooping ? .3 : 0) + 0.9 * peck, 24, dt);
   b.body.rotation.x = P.x + 0.08 * w;
   // banking into the swoop's turn

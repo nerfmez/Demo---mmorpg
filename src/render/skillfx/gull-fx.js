@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { lightSprite, glowTexture } from './light-kit.js';
 
 const N = 24, FALL = 0.55;
+const PECK = { core: [1.0, 0.98, 0.9], glow: [1.0, 0.75, 0.35] }; // a peck's burst star (display colours)
 const SHELL = 0xf4e6dc, CHIP = [0xfff4ec, 0xf0d8c8, 0xd8c0b0];
 const _v = new THREE.Vector3();
 
@@ -50,6 +51,13 @@ export class GullFx {
       if (fx) for (let i = 0; i < (e.gold ? 12 : 8); i++) { const a = Math.random() * 6.283, sp = 1 + Math.random() * 1.5; fx.add(e.x, y, e.z, Math.sin(a) * sp, 2.5 + Math.random() * 1.5, Math.cos(a) * sp, e.gold ? { color: i % 2 ? 0xffd24a : 0xfff2b0, size: 0.13, sizeEnd: 0.08, life: 0.6, gravity: 9, drag: 0.5 } : { color: 0xf4f2ea, size: 0.16, sizeEnd: 0.1, life: 0.8, gravity: 1.5, drag: 2 }); }
       this.monster.companion?.glint(e.x, y, e.z, e.gold ? 1.1 : 0.7, 0);
       this.monster.onShake?.(0.04, 0.06);
+      return true;
+    }
+    if (e.type === 'perch' || e.type === 'hopOff' || e.type === 'shaken') {
+      // feathers fly as it lands on a head, hops off, or is shaken off (a big puff, and it reels)
+      const fx = this.fx, n = e.type === 'shaken' ? 14 : 7, y = this.gy(e.x, e.z) + (e.type === 'perch' ? 1.9 : 0.8);
+      if (fx) for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, sp = 1 + Math.random() * 1.5; fx.add(e.x, y, e.z, Math.sin(a) * sp, 0.8 + Math.random(), Math.cos(a) * sp, { color: i % 3 ? 0xf4f2ea : 0x9aa8b0, size: 0.16, sizeEnd: 0.1, life: 0.9, gravity: 1.2, drag: 2 }); }
+      if (e.type === 'shaken') { this.monster.companion?.glint(e.x, y + 0.4, e.z, 1, 0); this.monster.onShake?.(0.05, 0.08); }
       return true;
     }
     if (e.type === 'feast' || e.type === 'glide') return true;
@@ -93,6 +101,16 @@ export class GullFx {
       const y = this.gy(m.x, m.z) + 0.9;
       this.fx?.add(m.x, y, m.z, -Math.sin(m.facing) * 2, 0, -Math.cos(m.facing) * 2, { color: 0xffffff, size: 0.1, sizeEnd: 0.02, life: 0.25, drag: 2 });
       if (Math.random() < 0.15) this.fx?.add(m.x, y + 0.2, m.z, (Math.random() - 0.5), 0.3, (Math.random() - 0.5), { color: 0xf4f2ea, size: 0.14, sizeEnd: 0.1, life: 0.9, gravity: 1, drag: 2 });
+    }
+    // each peck of a gull riding a head: a star of light on the head, a feather now and then
+    for (const m of g.monsters) {
+      if (m.dead || !m.perch || m.type !== 'shore_gull') continue;
+      if (m.perch.n !== (m.perch.seenN ?? 0)) {
+        m.perch.seenN = m.perch.n;
+        const y = this.gy(m.x, m.z) + 1.55;
+        this.monster.burstStar?.(m.x, y, m.z, 0.3, PECK, 0xffffff, 0xf4f2ea);
+        this.monster.onShake?.(0.03, 0.05);
+      }
     }
     // a coin in the beak of each gull with loot
     let c = 0;

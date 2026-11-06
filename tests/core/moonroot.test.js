@@ -18,6 +18,7 @@ const worlds = Object.fromEntries(Object.entries(data.maps).map(([id, wd]) => [i
 function arena(type, level = 8) {
   const g = new Game(data, { seed: 9 });
   const m = g.spawnMinion(type, level, 0, 0);
+  if (m.def.normal) g.makeElite(m); // a kit monster's whole kit (a normal one uses only its `normal` attack)
   g.monsters = [m];
   g.isSafe = () => false;
   g.moveEntity = (u, dx, dz) => { u.x += dx; u.z += dz; return {}; };

@@ -1171,6 +1171,16 @@ clipped loses up to `steal` gold into `m.loot`, which `killMonster` drops as gol
 (`m.drop`) it stays `air` s, then moves to the spot over `glide` s (event `glide`), then `stunned` for `feast` s with
 `m.exposed` = `exposedTaken`; event `feast`).
 
+Elites (`data/monsters.json` `elite`): at spawn a non-boss, non-minion kit monster with a `normal` attack is an elite
+when a hash of its id falls under `chance` (`makeElite`: health x `hp`, damage x `damage`, exp x `exp`, `size`;
+its drops rolled `drops` times in `killMonster`). `ai.js canUse(m, name)` lets a normal one use only its `normal`
+attack (also for reactions: acid, nacre, split); elites and bosses use everything. Port as a flag on the monster.
+The shore gull's `perch` (kind `perch`: a `dive` charge with `perch` to where its prey stands as the hop starts;
+landing within 0.9 m of a unit, `m.perch` {unit, n}: it sits on the unit, `ticks` hits over `ride` s; the hero's
+`dash` throws it off: `stunned` `shakeStun` s, event `shaken`; else event `hopOff`). The boar's `toss` (kind `toss`:
+units in its arc take the hit; the hero gets `player.tossed` {from, to, t, dur}: `updatePlayer` moves them along it,
+no walking or casting, event `tossLand`; the View lifts them on an arc and turns them head over heels).
+
 The tusk boar is a kit monster (no longer `charger`): `rampage` (kind `rampage`: `m.rampage` {leg, phase, t, angle,
 hit}; a `run` phase moves it `speed` m/s along its angle for `run` s, hitting each unit once a leg with `knock`, a hard
 block stunning it for `crashStun` s; a `skid` phase of `skid` s slides it to a stop (35% of its speed, easing out) and

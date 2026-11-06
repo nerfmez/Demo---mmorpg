@@ -163,6 +163,7 @@ export function syncMonsterViews(view, dt, time) {
     state.hop = m.charge?.dive ? Math.min(1, m.charge.t / m.charge.dur) : -1; // 0..1 through a leap
     state.dropT = m.drop ? m.drop.t : -1; // the shore gull up in the air with its clam, then gliding down
     state.loot = m.loot || 0;
+    state.perching = !!m.perch; // the shore gull riding its prey's head
     state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0; // the boar running a leg, or skidding
     r.animate(
       r,

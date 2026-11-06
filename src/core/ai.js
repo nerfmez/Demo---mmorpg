@@ -170,9 +170,10 @@ export function onMonsterHit(game, m, by = null) {
     if (m.recentHits.length >= shed.hitsToTrigger && m.cd.shed <= 0) { m.recentHits = []; shedPatches(game, m); }
     return;
   }
-  if (m.def.attacks.acid) return acidHit(game, m, by || game.player);
+  if (m.def.attacks.acid) return canUse(m, 'acid') ? acidHit(game, m, by || game.player) : undefined;
   const nacre = m.def.attacks.nacre;
   if (nacre) {
+    if (!canUse(m, 'nacre')) return;
     if (m.state === 'shell' || m.state === 'act' || m.dead) return;
     m.recentHits.push(game.time);
     m.recentHits = m.recentHits.filter((t) => game.time - t <= nacre.window);
@@ -286,6 +287,7 @@ function setState(m, state, dur = 0) {
     m.drop = null;
     m.rampage = null;
     m.stampede = null;
+    m.perch = null;
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -364,7 +366,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -697,6 +699,35 @@ function windup(game, m, dt, t, gap) {
       m.stampede = { name: w.name, i: 0, t: 0, angle: w.angle, dmg };
       return setState(m, 'act');
     }
+    case 'perch': {
+      // the shore gull hops onto its prey's head (where it stands as the hop starts, `hop` s); landing on a unit it
+      // rides it (act: m.perch), pecking `ticks` times over `ride` s; a dodge (the hero's movement skill) shakes it off
+      // dazed for `shakeStun` s; landing on nothing, it just lands
+      const tx = t ? t.x : m.x, tz = t ? t.z : m.z;
+      m.charge = { t: 0, dur: atk.hop, fromX: m.x, fromZ: m.z, toX: tx, toZ: tz, dive: true, perch: true, hit: new Set(), dmg };
+      setState(m, 'act');
+      m.windup = { ...w, tx, tz };
+      return;
+    }
+    case 'toss': {
+      // the tusk boar scoops what is before it (`range` m, `arc` degrees) on its tusks and flings it over its back to
+      // land `throw` m behind it after `air` s (core player `tossed`); an ally is knocked behind it the same way
+      const arc = (atk.arc || 70) * DEG, back = dirFromAngle(w.angle + Math.PI);
+      game.emit({ type: 'monsterSwing', id: m.id, name: w.name, angle: w.angle, range: atk.range + m.r, arc: atk.arc, x: m.x, z: m.z });
+      for (const u of game.units()) {
+        if (dist(m.x, m.z, u.x, u.z) - m.r - u.r > atk.range || Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) > arc / 2) continue;
+        const dealt = game.damageUnit(u, dmg, m, { attack: w.name });
+        if (!dealt && u === game.player) continue; // dodged or blocked: not thrown
+        const toX = m.x + back.x * (m.r + atk.throw), toZ = m.z + back.z * (m.r + atk.throw);
+        if (u === game.player && !u.dead) {
+          u.cast = null;
+          u.tossed = { fromX: u.x, fromZ: u.z, toX, toZ, t: 0, dur: atk.air };
+          game.emit({ type: 'toss', id: m.id, x: u.x, z: u.z, toX, toZ, air: atk.air });
+        } else if (!u.dead) { u.x = toX; u.z = toZ; }
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'snatch': {
       // the shore gull swoops along a curve past its prey (the path fixed at wind-up start, beginAttack) over
       // `duration` s, clipping what it passes; the prey it clips loses up to `steal` gold, carried off in its beak
@@ -857,6 +888,28 @@ function act(game, m, dt, t) {
     if (st.i >= atk.count) { m.stampede = null; m.cd[st.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
     return;
   }
+  if (m.perch) {
+    const pc = m.perch, atk = m.def.attacks[pc.name], u = pc.unit;
+    m.moving = false;
+    if (!u.dead) { m.x = u.x; m.z = u.z; }
+    // a dodge throws it off, dazed
+    if (u === game.player && u.dash) {
+      m.perch = null; m.cd[pc.name] = atk.cooldown;
+      const off = dirFromAngle(m.facing + Math.PI);
+      m.x += off.x * 1.2; m.z += off.z * 1.2;
+      game.emit({ type: 'shaken', id: m.id, x: m.x, z: m.z });
+      return setState(m, 'stunned', atk.shakeStun);
+    }
+    while (pc.n < atk.ticks && m.stateT >= ((pc.n + 0.5) / atk.ticks) * atk.ride) { pc.n++; if (!u.dead) game.damageUnit(u, pc.dmg, m, { attack: pc.name }); }
+    if (m.stateT >= atk.ride || u.dead) {
+      m.perch = null; m.cd[pc.name] = atk.cooldown;
+      const off = dirFromAngle(m.facing + Math.PI);
+      m.x += off.x * 1.0; m.z += off.z * 1.0;
+      game.emit({ type: 'hopOff', id: m.id, x: m.x, z: m.z });
+      return setState(m, 'recover', atk.recover);
+    }
+    return;
+  }
   if (m.swoop) {
     const sw = m.swoop, atk = m.def.attacks[sw.name], [p0, p1, p2] = sw.path, k = Math.min(1, m.stateT / atk.duration), u1 = 1 - k;
     const x = u1 * u1 * p0[0] + 2 * u1 * k * p1[0] + k * k * p2[0], z = u1 * u1 * p0[1] + 2 * u1 * k * p1[1] + k * k * p2[1];
@@ -989,6 +1042,18 @@ function act(game, m, dt, t) {
     m.z = c.fromZ + (c.toZ - c.fromZ) * k;
     if (k >= 1) {
       const name = m.windup?.name && m.def.attacks[m.windup.name] ? m.windup.name : 'dive', atk = m.def.attacks[name];
+      if (c.perch) {
+        // landed on a head: it rides there
+        const prey = game.units().find((u) => dist(m.x, m.z, u.x, u.z) <= 0.9 + u.r);
+        m.charge = null;
+        if (prey) {
+          m.perch = { name, unit: prey, n: 0, dmg: c.dmg };
+          game.emit({ type: 'perch', id: m.id, x: m.x, z: m.z, ride: atk.ride });
+          return setState(m, 'act', atk.ride);
+        }
+        m.cd[name] = atk.cooldown;
+        return setState(m, 'recover', atk.recover);
+      }
       if (c.engulf) {
         // landed on a unit: it wraps over it (the first squeeze at once, so the hold starts as it lands)
         const prey = game.units().find((u) => dist(m.x, m.z, u.x, u.z) <= atk.radius + u.r);
@@ -1332,7 +1397,7 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   // split (the salt slime): brought under `at` of its health, once, a bud the size of `size` pinches off beside it
   // with `share` of its full health; a bud never splits and gives only gold (a minion)
   const sp = def.attacks.split;
-  if (sp && !m.bud && !m.split && m.hp <= m.maxHp * sp.at) { splitOff(game, m, t); return; }
+  if (sp && canUse(m, 'split') && !m.bud && !m.split && m.hp <= m.maxHp * sp.at) { splitOff(game, m, t); return; }
   const wd = def.kit?.withdraw;
   if (wd) for (let i = 0; i < wd.at.length; i++) {
     if (m.hp > m.maxHp * wd.at[i] || m.withdrew?.[i]) continue;
@@ -1357,6 +1422,7 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   }
   let reach = Infinity, reachAll = Infinity, soon = Infinity;
   for (const name of names) {
+    if (!canUse(m, name)) continue;
     const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
     if ((u.hpBelow && m.hp > m.maxHp * u.hpBelow) || (u.once && m.used?.[name])) continue;
     // behind: only for a target at its back (more than 100 degrees off its facing)
@@ -1422,6 +1488,12 @@ export function labTrigger(game, m, name) {
   if (name === 'shell') { enterShell(game, m); return true; }
   return false;
 }
+
+/**
+ * Whether this monster may use an attack: a kit monster with a `normal` attack uses only that one unless it is an
+ * elite (data monsters.elite) or a boss (owner, 2026-11-06: "normal ones have one move each").
+ */
+export const canUse = (m, name) => m.elite || m.boss || !m.def.normal || m.def.normal === name;
 
 const KIT_ORDER = new WeakMap();
 const kitOrder = (def) => {

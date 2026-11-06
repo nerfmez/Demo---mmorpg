@@ -487,9 +487,9 @@ export class SkillFx {
       // the salt slime's engulf and its bud (skillfx/slime-fx.js)
       case 'engulf': case 'spitOut': case 'split': return this.monster.slime.event(e, g);
       // the shore gull's snatch and feast (skillfx/gull-fx.js)
-      case 'snatch': case 'feast': case 'glide': return this.monster.gull.event(e);
+      case 'snatch': case 'feast': case 'glide': case 'perch': case 'hopOff': case 'shaken': return this.monster.gull.event(e);
       // the tusk boar's skids (skillfx/boar-fx.js)
-      case 'skid': case 'rampageLeg': return this.monster.boar.event(e);
+      case 'skid': case 'rampageLeg': case 'toss': case 'tossLand': return this.monster.boar.event(e);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);

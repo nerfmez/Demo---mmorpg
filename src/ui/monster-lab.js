@@ -71,6 +71,8 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
     const m = game.spawnMinion(lab.type, level, p.x + Math.sin(ang) * 5, p.z + Math.cos(ang) * 5);
     game.monsters = [m];
     lab.m = m;
+    // the sandbox shows the elite (its whole kit) unless switched to the normal one (its one attack)
+    if (lab.elite !== false) game.makeElite(m);
     // first shown: an attack it can come round to on its own (one at its back has to be set up every time)
     const own = Object.keys(def.attacks).find((k) => !def.attacks[k].use?.behind) || Object.keys(def.attacks)[0];
     lab.attack = lab.attack && def.attacks[lab.attack] ? lab.attack : own;
@@ -200,6 +202,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
       c.addEventListener('click', (e) => { e.stopPropagation(); fn(); renderChips(); });
       walkRow.append(c);
     };
+    chip(lab.elite === false ? 'ตัวปกติ (ท่าเดียว)' : '★ อีลิท (ครบทุกท่า)', lab.elite !== false, () => { lab.elite = lab.elite === false; spawn(); });
     chip('เดิน', lab.walk === 'walk', () => (lab.walk === 'walk' ? stopWalk() : startWalk('walk')));
     chip('วิ่ง', lab.walk === 'run', () => (lab.walk === 'run' ? stopWalk() : startWalk('run')));
     for (const st of stylesOf(lab.type)) chip('ท่า: ' + (MOTION.styles[lab.type][st].nameTh || st), st === lab.style, () => { lab.style = st; });

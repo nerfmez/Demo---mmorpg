@@ -968,6 +968,9 @@ export class View {
     }
     let y = this.heroY;
     if (p.dash && p.dash.kind === 'leap') y += Math.sin(Math.min(1, p.dash.t / p.dash.dur) * Math.PI) * 1.5;
+    // flung by the tusk boar: an arc over its back, turning head over heels
+    const tossK = p.tossed ? Math.min(1, p.tossed.t / p.tossed.dur) : -1;
+    if (tossK >= 0) y += Math.sin(tossK * Math.PI) * 1.9;
     const speed = dt > 0 && this.lastHeroPos ? Math.hypot(p.x - this.lastHeroPos.x, p.z - this.lastHeroPos.z) / dt : 0;
     this.lastHeroPos ||= { x: 0, z: 0 };
     this.lastHeroPos.x = p.x;
@@ -975,6 +978,7 @@ export class View {
     this.heroDown = damp(this.heroDown || 0, this.heroDownTarget || 0, this.heroDownTarget ? 8 : 2.4, dt);
     if (this.heroDown < 0.002 && !this.heroDownTarget) this.heroDown = 0;
     r.root.position.set(p.x, y + this.heroDown * 0.2, p.z); // lying: the back rests on the sand
+    if (tossK >= 0 || this.wasTossed) { r.root.rotation.x = tossK >= 0 ? -tossK * Math.PI * 2 : 0; this.wasTossed = tossK >= 0; }
     let d = p.facing - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));

@@ -257,6 +257,72 @@ test('stone pangolin rebound roll: down its lane, back along it (a unit can be h
   void g;
 });
 
+test('salt slime engulf: hops onto the marked spot; landing on the hero it holds and squeezes it, then spits it out; a miss splats it', () => {
+  const a = M.salt_slime.attacks.engulf;
+  const { m, g, hits, until, step, place, only } = arena('salt_slime', 2, { open: true });
+  only('engulf'); place(1.2);
+  until(() => m.state === 'windup');
+  const mark = g.areas.find((x) => x.attack === 'engulf');
+  assert.ok(mark && !mark.damage, 'the spot is marked, the mark does no harm');
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.hold, 2);
+  assert.equal(hits.length, 1, 'the first squeeze as it lands');
+  until(() => m.state === 'recover', 3);
+  assert.equal(hits.length, a.ticks, 'one squeeze a beat');
+  assert.equal(m.hold, null);
+  assert.ok(Math.hypot(g.player.x - m.x, g.player.z - m.z) > a.spit * 0.9, 'spat out');
+  const r = arena('salt_slime', 2, { open: true, realDamage: true });
+  r.only('engulf'); r.place(1.2);
+  r.until(() => r.m.hold, 3);
+  assert.ok(r.g.player.statuses.root, 'held fast inside');
+  const b = arena('salt_slime', 2, { open: true });
+  b.only('engulf'); b.place(1.2);
+  b.until(() => b.m.state === 'windup');
+  Object.assign(b.g.player, { x: 2.5 }); // off the mark
+  b.until(() => b.m.state !== 'windup' && b.m.state !== 'act', 3);
+  assert.equal(b.m.state, 'stunned', 'a miss splats it flat');
+  assert.equal(b.hits.length, 0);
+});
+
+test('salt slime brine: a puddle where the hero stood sets into salt after its flight and set time, holding only who is still in it', () => {
+  const a = M.salt_slime.attacks.brine;
+  const { m, g, hits, until, step, place, only } = arena('salt_slime', 2, { open: true });
+  only('brine'); place(4);
+  until(() => m.state === 'recover');
+  const pool = g.areas.find((x) => x.kind === 'brine');
+  assert.ok(pool && Math.abs(pool.delay - (a.flight + a.set)) < 1e-9);
+  step(a.flight + a.set - 0.05);
+  assert.equal(hits.length, 0, 'nothing before it sets');
+  step(0.1);
+  assert.equal(hits.length, 1, 'it sets on who stands in it');
+  const b = arena('salt_slime', 2, { open: true });
+  b.only('brine'); b.place(4);
+  b.until(() => b.m.state === 'recover');
+  b.step(a.flight + 0.2);
+  Object.assign(b.g.player, { x: a.radius + 1.2 }); // stepped out of the puddle
+  b.step(a.set);
+  assert.equal(b.hits.length, 0, 'out of the puddle: safe');
+});
+
+test('salt slime split: under half health, once, a smaller bud pinches off; buds never split and give only gold', () => {
+  const sp = M.salt_slime.attacks.split;
+  const { m, g, step, place } = arena('salt_slime', 2, { open: true });
+  place(5);
+  for (const k in m.cd) m.cd[k] = 99;
+  m.hp = m.maxHp * sp.at * 0.9;
+  step(0.05);
+  const buds = g.monsters.filter((q) => q.bud);
+  assert.equal(buds.length, 1, 'one bud');
+  const b = buds[0];
+  assert.ok(b.minion && b.size === sp.size && b.maxHp === Math.round(m.maxHp * sp.share), 'small, weaker, a minion');
+  m.state = 'chase'; step(0.5);
+  assert.equal(g.monsters.filter((q) => q.bud).length, 1, 'only once');
+  b.hp = 1; b.state = 'chase';
+  updateMonster(g, b, 0.01);
+  assert.equal(g.monsters.filter((q) => q.bud).length, 1, 'a bud never splits');
+});
+
 test('pearl fish flop: three hops along a line marked at the start, hurting only as each lands', () => {
   const a = M.pearl_fish.attacks.flop;
   const { m, g, hits, until, step, place, only } = arena('pearl_fish', 23, { open: true });

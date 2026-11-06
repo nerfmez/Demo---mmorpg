@@ -468,6 +468,9 @@ export class Hud {
       case 'nacre':
         this.float(e.x, 2, e.z, e.coat ? 'เคลือบมุก!' : e.broken ? 'เปลือกแตก!' : 'มุกดูดซับ', 'shell');
         break;
+      case 'split':
+        this.float(e.x, 1.6, e.z, 'แตกตัว!', 'shell');
+        break;
       case 'acidSkin':
         this.float(e.x, 1.8, e.z, 'ผิวกรด!', 'poison');
         break;

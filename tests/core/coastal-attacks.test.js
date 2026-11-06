@@ -26,7 +26,7 @@ function arena(type) {
 }
 
 test('coastal contacts stay planted and hit once at the authored contact time', () => {
-  for (const type of ['salt_slime', 'shore_gull', 'reef_crab', 'hermit_crab']) {
+  for (const type of ['shore_gull', 'hermit_crab']) {
     const { g, m, step, until } = arena(type);
     const hits = [];
     g.damageUnit = (u, amount) => hits.push({ id: u.id, amount });
@@ -57,23 +57,6 @@ test('a late side-step or backing outside reach dodges the locked frontal pinch'
     until(() => m.state === 'recover');
     assert.equal(g.player.hp, hp, escape + ': locked strike misses');
   }
-});
-
-test('salt slime spits a slow non-poison projectile at a locked aim, never a lunge', () => {
-  const { g, m, step, until } = arena('salt_slime');
-  g.player.z = m.r + g.player.r + 3;
-  step(.01);
-  assert.equal(m.windup.name, 'salt_spit');
-  step(m.windup.total * .7);
-  g.player.x = 3;
-  until(() => g.projectiles.length > 0);
-  const pr = g.projectiles[0];
-  assert.equal(pr.angle, 0, 'aim cannot follow a late dodge');
-  assert.equal(pr.element, 'salt');
-  assert.equal(pr.poison, null);
-  assert.equal(pr.speed, m.def.attacks.salt_spit.speed);
-  assert.deepEqual([m.x, m.z], [0, 0]);
-  assert.equal(m.charge, null);
 });
 
 test('gull pecks then walks away without contact damage, even when its retreat is blocked', () => {

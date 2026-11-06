@@ -104,7 +104,9 @@ test('Blast Trap hits harder than a Spike Trap; Trap Field scatters its traps ov
   const set = traps(g, 'trap_field');
   assert.equal(set.length, D.trap.count);
   assert.ok(set.every((a) => Math.hypot(a.x - aim.x, a.z - aim.z) <= D.trap.spread + 1e-9), 'all within the circle');
-  const far = set.reduce((b, a) => (Math.hypot(a.x - aim.x, a.z - aim.z) > Math.hypot(b.x - aim.x, b.z - aim.z) ? a : b));
+  // the trap furthest from the others (where a monster can stand in one trap's reach only, whatever the seeded spots)
+  const alone = (a) => Math.min(...set.filter((b) => b !== a).map((b) => Math.hypot(a.x - b.x, a.z - b.z)));
+  const far = set.reduce((b, a) => (alone(a) > alone(b) ? a : b));
   g.monsters = [mk('m', far.x, far.z)];
   step(g, D.trap.arm + 0.1);
   assert.equal(traps(g, 'trap_field').length, D.trap.count - 1, 'only the trap it walked into sprang');

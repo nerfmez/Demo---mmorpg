@@ -1163,15 +1163,22 @@ and unlock the town checkpoint by walking there. The town, nearby grove, fields
 and lighthouse are the only authored region. `tests/fixtures/frontier/` retains the
 previous map for historical regression tests.
 
-Translate `coastal_melee`, `coastal_slime` and `coastal_skirmisher` in `ai.js`.
+Translate `coastal_melee` and `coastal_skirmisher` in `ai.js`.
 `primaryAttack` selects a stationary frontal slap, peck or pinch; each attack has
 `arc`, `windup`, `hitTime` (after windup), `duration`, `recover` and `cooldown` in
 `monsters.json`. Lock aim after 55% of windup and test range/arc once at contact,
 including summons. Contact never uses the charge collision path. Drive animation
 from these same times, with the body planted and the head/claw/body following through.
 
-Salt slime uses a slow `salt_spit` projectile when outside slap range. Its aim stays
-locked, it carries no poison, and terrain/collision use the existing projectile rules.
+The salt slime is a kit monster now (see the kit monsters above): `engulf` (kind `engulf`: the spot where its prey
+stands is marked at wind-up start with a harmless area of kind `engulf`; it hops there over `air` s as a `dive` charge
+with `engulf`; landing within `radius` of a unit it holds it (`m.hold` {unit, n}): it sits on the unit's position for
+`hold` s, squeezing `ticks` times evenly (the first on landing; each a hit with the attack's inflict, a short root),
+then moves the unit `spit` m along its facing (event `spitOut`); landing on nothing it is `stunned` for `missStun` s
+(event `stunned` with `miss`)), `brine` (kind `brine`: at the end of the wind-up an area of kind `brine` with `flight`
+at the prey's spot, `delay` = `flight` + `set`, hitting what is in it as it sets, its inflict a root), and `split`
+(in `kit()`, once, at or under `at` of its health: a minion of its own type `size` times as large with `share` of its
+full health, `bud` (never splits), event `split`; `m.size` scales its view).
 The grounded shore gull walks in, pecks, recovers and walks toward a fixed retreat
 point at normal movement speed; retreat cannot damage units and times out if blocked.
 Reef crab uses only a slow frontal pinch. Hermit crab also enters shell after its

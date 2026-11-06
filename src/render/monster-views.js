@@ -159,6 +159,8 @@ export function syncMonsterViews(view, dt, time) {
     state.vSide = mv.vSide;
     state.aggro = !!m.aggro;
     state.alt = m.alt;
+    state.holding = !!m.hold; // the salt slime wrapped over its prey
+    state.hop = m.charge?.dive ? Math.min(1, m.charge.t / m.charge.dur) : -1; // 0..1 through a leap
     r.animate(
       r,
       state,
@@ -176,7 +178,7 @@ export function syncMonsterViews(view, dt, time) {
       r.trails ||= new MonsterTrails(view.scene);
       r.trails.update(dt, r, look?.limbs ? look : r.trails.look, open && !!look?.limbs);
     }
-    let sc = r.baseScale * Math.min(1, 0.3 + mv.spawnT * 2.5);
+    let sc = r.baseScale * (m.size || 1) * Math.min(1, 0.3 + mv.spawnT * 2.5); // size: a salt slime's bud
     if (m.dead) {
       const k = Math.min(1, m.deathT / 1.4);
       sc *= m.illusion ? 0.001 : 1 - k * 0.35; // an illusion is gone in its puff of leaves at once

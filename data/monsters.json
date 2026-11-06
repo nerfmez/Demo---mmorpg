@@ -725,7 +725,8 @@
     "salt_slime": {
       "name": "Tidal Slime",
       "nameTh": "สไลม์คลื่นทะเล",
-      "behavior": "coastal_slime",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: a slime of seawater with salt crystals on its back. Up close it flattens, quivering, then hops onto the marked spot and wraps over whoever is there, holding them inside and squeezing, then spits them out (a miss leaves it splatted flat); from range it spits brine that spreads into a puddle and crystallizes into salt from the edge in, holding fast whoever still stands in it; brought under half health it pinches off a small bud of itself.",
       "hp": 320,
       "damage": 50,
       "defense": 10,
@@ -736,27 +737,44 @@
       "exp": 10,
       "jobExp": 6,
       "attacks": {
-        "slap": {
-          "range": 1.1,
-          "arc": 110,
-          "windup": 0.85,
-          "hitTime": 0.14,
-          "duration": 0.36,
-          "recover": 1,
-          "cooldown": 2.4,
-          "damageMult": 1
+        "engulf": {
+          "nameTh": "กลืนห่อ",
+          "kind": "engulf",
+          "use": {"max": 2.2},
+          "range": 2.2,
+          "radius": 0.85,
+          "windup": 0.9,
+          "air": 0.35,
+          "hold": 1.2,
+          "ticks": 3,
+          "spit": 1.6,
+          "missStun": 0.9,
+          "recover": 0.7,
+          "cooldown": 5,
+          "damageMult": 0.4,
+          "inflict": {"status": "root", "chance": 1, "duration": 0.5}
         },
-        "salt_spit": {
+        "brine": {
+          "nameTh": "แอ่งเกลือ",
+          "kind": "brine",
           "element": "cold",
-          "inflict": {"status": "chill", "chance": 1, "duration": 2.5, "slow": 0.35},
-          "minRange": 1.7,
-          "range": 5,
-          "windup": 1,
-          "recover": 1,
+          "use": {"min": 1.8, "max": 6},
+          "range": 6,
+          "radius": 1.3,
+          "flight": 0.6,
+          "set": 1.3,
+          "windup": 0.8,
+          "recover": 0.8,
           "cooldown": 6,
-          "speed": 5.5,
-          "projectileRadius": 0.25,
-          "damageMult": 0.8
+          "damageMult": 0.8,
+          "inflict": {"status": "root", "chance": 1, "duration": 1.0}
+        },
+        "split": {
+          "nameTh": "แตกตัว",
+          "at": 0.5,
+          "share": 0.35,
+          "size": 0.6,
+          "recover": 0.6
         }
       },
       "drops": [
@@ -779,7 +797,6 @@
           "max": 5
         }
       ],
-      "primaryAttack": "slap",
       "levels": [
         1,
         3

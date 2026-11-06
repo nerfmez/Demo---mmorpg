@@ -71,7 +71,9 @@ must be creative". The kits so far lean on the same few families. Count before d
 | A wave that travels | pearl fish tail wave (a crest across a cone) |
 | Counter or guard | pearl slug acid skin (blows answered), eye clam nacre (break the coat) |
 | Facing check | eye clam gaze (turn your back) |
-| Things to break or avoid on the ground | crab bubble mines, snail king eggs (step on to break), slime trails |
+| Things to break or avoid on the ground | crab bubble mines, snail king eggs (step on to break), slime trails, salt slime brine (sets into salt) |
+| Grab / hold | salt slime engulf |
+| Splitting | salt slime bud |
 
 Then (owner, 2026-11-05): "It is not that they are not allowed, but the pattern must be creative, not the same
 pattern with a different effect." So a dash or a shot is fine; a dash that is another straight charge at the prey, or a
@@ -129,6 +131,7 @@ Rules for every new kit:
 | Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
 | Fern-ear hare | ต่อยรัว Box (rears up on its haunches, paws raised in a guard, a one-two of jabs with a burst star of light on each); กระทืบเตือนภัย Warning Thump (up on its haunches, trembling, ears up, a hop up, then slams down: a shock ring to the true edge, earth and fern leaves thrown out); กระโดดทับ Leap (crouch, rump wiggle, springs onto the marked spot, lands in earth and leaves) |
 | Mirrorwing moth | แสงสะท้อนปีก Wing Glare (turns its glass wings on the prey like a mirror, glints flare on the panes, then a beam of moonlight along the lane); ห่าเกล็ดกระจก Glass Rain (wings raised and held while a glass shard forms over each marked circle, then they drop one after another and shatter in stars of cold light); ร่างเงากระจก Mirror Decoy (too close: its wings flare as a glass image of it splits off, it flies back, and the image flickers faster and faster like a fuse and bursts) |
+| Salt slime (Lv1-3) | กลืนห่อ Engulf (flattens wide, quivering, bubbles welling round it; hops onto the marked spot and wraps over whoever is there, swollen and see-through with them inside, squeezing three times, then spits them out; a miss splats it flat); แอ่งเกลือ Brine Pool (spits a glob of brine where the hero stands: a puddle spreads to its true size and salt crystals grow in from the edge as it sets, holding fast who is still in it; a crust is left that crumbles); แตกตัว Split (under half health, once, a small bud of itself pinches off) |
 | Reef crab (Lv1-3) | หนีบ Pinch (claws raised and opened, a snap: two marks of light crossing shut on the prey); ส่ายก้ามกวาด Claw Sweep (crouches with claws thrown wide, swaying; then scuttles side to side twice in front of its prey, claws snapping: a step aside is caught, a step back is safe); ฟองทุ่นระเบิด Bubble Mines (foam wells at its mouth; three bubbles drift out and hang in the air over pale rings for 3.5 s, bursting on whatever walks into them) |
 
 ## Rounds
@@ -327,6 +330,10 @@ Rules for every new kit:
   slug's dark, toxic and bubbling; the king's a mother-of-pearl glaze with sliding colours and glints. The reactive
   moves (acid, nacre, the withdraw) and the slime never showed in the sandbox (they wait for hits or a health
   share): the sandbox now sets them off itself (`labTrigger`), and shows the slime by crawling past the hero.
+- **Salt slime, round 1** (2026-11-05, owner: "the animations in the dungeon monsters are very good; next"): off the
+  old coastal slap-and-spit onto its own kit, from what it is (seawater with salt on its back): a grab (engulf, held
+  inside it), a change of the ground (a brine puddle that sets into salt) and splitting (a bud at half health), three
+  families no monster had. The sandbox sets the split off itself.
 - **Monster Lab as its own page** (2026-11-05, owner: "why not a separate test site like the skill tests, why the
   whole game"): the Pages route rebuilt and redeployed the whole 340 MB site for each round (~20 minutes). The
   sandbox is now also a standalone artifact like the Skill FX bench: `scripts/monster-lab-artifact.mjs` packs the

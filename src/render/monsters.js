@@ -1121,10 +1121,15 @@ function animSaltSlime(r, s, dt, time) {
   const c = r.motion;
   const J = MOTION.slime;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
-  const stroke = coastalStrike(s, 'slap');
-  const ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
-  const spit = s.windup === 'salt_spit' ? k : 0;
-  const spat = s.state === 'recover' && s.lastAttack === 'salt_spit' ? 1 - clamp01((s.actT || 0) / 0.4) : 0;
+  // engulf: it flattens wide and quivers, hops (stretched tall in the air), then wraps over its prey, swollen and
+  // see-through with the prey inside, churning; it spits them out with a squash; a miss leaves it splatted flat
+  const hopping = s.state === 'act' && s.lastAttack === 'engulf' && s.hop >= 0 && !s.holding;
+  const ready = s.windup === 'engulf' ? k : 0, hit = s.state === 'recover' && s.lastAttack === 'engulf' ? 1 - clamp01((s.actT || 0) / 0.35) : 0;
+  const spit = s.windup === 'brine' ? k : 0;
+  const spat = s.state === 'recover' && s.lastAttack === 'brine' ? 1 - clamp01((s.actT || 0) / 0.4) : 0;
+  const splat = s.state === 'stunned' ? 1 : 0;
+  r.holdK = damp(r.holdK || 0, s.holding ? 1 : 0, s.holding ? 10 : 6, dt);
+  if (r.splitT > 0) r.splitT -= dt;
   // it travels in pulses, locked to its ground speed: gather (low and wide), then surge (tall,
   // reaching forward); the crest lags behind and sloshes over when it stops
   const w = advanceGait(r, s, dt, c);
@@ -1142,14 +1147,20 @@ function animSaltSlime(r, s, dt, time) {
   }
   r.lastHurt = s.hurt || 0;
   const slosh = J.slosh * (Math.sin(time * 1.7 + r.seed) + 0.5 * Math.sin(time * 2.9 + r.seed * 2)) * (1 - 0.5 * w);
-  const sq = 1 - .25 * ready - .2 * hit + .15 * spit - .1 * spat + J.hop * w * (surge - 0.55) + Math.sin(time * 3 + r.seed) * .025;
+  const quiver = ready > 0.5 ? Math.sin(time * 38) * 0.04 * ready : 0;
+  const pinch = r.splitT > 0 ? Math.sin((0.6 - r.splitT) / 0.6 * Math.PI) : 0; // splitting: it stretches and pinches
+  const sq = 1 - .3 * ready + quiver - .25 * hit + .15 * spit - .1 * spat - .45 * splat + .35 * (hopping ? Math.sin(s.hop * Math.PI) : 0) - .2 * pinch + J.hop * w * (surge - 0.55) + Math.sin(time * 3 + r.seed) * .025 + r.holdK * (0.05 + 0.08 * Math.sin(time * 7));
   const sy = r.jy.update(sq, dt);
   const lagX = r.jx.update(-J.drag * (r.speed || 0) - J.inertia * clampAbs(r.accel || 0, 6) + slosh - .45 * ready + .9 * hit - .3 * spit + .2 * spat, dt);
   const lagZ = r.jz.update(J.drag * 0.8 * (s.vSide || 0) - clampAbs(s.turn * 0.15, 0.3) + slosh * 0.6 * Math.cos(time * 1.3 + r.seed), dt);
   const body = b.body;
   const flat = 1 / Math.sqrt(Math.max(0.4, sy));
-  body.scale.set(flat, sy, flat * (1 + .12 * hit + .06 * w * surge));
+  const big = 1 + 0.75 * r.holdK + 0.4 * pinch;
+  body.scale.set(flat * big, sy * (1 + 0.15 * r.holdK), flat * (1 + .12 * hit + .06 * w * surge) * (1 + 0.75 * r.holdK));
   body.position.z = .12 * hit;
+  body.position.y = hopping ? Math.sin(s.hop * Math.PI) * 0.9 : 0;
+  // wrapped over its prey it turns see-through, so the prey shows inside
+  slimeSee(r, 1 - 0.62 * r.holdK);
   b.mid.rotation.x = lagX * 0.55;
   b.mid.rotation.z = -lagZ * 0.55;
   const swell = 1 + .14 * spit + .05 * w * surge;
@@ -1165,6 +1176,20 @@ function animSaltSlime(r, s, dt, time) {
     const rim = b[n], rest = rim.userData.rest.pos;
     const wave = Math.sin(time * 4.2 - i * 2.1 + r.seed) * J.ripple + (surge - 0.5) * 0.08 * w;
     rim.position.set(rest.x + ox * wave, rest.y + Math.abs(wave) * 0.4, rest.z + oz * wave - (oz < 0 ? 0.06 * w * (1 - surge) : 0));
+  }
+}
+
+/** The salt slime's body made see-through (a < 1) or solid again (1), its model and outline together. */
+function slimeSee(r, a) {
+  const see = a < 0.99;
+  for (const [mat, hull] of [[r.material, r.hull], [r.modelMaterial, r.modelHull]]) {
+    if (!mat) continue;
+    if (mat.transparent !== see) {
+      mat.transparent = see; mat.depthWrite = !see; mat.needsUpdate = true;
+      if (hull) { hull.transparent = see; hull.depthWrite = !see; hull.needsUpdate = true; }
+    }
+    mat.opacity = see ? a : 1;
+    if (hull) hull.opacity = see ? a * a : 1;
   }
 }
 

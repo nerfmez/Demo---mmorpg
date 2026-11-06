@@ -281,6 +281,7 @@ function setState(m, state, dur = 0) {
     m.melee = null;
     m.suck = null;
     m.grind = null;
+    m.hold = null;
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -359,7 +360,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -401,10 +402,9 @@ function windup(game, m, dt, t, gap) {
       return;
     }
     case 'spit':
-    case 'salt_spit':
     case 'orb': {
       // a shot warned by a lane (tell "lane": the pearl fish's jet) flies along the lane it showed
-      const aimed = w.name === 'salt_spit' || atk.tell === 'lane';
+      const aimed = atk.tell === 'lane';
       const a = aimed ? w.angle : t ? angleTo(m.x, m.z, t.x, t.z) : w.angle;
       const dir = dirFromAngle(a);
       game.spawnProjectile({
@@ -419,7 +419,7 @@ function windup(game, m, dt, t, gap) {
         speed: atk.speed,
         radius: atk.projectileRadius ?? 0.35,
         range: aimed ? atk.range : atk.range + 3,
-        element: w.name === 'salt_spit' ? 'salt' : projectileLook(m, w.name),
+        element: projectileLook(m, w.name),
         damage: dmg,
         poison: atk.poisonDps ? { dps: atk.poisonDps * (1 + (m.level - 1) * 0.15), duration: atk.poisonDuration } : null,
       });
@@ -663,6 +663,22 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'engulf': {
+      // the salt slime hops onto the spot marked at wind-up start (beginAttack) over `air` s; landing on a unit, it
+      // wraps over it and holds it (act: m.hold); on nothing, it splats flat (`missStun`)
+      m.charge = { t: 0, dur: atk.air, fromX: m.x, fromZ: m.z, toX: w.tx, toZ: w.tz, dive: true, engulf: true, hit: new Set(), dmg };
+      setState(m, 'act');
+      m.windup = { ...w };
+      return;
+    }
+    case 'brine': {
+      // the salt slime spits brine at where its prey stands: it lands after `flight` s and spreads into a puddle that
+      // sets into salt `set` s later, catching whatever still stands in it (the attack's inflict holds it fast)
+      const tx = t ? t.x : m.x + Math.sin(w.angle) * atk.range, tz = t ? t.z : m.z + Math.cos(w.angle) * atk.range;
+      if (!game.isSafe(tx, tz)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'brine', flight: atk.flight, x: tx, z: tz, radius: atk.radius, delay: atk.flight + atk.set, duration: 0.3, damage: dmg });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'pounce':
     case 'dive': {
       // the leap's air time (atk.air) lands it as its marked circle goes off (beginAttack spawns it then)
@@ -757,6 +773,23 @@ function act(game, m, dt, t) {
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
     return;
   }
+  if (m.hold) {
+    // engulfed (the salt slime): it sits over its prey, squeezing `ticks` times over `hold` s, then spits it out
+    // `spit` m along its facing
+    const h = m.hold, atk = m.def.attacks[h.name], u = h.unit;
+    m.moving = false;
+    if (!u.dead) { m.x = u.x; m.z = u.z; }
+    while (h.n < atk.ticks && m.stateT >= (h.n / atk.ticks) * atk.hold) { h.n++; if (!u.dead) game.damageUnit(u, h.dmg, m, { attack: h.name }); }
+    if (m.stateT >= atk.hold || u.dead) {
+      const d = dirFromAngle(m.facing);
+      if (!u.dead) game.moveEntity(u, d.x * atk.spit, d.z * atk.spit);
+      game.emit({ type: 'spitOut', id: m.id, x: m.x, z: m.z, tx: u.x, tz: u.z });
+      m.hold = null;
+      m.cd[h.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    return;
+  }
   if (m.suck) {
     const sk = m.suck, atk = m.def.attacks[sk.name], dir = dirFromAngle(sk.angle), mx = m.x + dir.x * m.r, mz = m.z + dir.z * m.r;
     m.moving = false;
@@ -838,6 +871,18 @@ function act(game, m, dt, t) {
     m.z = c.fromZ + (c.toZ - c.fromZ) * k;
     if (k >= 1) {
       const name = m.windup?.name && m.def.attacks[m.windup.name] ? m.windup.name : 'dive', atk = m.def.attacks[name];
+      if (c.engulf) {
+        // landed on a unit: it wraps over it (the first squeeze at once, so the hold starts as it lands)
+        const prey = game.units().find((u) => dist(m.x, m.z, u.x, u.z) <= atk.radius + u.r);
+        if (prey) {
+          m.charge = null;
+          m.hold = { name, unit: prey, n: 1, dmg: c.dmg };
+          game.emit({ type: 'engulf', id: m.id, x: m.x, z: m.z, hold: atk.hold });
+          setState(m, 'act', atk.hold);
+          game.damageUnit(prey, c.dmg, m, { attack: name });
+          return;
+        }
+      }
       m.charge = null;
       m.cd[name] = atk.cooldown;
       // a leap that lands on nobody (its circle's radius, as the area tests it) leaves it stuck: the punish window
@@ -927,12 +972,6 @@ function coastalMelee(game, m, dt, { t, gap, slowMult }) {
   if (gap <= attack.range && m.cd[name] <= 0) return startWindup(game, m, name, t);
   if (gap > attack.range * .75) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
   else { m.moving = false; turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 4); }
-}
-
-function coastalSlime(game, m, dt, args) {
-  const spit = m.def.attacks.salt_spit;
-  if (args.gap >= spit.minRange && args.gap <= spit.range && m.cd.salt_spit <= 0) return startWindup(game, m, 'salt_spit', args.t);
-  return coastalMelee(game, m, dt, args);
 }
 
 function shellSpitter(game, m, dt, { t, gap, slowMult }) {
@@ -1172,6 +1211,10 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   const def = m.def, names = kitOrder(def);
   // withdraw (the snail king): at each health share in `at` it pulls into its shell once (the shell's damageTaken),
   // a ring round it marked for the whole time, then bursts out as the ring goes off
+  // split (the salt slime): brought under `at` of its health, once, a bud the size of `size` pinches off beside it
+  // with `share` of its full health; a bud never splits and gives only gold (a minion)
+  const sp = def.attacks.split;
+  if (sp && !m.bud && !m.split && m.hp <= m.maxHp * sp.at) { splitOff(game, m, t); return; }
   const wd = def.kit?.withdraw;
   if (wd) for (let i = 0; i < wd.at.length; i++) {
     if (m.hp > m.maxHp * wd.at[i] || m.withdrew?.[i]) continue;
@@ -1220,6 +1263,21 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   }
 }
 
+function splitOff(game, m, t) {
+  const sp = m.def.attacks.split;
+  m.split = true;
+  const a = (t ? angleTo(t.x, t.z, m.x, m.z) : m.facing + Math.PI) + (m.id % 2 ? 0.9 : -0.9); // off its back, to one side
+  let x = m.x + Math.sin(a) * (m.r + 0.9), z = m.z + Math.cos(a) * (m.r + 0.9);
+  if (!game.world.isFree(x, z, m.r * sp.size) || game.isSafe(x, z)) { x = m.x; z = m.z; }
+  const b = game.spawnMinion(m.type, m.level, x, z);
+  const hp = Math.max(1, Math.round(m.maxHp * sp.share));
+  Object.assign(b, { bud: true, size: sp.size, r: m.r * sp.size, hp, maxHp: hp, homeX: x, homeZ: z, facing: a });
+  for (const k in b.cd) b.cd[k] = Math.max(b.cd[k], 1.5); // it gathers itself before it fights
+  setAggro(game, b, t || game.player);
+  game.emit({ type: 'split', id: m.id, bud: b.id, x: m.x, z: m.z, tx: x, tz: z });
+  setState(m, 'recover', sp.recover);
+}
+
 /** kit.trail (the snail king's slime): a lingering pool every `every` m it crawls. */
 function dropTrail(game, m) {
   const tr = m.def.kit?.trail;
@@ -1239,6 +1297,7 @@ export function labTrigger(game, m, name) {
   const atk = m.def.attacks;
   if (name === 'acid') { m.cd.acid = 0; m.recentHits = []; for (let i = 0; i < atk.acid.hitsToTrigger; i++) acidHit(game, m, null); return true; }
   if (name === 'nacre') { coatNacre(game, m); return true; }
+  if (name === 'split') { m.split = false; m.hp = Math.min(m.hp, m.maxHp * atk.split.at * 0.95); return true; } // kit() splits on its next step
   if (name === 'shed') { shedPatches(game, m); return true; }
   // the withdraw comes with the health share it is kept for (kit() withdraws on its next step)
   if (name === 'shell' && m.def.kit?.withdraw) { m.withdrew = []; m.hp = Math.min(m.hp, m.maxHp * (m.def.kit.withdraw.at[0] - 0.01)); return true; }
@@ -1263,6 +1322,13 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'engulf') {
+    // the spot it will land on: where its prey stands now, marked for the wind-up and the hop (the mark itself does
+    // no harm; the landing does)
+    startWindup(game, m, name, t, { tx: t.x, tz: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'engulf', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total + atk.air, duration: 0.1, damage: 0 });
+    return;
+  }
   if (kind === 'erupt') {
     // the mole digs toward where the target stands now: the spot is marked for the whole dig and bursts as it surfaces
     startWindup(game, m, name, t, { tx: t.x, tz: t.z });
@@ -1309,4 +1375,4 @@ export function beginAttack(game, m, name, t) {
   startWindup(game, m, name, t);
 }
 
-const BEHAVIORS = { kit, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+const BEHAVIORS = { kit, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

@@ -17,6 +17,7 @@ import { lightSprite, glowTexture, bubbleTexture } from './light-kit.js';
 import { MoleFx } from './mole-fx.js';
 import { MothFx } from './moth-fx.js';
 import { GrottoFx } from './grotto-fx.js';
+import { SlimeFx } from './slime-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -66,6 +67,8 @@ export class MonsterFx {
     this.moth = new MothFx(scene, host);
     // the pearl grotto's fish, slug, clam and king (skillfx/grotto-fx.js)
     this.grotto = new GrottoFx(scene, host, companion, call, this);
+    // the salt slime's engulf, brine pools and buds (skillfx/slime-fx.js)
+    this.slime = new SlimeFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -179,6 +182,7 @@ export class MonsterFx {
   /** A wind-up began: start its charge cue. */
   windup(e, g) {
     const m = g.monsterById?.(e.id);
+    if (m?.type === 'salt_slime') this.cues.push({ id: e.id, kind: 'slime_' + e.name, t: 0, total: e.total, next: 0 });
     if (m?.type === 'pearl_slug' && e.name === 'stingers') this.cues.push({ id: e.id, kind: 'slug_stingers', t: 0, total: e.total, next: 0 });
     if (m?.type === 'pearl_fish' && (e.name === 'gulp' || e.name === 'wave')) this.cues.push({ id: e.id, kind: 'fish_' + e.name, t: 0, total: e.total, next: 0 });
     if (m?.type === 'leaf_tanuki' && (e.name === 'drum' || e.name === 'boomerang' || e.name === 'doubles')) this.cues.push({ id: e.id, kind: 'tanuki_' + e.name, t: 0, total: e.total, next: 0 });
@@ -202,6 +206,7 @@ export class MonsterFx {
     if (e.attack === 'decoy') return this.decoyBurst(e);
     if (e.kind === 'bubble_mine') return this.mineBurst(e);
     if (this.grotto.burst(e)) return;
+    if (e.kind === 'brine') return this.slime.burst(e, g);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
     this.leaves.burst(e.x, y, e.z, 14, 3.6);
@@ -289,6 +294,7 @@ export class MonsterFx {
 
   /** A monster was stunned (core stunned; e.miss names the attack that missed). */
   stunned(e) {
+    if (e.miss === 'engulf') return this.slime.splat(e);
     if (e.miss !== 'pounce') return;
     const n = this.bonePos(e.id, 'head', _v);
     if (n) this.leaves.burst(n.x, Math.max(0, n.y - 0.5), n.z, 8, 1.6);
@@ -354,6 +360,7 @@ export class MonsterFx {
     this.tanuki(g);
     this.fish(g);
     this.grotto.update(dt, g);
+    this.slime.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);
@@ -387,6 +394,16 @@ export class MonsterFx {
         const b = this.bonePos(c.id, 'cerata', _w);
         if (b && c.next <= 0) { c.next = 0.08; const a = Math.random() * 6.283; this.host.vfx?.fx.add(b.x + Math.sin(a) * 0.35, b.y + 0.35 + Math.random() * 0.2, b.z + Math.cos(a) * 0.35, 0, 0.4, 0, { color: 0xe0ccff, size: 0.2, sizeEnd: 0.05, life: 0.35, drag: 2 }); }
         if (b) { glowAt = b; glowK = 0.3 + 0.4 * k; glowTint = 0xc8a8ff; }
+      } else if (c.kind === 'slime_engulf') {
+        // seawater wells up round it as it flattens, bubbles rising faster as it is about to hop
+        c.next -= dt;
+        if (c.next <= 0) { c.next = 0.08 - 0.05 * k; const a = Math.random() * 6.283, gy = this.host.groundAt?.(m.x, m.z) ?? 0; this.bubbles.add(m.x + Math.sin(a) * m.r * 1.1, gy + 0.15, m.z + Math.cos(a) * m.r * 1.1, 0, 0.5 + k, 0, 0.08 + 0.1 * k, 0.5); }
+      } else if (c.kind === 'slime_brine') {
+        // brine gathers in it: a cold glow at its middle and spray off its crest
+        const b = this.bonePos(c.id, 'mid', _w);
+        if (b) { glowAt = b; glowK = 0.3 + 0.6 * k; glowTint = 0x9fe8ff; glowSize = 0.8; }
+        c.next -= dt;
+        if (b && c.next <= 0) { c.next = 0.07; const a = Math.random() * 6.283; this.host.vfx?.fx.add(b.x + Math.sin(a) * 0.4, b.y + 0.3, b.z + Math.cos(a) * 0.4, -Math.sin(a) * 0.8, 0.2, -Math.cos(a) * 0.8, { color: 0xeafcff, size: 0.1, life: 0.35, drag: 1 }); }
       } else if (c.kind === 'fish_wave') {
         // the raised tail gathers water, drops running up it
         const t = this.bonePos(c.id, 'tail', _w);

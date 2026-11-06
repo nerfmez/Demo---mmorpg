@@ -484,6 +484,8 @@ export class SkillFx {
       case 'beamSweep': return true; // the snail king's pearl beam is drawn each frame by skillfx/monster-fx.js
       // the pearl grotto's own: the slug's acid skin, the clam's gaze and nacre, the king's eggs and spiral (skillfx/grotto-fx.js)
       case 'acidSkin': case 'acidSquirt': case 'gaze': case 'nacre': case 'nacreHit': case 'eggCrush': case 'withdraw': return this.monster.grotto.event(e, g);
+      // the salt slime's engulf and its bud (skillfx/slime-fx.js)
+      case 'engulf': case 'spitOut': case 'split': return this.monster.slime.event(e, g);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);

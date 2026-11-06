@@ -42,8 +42,8 @@ test('every monster element and status in the data is one the rules know', () =>
   assert.ok(inflicts >= 10, 'monsters put statuses on the hero');
   // each region has an element to resist
   assert.equal(monsterHit(foe('marsh_wisp'), 'orb').element, 'fire');
-  assert.equal(monsterHit(foe('salt_slime'), 'salt_spit').element, 'cold');
-  assert.equal(monsterHit(foe('salt_slime'), 'slap').element, 'physical');
+  assert.equal(monsterHit(foe('salt_slime'), 'brine').element, 'cold');
+  assert.equal(monsterHit(foe('salt_slime'), 'engulf').element, 'physical');
   assert.equal(monsterHit(foe('rune_sentinel'), 'beam').element, 'lightning');
   assert.equal(monsterHit(foe('reed_viper'), 'lash').element, 'poison');
   assert.equal(monsterHit(null, 'slam').element, 'physical');

@@ -9,6 +9,8 @@
 //   showing only its shell, its anemones with it) until the crab climbs back in.
 // Pools only; no allocation per frame.
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { requestMonsterModel } from '../models.js';
 
 const PINK = 0xff8ad0, PINK_HOT = new THREE.Color(0xffd8f0), PINK_IDLE = new THREE.Color(0xe86ab8), STALK = 0x9a4a8a;
 const CORAL = [0xff8a7a, 0xffc0a8, 0xf4ece0, 0xe86a5a];
@@ -48,20 +50,30 @@ function mergeAll(list) {
   g.setIndex(new THREE.BufferAttribute(index, 1));
   return g;
 }
-// a hermit crab's soft abdomen, curling back and up from behind its head (head bone space)
+// a hermit crab's soft abdomen, curling back, down and round to one side behind a crab's body (body bone space):
+// banded soft segments and a little tail fan, coloured for the rig's toon material (shared by every procedural part)
 let ABDOMEN = null;
 function abdomenGeometry() {
   if (ABDOMEN) return ABDOMEN;
-  const parts = [[0, -0.12, -0.22, 0.24], [0, -0.1, -0.46, 0.21], [0.03, -0.02, -0.65, 0.17], [0.06, 0.1, -0.76, 0.12]];
-  const flesh = [], hull = [];
-  for (const [x, y, z, r] of parts) {
-    flesh.push(new THREE.SphereGeometry(r, 10, 8).scale(1, 0.85, 1).translate(x, y, z));
-    hull.push(new THREE.SphereGeometry(r + 0.025, 10, 8).scale(1, 0.85, 1).translate(x, y, z));
-  }
-  ABDOMEN = { flesh: mergeAll(flesh), hull: mergeAll(hull) };
-  ABDOMEN.flesh.userData.shared = true; ABDOMEN.hull.userData.shared = true;
+  const parts = [];
+  const seg = [[0, 0.2, -0.6, 0.24], [0.04, 0.14, -0.84, 0.22], [0.1, 0.05, -1.03, 0.19], [0.17, -0.03, -1.16, 0.15], [0.23, -0.06, -1.24, 0.11]];
+  seg.forEach(([x, y, z, r], i) => {
+    const g = new THREE.SphereGeometry(r, 12, 9).scale(1.05, 0.82, 0.95).translate(x, y, z).toNonIndexed();
+    parts.push(paint(g, i % 2 ? 0xe88f78 : 0xf6b49a));
+  });
+  parts.push(paint(new THREE.ConeGeometry(0.1, 0.16, 6).rotateX(-1.9).translate(0.27, -0.07, -1.34).toNonIndexed(), 0xd8705c));
+  ABDOMEN = mergeGeometries(parts);
+  ABDOMEN.userData.shared = true;
   return ABDOMEN;
 }
+function paint(g, hex) {
+  g.deleteAttribute('uv');
+  const c = new THREE.Color(hex), n = g.attributes.position.count, col = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  return g;
+}
+const BARE = 1.2; // the bare body (a reef crab's rig) against the hermit's size
 // where they sit on the shell (shell bone space), and how they lean
 const SPOTS = [[0.26, 0.4, -0.02, 0.5], [-0.22, 0.4, 0.04, -0.45], [0.03, 0.42, 0.2, 0.1]];
 
@@ -69,6 +81,8 @@ export class HermitFx {
   constructor(scene, host, monster) {
     this.scene = scene; this.host = host; this.monster = monster; this.time = 0;
     this.shells = new Map(); // monster id -> { rig, t }
+    this.bodies = new Map(); // monster id -> the bare crab's body (a pooled reef crab rig with a soft abdomen)
+    this.bareState = {};
     this.clankT = new Map();
     // tentacle lashes: flat strips bent along a curve each frame, a violet glow under a hot pink core (plain
     // blending: added light washes out to white on the pale sand)
@@ -88,16 +102,10 @@ export class HermitFx {
   gy(x, z) { return this.host.groundAt?.(x, z) ?? 0; }
   get fx() { return this.host.vfx?.fx; }
 
-  /** Sea anemones on a hermit rig's shell, and its soft abdomen for when it is out (once per rig; pooled rigs keep them). */
+  /** Sea anemones on a hermit rig's shell (once per rig; pooled rigs keep them). */
   dress(rig) {
     if (rig.anemones || !rig.bones?.shell) return;
-    // the abdomen: a soft curl of coral flesh behind its head, a dark hull behind it for the outline (shown by the
-    // animator while it is out of its shell)
-    const A = abdomenGeometry(), ab = new THREE.Group();
-    ab.add(new THREE.Mesh(A.flesh, new THREE.MeshBasicMaterial({ color: 0xf2a48a })), new THREE.Mesh(A.hull, new THREE.MeshBasicMaterial({ color: 0x7a3426, side: THREE.BackSide })));
-    ab.visible = false;
-    rig.bones.head.add(ab);
-    rig.abdomen = ab;
+    requestMonsterModel('reef_crab'); // its bare body is drawn on the reef crab's rig: loaded before it is needed
     const G = anemoneGeometry();
     const stalkMat = new THREE.MeshBasicMaterial({ color: STALK });
     const crownMat = new THREE.MeshBasicMaterial({ color: PINK_IDLE.clone(), toneMapped: false });
@@ -204,6 +212,8 @@ export class HermitFx {
           this.fx?.add(m.x + Math.sin(a) * 0.5, this.gy(m.x, m.z) + 1.1, m.z + Math.cos(a) * 0.5, Math.sin(a) * 0.8, 0.5, Math.cos(a) * 0.8, { color: CORAL[(Math.random() * 4) | 0], size: 0.08, sizeEnd: 0.04, life: 0.5, gravity: 10, drag: 0.5 });
         }
       }
+      // out of its shell (its own model hidden, monsters.js animCrab): a crab's body in its place, posed as it is
+      if (m.naked && !m.dead && r) this.bare(m, r, dt);
       // the empty shell it left
       if (!m.naked || m.dead) continue;
       seen.add(m.id);
@@ -212,11 +222,6 @@ export class HermitFx {
         const rig = this.host.takeRig('hermit_crab');
         this.host.scene.add(rig.root);
         this.dress(rig);
-        // a pooled rig let go while its crab was out of its shell comes back with its body shrunk: whole again
-        const B = rig.bones;
-        B.body.scale.setScalar(1); B.head.position.copy(B.head.userData.rest.pos);
-        for (const n of rig.legs) B[n].position.copy(B[n].userData.rest.pos);
-        rig.bareOn = false; rig.abdomen.visible = false;
         // only the shell shows: the head (and with it the claws) and the legs shrunk to nothing; the soft body stays
         // inside it (shrinking the body crumpled the shell, whose rim is skinned half to the body)
         this.shrink(rig, 0.01);
@@ -232,6 +237,12 @@ export class HermitFx {
       this.pose(s.rig, 0, m.id);
     }
     for (let i = ng; i < this.guards.length; i++) this.guards[i].visible = false;
+    for (const [id, B] of this.bodies) {
+      if (B.used) { B.used = false; continue; }
+      B.rig.hermit = false; B.rig.hermitTail.visible = false;
+      this.host.releaseRig?.(B.rig);
+      this.bodies.delete(id);
+    }
     for (const [id, s] of this.shells) {
       if (seen.has(id)) continue;
       this.shrink(s.rig, 1);
@@ -251,6 +262,38 @@ export class HermitFx {
       L.m.material.opacity = 0.95 * Math.min(1, out * 1.5);
       L.glow.material.opacity = 0.5 * Math.min(1, out * 1.5);
     }
+  }
+
+  /** The bare hermit crab: a reef crab's rig (a crab's front: carapace, claws, legs) with a soft curled abdomen. */
+  bare(m, r, dt) {
+    let B = this.bodies.get(m.id);
+    if (!B && this.host.takeRig) {
+      const rig = this.host.takeRig('reef_crab');
+      if (!rig.hermitTail) {
+        // its abdomen on the rig's own toon material and outline (the program every procedural part already uses)
+        const tail = new THREE.Group(), geo = abdomenGeometry();
+        tail.add(new THREE.Mesh(geo, rig.material));
+        if (rig.hull) tail.add(new THREE.Mesh(geo, rig.hull));
+        rig.bones.body.add(tail);
+        rig.hermitTail = tail;
+      }
+      rig.hermitTail.visible = true;
+      rig.hermit = true; // posed with the hermit's moves (claw guard, frantic claws)
+      this.host.scene.add(rig.root);
+      B = { rig, used: false };
+      this.bodies.set(m.id, B);
+    }
+    if (!B) return;
+    B.used = true;
+    // gone again the moment its own model shows (climbing in)
+    const climbed = m.naked.phase === 'climb' && m.stateT >= m.stateDur - 0.05;
+    B.rig.root.visible = !climbed && r.root.visible === false;
+    B.rig.root.position.copy(r.root.position);
+    B.rig.root.rotation.set(0, r.root.rotation.y, 0);
+    B.rig.root.scale.setScalar(r.root.scale.x * BARE);
+    const st = Object.assign(this.bareState, r.animState);
+    st.naked = null; st.bare = m.naked.phase !== 'climb';
+    if (st.speed !== undefined) B.rig.animate(B.rig, st, dt, this.time);
   }
 
   shrink(rig, k) {

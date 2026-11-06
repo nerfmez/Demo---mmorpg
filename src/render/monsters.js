@@ -498,7 +498,7 @@ function animCrab(r, s, dt, time) {
   const sting = r.hermit && s.windup === 'anemone' ? clamp01(s.windupT / s.windupTotal) : 0;
   const stung = r.hermit && s.state === 'recover' && s.lastAttack === 'anemone' ? Math.max(0, 1 - s.actT / 0.35) : 0;
   const shed = r.hermit && s.windup === 'shell_shed' ? clamp01(s.windupT / s.windupTotal) : 0;
-  const bare = r.hermit && s.naked && s.naked !== 'climb' ? 1 : 0;
+  const bare = r.hermit && ((s.naked && s.naked !== 'climb') || s.bare) ? 1 : 0; // s.bare: the bare body drawn in its place
   poseSplayedLegs(r, c, r.legs, SIDES6, 'z');
   for (const n of r.legs) b[n].scale.setScalar(1 - tucked * .8);
   // a crab scuttles sideways: the body turns side-on while it travels and squares up to strike
@@ -545,19 +545,10 @@ function animCrab(r, s, dt, time) {
     // the shell: quivering as the anemones swell, jerked back by their sting, shaking ever harder before it sheds
     b.shell.rotation.x = Math.sin(time * 30) * 0.03 * sting - 0.22 * stung + Math.sin(time * 37) * 0.07 * shed;
     b.shell.rotation.z = Math.sin(time * 43) * 0.09 * shed * shed;
-    // out of it, its own shell is gone (skillfx/hermit-fx.js draws the one it left where it left it): the model's
-    // body bone carries the shell's lower half, so the body is shrunk to nothing, its head (claws) and legs scaled
-    // back up where they were, and the soft curled abdomen shows instead (r.abdomen, skillfx/hermit-fx.js)
-    const out = !!s.naked && !(s.naked === 'climb' && s.actT >= s.actionTotal - 0.05);
-    if (out || r.bareOn) {
-      const k = out ? 100 : 1;
-      b.body.scale.setScalar(1 / k);
-      b.head.position.copy(b.head.userData.rest.pos).multiplyScalar(k);
-      b.head.scale.multiplyScalar(k);
-      for (const n of r.legs) { b[n].position.copy(b[n].userData.rest.pos).multiplyScalar(k); b[n].scale.multiplyScalar(k); }
-      r.bareOn = out;
-    }
-    if (r.abdomen) r.abdomen.visible = out;
+    // out of its shell the model is hidden: it has no soft body under the shell (its body bone carries the shell's
+    // lower half), so skillfx/hermit-fx.js draws the bare crab in its place (a crab's body, a soft curled abdomen)
+    // and the shell it left where it left it
+    if (s.naked && !(s.naked === 'climb' && s.actT >= s.actionTotal - 0.05)) r.root.visible = false;
   }
   // legs dug in and trembling before the dash
   if (crouch > 0.3) for (const n of r.legs) b[n].rotation.z += Math.sin(time * 42 + n.length) * 0.05 * crouch;

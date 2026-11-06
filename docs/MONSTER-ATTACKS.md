@@ -363,8 +363,9 @@ for the normal one.
 - **Hermit crab, round 1** (2026-11-06, owner: "go on"): its pinch and shell guard became a claw held as a shield
   (the front is guarded only through the wind-up: go round it), anemones that sting what goes round it (so circling
   to its back has its own answer), and the shell left behind (a window it opens itself: soft and fast until it gets
-  home). The model has no soft body under its shell (its body bone carries the shell's lower half), so the bare crab
-  shrinks that bone away and shows a curled abdomen of its own.
+  home). The model has no soft body under its shell (its body bone carries the shell's lower half). Shrinking that
+  bone away left stretched shards and a blob ("it isn't a crab at all"), so the bare crab is drawn as a crab's body
+  (the reef crab's rig in its pose) with a soft, banded abdomen curling out behind.
 - **Moss beetle, round 1** (2026-11-06, owner: "next"): its spit and shell guard became a bombardier beetle's rear spray
   (an attack made with its back turned: what looks like an opening is the danger), a dung beetle's moss ball (a
   rolling, growing shot that leaves a slowing patch) and a click beetle's play dead (a fake-out reaction whose leap is

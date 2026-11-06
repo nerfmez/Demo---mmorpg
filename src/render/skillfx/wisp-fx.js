@@ -9,7 +9,7 @@
 //   rim, glossy bubbles welling up out of it; each catches in turn (core burst): a jet of Firebolt's fire in the
 //   crystal's gold (the Flame Geyser jet, lower), embers, a ring.
 // - Bog lure (area bog_pool, drawn here): through the wind-up the bog is ringed and its ring closes in; orange lights
-//   gather and dance over it; the bog itself is murky marsh water with a ragged shore, rings where bubbles break, low
+//   gather and dance over it; the bog itself is glowing teal-green marsh water with a ragged shore, rings where bubbles break, low
 //   mist and the lights mirrored in it; lured (core lure, the hero's lure status), gold threads run from the lights to the hero
 //   and little lights circle the hero's head.
 // Pools only; no allocation per frame.
@@ -26,8 +26,9 @@ const GOLD = { edge: [1, 0.92, 0.6], glow: [1, 0.55, 0.12] }, LIGHTS = 6, PUDDLE
 const FIRE = { uRim: '#ff7418', uBody: '#ffab36', uHot: '#ffe48c', uCore: '#fff8e8' }, GAS_H = 2.2;
 const WARN = { edge: [1, 0.72, 0.42], glow: [1, 0.4, 0.15] };
 const STAR = { core: [1, 1, 0.9], glow: [1, 0.6, 0.18] }, RING = new THREE.Color(0xffc070);
-// the bog (round 3, owner: round 2's dark disc with a bright rim and rings looked odd): murky marsh water with a ragged
-// shore that fades into the ground, slow drifting scum near the shore, a dull sheen, and rings spreading where bubbles
+// the bog (round 3, owner: round 2's dark disc with a bright rim and rings looked odd; then "why dark?": it glows
+// teal-green, a will-o'-the-wisp's water): marsh water with a ragged shore that fades into the ground, a soft glow
+// pulsing from its middle, glowing scum drifting near the shore, a sheen, and rings spreading where bubbles
 // break (uRip: x, y in the pool's -1..1, age 0..1, on). Numbers in uniforms.
 const RIPS = 4;
 const POOL_VS = `varying vec2 vP; void main(){ vP = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
@@ -44,8 +45,9 @@ const POOL_FS = `varying vec2 vP; uniform float uT, uA; uniform vec3 uDeep, uMur
     for (int i = 0; i < ${RIPS}; i++) { vec4 q = uRip[i]; float d = length(vP - q.xy); rip += exp(-pow((d - 0.05 - q.z*0.28)/0.022, 2.0))*(1.0 - q.z)*q.w; }
     float sheen = (1.0 - smoothstep(0.0, 0.45, abs(vP.x*0.8 + vP.y + 0.15)))*(0.6 + 0.4*vn(vP*4.0 + uT*0.15))*(1.0 - smoothstep(0.6, 0.95, r));
     c += uSheen*(sheen*0.22 + rip*0.6);
-    c = mix(c, uDeep*0.7, smoothstep(0.8, 1.0, e)*0.35);
-    gl_FragColor = vec4(c, (1.0 - smoothstep(0.9, 1.0, e))*0.92*uA); }`;
+    c += uScum*0.28*(1.0 - smoothstep(0.0, 0.85, r))*(0.75 + 0.25*sin(uT*2.2));
+    c = mix(c, uDeep*0.8, smoothstep(0.8, 1.0, e)*0.3);
+    gl_FragColor = vec4(c, (1.0 - smoothstep(0.9, 1.0, e))*0.85*uA); }`;
 const _v = new THREE.Vector3();
 
 export class WispFx {
@@ -85,7 +87,7 @@ export class WispFx {
     const plane = new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2); plane.userData.shared = true;
     this.pools = Array.from({ length: POOLS }, () => {
       const rips = Array.from({ length: RIPS }, () => new THREE.Vector4(0, 0, 1, 0));
-      const m = new THREE.Mesh(plane, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uA: { value: 0 }, uDeep: { value: new THREE.Color(0x121a12) }, uMurk: { value: new THREE.Color(0x2c3a24) }, uScum: { value: new THREE.Color(0x5f7236) }, uSheen: { value: new THREE.Color(0xa8c4b8) }, uRip: { value: rips } }, vertexShader: POOL_VS, fragmentShader: POOL_FS, transparent: true, depthWrite: false }));
+      const m = new THREE.Mesh(plane, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uA: { value: 0 }, uDeep: { value: new THREE.Color(0x15605f) }, uMurk: { value: new THREE.Color(0x2a9488) }, uScum: { value: new THREE.Color(0x7ef0d0) }, uSheen: { value: new THREE.Color(0xd8fff6) }, uRip: { value: rips } }, vertexShader: POOL_VS, fragmentShader: POOL_FS, transparent: true, depthWrite: false }));
       m.visible = false; m.renderOrder = 3; m.frustumCulled = false; scene.add(m); m.userData.rips = rips; m.userData.ri = 0; return m;
     });
     this.mirror = Array.from({ length: LIGHTS }, () => {
@@ -159,9 +161,9 @@ export class WispFx {
         if (bubble && Math.random() < 0.3) {
           const ang = Math.random() * 6.283, f = 0.15 + Math.random() * 0.55, q = M.userData.rips[M.userData.ri++ % RIPS];
           q.set(Math.sin(ang) * f, -Math.cos(ang) * f, 0, 1);
-          this.monster.bubbles?.add(a.x + Math.sin(ang) * f * a.radius, M.position.y + 0.04, a.z + Math.cos(ang) * f * a.radius, 0, 0.25 + Math.random() * 0.2, 0, 0.1 + Math.random() * 0.1, 0.35 + Math.random() * 0.2, 0xc8dcc0);
+          this.monster.bubbles?.add(a.x + Math.sin(ang) * f * a.radius, M.position.y + 0.04, a.z + Math.cos(ang) * f * a.radius, 0, 0.25 + Math.random() * 0.2, 0, 0.1 + Math.random() * 0.1, 0.35 + Math.random() * 0.2, 0xbff8ee);
         }
-        if (bubble && Math.random() < 0.25 && this.host.vfx?.dust) { const ang = Math.random() * 6.283, r = Math.random() * a.radius * 0.8; this.host.vfx.dust.add(a.x + Math.sin(ang) * r, M.position.y + 0.25, a.z + Math.cos(ang) * r, (Math.random() - 0.5) * 0.4, 0.08, (Math.random() - 0.5) * 0.4, { color: 0xdfe8e0, size: 1.1, sizeEnd: 2.2, life: 1.6, drag: 0.5, alpha: 0.22 }); }
+        if (bubble && Math.random() < 0.25 && this.host.vfx?.dust) { const ang = Math.random() * 6.283, r = Math.random() * a.radius * 0.8; this.host.vfx.dust.add(a.x + Math.sin(ang) * r, M.position.y + 0.25, a.z + Math.cos(ang) * r, (Math.random() - 0.5) * 0.4, 0.08, (Math.random() - 0.5) * 0.4, { color: 0xcff8f0, size: 1.1, sizeEnd: 2.2, life: 1.6, drag: 0.5, alpha: 0.22 }); }
       }
       if (a.kind !== 'marsh_gas' || np >= PUDDLES) continue;
       const P = this.puddles[np++], q = Math.min(1, a.t / a.delay), after = a.t - a.delay, fade = after > 0 ? Math.max(0, 1 - after / 0.3) : 1, y = this.gy(a.x, a.z) + 0.05;

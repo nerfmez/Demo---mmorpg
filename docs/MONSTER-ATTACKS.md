@@ -413,7 +413,8 @@ for the normal one.
   waves rising up, looping; the body is a bit too see-through"): the bog is now murky marsh water (olive-dark, a ragged
   shore fading into the ground, drifting scum, a dull sheen, rings spreading where bubbles break, low mist) instead of a
   dark disc with a bright rim and rings; its body's pattern rides waves rising up it with bands of light climbing,
-  looping (models.json `flow`); it is less see-through.
+  looping (models.json `flow`); it is less see-through. Then (owner: "why does the bog have to be dark?", chose
+  glowing teal-green): the water glows teal-green with a soft pulse from its middle, glowing scum near the shore.
 - **Thicket mantis, round 1** (2026-11-06, owner: "next"): researched first (sit-and-wait hunter that sways to judge
   distance and shoots its spined forelegs; rears up and flashes eyespot wings, hissing, when threatened; can fly). Its
   scythe, whirl and hit-and-back-off became a swaying long-reach strike, a startle display that freezes the hero for its

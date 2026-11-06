@@ -296,6 +296,62 @@ test('stone pangolin rebound roll: down its lane, back along it (a unit can be h
   void g;
 });
 
+test('sporecap fairy ring: a ring round the hero goes off after it grows; the band hurts, the middle and outside are safe', () => {
+  const a = M.sporecap.attacks.fairy_ring;
+  for (const [off, want] of [[0, 0], [(a.inner + a.radius) / 2, 1], [a.radius + 1.2, 0]]) {
+    const { m, g, hits, until, step, place, only } = arena('sporecap', 7, { open: true });
+    only('fairy_ring'); place(4);
+    until(() => m.state === 'windup');
+    const ring = g.areas.find((x) => x.kind === 'fairy_ring');
+    assert.ok(ring && ring.inner === a.inner, 'a ring with a safe middle');
+    Object.assign(g.player, { x: ring.x + off, z: ring.z });
+    step(m.windup.total + a.grow - 0.05);
+    assert.equal(hits.length, 0, 'nothing while it grows');
+    step(0.1);
+    assert.equal(hits.length, want, `${off} m from the middle`);
+  }
+});
+
+test('sporecap sprouts: two rooted sprouts that puff small clouds, then wilt without a reward', () => {
+  const a = M.sporecap.attacks.sprouts;
+  const { m, g, until, place, only } = arena('sporecap', 7, { open: true });
+  only('sprouts'); place(5);
+  until(() => m.state === 'recover');
+  const sprouts = g.monsters.filter((q) => q.sprout);
+  assert.equal(sprouts.length, a.count);
+  const at = sprouts.map((q) => [q.x, q.z]);
+  const all = (sec) => { for (let t = 0; t < sec; t += 0.01) { g.time += 0.01; g.updateAreas(0.01); for (const q of [...g.monsters]) if (!q.dead) updateMonster(g, q, 0.01); } };
+  all(a.every + 0.2);
+  assert.ok(g.areas.some((x) => x.kind === 'spore_cloud' && x.attack === 'sprouts'), 'they puff');
+  sprouts.forEach((q, i) => assert.deepEqual([q.x, q.z], at[i], 'rooted'));
+  g.drops = [];
+  all(a.life);
+  assert.ok(sprouts.every((q) => q.dead), 'wilted');
+  assert.equal(g.drops.length, 0, 'no reward for a wilted sprout');
+});
+
+test('sporecap sleep cloud: drifts along its aim; staying in it puts the hero to sleep, walking out in time does not', () => {
+  const a = M.sporecap.attacks.sleep_cloud;
+  const { m, g, until, step, place, only } = arena('sporecap', 7, { open: true, realDamage: true });
+  only('sleep_cloud'); place(2.5);
+  until(() => m.state === 'recover');
+  const cloud = g.areas.find((x) => x.kind === 'sleep_cloud');
+  const z0 = cloud.z;
+  Object.assign(g.player, { x: cloud.x, z: cloud.z });
+  const asleep = () => !!g.player.statuses.root;
+  for (let t = 0; t < a.build + 0.3 && !asleep(); t += 0.01) { Object.assign(g.player, { x: cloud.x, z: cloud.z }); step(0.01); }
+  assert.ok(asleep(), 'asleep after staying in it');
+  assert.ok(cloud.z > z0 + 0.5, 'it drifted along its aim');
+  const b = arena('sporecap', 7, { open: true, realDamage: true });
+  b.only('sleep_cloud'); b.place(2.5);
+  b.until(() => b.m.state === 'recover');
+  const c2 = b.g.areas.find((x) => x.kind === 'sleep_cloud');
+  for (let t = 0; t < a.build * 0.6; t += 0.01) { Object.assign(b.g.player, { x: c2.x, z: c2.z }); b.step(0.01); }
+  Object.assign(b.g.player, { x: c2.x + 6 }); // walks out
+  b.step(a.duration);
+  assert.ok(!b.g.player.statuses.root, 'out in time: awake');
+});
+
 test('tusk boar rampage: three legs, each hitting a unit once, skidding and turning to its prey between legs; a rock stops it stunned', () => {
   const a = M.tusk_boar.attacks.rampage;
   const { m, g, hits, until, step, place, only } = arena('tusk_boar', 5, { open: true });

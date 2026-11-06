@@ -2099,6 +2099,24 @@ export class Game {
         else this.emit({ type: 'areaEnd', id: a.id });
         continue;
       }
+      if (a.sleep) {
+        // a drifting cloud of sleepy spores (the sporecap's): a unit in it builds drowsiness, falling asleep (held
+        // fast) after `build` s in it; out of it, the drowsiness fades twice as fast
+        if (a.drift) { a.x += a.drift.vx * dt; a.z += a.drift.vz * dt; }
+        for (const u of this.units()) {
+          const inside = dist(a.x, a.z, u.x, u.z) <= a.radius + u.r, d = Math.max(0, (a.sleep.drowse.get(u.id) || 0) + (inside ? dt : -2 * dt));
+          a.sleep.drowse.set(u.id, d);
+          u.drowse = d / a.sleep.build; // for the View's Zs
+          if (d >= a.sleep.build) {
+            a.sleep.drowse.set(u.id, 0); u.drowse = 0;
+            if (u === this.player) inflictHero(this, { status: 'root', chance: 1, duration: a.sleep.duration }, 0, 'physical', this.rng);
+            this.emit({ type: 'asleep', id: u.id, hero: u === this.player, x: u.x, z: u.z, duration: a.sleep.duration });
+          }
+        }
+        if (live < a.duration) keep.push(a);
+        else { for (const u of this.units()) u.drowse = 0; this.emit({ type: 'areaEnd', id: a.id }); }
+        continue;
+      }
       if (a.egg) {
         // a pearl egg (the snail king's): a unit stepping on it breaks it harmlessly; left alone it bursts over its
         // radius at the end of its fuse (duration)

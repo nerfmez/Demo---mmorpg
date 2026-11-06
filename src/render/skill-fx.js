@@ -490,6 +490,8 @@ export class SkillFx {
       case 'snatch': case 'feast': case 'glide': case 'perch': case 'hopOff': case 'shaken': return this.monster.gull.event(e);
       // the tusk boar's skids (skillfx/boar-fx.js)
       case 'skid': case 'rampageLeg': case 'toss': case 'tossLand': return this.monster.boar.event(e);
+      // the sporecap's sprouts and sleepy spores (skillfx/spore-mon-fx.js)
+      case 'sprout': case 'sproutPuff': case 'wilt': case 'asleep': return this.monster.spore.event(e);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);

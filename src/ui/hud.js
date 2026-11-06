@@ -480,6 +480,9 @@ export class Hud {
       case 'shaken':
         this.float(e.x, 1.6, e.z, 'สะบัดหลุด!', 'crit');
         break;
+      case 'asleep':
+        if (e.hero) this.float(e.x, 2.2, e.z, 'หลับ!', 'shell');
+        break;
       case 'split':
         this.float(e.x, 1.6, e.z, 'แตกตัว!', 'shell');
         break;

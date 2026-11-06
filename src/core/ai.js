@@ -32,6 +32,8 @@ export function updateMonster(game, m, dt) {
     m.illusion.t -= dt;
     if (m.illusion.t <= 0) return game.killMonster(m);
   }
+  // a sporecap's sprout (ai.js sprouts): rooted, it puffs a small cloud now and then and wilts at the end of its life
+  if (m.sprout) return sproutStep(game, m, dt);
   m.stateT += dt;
   m.tauntT=Math.max(0,(m.tauntT||0)-dt);
   if (def.kit?.trail && m.state !== 'shell') dropTrail(game, m); // slime wherever it crawls
@@ -366,7 +368,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -698,6 +700,33 @@ function windup(game, m, dt, t, gap) {
       // apart across the aim) at `speed` m/s for `range` m, trampling each unit once (core projectile `trample`)
       m.stampede = { name: w.name, i: 0, t: 0, angle: w.angle, dmg };
       return setState(m, 'act');
+    }
+    case 'fairy_ring': {
+      // the ring was marked round its prey at wind-up start (beginAttack); it sprouts and goes off by itself
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'sprouts': {
+      // the sporecap sows `count` sprouts of itself in front of it, `spread` m out: stationary minions (`size`, `share`
+      // of its health) that puff a small spore cloud every `every` s and wilt after `life` s (core m.sprout)
+      for (let i = 0; i < atk.count; i++) {
+        const a = w.angle + (i - (atk.count - 1) / 2) * 1.1, x = m.x + Math.sin(a) * atk.spread, z = m.z + Math.cos(a) * atk.spread;
+        if (!game.world.isFree(x, z, 0.3) || game.isSafe(x, z)) continue;
+        const b = game.spawnMinion(m.type, m.level, x, z), hp = Math.max(1, Math.round(m.maxHp * atk.share));
+        Object.assign(b, { sprout: { t: 0, next: atk.every * (0.5 + 0.25 * i), every: atk.every, life: atk.life, cloud: atk.cloud, of: m.id, dmg: m.damage }, size: atk.size, hp, maxHp: hp, homeX: x, homeZ: z, facing: a });
+        setAggro(game, b, t || game.player);
+        game.emit({ type: 'sprout', id: b.id, from: m.id, x, z });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'sleep_cloud': {
+      // the sporecap breathes out a cloud of sleepy spores that drifts along its aim at `drift` m/s for `duration` s;
+      // a unit that stays in it builds drowsiness and falls asleep after `build` s in it (core area `sleep`)
+      const d = dirFromAngle(w.angle);
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'sleep_cloud', x: m.x + d.x * (m.r + atk.radius * 0.6), z: m.z + d.z * (m.r + atk.radius * 0.6), radius: atk.radius, delay: 0, duration: atk.duration, drift: { vx: d.x * atk.drift, vz: d.z * atk.drift }, sleep: { build: atk.build, duration: atk.sleep, drowse: new Map() }, damage: 0 });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
     }
     case 'perch': {
       // the shore gull hops onto its prey's head (where it stands as the hop starts, `hop` s); landing on a unit it
@@ -1447,6 +1476,19 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   }
 }
 
+function sproutStep(game, m, dt) {
+  const sp = m.sprout;
+  m.moving = false; m.stateT += dt;
+  sp.t += dt; sp.next -= dt;
+  if (sp.t >= sp.life) { m.illusion = { t: 0, of: sp.of }; game.emit({ type: 'wilt', id: m.id, x: m.x, z: m.z }); return game.killMonster(m); }
+  if (sp.next <= 0) {
+    sp.next = sp.every;
+    const c = sp.cloud;
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'sprouts', kind: 'spore_cloud', x: m.x, z: m.z, radius: c.radius, delay: c.delay, duration: c.duration, tick: 0.5, damage: c.dps * 0.5 * (1 + (m.level - 1) * 0.14) });
+    game.emit({ type: 'sproutPuff', id: m.id, x: m.x, z: m.z, delay: c.delay });
+  }
+}
+
 function splitOff(game, m, t) {
   const sp = m.def.attacks.split;
   m.split = true;
@@ -1512,6 +1554,13 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'fairy_ring') {
+    // a ring of mushrooms sprouts round where its prey stands now: the band from `inner` to `radius` m goes off as
+    // they puff (`grow` s after the wind-up), the middle safe
+    startWindup(game, m, name, t);
+    if (!game.isSafe(t.x, t.z)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'fairy_ring', x: t.x, z: t.z, radius: atk.radius, inner: atk.inner, delay: m.windup.total + atk.grow, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    return;
+  }
   if (kind === 'snatch') {
     // its swoop: a curve from where it stands through where its prey stands now, hooking away to one side
     const a = angleTo(m.x, m.z, t.x, t.z), side = m.id % 2 ? 1 : -1, px = Math.cos(a) * side, pz = -Math.sin(a) * side;

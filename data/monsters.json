@@ -395,8 +395,13 @@
     "sporecap": {
       "name": "Sporecap",
       "nameTh": "เห็ดสปอร์",
-      "behavior": "spore",
+      "behavior": "kit",
+      "normal": "fairy_ring",
+      "_kit": "docs/MONSTER-ATTACKS.md: a walking mushroom. It stamps and a fairy ring of little mushrooms sprouts round the hero and puffs all at once (the ring hurts, the middle is safe: stay in the middle or get right out); it sows two sprouts of itself that stand and puff small spore clouds until broken or wilted; it breathes out a cloud of sleepy spores that drifts slowly ahead, and whoever stays in it too long dozes off.",
       "element": "poison",
+      "kit": {
+        "circle": [3, 5.5]
+      },
       "hp": 600,
       "damage": 70,
       "defense": 60,
@@ -407,20 +412,50 @@
       "exp": 16,
       "jobExp": 11,
       "attacks": {
-        "puff": {
-          "range": 4.5,
+        "fairy_ring": {
+          "nameTh": "วงเห็ดนางฟ้า",
+          "kind": "fairy_ring",
+          "use": {"max": 7},
+          "range": 7,
+          "radius": 3.0,
+          "inner": 1.6,
+          "grow": 0.9,
           "windup": 0.8,
-          "recover": 0.6,
+          "recover": 0.8,
           "cooldown": 5,
-          "radius": 3.2,
-          "duration": 4,
-          "dps": 60,
-          "damageMult": 1
+          "damageMult": 1.0,
+          "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.12}
         },
-        "hop": {
-          "distance": 4.5,
-          "duration": 0.5,
-          "cooldown": 3
+        "sprouts": {
+          "nameTh": "เพาะเห็ดลูก",
+          "kind": "sprouts",
+          "use": {"max": 8},
+          "range": 8,
+          "count": 2,
+          "spread": 2.2,
+          "size": 0.45,
+          "share": 0.12,
+          "every": 3,
+          "life": 14,
+          "cloud": {"radius": 1.5, "delay": 0.6, "duration": 2.5, "dps": 40},
+          "windup": 1.0,
+          "recover": 0.6,
+          "cooldown": 15,
+          "damageMult": 0
+        },
+        "sleep_cloud": {
+          "nameTh": "สปอร์ง่วง",
+          "kind": "sleep_cloud",
+          "use": {"min": 1.2, "max": 6},
+          "range": 6,
+          "radius": 1.8,
+          "drift": 1.1,
+          "duration": 4.5,
+          "build": 1.4,
+          "sleep": 1.6,
+          "windup": 0.9,
+          "recover": 0.7,
+          "cooldown": 8
         }
       },
       "drops": [

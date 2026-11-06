@@ -20,6 +20,7 @@ import { GrottoFx } from './grotto-fx.js';
 import { SlimeFx } from './slime-fx.js';
 import { GullFx } from './gull-fx.js';
 import { BoarFx } from './boar-fx.js';
+import { SporeMonFx } from './spore-mon-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -75,6 +76,8 @@ export class MonsterFx {
     this.gull = new GullFx(scene, host, this);
     // the tusk boar's rampage and piglet stampede (skillfx/boar-fx.js)
     this.boar = new BoarFx(scene, host, this);
+    // the sporecap's fairy ring, sprouts and sleepy spores (skillfx/spore-mon-fx.js)
+    this.spore = new SporeMonFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -188,6 +191,7 @@ export class MonsterFx {
   /** A wind-up began: start its charge cue. */
   windup(e, g) {
     const m = g.monsterById?.(e.id);
+    if (m?.type === 'sporecap') this.cues.push({ id: e.id, kind: 'spore_' + e.name, t: 0, total: e.total, next: 0 });
     if (m?.type === 'salt_slime') this.cues.push({ id: e.id, kind: 'slime_' + e.name, t: 0, total: e.total, next: 0 });
     if (m?.type === 'pearl_slug' && e.name === 'stingers') this.cues.push({ id: e.id, kind: 'slug_stingers', t: 0, total: e.total, next: 0 });
     if (m?.type === 'pearl_fish' && (e.name === 'gulp' || e.name === 'wave')) this.cues.push({ id: e.id, kind: 'fish_' + e.name, t: 0, total: e.total, next: 0 });
@@ -214,6 +218,7 @@ export class MonsterFx {
     if (this.grotto.burst(e)) return;
     if (e.kind === 'brine') return this.slime.burst(e, g);
     if (e.kind === 'shell_drop') return this.gull.burst(e);
+    if (e.kind === 'fairy_ring') return this.spore.burst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
     this.leaves.burst(e.x, y, e.z, 14, 3.6);
@@ -370,6 +375,7 @@ export class MonsterFx {
     this.slime.update(dt, g);
     this.gull.update(dt, g);
     this.boar.update(dt, g);
+    this.spore.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);
@@ -403,6 +409,12 @@ export class MonsterFx {
         const b = this.bonePos(c.id, 'cerata', _w);
         if (b && c.next <= 0) { c.next = 0.08; const a = Math.random() * 6.283; this.host.vfx?.fx.add(b.x + Math.sin(a) * 0.35, b.y + 0.35 + Math.random() * 0.2, b.z + Math.cos(a) * 0.35, 0, 0.4, 0, { color: 0xe0ccff, size: 0.2, sizeEnd: 0.05, life: 0.35, drag: 2 }); }
         if (b) { glowAt = b; glowK = 0.3 + 0.4 * k; glowTint = 0xc8a8ff; }
+      } else if (c.kind === 'spore_fairy_ring' || c.kind === 'spore_sprouts' || c.kind === 'spore_sleep_cloud') {
+        // spores breathe off its cap through the wind-up, pink for the sleepy ones, its cap glowing
+        const b = this.bonePos(c.id, 'cap', _w);
+        if (b) { glowAt = b; glowK = 0.2 + 0.6 * k; glowTint = c.kind === 'spore_sleep_cloud' ? 0xffc8e8 : 0xc89aff; glowSize = 0.9; }
+        c.next -= dt;
+        if (b && c.next <= 0) { c.next = 0.1 - 0.05 * k; const a = Math.random() * 6.283; this.host.vfx?.dust.add(b.x + Math.sin(a) * 0.5, b.y + 0.2, b.z + Math.cos(a) * 0.5, Math.sin(a) * 0.3, 0.5, Math.cos(a) * 0.3, { color: c.kind === 'spore_sleep_cloud' ? 0xffc8e8 : 0xc89aff, size: 0.3, sizeEnd: 0.7, life: 0.8, drag: 2, alpha: 0.5 }); }
       } else if (c.kind === 'slime_engulf') {
         // seawater wells up round it as it flattens, bubbles rising faster as it is about to hop
         c.next -= dt;

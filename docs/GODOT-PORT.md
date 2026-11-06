@@ -1181,6 +1181,15 @@ landing within 0.9 m of a unit, `m.perch` {unit, n}: it sits on the unit, `ticks
 units in its arc take the hit; the hero gets `player.tossed` {from, to, t, dur}: `updatePlayer` moves them along it,
 no walking or casting, event `tossLand`; the View lifts them on an arc and turns them head over heels).
 
+The sporecap is a kit monster (no longer `spore`): `fairy_ring` (an area of kind `fairy_ring` round the prey with
+`inner`: the existing ring rule leaves the middle safe; `delay` = wind-up + `grow`), `sprouts` (`count` minions of its
+type, `size` and `share` of its health, with `m.sprout` {every, life, cloud}: `updateMonster` hands them to
+`sproutStep`, which never moves them, spawns a `spore_cloud` area every `every` s and wilts them after `life` s as an
+illusion (no reward); events `sprout`, `sproutPuff`, `wilt`) and `sleep_cloud` (an area of kind `sleep_cloud` with
+`drift` {vx, vz} and `sleep` {build, duration, drowse map}: each frame it moves; a unit in it adds dt to its
+drowsiness, out of it loses 2 dt; at `build` the hero is rooted `duration` s, event `asleep`; `unit.drowse` is the
+share for the View's Zs).
+
 The tusk boar is a kit monster (no longer `charger`): `rampage` (kind `rampage`: `m.rampage` {leg, phase, t, angle,
 hit}; a `run` phase moves it `speed` m/s along its angle for `run` s, hitting each unit once a leg with `knock`, a hard
 block stunning it for `crashStun` s; a `skid` phase of `skid` s slides it to a stop (35% of its speed, easing out) and

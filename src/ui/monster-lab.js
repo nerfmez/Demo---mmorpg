@@ -108,7 +108,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
     if (m.dead || m.hp < m.maxHp * 0.2) Object.assign(m, { dead: false, hp: m.maxHp });
     if (u.hpBelow) m.hp = Math.min(m.hp, m.maxHp * u.hpBelow * 0.8);
     m.used = null;
-    for (const o of game.monsters) if ((o.illusion || o.bud) && !o.dead) game.killMonster(o);
+    for (const o of game.monsters) if ((o.illusion || o.bud || o.sprout) && !o.dead) { if (o.sprout) o.illusion = { t: 0 }; game.killMonster(o); }
     Object.assign(m, { aggro: true, targetUnit: p });
   };
   // Each new go: if the monster can get to where the attack starts on its own feet, it walks there - the sandbox
@@ -246,7 +246,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
         // only the chosen attack is ever ready; after it ends, a short pause, then it goes again
         for (const k in m.cd) if (k !== lab.attack) m.cd[k] = 99;
         // what an attack leaves on the ground (eggs, pools) is gone before it goes again, so a review is not cluttered
-        const lingering = game.areas.some((a) => a.sourceId === m.id && a.attack === lab.attack);
+        const lingering = game.areas.some((a) => a.sourceId === m.id && a.attack === lab.attack) || game.monsters.some((o) => !o.dead && o.sprout?.of === m.id);
         if ((m.state === 'chase' || m.state === 'idle') && !lingering) {
           lab.cool -= dt;
           // (not ready yet: the chosen attack stays cooling a moment longer, so the monster circles out to its band)

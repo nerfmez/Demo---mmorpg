@@ -638,9 +638,24 @@ function animSporecap(r, s, dt, time) {
   let capS = 1 + Math.sin(time * 2 + r.seed) * 0.02;
   let sq = 1;
   let hop = 0;
-  if (s.windup === 'puff') {
+  let capTip = 0, armsUp = 0;
+  if (r.puffT > 0) { r.puffT -= dt; const t = 1 - r.puffT / 0.4; capS = 1 + 0.25 * Math.sin(t * Math.PI); sq = 1 - 0.15 * Math.sin(t * Math.PI); } // a sprout puffing
+  if (s.windup === 'puff' || s.windup === 'sleep_cloud') {
+    // breathing in: the cap swells, the stem squats, trembling
     capS = 1 + 0.35 * k + Math.sin(time * 30) * 0.03 * k;
     sq = 1 - 0.18 * k;
+  } else if (s.state === 'recover' && s.lastAttack === 'sleep_cloud') {
+    // the long breath out: the cap shrinks back, the body stretches up
+    const t = clamp01((s.actT || 0) / 0.5); capS = 1.35 - 0.45 * Math.sin(t * Math.PI / 2) + 0.1 * t; sq = 1 + 0.1 * (1 - t);
+  } else if (s.windup === 'fairy_ring') {
+    // it stamps, arms up, the beat quickening: the ring sprouts to its stamps
+    const beat = Math.max(0, Math.sin(time * (8 + 10 * k)));
+    sq = 1 - 0.18 * beat * k; armsUp = 1.2 * k;
+  } else if (s.windup === 'sprouts') {
+    // it bows its cap forward and shakes spores out of it
+    capTip = 0.55 * k; sq = 1 - 0.08 * k; capS = 1 + Math.sin(time * 34) * 0.04 * k;
+  } else if (s.state === 'recover' && s.lastAttack === 'sprouts') {
+    capTip = 0.55 * (1 - clamp01((s.actT || 0) / 0.5));
   } else if (s.state === 'act') {
     // hop: stretch in the air
     const t = clamp01(s.actT / 0.5);
@@ -661,7 +676,7 @@ function animSporecap(r, s, dt, time) {
   r.capZ = r.capZ || new Spring(70, 6);
   if ((s.hurt || 0) > (r.lastHurt || 0) + 0.5) r.capX.kick(-3);
   r.lastHurt = s.hurt || 0;
-  b.cap.rotation.x = r.capX.update(-clampAbs(r.accel || 0, 4) * 0.04 + land * 0.05, dt);
+  b.cap.rotation.x = r.capX.update(-clampAbs(r.accel || 0, 4) * 0.04 + land * 0.05 + capTip, dt);
   b.cap.rotation.z = r.capZ.update(-Math.sin(ph) * c.roll * 0.6 * w, dt);
   b.cap.scale.set(capS, capS * 0.95, capS);
   b.body.scale.set(1 / Math.sqrt(sq), sq, 1 / Math.sqrt(sq));
@@ -670,8 +685,8 @@ function animSporecap(r, s, dt, time) {
   b.body.rotation.x = damp(b.body.rotation.x, clampAbs(r.accel || 0, 4) * 0.03 + 0.06 * w, 8, dt);
   b.armL.rotation.x = -Math.sin(ph) * 0.5 * w + Math.sin(time * 1.7) * 0.1 * (1 - w);
   b.armR.rotation.x = Math.sin(ph) * 0.5 * w - Math.sin(time * 1.7) * 0.1 * (1 - w);
-  b.armL.rotation.z = 0.15 * w + Math.sin(ph) * 0.12 * w;
-  b.armR.rotation.z = -0.15 * w + Math.sin(ph) * 0.12 * w;
+  b.armL.rotation.z = 0.15 * w + Math.sin(ph) * 0.12 * w + armsUp * 1.6;
+  b.armR.rotation.z = -0.15 * w + Math.sin(ph) * 0.12 * w - armsUp * 1.6;
 }
 
 // ---------- crag golem ----------

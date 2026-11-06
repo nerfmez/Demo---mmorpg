@@ -420,7 +420,6 @@ function buildCrab(hermit = false) {
 }
 
 const SIDES6 = [1, -1, 1, -1, 1, -1];
-const HIND = ['leg4', 'leg5'];
 
 function animBeetle(r, s, dt, time) {
   const b = r.bones;
@@ -554,12 +553,6 @@ function animCrab(r, s, dt, time) {
       for (const o of r.bareSet.full) o.visible = !out;
       for (const o of r.bareSet.bare) o.visible = out;
       if (r.anemones) for (const g of r.anemones.groups) g.visible = !out; // they went with the shell
-    }
-    // out of it: its four walking legs splay, the front pair reaching forward and the back pair back, so all four
-    // show beside its body; the hindmost pair is small and stays tucked against its abdomen (it grips the shell)
-    if (r.bareOut) {
-      for (const n of HIND) b[n].scale.multiplyScalar(0.02);
-      for (let i = 0; i < 4; i++) b[r.legs[i]].rotation.y += SIDES6[i] * (i < 2 ? -0.55 : 0.5);
     }
   }
   // legs dug in and trembling before the dash

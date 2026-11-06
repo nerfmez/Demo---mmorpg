@@ -161,6 +161,8 @@ export function syncMonsterViews(view, dt, time) {
     state.alt = m.alt;
     state.holding = !!m.hold; // the salt slime wrapped over its prey
     state.hop = m.charge?.dive ? Math.min(1, m.charge.t / m.charge.dur) : -1; // 0..1 through a leap
+    state.dropT = m.drop ? m.drop.t : -1; // the shore gull up in the air with its clam, then gliding down
+    state.loot = m.loot || 0;
     r.animate(
       r,
       state,

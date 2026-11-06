@@ -222,6 +222,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
     tick(dt) {
       // the hero takes no lasting harm; statuses still show
       p.hp = p.maxHp;
+      if ((game.ch.gold || 0) < 20) game.ch.gold = 20; // something for the shore gull to snatch
       p.dead = false;
       const m = lab.m;
       // the camera frames the hero and the monster together (walking, it holds still while the monster crosses)

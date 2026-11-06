@@ -486,6 +486,8 @@ export class SkillFx {
       case 'acidSkin': case 'acidSquirt': case 'gaze': case 'nacre': case 'nacreHit': case 'eggCrush': case 'withdraw': return this.monster.grotto.event(e, g);
       // the salt slime's engulf and its bud (skillfx/slime-fx.js)
       case 'engulf': case 'spitOut': case 'split': return this.monster.slime.event(e, g);
+      // the shore gull's snatch and feast (skillfx/gull-fx.js)
+      case 'snatch': case 'feast': case 'glide': return this.monster.gull.event(e);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);

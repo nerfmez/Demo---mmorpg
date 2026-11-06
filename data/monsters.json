@@ -805,7 +805,11 @@
     "shore_gull": {
       "name": "นกชายฝั่ง",
       "nameTh": "นกชายฝั่ง",
-      "behavior": "coastal_skirmisher",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: a gull, a thief and a shell-dropper. It crouches, eyes on the hero's purse, then swoops along a curve past them and snatches a little gold, carrying the coin off in its beak (kill it to get it back); from range it flies up and drops a clam onto a marked spot, then glides down to the cracked shell and eats, its back turned, open to blows.",
+      "kit": {
+        "circle": [3, 6]
+      },
       "hp": 400,
       "damage": 60,
       "defense": 20,
@@ -816,15 +820,35 @@
       "exp": 14,
       "jobExp": 9,
       "attacks": {
-        "peck": {
-          "range": 1.25,
-          "arc": 60,
-          "windup": 0.65,
-          "hitTime": 0.1,
-          "duration": 0.3,
-          "recover": 0.25,
-          "cooldown": 2,
-          "damageMult": 1
+        "snatch": {
+          "nameTh": "ฉกเหรียญ",
+          "kind": "snatch",
+          "use": {"max": 4},
+          "range": 4,
+          "reach": 0.8,
+          "bow": 1.4,
+          "past": 2.5,
+          "steal": 8,
+          "windup": 0.8,
+          "duration": 0.7,
+          "recover": 0.5,
+          "cooldown": 5,
+          "damageMult": 0.7
+        },
+        "shell_drop": {
+          "nameTh": "ทิ้งหอย",
+          "kind": "shell_drop",
+          "use": {"min": 2.5, "max": 8},
+          "range": 8,
+          "radius": 1.1,
+          "windup": 0.6,
+          "air": 1.0,
+          "glide": 0.45,
+          "feast": 2,
+          "exposedTaken": 1.5,
+          "recover": 0.5,
+          "cooldown": 7,
+          "damageMult": 1.2
         }
       },
       "drops": [
@@ -847,12 +871,6 @@
           "max": 5
         }
       ],
-      "primaryAttack": "peck",
-      "retreat": {
-        "distance": 2.6,
-        "duration": 1.2,
-        "pause": 0.4
-      },
       "levels": [
         2,
         4

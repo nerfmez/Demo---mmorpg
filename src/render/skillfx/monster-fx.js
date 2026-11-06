@@ -18,6 +18,7 @@ import { MoleFx } from './mole-fx.js';
 import { MothFx } from './moth-fx.js';
 import { GrottoFx } from './grotto-fx.js';
 import { SlimeFx } from './slime-fx.js';
+import { GullFx } from './gull-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -69,6 +70,8 @@ export class MonsterFx {
     this.grotto = new GrottoFx(scene, host, companion, call, this);
     // the salt slime's engulf, brine pools and buds (skillfx/slime-fx.js)
     this.slime = new SlimeFx(scene, host, this);
+    // the shore gull's swoop and shell drop (skillfx/gull-fx.js)
+    this.gull = new GullFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -207,6 +210,7 @@ export class MonsterFx {
     if (e.kind === 'bubble_mine') return this.mineBurst(e);
     if (this.grotto.burst(e)) return;
     if (e.kind === 'brine') return this.slime.burst(e, g);
+    if (e.kind === 'shell_drop') return this.gull.burst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
     this.leaves.burst(e.x, y, e.z, 14, 3.6);
@@ -361,6 +365,7 @@ export class MonsterFx {
     this.fish(g);
     this.grotto.update(dt, g);
     this.slime.update(dt, g);
+    this.gull.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

@@ -257,6 +257,54 @@ test('stone pangolin rebound roll: down its lane, back along it (a unit can be h
   void g;
 });
 
+test('shore gull snatch: swoops along a curve through the hero, clipping once and stealing gold it drops again when it dies', () => {
+  const a = M.shore_gull.attacks.snatch;
+  const { m, g, hits, until, step, place, only } = arena('shore_gull', 3, { open: true });
+  only('snatch'); place(2.5);
+  g.ch.gold = 50;
+  until(() => m.state === 'windup');
+  const [p0, p1, p2] = m.windup.path, mid = [(p0[0] + 2 * p1[0] + p2[0]) / 4, (p0[1] + 2 * p1[1] + p2[1]) / 4];
+  assert.ok(Math.hypot(mid[0] - g.player.x, mid[1] - g.player.z) < 1e-6, 'the curve passes through the hero');
+  assert.ok(Math.hypot(mid[0] - (p0[0] + p2[0]) / 2, mid[1] - (p0[1] + p2[1]) / 2) > 0.5, 'a curve, not a straight dash');
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.state === 'recover', 3);
+  assert.equal(hits.length, 1, 'clipped once');
+  assert.equal(g.ch.gold, 50 - a.steal, 'gold taken');
+  assert.equal(m.loot, a.steal);
+  assert.ok(Math.hypot(m.x - p2[0], m.z - p2[1]) < 1e-6, 'it ends past the hero');
+  g.drops = [];
+  g.killMonster(m);
+  assert.ok(g.drops.some((d) => d.item === 'gold' && d.qty === a.steal), 'the snatched gold falls back out');
+  const b = arena('shore_gull', 3, { open: true });
+  b.only('snatch'); b.place(2.5);
+  b.until(() => b.m.state === 'windup' && b.m.stateT > b.m.windup.total * 0.6);
+  Object.assign(b.g.player, { x: b.g.player.x + 3 }); // well off the curve
+  b.until(() => b.m.state === 'recover', 3);
+  assert.equal(b.hits.length, 0, 'off its curve: missed');
+});
+
+test('shore gull shell drop: the clam lands on the marked spot after the climb, then it glides down and eats, open to blows', () => {
+  const a = M.shore_gull.attacks.shell_drop;
+  const { m, g, hits, until, step, place, only } = arena('shore_gull', 3, { open: true });
+  only('shell_drop'); place(5);
+  until(() => m.state === 'windup');
+  const mark = g.areas.find((x) => x.attack === 'shell_drop');
+  assert.ok(mark && Math.abs(mark.delay - (m.windup.total + a.air)) < 1e-9, 'marked to land as it reaches the top');
+  step(m.windup.total + a.air - 0.05);
+  assert.equal(hits.length, 0, 'nothing before the clam lands');
+  step(0.1);
+  assert.equal(hits.length, 1, 'the clam lands on the hero');
+  until(() => m.state === 'stunned', 2);
+  assert.ok(Math.hypot(m.x - mark.x, m.z - mark.z) < 1e-6, 'it came down on the shell');
+  m.hp = m.maxHp = 1e7;
+  const bare = g.hitMonster(m, 5000, {});
+  step(a.feast + 0.1);
+  m.state = 'chase';
+  const plain = g.hitMonster(m, 5000, {});
+  assert.ok(Math.abs(bare / plain - a.exposedTaken) < 0.02, 'eating, it takes more');
+});
+
 test('salt slime engulf: hops onto the marked spot; landing on the hero it holds and squeezes it, then spits it out; a miss splats it', () => {
   const a = M.salt_slime.attacks.engulf;
   const { m, g, hits, until, step, place, only } = arena('salt_slime', 2, { open: true });

@@ -1163,6 +1163,14 @@ and unlock the town checkpoint by walking there. The town, nearby grove, fields
 and lighthouse are the only authored region. `tests/fixtures/frontier/` retains the
 previous map for historical regression tests.
 
+The shore gull is a kit monster too: `snatch` (kind `snatch`: at wind-up start a quadratic curve is fixed from the
+gull through its prey's spot (the curve's middle, B(0.5), on the prey) to `past` m beyond it hooked `bow` m to one
+side; in `act` (`m.swoop`) it moves along the curve over `duration` s and clips each unit within `reach` once; the hero
+clipped loses up to `steal` gold into `m.loot`, which `killMonster` drops as gold; event `snatch` {gold}) and
+`shell_drop` (kind `shell_drop`: an area of kind `shell_drop` at the prey's spot, `delay` = wind-up + `air`; in `act`
+(`m.drop`) it stays `air` s, then moves to the spot over `glide` s (event `glide`), then `stunned` for `feast` s with
+`m.exposed` = `exposedTaken`; event `feast`).
+
 Translate `coastal_melee` and `coastal_skirmisher` in `ai.js`.
 `primaryAttack` selects a stationary frontal slap, peck or pinch; each attack has
 `arc`, `windup`, `hitTime` (after windup), `duration`, `recover` and `cooldown` in
@@ -1179,8 +1187,6 @@ then moves the unit `spit` m along its facing (event `spitOut`); landing on noth
 at the prey's spot, `delay` = `flight` + `set`, hitting what is in it as it sets, its inflict a root), and `split`
 (in `kit()`, once, at or under `at` of its health: a minion of its own type `size` times as large with `share` of its
 full health, `bud` (never splits), event `split`; `m.size` scales its view).
-The grounded shore gull walks in, pecks, recovers and walks toward a fixed retreat
-point at normal movement speed; retreat cannot damage units and times out if blocked.
 Reef crab uses only a slow frontal pinch. Hermit crab also enters shell after its
 configured attack count (or sustained hits), then clears `shell` and enters `emerge`.
 `emergeDamageTaken` applies only during that stationary opening, before normal pursuit

@@ -742,7 +742,7 @@ export class Vfx {
     if (e.kind === 'quake') return this.quakeBurst(e);
     if (e.kind === 'pounce') return this.dive(e);
     if (e.kind === 'glass_shard' || e.kind === 'mirror_bomb' || e.kind === 'bubble_mine') return; // the moth's shatter and decoy are drawn in skillfx (monster-fx.js, moth-fx.js)
-    if (e.kind === 'pearl_egg' || e.kind === 'pearl_burst' || e.kind === 'brine') return; // the snail king's eggs and spiral pearls (skillfx/grotto-fx.js)
+    if (e.kind === 'pearl_egg' || e.kind === 'pearl_burst' || e.kind === 'brine' || e.kind === 'shell_drop') return; // the snail king's eggs and spiral pearls (skillfx/grotto-fx.js)
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
@@ -1453,7 +1453,7 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb' || a.kind === 'pearl_burst' || a.kind === 'engulf') {
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb' || a.kind === 'pearl_burst' || a.kind === 'engulf' || a.kind === 'shell_drop') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);

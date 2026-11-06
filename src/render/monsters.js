@@ -1217,7 +1217,17 @@ function animShoreGull(r, s, dt, time) {
   const c = r.motion;
   const w = advanceGait(r, s, dt, c);
   const ph = r.phase;
-  const stroke = coastalStrike(s, 'peck'), ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
+  // snatch: it crouches, wings half open, head low and eyes on the purse; then swoops low along its curve, wings wide
+  // and beating, banking into the turn; it lands with its prize held up. Shell drop: it crouches with wings raised,
+  // beats up into the air (the clam in its feet), glides down wings spread, and eats with its head bobbing down.
+  const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  const ready = s.windup === 'snatch' || s.windup === 'shell_drop' ? k : 0;
+  const swooping = s.state === 'act' && s.lastAttack === 'snatch', hit = s.state === 'recover' && s.lastAttack === 'snatch' ? 1 - clamp01((s.actT || 0) / 0.4) : 0;
+  const atk = s.attack, up = s.dropT >= 0 && atk ? clamp01(s.dropT / atk.air) : -1, glide = s.dropT >= 0 && atk && s.dropT > atk.air ? clamp01((s.dropT - atk.air) / atk.glide) : -1;
+  const eating = s.state === 'stunned' && s.lastAttack === 'shell_drop';
+  const flying = swooping || (up >= 0 && glide < 0) || glide >= 0;
+  const H = glide >= 0 ? 1.9 * (1 - glide * glide) : up >= 0 ? 1.9 * Math.sin(Math.min(1, up * 1.4) * Math.PI / 2) : swooping ? 0.35 : 0;
+  r.flyH = damp(r.flyH || 0, H, swooping ? 14 : 8, dt);
   // a waddle: rocks over each foot, and the head thrusts forward and holds still while the body
   // catches up (the bird-walk head bob)
   for (const [n, off] of GULL_LEGS) {
@@ -1227,14 +1237,20 @@ function animShoreGull(r, s, dt, time) {
   }
   for (const [side, n] of GULL_WINGS) {
     const ruffle = Math.max(0, Math.sin(time * 0.8 + r.seed * 2)) ** 20 * 0.35;
-    b['wing' + n].rotation.z = damp(b['wing' + n].rotation.z, side * (s.state === 'retreat' ? .25 + Math.sin(time * 14) * .15 : .05 + .25 * ready + ruffle + 0.06 * w), 12, dt);
+    // beating in the air (fast going up, slower in the swoop, held wide in the glide)
+    const beat = up >= 0 && glide < 0 ? 1.0 + Math.sin(time * 26) * 0.7 : swooping ? 1.1 + Math.sin(time * 18) * 0.45 : glide >= 0 ? 1.25 + Math.sin(time * 6) * 0.05 : 0;
+    b['wing' + n].rotation.z = damp(b['wing' + n].rotation.z, side * (flying ? beat : .05 + (s.windup === 'shell_drop' ? .9 : .45) * ready + ruffle + 0.06 * w + 0.6 * hit), flying ? 30 : 12, dt);
   }
   const P = r.pose || (r.pose = { x: 0, headX: 0 });
-  P.x = damp(P.x, -.15 * ready + .3 * hit + clampAbs(r.accel || 0, 4) * 0.03, 20, dt);
-  P.headX = damp(P.headX, -.55 * ready + 1.1 * hit, 24, dt);
+  const peck = eating ? Math.max(0, Math.sin(time * 9)) : 0;
+  P.x = damp(P.x, .35 * ready + (swooping ? .45 : 0) + (glide >= 0 ? .25 : 0) - .25 * hit + .55 * eating + clampAbs(r.accel || 0, 4) * 0.03, 16, dt);
+  P.headX = damp(P.headX, .45 * ready - .5 * hit + (swooping ? .3 : 0) + 0.9 * peck, 24, dt);
   b.body.rotation.x = P.x + 0.08 * w;
-  b.body.rotation.z = Math.sin(ph) * c.roll * w;
-  b.body.position.y = .65 + Math.sin(time * 2 + r.seed) * .02 * (1 - w) + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph));
+  // banking into the swoop's turn
+  P.bank = damp(P.bank || 0, swooping ? -clampAbs(s.turn * 0.25, 0.6) : 0, 10, dt);
+  b.body.rotation.z = Math.sin(ph) * c.roll * w + P.bank;
+  b.body.position.y = .65 - .12 * ready + r.flyH + Math.sin(time * 2 + r.seed) * .02 * (1 - w) + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph));
+  for (const [n] of GULL_LEGS) if (flying) b[n].rotation.x = damp(b[n].rotation.x, 0.9, 12, dt); // legs tucked back in the air
   const thrust = ((2 * ph) / (Math.PI * 2)) % 1;
   b.head.position.z = b.head.userData.rest.pos.z + (thrust < 0.35 ? thrust / 0.35 : 1 - (thrust - 0.35) / 0.65) * 0.08 * w - 0.03 * w;
   b.head.rotation.x = P.headX - b.body.rotation.x;

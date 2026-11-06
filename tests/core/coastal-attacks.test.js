@@ -26,7 +26,7 @@ function arena(type) {
 }
 
 test('coastal contacts stay planted and hit once at the authored contact time', () => {
-  for (const type of ['shore_gull', 'hermit_crab']) {
+  for (const type of ['hermit_crab']) { // the slime, the gull and the reef crab are kit monsters (monster-kits.test.js)
     const { g, m, step, until } = arena(type);
     const hits = [];
     g.damageUnit = (u, amount) => hits.push({ id: u.id, amount });
@@ -56,21 +56,6 @@ test('a late side-step or backing outside reach dodges the locked frontal pinch'
     else g.player.z = m.r + g.player.r + m.def.attacks.pinch.range + .1;
     until(() => m.state === 'recover');
     assert.equal(g.player.hp, hp, escape + ': locked strike misses');
-  }
-});
-
-test('gull pecks then walks away without contact damage, even when its retreat is blocked', () => {
-  for (const blocked of [false, true]) {
-    const { g, m, step, until } = arena('shore_gull');
-    step(.01);
-    until(() => m.state === 'retreat');
-    const gap = Math.hypot(g.player.x - m.x, g.player.z - m.z), hp = g.player.hp;
-    if (blocked) g.moveEntity = () => ({ blockedHard: true });
-    step(.5);
-    if (!blocked) assert.ok(Math.hypot(g.player.x - m.x, g.player.z - m.z) > gap + 1);
-    assert.equal(g.player.hp, hp, 'retreat does not use charge collision damage');
-    until(() => m.state === 'recover', 2);
-    until(() => m.state === 'chase', 1);
   }
 });
 

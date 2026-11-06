@@ -282,6 +282,8 @@ function setState(m, state, dur = 0) {
     m.suck = null;
     m.grind = null;
     m.hold = null;
+    m.swoop = null;
+    m.drop = null;
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -360,7 +362,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -679,6 +681,23 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'snatch': {
+      // the shore gull swoops along a curve past its prey (the path fixed at wind-up start, beginAttack) over
+      // `duration` s, clipping what it passes; the prey it clips loses up to `steal` gold, carried off in its beak
+      // (core m.loot, dropped again when it dies)
+      m.swoop = { name: w.name, t: 0, path: w.path, dmg, hit: new Set() };
+      setState(m, 'act', atk.duration);
+      m.windup = { ...w };
+      return;
+    }
+    case 'shell_drop': {
+      // the gull flies up (`air` s, the clam falling onto the spot marked at wind-up start), then glides down to it
+      // over `glide` s and eats there for `feast` s, open to blows (`exposedTaken`)
+      m.drop = { name: w.name, t: 0, tx: w.tx, tz: w.tz };
+      setState(m, 'act');
+      m.windup = { ...w };
+      return;
+    }
     case 'pounce':
     case 'dive': {
       // the leap's air time (atk.air) lands it as its marked circle goes off (beginAttack spawns it then)
@@ -771,6 +790,40 @@ function act(game, m, dt, t) {
       if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) { sw.hit.add(u.id); game.damageUnit(u, sw.dmg, m, { attack: sw.name }); }
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
+    return;
+  }
+  if (m.swoop) {
+    const sw = m.swoop, atk = m.def.attacks[sw.name], [p0, p1, p2] = sw.path, k = Math.min(1, m.stateT / atk.duration), u1 = 1 - k;
+    const x = u1 * u1 * p0[0] + 2 * u1 * k * p1[0] + k * k * p2[0], z = u1 * u1 * p0[1] + 2 * u1 * k * p1[1] + k * k * p2[1];
+    m.facing = angleTo(m.x, m.z, x, z) || m.facing;
+    m.x = x; m.z = z; m.moving = false;
+    for (const u of game.units()) {
+      if (sw.hit.has(u.id) || dist(m.x, m.z, u.x, u.z) > atk.reach + u.r) continue;
+      sw.hit.add(u.id);
+      game.damageUnit(u, sw.dmg, m, { attack: sw.name });
+      // only the hero carries gold
+      const take = u === game.player ? Math.min(game.ch.gold || 0, atk.steal) : 0;
+      if (take > 0) { game.ch.gold -= take; m.loot = (m.loot || 0) + take; }
+      game.emit({ type: 'snatch', id: m.id, x: u.x, z: u.z, gold: take });
+    }
+    if (k >= 1) { m.swoop = null; m.cd[sw.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+    return;
+  }
+  if (m.drop) {
+    const d = m.drop, atk = m.def.attacks[d.name];
+    m.moving = false;
+    d.t += dt;
+    if (d.t < atk.air) return; // up in the air, the clam falling
+    if (!d.from) { d.from = [m.x, m.z]; game.emit({ type: 'glide', id: m.id, x: d.tx, z: d.tz }); }
+    const k = Math.min(1, (d.t - atk.air) / atk.glide);
+    m.x = d.from[0] + (d.tx - d.from[0]) * k; m.z = d.from[1] + (d.tz - d.from[1]) * k;
+    if (k < 1) return;
+    // down at the cracked shell: it eats, its back to the world
+    m.drop = null;
+    m.cd[d.name] = atk.cooldown;
+    game.emit({ type: 'feast', id: m.id, x: m.x, z: m.z, duration: atk.feast });
+    setState(m, 'stunned', atk.feast);
+    m.exposed = atk.exposedTaken;
     return;
   }
   if (m.hold) {
@@ -1322,6 +1375,21 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'snatch') {
+    // its swoop: a curve from where it stands through where its prey stands now, hooking away to one side
+    const a = angleTo(m.x, m.z, t.x, t.z), side = m.id % 2 ? 1 : -1, px = Math.cos(a) * side, pz = -Math.sin(a) * side;
+    // it ends `past` m on beyond its prey, hooked `bow` m off to one side
+    const ex = t.x + Math.sin(a) * atk.past + px * atk.bow, ez = t.z + Math.cos(a) * atk.past + pz * atk.bow;
+    // the control point puts the curve's middle on the prey: B(0.5) = (p0 + 2 p1 + p2) / 4
+    const p1 = [2 * t.x - (m.x + ex) / 2, 2 * t.z - (m.z + ez) / 2];
+    return startWindup(game, m, name, t, { path: [[m.x, m.z], p1, [ex, ez]] });
+  }
+  if (kind === 'shell_drop') {
+    // the clam falls where its prey stands now, marked for the wind-up and the climb
+    startWindup(game, m, name, t, { tx: t.x, tz: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'shell_drop', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total + atk.air, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    return;
+  }
   if (kind === 'engulf') {
     // the spot it will land on: where its prey stands now, marked for the wind-up and the hop (the mark itself does
     // no harm; the landing does)

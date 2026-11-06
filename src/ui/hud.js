@@ -468,6 +468,12 @@ export class Hud {
       case 'nacre':
         this.float(e.x, 2, e.z, e.coat ? 'เคลือบมุก!' : e.broken ? 'เปลือกแตก!' : 'มุกดูดซับ', 'shell');
         break;
+      case 'snatch':
+        if (e.gold) this.float(e.x, 2, e.z, `-${e.gold} ทอง`, 'shell');
+        break;
+      case 'feast':
+        this.float(e.x, 1.6, e.z, 'กินหอย!', 'shell');
+        break;
       case 'split':
         this.float(e.x, 1.6, e.z, 'แตกตัว!', 'shell');
         break;

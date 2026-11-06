@@ -1055,6 +1055,7 @@ export class Game {
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
     const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng, {}, m.worldId).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId);
+    if (m.loot) drops.push({ item: 'gold', qty: m.loot }); // what a shore gull snatched comes back
     // Mark Prey: a monster dying marked may drop one more of its own parts
     const prey = m.statuses?.exposure?.t > 0 ? m.statuses.exposure.prey : 0;
     if (prey && !m.minion && this.rng.chance(prey)) { const parts = (this.data.monsters.monsters[m.type]?.drops || []).filter((x) => x.item !== 'gold'); if (parts.length) { drops.push({ item: this.rng.pick(parts).item, qty: 1 }); this.emit({ type: 'preyDrop', id: m.id, x: m.x, z: m.z }); } }

@@ -314,7 +314,7 @@ function setState(m, state, dur = 0) {
   if (state !== 'stunned') m.exposed = 0; // the eye clam's cracked shell closes again
   m.roaring = false; // the phase roar is its own recover (kit)
   // out of the act, nothing is left up in the air (Greyfang's moon leap) or mid-rush
-  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; }
+  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.ambush = null; }
   m.state = state;
   m.stateT = 0;
   m.stateDur = dur;
@@ -412,7 +412,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'ambush'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -490,11 +490,6 @@ function windup(game, m, dt, t, gap) {
       // a ring around the monster, marked on the ground for the whole wind-up
       game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: w.name, x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: 0.3, damage: dmg });
       m.cd[w.name] = atk.cooldown;
-      return setState(m, 'recover', atk.recover);
-    case 'venom':
-      // the pool was marked at wind-up start; the venom now flies there
-      game.emit({ type: 'lob', id: m.id, kind: 'venom', fromX: m.x, fromZ: m.z, x: w.tx, z: w.tz, duration: atk.flight });
-      m.cd.venom = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     case 'beam':
     case 'lash': {
@@ -777,6 +772,34 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'fang_strike': {
+      // the reed viper's S-strike: from its coil it shoots along the lane locked late in the wind-up (core viperStrike)
+      viperStrike(game, m, w.name, w.angle, atk.range, dmg);
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'ambush': {
+      // the reed viper lies still in the reeds, its strike reach (`radius` m) about it; armed after `arm` s, the first
+      // unit to be within it is struck `react` s later; nothing within it for `hold` s and it gives up (act: m.ambush)
+      m.ambush = { name: w.name, t: 0, trig: -1, angle: m.facing, dmg };
+      return setState(m, 'act');
+    }
+    case 'hiss': {
+      // the puff and hiss: what stands in the cone (`range` x `arc`) takes the hit, and a venom mist hangs along it for
+      // `linger` s (three spreading clouds, `mistMult` x its damage a second, area hiss_mist)
+      game.emit({ type: 'hiss', id: m.id, x: m.x, z: m.z, angle: w.angle, range: atk.range + m.r, arc: atk.arc });
+      for (const u of game.units()) {
+        const gap = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
+        if (gap <= atk.range && Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) <= (atk.arc * DEG) / 2) game.damageUnit(u, dmg, m, { attack: w.name });
+      }
+      const d = dirFromAngle(w.angle), R = atk.range + m.r;
+      for (const [at, r] of MIST) {
+        const x = m.x + d.x * R * at, z = m.z + d.z * R * at;
+        if (!game.isSafe(x, z)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'hiss_mist', x, z, radius: R * r, delay: 0.15, duration: atk.linger, tick: atk.tick, damage: m.damage * atk.mistMult * atk.tick });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'moon_leap': {
       // Greyfang springs high out of reach (untargetable, `targetable` false): rising over `rise` s, then its shadow
       // runs after its prey at `trackSpeed` m/s for `track` s; the spot locks (event moonLock, the circle marked) and
@@ -1043,6 +1066,26 @@ function act(game, m, dt, t) {
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
     return;
+  }
+  if (m.ambush) {
+    const A = m.ambush, atk = m.def.attacks[A.name];
+    A.t += dt;
+    m.moving = false;
+    if (A.trig < 0) {
+      if (A.t >= atk.arm) for (const u of game.units()) {
+        if (dist(m.x, m.z, u.x, u.z) > atk.radius + u.r) continue;
+        A.trig = 0; A.angle = angleTo(m.x, m.z, u.x, u.z); m.facing = A.angle;
+        game.emit({ type: 'ambushTrigger', id: m.id, x: m.x, z: m.z, angle: A.angle, delay: atk.react });
+        break;
+      }
+      if (A.trig < 0 && A.t >= atk.hold) { m.ambush = null; m.cd[A.name] = atk.cooldown; game.emit({ type: 'ambushEnd', id: m.id, x: m.x, z: m.z }); return setState(m, 'recover', atk.recover); }
+      return;
+    }
+    A.trig += dt;
+    if (A.trig < atk.react) return;
+    viperStrike(game, m, A.name, A.angle, atk.radius + 0.6, A.dmg);
+    m.ambush = null; m.cd[A.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
   }
   if (m.leap) {
     const L = m.leap, atk = m.def.attacks[L.name], prey = t || game.player;
@@ -1704,20 +1747,6 @@ function mantis(game, m, dt, { t, gap, slowMult }) {
   }
 }
 
-function viper(game, m, dt, { t, gap, dToT, slowMult }) {
-  const a = m.def.attacks;
-  if (gap <= a.lash.maxRange && m.cd.lash <= 0) return startWindup(game, m, 'lash', t);
-  if (m.cd.venom <= 0 && gap >= a.venom.minRange && gap <= a.venom.range) {
-    // aim where the target stands now: step out of the marked pool
-    startWindup(game, m, 'venom', t, { tx: t.x, tz: t.z });
-    const lvl = 1 + (m.level - 1) * 0.15;
-    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'venom', kind: 'venom_pool', x: t.x, z: t.z, radius: a.venom.radius, delay: m.windup.total + a.venom.flight, duration: a.venom.duration, tick: a.venom.tick, damage: a.venom.dps * a.venom.tick * lvl });
-    return;
-  }
-  const [near, far] = m.def.keepDistance;
-  strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
-}
-
 function ram(game, m, dt, { t, gap, slowMult }) {
   const a = m.def.attacks;
   if (gap <= a.stomp.range && m.cd.stomp <= 0) return startWindup(game, m, 'stomp', t, { radius: a.stomp.radius });
@@ -1931,6 +1960,7 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'ambush') return startWindup(game, m, name, t, { radius: atk.radius });
   if (kind === 'phantom_rush') {
     // three runs through where its prey stands now: two moon-shadow wolves from `ring` m out, a third of the circle
     // either side of Greyfang, and Greyfang itself from where it stands, last; every lane marked for the whole wind-up
@@ -2047,6 +2077,28 @@ export function beginAttack(game, m, name, t) {
   startWindup(game, m, name, t);
 }
 
+// the hiss's venom mist: three clouds along the cone, [share of its reach out, radius as a share of its reach]
+const MIST = [[0.28, 0.18], [0.52, 0.22], [0.74, 0.26]];
+
+/**
+ * The reed viper's strike along `angle`: it shoots forward up to `lunge` m (stopping at what it bites), its fangs
+ * catching the first unit in the lane `range` x `width` (event viperStrike {x0, z0} where it struck from).
+ */
+function viperStrike(game, m, name, angle, range, dmg) {
+  const atk = m.def.attacks[name], dir = dirFromAngle(angle), half = atk.width / 2;
+  let best = null, bestAlong = Infinity;
+  for (const u of game.units()) {
+    const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, side = Math.abs(dx * dir.z - dz * dir.x);
+    if (along >= 0 && along <= range + u.r && side <= half + u.r && along < bestAlong) { best = u; bestAlong = along; }
+  }
+  const x0 = m.x, z0 = m.z, go = best ? Math.max(0, Math.min(atk.lunge, bestAlong - m.r - best.r)) : atk.lunge;
+  m.facing = angle;
+  if (go > 0) game.moveEntity(m, dir.x * go, dir.z * go);
+  m.strikeFrom = [x0, z0]; m.strikeAt = game.time; // (the view slides the body over the move)
+  game.emit({ type: 'viperStrike', id: m.id, name, x0, z0, x: m.x, z: m.z, angle, length: range, width: atk.width, at: best ? [best.x, best.z] : null });
+  if (best) game.damageUnit(best, dmg, m, { attack: name });
+}
+
 /**
  * A swoop's curve: from where it stands through where its prey stands now, hooking away to `side` (1 or -1): it ends
  * `past` m on beyond its prey, hooked `bow` m off to that side. The control point puts the curve's middle on the prey.
@@ -2059,4 +2111,4 @@ function swoopPath(m, t, atk, side) { // (m: anything with x, z: where it starts
   return [[m.x, m.z], p1, [ex, ez]];
 }
 
-const BEHAVIORS = { kit, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+const BEHAVIORS = { kit, mantis, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

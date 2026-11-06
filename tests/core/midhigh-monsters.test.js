@@ -114,22 +114,7 @@ test('melee strikes (stalker claw) land once at the authored time, miss outside 
   }
 });
 
-test('viper lash is an instant short line; the ram shoves in a cone and knocks back', () => {
-  const v = arena('reed_viper');
-  v.place(3); v.m.cd.venom = 99;
-  v.step(0.01);
-  assert.equal(v.m.windup?.name, 'lash');
-  v.step(v.m.windup.total * 0.7);
-  v.until(() => v.m.state === 'recover');
-  assert.equal(v.hits.length, 1, 'the lash lands once');
-  const w = arena('reed_viper');
-  w.place(3); w.m.cd.venom = 99;
-  w.step(0.01);
-  w.step(w.m.windup.total * 0.7);
-  w.g.player.x = 2.5; // a late side-step leaves the locked line
-  w.until(() => w.m.state === 'recover');
-  assert.equal(w.hits.length, 0, 'dodged');
-
+test('the ram shoves in a cone and knocks back (the viper is a kit monster now: monster-kits.test.js)', () => {
   const r = arena('ironhorn_ram');
   r.place(2); r.m.cd.stomp = 99;
   r.step(0.01);
@@ -139,18 +124,7 @@ test('viper lash is an instant short line; the ram shoves in a cone and knocks b
   assert.equal(r.m.charge, null, 'a shove is not a rush');
 });
 
-test('marked areas (venom pool, pounce, stomp, shards) hurt only when they land, inside their circle', () => {
-  const v = arena('reed_viper');
-  v.place(6); v.m.cd.lash = 99;
-  v.step(0.01);
-  assert.equal(v.m.windup?.name, 'venom');
-  const pool = v.g.areas.find((a) => a.kind === 'venom_pool');
-  assert.ok(pool && pool.delay >= v.m.windup.total, 'the pool is marked before it lands');
-  v.step(pool.delay - 0.05);
-  assert.equal(v.hits.length, 0, 'nothing before it lands');
-  v.step(pool.duration + 0.2);
-  assert.ok(v.hits.length >= 3 && v.hits.length <= Math.ceil(pool.duration / pool.tick) + 1, 'ticks while standing in it');
-
+test('marked areas (pounce, stomp, shards) hurt only when they land, inside their circle', () => {
   const s = arena('duskmane_stalker');
   s.place(5); s.m.cd.claw = 99;
   s.step(0.01);
@@ -192,8 +166,8 @@ test('sentinel beam hits along its line once and misses beside it; the stalker s
   assert.equal(s.m.stealth, false, 'every wind-up is shown in full');
 });
 
-test('killing a monster during its wind-up cancels the area it marked; a launched attack still lands', () => {
-  for (const [type, gap, block] of [['reed_viper', 6, 'lash'], ['duskmane_stalker', 5, 'claw']]) {
+test('killing a monster during its wind-up cancels the area it marked', () => {
+  for (const [type, gap, block] of [['duskmane_stalker', 5, 'claw']]) {
     const a = arena(type);
     a.place(gap); a.m.cd[block] = 99;
     a.step(0.01);
@@ -204,12 +178,6 @@ test('killing a monster during its wind-up cancels the area it marked; a launche
     for (let t = 0; t < 3; t += 0.01) a.g.updateAreas(0.01); // the game no longer drives a dead monster
     assert.equal(a.hits.length, 0);
   }
-  const v = arena('reed_viper');
-  v.place(6); v.m.cd.lash = 99;
-  v.step(0.01);
-  v.until(() => v.m.state === 'recover');
-  v.g.killMonster(v.m);
-  assert.equal(v.g.areas.length, 1, 'venom already in the air still lands');
 });
 
 test('wolf rend and Greyfang rake are multi-hit combos; the warden quake is a line of delayed eruptions', () => {

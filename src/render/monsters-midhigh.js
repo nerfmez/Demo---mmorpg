@@ -226,58 +226,73 @@ function buildViper() {
   return rig;
 }
 
+// The reed viper's kit (docs/MONSTER-ATTACKS.md), read from the view's state. The model hangs its whole body from
+// the head bone (head -> seg0 -> ... -> seg8, the tail), so the head is moved against the body by moving the head and
+// moving seg0 back the other way (in the head's frame): the neck between them stretches or folds.
+//   S-strike: it draws its head back and up into a tight S (held, the tail tip rattling), then the neck shoots out,
+//     jaws wide, and folds back into the coil;
+//   reed ambush: head down flat in its coil, still, only the leaf of its tail tip twitching (caudal luring, as real
+//     vipers do); noticed, the head snaps up into the S before it strikes;
+//   puff and hiss: it swells up, head reared back, jaws gaping, shaking; the hiss thrusts the head out, then it
+//     goes down again.
 function animViper(r, s, dt, time) {
   const b = r.bones;
   // the S-wave travels down the body as fast as the snake moves over the ground (each curve
   // pushes against the same spot), plus a slow idle sway
   const w = advanceGait(r, s, dt, r.motion);
-  const speed = s.state === 'act' ? 14 : 1.6 + (r.speed || 0) * 5.5;
-  r.wavePh = (r.wavePh || 0) + dt * speed;
+  const busy = !!(s.windup || s.ambush || (s.state === 'recover' && s.actT < 0.5));
+  r.wavePh = (r.wavePh || 0) + dt * (busy ? 1 : 1.6 + (r.speed || 0) * 5.5);
   const k = windK(s);
-  let amp = 0.22 + 0.16 * w, lift = 0, jaw = 0.05 + Math.max(0, Math.sin(time * 1.3 + r.seed)) ** 30 * 0.25, coil = 0;
+  let amp = busy ? 0.04 : 0.22 + 0.16 * w, fwd = 0, up = 0, pitch = 0, jaw = 0.05 + Math.max(0, Math.sin(time * 1.3 + r.seed)) ** 30 * 0.25, puff = 1, shake = 0, lure = 0;
   const wave = r.modelCfg?.wave ?? 1; // a coiled model wriggles less than a long straight one (data/models.json wave)
-  if (s.windup === 'lash') {
-    // coil: the S tightens, the head rises and draws back
-    amp = 0.22 + 0.35 * k;
-    coil = k;
-    lift = 0.55 * k;
-    jaw = 0.5 * k;
-  } else if (s.windup === 'venom') {
-    lift = 0.7 * k;
-    jaw = 0.9 * k;
-    amp = 0.15;
-  } else if (s.state === 'act') {
-    amp = 0.06;
-    lift = -0.15;
-    jaw = 0.8;
-  } else if (s.state === 'recover' && s.lastAttack === 'lash') {
-    const hit = 1 - clamp01(s.actT / 0.25);
-    lift = -0.25 * hit;
-    jaw = 0.8 * hit;
-    amp = 0.06;
-  } else if (s.state === 'recover' && s.lastAttack === 'venom') {
-    lift = 0.3;
-    jaw = 0.2;
+  const ease = (x) => x * x * (3 - 2 * x), coil = (q) => { fwd = -0.32 * q; up = 0.12 * q; pitch = -0.35 * q; };
+  if (s.windup === 'fang_strike') {
+    // drawn back into the S, held over the last part, the tail tip rattling; the jaws part at the very end
+    coil(ease(clamp01(k / 0.6))); shake = 0.4 * k; jaw = 0.15 + 0.5 * clamp01((k - 0.8) / 0.2);
+  } else if ((s.state === 'recover' && (s.lastAttack === 'fang_strike' || s.lastAttack === 'ambush') && s.actT < 0.7 && s.struck)) {
+    // the strike: out in a flash, jaws wide (the body itself slid forward, monster-views), then back into the coil
+    const t = s.actT, out = t < 0.06 ? t / 0.06 : 1 - ease(clamp01((t - 0.12) / 0.45));
+    fwd = 0.55 * out; up = -0.12 * out; pitch = 0.25 * out; jaw = t < 0.1 ? 1 : Math.max(0.05, 1 - (t - 0.1) * 4);
+  } else if (s.windup === 'ambush' || (s.ambush === 'wait')) {
+    // down flat in the coil, still; only its tail tip twitches, a lure
+    const q = s.windup ? ease(k) : 1;
+    fwd = -0.1 * q; up = -0.32 * q; pitch = 0.2 * q; jaw = 0.02; lure = q;
+  } else if (s.ambush === 'trig') {
+    // noticed: the head snaps up into the S
+    coil(ease(clamp01(s.ambushT / 0.15))); jaw = 0.5; shake = 0.3;
+  } else if (s.windup === 'hiss') {
+    // it swells, rears back, jaws gaping, shaking with the hiss building
+    const q = ease(clamp01(k / 0.7));
+    puff = 1 + 0.16 * q; fwd = -0.2 * q; up = 0.18 * q; pitch = -0.5 * q; jaw = 0.9 * q; shake = 0.5 * k;
+  } else if (s.state === 'recover' && s.lastAttack === 'hiss') {
+    // the hiss: the head thrusts out, jaws wide, and it goes down again
+    const t = s.actT, out = 1 - ease(clamp01((t - 0.15) / 0.5));
+    puff = 1 + 0.16 * (1 - ease(clamp01(t / 0.6))); fwd = 0.25 * out; pitch = 0.1 * out; jaw = 0.95 * out;
   }
-  if (s.hurt > 0) lift -= 0.2 * s.hurt;
-  r.lift = damp(r.lift || 0, lift, 12, dt);
-  // the model already rears its head high on an S-shaped neck: the head tilts back from the neck
-  // instead of rising (its pivot is where the neck meets the head) and the body stays put
-  const rest = b.head.userData.rest?.pos;
+  if (s.hurt > 0) up -= 0.1 * s.hurt;
+  const e = (r.vEase ||= { fwd: 0, up: 0, pitch: 0, puff: 1 }), rate = s.state === 'recover' && s.actT < 0.1 ? 40 : 14;
+  e.fwd = damp(e.fwd, fwd, rate, dt); e.up = damp(e.up, up, rate, dt); e.pitch = damp(e.pitch, pitch, rate, dt); e.puff = damp(e.puff, puff, 8, dt);
+  const sh = shake * 0.03 * Math.sin(time * 55);
+  const rest = b.head.userData.rest?.pos, seg0 = b.seg0, rest0 = seg0.userData.rest?.pos;
   const model = !!r.model;
-  b.head.rotation.x = damp(b.head.rotation.x, -r.lift * (model ? 0.6 : 0.8), 12, dt);
-  b.head.position.y = damp(b.head.position.y, model ? rest.y : 0.3 + r.lift * 0.75, 12, dt);
-  b.head.position.z = damp(b.head.position.z, (model ? rest.z : 0.55) - coil * 0.35, 12, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6 + Math.sin(r.wavePh) * amp * 0.4, 10, dt);
-  b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 18, dt);
+  // the head moves and turns; seg0 takes the move and the turn back, so the body stays where it lies
+  b.head.position.set(rest.x + sh, rest.y + e.up * (model ? 1 : 0.8), rest.z + e.fwd);
+  b.head.rotation.x = e.pitch;
+  b.head.rotation.y = damp(b.head.rotation.y, (s.lookYaw || 0) * 0.6 + Math.sin(r.wavePh) * amp * 0.4, 10, dt);
+  b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 22, dt);
+  const c = Math.cos(e.pitch), sn = Math.sin(e.pitch), dy = -e.up * (model ? 1 : 0.8), dz = -e.fwd;
+  seg0.position.set(rest0.x - sh, rest0.y + c * dy - sn * dz, rest0.z + sn * dy + c * dz);
+  seg0.rotation.x = -e.pitch;
+  seg0.scale.setScalar(e.puff);
   for (let i = 0; i < VIPER_SEGS; i++) {
     const seg = b[`seg${i}`];
     // the wave travels down the body
     seg.rotation.y = damp(seg.rotation.y, Math.sin(r.wavePh - i * 0.85) * amp * wave * (i === 0 ? 0.5 : 1), 14, dt);
-    // procedural: the neck slopes down from the raised head and the body levels out again at
-    // seg2, so only the front rears up; model: seg0 undoes the head tilt for the body
-    const x = model ? (i === 0 ? r.lift * 0.6 : 0) : i === 0 ? -r.lift * 0.4 : i === 2 ? r.lift * 1.2 : 0;
-    seg.rotation.x = damp(seg.rotation.x, x, 12, dt);
+    if (i >= VIPER_SEGS - 2) {
+      // the tail tip: a rattle through a wind-up, a slow beckoning twitch as a lure
+      const t = Math.sin(time * 38) * 0.18 * shake + Math.sin(time * 7 + i) * 0.35 * lure;
+      seg.rotation.x = damp(seg.rotation.x, t, 30, dt);
+    } else if (i > 0) seg.rotation.x = damp(seg.rotation.x, 0, 12, dt);
   }
 }
 

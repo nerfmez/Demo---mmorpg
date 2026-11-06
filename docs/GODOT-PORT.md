@@ -619,8 +619,8 @@ Wide Spread and Far Reach share the `spread` family.
 
 ### Mid/high monsters (attack kinds and presentation)
 
-Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel` (the thicket mantis now uses its
-own kit, below; `mantis` and `whirl` stay for any monster that lists them). New attack kinds:
+Four behaviours in `core/ai.js`: `mantis`, `ram`, `stalker`, `sentinel` (the thicket mantis and the reed viper now use
+their own kits, below; `mantis` and `whirl` stay for any monster that lists them). New attack kinds:
 
 - **`scythe`, `claw`:** planted strikes on the `m.melee` path. They hit once at `hitTime`
   inside `arc`.
@@ -628,7 +628,7 @@ own kit, below; `mantis` and `whirl` stay for any monster that lists them). New 
 - **`rend`, `rake`:** planted combos on the `m.melee` path. `atk.hits` lists each contact
   (`at` time, `off` angle offset, `step` forward, optional `knock`); each hit tests the arc once.
   Wolves use `rend` (2 hits). They replace the old repeated lunges.
-- **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event).
+- **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event; no monster lists it now).
 - **`shove`:** an instant cone with `knock` (ram). `charge` (boar) is the only straight rush left,
   besides the hawk `dive` and stalker `pounce` leaps, and the warden's `roll`.
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an
@@ -1289,6 +1289,17 @@ and `phantom_rush` (kind `phantom_rush`: at wind-up start three lanes through wh
 m out a third of a circle either side of it and its own; event `phantomMarks`; in `act` (`m.rush`) the first two
 run `gap` s apart as `phantom_wolf` projectiles (trample, `speed`, radius `width`/2, on `past` m beyond the spot),
 then it runs the last itself at `speed` (event `phantomGo`), hitting each unit once).
+
+The reed viper is a kit monster (`normal` `fang_strike`): `fang_strike` (kind `fang_strike`, tell lane: at the end of
+the wind-up `viperStrike()` moves it up to `lunge` m along the locked angle, stopping short of the first unit in the
+lane `range` x `width`, which it bites (its inflict poison); `m.strikeFrom` / `m.strikeAt` let the view slide the body
+over the move; event `viperStrike` {x0, z0, at}), `ambush` (kind `ambush`, `m.ambush` in `act`: after `arm` s the first
+unit within `radius` m is noticed (event `ambushTrigger`) and struck `react` s later by `viperStrike` along that line
+(reach `radius` + 0.6); nobody within it for `hold` s and it gives up, event `ambushEnd`) and `hiss` (kind `hiss`, tell
+sector: units in the cone `range` x `arc` take the hit; three `hiss_mist` areas along the cone (`MIST` shares of its
+reach) tick `mistMult` x its damage a second for `linger` s; event `hiss`). Render: monsters-midhigh.js `animViper`
+moves the head against the body (the model hangs its body from the head bone, so seg0 takes the move back),
+skillfx/viper-fx.js draws the reeds, ring, lure glint, bite and mist (the mist decal is vfx.js's venom mire).
 Its body (render/greyfang-anim.js) gallops and attacks on the CC0 wolf clips (beast-clips.js `animBeast`) and walks
 with the older gait (monsters.js `animQuad`, blended in by weight while it only walks), its kit's beats on top
 (`s.pose`: one-frame clips of its own, `crouch`, the deeper `land` and the braced `skid`, and phases of the gallop-jump clip for leaps and skids; body roll/pitch, head and jaw nudges); the

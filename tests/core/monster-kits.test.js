@@ -1256,3 +1256,85 @@ test('Greyfang rally: it howls, spots light round the hero, and its pack comes i
   for (let t = 0; t < 0.3 && !m.windup; t += 0.01) step(0.01);
   assert.notEqual(m.windup?.name, 'rally', 'its pack is round the hero already');
 });
+
+test('reed viper S-strike: coiled, its lane locks, then it shoots along it and bites the first in the lane once; poison', () => {
+  const a = M.reed_viper.attacks.fang_strike;
+  const { m, g, hits, until, step, place, only } = arena('reed_viper', 22, { open: true, normal: true });
+  assert.equal(M.reed_viper.normal, 'fang_strike');
+  only('fang_strike'); place(2.5);
+  until(() => m.windup?.name === 'fang_strike', 1);
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  const z0 = m.z;
+  until(() => m.state === 'recover', 0.2);
+  assert.equal(hits.length, 1, 'one bite');
+  assert.ok(m.z > z0 + 0.5, 'it shot forward');
+  assert.ok(m.z < g.player.z, 'stopping at what it bit');
+  // out of the lane: a miss
+  const b = arena('reed_viper', 22, { open: true, normal: true });
+  b.only('fang_strike'); b.place(2.5);
+  b.until(() => b.m.windup?.name === 'fang_strike', 1);
+  b.step(b.m.windup.total * 0.7);
+  b.g.player.x += 2.5; // stepped aside after the lane locked
+  b.until(() => b.m.state === 'recover', 1);
+  assert.equal(b.hits.length, 0);
+  // the poison
+  const c = arena('reed_viper', 22, { open: true, normal: true, realDamage: true });
+  c.only('fang_strike'); c.place(2.5);
+  for (let i = 0; i < 8 && !c.g.player.statuses.poison; i++) { c.m.state = 'chase'; c.m.cd.fang_strike = 0; c.until(() => c.m.state === 'recover', 2); c.step(1); }
+  assert.ok(c.g.player.statuses.poison, 'its fangs poison');
+});
+
+test('reed viper reed ambush: still in the reeds, it strikes the first to come within its reach (after a beat); nobody comes, it gives up', () => {
+  const a = M.reed_viper.attacks.ambush;
+  const { m, g, hits, until, step, place, only } = arena('reed_viper', 22, { open: true });
+  only('ambush'); place(a.radius + 0.8); // just outside its reach
+  until(() => m.windup?.name === 'ambush', 1);
+  until(() => m.ambush, 1);
+  step(a.arm + 0.5);
+  assert.equal(hits.length, 0, 'outside: it waits');
+  g.player.z = m.z + a.radius - 0.5; // steps in
+  step(0.02);
+  assert.ok(m.ambush.trig >= 0, 'it notices');
+  step(a.react - 0.05);
+  assert.equal(hits.length, 0, 'a beat to react');
+  step(0.1);
+  assert.equal(hits.length, 1, 'struck');
+  assert.equal(m.state, 'recover');
+  // nobody comes: it gives up after hold
+  const b = arena('reed_viper', 22, { open: true });
+  b.only('ambush'); b.place(a.radius + 0.8);
+  b.until(() => b.m.ambush, 2);
+  b.step(a.hold + 0.1);
+  assert.equal(b.m.ambush, null);
+  assert.equal(b.hits.length, 0);
+  assert.equal(b.m.state, 'recover');
+});
+
+test('reed viper puff and hiss: the cone is hit once, and its venom mist lingers along it, ticking', () => {
+  const a = M.reed_viper.attacks.hiss;
+  const { m, g, hits, until, step, place, only } = arena('reed_viper', 22, { open: true });
+  only('hiss'); place(1.5);
+  until(() => m.windup?.name === 'hiss', 1);
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing while it puffs up');
+  until(() => m.state === 'recover', 0.2);
+  assert.equal(hits.filter((h) => h.attack === 'hiss').length, 1, 'the hiss hits once');
+  const mist = g.areas.filter((x) => x.kind === 'hiss_mist');
+  assert.equal(mist.length, 3);
+  for (const x of mist) assert.ok(Math.hypot(x.x - m.x, x.z - m.z) + x.radius <= a.range + m.r + 0.01, 'inside its reach');
+  const before = hits.length;
+  step(1.2);
+  assert.ok(hits.length > before, 'the mist ticks');
+  step(a.linger + 0.5);
+  assert.equal(g.areas.filter((x) => x.kind === 'hiss_mist').length, 0, 'and clears');
+  // to its side: safe
+  const b = arena('reed_viper', 22, { open: true });
+  b.only('hiss'); b.place(1.5);
+  b.until(() => b.m.windup?.name === 'hiss', 1);
+  b.step(b.m.windup.total * 0.7);
+  Object.assign(b.g.player, { x: 4, z: -1 });
+  b.until(() => b.m.state === 'recover', 1);
+  b.step(2);
+  assert.equal(b.hits.length, 0);
+});

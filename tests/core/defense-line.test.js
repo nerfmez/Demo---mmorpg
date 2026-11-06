@@ -45,7 +45,7 @@ test('every monster element and status in the data is one the rules know', () =>
   assert.equal(monsterHit(foe('salt_slime'), 'brine').element, 'cold');
   assert.equal(monsterHit(foe('salt_slime'), 'engulf').element, 'physical');
   assert.equal(monsterHit(foe('rune_sentinel'), 'beam').element, 'lightning');
-  assert.equal(monsterHit(foe('reed_viper'), 'lash').element, 'poison');
+  assert.equal(monsterHit(foe('reed_viper'), 'fang_strike').element, 'poison');
   assert.equal(monsterHit(null, 'slam').element, 'physical');
 });
 
@@ -107,7 +107,7 @@ test('dots hurt over time, never kill and end; chill slows, root stops walking; 
   const g = hero(), p = g.player;
   g.derived.resistPoisonPct = 0;
   g.rng = { chance: () => true, range: (a) => a, next: () => 0 };
-  g.damagePlayer(1000, foe('reed_viper'), { attack: 'lash' });
+  g.damagePlayer(1000, foe('reed_viper'), { attack: 'fang_strike' });
   g.damagePlayer(1000, foe('thornback_wolf'), { attack: 'drag' }); // a bleed
   assert.ok(p.statuses.poison && p.statuses.bleed);
   p.hp = 5;
@@ -115,7 +115,7 @@ test('dots hurt over time, never kill and end; chill slows, root stops walking; 
   assert.equal(p.hp, 1, 'a dot alone never kills');
   assert.ok(!p.statuses.poison && !p.statuses.bleed, 'and runs out');
   // poison resistance takes its share off the dot too
-  const dps = (resist) => { delete p.statuses.poison; p.hp = p.maxHp; g.derived.resistPoisonPct = resist; g.damagePlayer(1000, foe('reed_viper'), { attack: 'lash' }); return p.statuses.poison.dps; };
+  const dps = (resist) => { delete p.statuses.poison; p.hp = p.maxHp; g.derived.resistPoisonPct = resist; g.damagePlayer(1000, foe('reed_viper'), { attack: 'fang_strike' }); return p.statuses.poison.dps; };
   assert.ok(Math.abs(dps(50) - dps(0) * 0.25) < 1e-6, 'half the hit, then half the dot'); // the hit's damage and the dot both resisted
   // root and chill
   g.damagePlayer(1000, foe('rootdigger_mole'), { attack: 'erupt' });

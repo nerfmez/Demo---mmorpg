@@ -1372,7 +1372,7 @@ export class Vfx {
       const live = ar.t - ar.delay;
       return Math.max(0, Math.min(1, live * 5) * Math.min(1, (ar.duration - live) * 2));
     };
-    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud') {
+    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud' || a.kind === 'hiss_mist') { // (hiss_mist: the reed viper's, skillfx/viper-fx.js)
       const spore = a.kind === 'spore_cloud';
       const m = this.decal(this.discGeo, discMaterial(spore ? 'spore' : 'mire'), a.x, a.z, a.radius, 0, 0.07);
       m.material.uniforms.uColor.value.set(spore ? 0x9a8a4a : 0x5a8a2a);

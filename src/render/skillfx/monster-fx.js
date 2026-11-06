@@ -26,6 +26,7 @@ import { WolfFx } from './wolf-fx.js';
 import { HermitFx } from './hermit-fx.js';
 import { MantisFx } from './mantis-fx.js';
 import { GreyfangFx } from './greyfang-fx.js';
+import { ViperFx } from './viper-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -93,6 +94,8 @@ export class MonsterFx {
     this.mantis = new MantisFx(scene, host, this);
     // Greyfang's hamstring passes, moon orbit, rally, phase roar, moon leap and phantom rush (skillfx/greyfang-fx.js)
     this.greyfang = new GreyfangFx(scene, host, this);
+    // the reed viper's strike, reed ambush and hiss (skillfx/viper-fx.js)
+    this.viper = new ViperFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -402,6 +405,7 @@ export class MonsterFx {
     this.hermit.update(dt, g);
     this.mantis.update(dt, g);
     this.greyfang.update(dt, g);
+    this.viper.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

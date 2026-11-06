@@ -1073,7 +1073,9 @@
     "reed_viper": {
       "name": "Reedblade Viper",
       "nameTh": "งูใบกกพิษ",
-      "behavior": "viper",
+      "behavior": "kit",
+      "kit": {"circle": [2.8, 4.6]},
+      "normal": "fang_strike",
       "element": "poison",
       "hp": 520,
       "damage": 100,
@@ -1084,35 +1086,10 @@
       "leashRange": 20,
       "exp": 16,
       "jobExp": 11,
-      "keepDistance": [
-        3,
-        6
-      ],
       "attacks": {
-        "venom": {
-          "minRange": 2.5,
-          "range": 9,
-          "windup": 0.8,
-          "flight": 0.6,
-          "radius": 1.8,
-          "duration": 3,
-          "tick": 0.5,
-          "dps": 40,
-          "cooldown": 6,
-          "recover": 0.6,
-          "damageMult": 0.4
-        },
-        "lash": {
-          "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15},
-          "minRange": 0,
-          "maxRange": 5.5,
-          "range": 5.5,
-          "width": 0.9,
-          "windup": 0.5,
-          "recover": 0.8,
-          "cooldown": 3,
-          "damageMult": 1.25
-        }
+        "ambush": {"nameTh": "ซุ่มกอกก", "kind": "ambush", "use": {"min": 1.5, "max": 4.5}, "range": 4.5, "radius": 3.6, "windup": 0.6, "arm": 0.5, "hold": 3.5, "react": 0.3, "lunge": 2.4, "width": 1.2, "recover": 0.9, "cooldown": 11, "damageMult": 1.6, "inflict": {"status": "poison", "chance": 1, "duration": 4, "dpsMult": 0.18}},
+        "hiss": {"nameTh": "พองตัวขู่ฟ่อ", "kind": "hiss", "tell": "sector", "use": {"max": 3.5}, "range": 4.2, "arc": 70, "windup": 1.1, "linger": 3, "tick": 0.5, "mistMult": 0.35, "recover": 0.7, "cooldown": 9, "damageMult": 0.6, "inflict": {"status": "poison", "chance": 0.8, "duration": 3, "dpsMult": 0.12}},
+        "fang_strike": {"nameTh": "ฉกพิษตัวเอส", "kind": "fang_strike", "tell": "lane", "use": {"max": 4.5}, "range": 5, "width": 1.0, "lunge": 2.2, "windup": 0.7, "recover": 0.8, "cooldown": 3, "damageMult": 1.25, "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15}}
       },
       "drops": [
         {

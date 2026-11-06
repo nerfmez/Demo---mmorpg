@@ -62,7 +62,7 @@ function bareParts() {
   for (const s of [1, -1]) parts.push(paint(new THREE.ConeGeometry(0.035, 0.14, 5).rotateZ(s * 0.9).translate(-0.67 + s * 0.05, 0.38, -0.96).toNonIndexed(), 0x9a5040)); // the hooks
   // the cephalothorax: the hard front its walking legs grow from, reaching back to the legs' roots at its sides
   // (x +-0.5), lighter on top
-  parts.push(paint(new THREE.SphereGeometry(0.3, 16, 10).scale(1.6, 0.62, 1.5).translate(0, 0.52, -0.1).toNonIndexed(), 0xd8643a));
+  parts.push(paint(new THREE.SphereGeometry(0.3, 16, 10).scale(1.45, 0.62, 1.4).translate(0, 0.52, -0.08).toNonIndexed(), 0xd8643a));
   parts.push(paint(new THREE.SphereGeometry(0.22, 14, 8).scale(1.5, 0.4, 1.4).translate(0, 0.66, -0.06).toNonIndexed(), 0xf09a5a));
   // two long antennae: thin whips rising from between the eyes, bending out and forward (no outline: it would
   // thicken them into rods)

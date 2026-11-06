@@ -555,8 +555,12 @@ function animCrab(r, s, dt, time) {
       for (const o of r.bareSet.bare) o.visible = out;
       if (r.anemones) for (const g of r.anemones.groups) g.visible = !out; // they went with the shell
     }
-    // a hermit crab's hindmost legs are small and stay tucked against its abdomen (they grip the shell)
-    if (r.bareOut) for (const n of HIND) b[n].scale.multiplyScalar(0.02);
+    // out of it: its four walking legs splay, the front pair reaching forward and the back pair back, so all four
+    // show beside its body; the hindmost pair is small and stays tucked against its abdomen (it grips the shell)
+    if (r.bareOut) {
+      for (const n of HIND) b[n].scale.multiplyScalar(0.02);
+      for (let i = 0; i < 4; i++) b[r.legs[i]].rotation.y += SIDES6[i] * (i < 2 ? -0.55 : 0.5);
+    }
   }
   // legs dug in and trembling before the dash
   if (crouch > 0.3) for (const n of r.legs) b[n].rotation.z += Math.sin(time * 42 + n.length) * 0.05 * crouch;

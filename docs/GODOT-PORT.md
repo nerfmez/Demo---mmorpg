@@ -1253,7 +1253,8 @@ to a leg, claw or head bone, and, above 0.6 m, at least 0.5 to the head or claws
 lower half; the model has no body under it, and a leg's root, skinned half to the body, stays on)) plus its soft parts on the body bone, drawn on the rig's toon
 material: a hard cephalothorax reaching back to the walking legs' roots at its sides, two thin antennae, and the pale
 abdomen coiled to its right behind it with hooks at the tip (a real hermit crab's anatomy); its hindmost leg pair
-(`leg4`/`leg5`) is tucked away (scaled to nothing) and its anemones hide with the shell. The left shell is a pooled hermit rig with
+(`leg4`/`leg5`) is tucked away (scaled to nothing), its four walking legs splay (the front pair turned forward,
+the back pair back, so all four show beside it) and its anemones hide with the shell. The left shell is a pooled hermit rig with
 its head and legs shrunk (skillfx/hermit-fx.js).
 Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval

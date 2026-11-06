@@ -629,7 +629,13 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   (`at` time, `off` angle offset, `step` forward, optional `knock`); each hit tests the arc once.
   Wolves use `rend` (2 hits). They replace the old repeated lunges.
 - **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event; no monster lists it now).
-- **`shove`:** an instant cone with `knock` (ram). `charge` (boar) is the only straight rush left,
+- **`shove`:** an instant cone with `knock`; `lunge` (m) moves it forward onto the blow first (the ironhorn ram's
+  rearing clash). An attack with `backoff` (m) backs away from its prey, facing it, through the first 60% of its
+  wind-up (`m.backing`, the view walks it backwards: the ram's run-up); `charge` takes `knock` (force, default 4) and
+  `stopOnHit` (it pulls up on the first unit it strikes, event `clash`). **`hook`** (the ram): `use.side` picks it only
+  for a target 35 to 145 degrees off its facing; it keeps its facing, the wind-up's `angle` is the middle of the cone
+  `off` degrees round that side (`w.side`, `w.face`), and units in `range`/`arc` there are flung `knock` out
+  sideways (event `hornHook`). Render: skillfx/ram-fx.js. `charge` (boar) is the only straight rush left,
   besides the stalker `pounce` leap and the warden's `roll` (the gale hawk now stoops, below).
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an
   attack with `kind: 'charge'`, so it shares the charge path (one hit per unit, a rock in the way

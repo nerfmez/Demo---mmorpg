@@ -503,6 +503,8 @@ export class SkillFx {
       // the reed viper (skillfx/viper-fx.js)
       // the marsh wisp (skillfx/wisp-fx.js)
       case 'wispOrbs': case 'lure': return this.monster.wisp.event(e, g);
+      // the ironhorn ram (skillfx/ram-fx.js)
+      case 'hornHook': case 'clash': return this.monster.ram.event(e, g);
       // the gale hawk (skillfx/hawk-fx.js)
       case 'stoop': case 'stoopHit': case 'thunderWings': case 'stormBeat': case 'stormFeathers': case 'fencePulse': return this.monster.hawk.event(e, g);
       case 'viperStrike': case 'coilDash': case 'coilGrab': case 'coilFree': case 'coilEnd': case 'tailLash': case 'tailCut': return this.monster.viper.event(e, g);

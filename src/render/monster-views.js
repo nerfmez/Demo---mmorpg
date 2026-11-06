@@ -131,7 +131,7 @@ export function syncMonsterViews(view, dt, time) {
     drawn++;
     const tgt = m.targetUnit || p;
     const state = mv.animationState || (mv.animationState = {});
-    state.moving = m.moving && (MOVING_STATES.has(m.state) || (m.state === 'act' && (m.lap?.phase === 'run' || !!m.drag))); // the wolf's lap and drag run its legs
+    state.moving = (m.moving && (MOVING_STATES.has(m.state) || (m.state === 'act' && (m.lap?.phase === 'run' || !!m.drag)))) || !!m.backing; // the wolf's lap and drag run its legs
     state.speedFactor = m.aggro ? 1 : 0.4;
     state.state = m.state;
     state.windup = m.state === 'windup' && m.windup ? m.windup.name : null;
@@ -155,7 +155,7 @@ export function syncMonsterViews(view, dt, time) {
     state.smoothSpeed = mv.sspeed;
     state.smoothFwd = mv.svFwd;
     // backing off (the rules' intent, so the walk turns backwards the moment it does, never a beat late)
-    state.backing = (m.moving && m.strafeMode === 'back' && MOVING_STATES.has(m.state)) || !!m.drag; // the wolf hauls its prey backwards
+    state.backing = (m.moving && m.strafeMode === 'back' && MOVING_STATES.has(m.state)) || !!m.drag || !!m.backing; // (and the ironhorn ram's run-up) // the wolf hauls its prey backwards
     state.vFwd = mv.vFwd;
     state.vSide = mv.vSide;
     state.aggro = !!m.aggro;
@@ -181,6 +181,7 @@ export function syncMonsterViews(view, dt, time) {
     state.strikeT = since; state.fangAim = !!m.fangs; state.coil = m.coil ? m.coil.phase : null;
     // the gale hawk (monsters.js animHawk): how far down its stoop (and where the low stretch starts), its thunder wings (beats since they began)
     state.stoopK = m.stoop ? m.stoop.s / Math.max(0.01, m.stoop.len) : -1; state.stoopLow = m.stoop ? m.stoop.low / Math.max(0.01, m.stoop.len) : 1; state.stoopHigh = m.stoop ? m.stoop.high / Math.max(0.01, m.stoop.len) : 1;
+    state.hookSide = m.windup?.side ?? state.hookSide; // the ironhorn ram's hook
     state.storm = m.storm ? m.storm.t / m.def.attacks[m.storm.name].every : -1;
     state.blinkT = m.blinkedAt !== undefined ? (view.game?.time ?? 0) - m.blinkedAt : undefined; // the marsh wisp gathering again
     state.dragging = !!m.drag; // the shore gull riding its prey's head

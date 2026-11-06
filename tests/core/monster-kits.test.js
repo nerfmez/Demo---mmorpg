@@ -1511,3 +1511,76 @@ test('gale hawk storm feathers: a zigzag of feathers across its line through the
   b.step(4);
   assert.equal(b.hits.length, 0);
 });
+
+test('ironhorn ram rearing clash: rears through the wind-up, drops forward onto the blow, a frontal cone with knockback, once', () => {
+  const a = M.ironhorn_ram.attacks.rear_clash;
+  assert.equal(M.ironhorn_ram.normal, 'rear_clash');
+  const { m, g, until, step, place } = arena('ironhorn_ram', 29, { open: true, normal: true });
+  const hits = [];
+  g.damageUnit = (u, amount, src, opts) => hits.push({ t: g.time, opts });
+  place(1.2);
+  until(() => m.windup?.name === 'rear_clash', 1);
+  const z0 = m.z, start = g.time;
+  until(() => m.state === 'recover', 2);
+  assert.equal(hits.length, 1, 'struck once');
+  assert.ok(hits[0].t - start >= m.def.attacks.rear_clash.windup - 0.02, 'not before the wind-up ends');
+  assert.equal(hits[0].opts.knock.force, a.knock, 'knocked back');
+  assert.ok(Math.abs(m.z - z0 - a.lunge) < 1e-6, 'dropped forward onto it');
+  step(a.recover + 0.1);
+  // off to the side: outside the cone
+  const b = arena('ironhorn_ram', 29, { open: true, normal: true });
+  b.place(1.2);
+  b.until(() => b.m.windup?.name === 'rear_clash', 1);
+  b.step(b.m.windup.total * 0.7);
+  Object.assign(b.g.player, { x: 3, z: 0 });
+  b.until(() => b.m.state === 'recover', 2);
+  assert.equal(b.hits.length, 0);
+});
+
+test('ironhorn ram run-up charge: backs off facing its prey, charges the locked lane, pulls up on what it strikes; a miss leaves it reeling', () => {
+  const a = M.ironhorn_ram.attacks.run_charge;
+  const { m, g, until, only, place } = arena('ironhorn_ram', 29, { open: true });
+  const hits = [];
+  g.damageUnit = (u, amount, src, opts) => { hits.push({ opts }); return amount; };
+  only('run_charge'); place(6);
+  until(() => m.windup?.name === 'run_charge', 1);
+  const z0 = m.z;
+  until(() => m.state === 'act', 3);
+  assert.ok(z0 - m.z > a.backoff * 0.9, 'backed off for its run-up');
+  until(() => m.state !== 'act', 3);
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].opts.knock.force, a.knock, 'flung');
+  assert.equal(m.state, 'recover', 'pulled up on its prey');
+  assert.equal(g.events.filter((e) => e.type === 'clash').length, 1);
+  // stepped out of the lane: it runs on and is left reeling
+  const b = arena('ironhorn_ram', 29, { open: true });
+  b.only('run_charge'); b.place(6);
+  b.until(() => b.m.state === 'act', 3);
+  b.g.player.x = 4;
+  b.until(() => b.m.state !== 'act', 3);
+  assert.equal(b.hits.length, 0);
+  assert.equal(b.m.state, 'stunned', 'off balance');
+});
+
+test('ironhorn ram horn hook: taken on a flank, its horns hook out to that side without turning, flinging the hero sideways', () => {
+  const a = M.ironhorn_ram.attacks.horn_hook;
+  const { m, g, until, only } = arena('ironhorn_ram', 29, { open: true });
+  const hits = [];
+  g.damageUnit = (u, amount, src, opts) => hits.push({ opts });
+  only('horn_hook');
+  // in front: no hook
+  Object.assign(g.player, { x: 0, z: m.r + g.player.r + 1 });
+  for (let i = 0; i < 5; i++) { g.time += 0.01; updateMonster(g, m, 0.01); }
+  assert.ok(m.windup?.name !== 'horn_hook', 'not for one in front');
+  m.state = 'chase'; m.windup = null; m.facing = 0;
+  // on its left flank (+x)
+  Object.assign(g.player, { x: m.r + g.player.r + 0.8, z: 0.3 });
+  until(() => m.windup?.name === 'horn_hook', 1);
+  assert.ok(Math.abs(m.facing) < 1e-9, 'keeps its facing');
+  until(() => m.state === 'recover', 2);
+  assert.equal(hits.length, 1);
+  assert.ok(Math.abs(Math.abs(angleOf(hits[0].opts.knock.angle)) - Math.PI / 2) < 1e-6, 'flung out sideways');
+  assert.ok(Math.sin(hits[0].opts.knock.angle) > 0, 'to the side it was on');
+  assert.equal(hits[0].opts.knock.force, a.knock);
+});
+const angleOf = (a) => Math.atan2(Math.sin(a), Math.cos(a));

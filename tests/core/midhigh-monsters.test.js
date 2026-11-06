@@ -114,17 +114,7 @@ test('melee strikes (stalker claw) land once at the authored time, miss outside 
   }
 });
 
-test('the ram shoves in a cone and knocks back (the viper is a kit monster now: monster-kits.test.js)', () => {
-  const r = arena('ironhorn_ram');
-  r.place(2); r.m.cd.stomp = 99;
-  r.step(0.01);
-  assert.equal(r.m.windup?.name, 'shove');
-  r.until(() => r.m.state === 'recover');
-  assert.equal(r.hits.length, 1, 'one shove');
-  assert.equal(r.m.charge, null, 'a shove is not a rush');
-});
-
-test('marked areas (pounce, stomp, shards) hurt only when they land, inside their circle', () => {
+test('marked areas (pounce, shards) hurt only when they land, inside their circle (the ram is a kit monster now: monster-kits.test.js)', () => {
   const s = arena('duskmane_stalker');
   s.place(5); s.m.cd.claw = 99;
   s.step(0.01);
@@ -133,7 +123,7 @@ test('marked areas (pounce, stomp, shards) hurt only when they land, inside thei
   s.until(() => s.m.state === 'recover', 5);
   assert.equal(s.hits.length, 0, 'leaving the mark dodges the pounce');
 
-  for (const [type, name] of [['ironhorn_ram', 'stomp'], ['rune_sentinel', 'shards']]) {
+  for (const [type, name] of [['rune_sentinel', 'shards']]) {
     const a = arena(type);
     a.place(0.3);
     a.m.cd.shove = a.m.cd.beam = 99;
@@ -261,7 +251,7 @@ test('the warden rolls as a boulder along a locked lane: one hit, none in the wi
 });
 
 test('new contact attacks miss out of range/arc and death cancels remaining combo contacts', () => {
-  for (const [type, name, gap] of [['ironhorn_ram', 'shove', 1.5]]) { // the mantis, Greyfang: monster-kits.test.js
+  for (const [type, name, gap] of [['ironhorn_ram', 'rear_clash', 1.2]]) { // the mantis, Greyfang: monster-kits.test.js
     for (const miss of ['range', 'arc']) {
       if (name === 'whirl' && miss === 'arc') continue; // authored 360 degree ring
       const a = arena(type);

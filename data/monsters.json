@@ -1100,7 +1100,9 @@
     "ironhorn_ram": {
       "name": "Ironhorn Ram",
       "nameTh": "แพะผาเขาเหล็ก",
-      "behavior": "ram",
+      "behavior": "kit",
+      "normal": "rear_clash",
+      "kit": {"turn": 3},
       "hp": 1200,
       "damage": 120,
       "defense": 140,
@@ -1111,23 +1113,9 @@
       "exp": 40,
       "jobExp": 20,
       "attacks": {
-        "stomp": {
-          "range": 1.4,
-          "radius": 2.6,
-          "windup": 0.7,
-          "recover": 0.8,
-          "cooldown": 3.5,
-          "damageMult": 1.1
-        },
-        "shove": {
-          "range": 2.6,
-          "arc": 110,
-          "windup": 0.8,
-          "recover": 0.9,
-          "cooldown": 4.5,
-          "damageMult": 1.5,
-          "knock": 9
-        }
+        "horn_hook": {"nameTh": "สะบัดเขาเกี่ยว", "kind": "hook", "tell": "sector", "use": {"max": 2.6, "side": true}, "range": 2.4, "arc": 140, "off": 70, "windup": 0.75, "knock": 11, "recover": 0.7, "cooldown": 6, "damageMult": 1.1},
+        "run_charge": {"nameTh": "ถอยตั้งหลักพุ่งชน", "kind": "charge", "tell": "lane", "use": {"min": 4.5, "max": 12}, "range": 14, "width": 1.9, "windup": 1.6, "backoff": 3.5, "speed": 13, "duration": 1.05, "knock": 13, "stopOnHit": true, "missStun": 1.6, "recover": 0.9, "cooldown": 9, "damageMult": 1.6},
+        "rear_clash": {"nameTh": "ยืนผงาดโขกเขา", "kind": "shove", "tell": "sector", "use": {"max": 2.4}, "range": 2.4, "arc": 110, "lunge": 0.7, "windup": 1.0, "knock": 7, "recover": 0.9, "cooldown": 3.5, "damageMult": 1.4}
       },
       "drops": [
         {

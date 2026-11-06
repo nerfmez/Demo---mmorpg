@@ -116,15 +116,15 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
   };
   // Each new go: if the monster can get to where the attack starts on its own feet, it walks there - the sandbox
   // no longer moves it (owner, 2026-11-04: the walk "still stutters"; it was this jump, every few seconds, with
-  // the camera). Only an attack at its back (use.behind) or one it is too close to start puts it in place.
+  // the camera). Only an attack at its back or flank (use.behind, use.side) or one it is too close to start puts it in place.
   // Returns false while a monster that circles is still backing off to where the attack can start (it walks
   // there on its own, for up to 3 s).
   const again = (dt) => {
     const m = lab.m, atk = m.def.attacks[lab.attack], u = atk.use || {}, lo = u.min ?? atk.minRange ?? 0;
     const gap = Math.hypot(m.x - p.x, m.z - p.z) - m.r - p.r;
-    if (!m.dead && !u.behind && gap < lo && m.def.kit?.circle && (lab.wait = (lab.wait || 0) + dt) < 3) { refresh(); return false; }
+    if (!m.dead && !u.behind && !u.side && gap < lo && m.def.kit?.circle && (lab.wait = (lab.wait || 0) + dt) < 3) { refresh(); return false; }
     lab.wait = 0;
-    if (m.dead || u.behind || gap < lo || gap > 14) arrange();
+    if (m.dead || u.behind || u.side || gap < lo || gap > 14) arrange();
     else refresh();
     return true;
   };
@@ -142,8 +142,9 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
       const tx = p.x + Math.sin(a) * d, tz = p.z + Math.cos(a) * d;
       if (game.world.isFree(tx, tz, m.r) && !game.isSafe(tx, tz)) { x = tx; z = tz; break; }
     }
-    // an attack at what is behind it (use.behind) gets the monster's back to the hero
-    Object.assign(m, { x, z, homeX: x, homeZ: z, facing: Math.atan2(p.x - x, p.z - z) + (u.behind ? Math.PI : 0), state: 'chase', stateT: 0, windup: null, charge: null, melee: null });
+    // an attack at what is behind it (use.behind) gets the monster's back to the hero; one at its flank (use.side)
+    // its side
+    Object.assign(m, { x, z, homeX: x, homeZ: z, facing: Math.atan2(p.x - x, p.z - z) + (u.behind ? Math.PI : u.side ? Math.PI / 2 : 0), state: 'chase', stateT: 0, windup: null, charge: null, melee: null });
     refresh();
     // the camera glides to the middle of the two (tick keeps focusShift there), it does not jump
   };

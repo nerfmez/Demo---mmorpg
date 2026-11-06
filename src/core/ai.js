@@ -419,7 +419,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -431,6 +431,13 @@ function windup(game, m, dt, t, gap) {
     if (d < atk.standoff) { const step = Math.min(atk.standoff - d, atk.backSpeed * dt); game.moveEntity(m, Math.sin(a) * step, Math.cos(a) * step); }
     w.angle = angleTo(m.x, m.z, w.tx, w.tz); m.facing = w.angle;
   }
+  // `backoff` (m): it backs away from its prey through the first 60% of the wind-up, facing it (the ironhorn ram's
+  // run-up before its charge)
+  if (atk.backoff && m.stateT < w.total * 0.6) {
+    const d = dirFromAngle(w.angle), step = (atk.backoff / (w.total * 0.6)) * dt;
+    game.moveEntity(m, -d.x * step, -d.z * step);
+    m.backing = true;
+  } else m.backing = false;
   if (m.stateT < w.total) return;
   const dmg = m.damage * (atk.damageMult || 1);
   switch (kind) {
@@ -452,11 +459,26 @@ function windup(game, m, dt, t, gap) {
     case 'sweep':
     case 'shove': {
       const arc = (atk.arc || 120) * DEG;
+      // `lunge` (m): it drops forward onto the blow (the ironhorn ram's rearing clash), then strikes from there
+      if (atk.lunge) { const d = dirFromAngle(w.angle); game.moveEntity(m, d.x * atk.lunge, d.z * atk.lunge); }
       game.emit({ type: 'monsterSwing', id: m.id, name: w.name, angle: w.angle, range: atk.range + m.r, arc: atk.arc || 120, x: m.x, z: m.z });
       for (const u of game.units()) {
         const g = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
         const inArc = Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) <= arc / 2;
         if (inArc && g <= atk.range + 0.4) game.damageUnit(u, dmg, m, { attack: w.name, knock: atk.knock ? { angle: angleTo(m.x, m.z, u.x, u.z), force: atk.knock } : undefined });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'hook': {
+      // the ironhorn ram hooks its horns to the side its prey stood on (w.side, fixed at wind-up start, its facing kept):
+      // units within `range` m in the `arc` degrees centred `off` degrees round that side are struck and flung `knock`
+      // out that way
+      const c = w.angle, arc = (atk.arc || 140) * DEG, out = w.face + w.side * Math.PI / 2;
+      game.emit({ type: 'hornHook', id: m.id, x: m.x, z: m.z, angle: c, arc: atk.arc, range: atk.range + m.r, side: w.side });
+      for (const u of game.units()) {
+        if (dist(m.x, m.z, u.x, u.z) - m.r - u.r > atk.range || Math.abs(angleDiff(c, angleTo(m.x, m.z, u.x, u.z))) > arc / 2) continue;
+        game.damageUnit(u, dmg, m, { attack: w.name, knock: { angle: out, force: atk.knock } });
       }
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
@@ -1633,7 +1655,14 @@ function act(game, m, dt, t) {
       if (c.hit.has(u.id)) continue;
       if (dist(m.x, m.z, u.x, u.z) < m.r + u.r + 0.35) {
         c.hit.add(u.id);
-        game.damageUnit(u, c.dmg, m, { attack: c.name, knock: { angle: c.angle, force: 4 } });
+        const ca = m.def.attacks[c.name];
+        const dealt = game.damageUnit(u, c.dmg, m, { attack: c.name, knock: { angle: c.angle, force: ca?.knock ?? 4 } });
+        // `stopOnHit`: it pulls up on what it struck (the ironhorn ram's clash: horns on its prey, the charge spent)
+        if (ca?.stopOnHit && (dealt || u !== game.player)) {
+          m.charge = null;
+          game.emit({ type: 'clash', id: m.id, x: m.x, z: m.z, angle: c.angle, tx: u.x, tz: u.z });
+          return setState(m, 'recover', ca.recover);
+        }
       }
     }
   }
@@ -1989,6 +2018,8 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     if ((atk.kind || name) === 'rally' && packAlive(game, m) >= atk.cap) continue; // its pack is already round its prey
     // behind: only for a target at its back (more than 100 degrees off its facing)
     if (u.behind && Math.abs(angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z))) < 1.75) continue;
+    // side: only for a target at its flank (35 to 145 degrees off its facing)
+    if (u.side) { const off = Math.abs(angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z))); if (off < 0.6 || off > 2.53) continue; }
     // a burrow (erupt) never comes up in a safe town
     if ((atk.kind || name) === 'erupt' && game.isSafe(t.x, t.z)) continue;
     // it closes only as far as an attack that is ready, or nearly, needs (a mole with its scoop cooling stops at
@@ -2106,6 +2137,13 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'hook') {
+    // it keeps its facing and cocks its horns toward the flank its prey is on
+    const side = angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z)) >= 0 ? 1 : -1, f = m.facing;
+    startWindup(game, m, name, t, { side, face: f });
+    m.windup.angle = f + side * (atk.off || 70) * DEG; m.facing = f; // (w.angle: the middle of the hooked cone, its warning)
+    return;
+  }
   if (kind === 'stoop' || kind === 'thunder_wings') {
     // the gale hawk climbs: into a wind-hover (`hover` m), its eyes on its prey's spot (followed until `lock`,
     // windup()), or up into the air to beat up a storm

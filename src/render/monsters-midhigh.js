@@ -251,30 +251,34 @@ function animRam(r, s, dt, time) {
   // grazing: the head dips to the ground now and then while it stands
   const graze = Math.max(0, wander(time * 0.27, r.seed + 2)) ** 2 * 0.6 * calm;
   let front = 0, bodyX = 0, bodyY = 0.85, headX = 0.05 + graze, headY = s.lookYaw * 0.6 + c.look * wander(time * 0.4, r.seed) * calm;
-  if (s.windup === 'shove') {
-    // head low and swung to one side, a hoof scrapes the ground before the horn sweep
-    headX = 0.5 * k;
-    bodyX = 0.08 * k;
-    bodyY -= 0.1 * k;
-    headY = -0.45 * k;
-    b[legs[0]].rotation.x = Math.sin(time * 16) * 0.55 * k;
-  } else if (s.windup === 'stomp') {
-    // rears on its hind legs
-    bodyX = -0.85 * k;
-    bodyY += 0.38 * k;
-    front = -1.35 * k;
-    headX = -0.35 * k;
-  } else if (s.state === 'act') {
-    headX = 0.55;
-    bodyX = 0.12;
-  } else if (s.state === 'recover' && s.lastAttack === 'shove') {
-    const hit = 1 - clamp01(s.actT / 0.35);
-    headX = 0.5 * hit;
-    headY = 0.5 * hit;
-    bodyX = 0.12 * hit;
-  } else if (s.state === 'recover' && s.lastAttack === 'stomp') {
-    bodyX = 0.18;
-    headX = 0.3;
+  // (docs/MONSTER-ATTACKS.md) rearing clash: up on its hind legs, horns back, held; then it drops forward onto the
+  // blow, head tucked so the horns lead. Run-up charge: backs off with its head low and shaking, paws the ground,
+  // then runs head down. Horn hook: its head cocked low to the flank, then flung round and up that way.
+  const late = s.windup ? clamp01((k - 0.82) / 0.18) : 0, since = s.state === 'recover' ? s.actT : 9;
+  if (s.windup === 'rear_clash') {
+    const up = Math.min(1, k / 0.55) * (1 - late);
+    bodyX = -0.95 * up + 0.25 * late;
+    bodyY += 0.45 * up;
+    front = -1.4 * up + 0.2 * late;
+    headX = -0.45 * up + 0.7 * late;
+  } else if (s.lastAttack === 'rear_clash' && since < 0.45) {
+    const hit = 1 - clamp01(since / 0.45);
+    bodyX = 0.3 * hit; bodyY -= 0.12 * hit; headX = 0.75 * hit;
+    front = 0.35 * hit;
+  } else if (s.windup === 'run_charge') {
+    const paw = clamp01((k - 0.6) / 0.25);
+    headX = 0.45 + 0.1 * Math.sin(time * 9) * (1 - paw);
+    headY = Math.sin(time * 7) * 0.25 * (1 - paw);
+    bodyX = 0.1 + 0.08 * paw; bodyY -= 0.08;
+    if (paw > 0) b[legs[0]].rotation.x = Math.sin(time * 14) * 0.6 * (1 - late);
+  } else if (s.state === 'act' && s.lastAttack === 'run_charge') {
+    headX = 0.6; bodyX = 0.14; bodyY -= 0.06; headY = 0;
+  } else if (s.windup === 'horn_hook') {
+    headX = 0.55 * k; headY = (s.hookSide || 1) * 0.7 * k; bodyY -= 0.08 * k;
+    b.body.rotation.z = (s.hookSide || 1) * -0.12 * k;
+  } else if (s.lastAttack === 'horn_hook' && since < 0.4) {
+    const hit = 1 - clamp01(since / 0.4);
+    headX = -0.35 * hit; headY = (s.hookSide || 1) * 1.1 * hit;
   } else if (s.state === 'stunned') {
     headX = 0.4 + Math.sin(time * 10) * 0.12;
     b.body.rotation.z = Math.sin(time * 7) * 0.12;
@@ -296,7 +300,7 @@ function animRam(r, s, dt, time) {
   const br = breath(time, r.seed, c) * (1 - 0.6 * w);
   b.body.scale.set(1 + br, 1, 1 + br * 0.4);
   b.head.rotation.x = P.headX - rock * c.headSteady;
-  b.head.rotation.y = damp(b.head.rotation.y, headY, s.lastAttack === 'shove' ? 18 : 5, dt);
+  b.head.rotation.y = damp(b.head.rotation.y, headY, s.lastAttack === 'horn_hook' ? 22 : s.windup ? 10 : 5, dt);
   r.tailSpring = r.tailSpring || new Spring(60, 8);
   b.tail.rotation.z = r.tailSpring.update(Math.sin(time * (moving ? 12 : 3)) * 0.2, dt);
   for (const e of EARS) b[e].rotation.z = damp(b[e].rotation.z, (e === 'earL' ? 1 : -1) * (s.windup ? 0.5 : 0.1 + Math.sin(time * 2 + r.seed) * 0.05), 10, dt);

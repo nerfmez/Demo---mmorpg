@@ -1249,9 +1249,17 @@ function act(game, m, dt, t) {
   if (m.swoop) {
     const sw = m.swoop, atk = m.def.attacks[sw.name];
     if (sw.skid > 0) {
-      // between passes: skidding round to face back along the next curve
-      sw.skid -= dt; m.moving = false;
-      turnToward(m, angleTo(m.x, m.z, sw.path[1][0], sw.path[1][1]), dt, 12);
+      // the skid after a pass (Greyfang): too fast to stop, it slides on the way it was going for `slide` m, slowing to
+      // a stop with its claws dug in, its body swinging round toward the next curve as it goes (a drift)
+      const ease = (q) => 1 - (1 - q) * (1 - q), q0 = 1 - sw.skid / atk.skid;
+      sw.skid -= dt;
+      const d = (ease(Math.min(1, 1 - sw.skid / atk.skid)) - ease(q0)) * (atk.slide || 0);
+      if (d > 0) game.moveEntity(m, Math.sin(sw.slideA) * d, Math.cos(sw.slideA) * d);
+      m.moving = false;
+      if (sw.path) turnToward(m, angleTo(m.x, m.z, sw.path[1][0], sw.path[1][1]), dt, 6);
+      if (sw.skid > 0) return;
+      if (!sw.path) { m.swoop = null; m.cd[sw.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+      sw.path[0] = [m.x, m.z]; // from where the slide really stopped
       return;
     }
     sw.t += dt;
@@ -1271,12 +1279,18 @@ function act(game, m, dt, t) {
       game.emit({ type: 'snatch', id: m.id, x: u.x, z: u.z, gold: take });
     }
     if (k >= 1) {
-      const prey = t || game.player;
-      if (sw.pass < sw.passes && prey && !prey.dead) {
-        sw.pass++; sw.t = 0; sw.skid = atk.skid; sw.hit = new Set(); sw.side = -sw.side;
-        sw.path = swoopPath(m, prey, atk, sw.side);
-        if (m.windup) m.windup.path = sw.path;
-        game.emit({ type: 'skid', id: m.id, name: sw.name, x: m.x, z: m.z, pass: sw.pass, delay: atk.skid });
+      const prey = t || game.player, more = sw.pass < sw.passes && prey && !prey.dead;
+      if (atk.skid) {
+        // it skids (see above) after every pass; another pass is marked from where the slide will stop, through where
+        // its prey stands now, to the other side
+        sw.skid = atk.skid; sw.slideA = m.facing;
+        if (more) {
+          sw.pass++; sw.t = 0; sw.hit = new Set(); sw.side = -sw.side;
+          const end = { x: m.x + Math.sin(m.facing) * (atk.slide || 0), z: m.z + Math.cos(m.facing) * (atk.slide || 0) };
+          sw.path = swoopPath(end, prey, atk, sw.side);
+          if (m.windup) m.windup.path = sw.path;
+        } else sw.path = null;
+        game.emit({ type: 'skid', id: m.id, name: sw.name, x: m.x, z: m.z, angle: m.facing, slide: atk.slide || 0, pass: sw.pass, last: !more, delay: atk.skid });
         return;
       }
       m.swoop = null; m.cd[sw.name] = atk.cooldown; return setState(m, 'recover', atk.recover);
@@ -2037,7 +2051,7 @@ export function beginAttack(game, m, name, t) {
  * A swoop's curve: from where it stands through where its prey stands now, hooking away to `side` (1 or -1): it ends
  * `past` m on beyond its prey, hooked `bow` m off to that side. The control point puts the curve's middle on the prey.
  */
-function swoopPath(m, t, atk, side) {
+function swoopPath(m, t, atk, side) { // (m: anything with x, z: where it starts)
   const a = angleTo(m.x, m.z, t.x, t.z), px = Math.cos(a) * side, pz = -Math.sin(a) * side;
   const ex = t.x + Math.sin(a) * atk.past + px * atk.bow, ez = t.z + Math.cos(a) * atk.past + pz * atk.bow;
   // B(0.5) = (p0 + 2 p1 + p2) / 4 = the prey

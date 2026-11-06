@@ -169,7 +169,7 @@ export function syncMonsterViews(view, dt, time) {
     state.lapT = m.lap ? m.lap.t : 0; state.lapDir = m.lap ? m.lap.dir : 1;
     // Greyfang (greyfang-anim.js): its passes (skidding between them), the moon leap, the phantom rush, the phase roar
     state.attacks = m.def.attacks;
-    state.skid = m.swoop ? m.swoop.skid : 0; state.side = m.swoop ? m.swoop.side : 1;
+    state.skid = m.swoop ? m.swoop.skid : 0; state.side = m.swoop ? m.swoop.side : 1; state.skidLast = !!m.swoop && !m.swoop.path;
     state.swoopK = m.swoop ? Math.min(1, m.swoop.t / (m.def.attacks[m.swoop.name].duration || 1)) : 0;
     state.leap = m.leap ? m.leap.phase : null; state.leapT = m.leap ? m.leap.t : 0;
     state.rushDash = !!m.rush?.dash;

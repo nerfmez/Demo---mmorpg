@@ -26,9 +26,16 @@ const CROUCH = {
   leg0: [0.04, -0.84, -0.54], leg0k: [-0.03, -0.5, 0.87], leg1: [-0.04, -0.84, -0.54], leg1k: [0.03, -0.5, 0.87],
   leg2: [0.02, -0.67, 0.74], leg2k: [-0.01, -0.96, -0.28], leg3: [-0.02, -0.67, 0.74], leg3k: [0.01, -0.96, -0.28],
 };
-// the landing: the same, sunk deeper under the weight
+// the skid (owner, 2026-11-06: "it can't brake and slides along the ground a little, claws gripping"): sat back on its
+// haunches, chest up, forelegs braced straight out ahead digging in, hind legs tucked under it, tail streaming out
+const SKID = {
+  lift: -0.22, body: [0, 0.2, 0.98], chest: [0, 0.12, 0.99], neck: [0, 0.42, 0.91], head: [0, -0.12, 0.99], tail: [0, -0.1, -0.99],
+  leg0: [0.06, -0.62, 0.78], leg0k: [0.02, -0.72, 0.69], leg1: [-0.06, -0.62, 0.78], leg1k: [-0.02, -0.72, 0.69],
+  leg2: [0.04, -0.45, 0.89], leg2k: [0, -0.78, -0.62], leg3: [-0.04, -0.45, 0.89], leg3k: [0, -0.78, -0.62],
+};
+// the landing: the same crouch, sunk deeper under the weight
 const LAND = { ...CROUCH, lift: -0.36, body: [0, -0.3, 0.955], neck: [0, -0.05, 1], head: [0, -0.32, 0.95] };
-const SET = clipSet({ clips: { ...CLIPS.clips, crouch: { duration: 1, frames: [CROUCH] }, land: { duration: 1, frames: [LAND] } }, rest: CLIPS.rest });
+const SET = clipSet({ clips: { ...CLIPS.clips, crouch: { duration: 1, frames: [CROUCH] }, land: { duration: 1, frames: [LAND] }, skid: { duration: 1, frames: [SKID] } }, rest: CLIPS.rest });
 // the bones the old walk and the clips both pose (blended between them)
 const BLEND = ['body', 'chest', 'neck', 'head', 'jaw', 'tail', 'leg0', 'leg0k', 'leg1', 'leg1k', 'leg2', 'leg2k', 'leg3', 'leg3k'];
 const SAVED = BLEND.map(() => new THREE.Quaternion()), _pos = new THREE.Vector3(), _scale = new THREE.Vector3();
@@ -77,8 +84,11 @@ export function animGreyfang(r, s, dt, time, walk) {
     pose = crouch(k / 0.6); head = 0.3 * smooth(clamp01(k / 0.6));
   } else if (act && last === 'hamstring') {
     if (s.skid > 0) {
-      // skidding round on its haunches, forelegs braced, leaning into the turn
-      pose = { clip: 'jump', u: 0.9, w: 1 }; pitch = -0.2; roll = 0.38 * (s.side || 1); head = -0.1;
+      // the skid: braced back on its haunches, forelegs dug in, leaning out of the drift, shuddering as its claws
+      // catch; over its last quarter it gathers into the crouch and springs off again
+      const q = 1 - s.skid / (A.hamstring?.skid || 0.6);
+      if (q < 0.72 || s.skidLast) { pose = { clip: 'skid', u: 0, w: 1 }; roll = -0.3 * (s.side || 1) * (1 - q); tremble = 0.9 * (1 - q); head = -0.05; }
+      else { pose = crouch(1); head = 0.25; }
     } else {
       // the pass: flat out, low and stretched, jaws open at leg height, snapping shut past the hero
       dashing(14);

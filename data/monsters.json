@@ -665,7 +665,7 @@
         "phantom_rush": {"nameTh": "ฝูงเงาจันทร์", "kind": "phantom_rush", "use": {"max": 9, "hpBelow": 0.5}, "range": 9, "windup": 1.2, "ring": 6, "past": 3, "gap": 0.3, "speed": 20, "width": 1.4, "recover": 0.8, "cooldown": 12, "damageMult": 0.9},
         "rally": {"nameTh": "หอนเรียกฝูงล้อม", "kind": "rally", "use": {"max": 12}, "range": 12, "windup": 1.3, "recover": 0.5, "cooldown": 22, "summon": 2, "enragedSummon": 3, "ring": 4.5, "cap": 3, "pack": "thornback_wolf"},
         "moon_orbit": {"nameTh": "วนล่าพุ่งตัด", "kind": "circle_lunge", "use": {"max": 7}, "range": 7, "near": 5, "far": 5.8, "lapSpeed": 16, "sweepRange": [240, 480], "aim": 0.45, "dash": 10, "dashTime": 0.42, "width": 1.6, "through": true, "knock": 4, "windup": 0.5, "recover": 0.8, "cooldown": 8, "damageMult": 1.3, "inflict": {"status": "bleed", "chance": 0.6, "duration": 4, "dpsMult": 0.12}},
-        "hamstring": {"nameTh": "ตะครุบตัดขา", "kind": "snatch", "use": {"min": 2.2, "max": 7}, "range": 7, "past": 2.6, "bow": 1.8, "reach": 1.3, "windup": 0.6, "duration": 0.42, "passes": 2, "enragedPasses": 3, "skid": 0.5, "recover": 0.45, "cooldown": 5.5, "damageMult": 1.0, "inflict": {"status": "hobble", "chance": 1, "duration": 3, "slow": 0.4}}
+        "hamstring": {"nameTh": "ตะครุบตัดขา", "kind": "snatch", "use": {"min": 2.2, "max": 7}, "range": 7, "past": 2.6, "bow": 1.8, "reach": 1.3, "windup": 0.6, "duration": 0.42, "passes": 2, "enragedPasses": 3, "skid": 0.6, "slide": 2.6, "recover": 0.4, "cooldown": 5.5, "damageMult": 1.0, "inflict": {"status": "hobble", "chance": 1, "duration": 3, "slow": 0.4}}
       },
       "enrageAt": 0.5,
       "drops": [

@@ -27,6 +27,7 @@ import { leapHeight, LEAP_HEIGHT } from '../greyfang-anim.js';
 
 const SEG = 16, HIST = 12, GHOSTS = 6, PHANTOMS = 2, MARKS = 10, WAVES = 5;
 const MOON = new THREE.Color(0xdde8ff), HOWL = new THREE.Color(0xc8d8ff);
+const DIRT = { edge: [0.27, 0.19, 0.11], glow: [0.3, 0.38, 0.75] };
 const SILVER = { edge: [0.85, 0.92, 1.0], glow: [0.3, 0.45, 1.0] }, PALE = { edge: [1, 1, 1], glow: [0.5, 0.65, 1] }, DUSTY = { edge: [0.85, 0.78, 0.66], glow: [0.5, 0.42, 0.3] };
 const STAR = { core: [1, 1, 1], glow: [0.6, 0.75, 1] }, FANG_HALO = new THREE.Color('#9fb8ff'), FANG_RIM = new THREE.Color('#ffffff');
 // the phantoms run like a wolf: the view's state for a gallop
@@ -70,6 +71,9 @@ export class GreyfangFx {
     this.beams = Array.from({ length: 2 }, () => ({ t: 9, x: 0, z: 0, y0: 0, y1: 1, dur: 0.4 }));
     this.beamI = 0;
     this.linePts = Array.from({ length: 8 }, () => new THREE.Vector3());
+    // the skids' furrows: its claws dragged through the ground from where the skid began to where it is
+    this.furrows = Array.from({ length: 3 }, () => ({ t: 9, life: 1.6, id: -1, x0: 0, z0: 0, x1: 0, z1: 0, a: 0, on: false }));
+    this.furrowI = 0;
     // copies of its model: afterimages, and the phantom rush's shadows (taken once, kept hidden when unused)
     this.ghosts = []; this.ghostI = 0; this.ghostNext = 0;
     this.phantoms = [];
@@ -149,10 +153,10 @@ export class GreyfangFx {
     switch (e.type) {
       case 'swoopHit': this.bite(e.x, e.z, Math.sin(m.facing) > 0 ? 1 : -1, false); return true;
       case 'skid': {
-        // skidding round: claw marks scored along the skid, dirt thrown out of the turn
-        this.clawMark(m.x, m.z, m.facing, 1.6, 1.6);
-        for (let i = 0; i < 8; i++) { const a = m.facing + Math.PI + (Math.random() - 0.5) * 1.6; this.monster.call?.dust(m.x, y + 0.15, m.z, Math.sin(a) * 3, 0.6, Math.cos(a) * 3, 0.8, 0.5); }
-        this.monster.onShake?.(0.04, 0.06);
+        // it can't stop: its claws bite in and furrow the ground as it slides (the furrow grows with it, update)
+        Object.assign(this.furrows[this.furrowI++ % this.furrows.length], { t: 0, id: m.id, x0: e.x, z0: e.z, x1: e.x, z1: e.z, a: e.angle, on: true });
+        for (let i = 0; i < 10; i++) { const a = e.angle + (Math.random() - 0.5) * 1.4; this.monster.call?.dust(e.x, y + 0.15, e.z, Math.sin(a) * 4, 0.8, Math.cos(a) * 4, 0.9, 0.5); }
+        this.monster.onShake?.(0.07, 0.1);
         return true;
       }
       case 'lapAim': {
@@ -245,6 +249,14 @@ export class GreyfangFx {
         this.path.fill.material.opacity = 0.14 + 0.2 * q; this.path.line.material.opacity = 0.3 + 0.5 * q;
         this.path.fill.visible = this.path.line.visible = true;
       }
+      // a skid under way: the furrow follows it, dirt and grit spray ahead off its braced forepaws
+      if (m.swoop?.skid > 0) {
+        const F = this.furrows.find((q) => q.on && q.id === m.id), q = 1 - m.swoop.skid / m.def.attacks.hamstring.skid;
+        if (F) { F.x1 = m.x; F.z1 = m.z; F.t = 0; }
+        const yy = this.gy(m.x, m.z), a = F ? F.a : m.facing, fx = Math.sin(a), fz = Math.cos(a), sx = Math.cos(a), sz = -Math.sin(a);
+        if (Math.random() < 1 - q) for (const sd of [-1, 1]) this.monster.call?.dust(m.x + fx * 1.2 + sx * sd * 0.5, yy + 0.12, m.z + fz * 1.2 + sz * sd * 0.5, fx * 3 + sx * sd * 1.5, 0.7, fz * 3 + sz * sd * 1.5, 0.8, 0.45);
+        if (this.fx && Math.random() < 1.2 * (1 - q)) { const sd = Math.random() < 0.5 ? -1 : 1; this.fx.add(m.x + fx * 1.3 + sx * sd * 0.5, yy + 0.2, m.z + fz * 1.3 + sz * sd * 0.5, fx * (2 + Math.random() * 3) + sx * sd, 2 + Math.random() * 2, fz * (2 + Math.random() * 3) + sz * sd, { color: Math.random() < 0.7 ? 0x7a6448 : 0xdde8ff, size: 0.1, sizeEnd: 0.05, life: 0.45, gravity: 12, drag: 0.8 }); }
+      } else for (const F of this.furrows) if (F.on && F.id === m.id) F.on = false;
       // the orbit's cut, lit as it plants
       if (m.lap?.phase === 'aim' && nl < this.lanes.length) {
         const a = m.def.attacks[m.lap.name];
@@ -295,6 +307,7 @@ export class GreyfangFx {
     this.drawPhantoms(dt, g, fang);
     this.drawTrail();
     this.drawClaws(dt);
+    this.drawFurrows(dt);
     this.drawWaves(dt);
     this.drawBeams(dt);
     this.core.end(); this.glow.end();
@@ -426,6 +439,25 @@ export class GreyfangFx {
     }
   }
 
+  // furrows: two claw lines under each forepaw, from where the skid began to where it got to, dark earth with a faint
+  // moonlit rim, fading once it has stopped
+  drawFurrows(dt) {
+    for (const F of this.furrows) {
+      if (F.t >= F.life) continue;
+      if (!F.on) F.t += dt;
+      const fade = Math.min(1, (F.life - F.t) / (F.life * 0.5)), len = Math.hypot(F.x1 - F.x0, F.z1 - F.z0);
+      if (len < 0.05) continue;
+      const dx = (F.x1 - F.x0) / len, dz = (F.z1 - F.z0) / len, P = this.linePts;
+      for (const lat of FURROW_LAT) {
+        for (let j = 0; j < 8; j++) {
+          const u = j / 7, wob = 0.03 * Math.sin(u * 9 + lat * 20), x = F.x0 + (F.x1 - F.x0) * u + dz * (lat + wob), z = F.z0 + (F.z1 - F.z0) * u - dx * (lat + wob);
+          P[j].set(x, this.gy(x, z) + 0.04, z);
+        }
+        RW.v = 0.17 * fade; this.glow.strip(P, tailGlowW, 0.35 * fade, DIRT.glow); this.core.strip(P, tailW, 0.95 * fade, DIRT.edge);
+      }
+    }
+  }
+
   // rings running out over the ground (shock, sound, dust)
   drawWaves(dt) {
     for (const W of this.waves) {
@@ -489,3 +521,5 @@ export class GreyfangFx {
 }
 // the wind streaks' anchors on its body (rig units: sideways, up): its two flanks and its back
 const TRAIL_OFF = [[0.42, 0.55], [-0.42, 0.55], [0, 0.95]];
+// the furrows' sideways offsets (m): two claw lines under each forepaw
+const FURROW_LAT = [-0.7, -0.42, 0.42, 0.7];

@@ -1271,9 +1271,11 @@ the imported model's own arm and blade angles (`state.kit`, monsters-midhigh.js 
 Greyfang (a mini-boss: its whole kit, no elite roll) is a kit monster: `hamstring` (kind `snatch` without `steal`: a
 swoop along a curve past its prey's side (`past`, `bow`; `swoopPath`), clipping each unit within `reach` once a pass,
 event `swoopHit`, its inflict `hobble`: a hero status with `slow` that multiplies walking like chill, ticked with
-chill/shock/root, cleansed by Cleanse; `passes` (`enragedPasses` once enraged): after a pass it skids for `skid` s, a
-new curve from where it is through where its prey is then (to the other side) set on `m.swoop.path` and `m.windup.path`
-(event `skid`), then passes again), `moon_orbit` (kind `circle_lunge` with `sweepRange` [min, max] degrees, drawn with
+chill/shock/root, cleansed by Cleanse; after every pass it skids for `skid` s, sliding on along its facing at the pass's
+end `slide` m in all (eased to a stop, `m.swoop.slideA`) while turning toward the next curve; `passes`
+(`enragedPasses` once enraged): with a pass to come the new curve, from where the slide will stop through where its
+prey is then (to the other side), is set on `m.swoop.path` and `m.windup.path` (its start corrected to where the slide
+really stopped); event `skid` {angle, slide, last}; after the last skid it recovers), `moon_orbit` (kind `circle_lunge` with `sweepRange` [min, max] degrees, drawn with
 the seeded rng each time, and `through`: the dash runs on, catching every unit on its way once, `knock`), `rally` (kind
 `rally`: at wind-up start up to `summon` spots (`enragedSummon` once enraged), as many as `cap` minus its living pack,
 evenly round its prey `ring` m out (pulled in where blocked or safe), event `rallyMarks`; at the end a `pack` minion at
@@ -1289,7 +1291,7 @@ run `gap` s apart as `phantom_wolf` projectiles (trample, `speed`, radius `width
 then it runs the last itself at `speed` (event `phantomGo`), hitting each unit once).
 Its body (render/greyfang-anim.js) gallops and attacks on the CC0 wolf clips (beast-clips.js `animBeast`) and walks
 with the older gait (monsters.js `animQuad`, blended in by weight while it only walks), its kit's beats on top
-(`s.pose`: two one-frame clips of its own, `crouch` and the deeper `land`, and phases of the gallop-jump clip for leaps and skids; body roll/pitch, head and jaw nudges); the
+(`s.pose`: one-frame clips of its own, `crouch`, the deeper `land` and the braced `skid`, and phases of the gallop-jump clip for leaps and skids; body roll/pitch, head and jaw nudges); the
 view passes `skid`, `side`, `swoopK`, `lapT`, `lapDir`, `leap`, `leapT`, `rushDash` and `roar`. The moon leap lifts
 the root by `leapHeight()` (up to `LEAP_HEIGHT` m, hidden while it is up there; the fall accelerates to the ground). Its effects (skillfx/greyfang-fx.js)
 take eight pooled copies of its own model once (`takeRig`, see-through and tinted moon-blue): six afterimages posed

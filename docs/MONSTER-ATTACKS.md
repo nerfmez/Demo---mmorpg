@@ -382,6 +382,11 @@ for the normal one.
   pose is odd"): the fall gathers speed all the way down (it slowed near the ground) and lands in a deep, squashed
   crouch with a bigger shake; the wind-up crouch is a real predator crouch (the attack clip's bent legs, spine and
   head lowered) instead of the gallop jump's mid-air tuck; it walks with the old gait again and gallops on the clips.
+- **Greyfang, round 3c** (owner: "the hamstring's animation is still weak, especially the dash; I want it to dash, fail
+  to brake and slide along the ground a little, claws gripping"): after every pass it skids on the way it was going
+  (`slide` m over `skid` s, slowing to a stop) while its body swings round toward the next curve (a drift), sat back on
+  its haunches with its forelegs braced out ahead (a pose of its own); dark furrows from its claws follow the slide,
+  dirt and grit spray off its forepaws; over the last quarter it gathers into the crouch and springs off again.
 - **Thicket mantis, round 1** (2026-11-06, owner: "next"): researched first (sit-and-wait hunter that sways to judge
   distance and shoots its spined forelegs; rears up and flashes eyespot wings, hissing, when threatened; can fly). Its
   scythe, whirl and hit-and-back-off became a swaying long-reach strike, a startle display that freezes the hero for its

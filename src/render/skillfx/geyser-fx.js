@@ -30,9 +30,9 @@ const RING_FS = `varying vec2 vP; uniform float uK;
 const easeBack = (k) => { const c = 1.9; k -= 1; return 1 + (c + 1) * k * k * k + c * k * k; };
 
 export class GeyserFx {
-  /** fire: the director's FireExtras (embers) */
-  constructor(scene, camera, fire) {
-    this.fire = fire; this.t = 0;
+  /** fire: the director's FireExtras (embers); height: the jet's (m), the marsh wisp's gas is lower */
+  constructor(scene, camera, fire, height = HEIGHT) {
+    this.fire = fire; this.t = 0; this.height = height;
     const comet = [cometShell(0, COMET_HEAD, COMET_LEN), cometShell(1, COMET_HEAD, COMET_LEN)], disc = new THREE.PlaneGeometry(1, 1);
     const shell = (geo, mode, layer, filled, order, seed) => { const m = new THREE.Mesh(geo, flameMaterial(mode, layer, filled)); m.renderOrder = order; m.frustumCulled = false; m.material.uniforms.uSeed.value = seed; return m; };
     this.jets = Array.from({ length: JETS }, (_, k) => {
@@ -77,7 +77,7 @@ export class GeyserFx {
       j.t += dt;
       const t = j.t, up = Math.min(1, t / RISE), tear = Math.max(0, (t - RISE - ROAR) / SINK);
       // the jet: shoots up (length) with an overshoot, roars with a flicker of its width, then tears away
-      const len = HEIGHT * Math.max(0.05, easeBack(up)) * (1 - 0.25 * tear), wid = WIDTH * (0.75 + 0.25 * up) * (1 + 0.06 * Math.sin(this.t * 31 + j.spin)) * (1 - 0.35 * tear);
+      const len = this.height * Math.max(0.05, easeBack(up)) * (1 - 0.25 * tear), wid = WIDTH * (0.75 + 0.25 * up) * (1 + 0.06 * Math.sin(this.t * 31 + j.spin)) * (1 - 0.35 * tear);
       const sx = len / (COMET_LEN + COMET_HEAD * 0.9);
       // after turning +x down: the comet's x runs along -y; its tail end (-COMET_LEN) at the top, the head's front at the ground
       j.jet.scale.set(wid, sx, wid);

@@ -1327,7 +1327,9 @@ areas going off `step` s apart after the wind-up; they share one `once` set so e
 `bog_lure` (at wind-up start a `bog_pool` area `poolDist` m from its prey toward the wisp, live from the end of the
 wind-up for `linger` s, ticking `poolMult` x its damage (its inflict chill); at the end the hero within `reach` m of
 it gets `statuses.lure` {t, x, z, speed} for `pull` s less tenacity: `updatePlayer` moves the hero toward (x, z) at
-speed whatever is pressed; a dash clears it; Cleanse lifts it; event `lure`). Render: skillfx/wisp-fx.js.
+speed whatever is pressed; a dash clears it; Cleanse lifts it; event `lure`). Render: skillfx/wisp-fx.js (the gas jets
+are a `GeyserFx` with its own `height` and gold flame colours; the `bog_pool` area is drawn there, not by vfx.js: one
+water-disc shader with its numbers in uniforms, and additive glow quads mirroring the lights).
 
 Save character version is 3. The optional `worldId` prevents restoring old coordinates
 on a different map. On migration preserve the character build and quest history,

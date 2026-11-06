@@ -563,6 +563,7 @@ function buildWisp() {
   rig.motes = motes;
   rig.height = 1.9;
   rig.halo = true;
+  rig.haloColor = 0xffa848; // its light orange-gold, like the crystal at its heart (owner, 2026-11-06)
   return rig;
 }
 
@@ -639,6 +640,12 @@ function animWisp(r, s, dt, time) {
   const sc = damp(b.body.scale.x, swell * back * (1 - (s.hurt || 0) * 0.2), s.blinkT < 0.05 ? 60 : 10, dt);
   b.body.scale.setScalar(sc);
   r.glowScale = 1.9 * swell * back;
+  // a body of energy: its flame a little see-through, shimmering, the gold light at its heart showing through
+  const mm = r.modelMaterial;
+  if (mm) {
+    if (!mm.transparent) { mm.transparent = true; mm.depthWrite = true; mm.needsUpdate = true; }
+    mm.opacity = 0.62 + 0.08 * Math.sin(time * 6.5 + r.seed) + 0.05 * Math.sin(time * 17 + r.seed * 2);
+  }
 }
 
 // ---------- sporecap ----------

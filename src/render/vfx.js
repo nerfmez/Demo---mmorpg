@@ -1367,16 +1367,16 @@ export class Vfx {
 
   makeArea(a) {
     // the pearl grotto's trails, eggs and tail wave are drawn in skillfx/grotto-fx.js
-    if (a.kind === 'mucus' || a.kind === 'pearl_slime' || a.kind === 'pearl_egg' || a.look === 'wave' || a.kind === 'brine' || a.kind === 'fairy_ring' || a.kind === 'sleep_cloud' || a.kind === 'moss_patch') return null; // and the salt slime's brine (slime-fx.js), the sporecap's ring and cloud (spore-mon-fx.js)
+    if (a.kind === 'mucus' || a.kind === 'pearl_slime' || a.kind === 'pearl_egg' || a.look === 'wave' || a.kind === 'brine' || a.kind === 'fairy_ring' || a.kind === 'sleep_cloud' || a.kind === 'moss_patch' || a.kind === 'bog_pool') return null; // and the marsh wisp's bog (wisp-fx.js), the salt slime's brine (slime-fx.js), the sporecap's ring and cloud (spore-mon-fx.js)
     const fadeInOut = (ar) => {
       const live = ar.t - ar.delay;
       return Math.max(0, Math.min(1, live * 5) * Math.min(1, (ar.duration - live) * 2));
     };
-    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud' || a.kind === 'bog_pool') { // (bog_pool: the marsh wisp's, dark water lit blue)
-      const spore = a.kind === 'spore_cloud', bog = a.kind === 'bog_pool';
+    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud') {
+      const spore = a.kind === 'spore_cloud';
       const m = this.decal(this.discGeo, discMaterial(spore ? 'spore' : 'mire'), a.x, a.z, a.radius, 0, 0.07);
-      m.material.uniforms.uColor.value.set(spore ? 0x9a8a4a : bog ? 0x1f3f4a : 0x5a8a2a);
-      m.material.uniforms.uColor2.value.set(spore ? 0xd8d070 : bog ? 0x5fc8e8 : 0xa8e04a);
+      m.material.uniforms.uColor.value.set(spore ? 0x9a8a4a : 0x5a8a2a);
+      m.material.uniforms.uColor2.value.set(spore ? 0xd8d070 : 0xa8e04a);
       return {
         obj: m,
         update: (ar, t, dt) => {

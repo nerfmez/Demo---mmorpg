@@ -71,7 +71,7 @@ export function syncMonsterViews(view, dt, time) {
       view.scene.add(rig.root);
       let halo = null;
       if (rig.halo) {
-        halo = view.vfx.sprite(0x7fdcff, 1.9, 0.85);
+        halo = view.vfx.sprite(rig.haloColor ?? 0x7fdcff, 1.9, 0.85); // (the marsh wisp's warm, like its crystal)
         view.scene.add(halo);
       }
       mv = { rig, flash: 0, hurt: 0, spawnT: 0, lastAttack: null, y: rig.root.position.y, halo, prevFacing: m.facing, turn: 0 };

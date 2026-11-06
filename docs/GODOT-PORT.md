@@ -1292,12 +1292,15 @@ then it runs the last itself at `speed` (event `phantomGo`), hitting each unit o
 
 The reed viper is a kit monster (`normal` `fang_strike`): `fang_strike` (kind `fang_strike`, tell lane: at the end of
 the wind-up `viperStrike()` moves it up to `lunge` m along the locked angle, stopping short of the first unit in the
-lane `range` x `width`, which it bites (its inflict poison); `m.strikeFrom` / `m.strikeAt` let the view slide the body
-over the move; event `viperStrike` {x0, z0, at}), `ambush` (kind `ambush`, `m.ambush` in `act`: after `arm` s the first
-unit within `radius` m is noticed (event `ambushTrigger`) and struck `react` s later by `viperStrike` along that line
-(reach `radius` + 0.6); nobody within it for `hold` s and it gives up, event `ambushEnd`) and `hiss` (kind `hiss`, tell
-sector: units in the cone `range` x `arc` take the hit; three `hiss_mist` areas along the cone (`MIST` shares of its
-reach) tick `mistMult` x its damage a second for `linger` s; event `hiss`). Render: its model is the owner's straight Meshy snake
+lane `range` x `width`, which it bites (its inflict: poison, always); `m.strikeFrom` / `m.strikeAt` let the view slide
+the body over the move; event `viperStrike` {x0, z0, at}; `strikes` in all, `gap` s apart, the next re-aimed through
+the first 60% of the gap (`m.fangs` in `act`)), `constrict` (kind `constrict`, tell lane, `m.coil`: it rushes down the
+locked lane at `speed` m/s up to `range` m; the first unit it reaches (not dodged) is hit and held: the viper sits on
+it, the unit gets `statuses.root` and is squeezed every `tick` s (`squeezeMult` x its damage) for up to `hold` s; it
+tears free when it is moved 0.6 m off (a dodge) or the viper loses `breakShare` of its health (a longer recover);
+events `coilDash`, `coilGrab`, `coilFree` / `coilEnd`) and `tail_lash` (kind `tail_lash`, tell sector behind it
+(`tellOff` pi, `keepFacing`, `use.behind`): units within `range` + its radius in the `arc` about its back are cut once;
+events `tailLash`, `tailCut`). Render: its model is the owner's straight Meshy snake
 (2026-11-06) on a straight chain of 13 bones directly under the root; render/viper-anim.js lays each bone on the head's
 recorded trail at its own distance behind the head (lateral undulation: the head swings side to side with distance
 travelled, the body flows along the same curves), then lifts and pushes the front joints for its poses, flicks a forked

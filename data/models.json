@@ -5376,7 +5376,7 @@
       "sharpness": 4,
       "outline": "#1f2c1a",
       "outlineWidth": 0.01,
-      "source": "Meshy (owner-supplied GLB, 2026-11-06: Meshy_AI_Reedblade_Viper, a straight snake, head toward +z); prepared with scripts/prep-monster-glb.py --tris 4900 (the 5-triangle stray piece dropped by decimation); bones every 0.13 m along its length (straight chain under the root, posed by render/viper-anim.js)",
+      "source": "Meshy (owner-supplied GLB, 2026-11-06: Meshy_AI_Reedblade_Viper, a straight snake, head toward +z); prepared with scripts/prep-monster-glb.py --tris 4900 (the 5-triangle stray piece dropped by decimation); bones every 0.13 m along its length (straight chain under the root, posed by render/viper-anim.js); offset back so the root is at its neck: the monster is where its head is",
       "keep": [
         "tongue"
       ],
@@ -5384,7 +5384,7 @@
         "head": [
           0,
           0.078,
-          1.224
+          0.104
         ],
         "tongue": [
           0,
@@ -5394,67 +5394,67 @@
         "seg0": [
           0,
           0.078,
-          1.224
+          0.104
         ],
         "seg1": [
           0,
           0.078,
-          1.006
+          -0.114
         ],
         "seg2": [
           0,
           0.078,
-          0.787
+          -0.333
         ],
         "seg3": [
           0,
           0.078,
-          0.569
+          -0.551
         ],
         "seg4": [
           0,
           0.078,
-          0.35
+          -0.77
         ],
         "seg5": [
           0,
           0.078,
-          0.132
+          -0.988
         ],
         "seg6": [
           0,
           0.078,
-          -0.087
+          -1.207
         ],
         "seg7": [
           0,
           0.078,
-          -0.305
+          -1.425
         ],
         "seg8": [
           0,
           0.078,
-          -0.524
+          -1.644
         ],
         "seg9": [
           0,
           0.078,
-          -0.742
+          -1.862
         ],
         "seg10": [
           0,
           0.078,
-          -0.96
+          -2.08
         ],
         "seg11": [
           0,
           0.078,
-          -1.179
+          -2.299
         ],
         "seg12": [
           0,
           0.078,
-          -1.397
+          -2.517
         ]
       },
       "segments": {
@@ -5462,156 +5462,156 @@
           [
             0,
             0.078,
-            1.224
+            0.104
           ],
           [
             0,
             0.078,
-            1.006
+            -0.114
           ]
         ],
         "seg1": [
           [
             0,
             0.078,
-            1.006
+            -0.114
           ],
           [
             0,
             0.078,
-            0.787
+            -0.333
           ]
         ],
         "seg2": [
           [
             0,
             0.078,
-            0.787
+            -0.333
           ],
           [
             0,
             0.078,
-            0.569
+            -0.551
           ]
         ],
         "seg3": [
           [
             0,
             0.078,
-            0.569
+            -0.551
           ],
           [
             0,
             0.078,
-            0.35
+            -0.77
           ]
         ],
         "seg4": [
           [
             0,
             0.078,
-            0.35
+            -0.77
           ],
           [
             0,
             0.078,
-            0.132
+            -0.988
           ]
         ],
         "seg5": [
           [
             0,
             0.078,
-            0.132
+            -0.988
           ],
           [
             0,
             0.078,
-            -0.087
+            -1.207
           ]
         ],
         "seg6": [
           [
             0,
             0.078,
-            -0.087
+            -1.207
           ],
           [
             0,
             0.078,
-            -0.305
+            -1.425
           ]
         ],
         "seg7": [
           [
             0,
             0.078,
-            -0.305
+            -1.425
           ],
           [
             0,
             0.078,
-            -0.524
+            -1.644
           ]
         ],
         "seg8": [
           [
             0,
             0.078,
-            -0.524
+            -1.644
           ],
           [
             0,
             0.078,
-            -0.742
+            -1.862
           ]
         ],
         "seg9": [
           [
             0,
             0.078,
-            -0.742
+            -1.862
           ],
           [
             0,
             0.078,
-            -0.96
+            -2.08
           ]
         ],
         "seg10": [
           [
             0,
             0.078,
-            -0.96
+            -2.08
           ],
           [
             0,
             0.078,
-            -1.179
+            -2.299
           ]
         ],
         "seg11": [
           [
             0,
             0.078,
-            -1.179
+            -2.299
           ],
           [
             0,
             0.112,
-            -1.397
+            -2.517
           ]
         ],
         "seg12": [
           [
             0,
             0.146,
-            -1.397
+            -2.517
           ],
           [
             0,
             0.146,
-            -1.615
+            -2.735
           ]
         ],
         "head": [
@@ -5619,28 +5619,33 @@
             [
               0,
               0.128,
-              1.224
+              0.104
             ],
             [
               0,
               0.119,
-              1.615
+              0.495
             ]
           ],
           [
             [
               0,
               0.153,
-              1.02
+              -0.1
             ],
             [
               0,
               0.34,
-              1.19
+              0.07
             ]
           ]
         ]
-      }
+      },
+      "offset": [
+        0,
+        0,
+        -1.12
+      ]
     },
     "ironhorn_ram": {
       "file": "models/monsters/ironhorn_ram.glb",

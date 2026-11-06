@@ -501,7 +501,7 @@ export class SkillFx {
       case 'mantisStrike': case 'startle': case 'wingLand': return this.monster.mantis.event(e, g);
       // Greyfang (skillfx/greyfang-fx.js)
       // the reed viper (skillfx/viper-fx.js)
-      case 'viperStrike': case 'ambushTrigger': case 'ambushEnd': case 'hiss': return this.monster.viper.event(e, g);
+      case 'viperStrike': case 'coilDash': case 'coilGrab': case 'coilFree': case 'coilEnd': case 'tailLash': case 'tailCut': return this.monster.viper.event(e, g);
       case 'swoopHit': case 'rallyMarks': case 'rally': case 'moonLeap': case 'moonLock': case 'moonCrash': case 'phantomMarks': case 'phantomGo': case 'phaseRoar': return this.monster.greyfang.event(e, g);
       case 'stunned': {
         this.monster.stunned(e);

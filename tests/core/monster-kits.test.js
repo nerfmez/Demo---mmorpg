@@ -1257,84 +1257,91 @@ test('Greyfang rally: it howls, spots light round the hero, and its pack comes i
   assert.notEqual(m.windup?.name, 'rally', 'its pack is round the hero already');
 });
 
-test('reed viper S-strike: coiled, its lane locks, then it shoots along it and bites the first in the lane once; poison', () => {
+test('reed viper strike: two strikes from its S-coil, the second re-aimed, each biting the first in its lane once; always poison', () => {
   const a = M.reed_viper.attacks.fang_strike;
   const { m, g, hits, until, step, place, only } = arena('reed_viper', 22, { open: true, normal: true });
   assert.equal(M.reed_viper.normal, 'fang_strike');
-  only('fang_strike'); place(2.5);
+  only('fang_strike'); place(1.5);
   until(() => m.windup?.name === 'fang_strike', 1);
   step(a.windup - 0.03);
   assert.equal(hits.length, 0, 'nothing in the wind-up');
-  const z0 = m.z;
-  until(() => m.state === 'recover', 0.2);
-  assert.equal(hits.length, 1, 'one bite');
-  assert.ok(m.z > z0 + 0.5, 'it shot forward');
-  assert.ok(m.z < g.player.z, 'stopping at what it bit');
-  // out of the lane: a miss
+  step(0.05);
+  assert.equal(hits.length, 1, 'the first strike');
+  g.player.x += 1.2; // the hero moves: the second strike follows
+  step(a.gap - 0.05);
+  assert.equal(hits.length, 1, 'nothing between the strikes');
+  until(() => m.state === 'recover', 0.3);
+  assert.equal(hits.length, a.strikes, 'the second strike, re-aimed');
+  // stepping aside late (after the second one locks) dodges it
   const b = arena('reed_viper', 22, { open: true, normal: true });
-  b.only('fang_strike'); b.place(2.5);
+  b.only('fang_strike'); b.place(1.5);
   b.until(() => b.m.windup?.name === 'fang_strike', 1);
-  b.step(b.m.windup.total * 0.7);
-  b.g.player.x += 2.5; // stepped aside after the lane locked
+  b.until(() => b.m.fangs, 1);
+  b.step(a.gap * 0.7);
+  b.g.player.x += 3;
   b.until(() => b.m.state === 'recover', 1);
-  assert.equal(b.hits.length, 0);
-  // the poison
+  assert.equal(b.hits.length, 1);
+  // the venom always takes
   const c = arena('reed_viper', 22, { open: true, normal: true, realDamage: true });
-  c.only('fang_strike'); c.place(2.5);
-  for (let i = 0; i < 8 && !c.g.player.statuses.poison; i++) { c.m.state = 'chase'; c.m.cd.fang_strike = 0; c.until(() => c.m.state === 'recover', 2); c.step(1); }
-  assert.ok(c.g.player.statuses.poison, 'its fangs poison');
+  c.only('fang_strike'); c.place(1.5);
+  c.until(() => c.m.state === 'recover', 3);
+  assert.ok(c.g.player.statuses.poison, 'poisoned');
 });
 
-test('reed viper reed ambush: still in the reeds, it strikes the first to come within its reach (after a beat); nobody comes, it gives up', () => {
-  const a = M.reed_viper.attacks.ambush;
+test('reed viper constrict: it rushes down its lane and wraps round the hero, squeezing; a dodge or hurting it frees them; a miss ends it', () => {
+  const a = M.reed_viper.attacks.constrict;
   const { m, g, hits, until, step, place, only } = arena('reed_viper', 22, { open: true });
-  only('ambush'); place(a.radius + 0.8); // just outside its reach
-  until(() => m.windup?.name === 'ambush', 1);
-  until(() => m.ambush, 1);
-  step(a.arm + 0.5);
-  assert.equal(hits.length, 0, 'outside: it waits');
-  g.player.z = m.z + a.radius - 0.5; // steps in
-  step(0.02);
-  assert.ok(m.ambush.trig >= 0, 'it notices');
-  step(a.react - 0.05);
-  assert.equal(hits.length, 0, 'a beat to react');
-  step(0.1);
-  assert.equal(hits.length, 1, 'struck');
-  assert.equal(m.state, 'recover');
-  // nobody comes: it gives up after hold
-  const b = arena('reed_viper', 22, { open: true });
-  b.only('ambush'); b.place(a.radius + 0.8);
-  b.until(() => b.m.ambush, 2);
-  b.step(a.hold + 0.1);
-  assert.equal(b.m.ambush, null);
-  assert.equal(b.hits.length, 0);
-  assert.equal(b.m.state, 'recover');
-});
-
-test('reed viper puff and hiss: the cone is hit once, and its venom mist lingers along it, ticking', () => {
-  const a = M.reed_viper.attacks.hiss;
-  const { m, g, hits, until, step, place, only } = arena('reed_viper', 22, { open: true });
-  only('hiss'); place(1.5);
-  until(() => m.windup?.name === 'hiss', 1);
+  only('constrict'); place(4);
+  until(() => m.windup?.name === 'constrict', 1);
   step(a.windup - 0.03);
-  assert.equal(hits.length, 0, 'nothing while it puffs up');
-  until(() => m.state === 'recover', 0.2);
-  assert.equal(hits.filter((h) => h.attack === 'hiss').length, 1, 'the hiss hits once');
-  const mist = g.areas.filter((x) => x.kind === 'hiss_mist');
-  assert.equal(mist.length, 3);
-  for (const x of mist) assert.ok(Math.hypot(x.x - m.x, x.z - m.z) + x.radius <= a.range + m.r + 0.01, 'inside its reach');
-  const before = hits.length;
-  step(1.2);
-  assert.ok(hits.length > before, 'the mist ticks');
-  step(a.linger + 0.5);
-  assert.equal(g.areas.filter((x) => x.kind === 'hiss_mist').length, 0, 'and clears');
-  // to its side: safe
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.coil?.phase === 'hold', 1);
+  assert.equal(hits.length, 1, 'caught');
+  assert.ok(g.player.statuses.root, 'held fast');
+  step(a.tick * 2 + 0.05);
+  assert.equal(hits.length, 3, 'squeezed every tick');
+  until(() => m.state === 'recover', a.hold);
+  assert.ok(hits.length <= 1 + Math.floor(a.hold / a.tick) + 1);
+  assert.ok(!g.player.statuses.root, 'let go');
+  // a dodge tears free
   const b = arena('reed_viper', 22, { open: true });
-  b.only('hiss'); b.place(1.5);
-  b.until(() => b.m.windup?.name === 'hiss', 1);
-  b.step(b.m.windup.total * 0.7);
-  Object.assign(b.g.player, { x: 4, z: -1 });
-  b.until(() => b.m.state === 'recover', 1);
-  b.step(2);
-  assert.equal(b.hits.length, 0);
+  b.only('constrict'); b.place(4);
+  b.until(() => b.m.coil?.phase === 'hold', 3);
+  b.g.player.x += 2; // the dodge
+  b.step(0.05);
+  assert.equal(b.m.coil, null); assert.equal(b.m.state, 'recover');
+  assert.ok(!b.g.player.statuses.root);
+  // hurting it frees them too
+  const c = arena('reed_viper', 22, { open: true });
+  c.only('constrict'); c.place(4);
+  c.until(() => c.m.coil?.phase === 'hold', 3);
+  c.m.hp -= c.m.maxHp * a.breakShare;
+  c.step(0.05);
+  assert.equal(c.m.coil, null);
+  // out of the lane: it rushes past and lets it go
+  const d = arena('reed_viper', 22, { open: true });
+  d.only('constrict'); d.place(4);
+  d.until(() => d.m.windup?.name === 'constrict', 1);
+  d.step(d.m.windup.total * 0.7);
+  d.g.player.x += 3;
+  d.until(() => d.m.state === 'recover', 2);
+  assert.equal(d.hits.length, 0);
+});
+
+test('reed viper tail lash: taken on what is behind it; the arc round its back is cut once, its front is safe', () => {
+  const a = M.reed_viper.attacks.tail_lash;
+  for (const [x, z, expect] of [[0, -2, 1], [-2.2, -0.6, 1], [0, 2, 0]]) {
+    const { m, g, hits, until, step, only } = arena('reed_viper', 22, { open: true });
+    only('tail_lash'); Object.assign(g.player, { x: 0, z: -2 }); // behind it: it lashes
+    until(() => m.windup?.name === 'tail_lash', 1);
+    Object.assign(g.player, { x, z });
+    step(a.windup - 0.03);
+    assert.equal(hits.length, 0, 'nothing in the wind-up');
+    until(() => m.state === 'recover', 0.2);
+    assert.equal(hits.length, expect, `hero at ${x}, ${z}`);
+  }
+  // in front of it, it never lashes
+  const f = arena('reed_viper', 22, { open: true });
+  f.only('tail_lash'); f.place(0.8); f.step(0.5);
+  assert.notEqual(f.m.windup?.name, 'tail_lash');
 });

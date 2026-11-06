@@ -13,7 +13,8 @@ import * as THREE from 'three';
 import { RigBuilder, damp, clamp01 } from './rig.js';
 
 export const VIPER_SEGS = 13;
-const S = 1.7, Y0 = 0.078, ZH = 0.72 * S, STEP = 0.1285 * S, ZTIP = -0.95 * S;
+// (rig units: the model scaled 1.7 and moved back 1.12 so the root is at its neck - the monster is where its head is)
+const S = 1.7, OFFZ = -1.12, Y0 = 0.078, ZH = 0.72 * S + OFFZ, STEP = 0.1285 * S;
 const MAX = 220; // trail points kept
 const Z = new THREE.Vector3(0, 0, 1), _d = new THREE.Vector3(), _a = new THREE.Vector3();
 
@@ -47,7 +48,7 @@ function setup(r) {
   return {
     D, zh, y0: b.seg0.userData.rest.pos.y, tx: new Float32Array(MAX), tz: new Float32Array(MAX), n: 0, head: 0,
     px: 0, pz: 0, ph: 0, moveW: 0, init: false, pts: Array.from({ length: VIPER_SEGS + 1 }, () => new THREE.Vector3()),
-    ease: { alert: 0, coil: 0, out: 0, flat: 0, rear: 0, puff: 1, look: 0 }, tongue: 0, nextFlick: 1 + Math.random() * 2,
+    ease: { alert: 0, coil: 0, out: 0, gather: 0, wrap: 0, lash: 0, look: 0 }, wrapA: 0, tongue: 0, nextFlick: 1 + Math.random() * 2,
   };
 }
 
@@ -90,37 +91,61 @@ export function animViper(r, s, dt, time) {
     const dx = _a.x - rx, dz = _a.z - rz;
     P[i].set((dx * c - dz * sn) / sc, B.y0, (dx * sn + dz * c) / sc);
   }
-  // the kit's poses (eased): alert (head and neck a little up), coil (the S drawn back and up before a strike), out
-  // (the strike flung forward), flat (lying in wait), rear (reared up high), puff (the body swollen)
+  // the kit's poses (eased):
+  //   alert: head and neck a little raised; coil: the neck folded back into a level S, head up a little (before a
+  //   strike, and between strikes); out: the S flung straight forward, the head low (the strike: out in 0.05 s, snapped
+  //   back by 0.2 s, as a viper's is); gather: low and coiled for the rush; wrap: wound round its prey; lash: the tail
+  //   drawn aside, then whipped round behind it
   const E = B.ease, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0, ease = (x) => x * x * (3 - 2 * x);
-  let alert = s.aggro ? 1 : 0, coil = 0, out = 0, flat = 0, rear = 0, puff = 1, shake = 0;
-  if (s.windup === 'fang_strike') { coil = ease(clamp01(k / 0.6)); shake = k; }
-  else if (s.state === 'recover' && s.struck) { const t = s.actT; out = t < 0.06 ? t / 0.06 : 1 - ease(clamp01((t - 0.12) / 0.45)); coil = 1 - out; }
-  else if (s.windup === 'ambush' || s.ambush === 'wait') { flat = s.windup ? ease(k) : 1; alert = 0; }
-  else if (s.ambush === 'trig') coil = ease(clamp01(s.ambushT / 0.15));
-  else if (s.windup === 'hiss') { const q = ease(clamp01(k / 0.7)); rear = q; puff = 1 + 0.22 * q; shake = k; }
-  else if (s.state === 'recover' && s.lastAttack === 'hiss') { const q = 1 - ease(clamp01((s.actT - 0.15) / 0.5)); rear = 0.6 * q; out = 0.35 * q; puff = 1 + 0.22 * q; }
-  const fast = s.state === 'recover' && s.actT < 0.1 ? 40 : 12;
-  E.alert = damp(E.alert, alert, 4, dt); E.coil = damp(E.coil, coil, fast, dt); E.out = damp(E.out, out, fast, dt);
-  E.flat = damp(E.flat, flat, 8, dt); E.rear = damp(E.rear, rear, 10, dt); E.puff = damp(E.puff, puff, 8, dt);
+  let alert = s.aggro ? 1 : 0, coil = 0, out = 0, gather = 0, wrap = 0, lash = 0, shake = 0;
+  const st = s.strikeT ?? Infinity;
+  if (st < 0.25) { out = st < 0.05 ? st / 0.05 : st < 0.1 ? 1 : 1 - ease(clamp01((st - 0.1) / 0.15)); coil = s.fangAim ? 1 - out : 0; }
+  else if (s.windup === 'fang_strike') { coil = ease(clamp01(k / 0.6)); shake = 0.6 * k; }
+  else if (s.fangAim) { coil = 1; shake = 0.4; }
+  else if (s.windup === 'constrict') { gather = ease(clamp01(k / 0.7)); shake = k; alert = 0; }
+  else if (s.coil === 'dash') { alert = 0; }
+  else if (s.coil === 'hold') wrap = 1;
+  else if (s.windup === 'tail_lash') lash = -ease(clamp01(k / 0.8));
+  else if (s.state === 'recover' && s.lastAttack === 'tail_lash' && s.actT < 0.6) { const t = s.actT; lash = t < 0.12 ? -1 + 3.2 * ease(t / 0.12) : 2.2 * (1 - ease(clamp01((t - 0.12) / 0.45))); }
+  const snap = st < 0.25 ? 70 : 14;
+  E.alert = damp(E.alert, alert, 4, dt); E.coil = damp(E.coil, coil, snap, dt); E.out = damp(E.out, out, snap, dt);
+  E.gather = damp(E.gather, gather, 10, dt); E.wrap = damp(E.wrap || 0, wrap, wrap ? 14 : 5, dt);
+  E.lash = s.windup === 'tail_lash' || (s.state === 'recover' && s.lastAttack === 'tail_lash') ? lash : damp(E.lash || 0, 0, 10, dt);
   // the head's frame: along the body at the neck
-  _d.subVectors(P[0], P[2]).setY(0).normalize();
+  _d.subVectors(P[0], P[2]).setY(0);
+  if (_d.lengthSq() < 1e-8) _d.set(0, 0, 1);
+  _d.normalize();
   const hxl = _d.x, hzl = _d.z, shk = shake * 0.02 * Math.sin(time * 50);
   for (let i = 0; i < 6; i++) {
     const w = PROFILE[i];
-    // up: alert raises the neck a little, coil into an S up and back, rear high; flat presses it down
-    const up = (0.16 * E.alert + 0.62 * E.coil + 0.95 * E.rear) * w - 0.03 * E.flat * w;
-    // along: coil draws it back over the body, the strike flings it forward
-    const along = (-0.5 * E.coil * SBACK[i] - 0.25 * E.rear * SBACK[i] + 1.15 * E.out * w);
-    P[i].x += hxl * along + hzl * shk; P[i].z += hzl * along - hxl * shk; P[i].y = Math.max(0.04, P[i].y + up);
+    const up = (0.16 * E.alert + 0.3 * E.coil) * w + (0.06 * E.out - 0.04 * E.gather) * w;
+    const along = -0.55 * E.coil * SBACK[i] + 0.8 * E.out * OUT[i] - 0.3 * E.gather * SBACK[i];
+    const side = (0.24 * E.coil + 0.3 * E.gather) * SSIDE[i] + shk;
+    P[i].x += hxl * along + hzl * side; P[i].z += hzl * along - hxl * side; P[i].y = Math.max(0.04, P[i].y + up);
   }
+  // the tail whip: the back half swung round its middle, more toward the tip, the tip lifted
+  if (Math.abs(E.lash) > 1e-3) {
+    const px = P[5].x, pz = P[5].z;
+    for (let i = 6; i <= VIPER_SEGS; i++) {
+      const f = (i - 5) / (VIPER_SEGS - 5), a = E.lash * (0.45 + 0.55 * f), ca = Math.cos(a), sa = Math.sin(a), dx = P[i].x - px, dz = P[i].z - pz;
+      P[i].x = px + dx * ca + dz * sa; P[i].z = pz - dx * sa + dz * ca; P[i].y += 0.12 * f * Math.min(1, Math.abs(E.lash));
+    }
+  }
+  // wound round its prey (the root is on it): the front ten joints on a rising coil, two turns, the head on top
+  // looking down at it; the coils tighten on each squeeze
+  if (E.wrap > 1e-3) {
+    const R = (0.5 / sc) * (1 - 0.1 * Math.max(0, Math.sin(time * Math.PI * 4))), w = E.wrap;
+    for (let i = 0; i <= 9; i++) {
+      const a = B.wrapA - i * ((Math.PI * 2) / 5), y = 0.12 + (9 - i) * 0.075, r = i === 0 ? R * 0.6 : R;
+      P[i].x += (Math.sin(a) * r - P[i].x) * w; P[i].z += (Math.cos(a) * r - P[i].z) * w; P[i].y += (y - P[i].y) * w;
+    }
+  } else B.wrapA = Math.atan2(P[3].x, P[3].z); // it winds on from the side it came in
   // the bones: each at its point, turned along the body toward the head
   for (let i = 0; i < VIPER_SEGS; i++) {
     const bone = b[`seg${i}`];
     bone.position.copy(P[i]);
     _d.subVectors(P[i], P[i + 1]); if (_d.lengthSq() < 1e-8) _d.set(0, 0, 1);
     bone.quaternion.setFromUnitVectors(Z, _d.normalize());
-    bone.scale.set(i < 6 ? 1 + (E.puff - 1) * (1 - i / 6) : 1, i < 6 ? 1 + (E.puff - 1) * (1 - i / 6) : 1, 1);
   }
   // the head: at the neck, along the neck, turned toward its prey and kept level (it aims its strike)
   _d.subVectors(P[0], P[1]).normalize();
@@ -137,9 +162,12 @@ export function animViper(r, s, dt, time) {
   if (B.nextFlick <= 0) { B.tongue = 0.001; B.nextFlick = 1.4 + Math.random() * 2.2; }
   let tg = 0;
   if (B.tongue > 0) { B.tongue += dt; const t = B.tongue / 0.42; tg = t < 1 ? Math.abs(Math.sin(t * Math.PI * 2)) : 0; if (t >= 1) B.tongue = 0; }
-  if (E.rear > 0.3) tg = 0.8 + 0.2 * Math.sin(time * 40);
+  if (E.wrap > 0.5 || E.gather > 0.5) tg = 0.8 + 0.2 * Math.sin(time * 40);
   if (b.tongue) { b.tongue.scale.set(1, 1, Math.max(0.001, tg)); b.tongue.visible = tg > 0.02; b.tongue.rotation.y = Math.sin(time * 37) * 0.15 * tg; }
 }
 // how much of each pose each of the first joints takes (the head end most), and how far each is drawn back in the S
 const PROFILE = [1, 0.85, 0.6, 0.35, 0.15, 0.04];
 const SBACK = [1, 0.75, 0.4, 0.15, 0, 0];
+// the S seen from above (sideways, by joint) and how far each joint goes out on the strike
+const SSIDE = [0, 0.7, 0.2, -0.6, -0.3, 0];
+const OUT = [1, 0.8, 0.55, 0.32, 0.14, 0.03];

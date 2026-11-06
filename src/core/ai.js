@@ -314,7 +314,7 @@ function setState(m, state, dur = 0) {
   if (state !== 'stunned') m.exposed = 0; // the eye clam's cracked shell closes again
   m.roaring = false; // the phase roar is its own recover (kit)
   // out of the act, nothing is left up in the air (Greyfang's moon leap) or mid-rush
-  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.ambush = null; }
+  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
   m.state = state;
   m.stateT = 0;
   m.stateDur = dur;
@@ -412,7 +412,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'ambush'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -773,29 +773,30 @@ function windup(game, m, dt, t, gap) {
       return setState(m, 'recover', atk.recover);
     }
     case 'fang_strike': {
-      // the reed viper's S-strike: from its coil it shoots along the lane locked late in the wind-up (core viperStrike)
+      // the reed viper's strike: from its S-coil the neck shoots out along the lane locked late in the wind-up and
+      // snaps back (viperStrike); `strikes` in all, the next re-aimed through the first 60% of `gap` s (act: m.fangs)
       viperStrike(game, m, w.name, w.angle, atk.range, dmg);
-      m.cd[w.name] = atk.cooldown;
-      return setState(m, 'recover', atk.recover);
-    }
-    case 'ambush': {
-      // the reed viper lies still in the reeds, its strike reach (`radius` m) about it; armed after `arm` s, the first
-      // unit to be within it is struck `react` s later; nothing within it for `hold` s and it gives up (act: m.ambush)
-      m.ambush = { name: w.name, t: 0, trig: -1, angle: m.facing, dmg };
+      if ((atk.strikes || 1) < 2) { m.cd[w.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+      m.fangs = { name: w.name, n: 1, t: 0, angle: w.angle, dmg };
       return setState(m, 'act');
     }
-    case 'hiss': {
-      // the puff and hiss: what stands in the cone (`range` x `arc`) takes the hit, and a venom mist hangs along it for
-      // `linger` s (three spreading clouds, `mistMult` x its damage a second, area hiss_mist)
-      game.emit({ type: 'hiss', id: m.id, x: m.x, z: m.z, angle: w.angle, range: atk.range + m.r, arc: atk.arc });
+    case 'constrict': {
+      // the reed viper rushes down the locked lane (`speed` m/s, up to `range` m) and wraps round the first unit it
+      // reaches: held fast for up to `hold` s, squeezed every `tick` s (`squeezeMult` x its damage); a dodge tears free,
+      // and so does hurting it by `breakShare` of its health (act: m.coil)
+      m.coil = { name: w.name, phase: 'dash', t: 0, angle: w.angle, left: atk.range, dmg, unit: null, hp: 0, x: 0, z: 0, next: 0 };
+      game.emit({ type: 'coilDash', id: m.id, x: m.x, z: m.z, angle: w.angle });
+      return setState(m, 'act');
+    }
+    case 'tail_lash': {
+      // the leaf-blade tail whipped round behind it: units within `range` m of its body, in the `arc` degrees about its
+      // back, are cut once (event tailLash)
+      const back = m.facing + Math.PI, R = atk.range + m.r;
+      game.emit({ type: 'tailLash', id: m.id, x: m.x, z: m.z, angle: back, arc: atk.arc, range: R });
       for (const u of game.units()) {
-        const gap = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
-        if (gap <= atk.range && Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) <= (atk.arc * DEG) / 2) game.damageUnit(u, dmg, m, { attack: w.name });
-      }
-      const d = dirFromAngle(w.angle), R = atk.range + m.r;
-      for (const [at, r] of MIST) {
-        const x = m.x + d.x * R * at, z = m.z + d.z * R * at;
-        if (!game.isSafe(x, z)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: w.name, kind: 'hiss_mist', x, z, radius: R * r, delay: 0.15, duration: atk.linger, tick: atk.tick, damage: m.damage * atk.mistMult * atk.tick });
+        if (dist(m.x, m.z, u.x, u.z) - u.r > R || Math.abs(angleDiff(back, angleTo(m.x, m.z, u.x, u.z))) > (atk.arc * DEG) / 2) continue;
+        game.damageUnit(u, dmg, m, { attack: w.name });
+        game.emit({ type: 'tailCut', id: m.id, x: u.x, z: u.z });
       }
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
@@ -1067,25 +1068,53 @@ function act(game, m, dt, t) {
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
     return;
   }
-  if (m.ambush) {
-    const A = m.ambush, atk = m.def.attacks[A.name];
-    A.t += dt;
+  if (m.fangs) {
+    // between the viper's strikes: its neck back in the S, re-aiming, then the next strike
+    const F = m.fangs, atk = m.def.attacks[F.name];
+    F.t += dt;
     m.moving = false;
-    if (A.trig < 0) {
-      if (A.t >= atk.arm) for (const u of game.units()) {
-        if (dist(m.x, m.z, u.x, u.z) > atk.radius + u.r) continue;
-        A.trig = 0; A.angle = angleTo(m.x, m.z, u.x, u.z); m.facing = A.angle;
-        game.emit({ type: 'ambushTrigger', id: m.id, x: m.x, z: m.z, angle: A.angle, delay: atk.react });
-        break;
+    if (t && F.t < atk.gap * 0.6) F.angle = angleTo(m.x, m.z, t.x, t.z);
+    m.facing = F.angle;
+    if (F.t < atk.gap) return;
+    viperStrike(game, m, F.name, F.angle, atk.range, F.dmg);
+    F.n++; F.t = 0;
+    if (F.n < atk.strikes) return;
+    m.fangs = null; m.cd[F.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
+  }
+  if (m.coil) {
+    const C = m.coil, atk = m.def.attacks[C.name];
+    C.t += dt;
+    if (C.phase === 'dash') {
+      const d = dirFromAngle(C.angle), step = Math.min(C.left, atk.speed * dt);
+      m.facing = C.angle; m.moving = true;
+      game.moveEntity(m, d.x * step, d.z * step);
+      C.left -= step;
+      for (const u of game.units()) {
+        if (dist(m.x, m.z, u.x, u.z) > m.r + u.r + 0.3) continue;
+        const dealt = game.damageUnit(u, C.dmg, m, { attack: C.name });
+        if (!dealt && u === game.player) continue; // dodged through it
+        Object.assign(C, { phase: 'hold', t: 0, unit: u, hp: m.hp, x: u.x, z: u.z, next: atk.tick });
+        m.x = u.x; m.z = u.z; m.moving = false;
+        u.statuses.root = { t: Math.max(u.statuses.root?.t || 0, atk.hold) };
+        game.emit({ type: 'coilGrab', id: m.id, x: u.x, z: u.z, unit: u.id, duration: atk.hold });
+        return;
       }
-      if (A.trig < 0 && A.t >= atk.hold) { m.ambush = null; m.cd[A.name] = atk.cooldown; game.emit({ type: 'ambushEnd', id: m.id, x: m.x, z: m.z }); return setState(m, 'recover', atk.recover); }
+      if (C.left <= 0.01) { m.coil = null; m.moving = false; m.cd[C.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
       return;
     }
-    A.trig += dt;
-    if (A.trig < atk.react) return;
-    viperStrike(game, m, A.name, A.angle, atk.radius + 0.6, A.dmg);
-    m.ambush = null; m.cd[A.name] = atk.cooldown;
-    return setState(m, 'recover', atk.recover);
+    // held: wrapped round it, squeezing; it breaks free by a dodge (moved out of the coils) or by hurting the viper
+    const u = C.unit;
+    m.moving = false;
+    const freed = !u || u.dead || dist(u.x, u.z, C.x, C.z) > 0.6 || C.hp - m.hp >= m.maxHp * atk.breakShare;
+    if (!freed) { m.x = C.x; m.z = C.z; while (C.t >= C.next && C.next <= atk.hold) { C.next += atk.tick; game.damageUnit(u, m.damage * atk.squeezeMult, m, { attack: C.name }); } }
+    if (freed || C.t >= atk.hold) {
+      if (u?.statuses?.root) delete u.statuses.root;
+      game.emit({ type: freed ? 'coilFree' : 'coilEnd', id: m.id, x: m.x, z: m.z });
+      m.coil = null; m.cd[C.name] = atk.cooldown;
+      return setState(m, 'recover', freed ? atk.recover * 1.5 : atk.recover); // torn free, it is left reeling a little longer
+    }
+    return;
   }
   if (m.leap) {
     const L = m.leap, atk = m.def.attacks[L.name], prey = t || game.player;
@@ -1960,7 +1989,6 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
-  if (kind === 'ambush') return startWindup(game, m, name, t, { radius: atk.radius });
   if (kind === 'phantom_rush') {
     // three runs through where its prey stands now: two moon-shadow wolves from `ring` m out, a third of the circle
     // either side of Greyfang, and Greyfang itself from where it stands, last; every lane marked for the whole wind-up
@@ -2076,9 +2104,6 @@ export function beginAttack(game, m, name, t) {
   }
   startWindup(game, m, name, t);
 }
-
-// the hiss's venom mist: three clouds along the cone, [share of its reach out, radius as a share of its reach]
-const MIST = [[0.28, 0.18], [0.52, 0.22], [0.74, 0.26]];
 
 /**
  * The reed viper's strike along `angle`: it shoots forward up to `lunge` m (stopping at what it bites), its fangs

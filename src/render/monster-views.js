@@ -174,11 +174,11 @@ export function syncMonsterViews(view, dt, time) {
     state.leap = m.leap ? m.leap.phase : null; state.leapT = m.leap ? m.leap.t : 0;
     state.rushDash = !!m.rush?.dash;
     state.roar = !!m.roaring;
-    // the reed viper (monsters-midhigh.js animViper): its ambush, and a strike just made (its body slid forward)
-    state.ambush = m.ambush ? (m.ambush.trig >= 0 ? 'trig' : 'wait') : null; state.ambushT = m.ambush ? (m.ambush.trig >= 0 ? m.ambush.trig : m.ambush.t) : 0;
+    // the reed viper (viper-anim.js): time since its last strike (its body slid forward over the strike's step), its
+    // neck held back between strikes, wound round its prey
     const since = m.strikeAt !== undefined ? (view.game?.time ?? 0) - m.strikeAt : Infinity;
     if (since < 0.2 && m.strikeAt !== mv.strikeAt) { mv.strikeAt = m.strikeAt; mv.kx += m.strikeFrom[0] - m.x; mv.kz += m.strikeFrom[1] - m.z; }
-    state.struck = m.state === 'recover' && Math.abs(since - m.stateT) < 0.05; // this recover began with a strike
+    state.strikeT = since; state.fangAim = !!m.fangs; state.coil = m.coil ? m.coil.phase : null;
     state.dragging = !!m.drag; // the shore gull riding its prey's head
     state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0;
     state.naked = m.naked ? m.naked.phase : null; // the hermit crab out of its shell: loose, home, climb // the boar running a leg, or skidding

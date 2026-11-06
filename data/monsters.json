@@ -1074,7 +1074,7 @@
       "name": "Reedblade Viper",
       "nameTh": "งูใบกกพิษ",
       "behavior": "kit",
-      "kit": {"circle": [2.8, 4.6]},
+      "kit": {"circle": [2.2, 3.4]},
       "normal": "fang_strike",
       "element": "poison",
       "hp": 520,
@@ -1087,9 +1087,9 @@
       "exp": 16,
       "jobExp": 11,
       "attacks": {
-        "ambush": {"nameTh": "ซุ่มกอกก", "kind": "ambush", "use": {"min": 1.5, "max": 4.5}, "range": 4.5, "radius": 3.6, "windup": 0.6, "arm": 0.5, "hold": 3.5, "react": 0.3, "lunge": 2.4, "width": 1.2, "recover": 0.9, "cooldown": 11, "damageMult": 1.6, "inflict": {"status": "poison", "chance": 1, "duration": 4, "dpsMult": 0.18}},
-        "hiss": {"nameTh": "พองตัวขู่ฟ่อ", "kind": "hiss", "tell": "sector", "use": {"max": 3.5}, "range": 4.2, "arc": 70, "windup": 1.1, "linger": 3, "tick": 0.5, "mistMult": 0.35, "recover": 0.7, "cooldown": 9, "damageMult": 0.6, "inflict": {"status": "poison", "chance": 0.8, "duration": 3, "dpsMult": 0.12}},
-        "fang_strike": {"nameTh": "ฉกพิษตัวเอส", "kind": "fang_strike", "tell": "lane", "use": {"max": 4.5}, "range": 5, "width": 1.0, "lunge": 2.2, "windup": 0.7, "recover": 0.8, "cooldown": 3, "damageMult": 1.25, "inflict": {"status": "poison", "chance": 0.6, "duration": 3, "dpsMult": 0.15}}
+        "constrict": {"nameTh": "พันรัด", "kind": "constrict", "tell": "lane", "use": {"min": 1.5, "max": 5.5}, "range": 6.5, "width": 1.2, "speed": 10, "windup": 0.9, "hold": 2.6, "tick": 0.5, "squeezeMult": 0.45, "breakShare": 0.06, "recover": 1.0, "cooldown": 12, "damageMult": 0.6},
+        "tail_lash": {"nameTh": "สะบัดหางใบมีด", "kind": "tail_lash", "tell": "sector", "tellOff": 3.14159, "keepFacing": true, "use": {"max": 3, "behind": true}, "range": 3.2, "arc": 240, "windup": 0.7, "recover": 0.6, "cooldown": 7, "damageMult": 1.1, "inflict": {"status": "bleed", "chance": 0.7, "duration": 4, "dpsMult": 0.12}},
+        "fang_strike": {"nameTh": "ฉกพิษ", "kind": "fang_strike", "tell": "lane", "use": {"max": 1.5}, "range": 2.2, "width": 0.9, "lunge": 0.7, "strikes": 2, "gap": 0.55, "windup": 0.75, "recover": 0.7, "cooldown": 3.5, "damageMult": 1.0, "inflict": {"status": "poison", "chance": 1, "duration": 4, "dpsMult": 0.15}}
       },
       "drops": [
         {

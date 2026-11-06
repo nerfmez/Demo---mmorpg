@@ -1417,3 +1417,101 @@ test('marsh wisp: come close and it scatters and gathers again further off', () 
   assert.ok(Math.hypot(m.x - g.player.x, m.z - g.player.z) > d0 + bl.distance * 0.8, 'gone off');
   assert.equal(g.events.filter((e) => e.type === 'blink').length, 1);
 });
+
+test('gale hawk stoop: hovers high watching the spot, locks, stoops down its line and rakes only the last stretch, once', () => {
+  const a = M.gale_hawk.attacks.stoop;
+  assert.equal(M.gale_hawk.normal, 'stoop');
+  const { m, g, hits, until, step, place } = arena('gale_hawk', 28, { open: true, normal: true });
+  place(7);
+  until(() => m.windup?.name === 'stoop', 1);
+  assert.equal(m.altTo, a.hover, 'climbs into its hover');
+  // followed through the first part of the wind-up, then held
+  g.player.x = 1; step(m.windup.total * 0.3);
+  assert.ok(Math.abs(m.windup.tx - 1) < 1e-9, 'follows the hero');
+  step(m.windup.total * (a.lock - 0.3) + 0.02);
+  const tx = m.windup.tx, tz = m.windup.tz;
+  g.player.x = 0.3; step(0.05);
+  assert.equal(m.windup.tx, tx, 'locked');
+  assert.equal(hits.length, 0);
+  until(() => m.state === 'act', 1);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.state === 'recover', 2);
+  assert.equal(hits.length, 1, 'raked once');
+  assert.ok(Math.hypot(m.x - tx, m.z - tz) > a.past - 0.3, 'on past the spot');
+  assert.ok(!m.stoop && !m.altTo, 'clean afterwards');
+  // stepped aside after the lock: missed
+  const b = arena('gale_hawk', 28, { open: true, normal: true });
+  b.place(7);
+  b.until(() => b.m.windup?.name === 'stoop', 1);
+  b.step(b.m.windup.total * a.lock + 0.05);
+  b.g.player.x += a.width / 2 + b.g.player.r + 0.6;
+  b.until(() => b.m.state === 'recover', 3);
+  assert.equal(b.hits.length, 0, 'a step aside after the lock');
+  // nothing near its take-off: only the low stretch strikes
+  const c = arena('gale_hawk', 28, { open: true, normal: true });
+  c.place(9);
+  c.until(() => c.m.windup?.name === 'stoop', 1);
+  c.step(c.m.windup.total * a.lock + 0.05);
+  Object.assign(c.g.player, { x: 0, z: 1.5 });
+  c.until(() => c.m.state === 'recover', 3);
+  assert.equal(c.hits.length, 0, 'high over the first part of its line');
+});
+
+test('gale hawk seize: skims down its lane, takes the hero in its talons, carries them off and drops them; a dodge slips it', () => {
+  const a = M.gale_hawk.attacks.seize;
+  const { m, g, hits, until, step, place, only } = arena('gale_hawk', 28, { open: true });
+  only('seize'); place(4);
+  until(() => m.windup?.name === 'seize', 1);
+  until(() => m.state === 'act', 2);
+  until(() => g.player.carried, 1);
+  assert.equal(hits.length, 1, 'clawed as it is taken');
+  const c = g.player.carried;
+  assert.ok(Math.abs(Math.hypot(c.toX - c.fromX, c.toZ - c.fromZ) - a.carry) < 1e-6, 'carried on along its flight');
+  assert.ok(c.toZ > c.fromZ);
+  // borne off: no walking, the game moves the hero, the hawk over its head
+  g.input.moveX = 1;
+  for (let t = 0; t < a.carryTime + 0.05 && g.player.carried; t += 0.01) { g.time += 0.01; g.updatePlayer(0.01); updateMonster(g, m, 0.01); }
+  g.input.moveX = 0;
+  assert.ok(!g.player.carried, 'let go');
+  assert.ok(Math.abs(g.player.x - c.toX) < 1e-6 && Math.abs(g.player.z - c.toZ) < 1e-6, 'dropped where it carried them');
+  step(0.05);
+  assert.equal(hits.length, 2, 'the drop hurts once');
+  assert.equal(m.state, 'recover');
+  assert.ok(!m.seize);
+  // dodged: the talons close on air and it skims on, open
+  const b = arena('gale_hawk', 28, { open: true });
+  b.only('seize'); b.place(4);
+  b.g.damageUnit = () => 0;
+  b.until(() => b.m.state === 'act', 3);
+  b.until(() => b.m.state !== 'act', 2);
+  assert.ok(!b.g.player.carried, 'not carried');
+  assert.equal(b.g.events.filter((e) => e.type === 'seizeMiss').length, 1);
+});
+
+test('gale hawk storm feathers: a zigzag of feathers across its line through the hero; the strands crackle in pulses after a charge', () => {
+  const a = M.gale_hawk.attacks.storm_feathers;
+  const { m, g, hits, until, step, place, only } = arena('gale_hawk', 28, { open: true });
+  only('storm_feathers'); place(6);
+  until(() => m.windup?.name === 'storm_feathers', 1);
+  const fence = g.areas.find((x) => x.kind === 'storm_fence'), pts = fence.fence.pts;
+  assert.equal(pts.length, a.count);
+  assert.ok(Math.abs(Math.hypot(pts[0][0] - pts[a.count - 1][0], pts[0][1] - pts[a.count - 1][1]) - a.span) < 1, 'its span across the line');
+  // the hero on a strand
+  Object.assign(g.player, { x: (pts[1][0] + pts[2][0]) / 2, z: (pts[1][1] + pts[2][1]) / 2 });
+  step(fence.delay - 0.05);
+  assert.equal(hits.length, 0, 'nothing before the charge is spent');
+  step(0.1);
+  assert.equal(hits.length, 1, 'the first pulse');
+  step(a.every * (a.pulses - 1) + 0.1);
+  assert.equal(hits.length, a.pulses, 'once a pulse');
+  step(1);
+  assert.equal(hits.length, a.pulses);
+  assert.ok(!g.areas.includes(fence), 'gone after its pulses');
+  // off the fence: safe
+  const b = arena('gale_hawk', 28, { open: true });
+  b.only('storm_feathers'); b.place(6);
+  b.until(() => b.m.windup?.name === 'storm_feathers', 1);
+  b.g.player.z += 3;
+  b.step(4);
+  assert.equal(b.hits.length, 0);
+});

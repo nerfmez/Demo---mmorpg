@@ -577,7 +577,9 @@
     "gale_hawk": {
       "name": "Gale Hawk",
       "nameTh": "เหยี่ยวพายุ",
-      "behavior": "hawk",
+      "behavior": "kit",
+      "normal": "stoop",
+      "kit": {"circle": [5, 7]},
       "hp": 550,
       "damage": 120,
       "defense": 30,
@@ -589,17 +591,9 @@
       "exp": 26,
       "jobExp": 18,
       "attacks": {
-        "dive": {
-          "element": "lightning",
-          "inflict": {"status": "shock", "chance": 0.5, "duration": 2.5},
-          "range": 12,
-          "windup": 0.7,
-          "radius": 1.5,
-          "speed": 18,
-          "recover": 1,
-          "cooldown": 3.5,
-          "damageMult": 1.3
-        }
+        "seize": {"nameTh": "ฉกยกขึ้นฟ้า", "kind": "seize", "use": {"min": 2, "max": 8}, "range": 8, "windup": 1.0, "lock": 0.6, "hover": 1.2, "speed": 15, "over": 2, "carry": 4, "carryTime": 1.0, "lift": 1.6, "dropMult": 0.8, "recover": 0.8, "cooldown": 12, "damageMult": 0.5},
+        "storm_feathers": {"nameTh": "ขนพายุ", "kind": "storm_feathers", "use": {"min": 3, "max": 10}, "range": 10, "windup": 1.0, "hover": 3.0, "count": 5, "span": 8, "zig": 0.9, "charge": 1.1, "pulses": 3, "every": 0.6, "width": 0.9, "recover": 0.6, "cooldown": 11, "damageMult": 0.6, "element": "lightning", "inflict": {"status": "shock", "chance": 0.5, "duration": 2.5}},
+        "stoop": {"nameTh": "ดิ่งฟ้าผ่า", "kind": "stoop", "use": {"min": 2, "max": 11}, "range": 11, "windup": 1.1, "lock": 0.6, "hover": 3.3, "air": 0.55, "before": 1.5, "past": 2.5, "width": 1.6, "recover": 1.0, "cooldown": 3.5, "damageMult": 1.3, "element": "lightning", "inflict": {"status": "shock", "chance": 0.5, "duration": 2.5}}
       },
       "circle": [
         5,

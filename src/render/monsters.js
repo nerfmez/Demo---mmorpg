@@ -855,6 +855,12 @@ function buildHawk() {
   return rig;
 }
 
+// The gale hawk (docs/MONSTER-ATTACKS.md): flaps in bouts and glides between them. Its stoop: it climbs and hangs in
+// a wind-hover over its prey (body near upright, wings spread and beating fast and shallow, head held dead still and
+// looking down), tucks its wings at the last instant, stoops nose first with them folded tight, and throws its talons
+// forward (body pitched back, wings flared to brake) over the strike stretch; its seize: it drops low, gliding on
+// half-spread wings, sweeps them back for the skim, then carries with big heavy beats, body upright; its storm
+// feathers: high, wings spread wide and shivering, its body shaking the feathers loose.
 function animHawk(r, s, dt, time) {
   const b = r.bones;
   const c = r.motion;
@@ -869,17 +875,33 @@ function animHawk(r, s, dt, time) {
   let tip = Math.sin(f - 0.9) * 0.45 * r.flapAmt + 0.1 * (1 - r.flapAmt);
   let pitch = clampAbs(r.accel || 0, 3) * 0.04;
   let lift = -Math.cos(f) * 0.07 * r.flapAmt;
-  let kk = 30;
-  if (s.windup === 'dive') {
-    wingOpen = 0.9 - 1.3 * k; // wings fold back
-    tip = wingOpen * 0.5;
-    pitch = 0.5 * k;
-    kk = 20;
-  } else if (s.state === 'act') {
-    wingOpen = -0.6;
-    tip = -0.3;
-    pitch = 0.9;
-    kk = 20;
+  let roll = 0, head = null, kk = 30;
+  if (s.windup === 'stoop') {
+    // the wind-hover: near upright, fast shallow beats, then the tuck
+    const tuck = clamp01((k - 0.82) / 0.18);
+    wingOpen = (0.35 + Math.sin(time * 24) * 0.28) * (1 - tuck) - 0.8 * tuck;
+    tip = (Math.sin(time * 24 - 0.9) * 0.3) * (1 - tuck) - 0.4 * tuck;
+    pitch = -0.55 * (1 - tuck) + 0.6 * tuck; lift = Math.sin(time * 24) * 0.03;
+    head = 0.75; kk = 26;
+  } else if (s.stoopK >= 0) {
+    // stooping with wings folded tight, then talons thrown forward over the strike stretch, wings flared to brake
+    const low = clamp01((s.stoopK - s.stoopLow) / Math.max(0.05, 1 - s.stoopLow) * 1.6);
+    wingOpen = -0.85 + 1.55 * low; tip = -0.45 + 0.75 * low;
+    pitch = 0.55 * (1 - low) - 0.5 * low; head = 0.3 * (1 - low); kk = 24;
+  } else if (s.windup === 'seize') {
+    // dropping low on half-spread wings, then swept back for the skim
+    const go = clamp01((k - 0.7) / 0.3);
+    wingOpen = 0.3 + Math.sin(time * 10) * 0.25 * (1 - go) - 0.45 * go; tip = 0.15 - 0.4 * go;
+    pitch = -0.25 + 0.5 * go; head = 0.3; kk = 18;
+  } else if (s.seize === 'skim') {
+    wingOpen = -0.15 + Math.sin(time * 16) * 0.12; tip = -0.45; pitch = 0.2; kk = 22;
+  } else if (s.seize === 'carry') {
+    // big heavy beats, body upright, its prey in its feet
+    wingOpen = 0.25 + Math.sin(time * 11) * 0.85; tip = Math.sin(time * 11 - 0.9) * 0.5; pitch = -0.45; lift = -Math.cos(time * 11) * 0.12; kk = 30;
+  } else if (s.windup === 'storm_feathers') {
+    // high, wings spread wide and shivering, shaking its feathers loose
+    wingOpen = 0.55 + Math.sin(time * 46) * 0.14 * k; tip = 0.25 + Math.sin(time * 46 - 1) * 0.2 * k;
+    pitch = -0.25; roll = Math.sin(time * 38) * 0.16 * k; kk = 34;
   } else if (s.state === 'recover') {
     wingOpen = 0.3 + Math.sin(time * 14) * 0.7;
     tip = Math.sin(time * 14 - 0.9) * 0.4;
@@ -892,10 +914,10 @@ function animHawk(r, s, dt, time) {
   b.wingLt.rotation.z = damp(b.wingLt.rotation.z, tip, kk, dt);
   b.wingRt.rotation.z = damp(b.wingRt.rotation.z, -tip, kk, dt);
   b.body.rotation.x = damp(b.body.rotation.x, pitch, 10, dt);
-  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.12, 0.6), 6, dt);
-  b.body.position.y = damp(b.body.position.y, 0.4 + (s.alt ?? 2.6) + Math.sin(time * 2 + r.seed) * 0.08 + lift, 10, dt);
-  // the head holds still against the bob, then darts to look
-  b.head.rotation.x = -b.body.rotation.x * 0.6;
+  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.12, 0.6) + roll, roll ? 30 : 6, dt);
+  b.body.position.y = damp(b.body.position.y, 0.4 + (s.alt ?? 2.6) + Math.sin(time * 2 + r.seed) * 0.08 * (head === null ? 1 : 0) + lift, 10, dt);
+  // the head holds still against the bob, then darts to look; in the hover it is held down on its prey
+  b.head.rotation.x = head === null ? -b.body.rotation.x * 0.6 : damp(b.head.rotation.x, head - b.body.rotation.x, 14, dt);
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.7 + Math.round(wander(time * 0.7, r.seed) * 3) * 0.12 * (s.aggro ? 0 : 1), 12, dt);
 }
 

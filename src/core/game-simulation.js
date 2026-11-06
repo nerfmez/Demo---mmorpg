@@ -15,7 +15,7 @@ import { nearestTarget, softTarget } from './targeting.js';
 import { reveal } from './rogue.js';
 import { monsterHit, resistOf, inflictHero, statusTaken, statusWalk, DOTS } from './defense.js';
 import { heroHitMult, allyHitMult, heroTakenMult, allyTakenMult } from './wheel-rules.js';
-import { updateMonster, onMonsterHit, setAggro, nacreAbsorb } from './ai.js';
+import { updateMonster, onMonsterHit, setAggro, nacreAbsorb, segDist } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
@@ -1217,7 +1217,7 @@ export class Game {
       this.cancelChannel();
       p.auras={}; p.riposte=null;
       p.cast = null;
-      p.dash = null;
+      p.dash = null; p.carried = null;
       p.targetId = null;
       this.ch.progress.deaths = (this.ch.progress.deaths || 0) + 1;
       this.emit({ type: 'playerDeath' });
@@ -1639,6 +1639,16 @@ export class Game {
     this.tickPlayerStatuses(dt);
     if (p.dead) return;
 
+    // carried (the gale hawk's seize, core/ai.js): borne off in its talons to where it lets go, no walking or casting
+    if (p.carried) {
+      const c = p.carried;
+      c.t += dt;
+      const k = Math.min(1, c.t / c.dur), e = k * k * (3 - 2 * k);
+      p.x = c.fromX + (c.toX - c.fromX) * e; p.z = c.fromZ + (c.toZ - c.fromZ) * e;
+      p.moving = false;
+      if (k >= 1) { p.carried = null; this.emit({ type: 'carryDrop', x: p.x, z: p.z }); }
+      return;
+    }
     // tossed (the tusk boar's tusk toss, core/ai.js): flung through the air to where it lands, no walking or casting
     if (p.tossed) {
       const tz = p.tossed;
@@ -2114,6 +2124,23 @@ export class Game {
         continue;
       }
       const live = a.t - a.delay;
+      if (a.fence) {
+        // a fence of lightning (the gale hawk's storm feathers): strands between neighbouring feathers crackle
+        // `pulses` times `every` s apart; each pulse hurts a unit within `width`/2 of a strand once
+        const F = a.fence;
+        if (live >= F.n * F.every && F.n < F.pulses) {
+          F.n++;
+          this.emit({ type: 'fencePulse', id: a.id, source: a.sourceId, pulse: F.n, pts: F.pts });
+          for (const u of this.units()) {
+            let near = Infinity;
+            for (let i = 0; i + 1 < F.pts.length; i++) near = Math.min(near, segDist(u.x, u.z, F.pts[i][0], F.pts[i][1], F.pts[i + 1][0], F.pts[i + 1][1]));
+            if (near <= F.width / 2 + u.r) this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { attack: a.attack });
+          }
+        }
+        if (F.n < F.pulses || live < a.duration) keep.push(a);
+        else this.emit({ type: 'areaEnd', id: a.id });
+        continue;
+      }
       if (a.mine) {
         // a mine (the reef crab's bubbles): bursts on the first unit that touches it, else ends unsprung
         const u = this.units().find((q) => dist(a.x, a.z, q.x, q.z) <= a.radius + q.r);

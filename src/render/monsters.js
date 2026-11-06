@@ -858,9 +858,9 @@ function buildHawk() {
 // The gale hawk (docs/MONSTER-ATTACKS.md): flaps in bouts and glides between them. Its stoop: it climbs and hangs in
 // a wind-hover over its prey (body near upright, wings spread and beating fast and shallow, head held dead still and
 // looking down), tucks its wings at the last instant, stoops nose first with them folded tight, and throws its talons
-// forward (body pitched back, wings flared to brake) over the strike stretch; its seize: it drops low, gliding on
-// half-spread wings, sweeps them back for the skim, then carries with big heavy beats, body upright; its storm
-// feathers: high, wings spread wide and shivering, its body shaking the feathers loose.
+// forward (body pitched back, wings flared to brake) over the strike stretch, then beats back up; its thunder wings:
+// it climbs and beats big full strokes, body upright, a downstroke for every bolt it calls; its storm feathers: high,
+// wings spread wide and shivering, its body shaking the feathers loose.
 function animHawk(r, s, dt, time) {
   const b = r.bones;
   const c = r.motion;
@@ -885,19 +885,16 @@ function animHawk(r, s, dt, time) {
     head = 0.75; kk = 26;
   } else if (s.stoopK >= 0) {
     // stooping with wings folded tight, then talons thrown forward over the strike stretch, wings flared to brake
-    const low = clamp01((s.stoopK - s.stoopLow) / Math.max(0.05, 1 - s.stoopLow) * 1.6);
+    const low = clamp01((s.stoopK - s.stoopLow) / Math.max(0.05, s.stoopHigh - s.stoopLow) * 1.6), up = clamp01((s.stoopK - s.stoopHigh) / Math.max(0.05, 1 - s.stoopHigh));
     wingOpen = -0.85 + 1.55 * low; tip = -0.45 + 0.75 * low;
     pitch = 0.55 * (1 - low) - 0.5 * low; head = 0.3 * (1 - low); kk = 24;
-  } else if (s.windup === 'seize') {
-    // dropping low on half-spread wings, then swept back for the skim
-    const go = clamp01((k - 0.7) / 0.3);
-    wingOpen = 0.3 + Math.sin(time * 10) * 0.25 * (1 - go) - 0.45 * go; tip = 0.15 - 0.4 * go;
-    pitch = -0.25 + 0.5 * go; head = 0.3; kk = 18;
-  } else if (s.seize === 'skim') {
-    wingOpen = -0.15 + Math.sin(time * 16) * 0.12; tip = -0.45; pitch = 0.2; kk = 22;
-  } else if (s.seize === 'carry') {
-    // big heavy beats, body upright, its prey in its feet
-    wingOpen = 0.25 + Math.sin(time * 11) * 0.85; tip = Math.sin(time * 11 - 0.9) * 0.5; pitch = -0.45; lift = -Math.cos(time * 11) * 0.12; kk = 30;
+    // pulling up: hard beats back into the air
+    if (up > 0) { wingOpen = 0.3 + Math.sin(time * 15) * 0.8; tip = Math.sin(time * 15 - 0.9) * 0.45; pitch = -0.35; head = null; }
+  } else if (s.windup === 'thunder_wings' || s.storm >= 0) {
+    // climbing, then beating up the storm: big full strokes, body upright, one downstroke on every bolt it calls
+    const ph = s.storm >= 0 ? s.storm : k * 1.5;
+    wingOpen = 0.35 + Math.cos(ph * Math.PI * 2) * 0.95; tip = Math.cos(ph * Math.PI * 2 - 0.9) * 0.55;
+    pitch = -0.5; lift = -Math.cos(ph * Math.PI * 2) * 0.1; head = 0.55; kk = 34;
   } else if (s.windup === 'storm_feathers') {
     // high, wings spread wide and shivering, shaking its feathers loose
     wingOpen = 0.55 + Math.sin(time * 46) * 0.14 * k; tip = 0.25 + Math.sin(time * 46 - 1) * 0.2 * k;

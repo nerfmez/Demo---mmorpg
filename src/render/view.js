@@ -971,8 +971,6 @@ export class View {
     // flung by the tusk boar: an arc over its back, turning head over heels
     const tossK = p.tossed ? Math.min(1, p.tossed.t / p.tossed.dur) : -1;
     if (tossK >= 0) y += Math.sin(tossK * Math.PI) * 1.9;
-    // carried off in the gale hawk's talons: lifted, borne along, let go a beat before the ground (core p.carried)
-    if (p.carried) { const k = Math.min(1, p.carried.t / p.carried.dur); y += p.carried.lift * (k < 0.8 ? Math.sin(Math.min(1, k / 0.3) * Math.PI * 0.5) : 1 - ((k - 0.8) / 0.2) ** 2); }
     const speed = dt > 0 && this.lastHeroPos ? Math.hypot(p.x - this.lastHeroPos.x, p.z - this.lastHeroPos.z) / dt : 0;
     this.lastHeroPos ||= { x: 0, z: 0 };
     this.lastHeroPos.x = p.x;

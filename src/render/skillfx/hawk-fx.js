@@ -1,23 +1,24 @@
 // The gale hawk's effects (docs/MONSTER-ATTACKS.md), cosmetic only, from core state and events. Researched first: a
 // hawk hangs in a wind-hover with its head dead still over its prey, folds its wings and stoops, its talons thrown
-// forward at the last instant; it takes prey in its feet and carries it off; this one is a storm hawk, its feathers
-// charged like a thunderhead's. Storm light: white cores in a blue glow (Chain Spark's angular bolts), danger zones in
+// forward at the last instant, then beats back up; this one is a storm hawk: its wing beats raise a thunderstorm and its
+// feathers are charged like a thunderhead's. Storm light: white cores in a blue glow (Chain Spark's angular bolts), danger zones in
 // the warm warning colour at their true size.
 // - Stoop (core stoop, stoopHit): through the hover the strike stretch is marked on the ground (a band from short of
 //   the spot to past it), its fill growing to the stoop; it crackles with static as it drops; where its talons rake,
 //   forks of lightning run out over the ground from a white burst.
-// - Seize (core seizeDash, seizeGrab, seizeDrop, seizeMiss): its low lane marked, filling; feathers and a flash where
-//   it takes its prey; carried, the downwash of its wings beats rings of dust off the ground below; dropped, a thud.
+// - Thunder wings (core thunderWings, stormBeat, areas storm_bolt marked by vfx.js): static crackles over its wings as
+//   it beats; every downstroke a ring of wind off its wings; each bolt comes down out of the sky onto its mark (Chain
+//   Spark's angular bolt, a fork off it), a white burst, forks running over the ground, a ring, sparks.
 // - Storm feathers (area storm_fence, core stormFeathers, fencePulse): charged feathers shaken loose drift down onto
 //   their marks and stand glowing; the strands between neighbours are marked and flicker faintly while the charge
 //   builds, then crack bright on every pulse.
 // Pools only; no allocation per frame.
 import * as THREE from 'three';
-import { Ribbon } from './fx-common.js';
+import { Ribbon, skyAbove } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W as RW, lineW, lineGlowW, lightSprite, glowTexture } from './light-kit.js';
 import { zig, Rng, CRACKLE_FS, BOLT_GLOW_FS, rewindPts } from './chain-fx.js';
 
-const LANES = 12, FEATHERS = 10, BURSTS = 4;
+const LANES = 12, FEATHERS = 10, BURSTS = 6, BOLTS = 4;
 const WARN = { edge: [1, 0.72, 0.42], glow: [1, 0.4, 0.15] };
 const STORM = { core: [1, 1, 1], glow: [0.4, 0.75, 1] }, BOLT = [0.55, 0.85, 1], BOLT_GLOW = [0.3, 0.6, 1];
 const RING = new THREE.Color(0xbfe6ff), DUST = new THREE.Color(0xe8dcc4);
@@ -57,7 +58,10 @@ export class HawkFx {
     // forks of ground lightning where the stoop rakes
     this.bursts = Array.from({ length: BURSTS }, () => ({ t: 9, x: 0, y: 0, z: 0, a: 0, seed: 0 }));
     this.burstI = 0;
-    this.wash = new Map(); // carrying hawk id -> time to its next downwash ring
+    // the storm's bolts: down out of the sky onto their marks
+    this.bolts = Array.from({ length: BOLTS }, () => ({ t: 9, x: 0, y: 0, z: 0, top: new THREE.Vector3(), seed: 0 }));
+    this.boltI = 0;
+    this.sky = new THREE.Vector3();
   }
   gy(x, z) { return this.host.groundAt?.(x, z) ?? 0; }
   get fx() { return this.host.vfx?.fx; }
@@ -80,21 +84,11 @@ export class HawkFx {
         this.monster.onShake?.(0.1, 0.12);
         return true;
       }
-      case 'seizeDash': for (let i = 0; i < 4; i++) this.monster.call?.dust(e.x, y + 0.15, e.z, -Math.sin(e.angle) * 2, 0.4, -Math.cos(e.angle) * 2, 0.6, 0.4); return true;
-      case 'seizeGrab':
-        this.monster.call?.feathersAt?.(e.x, y + 1.4, e.z, 10);
-        this.monster.burstStar?.(e.x, y + 1.1, e.z, 0.55, STORM, 0xffe8c0, 0xffffff);
-        this.monster.call?.ring(e.x, y + 0.1, e.z, 1.2, DUST, 0.35);
-        this.monster.onShake?.(0.08, 0.1);
-        this.wash.set(e.id, 0);
+      case 'thunderWings': this.monster.burstStar?.(e.x, y + 0.6 + (m.alt ?? 3), e.z, 0.5, STORM, 0x9fd8ff, 0xffffff); return true;
+      case 'stormBeat': // a downstroke: a ring of wind off its wings
+        this.monster.call?.ring(e.x, y + 0.4 + (m.alt ?? 3), e.z, 1.8, RING, 0.3);
+        if (Math.random() < 0.5) this.monster.call?.feathersAt?.(e.x, y + 0.4 + (m.alt ?? 3), e.z, 2);
         return true;
-      case 'seizeDrop':
-        this.wash.delete(e.id);
-        this.monster.call?.ring(e.x, y + 0.1, e.z, 1.6, DUST, 0.4);
-        for (let i = 0; i < 10; i++) { const a = (i / 10) * 6.283; this.monster.call?.dust(e.x + Math.sin(a) * 0.4, y + 0.15, e.z + Math.cos(a) * 0.4, Math.sin(a) * 2.4, 0.5, Math.cos(a) * 2.4, 0.8, 0.5); }
-        this.monster.onShake?.(0.1, 0.12);
-        return true;
-      case 'seizeMiss': this.monster.call?.feathersAt?.(e.x, y + 1, e.z, 4); return true;
       case 'stormFeathers': this.monster.call?.feathersAt?.(m.x, y + 0.4 + (m.alt ?? 3), m.z, 6); return true;
       case 'fencePulse': this.flash.set(e.id, 0); this.monster.onShake?.(0.05, 0.06); return true;
     }
@@ -113,9 +107,9 @@ export class HawkFx {
       // the stoop's strike stretch: from `before` short of the spot to `past` beyond it, its fill growing to the stoop
       if ((m.state === 'windup' && w?.name === 'stoop') || m.stoop) {
         const a = m.stoop ? m.stoop.angle : w.angle, A = m.def.attacks.stoop;
-        const tx = m.stoop ? m.stoop.fromX + Math.sin(a) * (m.stoop.low + A.before) : w.tx, tz = m.stoop ? m.stoop.fromZ + Math.cos(a) * (m.stoop.low + A.before) : w.tz;
+        const at = m.stoop ? m.stoop.high - A.past : 0, tx = m.stoop ? m.stoop.fromX + Math.sin(a) * at : w.tx, tz = m.stoop ? m.stoop.fromZ + Math.cos(a) * at : w.tz;
         const x0 = tx - Math.sin(a) * A.before, z0 = tz - Math.cos(a) * A.before, len = A.before + A.past;
-        this.band(x0, z0, a, A.width, len, m.stoop ? 1 : k);
+        if (!m.stoop || m.stoop.s < m.stoop.high) this.band(x0, z0, a, A.width, len, m.stoop ? 1 : k);
         // static crackling round it as it drops
         if (m.stoop) for (let i = 0; i < 2; i++) {
           const y = this.gy(m.x, m.z) + 0.5 + (m.alt ?? 1), r = 0.7;
@@ -123,16 +117,14 @@ export class HawkFx {
           this.bolt(_a, _b, m.id * 31 + flick * 7 + i, 0.3, 3, 0.05, 0.9);
         }
       }
-      // the seize's low lane, from it to past the spot
-      if (m.state === 'windup' && w?.name === 'seize') {
-        const len = Math.hypot(w.tx - m.x, w.tz - m.z) + atk.over;
-        this.band(m.x, m.z, w.angle, 1.4, len, k);
-      }
-      // carried: the downwash of its wings beats rings of dust off the ground below
-      if (m.seize?.phase === 'carry' && this.wash.has(m.id)) {
-        const next = this.wash.get(m.id) - dt;
-        if (next <= 0) { const y = this.gy(m.x, m.z); this.monster.call?.ring(m.x, y + 0.08, m.z, 1.5, DUST, 0.4); for (let i = 0; i < 4; i++) { const a = Math.random() * 6.283; this.monster.call?.dust(m.x + Math.sin(a) * 0.5, y + 0.1, m.z + Math.cos(a) * 0.5, Math.sin(a) * 2, 0.3, Math.cos(a) * 2, 0.6, 0.4); } this.wash.set(m.id, 0.22); }
-        else this.wash.set(m.id, next);
+      // beating up the storm: static crackling over its wings
+      if ((m.storm || (m.state === 'windup' && w?.name === 'thunder_wings')) && Math.random() < 0.7) {
+        const y = this.gy(m.x, m.z) + 0.5 + (m.alt ?? 3);
+        for (const side of [1, -1]) {
+          const sx = Math.cos(m.facing) * side, sz = -Math.sin(m.facing) * side;
+          _a.set(m.x + sx * 0.4, y, m.z + sz * 0.4); _b.set(m.x + sx * (1.4 + Math.random() * 0.4), y + (Math.random() - 0.3) * 0.6, m.z + sz * (1.4 + Math.random() * 0.4));
+          this.bolt(_a, _b, flick * 17 + m.id * 5 + side, 0.3, 4, 0.045, 0.85);
+        }
       }
       // the storm feathers: it shivers them loose through the wind-up (static flickers over its wings)
       if (m.state === 'windup' && w?.name === 'storm_feathers' && Math.random() < 0.5) {
@@ -143,8 +135,36 @@ export class HawkFx {
     }
     this.drawFences(dt, g, flick);
     this.drawBursts(dt, flick);
+    this.drawBolts(dt, flick);
     for (let i = this.laneI; i < LANES; i++) this.lanes[i].visible = false;
     this.core.end(); this.glow.end(); this.boltCore.end(); this.boltGlow.end();
+  }
+
+  /** A bolt of the gale hawk's storm striking its mark (core burst of storm_bolt). */
+  strike(e) {
+    const y = this.gy(e.x, e.z), seed = Math.floor(Math.random() * 1e4);
+    const B = this.bolts[this.boltI++ % BOLTS];
+    B.t = 0; B.x = e.x; B.y = y; B.z = e.z; B.seed = seed;
+    skyAbove(this.monster.camera, e.x, e.z, 13, (Math.random() - 0.5) * 0.3, B.top);
+    Object.assign(this.bursts[this.burstI++ % BURSTS], { t: 0, x: e.x, y: y + 0.05, z: e.z, a: Math.random() * 6.283, seed });
+    this.monster.burstStar?.(e.x, y + 0.5, e.z, 0.75, STORM, 0x9fd8ff, 0xffffff);
+    this.monster.call?.ring(e.x, y + 0.1, e.z, (e.radius || 1.4) * 1.1, RING, 0.35);
+    if (this.fx) for (let i = 0; i < 14; i++) { const a = Math.random() * 6.283, v = 2 + Math.random() * 4; this.fx.add(e.x, y + 0.3, e.z, Math.sin(a) * v, 1.5 + Math.random() * 3, Math.cos(a) * v, { color: i % 3 ? 0x9fd8ff : 0xffffff, size: 0.12, sizeEnd: 0.03, life: 0.4, gravity: 9, drag: 1 }); }
+    this.monster.onShake?.(0.09, 0.1);
+  }
+
+  // each bolt: bright and re-jagged for a moment, a fork off it, then gone
+  drawBolts(dt, flick) {
+    for (const B of this.bolts) {
+      if (B.t >= 0.32) continue;
+      B.t += dt;
+      const fade = B.t < 0.14 ? 1 : Math.max(0, 1 - (B.t - 0.14) / 0.1);
+      _a.copy(B.top); _b.set(B.x, B.y + 0.05, B.z);
+      this.bolt(_a, _b, B.seed + flick, 0.07, 9, 0.24, fade);
+      // a fork off its lower half
+      _a.lerpVectors(B.top, _b, 0.55); _b.set(B.x + Math.sin(B.seed) * 1.6, B.y + 0.05, B.z + Math.cos(B.seed) * 1.6);
+      this.bolt(_a, _b, B.seed * 3 + flick, 0.12, 5, 0.1, fade * 0.8);
+    }
   }
 
   /** A warning band on the ground from (x0, z0) along a, its plain fill grown to k of its length, a crisp edge. */

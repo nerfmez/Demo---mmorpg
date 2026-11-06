@@ -1443,7 +1443,8 @@ test('gale hawk stoop: hovers high watching the spot, locks, stoops down its lin
   const b = arena('gale_hawk', 28, { open: true, normal: true });
   b.place(7);
   b.until(() => b.m.windup?.name === 'stoop', 1);
-  b.step(b.m.windup.total * a.lock + 0.05);
+  b.step(b.m.windup.total * 0.95);
+  assert.ok(Math.hypot(b.m.x - b.m.windup.tx, b.m.z - b.m.windup.tz) > a.standoff * 0.8, 'draws off for a long stoop');
   b.g.player.x += a.width / 2 + b.g.player.r + 0.6;
   b.until(() => b.m.state === 'recover', 3);
   assert.equal(b.hits.length, 0, 'a step aside after the lock');
@@ -1457,35 +1458,30 @@ test('gale hawk stoop: hovers high watching the spot, locks, stoops down its lin
   assert.equal(c.hits.length, 0, 'high over the first part of its line');
 });
 
-test('gale hawk seize: skims down its lane, takes the hero in its talons, carries them off and drops them; a dodge slips it', () => {
-  const a = M.gale_hawk.attacks.seize;
+test('gale hawk thunder wings: up in the air, each downstroke calls a bolt onto where the hero stands then, struck after its delay', () => {
+  const a = M.gale_hawk.attacks.thunder_wings;
   const { m, g, hits, until, step, place, only } = arena('gale_hawk', 28, { open: true });
-  only('seize'); place(4);
-  until(() => m.windup?.name === 'seize', 1);
+  only('thunder_wings'); place(5);
+  until(() => m.windup?.name === 'thunder_wings', 1);
+  assert.equal(m.altTo, a.hover, 'climbs');
   until(() => m.state === 'act', 2);
-  until(() => g.player.carried, 1);
-  assert.equal(hits.length, 1, 'clawed as it is taken');
-  const c = g.player.carried;
-  assert.ok(Math.abs(Math.hypot(c.toX - c.fromX, c.toZ - c.fromZ) - a.carry) < 1e-6, 'carried on along its flight');
-  assert.ok(c.toZ > c.fromZ);
-  // borne off: no walking, the game moves the hero, the hawk over its head
-  g.input.moveX = 1;
-  for (let t = 0; t < a.carryTime + 0.05 && g.player.carried; t += 0.01) { g.time += 0.01; g.updatePlayer(0.01); updateMonster(g, m, 0.01); }
-  g.input.moveX = 0;
-  assert.ok(!g.player.carried, 'let go');
-  assert.ok(Math.abs(g.player.x - c.toX) < 1e-6 && Math.abs(g.player.z - c.toZ) < 1e-6, 'dropped where it carried them');
-  step(0.05);
-  assert.equal(hits.length, 2, 'the drop hurts once');
-  assert.equal(m.state, 'recover');
-  assert.ok(!m.seize);
-  // dodged: the talons close on air and it skims on, open
+  step(0.02);
+  const first = g.areas.filter((x) => x.kind === 'storm_bolt');
+  assert.equal(first.length, 1, 'one bolt marked on the first beat');
+  assert.ok(Math.hypot(first[0].x - g.player.x, first[0].z - g.player.z) < 1e-9, 'where the hero stands');
+  // the hero keeps walking: each bolt lands where they stood a beat before, so a moving hero is never struck
+  for (let t = 0; t < a.every * a.strikes + a.delay + 0.5; t += 0.01) { g.player.x += 3 * 0.01; step(0.01); }
+  assert.equal(hits.length, 0, 'a moving hero outruns every bolt');
+  assert.equal(g.events.filter((e) => e.type === 'stormBeat').length, a.strikes);
+  assert.ok(m.state !== 'act' && !m.storm, 'clean afterwards');
+  // standing still: every bolt lands, each once
   const b = arena('gale_hawk', 28, { open: true });
-  b.only('seize'); b.place(4);
-  b.g.damageUnit = () => 0;
+  b.only('thunder_wings'); b.place(5);
   b.until(() => b.m.state === 'act', 3);
-  b.until(() => b.m.state !== 'act', 2);
-  assert.ok(!b.g.player.carried, 'not carried');
-  assert.equal(b.g.events.filter((e) => e.type === 'seizeMiss').length, 1);
+  b.step(a.delay - 0.05);
+  assert.equal(b.hits.length, 0, 'nothing before the first bolt strikes');
+  b.step(a.every * (a.strikes - 1) + 0.4);
+  assert.equal(b.hits.length, a.strikes);
 });
 
 test('gale hawk storm feathers: a zigzag of feathers across its line through the hero; the strands crackle in pulses after a charge', () => {

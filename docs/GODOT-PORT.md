@@ -630,7 +630,7 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   Wolves use `rend` (2 hits). They replace the old repeated lunges.
 - **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event; no monster lists it now).
 - **`shove`:** an instant cone with `knock` (ram). `charge` (boar) is the only straight rush left,
-  besides the stalker `pounce` leap and the warden's `roll` (the gale hawk now stoops and seizes, below).
+  besides the stalker `pounce` leap and the warden's `roll` (the gale hawk now stoops, below).
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an
   attack with `kind: 'charge'`, so it shares the charge path (one hit per unit, a rock in the way
   stuns it) plus `missStun` when it hits nobody. It is chosen at `minRange`..`maxRange`, after the
@@ -1336,18 +1336,17 @@ texture lookup and adds bands of light along its rest-pose height, rising and lo
 
 The gale hawk is a kit monster (`normal` `stoop`; a flyer: `m.altTo` holds an attack's own height, which its act
 then sets as `m.alt` itself): `stoop` (at wind-up start it climbs to `hover` m; the spot follows its prey until `lock`
-of the wind-up, then holds; it stoops from where it hangs down the line to `past` m beyond over `air` s, faster as it
-falls, and only from `before` m short of the spot on is it low enough to rake: units within `width`/2 of the path it
-covered that step are hit once; events `stoop`, `stoopHit`), `seize` (drops to `hover` m; spot followed until `lock`;
-it skims down the locked line at `speed` m/s up to `over` m past the spot and takes the first unit it reaches, a dodge
-slipping the talons (`seizeMiss` and a longer recovery if it reaches nobody); the hero gets `p.carried` {by, from,
-to, t, dur, lift}: `carry` m on along its flight (shorter where that ends in a wall or a town), over `carryTime` s,
-no walking or casting, the hawk over its head; let go, `dropMult` x its damage; events `seizeDash`, `seizeGrab`,
-`carryDrop`, `seizeDrop`) and `storm_feathers` (at wind-up start `count` points in a zigzag `span` m across the line
-from it through its prey, `zig` m either side, seeded; one area `storm_fence` with `fence` {pts, width, every, pulses}
-going off `charge` s after the wind-up: `updateAreas` pulses `pulses` times `every` s apart, each hurting units within
-`width`/2 of a strand between neighbours once (event `fencePulse`)). Render: skillfx/hawk-fx.js; the view lifts a
-carried hero (`p.carried.lift`) and lets them fall a beat before the ground.
+of the wind-up, then holds; through the wind-up it draws off to `standoff` m from the spot at `backSpeed` m/s; it
+stoops from there through the spot to `past` m beyond and pulls up `climb` m further over `air` s, its distance eased
+(3k^2 - 2k^3), its height falling as (1 - u)^2 to a 0.5 m skim, rising to `pullUp` m after; only over the strike
+stretch, from `before` m short of the spot to `past` beyond, are units within `width`/2 of the path it covered that
+step raked, once each; events `stoop`, `stoopHit`), `thunder_wings` (climbs to `hover` m; then every `every` s,
+`strikes` times, an area `storm_bolt` of `radius` m at where its prey stands, going off `delay` s later; event
+`stormBeat` per downstroke, `thunderWings` at the start) and `storm_feathers` (at wind-up start `count` points in a
+zigzag `span` m across the line from it through its prey, `zig` m either side, seeded; one area `storm_fence` with
+`fence` {pts, width, every, pulses} going off `charge` s after the wind-up: `updateAreas` pulses `pulses` times
+`every` s apart, each hurting units within `width`/2 of a strand between neighbours once (event `fencePulse`)).
+Render: skillfx/hawk-fx.js (the storm bolts come down from `skyAbove`, so they stay on screen).
 
 Save character version is 3. The optional `worldId` prevents restoring old coordinates
 on a different map. On migration preserve the character build and quest history,

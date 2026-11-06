@@ -1217,7 +1217,7 @@ export class Game {
       this.cancelChannel();
       p.auras={}; p.riposte=null;
       p.cast = null;
-      p.dash = null; p.carried = null;
+      p.dash = null;
       p.targetId = null;
       this.ch.progress.deaths = (this.ch.progress.deaths || 0) + 1;
       this.emit({ type: 'playerDeath' });
@@ -1639,16 +1639,6 @@ export class Game {
     this.tickPlayerStatuses(dt);
     if (p.dead) return;
 
-    // carried (the gale hawk's seize, core/ai.js): borne off in its talons to where it lets go, no walking or casting
-    if (p.carried) {
-      const c = p.carried;
-      c.t += dt;
-      const k = Math.min(1, c.t / c.dur), e = k * k * (3 - 2 * k);
-      p.x = c.fromX + (c.toX - c.fromX) * e; p.z = c.fromZ + (c.toZ - c.fromZ) * e;
-      p.moving = false;
-      if (k >= 1) { p.carried = null; this.emit({ type: 'carryDrop', x: p.x, z: p.z }); }
-      return;
-    }
     // tossed (the tusk boar's tusk toss, core/ai.js): flung through the air to where it lands, no walking or casting
     if (p.tossed) {
       const tz = p.tossed;

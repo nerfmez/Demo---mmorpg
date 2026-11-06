@@ -179,9 +179,9 @@ export function syncMonsterViews(view, dt, time) {
     const since = m.strikeAt !== undefined ? (view.game?.time ?? 0) - m.strikeAt : Infinity;
     if (since < 0.2 && m.strikeAt !== mv.strikeAt) { mv.strikeAt = m.strikeAt; mv.kx += m.strikeFrom[0] - m.x; mv.kz += m.strikeFrom[1] - m.z; }
     state.strikeT = since; state.fangAim = !!m.fangs; state.coil = m.coil ? m.coil.phase : null;
-    // the gale hawk (monsters.js animHawk): how far down its stoop (and where the low stretch starts), its seize
-    state.stoopK = m.stoop ? m.stoop.s / Math.max(0.01, m.stoop.len) : -1; state.stoopLow = m.stoop ? m.stoop.low / Math.max(0.01, m.stoop.len) : 1;
-    state.seize = m.seize ? m.seize.phase : null;
+    // the gale hawk (monsters.js animHawk): how far down its stoop (and where the low stretch starts), its thunder wings (beats since they began)
+    state.stoopK = m.stoop ? m.stoop.s / Math.max(0.01, m.stoop.len) : -1; state.stoopLow = m.stoop ? m.stoop.low / Math.max(0.01, m.stoop.len) : 1; state.stoopHigh = m.stoop ? m.stoop.high / Math.max(0.01, m.stoop.len) : 1;
+    state.storm = m.storm ? m.storm.t / m.def.attacks[m.storm.name].every : -1;
     state.blinkT = m.blinkedAt !== undefined ? (view.game?.time ?? 0) - m.blinkedAt : undefined; // the marsh wisp gathering again
     state.dragging = !!m.drag; // the shore gull riding its prey's head
     state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0;

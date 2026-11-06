@@ -504,7 +504,7 @@ export class SkillFx {
       // the marsh wisp (skillfx/wisp-fx.js)
       case 'wispOrbs': case 'lure': return this.monster.wisp.event(e, g);
       // the gale hawk (skillfx/hawk-fx.js)
-      case 'stoop': case 'stoopHit': case 'seizeDash': case 'seizeGrab': case 'seizeDrop': case 'seizeMiss': case 'stormFeathers': case 'fencePulse': return this.monster.hawk.event(e, g);
+      case 'stoop': case 'stoopHit': case 'thunderWings': case 'stormBeat': case 'stormFeathers': case 'fencePulse': return this.monster.hawk.event(e, g);
       case 'viperStrike': case 'coilDash': case 'coilGrab': case 'coilFree': case 'coilEnd': case 'tailLash': case 'tailCut': return this.monster.viper.event(e, g);
       case 'swoopHit': case 'rallyMarks': case 'rally': case 'moonLeap': case 'moonLock': case 'moonCrash': case 'phantomMarks': case 'phantomGo': case 'phaseRoar': return this.monster.greyfang.event(e, g);
       case 'stunned': {
@@ -552,6 +552,7 @@ export class SkillFx {
       }
       case 'burst':
         if (e.source != null) this.monster.burst(e, g); // a kit monster's landing (the old dust still draws)
+        if (e.kind === 'storm_bolt') { this.monster.hawk.strike(e); return true; } // the gale hawk's thunder wings
         if (e.kind === 'marsh_gas') { this.monster.wisp.ignite(e); return true; } // the marsh wisp's gas catching fire
         if (e.kind === 'arrow_rain') { this.rain.burst(e); return true; }
         if (e.kind === 'fire_arrow_rain') { this.frain.burst(e); host.shake(0.08, 0.1); return true; }

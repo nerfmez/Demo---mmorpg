@@ -1453,7 +1453,7 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb' || a.kind === 'pearl_burst' || a.kind === 'engulf' || a.kind === 'shell_drop' || a.kind === 'click' || a.kind === 'coral_burst' || a.kind === 'mantis_land' || a.kind === 'marsh_gas') {
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb' || a.kind === 'pearl_burst' || a.kind === 'engulf' || a.kind === 'shell_drop' || a.kind === 'click' || a.kind === 'coral_burst' || a.kind === 'mantis_land' || a.kind === 'marsh_gas' || a.kind === 'storm_bolt') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);

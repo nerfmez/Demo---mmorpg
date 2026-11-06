@@ -37,7 +37,7 @@ export function updateMonster(game, m, dt) {
   m.stateT += dt;
   m.tauntT=Math.max(0,(m.tauntT||0)-dt);
   if (def.kit?.trail && m.state !== 'shell') dropTrail(game, m); // slime wherever it crawls
-  // m.altTo: an attack's own height (the gale hawk climbs into its hover); its act sets m.alt itself (stoop, seize)
+  // m.altTo: an attack's own height (the gale hawk climbs into its hover); its act sets m.alt itself (stoop)
   if (def.flyer) m.alt = approach(m.alt ?? def.hover, m.altTo ?? (m.state === 'act' ? 0.5 : m.state === 'recover' ? 0.9 : def.hover), (m.altTo ? 4 : m.state === 'act' ? 12 : 3) * dt);
 
   const t = pickTarget(game, m);
@@ -321,7 +321,7 @@ function setState(m, state, dur = 0) {
   if (state !== 'stunned') m.exposed = 0; // the eye clam's cracked shell closes again
   m.roaring = false; // the phase roar is its own recover (kit)
   // out of the act, nothing is left up in the air (Greyfang's moon leap) or mid-rush
-  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; m.stoop = null; m.seize = null; if (state !== 'windup') m.altTo = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
+  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; m.stoop = null; m.storm = null; if (state !== 'windup') m.altTo = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
   m.state = state;
   m.stateT = 0;
   m.stateDur = dur;
@@ -419,13 +419,17 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'seize', 'storm_feathers'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
-  // the gale hawk's stoop and seize follow their prey's spot until `lock` of the wind-up, then hold it (dodgeable)
-  if ((kind === 'stoop' || kind === 'seize') && t && m.stateT < w.total * (atk.lock ?? 0.6)) {
-    w.tx = t.x; w.tz = t.z; w.angle = angleTo(m.x, m.z, t.x, t.z); m.facing = w.angle;
+  // the gale hawk's stoop: the spot follows its prey until `lock` of the wind-up, then holds (dodgeable); meanwhile it
+  // draws off to `standoff` m from the spot at `backSpeed` m/s, climbing, so its stoop is a long one
+  if (kind === 'stoop' && t) {
+    if (m.stateT < w.total * (atk.lock ?? 0.6)) { w.tx = t.x; w.tz = t.z; }
+    const d = dist(m.x, m.z, w.tx, w.tz), a = angleTo(w.tx, w.tz, m.x, m.z);
+    if (d < atk.standoff) { const step = Math.min(atk.standoff - d, atk.backSpeed * dt); game.moveEntity(m, Math.sin(a) * step, Math.cos(a) * step); }
+    w.angle = angleTo(m.x, m.z, w.tx, w.tz); m.facing = w.angle;
   }
   if (m.stateT < w.total) return;
   const dmg = m.damage * (atk.damageMult || 1);
@@ -808,23 +812,23 @@ function windup(game, m, dt, t, gap) {
       return setState(m, 'recover', atk.recover);
     }
     case 'stoop': {
-      // the gale hawk folds its wings and stoops down its locked line, from where it hung to `past` m beyond the spot,
-      // over `air` s; only the stretch from `before` m short of the spot on skims low enough to strike: units within
-      // `width`/2 of its path there are raked once (act: m.stoop)
+      // the gale hawk folds its wings and stoops from where it hung, down a curve to its locked spot and `past` m on
+      // (the strike stretch, from `before` m short of the spot: units within `width`/2 of the path it covers there are
+      // raked once), then pulls up `climb` m further, all over `air` s (act: m.stoop)
       const a = angleTo(m.x, m.z, w.tx, w.tz), d0 = dist(m.x, m.z, w.tx, w.tz);
-      let past = atk.past;
-      const end = (q) => [w.tx + Math.sin(a) * q, w.tz + Math.cos(a) * q];
-      while (past > 0 && game.isSafe(...end(past))) past -= 0.5;
-      m.stoop = { name: w.name, t: 0, fromX: m.x, fromZ: m.z, angle: a, len: d0 + Math.max(0, past), low: Math.max(0, d0 - atk.before), dmg, hit: new Set(), s: 0 };
+      let past = atk.past, climb = atk.climb;
+      const at = (q) => [w.tx + Math.sin(a) * q, w.tz + Math.cos(a) * q];
+      while (past + climb > 0 && game.isSafe(...at(past + climb))) { if (climb > 0) climb = Math.max(0, climb - 0.5); else past -= 0.5; }
+      past = Math.max(0, past);
+      m.stoop = { name: w.name, t: 0, fromX: m.x, fromZ: m.z, angle: a, low: Math.max(0, d0 - atk.before), high: d0 + past, len: d0 + past + climb, dmg, hit: new Set(), s: 0 };
       game.emit({ type: 'stoop', id: m.id, x: m.x, z: m.z, angle: a, len: m.stoop.len, low: m.stoop.low, air: atk.air });
       return setState(m, 'act');
     }
-    case 'seize': {
-      // the gale hawk skims low down its locked line at `speed` m/s (up to `over` m past the spot) and seizes the
-      // first unit it reaches in its talons: the hero is carried off `carry` m along its flight, `lift` m up, over
-      // `carryTime` s (core player `carried`), and dropped (`dropMult` x its damage); a dodge slips the talons
-      m.seize = { name: w.name, phase: 'skim', t: 0, angle: w.angle, left: dist(m.x, m.z, w.tx, w.tz) + atk.over, dmg, unit: null };
-      game.emit({ type: 'seizeDash', id: m.id, x: m.x, z: m.z, angle: w.angle });
+    case 'thunder_wings': {
+      // up in the air the gale hawk beats its wings into a thunderstorm: every `every` s a downstroke calls a bolt onto
+      // where its prey stands then, marked and striking `delay` s later (areas storm_bolt), `strikes` in all (act: m.storm)
+      m.storm = { name: w.name, t: 0, n: 0, dmg };
+      game.emit({ type: 'thunderWings', id: m.id, x: m.x, z: m.z, strikes: atk.strikes, every: atk.every });
       return setState(m, 'act');
     }
     case 'storm_feathers': {
@@ -1131,69 +1135,40 @@ function act(game, m, dt, t) {
     return;
   }
   if (m.stoop) {
-    // the gale hawk's stoop: down its line, faster as it falls, its height from the hover down to a skim at the strike
-    // stretch; there its talons rake what lies within width/2 of the path it covered this step
+    // the gale hawk's stoop: slow off the hover, fast through the dive, braking as it pulls up; its height falls steeply
+    // at first and flattens into a skim over the strike stretch, then it climbs again; over the stretch its talons rake
+    // what lies within width/2 of the path it covered this step
     const S = m.stoop, atk = m.def.attacks[S.name], d = dirFromAngle(S.angle);
     S.t += dt;
-    const k = Math.min(1, S.t / atk.air), s0 = S.s, s1 = S.len * (0.35 * k + 0.65 * k * k);
+    const k = Math.min(1, S.t / atk.air), s0 = S.s, s1 = S.len * k * k * (3 - 2 * k);
     S.s = s1;
     m.x = S.fromX + d.x * s1; m.z = S.fromZ + d.z * s1; m.facing = S.angle; m.moving = true;
-    m.alt = s1 < S.low ? atk.hover + (0.5 - atk.hover) * (s1 / Math.max(0.01, S.low)) : 0.5;
-    if (s1 >= S.low) {
-      const ax = S.fromX + d.x * Math.max(s0, S.low), az = S.fromZ + d.z * Math.max(s0, S.low);
-      for (const u of game.units()) {
-        if (S.hit.has(u.id) || segDist(u.x, u.z, ax, az, m.x, m.z) > atk.width / 2 + u.r) continue;
-        S.hit.add(u.id);
-        if (game.damageUnit(u, S.dmg, m, { attack: S.name })) game.emit({ type: 'stoopHit', id: m.id, x: u.x, z: u.z, angle: S.angle });
+    const u = s1 / Math.max(0.01, S.low);
+    m.alt = s1 < S.low ? 0.5 + (atk.hover - 0.5) * (1 - u) * (1 - u) : s1 <= S.high ? 0.5 : 0.5 + (atk.pullUp - 0.5) * Math.sin(Math.min(1, (s1 - S.high) / Math.max(0.01, S.len - S.high)) * Math.PI * 0.5);
+    if (s1 >= S.low && s0 <= S.high) {
+      const ax = S.fromX + d.x * Math.max(s0, S.low), az = S.fromZ + d.z * Math.max(s0, S.low), b = Math.min(s1, S.high), bx = S.fromX + d.x * b, bz = S.fromZ + d.z * b;
+      for (const un of game.units()) {
+        if (S.hit.has(un.id) || segDist(un.x, un.z, ax, az, bx, bz) > atk.width / 2 + un.r) continue;
+        S.hit.add(un.id);
+        if (game.damageUnit(un, S.dmg, m, { attack: S.name })) game.emit({ type: 'stoopHit', id: m.id, x: un.x, z: un.z, angle: S.angle });
       }
     }
     if (k < 1) return;
     m.stoop = null; m.cd[S.name] = atk.cooldown;
     return setState(m, 'recover', atk.recover);
   }
-  if (m.seize) {
-    const S = m.seize, atk = m.def.attacks[S.name];
-    S.t += dt;
-    if (S.phase === 'skim') {
-      const d = dirFromAngle(S.angle), step = Math.min(S.left, atk.speed * dt);
-      m.facing = S.angle; m.moving = true; m.alt = 0.9;
-      game.moveEntity(m, d.x * step, d.z * step);
-      S.left -= step;
-      for (const u of game.units()) {
-        if (dist(m.x, m.z, u.x, u.z) > m.r + u.r + 0.3) continue;
-        const dealt = game.damageUnit(u, S.dmg, m, { attack: S.name });
-        if (!dealt && u === game.player) continue; // dodged: the talons close on air
-        if (u !== game.player || u.dead) break; // an ally is clawed, not carried
-        // carried on along its flight, `carry` m (shorter where that ends in a wall or a town), lifted and dropped
-        let toX = u.x, toZ = u.z;
-        for (const f of [1, 0.75, 0.5, 0.25]) {
-          const x = u.x + d.x * atk.carry * f, z = u.z + d.z * atk.carry * f;
-          if (game.world.isFree(x, z, u.r) && !game.isSafe(x, z)) { toX = x; toZ = z; break; }
-        }
-        u.cast = null; u.charging = null; u.channeling = null;
-        u.carried = { by: m.id, fromX: u.x, fromZ: u.z, toX, toZ, t: 0, dur: atk.carryTime, lift: atk.lift };
-        Object.assign(S, { phase: 'carry', t: 0, unit: u });
-        game.emit({ type: 'seizeGrab', id: m.id, x: u.x, z: u.z, toX, toZ, duration: atk.carryTime });
-        return;
-      }
-      if (S.left > 0.01) return;
-      m.seize = null; m.cd[S.name] = atk.cooldown;
-      game.emit({ type: 'seizeMiss', id: m.id, x: m.x, z: m.z });
-      return setState(m, 'recover', atk.recover * 1.5); // a miss leaves it beating back up, open
+  if (m.storm) {
+    // beating its wings up in the air: a bolt called down every `every` s onto where its prey stands then
+    const S = m.storm, atk = m.def.attacks[S.name], prey = t || game.player;
+    S.t += dt; m.moving = false;
+    if (prey) m.facing = angleTo(m.x, m.z, prey.x, prey.z);
+    while (S.n < atk.strikes && S.t >= S.n * atk.every) {
+      S.n++;
+      if (prey && !prey.dead && !game.isSafe(prey.x, prey.z)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: S.name, kind: 'storm_bolt', x: prey.x, z: prey.z, radius: atk.radius, delay: atk.delay, duration: 0.3, damage: S.dmg, element: 'lightning' });
+      game.emit({ type: 'stormBeat', id: m.id, x: m.x, z: m.z, n: S.n });
     }
-    // carrying: it flies over its prey's head (the game moves the hero, updatePlayer), then lets go
-    const u = S.unit;
-    m.moving = true;
-    if (u && !u.dead && u.carried?.by === m.id) {
-      const k = Math.min(1, u.carried.t / u.carried.dur);
-      m.x = u.x; m.z = u.z; m.alt = 1.1 + u.carried.lift * Math.sin(Math.min(1, k / 0.3) * Math.PI * 0.5); // its feet at its prey's shoulders
-      return;
-    }
-    if (u && !u.dead && !u.carried) {
-      game.damageUnit(u, m.damage * atk.dropMult, m, { attack: S.name });
-      game.emit({ type: 'seizeDrop', id: m.id, x: u.x, z: u.z });
-    }
-    m.seize = null; m.cd[S.name] = atk.cooldown;
+    if (S.t < (atk.strikes - 1) * atk.every + atk.delay) return;
+    m.storm = null; m.cd[S.name] = atk.cooldown;
     return setState(m, 'recover', atk.recover);
   }
   if (m.fangs) {
@@ -2131,9 +2106,9 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
-  if (kind === 'stoop' || kind === 'seize') {
-    // the gale hawk climbs into a wind-hover (`hover` m) or drops toward the ground, its eyes on its prey's spot
-    // (followed until `lock`, windup())
+  if (kind === 'stoop' || kind === 'thunder_wings') {
+    // the gale hawk climbs: into a wind-hover (`hover` m), its eyes on its prey's spot (followed until `lock`,
+    // windup()), or up into the air to beat up a storm
     startWindup(game, m, name, t, { tx: t.x, tz: t.z });
     m.altTo = atk.hover;
     return;

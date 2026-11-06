@@ -460,7 +460,6 @@ export class Game {
   castSlot(i, point = null, chargeRatio = null) {
     const p = this.player;
     if (p.dead) return false;
-    if (p.statuses.fear) { this.emit({ type: 'fail', reason: 'feared', slot: i }); return false; } // too terrified to fight
     if (p.charging || p.channeling) return false;
     const requested = this.skills[i];
     if ((p.cast || p.dash) && (requested?.charge || requested?.channel || chargeRatio !== null)) return false;
@@ -978,7 +977,7 @@ export class Game {
 
   /** Damage to a monster from the player, an ally or a damage-over-time effect. */
   hitMonster(m, amount, opts = {}) {
-    if (m.dead) return 0;
+    if (m.dead || m.targetable === false) return 0; // out of reach (Greyfang high in its moon leap)
     const hpBefore = Math.max(0, m.hp);
     let dmg = adjustFrontierHit(this,m,amount,opts);
     if(m.dead)return 0;
@@ -1689,11 +1688,8 @@ export class Game {
       return;
     }
 
-    let mx = this.input.moveX;
-    let mz = this.input.moveZ;
-    // terrified (Greyfang's dread howl): it runs straight away from what scared it, whatever is pressed
-    const fear = p.statuses.fear;
-    if (fear && !p.statuses.root) { const a = Math.atan2(p.x - fear.fromX, p.z - fear.fromZ); mx = Math.sin(a); mz = Math.cos(a); }
+    const mx = this.input.moveX;
+    const mz = this.input.moveZ;
     const mlen = Math.hypot(mx, mz);
     const chill = statusWalk(p); // chill slows, root stops (core/defense.js)
     const haste = 1 + buffSum(p.buffs, 'speed');
@@ -1818,8 +1814,8 @@ export class Game {
       }
       if (st.t <= 0) delete p.statuses[id];
     }
-    // chill, hobble, shock, root and fear only last
-    for (const id of ['chill', 'hobble', 'shock', 'root', 'fear']) {
+    // chill, hobble, shock and root only last
+    for (const id of ['chill', 'hobble', 'shock', 'root']) {
       const st = p.statuses[id];
       if (st && (st.t -= dt) <= 0) delete p.statuses[id];
     }

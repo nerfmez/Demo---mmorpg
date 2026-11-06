@@ -1103,7 +1103,7 @@ test('mantis wing leap: it flies over the hero and lands behind them facing roun
   assert.equal(b.hits.length, 0, 'stepped toward its take-off: safe');
 });
 
-test('Greyfang hamstring: it darts past the hero along a curve, snapping at their legs once; the hero limps', () => {
+test('Greyfang hamstring: it darts past the hero, skids round and passes back (three passes once enraged), snapping once a pass; the hero limps', () => {
   const a = M.greyfang.attacks.hamstring;
   const { m, g, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
   only('hamstring'); place(4);
@@ -1111,12 +1111,130 @@ test('Greyfang hamstring: it darts past the hero along a curve, snapping at thei
   const hp = g.player.hp;
   step(a.windup - 0.03);
   assert.equal(g.player.hp, hp, 'nothing in the wind-up');
-  until(() => m.state === 'recover', 1);
+  until(() => m.swoop?.skid > 0, 1);
   assert.ok(g.player.hp < hp, 'snapped at as it passed');
-  assert.ok(g.player.statuses.hobble, 'hamstrung');
+  assert.ok(g.player.statuses.hobble?.slow > 0 && g.player.statuses.hobble.slow < 1, 'hamstrung');
   assert.ok(m.z > g.player.z, 'it ended up past the hero');
-  const before = g.player.statuses.hobble.slow;
-  assert.ok(before > 0 && before < 1);
+  assert.deepEqual(m.windup.path, m.swoop.path, 'the way back is marked through the skid');
+  // each pass snaps once, nothing while it skids
+  for (const [enraged, passes] of [[false, a.passes], [true, a.enragedPasses]]) {
+    const b = arena('greyfang', 22, { open: true, normal: true });
+    if (enraged) b.m.hp = b.m.maxHp * 0.4;
+    b.only('hamstring'); b.place(4);
+    b.until(() => b.m.windup?.name === 'hamstring', 4); // (enraged: after its phase roar)
+    b.until(() => b.m.swoop?.skid > 0, 2);
+    assert.equal(b.hits.length, 1, 'the first pass: one snap');
+    b.step(a.skid - 0.05);
+    assert.equal(b.hits.length, 1, 'nothing while it skids');
+    b.until(() => b.m.state === 'recover', 4);
+    assert.equal(b.hits.length, passes, `${passes} passes, a snap each`);
+    assert.equal(b.m.swoop, null);
+  }
+});
+
+test('Greyfang moon orbit: it runs round the hero (how far is drawn each time), plants, then cuts straight through and on, hitting once', () => {
+  const a = M.greyfang.attacks.moon_orbit;
+  const { m, g, hits, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true });
+  const sweeps = new Set();
+  for (let i = 0; i < 2; i++) {
+    only('moon_orbit'); place(3); m.state = 'chase';
+    until(() => m.lap?.phase === 'run', 2);
+    sweeps.add(m.lap.sweep);
+    assert.ok(m.lap.sweep >= a.sweepRange[0] && m.lap.sweep <= a.sweepRange[1]);
+    until(() => m.lap?.phase === 'aim', 3);
+    assert.equal(hits.length, i, 'nothing while it runs round');
+    const d = Math.hypot(m.x - g.player.x, m.z - g.player.z), sx = m.x - g.player.x, sz = m.z - g.player.z;
+    assert.ok(d >= a.near - 0.1 && d <= a.far + 0.1, 'at its distance');
+    step(a.aim - 0.02);
+    assert.equal(hits.length, i, 'nothing while it plants');
+    until(() => m.state === 'recover', 1);
+    assert.equal(hits.length, i + 1, 'one cut, one hit');
+    assert.ok((m.x - g.player.x) * sx + (m.z - g.player.z) * sz < 0, 'it ran on through to the far side');
+  }
+  assert.equal(sweeps.size, 2, 'how far it runs differs each time');
+});
+
+test('Greyfang phase two: at half health it stops once to roar, and only then do its moon leap and phantom rush come', () => {
+  const G = M.greyfang;
+  const { m, g, step, place } = arena('greyfang', 22, { open: true, normal: true });
+  assert.equal(Object.keys(G.attacks).length, 5, 'a boss has five skills (owner, 2026-11-06)');
+  assert.ok(G.attacks.moon_leap.use.hpBelow === 0.5 && G.attacks.phantom_rush.use.hpBelow === 0.5 && G.enrageAt === 0.5);
+  for (const k in m.cd) m.cd[k] = k === 'moon_leap' || k === 'phantom_rush' ? 0 : 99;
+  place(3); step(0.5);
+  assert.ok(!['moon_leap', 'phantom_rush'].includes(m.windup?.name), 'not while above half');
+  m.hp = m.maxHp * 0.45;
+  step(0.05);
+  assert.ok(m.roaring && m.state === 'recover', 'it roars');
+  assert.equal(g.events.filter((e) => e.type === 'phaseRoar').length, 1);
+  step(G.kit.phaseRoar - 0.1);
+  assert.equal(m.windup, null, 'nothing while it roars');
+  for (let t = 0; t < 1 && !m.windup; t += 0.01) step(0.01);
+  assert.ok(['moon_leap', 'phantom_rush'].includes(m.windup?.name), 'then the second phase');
+  m.state = 'chase'; m.windup = null; m.hp = m.maxHp * 0.3; step(0.5);
+  assert.equal(g.events.filter((e) => e.type === 'phaseRoar').length, 1, 'only once');
+});
+
+test('Greyfang moon leap: out of reach in the air, its shadow follows the hero, the spot locks, then it crashes: hit and thrown inside, safe outside', () => {
+  const a = M.greyfang.attacks.moon_leap;
+  for (const out of [false, true]) {
+    const { m, g, hits, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true });
+    m.hp = m.maxHp * 0.4; m.roared = true; m.enraged = true;
+    only('moon_leap'); place(3);
+    until(() => m.windup?.name === 'moon_leap', 1);
+    until(() => m.leap?.phase === 'track', 2);
+    const hp = m.hp;
+    assert.equal(m.targetable, false);
+    assert.equal(g.hitMonster(m, 500), 0, 'out of reach');
+    assert.equal(m.hp, hp);
+    g.player.x += 3; // the hero runs: its shadow follows
+    until(() => m.leap?.phase === 'lock', 2);
+    assert.ok(Math.hypot(m.x - g.player.x, m.z - g.player.z) < 0.3, 'its shadow caught up');
+    const lx = m.x, lz = m.z;
+    if (out) g.player.x += a.radius + 1.5; // out of the circle
+    step(a.lock * 0.5);
+    assert.ok(m.x === lx && m.z === lz, 'the spot is locked');
+    assert.equal(hits.length, 0, 'nothing before it lands');
+    until(() => m.state === 'recover', 2);
+    assert.equal(hits.length, out ? 0 : 1, out ? 'outside: safe' : 'inside: hit once');
+    assert.equal(m.targetable, true, 'back in reach');
+    assert.equal(g.events.filter((e) => e.type === 'moonCrash').length, 1);
+  }
+});
+
+test('Greyfang phantom rush: three lanes cross at the hero; two shadow wolves, then Greyfang itself, run them a gap apart, each hitting once', () => {
+  const a = M.greyfang.attacks.phantom_rush;
+  for (const out of [false, true]) {
+    const { m, g, hits, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true });
+    const run = (sec) => { for (let t = 0; t < sec - 1e-8; t += 0.01) { g.time += 0.01; g.updateProjectiles(0.01); if (!m.dead) updateMonster(g, m, 0.01); } };
+    m.hp = m.maxHp * 0.4; m.roared = true; m.enraged = true;
+    only('phantom_rush'); place(3);
+    until(() => m.windup?.name === 'phantom_rush', 1);
+    const { lanes, tx, tz } = m.windup;
+    assert.equal(lanes.length, 3);
+    for (const [x, z, ang] of lanes) assert.ok(Math.abs((tx - x) * Math.cos(ang) - (tz - z) * Math.sin(ang)) < 0.01, 'each lane runs through the hero');
+    if (out) {
+      // a spot clear of all three lanes, 4 m out
+      let best = null, bestD = 0;
+      for (let i = 0; i < 72; i++) {
+        const q = (i / 72) * Math.PI * 2, px = tx + Math.sin(q) * 4, pz = tz + Math.cos(q) * 4;
+        const d = Math.min(...lanes.map(([x, z, ang]) => Math.abs((px - x) * Math.cos(ang) - (pz - z) * Math.sin(ang))));
+        if (d > bestD) { bestD = d; best = [px, pz]; }
+      }
+      Object.assign(g.player, { x: best[0], z: best[1] });
+    }
+    run(m.windup.total - 0.03);
+    assert.equal(hits.length, 0, 'nothing in the wind-up');
+    assert.equal(g.projectiles.filter((p) => p.kind === 'phantom_wolf').length, 0);
+    run(0.05);
+    assert.equal(g.projectiles.filter((p) => p.kind === 'phantom_wolf').length, 1, 'the first shadow runs');
+    run(a.gap);
+    assert.equal(g.projectiles.filter((p) => p.kind === 'phantom_wolf').length, 2, 'then the second');
+    for (let t = 0; t < 3 && m.state !== 'recover'; t += 0.01) run(0.01);
+    assert.equal(m.state, 'recover');
+    run(1);
+    assert.equal(hits.length, out ? 0 : 3, out ? 'between the lanes: safe' : 'each run hits once');
+    assert.equal(m.rush, null);
+  }
 });
 
 test('Greyfang rally: it howls, spots light round the hero, and its pack comes in there; never more than its cap', () => {
@@ -1137,74 +1255,4 @@ test('Greyfang rally: it howls, spots light round the hero, and its pack comes i
   m.state = 'chase'; m.cd.rally = 0;
   for (let t = 0; t < 0.3 && !m.windup; t += 0.01) step(0.01);
   assert.notEqual(m.windup?.name, 'rally', 'its pack is round the hero already');
-});
-
-test('Greyfang crescent rake: three claws stepping in, each once at its time, the last throwing the hero back', () => {
-  const a = M.greyfang.attacks.crescent_rake;
-  const { m, g, hits, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true });
-  only('crescent_rake'); place(1);
-  until(() => m.windup?.name === 'crescent_rake');
-  step(a.windup - 0.02);
-  assert.equal(hits.length, 0, 'nothing in the wind-up');
-  until(() => m.state === 'act', 0.1);
-  for (let i = 0; i < a.hits.length; i++) {
-    until(() => m.stateT >= a.hits[i].at - 0.015, 1);
-    assert.equal(hits.length, i, `no claw before claw ${i + 1}`);
-    step(0.03);
-    assert.equal(hits.length, i + 1, `claw ${i + 1} lands once`);
-  }
-  until(() => m.state === 'recover', 1);
-  assert.equal(hits.length, 3);
-});
-
-test('Greyfang phase two: its dread howl and pack command only come once it is down to half', () => {
-  const { m, place, step } = arena('greyfang', 22, { open: true, normal: true });
-  for (const k in m.cd) m.cd[k] = k === 'dread' || k === 'command' ? 0 : 99;
-  place(2); step(0.5);
-  assert.ok(!['dread', 'command'].includes(m.windup?.name), 'not while above half');
-  assert.ok(M.greyfang.attacks.dread.use.hpBelow === 0.5 && M.greyfang.attacks.command.use.hpBelow === 0.5 && M.greyfang.enrageAt === 0.5);
-  assert.equal(Object.keys(M.greyfang.attacks).length, 5, 'a boss has five skills (owner, 2026-11-06)');
-});
-
-test('Greyfang pack command: every wolf of its pack aims and lunges at once as its bark ends; with no pack, no command', () => {
-  const { m, g, hits, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true });
-  m.hp = m.maxHp * 0.4;
-  only('command'); place(4);
-  step(0.3);
-  assert.notEqual(m.windup?.name, 'command', 'nobody to command');
-  for (const [x, z] of [[4, 4], [-4, 4]]) { const w = g.spawnMinion('thornback_wolf', 20, x, z); w.packOf = m.id; Object.assign(w, { aggro: true, state: 'chase' }); }
-  m.state = 'chase'; m.cd.command = 0;
-  until(() => m.windup?.name === 'command', 1);
-  const pack = g.monsters.filter((o) => o.packOf === m.id), total = m.windup.total; // (enraged: a shorter bark)
-  assert.ok(pack.every((o) => o.lap?.phase === 'aim'), 'every wolf aims');
-  const step2 = (sec) => { for (let t = 0; t < sec; t += 0.01) { g.time += 0.01; for (const o of g.monsters) if (!o.dead) updateMonster(g, o, 0.01); } };
-  step2(total - 0.05);
-  assert.equal(hits.length, 0, 'nothing through the bark');
-  assert.ok(pack.every((o) => o.lap?.phase === 'aim'), 'all still aiming');
-  step2(0.1);
-  assert.ok(pack.every((o) => o.lap?.phase === 'dash'), 'all go at once');
-  step2(0.4);
-  assert.equal(hits.length, 2, 'both lunges land');
-});
-
-test('Greyfang dread howl: within its circle the hero is terrified (runs away, casts nothing); outside is safe', () => {
-  const a = M.greyfang.attacks.dread;
-  const { m, g, until, place, only } = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
-  m.hp = m.maxHp * 0.4;
-  only('dread'); place(2);
-  until(() => m.windup?.name === 'dread', 1);
-  until(() => m.state === 'recover', 3);
-  assert.ok(g.player.statuses.fear, 'terrified');
-  assert.equal(g.castSlot(0), false, 'casts nothing');
-  const d0 = Math.hypot(g.player.x - m.x, g.player.z - m.z);
-  g.input.moveX = -1; g.input.moveZ = 0; // pushing the other way
-  for (let i = 0; i < 30; i++) g.updatePlayer ? g.updatePlayer(0.02) : g.update(0.02);
-  assert.ok(Math.hypot(g.player.x - m.x, g.player.z - m.z) > d0 + 0.5, 'it runs away from the howl whatever is pressed');
-  const b = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
-  b.m.hp = b.m.maxHp * 0.4;
-  b.only('dread'); b.place(2);
-  b.until(() => b.m.windup?.name === 'dread', 1);
-  Object.assign(b.g.player, { x: 0, z: a.radius + 2 });
-  b.until(() => b.m.state === 'recover', 3);
-  assert.ok(!b.g.player.statuses.fear, 'outside the circle: unafraid');
 });

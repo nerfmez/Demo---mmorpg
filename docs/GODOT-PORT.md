@@ -627,7 +627,7 @@ own kit, below; `mantis` and `whirl` stay for any monster that lists them). New 
 - **`whirl`:** a 360° planted strike on the `m.melee` path (mantis).
 - **`rend`, `rake`:** planted combos on the `m.melee` path. `atk.hits` lists each contact
   (`at` time, `off` angle offset, `step` forward, optional `knock`); each hit tests the arc once.
-  Wolves use `rend` (2 hits), Greyfang `rake` (3 hits). They replace the old repeated lunges.
+  Wolves use `rend` (2 hits). They replace the old repeated lunges.
 - **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event).
 - **`shove`:** an instant cone with `knock` (ram). `charge` (boar) is the only straight rush left,
   besides the hawk `dive` and stalker `pounce` leaps, and the warden's `roll`.
@@ -1269,19 +1269,31 @@ skillfx/mantis-fx.js, `rig.wingSpread` from the animator) for the display and th
 the imported model's own arm and blade angles (`state.kit`, monsters-midhigh.js animMantis).
 
 Greyfang (a mini-boss: its whole kit, no elite roll) is a kit monster: `hamstring` (kind `snatch` without `steal`: a
-swoop along a curve past its prey's side (`past`, `bow`), clipping each unit within `reach` once, event `swoopHit`,
-its inflict `hobble`: a hero status with `slow` that multiplies walking like chill, ticked with chill/shock/root,
-cleansed by Cleanse), `rally` (kind `rally`: at wind-up start up to `summon` spots (`enragedSummon` once enraged), as
-many as `cap` minus its living pack, evenly round its prey `ring` m out (pulled in where blocked or safe), event
-`rallyMarks`; at the end a `pack` minion at each, `packOf` it, set on the prey, event `rally`; not taken while its
-pack is full), `crescent_rake` (kind `rake`: three timed claws on the `m.melee` path, the last with `knock`),
-and two that come once it is down to half (`use.hpBelow` 0.5, with `enrageAt` 0.5: a boss has five skills, its
-second phase from half health): `command` (kind `command`: at wind-up start every living wolf of its pack is put in
-`act` with its circle_lunge `m.lap` at phase aim, its aim clock started `windup` early so all dash as the bark ends,
-`lungeMult` x their bite; event `command` {pack}, then `commandGo`; not taken with no pack) and `dread` (kind `dread`,
-tell ring: units within `radius` take the hit; the hero gets `statuses.fear` {t, fromX, fromZ} for `fear` s less
-tenacity: `updatePlayer` walks it straight away from that point whatever is pressed and `castSlot` refuses (event fail
-`feared`); Cleanse lifts it).
+swoop along a curve past its prey's side (`past`, `bow`; `swoopPath`), clipping each unit within `reach` once a pass,
+event `swoopHit`, its inflict `hobble`: a hero status with `slow` that multiplies walking like chill, ticked with
+chill/shock/root, cleansed by Cleanse; `passes` (`enragedPasses` once enraged): after a pass it skids for `skid` s, a
+new curve from where it is through where its prey is then (to the other side) set on `m.swoop.path` and `m.windup.path`
+(event `skid`), then passes again), `moon_orbit` (kind `circle_lunge` with `sweepRange` [min, max] degrees, drawn with
+the seeded rng each time, and `through`: the dash runs on, catching every unit on its way once, `knock`), `rally` (kind
+`rally`: at wind-up start up to `summon` spots (`enragedSummon` once enraged), as many as `cap` minus its living pack,
+evenly round its prey `ring` m out (pulled in where blocked or safe), event `rallyMarks`; at the end a `pack` minion at
+each, `packOf` it, set on the prey, event `rally`; not taken while its pack is full), and, its second phase, at or under
+half health (`use.hpBelow` 0.5, `enrageAt` 0.5: a boss has five skills): first `kit.phaseRoar` s standing in `recover`
+once (`m.roaring`, `m.roared`; event `phaseRoar`), then `moon_leap` (kind `moon_leap`, `m.leap`: `targetable` false
+while it is up - `hitMonster` returns 0 - rising `rise` s, its position following its prey at `trackSpeed` for `track`
+s (never into a safe town), then the spot locks (event `moonLock` {radius, delay}) for `lock` s and it falls over
+`fall` s: units within `radius` take the hit and `knock`, event `moonCrash`; leaving `act` any other way clears it)
+and `phantom_rush` (kind `phantom_rush`: at wind-up start three lanes through where its prey stands, two from `ring`
+m out a third of a circle either side of it and its own; event `phantomMarks`; in `act` (`m.rush`) the first two
+run `gap` s apart as `phantom_wolf` projectiles (trample, `speed`, radius `width`/2, on `past` m beyond the spot),
+then it runs the last itself at `speed` (event `phantomGo`), hitting each unit once).
+Its body (render/greyfang-anim.js) plays the CC0 wolf clips (beast-clips.js `animBeast`) with its kit's beats on top
+(`s.pose` at phases of the gallop-jump clip for crouches, leaps and skids; body roll/pitch, head and jaw nudges); the
+view passes `skid`, `side`, `swoopK`, `lapT`, `lapDir`, `leap`, `leapT`, `rushDash` and `roar`. The moon leap lifts
+the root by `leapHeight()` (up to `LEAP_HEIGHT` m, hidden while it is up there). Its effects (skillfx/greyfang-fx.js)
+take eight pooled copies of its own model once (`takeRig`, see-through and tinted moon-blue): six afterimages posed
+from the live rig while it runs flat out, two the phantom rush's shadows (crouched at the lane starts, then run with
+the `phantom_wolf` projectiles). In Godot: duplicate the model scene with a ghost material and copy bone poses.
 Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.
@@ -1980,8 +1992,8 @@ aggroes (`setAggro()` in `core/ai.js`). Packmates respawn at their own points.
 
 Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `box` is a
 two-hit `rake`, its `thump` a `stomp`, its `hop` a marked `pounce`; the mole's `swipe` is a `sweep`; Greyfang's
-`leap` is a `pounce`). Names stay their own for cooldowns, telegraph lookups and looks. An attack's
-`hpBelow` (Greyfang's `leap`: 0.5) means it is only used at or under that share of health.
+`moon_orbit` is a `circle_lunge`). Names stay their own for cooldowns, telegraph lookups and looks. An attack's
+`hpBelow` (Greyfang's `moon_leap`: 0.5) means it is only used at or under that share of health.
 
 The moth has two mechanics of its own (no other monster uses them): `shard_rain` marks `count`
 `glass_shard` circles at wind-up start, the first on the player and the rest scattered within

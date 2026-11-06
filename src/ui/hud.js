@@ -436,7 +436,6 @@ export class Hud {
         if (e.reason === 'target') this.toast('ไม่มีเป้าหมายในระยะ', '#c8b8a0');
         if (e.reason === 'companion') this.toast('ยังไม่มีคู่หู เรียกคู่หูก่อน', '#c8b8a0');
         if (e.reason === 'summon') this.toast('ยังไม่มีสัตว์อัญเชิญ เรียกสัตว์ก่อน', '#c8b8a0');
-        if (e.reason === 'feared') this.toast('หวาดกลัวจนใช้สกิลไม่ได้!', '#b48aff');
         if (e.reason === 'arrows') this.toast('ลูกธนูหมด · คราฟต์ได้ทุกที่นอกการต่อสู้ (กระเป๋า → มือซ้าย)', '#e08a3a');
         break;
       case 'playerDeath':
@@ -487,14 +486,17 @@ export class Hud {
       case 'feign':
         this.float(e.x, 1.5, e.z, 'แกล้งตาย?', 'shell');
         break;
-      case 'dread':
-        this.float(e.x, 2.6, e.z, 'หอนข่มขวัญ!', 'crit');
-        break;
-      case 'command':
-        if (e.pack?.length) this.float(e.x, 2.6, e.z, 'สั่งฝูงขย้ำ!', 'crit');
-        break;
       case 'rally':
         this.float(e.x, 2.4, e.z, 'หอนเรียกฝูง!', 'crit');
+        break;
+      case 'phaseRoar':
+        this.float(e.x, 2.8, e.z, 'คำรามจันทร์คลั่ง!', 'crit');
+        break;
+      case 'moonLeap':
+        this.float(e.x, 2.6, e.z, 'กระโจนจันทร์ถล่ม!', 'crit');
+        break;
+      case 'phantomMarks':
+        this.float(e.lanes[e.lanes.length - 1][0], 2.6, e.lanes[e.lanes.length - 1][1], 'ฝูงเงาจันทร์!', 'crit');
         break;
       case 'startle':
         this.float(e.x, 2.2, e.z, 'กางปีกขู่! ตกใจตัวแข็ง', 'crit');

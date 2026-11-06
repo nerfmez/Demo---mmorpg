@@ -15,7 +15,6 @@ const ICONS = {
   hex: '<circle cx="12" cy="12" r="8"/><path d="M12 8a4 4 0 1 1-4 4"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/>',
   charged: '<circle cx="12" cy="12" r="9"/><path d="M13 5.5 8 13h4l-1 5.5 5-7.5h-4z" fill="currentColor" stroke="none"/>',
   hobble: '<path d="M9 3v7l-3 9h5M15 3v6"/><path d="M13 13l6 6M19 13l-6 6"/>',
-  fear: '<circle cx="12" cy="12" r="9"/><path d="M8.5 9.5h.01M15.5 9.5h.01M8 16c1.2-1.5 2.5-2 4-2s2.8.5 4 2"/>',
   root: '<path d="M4 4l16 16M20 4L4 20M4 12h16M12 4v16"/><circle cx="12" cy="12" r="8.5"/>',
   taunt: '<path d="M8 3v6M16 3v6M3 8h6M15 8h6M8 15v6M16 15v6M3 16h6M15 16h6"/>',
 };

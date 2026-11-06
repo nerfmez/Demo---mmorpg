@@ -91,7 +91,7 @@ export class MonsterFx {
     this.hermit = new HermitFx(scene, host, this);
     // the thicket mantis's strike, startle wings and leap (skillfx/mantis-fx.js)
     this.mantis = new MantisFx(scene, host, this);
-    // Greyfang's hamstring, crescent rake, rally, pack command and dread howl (skillfx/greyfang-fx.js)
+    // Greyfang's hamstring passes, moon orbit, rally, phase roar, moon leap and phantom rush (skillfx/greyfang-fx.js)
     this.greyfang = new GreyfangFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)

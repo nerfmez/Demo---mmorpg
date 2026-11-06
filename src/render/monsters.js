@@ -15,6 +15,7 @@ import MOTION from '../../data/monster-motion.json';
 import FX from '../../data/combat-fx.json';
 import { createRollFx } from './roll-fx.js';
 import { animBeast } from './beast-clips.js';
+import { animGreyfang } from './greyfang-anim.js';
 import { motionConfig, advanceGait, poseLegs, poseSplayedLegs, legCycle, wander, breath } from './monster-motion.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
@@ -149,7 +150,7 @@ function animQuad(r, s, dt, time, cfg) {
   for (let i = 0; i < 2; i++) b[legs[i]].rotation.z = damp(b[legs[i]].rotation.z, 0, 18, dt);
   let lunge = 0;
   let hook = 0;
-  if (wu === 'rend' || wu === 'rake' || wu === 'crescent_rake') {
+  if (wu === 'rend' || wu === 'rake') {
     // rears back on the hind legs, head up, then claws down from alternating sides
     headX = -0.35 * k;
     bodyX = -0.28 * k;
@@ -158,7 +159,7 @@ function animQuad(r, s, dt, time, cfg) {
     lunge = -0.12 * k;
     b[legs[0]].rotation.x = -1.25 * k;
     b[`${legs[0]}k`].rotation.x = 0.75 * k;
-  } else if (s.state === 'act' && (s.lastAttack === 'rend' || s.lastAttack === 'rake' || s.lastAttack === 'crescent_rake')) {
+  } else if (s.state === 'act' && (s.lastAttack === 'rend' || s.lastAttack === 'rake')) {
     // The imported PR106 wolves use the same front-leg joints. Alternate paws
     // at the data's contact times: a high lift, a fast raking downstroke across
     // the body (its claws leave the trail) and a return, the body surging in.
@@ -194,33 +195,6 @@ function animQuad(r, s, dt, time, cfg) {
     bodyY += 0.03 * k;
     jaw = 0.8 * k;
     lunge = -0.16 * k;
-  } else if (wu === 'hamstring') {
-    // Greyfang sizing up a leg: low and coiled, head down level with its prey's knees, jaws parted
-    headX = 0.5 * k; bodyX = 0.16 * k; bodyY -= 0.2 * k; squash = 1 - 0.08 * k; jaw = 0.35 * k;
-    b[legs[2]].rotation.x = 0.5 * k; b[legs[3]].rotation.x = 0.5 * k;
-  } else if (s.state === 'act' && s.lastAttack === 'hamstring') {
-    // the dart past: flat out and low, head down and jaws wide at leg height
-    headX = 0.55; bodyX = 0.18; bodyY -= 0.12; jaw = 0.85;
-  } else if (wu === 'leap' || wu === 'takedown') {
-    // greyfang's leap: belly low, hind legs coiled, eyes on the marked spot
-    headX = 0.3 * k;
-    bodyX = 0.14 * k;
-    bodyY -= 0.22 * k;
-    squash = 1 - 0.1 * k;
-    jaw = 0.3 * k;
-    b[legs[2]].rotation.x = 0.6 * k;
-    b[legs[3]].rotation.x = 0.6 * k;
-  } else if (s.state === 'act' && (s.lastAttack === 'leap' || s.lastAttack === 'takedown')) {
-    // in the air: stretched out, forepaws reaching, jaws open, an arc over its flight
-    const f = s.hop >= 0 ? s.hop : clamp01(s.actT / 0.35);
-    bodyX = -0.2;
-    bodyY += Math.sin(Math.PI * f) * 0.9;
-    headX = -0.2;
-    jaw = 0.8;
-    b[legs[0]].rotation.x = -1.1;
-    b[legs[1]].rotation.x = -1.1;
-    b[legs[2]].rotation.x = 0.9;
-    b[legs[3]].rotation.x = 0.9;
   } else if (wu === 'toss') {
     // the scoop: head right down, tusks under its prey, braced
     headX = 0.7 * k; bodyX = 0.18 * k; bodyY -= 0.1 * k; lunge = 0.1 * k;
@@ -260,21 +234,6 @@ function animQuad(r, s, dt, time, cfg) {
   } else if (s.state === 'act' && s.dragging) {
     // jaws clamped, head low, hauling backwards
     headX = 0.35; bodyX = -0.2; jaw = 0.05; bodyY -= 0.06;
-  } else if (wu === 'dread') {
-    // the dread howl gathering: pressed low, hackles up, head down and snarling, trembling with it
-    headX = 0.4 * k; bodyY -= 0.18 * k; bodyX = 0.12 * k; jaw = 0.6 * k; squash = 1 - 0.08 * k;
-    bodyZ = Math.sin(time * 30) * 0.04 * k; zK = 40;
-  } else if (s.state === 'recover' && s.lastAttack === 'dread' && (s.actT || 0) < 0.7) {
-    // let loose: head thrown up, jaws wide, howling
-    const f = 1 - clamp01((s.actT || 0) / 0.7);
-    headX = -1.1 * f; jaw = 0.9 * f; bodyX = -0.3 * f; bodyY += 0.12 * f;
-  } else if (wu === 'command') {
-    // the order: head up and barking, short sharp snaps of the jaws
-    headX = -0.45 * k; bodyX = -0.12 * k; jaw = Math.max(0, Math.sin(time * 16)) * 0.8 * k;
-  } else if (wu === 'rally') {
-    // the alpha's rally: up on its haunches, chest out, muzzle thrown to the sky, howling
-    headX = -1.15 * k; jaw = 0.85 * k; bodyX = -0.38 * k; bodyY += 0.18 * k;
-    b[legs[0]].rotation.x = -0.5 * k; b[legs[1]].rotation.x = -0.5 * k;
   } else if (wu === 'howl' || wu === 'pincer') {
     headX = -0.9 * k;
     jaw = 0.7 * k;
@@ -284,10 +243,6 @@ function animQuad(r, s, dt, time, cfg) {
     bodyX = 0.1;
     squash = 1.06;
     jaw = 0.4;
-  } else if (s.state === 'recover' && s.lastAttack === 'takedown' && (s.actT || 0) < 0.8) {
-    // the pin: forequarters down on its prey, head low, jaws clamped, braced
-    headX = 0.6; bodyX = 0.3; bodyY -= 0.15; jaw = 0.15; lunge = 0.25;
-    b[legs[0]].rotation.x = -0.6; b[legs[1]].rotation.x = -0.6;
   } else if (s.state === 'recover' && s.lastAttack === 'bite') {
     // the snap: the body surges in, the head thrusts down and forward and the jaw slams
     // shut (its fangs leave the trail), then it eases back
@@ -1410,7 +1365,7 @@ const BUILDERS = {
   lure_dummy: [buildLureDummy, animLureDummy],
   tusk_boar: [buildBoar, (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.62, paw: true })],
   thornback_wolf: [() => buildWolf('wolf'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
-  greyfang: [() => buildWolf('greyfang'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
+  greyfang: [() => buildWolf('greyfang'), animGreyfang], // the wolf's CC0 clips and its kit's beats (greyfang-anim.js)
   spirit_wolf: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)], // the owner's blue-flame wolf (models.json)
   // the hunter's companions move by the Quaternius wolf's clips (beast-clips.js); the bear heavier and slower
   hunt_hound: [() => buildWolf('hound'), (r, s, dt, t) => animBeast(r, s, dt, t)],

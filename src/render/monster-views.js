@@ -166,6 +166,14 @@ export function syncMonsterViews(view, dt, time) {
     state.loot = m.loot || 0;
     state.perching = !!m.perch;
     state.lapPhase = m.lap?.phase || null; // the wolf: run, aim, dash
+    state.lapT = m.lap ? m.lap.t : 0; state.lapDir = m.lap ? m.lap.dir : 1;
+    // Greyfang (greyfang-anim.js): its passes (skidding between them), the moon leap, the phantom rush, the phase roar
+    state.attacks = m.def.attacks;
+    state.skid = m.swoop ? m.swoop.skid : 0; state.side = m.swoop ? m.swoop.side : 1;
+    state.swoopK = m.swoop ? Math.min(1, m.swoop.t / (m.def.attacks[m.swoop.name].duration || 1)) : 0;
+    state.leap = m.leap ? m.leap.phase : null; state.leapT = m.leap ? m.leap.t : 0;
+    state.rushDash = !!m.rush?.dash;
+    state.roar = !!m.roaring;
     state.dragging = !!m.drag; // the shore gull riding its prey's head
     state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0;
     state.naked = m.naked ? m.naked.phase : null; // the hermit crab out of its shell: loose, home, climb // the boar running a leg, or skidding

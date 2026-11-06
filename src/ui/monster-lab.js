@@ -107,14 +107,11 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
     const m = lab.m, u = m.def.attacks[lab.attack].use || {};
     if (m.dead || m.hp < m.maxHp * 0.2) Object.assign(m, { dead: false, hp: m.maxHp });
     if (u.hpBelow) m.hp = Math.min(m.hp, m.maxHp * u.hpBelow * 0.8);
+    // a first-phase attack of a boss with a second phase (enrageAt) is shown as the first phase: back to full health
+    else if (m.enraged) Object.assign(m, { hp: m.maxHp, enraged: false, roared: false });
     m.used = null;
-    // (packOf: wolves Greyfang's rally called; kept, or brought in, for its pack command, which needs them)
-    const command = m.def.attacks[lab.attack]?.kind === 'command';
-    for (const o of game.monsters) if ((o.illusion || o.bud || o.sprout || (o.packOf != null && !command)) && !o.dead) { if (o.sprout) o.illusion = { t: 0 }; game.killMonster(o); }
-    if (command && !game.monsters.some((o) => o.packOf === m.id && !o.dead)) {
-      const pack = m.def.attacks.rally?.pack || 'thornback_wolf';
-      for (const s of [1, -1]) { const w = game.spawnMinion(pack, Math.max(1, m.level - 1), p.x + s * 3.5, p.z - 1.5); Object.assign(w, { packOf: m.id, aggro: true, targetUnit: p }); }
-    }
+    // (packOf: wolves Greyfang's rally called)
+    for (const o of game.monsters) if ((o.illusion || o.bud || o.sprout || o.packOf != null) && !o.dead) { if (o.sprout) o.illusion = { t: 0 }; game.killMonster(o); }
     Object.assign(m, { aggro: true, targetUnit: p });
   };
   // Each new go: if the monster can get to where the attack starts on its own feet, it walks there - the sandbox

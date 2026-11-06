@@ -312,6 +312,9 @@ function enterShell(game, m) {
 
 function setState(m, state, dur = 0) {
   if (state !== 'stunned') m.exposed = 0; // the eye clam's cracked shell closes again
+  m.roaring = false; // the phase roar is its own recover (kit)
+  // out of the act, nothing is left up in the air (Greyfang's moon leap) or mid-rush
+  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; }
   m.state = state;
   m.stateT = 0;
   m.stateDur = dur;
@@ -409,7 +412,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'dread', 'command'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -748,7 +751,11 @@ function windup(game, m, dt, t, gap) {
       // `far` m), stops and crouches for `aim` s (its lunge's lane shown, locking through the first 60%), then lunges
       // `dash` m along it in `dashTime` s, biting the first unit it reaches (act: m.lap)
       const prey = t || game.player, R = Math.max(atk.near, Math.min(atk.far, dist(m.x, m.z, prey.x, prey.z)));
-      m.lap = { name: w.name, phase: 'run', t: 0, a: angleTo(prey.x, prey.z, m.x, m.z), dir: m.id % 2 ? 1 : -1, R, run: 0, angle: 0, hit: false, dmg };
+      // `sweepRange` [min, max] degrees (Greyfang): how far round it runs is drawn each time (seeded), so where it cuts in
+      // is not known until it plants; `through`: the lunge runs on through its prey and beyond, catching every unit on
+      // the way once (`knock` m/s throws them)
+      const sweep = atk.sweepRange ? game.rng.range(atk.sweepRange[0], atk.sweepRange[1]) : atk.sweep;
+      m.lap = { name: w.name, phase: 'run', t: 0, a: angleTo(prey.x, prey.z, m.x, m.z), dir: m.id % 2 ? 1 : -1, R, run: 0, sweep, angle: 0, hit: false, hits: new Set(), dmg };
       return setState(m, 'act');
     }
     case 'pincer': {
@@ -770,26 +777,22 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
-    case 'dread': {
-      // Greyfang's dread howl: what stands within `radius` takes the hit, and the hero is terrified for `fear` s (less
-      // their tenacity): it runs straight away from where the howl was and can cast nothing (game updatePlayer,
-      // castSlot)
-      game.emit({ type: 'dread', id: m.id, x: m.x, z: m.z, radius: atk.radius });
-      for (const u of game.units()) {
-        if (dist(m.x, m.z, u.x, u.z) > atk.radius + u.r) continue;
-        game.damageUnit(u, dmg, m, { attack: w.name });
-        if (u !== game.player || u.dead) continue;
-        const t = atk.fear * (1 - Math.max(0, game.derived?.tenacityPct || 0) / 100);
-        if (t > 0) { u.statuses.fear = { t: Math.max(t, u.statuses.fear?.t || 0), fromX: m.x, fromZ: m.z }; game.emit({ type: 'heroStatus', status: 'fear', duration: t, x: u.x, z: u.z }); }
-      }
-      m.cd[w.name] = atk.cooldown;
-      return setState(m, 'recover', atk.recover);
+    case 'moon_leap': {
+      // Greyfang springs high out of reach (untargetable, `targetable` false): rising over `rise` s, then its shadow
+      // runs after its prey at `trackSpeed` m/s for `track` s; the spot locks (event moonLock, the circle marked) and
+      // `lock` s later it falls on it over `fall` s: everything within `radius` m is hit and thrown `knock` (act: m.leap)
+      m.leap = { name: w.name, phase: 'rise', t: 0, dmg };
+      m.targetable = false;
+      game.emit({ type: 'moonLeap', id: m.id, x: m.x, z: m.z });
+      return setState(m, 'act');
     }
-    case 'command': {
-      // the order given: its pack lunges at the end of the bark (each wolf was set aiming at beginAttack)
-      game.emit({ type: 'commandGo', id: m.id, x: m.x, z: m.z });
-      m.cd[w.name] = atk.cooldown;
-      return setState(m, 'recover', atk.recover);
+    case 'phantom_rush': {
+      // the lanes marked at wind-up start (beginAttack) run `gap` s apart: moon-shadow wolves first (projectiles that
+      // trample each unit once), Greyfang itself last, each on through its prey's spot `past` m (act: m.rush)
+      m.rush = { name: w.name, t: 0, i: 0, lanes: w.lanes, tx: w.tx, tz: w.tz, dmg, dash: null, hit: new Set() };
+      setState(m, 'act');
+      m.windup = { ...w };
+      return;
     }
     case 'peer_strike': {
       // the mantis's forelegs shoot out along the lane it locked (`range` x `width`), its body never moving: the
@@ -926,7 +929,9 @@ function windup(game, m, dt, t, gap) {
       // the shore gull swoops along a curve past its prey (the path fixed at wind-up start, beginAttack) over
       // `duration` s, clipping what it passes; the prey it clips loses up to `steal` gold, carried off in its beak
       // (core m.loot, dropped again when it dies)
-      m.swoop = { name: w.name, t: 0, path: w.path, dmg, hit: new Set() };
+      // `passes` (`enragedPasses` once enraged): Greyfang skids round on the far side for `skid` s and passes
+      // back the other way, the new curve (through where its prey stands then) marked through the skid
+      m.swoop = { name: w.name, t: 0, path: w.path, dmg, hit: new Set(), pass: 1, passes: (m.enraged && atk.enragedPasses) || atk.passes || 1, skid: 0, side: w.side ?? 1 };
       setState(m, 'act', atk.duration);
       m.windup = { ...w };
       return;
@@ -1039,6 +1044,64 @@ function act(game, m, dt, t) {
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
     return;
   }
+  if (m.leap) {
+    const L = m.leap, atk = m.def.attacks[L.name], prey = t || game.player;
+    L.t += dt;
+    m.moving = false;
+    if (L.phase === 'rise' || L.phase === 'track') {
+      // high above, its shadow runs after its prey (never into a safe town)
+      const d = prey ? dist(m.x, m.z, prey.x, prey.z) : 0;
+      if (d > 0.05) {
+        const a = angleTo(m.x, m.z, prey.x, prey.z), step = Math.min(d, atk.trackSpeed * dt), nx = m.x + Math.sin(a) * step, nz = m.z + Math.cos(a) * step;
+        m.facing = a;
+        if (!game.isSafe(nx, nz)) game.moveEntity(m, nx - m.x, nz - m.z);
+      }
+      if (L.phase === 'rise' && L.t >= atk.rise) { L.phase = 'track'; L.t = 0; }
+      else if (L.phase === 'track' && L.t >= atk.track) {
+        L.phase = 'lock'; L.t = 0;
+        game.emit({ type: 'moonLock', id: m.id, x: m.x, z: m.z, radius: atk.radius, delay: atk.lock + atk.fall });
+      }
+      return;
+    }
+    if (L.phase === 'lock') { if (L.t >= atk.lock) { L.phase = 'fall'; L.t = 0; } return; }
+    if (L.t < atk.fall) return;
+    m.leap = null; m.targetable = true;
+    game.emit({ type: 'moonCrash', id: m.id, x: m.x, z: m.z, radius: atk.radius });
+    for (const u of game.units()) {
+      if (dist(m.x, m.z, u.x, u.z) > atk.radius + u.r) continue;
+      game.damageUnit(u, L.dmg, m, { attack: L.name, knock: atk.knock ? { angle: angleTo(m.x, m.z, u.x, u.z), force: atk.knock } : undefined });
+    }
+    m.cd[L.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
+  }
+  if (m.rush) {
+    const R = m.rush, atk = m.def.attacks[R.name], last = R.lanes.length - 1;
+    R.t += dt;
+    m.moving = false;
+    while (R.i < last && R.t >= R.i * atk.gap) {
+      const [x, z, a] = R.lanes[R.i++];
+      game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: 'phantom_wolf', attack: R.name, trample: true, x, z, y: 0, angle: a, speed: atk.speed, radius: atk.width / 2, range: dist(x, z, R.tx, R.tz) + atk.past, element: 'physical', damage: R.dmg });
+    }
+    if (!R.dash && R.i === last && R.t >= last * atk.gap) {
+      R.i++;
+      const a = angleTo(m.x, m.z, R.tx, R.tz);
+      R.dash = { a, left: dist(m.x, m.z, R.tx, R.tz) + atk.past };
+      game.emit({ type: 'phantomGo', id: m.id, x: m.x, z: m.z, angle: a });
+    }
+    if (!R.dash) return;
+    // Greyfang's own run down the last lane
+    const d = dirFromAngle(R.dash.a), step = Math.min(R.dash.left, atk.speed * dt);
+    m.facing = R.dash.a;
+    game.moveEntity(m, d.x * step, d.z * step);
+    R.dash.left -= step;
+    for (const u of game.units()) {
+      if (R.hit.has(u.id) || dist(m.x, m.z, u.x, u.z) > atk.width / 2 + m.r * 0.5 + u.r) continue;
+      R.hit.add(u.id);
+      game.damageUnit(u, R.dmg, m, { attack: R.name });
+    }
+    if (R.dash.left <= 0.01) { m.rush = null; m.cd[R.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+    return;
+  }
   if (m.lap) {
     const L = m.lap, atk = m.def.attacks[L.name], prey = t || game.player;
     L.t += dt;
@@ -1050,7 +1113,7 @@ function act(game, m, dt, t) {
       m.facing = angleTo(m.x, m.z, x, z) || m.facing;
       game.moveEntity(m, x - m.x, z - m.z);
       m.moving = true;
-      if (L.run >= atk.sweep * DEG) { L.phase = 'aim'; L.t = 0; m.moving = false; L.angle = angleTo(m.x, m.z, prey.x, prey.z); game.emit({ type: 'lapAim', id: m.id }); }
+      if (L.run >= L.sweep * DEG) { L.phase = 'aim'; L.t = 0; m.moving = false; L.angle = angleTo(m.x, m.z, prey.x, prey.z); game.emit({ type: 'lapAim', id: m.id }); }
       return;
     }
     if (L.phase === 'aim') {
@@ -1064,7 +1127,13 @@ function act(game, m, dt, t) {
     const d = dirFromAngle(L.angle), sp = atk.dash / atk.dashTime;
     game.moveEntity(m, d.x * sp * dt, d.z * sp * dt);
     m.moving = false;
-    if (!L.hit) for (const u of game.units()) {
+    if (atk.through) for (const u of game.units()) {
+      if (L.hits.has(u.id) || dist(m.x, m.z, u.x, u.z) > m.r + u.r + 0.3) continue;
+      if (!L.hits.size) game.emit({ type: 'monsterSwing', id: m.id, name: L.name, angle: L.angle, range: m.r + 0.8, arc: 90, x: m.x, z: m.z });
+      L.hits.add(u.id);
+      game.damageUnit(u, L.dmg, m, { attack: L.name, knock: atk.knock ? { angle: L.angle, force: atk.knock } : undefined });
+    }
+    else if (!L.hit) for (const u of game.units()) {
       if (dist(m.x, m.z, u.x, u.z) > m.r + u.r + 0.3) continue;
       L.hit = true;
       game.emit({ type: 'monsterSwing', id: m.id, name: L.name, angle: L.angle, range: m.r + 0.8, arc: 90, x: m.x, z: m.z });
@@ -1178,7 +1247,15 @@ function act(game, m, dt, t) {
     return;
   }
   if (m.swoop) {
-    const sw = m.swoop, atk = m.def.attacks[sw.name], [p0, p1, p2] = sw.path, k = Math.min(1, m.stateT / atk.duration), u1 = 1 - k;
+    const sw = m.swoop, atk = m.def.attacks[sw.name];
+    if (sw.skid > 0) {
+      // between passes: skidding round to face back along the next curve
+      sw.skid -= dt; m.moving = false;
+      turnToward(m, angleTo(m.x, m.z, sw.path[1][0], sw.path[1][1]), dt, 12);
+      return;
+    }
+    sw.t += dt;
+    const [p0, p1, p2] = sw.path, k = Math.min(1, sw.t / atk.duration), u1 = 1 - k;
     const x = u1 * u1 * p0[0] + 2 * u1 * k * p1[0] + k * k * p2[0], z = u1 * u1 * p0[1] + 2 * u1 * k * p1[1] + k * k * p2[1];
     m.facing = angleTo(m.x, m.z, x, z) || m.facing;
     m.x = x; m.z = z; m.moving = false;
@@ -1193,7 +1270,17 @@ function act(game, m, dt, t) {
       if (take > 0) { game.ch.gold -= take; m.loot = (m.loot || 0) + take; }
       game.emit({ type: 'snatch', id: m.id, x: u.x, z: u.z, gold: take });
     }
-    if (k >= 1) { m.swoop = null; m.cd[sw.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+    if (k >= 1) {
+      const prey = t || game.player;
+      if (sw.pass < sw.passes && prey && !prey.dead) {
+        sw.pass++; sw.t = 0; sw.skid = atk.skid; sw.hit = new Set(); sw.side = -sw.side;
+        sw.path = swoopPath(m, prey, atk, sw.side);
+        if (m.windup) m.windup.path = sw.path;
+        game.emit({ type: 'skid', id: m.id, name: sw.name, x: m.x, z: m.z, pass: sw.pass, delay: atk.skid });
+        return;
+      }
+      m.swoop = null; m.cd[sw.name] = atk.cooldown; return setState(m, 'recover', atk.recover);
+    }
     return;
   }
   if (m.drop) {
@@ -1670,6 +1757,16 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   // a ring round it marked for the whole time, then bursts out as the ring goes off
   // split (the salt slime): brought under `at` of its health, once, a bud the size of `size` pinches off beside it
   // with `share` of its full health; a bud never splits and gives only gold (a minion)
+  // the phase roar (kit.phaseRoar s, Greyfang): brought to its enrage share, it stops once to roar before the second
+  // phase's attacks come (event phaseRoar)
+  const roar = def.kit?.phaseRoar;
+  if (roar && m.enraged && !m.roared) {
+    m.roared = true; m.moving = false;
+    game.emit({ type: 'phaseRoar', id: m.id, x: m.x, z: m.z, duration: roar });
+    setState(m, 'recover', roar);
+    m.roaring = true;
+    return;
+  }
   const sp = def.attacks.split;
   if (sp && canUse(m, 'split') && !m.bud && !m.split && m.hp <= m.maxHp * sp.at) { splitOff(game, m, t); return; }
   const wd = def.kit?.withdraw;
@@ -1701,7 +1798,6 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     if ((u.hpBelow && m.hp > m.maxHp * u.hpBelow) || (u.once && m.used?.[name])) continue;
     if (nk && atk.needsShell) continue; // its anemones and its shell went with the shell
     if ((atk.kind || name) === 'rally' && packAlive(game, m) >= atk.cap) continue; // its pack is already round its prey
-    if ((atk.kind || name) === 'command' && packAlive(game, m) === 0) continue; // nobody to command
     // behind: only for a target at its back (more than 100 degrees off its facing)
     if (u.behind && Math.abs(angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z))) < 1.75) continue;
     // a burrow (erupt) never comes up in a safe town
@@ -1821,23 +1917,18 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
-  if (kind === 'dread') return startWindup(game, m, name, t, { radius: atk.radius });
-  if (kind === 'command') {
-    // Greyfang barks an order: every wolf of its pack stops where it is and aims a lunge at its prey (their lanes lock
-    // late in the bark), all to go as the bark ends: a lunge from every side at once (the wolf's circle_lunge dash,
-    // `lungeMult` times its bite)
+  if (kind === 'phantom_rush') {
+    // three runs through where its prey stands now: two moon-shadow wolves from `ring` m out, a third of the circle
+    // either side of Greyfang, and Greyfang itself from where it stands, last; every lane marked for the whole wind-up
     startWindup(game, m, name, t);
-    const ids = [];
-    for (const o of game.monsters) {
-      if (o.packOf !== m.id || o.dead) continue;
-      const la = o.def.attacks.circle_lunge;
-      if (!la) continue;
-      setState(o, 'act');
-      Object.assign(o, { charge: null, melee: null, drag: null, moving: false });
-      o.lap = { name: 'circle_lunge', phase: 'aim', t: la.aim - m.windup.total, a: 0, dir: 1, R: la.near, run: 0, angle: angleTo(o.x, o.z, t.x, t.z), hit: false, dmg: o.damage * (la.damageMult || 1) * atk.lungeMult };
-      ids.push(o.id);
+    const a0 = angleTo(t.x, t.z, m.x, m.z), lanes = [];
+    for (const off of [(2 * Math.PI) / 3, (-2 * Math.PI) / 3]) {
+      const x = t.x + Math.sin(a0 + off) * atk.ring, z = t.z + Math.cos(a0 + off) * atk.ring;
+      lanes.push([x, z, angleTo(x, z, t.x, t.z)]);
     }
-    game.emit({ type: 'command', id: m.id, x: m.x, z: m.z, pack: ids, delay: m.windup.total });
+    lanes.push([m.x, m.z, angleTo(m.x, m.z, t.x, t.z)]);
+    Object.assign(m.windup, { lanes, tx: t.x, tz: t.z });
+    game.emit({ type: 'phantomMarks', id: m.id, lanes, tx: t.x, tz: t.z, past: atk.past, width: atk.width, gap: atk.gap, delay: m.windup.total });
     return;
   }
   if (kind === 'rally') {
@@ -1880,13 +1971,8 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'snatch') {
-    // its swoop: a curve from where it stands through where its prey stands now, hooking away to one side
-    const a = angleTo(m.x, m.z, t.x, t.z), side = m.id % 2 ? 1 : -1, px = Math.cos(a) * side, pz = -Math.sin(a) * side;
-    // it ends `past` m on beyond its prey, hooked `bow` m off to one side
-    const ex = t.x + Math.sin(a) * atk.past + px * atk.bow, ez = t.z + Math.cos(a) * atk.past + pz * atk.bow;
-    // the control point puts the curve's middle on the prey: B(0.5) = (p0 + 2 p1 + p2) / 4
-    const p1 = [2 * t.x - (m.x + ex) / 2, 2 * t.z - (m.z + ez) / 2];
-    return startWindup(game, m, name, t, { path: [[m.x, m.z], p1, [ex, ez]] });
+    const side = m.id % 2 ? 1 : -1;
+    return startWindup(game, m, name, t, { path: swoopPath(m, t, atk, side), side });
   }
   if (kind === 'shell_drop') {
     // the clam falls where its prey stands now, marked for the wind-up and the climb
@@ -1945,6 +2031,18 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   startWindup(game, m, name, t);
+}
+
+/**
+ * A swoop's curve: from where it stands through where its prey stands now, hooking away to `side` (1 or -1): it ends
+ * `past` m on beyond its prey, hooked `bow` m off to that side. The control point puts the curve's middle on the prey.
+ */
+function swoopPath(m, t, atk, side) {
+  const a = angleTo(m.x, m.z, t.x, t.z), px = Math.cos(a) * side, pz = -Math.sin(a) * side;
+  const ex = t.x + Math.sin(a) * atk.past + px * atk.bow, ez = t.z + Math.cos(a) * atk.past + pz * atk.bow;
+  // B(0.5) = (p0 + 2 p1 + p2) / 4 = the prey
+  const p1 = [2 * t.x - (m.x + ex) / 2, 2 * t.z - (m.z + ez) / 2];
+  return [[m.x, m.z], p1, [ex, ez]];
 }
 
 const BEHAVIORS = { kit, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

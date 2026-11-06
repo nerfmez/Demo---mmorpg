@@ -3180,6 +3180,7 @@
       "outline": false,
       "glow": 0.6,
       "rim": 0.6,
+      "flow": [0.012, 2, 0.6, 0.7],
       "source": "Meshy (owner-supplied GLB, 2026-10-07; concept: assets/meshy/monsters/marsh_wisp_concept_v2.jpg); prepared with scripts/prep-monster-glb.py --tris 4900 (Lostlight Wisp)",
       "segments": {
         "body": [

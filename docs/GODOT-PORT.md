@@ -1329,7 +1329,10 @@ wind-up for `linger` s, ticking `poolMult` x its damage (its inflict chill); at 
 it gets `statuses.lure` {t, x, z, speed} for `pull` s less tenacity: `updatePlayer` moves the hero toward (x, z) at
 speed whatever is pressed; a dash clears it; Cleanse lifts it; event `lure`). Render: skillfx/wisp-fx.js (the gas jets
 are a `GeyserFx` with its own `height` and gold flame colours; the `bog_pool` area is drawn there, not by vfx.js: one
-water-disc shader with its numbers in uniforms, and additive glow quads mirroring the lights).
+water-disc shader with its numbers and four ripple rings in uniforms, and additive glow quads mirroring the lights).
+A model's `flow` [uv sway, waves over the body, cycles a second, band light] (models.json, the marsh wisp) sways its
+texture lookup and adds bands of light along its rest-pose height, rising and looping (one more shader variant,
+`monster-toon-flow`; the animator sets the clock).
 
 Save character version is 3. The optional `worldId` prevents restoring old coordinates
 on a different map. On migration preserve the character build and quest history,

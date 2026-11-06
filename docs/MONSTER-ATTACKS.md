@@ -409,6 +409,11 @@ for the normal one.
   outside a gold heart mixed to a muddy green), lower jets out of dark teal-rimmed puddles with bubbles welling up. The
   bog is drawn as dark glossy water (ripples drifting in, a teal rim, the orange lights mirrored in it) instead of the
   mire's fuzzy fill.
+- **Marsh wisp, round 3** (owner: "I really don't like the bog, it looks odd; make the pattern on its body move in
+  waves rising up, looping; the body is a bit too see-through"): the bog is now murky marsh water (olive-dark, a ragged
+  shore fading into the ground, drifting scum, a dull sheen, rings spreading where bubbles break, low mist) instead of a
+  dark disc with a bright rim and rings; its body's pattern rides waves rising up it with bands of light climbing,
+  looping (models.json `flow`); it is less see-through.
 - **Thicket mantis, round 1** (2026-11-06, owner: "next"): researched first (sit-and-wait hunter that sways to judge
   distance and shoots its spined forelegs; rears up and flashes eyespot wings, hissing, when threatened; can fly). Its
   scythe, whirl and hit-and-back-off became a swaying long-reach strike, a startle display that freezes the hero for its

@@ -218,7 +218,16 @@ const ASSEMBLE = `
   }
 }`;
 
-function modelMaterial(map, flash, rim, glow, assemble = null) {
+// `flow` (models.json, e.g. the marsh wisp's body of energy): its pattern rides waves rising up the body and bands of
+// light climb it, looping: [uv sway, waves over the body, cycles a second, band light]; uFlowT is the animator's clock
+const FLOW_V = `vFlowY = position.y;`;
+const FLOW_F = `{
+  float ph = vFlowY * uFlow.y - uFlowT * uFlow.z;
+  float band = pow(0.5 + 0.5 * sin(ph), 6.0);
+  outgoingLight += diffuseColor.rgb * band * uFlow.w;
+}`;
+
+function modelMaterial(map, flash, rim, glow, assemble = null, flow = null) {
   const m = new THREE.MeshToonMaterial({ map, gradientMap: toonRamp() });
   m.userData.rig = true;
   m.onBeforeCompile = (shader) => {
@@ -227,6 +236,12 @@ function modelMaterial(map, flash, rim, glow, assemble = null) {
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nattribute vec4 pieceC;\nuniform float uAssemble, uPack;\nuniform vec4 uBall;')
         .replace('#include <skinning_vertex>', '#include <skinning_vertex>\n' + ASSEMBLE);
+    }
+    if (flow) {
+      Object.assign(shader.uniforms, flow);
+      shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying float vFlowY;').replace('#include <begin_vertex>', '#include <begin_vertex>\n' + FLOW_V);
+      shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vFlowY;\nuniform vec4 uFlow; uniform float uFlowT;')
+        .replace('#include <map_fragment>', '#ifdef USE_MAP\n  vec4 sampledDiffuseColor = texture2D(map, vMapUv + vec2(sin(vFlowY * uFlow.y * 1.7 - uFlowT * uFlow.z) * uFlow.x, sin(vFlowY * uFlow.y - uFlowT * uFlow.z) * uFlow.x));\n  diffuseColor *= sampledDiffuseColor;\n#endif');
     }
     shader.uniforms.uFlash = flash;
     shader.uniforms.uRim = { value: rim };
@@ -241,10 +256,11 @@ function modelMaterial(map, flash, rim, glow, assemble = null) {
   outgoingLight = mix(outgoingLight, vec3(1.0), clamp(uFlash.x, 0.0, 1.0));
   outgoingLight += vec3(1.0, 0.45, 0.15) * uFlash.y + vec3(0.5, 0.8, 1.0) * uFlash.z;
 }
+${flow ? FLOW_F : ''}
 #include <opaque_fragment>`
     );
   };
-  m.customProgramCacheKey = () => (assemble ? 'monster-toon-assemble' : 'monster-toon');
+  m.customProgramCacheKey = () => (assemble ? 'monster-toon-assemble' : flow ? 'monster-toon-flow' : 'monster-toon');
   return m;
 }
 
@@ -277,7 +293,12 @@ export function attachMonsterModel(rig, T) {
   rig.restInverse = Object.fromEntries(T.bones.map((n, i) => [n, skeleton.boneInverses[i]]));
   // per rig: how far it is assembled, for its animator (rigid models only)
   rig.assemble = cfg.rigid ? { uAssemble: { value: 1 }, uPack: { value: 1 }, uBall: { value: new THREE.Vector4(0, 1, 0, 1) } } : null;
-  const mat = modelMaterial(T.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.glow ?? 0, rig.assemble);
+  if (cfg.flow) {
+    if (!T.geometry.boundingBox) T.geometry.computeBoundingBox();
+    const bb = T.geometry.boundingBox, h = Math.max(1e-3, bb.max.y - bb.min.y), [sway, waves, speed, light] = cfg.flow;
+    rig.flow = { uFlow: { value: new THREE.Vector4(sway, (Math.PI * 2 * waves) / h, Math.PI * 2 * speed, light) }, uFlowT: { value: 0 } };
+  }
+  const mat = modelMaterial(T.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.glow ?? 0, rig.assemble, rig.flow || null);
   // a model of open shells (Meshy's stones are hollow at their backs): their insides are drawn in
   // their own texture, not the dark outline behind them, when a limb swings round
   if (cfg.rigid) mat.side = THREE.DoubleSide;

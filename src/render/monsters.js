@@ -612,25 +612,33 @@ function animSpiritFox(r, s, dt, time) {
   b.tail2.rotation.z = Math.sin(time * f * 0.7 + sd - 1.3) * A * 1.2;
 }
 
+// The marsh wisp (docs/MONSTER-ATTACKS.md): drifts like a lantern on the wind, tips into its travel, sways and bobs.
+// Lost lights: it draws back and swells, its flame flaring, then flings them; marsh gas: it sinks low over the ground,
+// pulsing, as the gas wells up; bog lure: it rises and sways slowly, as if beckoning, its motes circling wide; after it
+// scatters and gathers again elsewhere (core blink), it swells back from a spark.
 function animWisp(r, s, dt, time) {
   const b = r.bones;
-  // drifts like a lantern on the wind: tips into its travel, sways and bobs
   advanceGait(r, s, dt, r.motion);
-  b.body.position.y = 1.2 + Math.sin(time * 2.4 + r.seed) * 0.12;
-  b.body.rotation.x = damp(b.body.rotation.x, Math.min(0.3, (r.speed || 0) * 0.08) + Math.sin(time * 1.3 + r.seed) * 0.05, 4, dt);
-  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-(s.vSide || 0) * 0.08, 0.25) + Math.sin(time * 0.9 + r.seed) * 0.06, 4, dt);
-  b.petals.rotation.y += dt * (s.windup ? 5 : 1.5);
-  b.ring.rotation.z += dt * 2;
-  r.motes.forEach((m, i) => {
-    const a = time * (s.windup ? 5 : 2.2) + (i * Math.PI * 2) / 3;
-    const rr = s.windup ? 0.35 : 0.55;
-    b[m].position.set(Math.sin(a) * rr, Math.sin(a * 2) * 0.15, Math.cos(a) * rr);
+  const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0, wu = s.windup;
+  let y = 1.2 + Math.sin(time * 2.4 + r.seed) * 0.12, lean = Math.min(0.3, (r.speed || 0) * 0.08), sway = 0, swell = 1, spin = 1.5, rr = 0.55, mspd = 2.2;
+  if (wu === 'wisp_orb') { lean -= 0.35 * k; swell = 1 + 0.35 * k; spin = 6; rr = 0.35; mspd = 5; }
+  else if (s.state === 'recover' && s.lastAttack === 'wisp_orb' && s.actT < 0.3) { lean += 0.4 * (1 - s.actT / 0.3); swell = 1.1; }
+  else if (wu === 'marsh_gas') { y -= 0.6 * k; swell = 1 + 0.15 * Math.sin(time * 14) * k + 0.1 * k; spin = 3; }
+  else if (wu === 'bog_lure') { y += 0.5 * k; sway = Math.sin(time * 2.2) * 0.35 * k; swell = 1 + 0.1 * k; spin = 0.8; rr = 0.55 + 0.6 * k; mspd = 1.2; }
+  b.body.position.y = damp(b.body.position.y, y, 8, dt);
+  b.body.rotation.x = damp(b.body.rotation.x, lean + Math.sin(time * 1.3 + r.seed) * 0.05, 6, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-(s.vSide || 0) * 0.08, 0.25) + Math.sin(time * 0.9 + r.seed) * 0.06 + sway, 4, dt);
+  b.petals.rotation.y += dt * spin;
+  if (b.ring) b.ring.rotation.z += dt * 2;
+  r.motes?.forEach((m, i) => {
+    const a = time * mspd + (i * Math.PI * 2) / 3;
+    if (b[m]) b[m].position.set(Math.sin(a) * rr, Math.sin(a * 2) * 0.15, Math.cos(a) * rr);
   });
-  let k = 1;
-  if (s.windup === 'orb') k = 1 + clamp01(s.windupT / s.windupTotal) * 0.4;
-  const sc = damp(b.body.scale.x, k * (1 - (s.hurt || 0) * 0.2), 10, dt);
+  // gathered again after it scattered: it swells back from a spark
+  const back = s.blinkT !== undefined && s.blinkT < 0.3 ? 0.15 + 0.85 * (s.blinkT / 0.3) : 1;
+  const sc = damp(b.body.scale.x, swell * back * (1 - (s.hurt || 0) * 0.2), s.blinkT < 0.05 ? 60 : 10, dt);
   b.body.scale.setScalar(sc);
-  r.glowScale = 1.9 * k;
+  r.glowScale = 1.9 * swell * back;
 }
 
 // ---------- sporecap ----------

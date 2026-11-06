@@ -1737,7 +1737,8 @@
         "poison",
         "bleed",
         "chill",
-        "hobble"
+        "hobble",
+        "lure"
       ]
     },
     "battle_aura": {

@@ -75,7 +75,7 @@ export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
 const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
-export const OWN_PROJECTILES = new Set(['stingers', 'piglet', 'mossball', 'shadow_wolf', 'phantom_wolf', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
+export const OWN_PROJECTILES = new Set(['stingers', 'piglet', 'mossball', 'shadow_wolf', 'phantom_wolf', 'wisp_orb', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
 const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter', 'flame_slash', 'thunder_slash']);
 const SWING_LEAD = 0.12;
@@ -501,6 +501,8 @@ export class SkillFx {
       case 'mantisStrike': case 'startle': case 'wingLand': return this.monster.mantis.event(e, g);
       // Greyfang (skillfx/greyfang-fx.js)
       // the reed viper (skillfx/viper-fx.js)
+      // the marsh wisp (skillfx/wisp-fx.js)
+      case 'wispOrbs': case 'lure': return this.monster.wisp.event(e, g);
       case 'viperStrike': case 'coilDash': case 'coilGrab': case 'coilFree': case 'coilEnd': case 'tailLash': case 'tailCut': return this.monster.viper.event(e, g);
       case 'swoopHit': case 'rallyMarks': case 'rally': case 'moonLeap': case 'moonLock': case 'moonCrash': case 'phantomMarks': case 'phantomGo': case 'phaseRoar': return this.monster.greyfang.event(e, g);
       case 'stunned': {
@@ -548,6 +550,7 @@ export class SkillFx {
       }
       case 'burst':
         if (e.source != null) this.monster.burst(e, g); // a kit monster's landing (the old dust still draws)
+        if (e.kind === 'marsh_gas') { this.monster.wisp.ignite(e); return true; } // the marsh wisp's gas catching fire
         if (e.kind === 'arrow_rain') { this.rain.burst(e); return true; }
         if (e.kind === 'fire_arrow_rain') { this.frain.burst(e); host.shake(0.08, 0.1); return true; }
         if (e.kind === 'flame_geyser') { this.geyser.erupt(e.x, e.z, e.radius || 2.2); host.shake(0.12, 0.14); return true; }
@@ -582,6 +585,7 @@ export class SkillFx {
       }
       case 'impact': {
         if (e.kind === 'boomerang') { this.monster.leafCut(e, g); return true; }
+        if (e.kind === 'wisp_orb') { this.monster.wisp.impact(e); return true; } // the marsh wisp's lost light
         if (e.kind === 'stingers') { this.monster.grotto.sting(e); return true; } // a pearl slug's stinger on what it touches
         if (e.kind === 'venom_mire') { this.venom.impact(e); return true; }
         if (e.kind === 'charged_shot') { this.power.impact(e, this.powerRatio); return true; }

@@ -412,7 +412,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -769,6 +769,30 @@ function windup(game, m, dt, t, gap) {
         setAggro(game, wolf, t || game.player);
       }
       game.emit({ type: 'rally', id: m.id, x: m.x, z: m.z, spots: w.spots });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'wisp_orb': {
+      // the marsh wisp's lost lights: `count` flames flung at its prey, each weaving `amp` m either side of the line
+      // (one swing per `wavelength` m), each its own way (core projectiles wisp_orb)
+      for (let i = 0; i < atk.count; i++) game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: 'wisp_orb', attack: w.name, x: m.x, z: m.z, y: 1.1, angle: w.angle, speed: atk.speed, radius: atk.projectileRadius, range: atk.range, element: 'fire', damage: dmg, weave: { amp: atk.amp, length: atk.wavelength, phase: i * Math.PI } });
+      game.emit({ type: 'wispOrbs', id: m.id, x: m.x, z: m.z, angle: w.angle });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'marsh_gas': {
+      // the gas marked at wind-up start (beginAttack) bubbles up and catches fire spot after spot
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'bog_lure': {
+      // its lights draw its prey toward the bog marked at wind-up start: the hero is lured for `pull` s (less tenacity)
+      // at `pullSpeed` m/s (game updatePlayer); within `reach` m of the bog
+      for (const u of game.units()) {
+        if (u !== game.player || u.dead || dist(u.x, u.z, w.tx, w.tz) > atk.reach) continue;
+        const d = atk.pull * (1 - Math.max(0, game.derived?.tenacityPct || 0) / 100);
+        if (d > 0) { u.statuses.lure = { t: d, x: w.tx, z: w.tz, speed: atk.pullSpeed }; game.emit({ type: 'lure', id: m.id, x: w.tx, z: w.tz, duration: d }); }
+      }
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
@@ -1829,6 +1853,20 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   // a ring round it marked for the whole time, then bursts out as the ring goes off
   // split (the salt slime): brought under `at` of its health, once, a bud the size of `size` pinches off beside it
   // with `share` of its full health; a bud never splits and gives only gold (a minion)
+  // kit.blink (the marsh wisp): come within `triggerRange` m of it and it scatters and gathers again `distance` m
+  // away (every `cooldown` s; event blink), as a marsh light does when it is approached
+  const bl = def.kit?.blink;
+  if (bl && t && dToT < bl.triggerRange && game.time >= (m.blinkAt || 0)) {
+    const away = angleTo(t.x, t.z, m.x, m.z);
+    for (const off of [0, 0.6, -0.6, 1.2, -1.2, 2]) {
+      const nx = m.x + Math.sin(away + off) * bl.distance, nz = m.z + Math.cos(away + off) * bl.distance;
+      if (!game.world.isFree(nx, nz, m.r) || game.isSafe(nx, nz)) continue;
+      m.blinkAt = game.time + bl.cooldown; m.blinkedAt = game.time;
+      game.emit({ type: 'blink', id: m.id, fromX: m.x, fromZ: m.z, x: nx, z: nz });
+      m.x = nx; m.z = nz; m.moving = false;
+      return;
+    }
+  }
   // the phase roar (kit.phaseRoar s, Greyfang): brought to its enrage share, it stops once to roar before the second
   // phase's attacks come (event phaseRoar)
   const roar = def.kit?.phaseRoar;
@@ -1989,6 +2027,33 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'marsh_gas') {
+    // marsh gas welling up along a line from it to its prey and `past` m on: a spot every `spacing` m (wobbling a
+    // little either side, seeded), each marked by its bubbles and catching fire `step` s after the one before
+    startWindup(game, m, name, t);
+    const a = angleTo(m.x, m.z, t.x, t.z), d = dirFromAngle(a), total = Math.min(atk.count * atk.spacing, dist(m.x, m.z, t.x, t.z) + atk.past), spots = [], once = new Set(); // (each unit caught by the run once)
+    for (let s = 1.5, i = 0; s <= total + 1e-6 && i < atk.count; s += atk.spacing, i++) {
+      const side = (i % 2 ? 1 : -1) * game.rng.range(0.1, 0.45), x = m.x + d.x * s + d.z * side, z = m.z + d.z * s - d.x * side;
+      if (game.isSafe(x, z)) continue;
+      spots.push([x, z]);
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'marsh_gas', x, z, radius: atk.radius, delay: m.windup.total + i * atk.step, duration: 0.3, damage: m.damage * (atk.damageMult || 1), once });
+    }
+    m.windup.spots = spots;
+    return;
+  }
+  if (kind === 'bog_lure') {
+    // the bog it lures toward: `poolDist` m from its prey toward the wisp (pulled in where blocked or safe), marked
+    // now, a pool of burning marsh water from the end of the wind-up for `linger` s
+    const a = angleTo(t.x, t.z, m.x, m.z);
+    let tx = t.x, tz = t.z;
+    for (const f of [1, 0.75, 0.5, 0.25]) {
+      const x = t.x + Math.sin(a) * atk.poolDist * f, z = t.z + Math.cos(a) * atk.poolDist * f;
+      if (game.world.isFree(x, z, 0.5) && !game.isSafe(x, z)) { tx = x; tz = z; break; }
+    }
+    startWindup(game, m, name, t, { tx, tz });
+    if (!game.isSafe(tx, tz)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'bog_pool', x: tx, z: tz, radius: atk.radius, delay: m.windup.total, duration: atk.linger, tick: atk.tick, damage: m.damage * atk.poolMult * atk.tick });
+    return;
+  }
   if (kind === 'phantom_rush') {
     // three runs through where its prey stands now: two moon-shadow wolves from `ring` m out, a third of the circle
     // either side of Greyfang, and Greyfang itself from where it stands, last; every lane marked for the whole wind-up

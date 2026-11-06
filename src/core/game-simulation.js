@@ -1688,6 +1688,13 @@ export class Game {
       return;
     }
 
+    // lured (the marsh wisp's bog lights): drawn toward its bog at `speed` m/s whatever is pressed; walking away
+    // fights it, a dodge breaks out of it
+    const lure = p.statuses.lure;
+    if (lure) {
+      const d = Math.hypot(lure.x - p.x, lure.z - p.z);
+      if (d > 0.2) this.moveEntity(p, ((lure.x - p.x) / d) * Math.min(d, lure.speed * dt), ((lure.z - p.z) / d) * Math.min(d, lure.speed * dt));
+    }
     const mx = this.input.moveX;
     const mz = this.input.moveZ;
     const mlen = Math.hypot(mx, mz);
@@ -1814,8 +1821,9 @@ export class Game {
       }
       if (st.t <= 0) delete p.statuses[id];
     }
-    // chill, hobble, shock and root only last
-    for (const id of ['chill', 'hobble', 'shock', 'root']) {
+    if (p.dash && p.statuses.lure) delete p.statuses.lure; // a dodge breaks out of the marsh wisp's lure
+    // chill, hobble, shock, root and lure only last
+    for (const id of ['chill', 'hobble', 'shock', 'root', 'lure']) {
       const st = p.statuses[id];
       if (st && (st.t -= dt) <= 0) delete p.statuses[id];
     }
@@ -1990,6 +1998,12 @@ export class Game {
         const want = angleTo(pr.x, pr.z, pr.homing.unit.x, pr.homing.unit.z), cur = Math.atan2(pr.vx, pr.vz);
         const a = cur + clamp(angleDiff(cur, want), -pr.homing.turn * dt, pr.homing.turn * dt);
         pr.vx = Math.sin(a) * pr.speed; pr.vz = Math.cos(a) * pr.speed; pr.angle = a;
+      }
+      // a weaving shot (the marsh wisp's lost light): it swings `amp` m either side of its line, one swing each
+      // `length` m it flies
+      if (pr.weave) {
+        const w = pr.weave, k = (Math.PI * 2) / w.length, off = w.amp * (Math.sin(k * (pr.travelled + step) + w.phase) - Math.sin(k * pr.travelled + w.phase)), L = Math.hypot(pr.vx, pr.vz) || 1;
+        pr.x += (pr.vz / L) * off; pr.z -= (pr.vx / L) * off;
       }
       pr.x += pr.vx * dt;
       if (pr.grow) pr.radius = pr.grow.from + (pr.grow.to - pr.grow.from) * Math.min(1, pr.travelled / pr.range); // a rolling moss ball
@@ -2192,7 +2206,10 @@ export class Game {
           // a ring (a.inner) leaves its middle safe
           for (const u of this.units()) {
             const d = dist(a.x, a.z, u.x, u.z);
-            if (d <= a.radius + u.r && !(a.inner && d < a.inner)) this.damageUnit(u, a.damage, src, { attack: a.attack });
+            if (d > a.radius + u.r || (a.inner && d < a.inner)) continue;
+            // a.once (a set shared by a run of areas, the marsh wisp's gas): each unit is caught by the run once
+            if (a.once) { if (a.once.has(u.id)) continue; a.once.add(u.id); }
+            this.damageUnit(u, a.damage, src, { attack: a.attack });
           }
           this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner, source: a.sourceId, attack: a.attack });
         }

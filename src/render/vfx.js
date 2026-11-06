@@ -1372,11 +1372,11 @@ export class Vfx {
       const live = ar.t - ar.delay;
       return Math.max(0, Math.min(1, live * 5) * Math.min(1, (ar.duration - live) * 2));
     };
-    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud') {
-      const spore = a.kind === 'spore_cloud';
+    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud' || a.kind === 'bog_pool') { // (bog_pool: the marsh wisp's, dark water lit blue)
+      const spore = a.kind === 'spore_cloud', bog = a.kind === 'bog_pool';
       const m = this.decal(this.discGeo, discMaterial(spore ? 'spore' : 'mire'), a.x, a.z, a.radius, 0, 0.07);
-      m.material.uniforms.uColor.value.set(spore ? 0x9a8a4a : 0x5a8a2a);
-      m.material.uniforms.uColor2.value.set(spore ? 0xd8d070 : 0xa8e04a);
+      m.material.uniforms.uColor.value.set(spore ? 0x9a8a4a : bog ? 0x1f3f4a : 0x5a8a2a);
+      m.material.uniforms.uColor2.value.set(spore ? 0xd8d070 : bog ? 0x5fc8e8 : 0xa8e04a);
       return {
         obj: m,
         update: (ar, t, dt) => {
@@ -1453,7 +1453,7 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb' || a.kind === 'pearl_burst' || a.kind === 'engulf' || a.kind === 'shell_drop' || a.kind === 'click' || a.kind === 'coral_burst' || a.kind === 'mantis_land') {
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard' || a.kind === 'mirror_bomb' || a.kind === 'pearl_burst' || a.kind === 'engulf' || a.kind === 'shell_drop' || a.kind === 'click' || a.kind === 'coral_burst' || a.kind === 'mantis_land' || a.kind === 'marsh_gas') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);

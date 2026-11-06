@@ -1318,6 +1318,17 @@ Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.
 
+The marsh wisp is a kit monster (`normal` `wisp_orb`; `kit.blink`: within `triggerRange` m of its target it moves
+`distance` m away, every `cooldown` s, event `blink`; `m.blinkedAt` for the view): `wisp_orb` (`count` projectiles
+`wisp_orb`, each with `weave` {amp, length, phase}: `updateProjectiles` swings it sideways off its line by
+amp x sin(2 pi travelled / length + phase), phases pi apart so they braid), `marsh_gas` (at wind-up start spots
+every `spacing` m from 1.5 m along the line to its prey and `past` m on, wobbling sideways (seeded), as `marsh_gas`
+areas going off `step` s apart after the wind-up; they share one `once` set so each unit is caught by the run once) and
+`bog_lure` (at wind-up start a `bog_pool` area `poolDist` m from its prey toward the wisp, live from the end of the
+wind-up for `linger` s, ticking `poolMult` x its damage (its inflict chill); at the end the hero within `reach` m of
+it gets `statuses.lure` {t, x, z, speed} for `pull` s less tenacity: `updatePlayer` moves the hero toward (x, z) at
+speed whatever is pressed; a dash clears it; Cleanse lifts it; event `lure`). Render: skillfx/wisp-fx.js.
+
 Save character version is 3. The optional `worldId` prevents restoring old coordinates
 on a different map. On migration preserve the character build and quest history,
 filter unavailable waypoints, add the landing checkpoint, and clear `pos` once.

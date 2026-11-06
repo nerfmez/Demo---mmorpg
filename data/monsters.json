@@ -288,7 +288,9 @@
     "marsh_wisp": {
       "name": "Lostlight Wisp",
       "nameTh": "ภูตแสงหลงทาง",
-      "behavior": "kiter",
+      "behavior": "kit",
+      "kit": {"circle": [5, 8], "blink": {"triggerRange": 3, "distance": 5.5, "cooldown": 6}},
+      "normal": "wisp_orb",
       "element": "fire",
       "hp": 450,
       "damage": 110,
@@ -301,25 +303,10 @@
       "exp": 20,
       "jobExp": 14,
       "attacks": {
-        "orb": {
-          "inflict": {"status": "burn", "chance": 0.5, "duration": 3, "dpsMult": 0.15},
-          "range": 10,
-          "windup": 0.45,
-          "recover": 0.4,
-          "cooldown": 2.2,
-          "speed": 8,
-          "damageMult": 1
-        },
-        "blink": {
-          "triggerRange": 3.2,
-          "distance": 5.5,
-          "cooldown": 5
-        }
+        "bog_lure": {"nameTh": "แสงล่อลงบึง", "kind": "bog_lure", "use": {"min": 3, "max": 10}, "range": 10, "windup": 1.1, "poolDist": 4.2, "radius": 2.2, "linger": 4, "tick": 0.5, "poolMult": 0.3, "pull": 2.4, "pullSpeed": 2.2, "reach": 9, "recover": 0.6, "cooldown": 13, "damageMult": 0.3, "inflict": {"status": "chill", "chance": 1, "duration": 1, "slow": 0.35}},
+        "marsh_gas": {"nameTh": "แก๊สบึงลุกไหม้", "kind": "marsh_gas", "use": {"min": 2, "max": 9}, "range": 9, "windup": 1.2, "spacing": 1.5, "step": 0.12, "past": 2, "count": 8, "radius": 1.1, "recover": 0.6, "cooldown": 9, "damageMult": 0.9, "inflict": {"status": "burn", "chance": 0.6, "duration": 3, "dpsMult": 0.15}},
+        "wisp_orb": {"nameTh": "ลูกไฟหลงทาง", "kind": "wisp_orb", "use": {"min": 2, "max": 10}, "range": 11, "windup": 0.7, "count": 2, "speed": 7, "projectileRadius": 0.45, "amp": 0.9, "wavelength": 4.5, "recover": 0.5, "cooldown": 3, "damageMult": 0.9, "inflict": {"status": "burn", "chance": 0.5, "duration": 3, "dpsMult": 0.15}}
       },
-      "keepDistance": [
-        6,
-        9
-      ],
       "drops": [
         {
           "item": "wisp_core",

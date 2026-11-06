@@ -179,6 +179,7 @@ export function syncMonsterViews(view, dt, time) {
     const since = m.strikeAt !== undefined ? (view.game?.time ?? 0) - m.strikeAt : Infinity;
     if (since < 0.2 && m.strikeAt !== mv.strikeAt) { mv.strikeAt = m.strikeAt; mv.kx += m.strikeFrom[0] - m.x; mv.kz += m.strikeFrom[1] - m.z; }
     state.strikeT = since; state.fangAim = !!m.fangs; state.coil = m.coil ? m.coil.phase : null;
+    state.blinkT = m.blinkedAt !== undefined ? (view.game?.time ?? 0) - m.blinkedAt : undefined; // the marsh wisp gathering again
     state.dragging = !!m.drag; // the shore gull riding its prey's head
     state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0;
     state.naked = m.naked ? m.naked.phase : null; // the hermit crab out of its shell: loose, home, climb // the boar running a leg, or skidding

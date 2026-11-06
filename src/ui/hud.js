@@ -489,6 +489,9 @@ export class Hud {
       case 'rally':
         this.float(e.x, 2.4, e.z, 'หอนเรียกฝูง!', 'crit');
         break;
+      case 'lure':
+        this.toast('แสงล่อลงบึง! เดินสวนหรือกดหลบ', '#7fd8ff');
+        break;
       case 'coilGrab':
         // the reed viper has wound round the hero: how to get out
         if (this.game?.player && e.unit === this.game.player.id) this.toast('ถูกรัด! กดหลบหรือตีงูเพื่อสลัดหลุด', '#b6ec4a');

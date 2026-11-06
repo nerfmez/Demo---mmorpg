@@ -1345,3 +1345,75 @@ test('reed viper tail lash: taken on what is behind it; the arc round its back i
   f.only('tail_lash'); f.place(0.8); f.step(0.5);
   assert.notEqual(f.m.windup?.name, 'tail_lash');
 });
+
+test('marsh wisp lost lights: two flames weave either side of their line to the hero, each hitting once; burn', () => {
+  const a = M.marsh_wisp.attacks.wisp_orb;
+  const { m, g, hits, until, step, place, only } = arena('marsh_wisp', 25, { open: true, normal: true });
+  const run = (sec) => { for (let t = 0; t < sec - 1e-8; t += 0.01) { g.time += 0.01; g.updateProjectiles(0.01); if (!m.dead) updateMonster(g, m, 0.01); } };
+  assert.equal(M.marsh_wisp.normal, 'wisp_orb');
+  only('wisp_orb'); place(6);
+  until(() => m.windup?.name === 'wisp_orb', 1);
+  run(a.windup - 0.03);
+  assert.equal(g.projectiles.length, 0, 'nothing in the wind-up');
+  run(0.05);
+  const orbs = g.projectiles.filter((p) => p.kind === 'wisp_orb');
+  assert.equal(orbs.length, a.count);
+  // they weave: off the straight line by up to amp, on opposite sides
+  run((a.wavelength / 4) / a.speed);
+  assert.ok(orbs[0].x * orbs[1].x < 0, 'on either side');
+  for (const o of orbs) assert.ok(Math.abs(o.x) > a.amp * 0.8 && Math.abs(o.x) <= a.amp + 0.01, 'a swing off the line');
+  for (let t = 0; t < 3 && g.projectiles.length; t += 0.01) run(0.01);
+  assert.equal(hits.length, a.count, 'both hit the hero standing on the line');
+});
+
+test('marsh wisp marsh gas: spots from it to past the hero, each bubbling through the wind-up, catching fire in turn', () => {
+  const a = M.marsh_wisp.attacks.marsh_gas;
+  const { m, g, hits, until, step, place, only } = arena('marsh_wisp', 25, { open: true });
+  only('marsh_gas'); place(5);
+  until(() => m.windup?.name === 'marsh_gas', 1);
+  const gas = g.areas.filter((x) => x.kind === 'marsh_gas');
+  assert.ok(gas.length >= 4 && gas.length <= a.count);
+  for (let i = 1; i < gas.length; i++) assert.ok(Math.abs(gas[i].delay - gas[i - 1].delay - a.step) < 1e-9, 'one after another');
+  assert.ok(gas[gas.length - 1].z > g.player.z, 'on past the hero');
+  step(gas[0].delay - 0.05);
+  assert.equal(hits.length, 0, 'nothing before the first catches');
+  step(gas[gas.length - 1].delay + 0.4 - gas[0].delay + 0.05);
+  assert.equal(hits.length, 1, 'caught once by the run');
+  // standing off the line: safe
+  const b = arena('marsh_wisp', 25, { open: true });
+  b.only('marsh_gas'); b.place(5);
+  b.until(() => b.m.windup?.name === 'marsh_gas', 1);
+  b.g.player.x += 3;
+  b.step(3);
+  assert.equal(b.hits.length, 0);
+});
+
+test('marsh wisp bog lure: the bog is marked toward it; the hero is drawn into it, walking away fights it, a dodge breaks out', () => {
+  const a = M.marsh_wisp.attacks.bog_lure;
+  const { m, g, until, step, place, only } = arena('marsh_wisp', 25, { open: true, realDamage: true });
+  only('bog_lure'); place(7);
+  until(() => m.windup?.name === 'bog_lure', 1);
+  const pool = g.areas.find((x) => x.kind === 'bog_pool');
+  assert.ok(pool && Math.abs(Math.hypot(pool.x - g.player.x, pool.z - g.player.z) - a.poolDist) < 0.05, 'marked toward the wisp');
+  assert.ok(Math.hypot(pool.x - m.x, pool.z - m.z) < Math.hypot(g.player.x - m.x, g.player.z - m.z));
+  until(() => m.state === 'recover', 2);
+  assert.ok(g.player.statuses.lure, 'lured');
+  const d0 = Math.hypot(g.player.x - pool.x, g.player.z - pool.z);
+  for (let i = 0; i < 30; i++) { g.time += 0.02; g.updatePlayer(0.02); }
+  const d1 = Math.hypot(g.player.x - pool.x, g.player.z - pool.z);
+  assert.ok(d1 < d0 - 0.8, 'drawn toward the bog');
+  // a dodge breaks out
+  g.player.dash = { t: 0, dur: 0.2, vx: 0, vz: 0 }; g.tickPlayerStatuses(0.01); g.player.dash = null;
+  assert.ok(!g.player.statuses.lure, 'a dodge breaks out');
+});
+
+test('marsh wisp: come close and it scatters and gathers again further off', () => {
+  const bl = M.marsh_wisp.kit.blink;
+  const { m, g, step, place } = arena('marsh_wisp', 25, { open: true });
+  for (const k in m.cd) m.cd[k] = 99;
+  place(0.5);
+  const d0 = Math.hypot(m.x - g.player.x, m.z - g.player.z);
+  step(0.05);
+  assert.ok(Math.hypot(m.x - g.player.x, m.z - g.player.z) > d0 + bl.distance * 0.8, 'gone off');
+  assert.equal(g.events.filter((e) => e.type === 'blink').length, 1);
+});

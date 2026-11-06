@@ -135,7 +135,7 @@ test('monster spawns remain dry, separated and outside safe routes for multiple 
 });
 
 test('new coastline monsters visibly wind up and cannot damage before the windup ends', () => {
-  for(const type of ['reef_crab','hermit_crab']) { // the salt slime and the gull are kit monsters (monster-kits.test.js)
+  for(const type of ['reef_crab']) { // the salt slime, the gull and the hermit crab have their own kit tests (monster-kits.test.js)
     const g=new Game(data,{world,seed:3}),m=g.monsters.find(m=>m.type===type);
     g.monsters=[m]; m.aggro=true;m.state='chase';m.staggerT=0;
     for(const key in m.cd) m.cd[key]=0;

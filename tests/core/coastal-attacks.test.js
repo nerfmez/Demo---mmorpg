@@ -26,27 +26,6 @@ function arena(type) {
   return { g, m, step, until };
 }
 
-test('coastal contacts stay planted and hit once at the authored contact time', () => {
-  for (const type of ['hermit_crab']) { // the slime, the gull and the reef crab are kit monsters (monster-kits.test.js)
-    const { g, m, step, until } = arena(type);
-    const hits = [];
-    g.damageUnit = (u, amount) => hits.push({ id: u.id, amount });
-    step(.01);
-    const origin = [m.x, m.z], atk = m.def.attacks[m.def.primaryAttack];
-    assert.equal(m.state, 'windup');
-    until(() => m.state === 'act');
-    assert.equal(hits.length, 0, type + ': no damage during anticipation');
-    step(atk.hitTime - .02);
-    assert.equal(hits.length, 0, type + ': no damage before contact');
-    step(.03);
-    assert.equal(hits.length, 1, type + ': contact lands once');
-    until(() => m.state === 'recover');
-    assert.equal(hits.length, 1, type + ': follow-through never repeats damage');
-    assert.deepEqual([m.x, m.z], origin, type + ': attack never charges forward');
-    assert.equal(m.charge, null);
-  }
-});
-
 test('a late side-step or backing outside reach dodges the locked frontal pinch', () => {
   for (const escape of ['side', 'range']) {
     const { g, m, step, until } = arena('reef_crab');
@@ -60,33 +39,7 @@ test('a late side-step or backing outside reach dodges the locked frontal pinch'
   }
 });
 
-test('hermit guards between pinches and has an unguarded vulnerable emergence', () => {
-  const { g, m, step, until } = arena('hermit_crab');
-  step(.01);
-  until(() => m.state === 'shell');
-  assert.equal(m.guardAttacks, 0);
-  assert.equal(m.shell, true);
-  assert.equal(g.hitMonster(m, 10, { dot: true }), 4, 'shell reduces damage');
-  until(() => m.state === 'emerge');
-  assert.equal(m.shell, false);
-  const pos = [m.x, m.z];
-  assert.equal(g.hitMonster(m, 10, { dot: true }), 14, 'emergence is a punish window');
-  step(.5);
-  assert.deepEqual([m.x, m.z], pos);
-  assert.equal(m.state, 'emerge');
-  until(() => m.state === 'chase');
-  assert.equal(g.hitMonster(m, 10, { dot: true }), 10, 'vulnerability ends with emergence');
-});
-
-test('leashing during shell clears its damage reduction and temporary attack state', () => {
-  const { g, m, step, until } = arena('hermit_crab');
-  step(.01); until(() => m.state === 'shell');
-  m.homeX = -100;
-  step(.01);
-  assert.equal(m.state, 'return');
-  assert.equal(m.shell, false);
-  assert.equal(g.hitMonster(m, 10, { dot: true }), 10);
-});
+// the hermit crab is a kit monster now (claw guard, anemones, shell shed: monster-kits.test.js)
 
 test('reef crab sweep: it scuttles side to side in front of its prey; a step aside is caught, a step back is not', () => {
   for (const [escape, expect] of [['none', 2], ['side', 1], ['back', 0]]) {

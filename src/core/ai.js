@@ -323,6 +323,7 @@ function setState(m, state, dur = 0) {
     m.bombard = null;
     m.lap = null;
     m.drag = null;
+    m.naked = null; // a hermit crab giving up the fight is back in its shell
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -387,10 +388,11 @@ function startWindup(game, m, name, t, extra = {}) {
   const tempo = m.enraged ? 0.85 : 1;
   setState(m, 'windup');
   // keepFacing: an attack made without turning (the pangolin's tail lash at what is behind it)
-  const angle = t && !atk.keepFacing ? angleTo(m.x, m.z, t.x, t.z) : m.facing;
+  // rear: an attack aimed out behind it without turning (the hermit crab's anemones)
+  const angle = (t && !atk.keepFacing ? angleTo(m.x, m.z, t.x, t.z) : m.facing) + (atk.rear ? Math.PI : 0);
   m.windup = { name, total: atk.windup * tempo, angle, ...extra };
   m.stealth = false; // every wind-up is shown in full
-  m.facing = angle + (atk.backward ? Math.PI : 0); // backward: it turns its back to its aim (the beetle's spray)
+  if (!atk.rear) m.facing = angle + (atk.backward ? Math.PI : 0); // backward: it turns its back to its aim (the beetle's spray)
   m.moving = false;
   game.emit({ type: 'windup', id: m.id, name, total: m.windup.total, angle, x: m.x, z: m.z, radius: atk.radius, range: atk.range || atk.maxRange });
 }
@@ -401,7 +403,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -416,6 +418,7 @@ function windup(game, m, dt, t, gap) {
     case 'whirl':
     case 'rend':
     case 'rake':
+    case 'claw_guard': // the hermit crab's: its claw held up as a shield through the wind-up (game hitMonster)
       // A stationary strike has its own contact time and follow-through. It never
       // uses the charge collision path, and only tests the locked frontal arc once.
       m.melee = { name: w.name, angle: w.angle, damage: dmg, hit: false };
@@ -749,6 +752,26 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'anemone': {
+      // the hermit crab's anemones lash out behind it (its aim is its back, `range` m, `arc` degrees) without it turning
+      const arc = (atk.arc || 140) * DEG;
+      game.emit({ type: 'monsterSwing', id: m.id, name: w.name, angle: w.angle, range: atk.range + m.r, arc: atk.arc, x: m.x, z: m.z });
+      for (const u of game.units()) {
+        const g = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
+        if (g <= atk.range && Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) <= arc / 2) game.damageUnit(u, dmg, m, { attack: w.name });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'shell_shed': {
+      // the hermit crab bursts out of its shell (the coral burst round it is the area marked at wind-up start): the
+      // shell stays where it stood; bare (m.naked) it runs `nakedSpeed` times as fast and takes `nakedTaken` times the
+      // damage, for `loose` s, then hurries back and climbs in (kit, act)
+      m.naked = { name: w.name, x: m.x, z: m.z, facing: m.facing, until: game.time + atk.loose, phase: 'loose' };
+      game.emit({ type: 'shellShed', id: m.id, x: m.x, z: m.z, facing: m.facing });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'drag': {
       // the wolf bites what is right in front of it (`range` m, `arc` degrees) and backs away `back` m over `dragTime` s
       // dragging it by the jaws (act: m.drag); a dodge (the hero's movement skill) tears free
@@ -889,6 +912,12 @@ function windup(game, m, dt, t, gap) {
 }
 
 function act(game, m, dt, t) {
+  if (m.naked?.phase === 'climb') {
+    // the hermit crab backs into its shell
+    m.moving = false;
+    if (m.stateT >= m.stateDur) { m.naked = null; game.emit({ type: 'reshell', id: m.id, x: m.x, z: m.z }); setState(m, 'recover', 0.3); }
+    return;
+  }
   if (m.melee) {
     const strike = m.melee;
     const atk = m.def.attacks[strike.name];
@@ -1563,6 +1592,18 @@ function sentinel(game, m, dt, { t, gap, dToT, slowMult }) {
  */
 function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   const def = m.def, names = kitOrder(def);
+  // the hermit crab out of its shell (shell_shed): loose, then home to the shell at a run and in again
+  const nk = m.naked, nakedAtk = nk && def.attacks[nk.name];
+  if (nk && nk.phase === 'loose' && game.time >= nk.until) nk.phase = 'home';
+  if (nk && nk.phase === 'home') {
+    if (walkTo(game, m, nk.x, nk.z, def.speed * nakedAtk.nakedSpeed * slowMult, dt, 10)) {
+      nk.phase = 'climb'; m.facing = nk.facing; m.moving = false;
+      game.emit({ type: 'shellClimb', id: m.id, x: nk.x, z: nk.z });
+      setState(m, 'act', nakedAtk.climb);
+    }
+    return;
+  }
+  const speed = def.speed * slowMult * (nk ? nakedAtk.nakedSpeed : 1);
   // withdraw (the snail king): at each health share in `at` it pulls into its shell once (the shell's damageTaken),
   // a ring round it marked for the whole time, then bursts out as the ring goes off
   // split (the salt slime): brought under `at` of its health, once, a bud the size of `size` pinches off beside it
@@ -1596,6 +1637,7 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     if (!canUse(m, name)) continue;
     const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
     if ((u.hpBelow && m.hp > m.maxHp * u.hpBelow) || (u.once && m.used?.[name])) continue;
+    if (nk && atk.needsShell) continue; // its anemones and its shell went with the shell
     // behind: only for a target at its back (more than 100 degrees off its facing)
     if (u.behind && Math.abs(angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z))) < 1.75) continue;
     // a burrow (erupt) never comes up in a safe town
@@ -1609,9 +1651,9 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     return beginAttack(game, m, name, t);
   }
   const circle = def.kit?.circle;
-  if (circle && soon > 0.6) return strafe(game, m, dt, t, dToT, circle[0], circle[1], def.speed * slowMult);
+  if (circle && soon > 0.6) return strafe(game, m, dt, t, dToT, circle[0], circle[1], speed);
   if (reach === Infinity) reach = reachAll; // everything is cooling: close to its nearest reach as before
-  if (gap > reach * 0.8) walkTo(game, m, t.x, t.z, def.speed * slowMult, dt, def.kit?.turn);
+  if (gap > reach * 0.8) walkTo(game, m, t.x, t.z, speed, dt, nk ? 10 : def.kit?.turn);
   else {
     m.moving = false;
     turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, def.kit?.turn ?? 6);
@@ -1697,6 +1739,12 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'shell_shed') {
+    // the coral shell bursts round where it stands, marked for the whole wind-up
+    startWindup(game, m, name, t, { radius: atk.radius });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'coral_burst', x: m.x, z: m.z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    return;
+  }
   if (kind === 'pincer') {
     // two lanes crossing at where its prey stands now, from either side across the wolf's line to it, `lane` m out
     startWindup(game, m, name, t);

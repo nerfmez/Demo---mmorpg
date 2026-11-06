@@ -1233,11 +1233,22 @@ then moves the unit `spit` m along its facing (event `spitOut`); landing on noth
 at the prey's spot, `delay` = `flight` + `set`, hitting what is in it as it sets, its inflict a root), and `split`
 (in `kit()`, once, at or under `at` of its health: a minion of its own type `size` times as large with `share` of its
 full health, `bud` (never splits), event `split`; `m.size` scales its view).
-Reef crab uses only a slow frontal pinch. Hermit crab also enters shell after its
-configured attack count (or sustained hits), then clears `shell` and enters `emerge`.
-`emergeDamageTaken` applies only during that stationary opening, before normal pursuit
-resumes. Leashing clears transient combat/guard state. See `COASTAL-COMBAT.md` and
-`tests/core/coastal-attacks.test.js` for the port acceptance cases.
+Reef crab uses only a slow frontal pinch (the `coastal_melee` shell and `emerge` rules stay in `ai.js` for
+monsters that list a `shell` attack; none does now). Leashing clears transient combat/guard state. See
+`COASTAL-COMBAT.md` and `tests/core/coastal-attacks.test.js` for the port acceptance cases.
+
+The hermit crab is a kit monster: `claw_guard` (kind `claw_guard`, a frontal melee strike like `pinch`; through its
+wind-up `hitMonster` multiplies a non-dot blow by `guardTaken` when the blow comes from within `guardArc` degrees of its
+facing (`fromX`/`fromZ`, else the hero), event `clawGuard`), `anemone` (kind `anemone`, `rear` + `keepFacing`: the
+wind-up angle is its facing + π and it does not turn; `use.behind`; at the end units in that rear `arc` within `range`
+take the hit and its poison inflict) and `shell_shed` (kind `shell_shed`: an area of kind `coral_burst` round it at
+wind-up start (`radius`, `delay` = wind-up); at the end `m.naked` {x, z, facing, until, phase loose/home/climb}, event
+`shellShed`: for `loose` s it fights at `nakedSpeed` x its speed and `hitMonster` multiplies blows by `nakedTaken`;
+then (phase `home`, in `kit()`) it walks back to the shell at that speed, and climbs in (state `act` for `climb` s,
+event `shellClimb`, then `reshell`); attacks marked `needsShell` are not taken while it is out; idle/return clears
+it). The View hides the crab's own shell and its body bone (the model's body carries the shell's lower half; the
+head and legs are scaled back up) and shows a soft abdomen; the left shell is a pooled hermit rig with its head and
+legs shrunk (skillfx/hermit-fx.js).
 Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.
@@ -1587,7 +1598,7 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
 - Elemental job skills (2026-10-31, `tests/core/elemental-skills.test.js`; plain skills, one element
   each, for the spell archer `spellarcher` and the spellblade): Flame Arrow Rain (`ground_area` with
   `arrows` {count, land, fuseMin, fuseMax, blast}: `count` arrows at seeded spots in the circle (one near
-  its middle), each a delayed area of radius `blast` bursting at land + its own fuse (rng), an `arrowPin`
+  its middle), each a delayed area of radius `blast` bursting at land + its own fuse (each in its own shuffled slot of fuseMin..fuseMax, jittered: never two at once), an `arrowPin`
   event per arrow with `land` and `delay`; an echo repeats the volley; `burnChance`), Miasma Arrow (`dot_zone` + `poison`), Flame Slash (a wide `melee_arc`),
   Ice Spikes (`melee_line` + `chill`), Ice Ball (`ice_ball`, 2026-10-31: not a job skill but a basic cold spell beside
   Firebolt, a main skill; a plain `projectile` whose hit chills), and three new fields:

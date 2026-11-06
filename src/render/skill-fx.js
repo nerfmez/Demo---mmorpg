@@ -496,6 +496,7 @@ export class SkillFx {
       case 'bombard': case 'feign': case 'click': return this.monster.beetle.event(e);
       // the masked wolf (skillfx/wolf-fx.js)
       case 'lunge': case 'lapAim': case 'dragStart': case 'dragFree': case 'dragEnd': return this.monster.wolf.event(e);
+      case 'clawGuard': case 'shellShed': case 'shellClimb': case 'reshell': return this.monster.hermit.event(e, g);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);

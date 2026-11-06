@@ -166,7 +166,8 @@ export function syncMonsterViews(view, dt, time) {
     state.perching = !!m.perch;
     state.lapPhase = m.lap?.phase || null; // the wolf: run, aim, dash
     state.dragging = !!m.drag; // the shore gull riding its prey's head
-    state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0; // the boar running a leg, or skidding
+    state.rampage = m.rampage ? (m.rampage.phase === 'run' ? 1 : 2) : 0;
+    state.naked = m.naked ? m.naked.phase : null; // the hermit crab out of its shell: loose, home, climb // the boar running a leg, or skidding
     r.animate(
       r,
       state,

@@ -952,3 +952,84 @@ test('rootdigger mole kit: the scoop hits its front arc once at the end of the w
   for (let t = 0; t < 1.5; t += 0.01) { b.g.updateProjectiles(0.01); b.step(0.01); }
   assert.ok(b.hits.length >= 1 && b.hits.length <= 2, `the middle clods hit, the outer ones pass (${b.hits.length})`);
 });
+
+test('hermit crab claw guard: blows from in front glance off its raised claw through the wind-up, its sides do not; then one snap', () => {
+  const a = M.hermit_crab.attacks.claw_guard;
+  const { m, g, hits, until, step, place, only } = arena('hermit_crab', 11, { open: true });
+  only('claw_guard'); place(1);
+  until(() => m.state === 'windup');
+  const blow = (fx, fz) => { const hp = m.hp; g.hitMonster(m, 400, { fromX: fx, fromZ: fz }); return hp - m.hp; };
+  const front = blow(0, 3), side = blow(3, 0);
+  assert.ok(front < side * (a.guardTaken + 0.05), `the guard takes the front blow (${front} vs ${side})`);
+  assert.ok(g.events.some((e) => e.type === 'clawGuard'), 'the clank is told');
+  step(a.windup - m.stateT - 0.02);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.state === 'recover', 2);
+  assert.equal(hits.length, 1, 'one snap');
+  // out of its arc to the side: a miss; and out of the wind-up its front is soft again
+  const b = arena('hermit_crab', 11, { open: true });
+  b.only('claw_guard'); b.place(1);
+  b.until(() => b.m.state === 'windup');
+  b.step(a.windup * 0.6); // locked
+  Object.assign(b.g.player, { x: 2.2, z: 0 });
+  b.until(() => b.m.state === 'recover', 3);
+  assert.equal(b.hits.length, 0, 'beside it: missed');
+  const hp = b.m.hp; b.g.hitMonster(b.m, 400, { fromX: 0, fromZ: 3 });
+  assert.ok(hp - b.m.hp > front * 2, 'no guard outside the wind-up');
+});
+
+test('hermit crab anemones: only at a hero behind it, a rear sting without turning round; in front is safe', () => {
+  const a = M.hermit_crab.attacks.anemone;
+  const { m, g, hits, until, step, only } = arena('hermit_crab', 11, { open: true });
+  only('anemone');
+  Object.assign(g.player, { x: 0, z: m.r + g.player.r + 1 }); // in front: never
+  step(1);
+  assert.notEqual(m.windup?.name, 'anemone', 'not at a hero in front');
+  Object.assign(g.player, { x: 0.3, z: -(m.r + g.player.r + 1) }); m.facing = 0; m.state = 'chase';
+  until(() => m.windup?.name === 'anemone', 1);
+  const f0 = m.facing;
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.state === 'recover', 1);
+  assert.equal(hits.length, 1, 'stung behind it');
+  assert.ok(Math.abs(m.facing - f0) < 1e-6, 'it never turned');
+  const b = arena('hermit_crab', 11, { open: true });
+  b.only('anemone'); Object.assign(b.g.player, { x: 0, z: -(b.m.r + b.g.player.r + 1) });
+  b.until(() => b.m.windup?.name === 'anemone', 1);
+  Object.assign(b.g.player, { x: 0, z: b.m.r + 1.5 }); // ran round to its front
+  b.until(() => b.m.state === 'recover', 1);
+  assert.equal(b.hits.length, 0, 'in front: safe');
+});
+
+test('hermit crab shell shed: a coral burst round it, then it runs bare (fast, soft) and climbs back into the shell it left', () => {
+  const a = M.hermit_crab.attacks.shell_shed;
+  const { m, g, hits, until, step, place, only } = arena('hermit_crab', 11, { open: true });
+  only('shell_shed'); place(1);
+  until(() => m.state === 'windup');
+  assert.ok(g.areas.some((ar) => ar.kind === 'coral_burst' && ar.radius === a.radius), 'the burst is marked round it');
+  step(a.windup - 0.05);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.naked, 1);
+  step(0.1);
+  assert.equal(hits.length, 1, 'the burst hits once');
+  const shell = { x: m.naked.x, z: m.naked.z };
+  // bare: softer and faster
+  const hp = m.hp; g.hitMonster(m, 400, { fromX: 3, fromZ: 0 });
+  const soft = hp - m.hp;
+  m.naked = null; const hp2 = m.hp; g.hitMonster(m, 400, { fromX: 3, fromZ: 0 }); const hard = hp2 - m.hp;
+  assert.ok(soft > hard * (a.nakedTaken - 0.2), `bare it takes more (${soft} vs ${hard})`);
+  m.naked = { name: 'shell_shed', x: shell.x, z: shell.z, facing: 0, until: g.time + a.loose, phase: 'loose' };
+  for (const k in m.cd) m.cd[k] = 0; // everything ready: its anemones and shell went with the shell
+  Object.assign(g.player, { x: 0, z: -(m.r + g.player.r + 1) });
+  step(0.5);
+  assert.ok(!['anemone', 'shell_shed'].includes(m.windup?.name), 'no anemones or shed while bare');
+  // it wanders off chasing, then goes home and climbs in
+  m.state = 'chase'; m.windup = null; m.melee = null; m.x = 4; m.z = 0;
+  until(() => m.naked?.phase === 'home', a.loose + 2);
+  const x0 = m.x, z0 = m.z; step(0.2);
+  const v = Math.hypot(m.x - x0, m.z - z0) / 0.2;
+  assert.ok(v > M.hermit_crab.speed * 2, `it hurries home (${v.toFixed(2)} m/s)`);
+  until(() => g.events.some((e) => e.type === 'reshell'), 6);
+  assert.ok(Math.hypot(m.x - shell.x, m.z - shell.z) < 0.5, 'back in the shell where it left it');
+  assert.equal(m.naked, null);
+});

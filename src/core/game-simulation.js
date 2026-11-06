@@ -994,6 +994,15 @@ export class Game {
     const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100) * (1 - (opts.modEffects?.penetrate || 0) / 100) * (1 - (perk?.penetrate || 0)); // Piercing Line: a mod's own share
     if (!opts.dot) dmg *= defenseFactor(def, this.data);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
+    // the hermit crab's raised claw (claw_guard wind-up): a blow from in front (within guardArc) mostly glances off
+    const ga = m.state === 'windup' && !opts.dot ? m.def.attacks[m.windup?.name] : null;
+    if (ga?.guardTaken) {
+      const fx = opts.fromX ?? this.player.x, fz = opts.fromZ ?? this.player.z;
+      let d = Math.atan2(fx - m.x, fz - m.z) - m.facing;
+      d = Math.atan2(Math.sin(d), Math.cos(d));
+      if (Math.abs(d) <= (ga.guardArc * Math.PI) / 360) { dmg *= ga.guardTaken; this.emit({ type: 'clawGuard', id: m.id, x: m.x, z: m.z, fromX: fx, fromZ: fz }); }
+    }
+    if (m.naked) dmg *= m.def.attacks[m.naked.name].nakedTaken; // ... and out of its shell, soft
     if (m.nacre) {
       // the eye clam's nacre coat takes the blow (core/ai.js nacreAbsorb): no health lost, no flinch
       const left = m.nacre.hp - dmg;

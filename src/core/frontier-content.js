@@ -164,9 +164,12 @@ export function executeFrontier(g,s,aim,mult,triggered) {
   // spread round it; each burns on its own fuse and bursts (radius blast) at its own time
   if(s.arrows){
     const A=s.arrows,volley=(k,later)=>{
+      // each fuse in its own slot of the fuse span (the slots shuffled, jittered inside), so no two burst together
+      const slot=Array.from({length:A.count},(_,i)=>i);
+      for(let i=A.count-1;i>0;i--){const j=Math.floor(g.rng.range(0,i+1-1e-9));[slot[i],slot[j]]=[slot[j],slot[i]];}
       for(let i=0;i<A.count;i++){
         const a=(i+g.rng.range(0,.8))/A.count*Math.PI*2,d=i===0?g.rng.range(0,.25)*s.radius:s.radius*(.35+.6*Math.sqrt(g.rng.range(0,1)));
-        const x=aim.x+Math.cos(a)*d,z=aim.z+Math.sin(a)*d,fuse=A.fuseMin+(A.fuseMax-A.fuseMin)*g.rng.range(0,1);
+        const x=aim.x+Math.cos(a)*d,z=aim.z+Math.sin(a)*d,fuse=A.fuseMin+(A.fuseMax-A.fuseMin)*(slot[i]+g.rng.range(.1,.9))/A.count;
         const area=g.spawnArea({owner:'player',kind:s.id,skill:s,x,z,radius:A.blast,delay:later+A.land+fuse,duration:.35,damage:s.damage*mult*k,element:s.element,echo:later>0});
         g.emit({type:'arrowPin',skill:s.id,id:area.id,x,z,land:later+A.land,delay:area.delay,fromX:g.player.x,fromZ:g.player.z,i});
       }

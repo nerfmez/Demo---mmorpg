@@ -487,11 +487,18 @@ function coastalStrike(s, name) {
 function animCrab(r, s, dt, time) {
   const b = r.bones;
   const c = r.motion;
-  const stroke = coastalStrike(s, 'pinch');
+  const stroke = coastalStrike(s, r.hermit ? 'claw_guard' : 'pinch');
   const ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
   const w = advanceGait(r, s, dt, c);
   const ph = r.phase;
   const tucked = r.shellK = damp(r.shellK || 0, s.state === 'shell' ? 1 : 0, 12, dt);
+  // the hermit crab's own: the claw raised as a shield (claw_guard), its back tipped up to its anemones (anemone),
+  // hunkered with the shell shaking (shell_shed), bare and frantic out of its shell (naked)
+  const guard = r.hermit && s.windup === 'claw_guard' ? clamp01((3 * s.windupT) / s.windupTotal) : 0;
+  const sting = r.hermit && s.windup === 'anemone' ? clamp01(s.windupT / s.windupTotal) : 0;
+  const stung = r.hermit && s.state === 'recover' && s.lastAttack === 'anemone' ? Math.max(0, 1 - s.actT / 0.35) : 0;
+  const shed = r.hermit && s.windup === 'shell_shed' ? clamp01(s.windupT / s.windupTotal) : 0;
+  const bare = r.hermit && s.naked && s.naked !== 'climb' ? 1 : 0;
   poseSplayedLegs(r, c, r.legs, SIDES6, 'z');
   for (const n of r.legs) b[n].scale.setScalar(1 - tucked * .8);
   // a crab scuttles sideways: the body turns side-on while it travels and squares up to strike
@@ -508,8 +515,8 @@ function animCrab(r, s, dt, time) {
   const P = r.pose || (r.pose = { y: .32 });
   // bubbles: it rears a little, claws framing its mouth while the foam wells up, and jerks forward as it spits
   const foam = s.windup === 'bubbles' ? clamp01(s.windupT / s.windupTotal) : 0, spat = s.state === 'recover' && s.lastAttack === 'bubbles' ? Math.max(0, 1 - s.actT / 0.25) : 0;
-  const crouch = wind;
-  P.y = damp(P.y, .32 - tucked * .08 - ready * .05 - crouch * .07, 16, dt);
+  const crouch = Math.max(wind, shed);
+  P.y = damp(P.y, .32 - tucked * .08 - ready * .05 - crouch * .07 - shed * .05 + bare * .04, 16, dt);
   b.body.position.y = P.y + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph));
   const br = breath(time, r.seed, c) * (1 - w);
   b.shell.scale.set(1 + br, 1 - (s.hurt || 0) * .035 + br, 1);
@@ -521,8 +528,10 @@ function animCrab(r, s, dt, time) {
   // claws held up, bobbing with the steps, with an idle click now and then
   const click = busy ? 0 : Math.max(0, Math.sin(time * 1.4 + r.seed)) ** 16;
   const snap = sweep ? Math.abs(Math.sin(s.actT * 11)) : 0; // the claws open and shut as it goes
-  P.clawX = damp(P.clawX || 0, -.85 * ready + .25 * hit - .6 * foam + .3 * spat - .45 * side, 20, dt);
-  P.clawY = damp(P.clawY || 0, -.55 * ready + .35 * hit - .35 * foam + .55 * side - .4 * snap, 20, dt);
+  // the guard: both claws up and turned in, closed together in front like a shield, then thrown open for the snap
+  const frantic = bare ? Math.sin(time * 16) * 0.25 : 0;
+  P.clawX = damp(P.clawX || 0, r.hermit ? -.7 * guard + .3 * hit - .5 * bare + frantic : -.85 * ready + .25 * hit - .6 * foam + .3 * spat - .45 * side, 20, dt);
+  P.clawY = damp(P.clawY || 0, r.hermit ? .5 * guard * (1 - hit) - .45 * hit + .2 * bare : -.55 * ready + .35 * hit - .35 * foam + .55 * side - .4 * snap, 20, dt);
   for (const [side, name] of CRAB_CLAWS) {
     const claw = b[name];
     claw.rotation.x = P.clawX + Math.sin(2 * ph + side) * 0.06 * w;
@@ -531,7 +540,25 @@ function animCrab(r, s, dt, time) {
     claw.scale.setScalar(1 - tucked * .85);
   }
   b.body.rotation.z = c.roll * w * Math.sin(ph) + Math.sin(time * 1.5) * .008 + (wind ? Math.sin(time * 9) * 0.06 * wind : 0);
-  b.body.rotation.x = damp(b.body.rotation.x, -0.08 * ready + 0.1 * hit - 0.15 * foam + 0.14 * spat, 18, dt);
+  b.body.rotation.x = damp(b.body.rotation.x, -0.08 * ready + 0.1 * hit - 0.15 * foam + 0.14 * spat + 0.2 * sting - 0.12 * stung, 18, dt);
+  if (r.hermit) {
+    // the shell: quivering as the anemones swell, jerked back by their sting, shaking ever harder before it sheds
+    b.shell.rotation.x = Math.sin(time * 30) * 0.03 * sting - 0.22 * stung + Math.sin(time * 37) * 0.07 * shed;
+    b.shell.rotation.z = Math.sin(time * 43) * 0.09 * shed * shed;
+    // out of it, its own shell is gone (skillfx/hermit-fx.js draws the one it left where it left it): the model's
+    // body bone carries the shell's lower half, so the body is shrunk to nothing, its head (claws) and legs scaled
+    // back up where they were, and the soft curled abdomen shows instead (r.abdomen, skillfx/hermit-fx.js)
+    const out = !!s.naked && !(s.naked === 'climb' && s.actT >= s.actionTotal - 0.05);
+    if (out || r.bareOn) {
+      const k = out ? 100 : 1;
+      b.body.scale.setScalar(1 / k);
+      b.head.position.copy(b.head.userData.rest.pos).multiplyScalar(k);
+      b.head.scale.multiplyScalar(k);
+      for (const n of r.legs) { b[n].position.copy(b[n].userData.rest.pos).multiplyScalar(k); b[n].scale.multiplyScalar(k); }
+      r.bareOn = out;
+    }
+    if (r.abdomen) r.abdomen.visible = out;
+  }
   // legs dug in and trembling before the dash
   if (crouch > 0.3) for (const n of r.legs) b[n].rotation.z += Math.sin(time * 42 + n.length) * 0.05 * crouch;
 }

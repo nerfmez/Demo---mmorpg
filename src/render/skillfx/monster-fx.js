@@ -23,6 +23,7 @@ import { BoarFx } from './boar-fx.js';
 import { SporeMonFx } from './spore-mon-fx.js';
 import { BeetleFx } from './beetle-fx.js';
 import { WolfFx } from './wolf-fx.js';
+import { HermitFx } from './hermit-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -84,6 +85,8 @@ export class MonsterFx {
     this.beetle = new BeetleFx(scene, host, this);
     // the masked wolf's lunge, pincer and drag (skillfx/wolf-fx.js)
     this.wolf = new WolfFx(scene, host, this);
+    // the hermit crab's clank, anemones and shed shell (skillfx/hermit-fx.js)
+    this.hermit = new HermitFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -95,6 +98,7 @@ export class MonsterFx {
   swing(e, g) {
     if (this.grotto.swing(e, g)) return true;
     if (this.wolf.swing(e)) return true;
+    if (this.hermit.swing(e, g)) return true;
     // a strike whose look is 'light' (data/combat-fx.json monsters): claw marks of light raked across the prey
     const look = this.host.vfx?.monsterLook?.(e.type, e.name);
     if (look?.kind === 'light') {
@@ -227,6 +231,7 @@ export class MonsterFx {
     if (e.kind === 'shell_drop') return this.gull.burst(e);
     if (e.kind === 'fairy_ring') return this.spore.burst(e);
     if (e.kind === 'click') return this.beetle.burst(e);
+    if (e.kind === 'coral_burst') return this.hermit.burst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
     this.leaves.burst(e.x, y, e.z, 14, 3.6);
@@ -386,6 +391,7 @@ export class MonsterFx {
     this.spore.update(dt, g);
     this.beetle.update(dt, g);
     this.wolf.update(dt, g);
+    this.hermit.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

@@ -33,11 +33,18 @@ export function referenceMonster(data, level) {
     hitInterval: b.hitInterval,
     // its attacks (all telegraphed): the share of its time spent winding one up, and its biggest attack's
     // damage over a plain hit (a stun lands in a wind-up and cancels that attack: core/ai.js cancelWindup)
-    windupShare: avg((m) => Math.min(1, attacksOf(m).reduce((a, x) => a + x.windup / x.cooldown, 0))),
-    bigMult: avg((m) => Math.max(1, ...attacksOf(m).map((x) => x.damageMult))),
+    // (a kit monster with a `normal` attack uses only that one unless it is an elite: data monsters.elite.chance)
+    windupShare: avg((m) => kitMix(data, m, (atks) => Math.min(1, atks.reduce((a, x) => a + x.windup / x.cooldown, 0)))),
+    bigMult: avg((m) => kitMix(data, m, (atks) => Math.max(1, ...atks.map((x) => x.damageMult)))),
   };
 }
 const attacksOf = (m) => Object.values(m.attacks || {}).filter((x) => x && x.damageMult && x.cooldown && x.windup);
+function kitMix(data, m, f) {
+  const all = f(attacksOf(m)), normal = m.normal && m.attacks?.[m.normal];
+  if (!normal) return all;
+  const e = data.monsters.elite?.chance ?? 0;
+  return (1 - e) * f(attacksOf({ attacks: { normal } })) + e * all;
+}
 
 /** A character of `kit` at `level`: stat points spent per the kit's build, main skill slotted
  * (with `mods`, mod ids socketed at their top level). */

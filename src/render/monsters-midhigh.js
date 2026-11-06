@@ -77,8 +77,29 @@ function animMantis(r, s, dt, time) {
   // back along the arm (folded) at 0 and opens forward as its rotation.x goes negative.
   let rear = Math.sin(time * 1.6 + r.seed) * 0.05, bodyY = 0.6;
   let arm = 0.95, blade = -0.25, spread = 0.1, head = 0, spin = 0; // rest: praying, scythes folded in front
+  let sway = 0, wings = 0, lift = 0; // its peering sway (m), its wings spread for the display (0..1), its flight
   const k = windK(s);
-  if (s.windup === 'scythe') {
+  const struck = s.state === 'recover' && s.lastAttack === 'peer_strike' ? clamp01(1 - (s.actT || 0) / 0.35) : 0;
+  if (s.windup === 'peer_strike') {
+    // peering: the body sways side to side, ever wider, to judge the gap (the head held on its prey), scythes folded
+    // and drawn in tight; at the end they are cocked back
+    sway = Math.sin((s.windupT || 0) * 9) * (0.06 + 0.1 * k) * (1 - Math.max(0, (k - 0.85) / 0.15));
+    arm = 0.95 - 0.45 * k; blade = -0.05; spread = 0.05; rear = -0.1 * k; head = 0.12 * k;
+  } else if (struck) {
+    // the strike: both forelegs shot out forward and open down the lane (rotation.x > 0 swings them forward), the
+    // body leaning in, then folding back
+    arm = 0.95 + 0.85 * struck; blade = -0.25 - 1.9 * struck; spread = 0.12; rear = 0.3 * struck;
+  } else if (s.windup === 'startle' || (s.state === 'recover' && s.lastAttack === 'startle')) {
+    // the startle display: reared up tall, scythes thrown wide and high, wings fanned out behind with their eyespots
+    const d = s.windup === 'startle' ? Math.min(1, k * 2.2) : 1;
+    rear = -0.5 * d; arm = 0.95 - 1.6 * d; blade = -0.25 - 1.7 * d; spread = 0.1 + 0.9 * d; head = -0.25 * d; wings = d;
+  } else if (s.windup === 'wing_leap') {
+    // crouched, wings half open and buzzing, before it takes off
+    rear = 0.25 * k; bodyY -= 0.14 * k; arm = 0.95 - 0.5 * k; blade = -0.25 - 0.8 * k; wings = 0.45 * k;
+  } else if (s.state === 'act' && s.lastAttack === 'wing_leap' && s.hop >= 0) {
+    // in the air: wings out, scythes reaching ahead
+    lift = Math.sin(Math.PI * s.hop) * 1.3; wings = 0.9; arm = -0.4; blade = -1.9; spread = 0.35; rear = 0.2;
+  } else if (s.windup === 'scythe') {
     rear = -0.3 * k; // rears up, both scythes high and open
     arm = 0.95 - 1.15 * k;
     blade = -0.25 - 2.1 * k;
@@ -136,11 +157,15 @@ function animMantis(r, s, dt, time) {
   const calm = s.windup || s.state === 'act' ? 0 : 1;
   b.thorax.rotation.x = damp(b.thorax.rotation.x, rear, 14, dt);
   b.thorax.rotation.z = (Math.sin(time * 0.9 + r.seed) * 0.05 * (1 - w) + Math.sin(ph) * c.roll * w) * calm;
-  b.body.position.y = P.y - drop + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph)) + breath(time, r.seed, c) * 0.5 * (1 - w);
+  b.body.position.y = P.y - drop + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph)) + breath(time, r.seed, c) * 0.5 * (1 - w) + lift;
+  P.sx = damp(P.sx || 0, sway, 20, dt);
+  b.body.position.x = P.sx;
+  r.wingSpread = damp(r.wingSpread || 0, wings, wings > (r.wingSpread || 0) ? 14 : 6, dt); // skillfx/mantis-fx.js fans them
   b.body.rotation.z = P.z + Math.sin(ph) * c.roll * w;
   b.body.rotation.y = spin;
   b.head.rotation.x = damp(b.head.rotation.x, head, 12, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.9 + (s.aggro ? 0 : c.look * wander(time * 0.5, r.seed)) * calm, 8, dt);
+  P.hy = damp(P.hy || 0, s.lookYaw * 0.9 + (s.aggro ? 0 : c.look * wander(time * 0.5, r.seed)) * calm, 8, dt);
+  b.head.rotation.y = P.hy - P.sx * 0.9; // held on its prey through the sway
   b.head.rotation.z = damp(b.head.rotation.z, Math.round(wander(time * 0.4, r.seed + 3) * 2) * 0.22 * calm, 10, dt);
   for (const [n, side] of ARMS) {
     b[`arm${n}`].rotation.x = damp(b[`arm${n}`].rotation.x, arm, 18, dt);

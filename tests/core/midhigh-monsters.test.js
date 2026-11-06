@@ -88,8 +88,8 @@ test('high gear is crafted from monsters of its band; boss parts are a small key
   }
 });
 
-test('melee strikes (mantis scythe, stalker claw) land once at the authored time, miss outside the arc', () => {
-  for (const [type, name] of [['thicket_mantis', 'scythe'], ['duskmane_stalker', 'claw']]) {
+test('melee strikes (stalker claw) land once at the authored time, miss outside the arc', () => {
+  for (const [type, name] of [['duskmane_stalker', 'claw']]) { // the mantis is a kit monster (monster-kits.test.js)
     const { m, hits, step, until, place } = arena(type);
     const atk = m.def.attacks[name];
     place(0.4);
@@ -293,7 +293,7 @@ test('the warden rolls as a boulder along a locked lane: one hit, none in the wi
 });
 
 test('new contact attacks miss out of range/arc and death cancels remaining combo contacts', () => {
-  for (const [type, name, gap] of [['greyfang', 'rake', 1.2], ['thicket_mantis', 'whirl', 0.6], ['ironhorn_ram', 'shove', 1.5]]) {
+  for (const [type, name, gap] of [['greyfang', 'rake', 1.2], ['ironhorn_ram', 'shove', 1.5]]) { // the mantis: monster-kits.test.js
     for (const miss of ['range', 'arc']) {
       if (name === 'whirl' && miss === 'arc') continue; // authored 360 degree ring
       const a = arena(type);

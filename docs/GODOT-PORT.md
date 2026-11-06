@@ -364,7 +364,7 @@ profile counts a rotation, our buffs, heals and leech, summons, burn/poison, stu
 curses and taunts with the assumptions in `progression.balance.rules.control`. A stun also counts the
 attacks it cancels (every stun ends a wind-up, `ai.js cancelWindup`): per cast, `interruptTiming` of the
 monster's biggest attack (the player times it) plus the wind-ups of the others it reaches
-(`referenceMonster` `windupShare`, `bigMult`, from the monsters' attack data).
+(`referenceMonster` `windupShare`, `bigMult`, from the monsters' attack data; a kit monster with a `normal` attack counts as that one attack, its whole kit only for the elite share `monsters.elite.chance`).
 Gear bases sit on tiers (item level 1/6/11/16/21). The six targeted garment additions
 (Sporeweave vest/gloves at 6, Moonleaf Slippers at 11, Wardenstalker coat/hood/gloves
 at 21) use the same stat-based wear, recipe, grade, enhancement and drop rules;
@@ -619,7 +619,8 @@ Wide Spread and Far Reach share the `spread` family.
 
 ### Mid/high monsters (attack kinds and presentation)
 
-Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`. New attack kinds:
+Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel` (the thicket mantis now uses its
+own kit, below; `mantis` and `whirl` stay for any monster that lists them). New attack kinds:
 
 - **`scythe`, `claw`:** planted strikes on the `m.melee` path. They hit once at `hitTime`
   inside `arc`.
@@ -1255,6 +1256,16 @@ material: a hard body reaching back past the rearmost legs' roots at its sides (
 posed as usual), two thin antennae, and the pale abdomen coiled to its right behind it with hooks at the tip (a real
 hermit crab's anatomy); its anemones hide with the shell. The left shell is a pooled hermit rig with
 its head and legs shrunk (skillfx/hermit-fx.js).
+
+The thicket mantis is a kit monster: `peer_strike` (kind `peer_strike`, tell `lane`: through the wind-up it sways (its
+peering, a View pose) while the lane tracks its prey for the first 55% and then locks; at the end its forelegs reach
+along it (`range` x `width`, from its body, which never moves) and the first unit in it takes the hit (event
+`mantisStrike` {angle, reach, hit})), `startle` (kind `startle`, tell `sector`: units in the cone take the hit and its
+inflict, a `root` on the hero (frozen in fright); the cooldown of its `follow` attack is cleared so that strike comes
+next; event `startle`) and `wing_leap` (kind `pounce` with `past`: the landing is marked `past` m beyond its prey on
+the line from it, unless that is safe ground; on landing it turns to face its prey, event `wingLand`; area kind
+`mantis_land`). The View fans procedural hind wings with eyespots (skillfx/mantis-fx.js, `rig.wingSpread` from the
+animator) for the display and the flight.
 Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.

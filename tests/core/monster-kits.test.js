@@ -1045,3 +1045,60 @@ test('hermit crab shell shed: a coral burst round it, then it runs bare (fast, s
   const ev = b.g.events.find((e) => e.type === 'reshell');
   assert.ok(Math.hypot(ev.x - at.x, ev.z - at.z) < 0.5, 'climbed into the shell where it left it');
 });
+
+test('mantis peer strike: it sways to judge the gap, then its forelegs shoot down the locked lane; its body never moves', () => {
+  const a = M.thicket_mantis.attacks.peer_strike;
+  const { m, g, hits, until, step, place, only } = arena('thicket_mantis', 19, { open: true });
+  only('peer_strike'); place(2.8);
+  until(() => m.windup?.name === 'peer_strike');
+  const x0 = m.x, z0 = m.z;
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the sway');
+  until(() => m.state === 'recover', 1);
+  assert.equal(hits.length, 1, 'caught at the end of the lane');
+  assert.ok(Math.hypot(m.x - x0, m.z - z0) < 1e-6, 'only its forelegs move');
+  assert.ok(g.events.some((e) => e.type === 'mantisStrike' && e.hit));
+  const b = arena('thicket_mantis', 19, { open: true });
+  b.only('peer_strike'); b.place(2.8);
+  b.until(() => b.m.windup?.name === 'peer_strike');
+  b.step(a.windup * 0.7); // locked
+  b.g.player.x += 1.6; // a step aside
+  b.until(() => b.m.state === 'recover', 1);
+  assert.equal(b.hits.length, 0, 'a step out of the lane after it locks: missed');
+});
+
+test('mantis startle: wings spread in the cone before it freeze the hero in fright, and its strike follows at once', () => {
+  const { m, g, until, place, only } = arena('thicket_mantis', 19, { open: true, realDamage: true });
+  only('startle'); place(1.2);
+  until(() => m.windup?.name === 'startle');
+  until(() => m.state === 'recover', 2);
+  assert.ok(g.player.statuses.root, 'frozen in fright');
+  assert.equal(m.cd.peer_strike, 0, 'its strike is ready at once');
+  const b = arena('thicket_mantis', 19, { open: true, realDamage: true });
+  b.only('startle'); b.place(1.2);
+  b.until(() => b.m.windup?.name === 'startle');
+  Object.assign(b.g.player, { x: 0, z: -3 }); // behind it
+  b.until(() => b.m.state === 'recover', 2);
+  assert.ok(!b.g.player.statuses.root, 'out of the cone: not frozen');
+});
+
+test('mantis wing leap: it flies over the hero and lands behind them facing round; stepping toward where it came from is safe', () => {
+  const a = M.thicket_mantis.attacks.wing_leap;
+  const { m, g, hits, until, step, place, only } = arena('thicket_mantis', 19, { open: true });
+  only('wing_leap'); place(4);
+  until(() => m.windup?.name === 'wing_leap');
+  const ar = g.areas.find((x) => x.kind === 'mantis_land'), hz = g.player.z;
+  assert.ok(ar && ar.z > hz + a.past - 0.01, 'its landing is marked beyond the hero');
+  step(a.windup + a.air - 0.05);
+  assert.equal(hits.length, 0, 'nothing before it lands');
+  until(() => m.state === 'recover', 1);
+  step(0.1);
+  assert.equal(hits.length, 1, 'standing still: caught');
+  assert.ok(Math.abs(Math.atan2(Math.sin(m.facing - Math.PI), Math.cos(m.facing - Math.PI))) < 0.3, 'turned round to face the hero');
+  const b = arena('thicket_mantis', 19, { open: true });
+  b.only('wing_leap'); b.place(4);
+  b.until(() => b.m.windup?.name === 'wing_leap');
+  b.g.player.z -= 1.4; // toward where it came from
+  b.until(() => b.m.state === 'recover', 2); b.step(0.1);
+  assert.equal(b.hits.length, 0, 'stepped toward its take-off: safe');
+});

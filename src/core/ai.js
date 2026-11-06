@@ -409,7 +409,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -756,6 +756,34 @@ function windup(game, m, dt, t, gap) {
       // projectiles that trample each unit once (`speed`, `range`)
       for (const [x, z, a] of w.lanes) game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: 'shadow_wolf', attack: w.name, trample: true, x, z, y: 0, angle: a, speed: atk.speed, radius: atk.projectileRadius ?? 0.5, range: atk.range, element: 'physical', damage: dmg });
       m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'peer_strike': {
+      // the mantis's forelegs shoot out along the lane it locked (`range` x `width`), its body never moving: the
+      // first unit along it is caught (event mantisStrike)
+      const dir = dirFromAngle(w.angle), half = atk.width / 2;
+      let best = null, bestAlong = Infinity;
+      for (const u of game.units()) {
+        const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, side = Math.abs(dx * dir.z - dz * dir.x);
+        if (along >= 0 && along <= atk.range + m.r + u.r && side <= half + u.r && along < bestAlong) { best = u; bestAlong = along; }
+      }
+      const reach = best ? Math.max(0, bestAlong - best.r) : atk.range + m.r;
+      game.emit({ type: 'mantisStrike', id: m.id, x: m.x, z: m.z, angle: w.angle, reach, hit: !!best });
+      if (best) game.damageUnit(best, dmg, m, { attack: w.name });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'startle': {
+      // the mantis's startle display: what stands in the cone before it (`range`, `arc`) is frozen in fright (the
+      // attack's inflict, a root) and it strikes at once with its `follow` attack
+      const arc = (atk.arc || 140) * DEG;
+      game.emit({ type: 'startle', id: m.id, x: m.x, z: m.z, angle: w.angle, range: atk.range + m.r, arc: atk.arc });
+      for (const u of game.units()) {
+        const g = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
+        if (g <= atk.range && Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) <= arc / 2) game.damageUnit(u, dmg, m, { attack: w.name });
+      }
+      m.cd[w.name] = atk.cooldown;
+      if (atk.follow && m.cd[atk.follow] !== undefined) m.cd[atk.follow] = 0;
       return setState(m, 'recover', atk.recover);
     }
     case 'anemone': {
@@ -1274,6 +1302,8 @@ function act(game, m, dt, t) {
       }
       m.charge = null;
       m.cd[name] = atk.cooldown;
+      // landed past its prey (atk.past): it turns round to face it
+      if (atk.past) { const prey = m.targetUnit || game.player; m.facing = angleTo(m.x, m.z, prey.x, prey.z); game.emit({ type: 'wingLand', id: m.id, x: m.x, z: m.z, facing: m.facing }); }
       // a leap that lands on nobody (its circle's radius, as the area tests it) leaves it stuck: the punish window
       const mx = m.windup?.tx ?? c.toX, mz = m.windup?.tz ?? c.toZ; // the marked circle's middle
       if (atk.missStun && !game.units().some((u) => dist(mx, mz, u.x, u.z) <= (atk.radius || 1) + u.r)) {
@@ -1738,9 +1768,12 @@ const kitOrder = (def) => {
 export function beginAttack(game, m, name, t) {
   const atk = m.def.attacks[name], kind = atk.kind || name;
   if (kind === 'pounce' || kind === 'dive') {
-    // the landing spot is where the target stands now, marked for the whole wind-up and the leap
-    startWindup(game, m, name, t, { tx: t.x, tz: t.z });
-    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: atk.areaKind || 'pounce', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total + (atk.air ?? 0.35), duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    // the landing spot is where the target stands now, marked for the whole wind-up and the leap; `past` (m): it
+    // flies over its prey and lands that far beyond, behind it (the mantis), turning round as it lands
+    let x = t.x, z = t.z;
+    if (atk.past) { const a = angleTo(m.x, m.z, t.x, t.z); x += Math.sin(a) * atk.past; z += Math.cos(a) * atk.past; if (game.isSafe(x, z)) { x = t.x; z = t.z; } }
+    startWindup(game, m, name, t, { tx: x, tz: z, overX: t.x, overZ: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: atk.areaKind || 'pounce', x, z, radius: atk.radius, delay: m.windup.total + (atk.air ?? 0.35), duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });

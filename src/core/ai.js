@@ -88,6 +88,17 @@ export function updateMonster(game, m, dt) {
         setState(m, 'recover', def.retreat?.pause ?? 0.3);
       }
       return;
+    case 'feign':
+      // the beetle playing dead on its back; then it clicks and springs onto the spot marked as it flipped
+      if (m.stateT >= m.stateDur) {
+        const f = m.feign, atk = def.attacks.click;
+        m.feign = null;
+        m.charge = { t: 0, dur: atk.air, fromX: m.x, fromZ: m.z, toX: f.tx, toZ: f.tz, dive: true, hit: new Set(), dmg: 0 };
+        game.emit({ type: 'click', id: m.id, x: m.x, z: m.z, tx: f.tx, tz: f.tz });
+        setState(m, 'act');
+        m.windup = { name: 'click', total: 0, angle: angleTo(m.x, m.z, f.tx, f.tz), tx: f.tx, tz: f.tz };
+      }
+      return;
     case 'emerge':
     case 'stunned':
       if (m.stateT >= m.stateDur) setState(m, m.aggro ? 'chase' : 'idle');
@@ -173,6 +184,15 @@ export function onMonsterHit(game, m, by = null) {
     return;
   }
   if (m.def.attacks.acid) return canUse(m, 'acid') ? acidHit(game, m, by || game.player) : undefined;
+  const click = m.def.attacks.click;
+  if (click) {
+    // hit hard, the beetle flips on its back and plays dead; the spot it will spring onto is marked at once
+    if (!canUse(m, 'click') || m.state === 'feign' || m.state === 'act' || m.state === 'windup' || m.dead) return;
+    m.recentHits.push(game.time);
+    m.recentHits = m.recentHits.filter((t) => game.time - t <= click.window);
+    if (m.recentHits.length >= click.hitsToTrigger && m.cd.click <= 0) { m.recentHits = []; feignDead(game, m, by || game.player); }
+    return;
+  }
   const nacre = m.def.attacks.nacre;
   if (nacre) {
     if (!canUse(m, 'nacre')) return;
@@ -239,6 +259,16 @@ function acidHit(game, m, by) {
  * `shield` of its health for `duration` s (core hitMonster: the coat takes the damage). Broken through, it cracks open
  * stunned for `crackStun` s, taking `exposedTaken` times damage; if the coat holds, what is left of it heals it.
  */
+function feignDead(game, m, t) {
+  const atk = m.def.attacks.click;
+  m.cd.click = atk.cooldown;
+  m.moving = false; m.melee = null; m.charge = null;
+  m.feign = { tx: t.x, tz: t.z };
+  setState(m, 'feign', atk.feign);
+  game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'click', kind: 'click', x: t.x, z: t.z, radius: atk.radius, delay: atk.feign + atk.air, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+  game.emit({ type: 'feign', id: m.id, x: m.x, z: m.z, duration: atk.feign });
+}
+
 function coatNacre(game, m) {
   const nc = m.def.attacks.nacre;
   m.cd.nacre = nc.cooldown;
@@ -290,6 +320,7 @@ function setState(m, state, dur = 0) {
     m.rampage = null;
     m.stampede = null;
     m.perch = null;
+    m.bombard = null;
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -357,7 +388,7 @@ function startWindup(game, m, name, t, extra = {}) {
   const angle = t && !atk.keepFacing ? angleTo(m.x, m.z, t.x, t.z) : m.facing;
   m.windup = { name, total: atk.windup * tempo, angle, ...extra };
   m.stealth = false; // every wind-up is shown in full
-  m.facing = angle;
+  m.facing = angle + (atk.backward ? Math.PI : 0); // backward: it turns its back to its aim (the beetle's spray)
   m.moving = false;
   game.emit({ type: 'windup', id: m.id, name, total: m.windup.total, angle, x: m.x, z: m.z, radius: atk.radius, range: atk.range || atk.maxRange });
 }
@@ -370,7 +401,7 @@ function windup(game, m, dt, t, gap) {
   // track the target during the first part of the wind-up, then lock (dodgeable)
   if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
-    m.facing = w.angle;
+    m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
   if (m.stateT < w.total) return;
   const dmg = m.damage * (atk.damageMult || 1);
@@ -701,6 +732,20 @@ function windup(game, m, dt, t, gap) {
       m.stampede = { name: w.name, i: 0, t: 0, angle: w.angle, dmg };
       return setState(m, 'act');
     }
+    case 'bombard': {
+      // the beetle's rear spray: `pulses` bursts `gap` s apart down a lane `range` x `width` behind it (its aim),
+      // sweeping `sweep` degrees across from the first to the last; each burst can hit a unit once (act: m.bombard)
+      m.bombard = { name: w.name, i: 0, angle: w.angle, dmg };
+      return setState(m, 'act', (atk.pulses - 1) * atk.gap + 0.05);
+    }
+    case 'mossball': {
+      // the beetle kicks a ball of moss along its aim: it rolls at `speed` m/s, growing from `radius` to `grow` m wide
+      // over `range` m, flattening what it rolls over once, and bursts into a slowing moss patch where it stops
+      const d = dirFromAngle(w.angle);
+      game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: 'mossball', attack: w.name, trample: true, x: m.x + d.x * (m.r + atk.radius), z: m.z + d.z * (m.r + atk.radius), y: 0, angle: w.angle, speed: atk.speed, radius: atk.radius, grow: { from: atk.radius, to: atk.grow }, range: atk.range, element: m.def.element || 'physical', damage: dmg, patch: { ...atk.patch, attack: w.name } });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'fairy_ring': {
       // the ring was marked round its prey at wind-up start (beginAttack); it sprouts and goes off by itself
       m.cd[w.name] = atk.cooldown;
@@ -866,6 +911,22 @@ function act(game, m, dt, t) {
       if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) { sw.hit.add(u.id); game.damageUnit(u, sw.dmg, m, { attack: sw.name }); }
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
+    return;
+  }
+  if (m.bombard) {
+    const bb = m.bombard, atk = m.def.attacks[bb.name];
+    m.moving = false;
+    while (bb.i < atk.pulses && m.stateT >= bb.i * atk.gap) {
+      const a = bb.angle + ((bb.i / Math.max(1, atk.pulses - 1)) - 0.5) * atk.sweep * DEG, d = dirFromAngle(a), half = atk.width / 2;
+      bb.i++;
+      m.facing = a + Math.PI;
+      game.emit({ type: 'bombard', id: m.id, x: m.x, z: m.z, angle: a, length: atk.range + m.r, width: atk.width, pulse: bb.i });
+      for (const u of game.units()) {
+        const dx = u.x - m.x, dz = u.z - m.z, along = dx * d.x + dz * d.z, side = Math.abs(dx * d.z - dz * d.x);
+        if (along >= 0 && along <= m.r + atk.range + u.r && side <= half + u.r) game.damageUnit(u, bb.dmg, m, { attack: bb.name });
+      }
+    }
+    if (m.stateT >= m.stateDur) { m.bombard = null; m.cd[bb.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
     return;
   }
   if (m.rampage) {
@@ -1523,6 +1584,7 @@ export function labTrigger(game, m, name) {
   const atk = m.def.attacks;
   if (name === 'acid') { m.cd.acid = 0; m.recentHits = []; for (let i = 0; i < atk.acid.hitsToTrigger; i++) acidHit(game, m, null); return true; }
   if (name === 'nacre') { coatNacre(game, m); return true; }
+  if (name === 'click') { feignDead(game, m, game.player); return true; }
   if (name === 'split') { m.split = false; m.hp = Math.min(m.hp, m.maxHp * atk.split.at * 0.95); return true; } // kit() splits on its next step
   if (name === 'shed') { shedPatches(game, m); return true; }
   // the withdraw comes with the health share it is kept for (kit() withdraws on its next step)

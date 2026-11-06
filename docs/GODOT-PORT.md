@@ -1181,6 +1181,15 @@ landing within 0.9 m of a unit, `m.perch` {unit, n}: it sits on the unit, `ticks
 units in its arc take the hit; the hero gets `player.tossed` {from, to, t, dur}: `updatePlayer` moves them along it,
 no walking or casting, event `tossLand`; the View lifts them on an arc and turns them head over heels).
 
+The moss beetle is a kit monster (no longer `shell_spitter`): `bombard` (kind `bombard`, `backward`: in its wind-up
+it faces away from its aim (`startWindup` and the tracking add π to its facing); in `act` (`m.bombard`) `pulses` bursts
+`gap` s apart, each down a lane `range` x `width` from it along the aim swept across `sweep` degrees, each hitting
+once, event `bombard`), `mossball` (kind `mossball`: a projectile with `trample`, `grow` {from, to} (its radius grows
+with distance travelled) and `patch`: where it ends, an area of kind `moss_patch` ticking the attack's inflict, a
+slow) and `click` (a reaction: `hitsToTrigger` hits in `window` s put it in state `feign` for `feign` s with an area
+of kind `click` marked under its attacker (`delay` = `feign` + `air`); when the state ends it leaps there as a `dive`;
+events `feign`, `click`).
+
 The sporecap is a kit monster (no longer `spore`): `fairy_ring` (an area of kind `fairy_ring` round the prey with
 `inner`: the existing ring rule leaves the middle safe; `delay` = wind-up + `grow`), `sprouts` (`count` minions of its
 type, `size` and `share` of its health, with `m.sprout` {every, life, cloud}: `updateMonster` hands them to

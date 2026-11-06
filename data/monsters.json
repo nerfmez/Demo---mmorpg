@@ -106,8 +106,13 @@
     "moss_beetle": {
       "name": "Moss Shell Beetle",
       "nameTh": "ด้วงกระดองตะไคร่",
-      "behavior": "shell_spitter",
+      "behavior": "kit",
+      "normal": "bombard",
+      "_kit": "docs/MONSTER-ATTACKS.md: a moss-backed beetle. It turns its back on the hero (it looks like an opening) and fires three bursts of acid from its rear, sweeping a little; like a dung beetle it rolls a ball of moss at them that grows as it rolls and bursts into a slowing moss patch; hit hard, it flips on its back and plays dead, legs twitching, then clicks and springs onto the spot marked under the hero.",
       "element": "poison",
+      "kit": {
+        "circle": [2.5, 5.5]
+      },
       "hp": 800,
       "damage": 80,
       "defense": 100,
@@ -118,22 +123,51 @@
       "exp": 18,
       "jobExp": 12,
       "attacks": {
-        "spit": {
-          "range": 8,
-          "windup": 0.55,
-          "recover": 0.5,
-          "cooldown": 2.6,
-          "speed": 9,
-          "damageMult": 1,
-          "poisonDps": 30,
-          "poisonDuration": 3
+        "bombard": {
+          "nameTh": "ฉีดกรดก้น",
+          "kind": "bombard",
+          "tell": "lane",
+          "backward": true,
+          "use": {"max": 4.5},
+          "range": 4.5,
+          "width": 1.2,
+          "pulses": 3,
+          "gap": 0.28,
+          "sweep": 36,
+          "windup": 0.9,
+          "recover": 0.7,
+          "cooldown": 4.5,
+          "damageMult": 0.5,
+          "inflict": {"status": "poison", "chance": 0.5, "duration": 3, "dpsMult": 0.12}
         },
-        "shell": {
+        "mossball": {
+          "nameTh": "กลิ้งก้อนมอส",
+          "kind": "mossball",
+          "tell": "lane",
+          "use": {"min": 2.5, "max": 8},
+          "range": 8,
+          "width": 1.6,
+          "radius": 0.45,
+          "grow": 0.95,
+          "speed": 5,
+          "patch": {"radius": 1.6, "duration": 4, "tick": 0.5, "share": 0.15},
+          "windup": 1.0,
+          "recover": 0.6,
+          "cooldown": 7,
+          "damageMult": 1.0,
+          "inflict": {"status": "chill", "chance": 1, "duration": 1, "slow": 0.35}
+        },
+        "click": {
+          "nameTh": "แกล้งตายดีดตัว",
           "hitsToTrigger": 3,
           "window": 2,
-          "duration": 2.2,
-          "damageTaken": 0.25,
-          "cooldown": 6
+          "windup": 1.4,
+          "feign": 1.4,
+          "air": 0.4,
+          "radius": 1.2,
+          "recover": 0.6,
+          "cooldown": 9,
+          "damageMult": 1.3
         }
       },
       "drops": [

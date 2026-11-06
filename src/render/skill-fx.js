@@ -75,7 +75,7 @@ export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
 const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
-export const OWN_PROJECTILES = new Set(['stingers', 'piglet', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
+export const OWN_PROJECTILES = new Set(['stingers', 'piglet', 'mossball', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
 const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter', 'flame_slash', 'thunder_slash']);
 const SWING_LEAD = 0.12;
@@ -492,6 +492,8 @@ export class SkillFx {
       case 'skid': case 'rampageLeg': case 'toss': case 'tossLand': return this.monster.boar.event(e);
       // the sporecap's sprouts and sleepy spores (skillfx/spore-mon-fx.js)
       case 'sprout': case 'sproutPuff': case 'wilt': case 'asleep': return this.monster.spore.event(e);
+      // the moss beetle's spray and click (skillfx/beetle-fx.js)
+      case 'bombard': case 'feign': case 'click': return this.monster.beetle.event(e);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);

@@ -1983,6 +1983,7 @@ export class Game {
         pr.vx = Math.sin(a) * pr.speed; pr.vz = Math.cos(a) * pr.speed; pr.angle = a;
       }
       pr.x += pr.vx * dt;
+      if (pr.grow) pr.radius = pr.grow.from + (pr.grow.to - pr.grow.from) * Math.min(1, pr.travelled / pr.range); // a rolling moss ball
       pr.z += pr.vz * dt;
       pr.travelled += step;
       let dead = pr.travelled >= pr.range;
@@ -2055,6 +2056,8 @@ export class Game {
         }
       }
       if(dead && pr.owner==='player' && endProjectile(this,pr))dead=false;
+      // a moss ball bursts into a slowing patch where it stops
+      if (dead && pr.patch) { const P = pr.patch; this.spawnArea({ owner: 'monster', sourceId: pr.sourceId, attack: P.attack, kind: 'moss_patch', x: pr.x, z: pr.z, radius: P.radius, delay: 0, duration: P.duration, tick: P.tick, damage: pr.damage * P.share }); }
       if (dead) this.emit({ type: 'projectileEnd', id: pr.id });
       else keep.push(pr);
     }

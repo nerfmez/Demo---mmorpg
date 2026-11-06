@@ -422,15 +422,32 @@ function animBeetle(r, s, dt, time) {
   let headX = 0;
   let mand = Math.sin(time * 5 + r.seed) * 0.08;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  let tilt = 0, flip = 0, flail = 0;
   if (s.windup === 'spit' || s.windup === 'bite') {
     headX = -0.45 * k;
     mand = 0.4 * k;
   } else if (s.state === 'recover' && s.lastAttack === 'spit') headX = 0.25;
+  else if (s.windup === 'bombard') {
+    // its back to its prey: the abdomen tips up and quivers, legs braced
+    tilt = 0.32 * k + Math.sin(time * 40) * 0.02 * k; headX = 0.2 * k;
+  } else if (s.state === 'act' && s.lastAttack === 'bombard') {
+    tilt = 0.32 + Math.max(0, Math.sin(s.actT * 22)) * 0.1; // a kick at each burst
+  } else if (s.windup === 'mossball') {
+    // head down, shoving the ball
+    headX = 0.4 * k; tilt = -0.08 * k; mand = 0.3 * k;
+  } else if (s.state === 'recover' && s.lastAttack === 'mossball') {
+    headX = 0.4 - 0.9 * Math.sin(clamp01((s.actT || 0) / 0.3) * Math.PI); // the kick
+  }
+  // playing dead: on its back, legs twitching; the click flips it over in the air
+  if (s.state === 'feign') { flip = Math.PI; flail = 1; }
+  else if (s.state === 'act' && s.lastAttack === 'click' && s.hop >= 0) flip = Math.PI * (1 + s.hop);
+  r.flip = damp(r.flip ?? 0, flip, flip > (r.flip ?? 0) || s.state === 'feign' ? 14 : 30, dt);
+  if (flail) for (const n of r.legs) b[n].rotation.x = Math.sin(time * 26 + n.length * 1.3 + (n.charCodeAt(3) || 0)) * 0.6;
   const P = r.pose || (r.pose = { y: r.bodyY ?? 0.45 });
   P.y = damp(P.y, (r.bodyY ?? 0.45) - shellK * 0.3, 16, dt);
   // each tripod plants with a small bounce; the shell rocks a little behind the body
   const bob = c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph));
-  b.body.position.y = P.y + bob;
+  b.body.position.y = P.y + bob + (s.state === 'act' && s.lastAttack === 'click' && s.hop >= 0 ? Math.sin(s.hop * Math.PI) * 1.2 : 0) + (s.state === 'feign' ? 0.25 : 0);
   const br = breath(time, r.seed, c) * (1 - w);
   b.shell.scale.set(1 + shellK * 0.12 + br, 1 + shellK * 0.1 + (s.hurt || 0) * -0.08 + br, 1 + shellK * 0.12);
   r.shellSpring = r.shellSpring || new Spring(80, 7);
@@ -443,7 +460,8 @@ function animBeetle(r, s, dt, time) {
   b.mandR.rotation.y = damp(b.mandR.rotation.y, mand, 16, dt);
   b.mandL.rotation.x = damp(b.mandL.rotation.x, s.windup === 'bite' ? -.65 * k : 0, 14, dt);
   b.mandR.rotation.x = damp(b.mandR.rotation.x, s.windup === 'bite' ? -.65 * k : 0, 14, dt);
-  b.body.rotation.z = c.roll * w * Math.sin(ph) + Math.sin(time * 1.5 + r.seed) * 0.015 * (1 - w) + clampAbs(-s.turn * 0.04, 0.12);
+  b.body.rotation.z = c.roll * w * Math.sin(ph) + Math.sin(time * 1.5 + r.seed) * 0.015 * (1 - w) + clampAbs(-s.turn * 0.04, 0.12) + (r.flip % (Math.PI * 2));
+  b.body.rotation.x = damp(b.body.rotation.x, tilt, 16, dt);
 }
 
 // -1 is the fully drawn-back pose; +1 is contact. Timing comes from the same

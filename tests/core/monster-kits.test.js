@@ -296,6 +296,54 @@ test('stone pangolin rebound roll: down its lane, back along it (a unit can be h
   void g;
 });
 
+test('moss beetle bombard: it turns its back and sprays three bursts down the lane behind it; beside the lane is safe', () => {
+  const a = M.moss_beetle.attacks.bombard;
+  const { m, g, hits, until, step, place, only } = arena('moss_beetle', 10, { open: true });
+  only('bombard'); place(2);
+  until(() => m.state === 'windup');
+  assert.ok(Math.abs(Math.cos(m.facing - Math.atan2(g.player.x - m.x, g.player.z - m.z)) + 1) < 0.05, 'its back to the hero');
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.state === 'recover', 3);
+  assert.ok(hits.length >= 2 && hits.length <= a.pulses, `a hit a burst (${hits.length})`);
+  const b = arena('moss_beetle', 10, { open: true });
+  b.only('bombard'); b.place(2);
+  b.until(() => b.m.state === 'windup' && b.m.stateT > b.m.windup.total * 0.6);
+  Object.assign(b.g.player, { x: 3 });
+  b.until(() => b.m.state === 'recover', 3);
+  assert.equal(b.hits.length, 0);
+});
+
+test('moss beetle moss ball: rolls along its lane growing, flattens the hero once, and leaves a slowing moss patch where it stops', () => {
+  const a = M.moss_beetle.attacks.mossball;
+  const { m, g, hits, until, step, place, only } = arena('moss_beetle', 10, { open: true });
+  only('mossball'); place(4);
+  until(() => m.state === 'recover');
+  const ball = g.projectiles.find((p) => p.kind === 'mossball');
+  assert.ok(ball && ball.radius === a.radius);
+  for (let t = 0; t < 3 && g.projectiles.includes(ball); t += 0.01) { g.updateProjectiles(0.01); step(0.01); }
+  assert.equal(hits.length, 1, 'rolled over the hero once');
+  assert.ok(ball.radius > a.radius * 1.5, 'it grew');
+  assert.ok(g.areas.some((x) => x.kind === 'moss_patch'), 'a moss patch where it stopped');
+});
+
+test('moss beetle play dead: hit hard it flips over; the spot under the hero is marked, then it springs onto it', () => {
+  const a = M.moss_beetle.attacks.click;
+  const { m, g, hits, until, step, place } = arena('moss_beetle', 10, { open: true });
+  place(2); m.state = 'chase';
+  for (const k in m.cd) m.cd[k] = k === 'click' ? 0 : 99;
+  for (let i = 0; i < a.hitsToTrigger; i++) g.hitMonster(m, 1, {});
+  assert.equal(m.state, 'feign', 'on its back');
+  const mark = g.areas.find((x) => x.attack === 'click');
+  assert.ok(mark && Math.hypot(mark.x - g.player.x, mark.z - g.player.z) < 1e-6, 'the spot under the hero');
+  step(a.feign + a.air - 0.05);
+  assert.equal(hits.length, 0, 'nothing before it lands');
+  step(0.2);
+  assert.equal(hits.length, 1, 'it lands on the hero');
+  until(() => m.state === 'recover' || m.state === 'chase', 2);
+  assert.ok(Math.hypot(m.x - mark.x, m.z - mark.z) < 1e-6, 'it sprang onto the mark');
+});
+
 test('sporecap fairy ring: a ring round the hero goes off after it grows; the band hurts, the middle and outside are safe', () => {
   const a = M.sporecap.attacks.fairy_ring;
   for (const [off, want] of [[0, 0], [(a.inner + a.radius) / 2, 1], [a.radius + 1.2, 0]]) {

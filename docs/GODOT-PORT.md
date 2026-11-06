@@ -635,7 +635,8 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   `stopOnHit` (it pulls up on the first unit it strikes, event `clash`). **`hook`** (the ram): `use.side` picks it only
   for a target 35 to 145 degrees off its facing; it keeps its facing, the wind-up's `angle` is the middle of the cone
   `off` degrees round that side (`w.side`, `w.face`), and units in `range`/`arc` there are flung `knock` out
-  sideways (event `hornHook`). Render: skillfx/ram-fx.js. `charge` (boar) is the only straight rush left,
+  sideways (event `hornHook`). Render: skillfx/ram-fx.js (light-kit spark streaks, ground-kit rocks and crater
+  decals, partial-ring shock waves as ribbon strips; glow sprites on the horns). `charge` (boar) is the only straight rush left,
   besides the stalker `pounce` leap and the warden's `roll` (the gale hawk now stoops, below).
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an
   attack with `kind: 'charge'`, so it shares the charge path (one hit per unit, a rock in the way

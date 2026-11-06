@@ -426,6 +426,11 @@ for the normal one.
   drop into a horn clash heard across a valley, back off for a run-up and charge head down, hook sideways with the curl
   of their horns). Its stomp and shove became a rearing clash (normal), a run-up charge that pulls up on what it
   strikes (or is left reeling on a miss) and a horn hook at its flank.
+- **Ironhorn ram, round 2** (owner: "the effects are a bit plain"): its horns heat to a glow through every wind-up and
+  glint just before the blow; strikes spray white-hot spark streaks that fall, run shock waves of steel light over the
+  ground out to the true reach (fan-shaped for the clash and the hook, round for the charge's clash), sink a pit
+  (fan-shaped under the clash) and fling rocks; its charge pushes a bow wave of air ahead of its horns and churns a
+  plume of dust, clods and sparks behind it.
 - **Gale hawk, round 2** (owner: "the swoop is short and unnatural; change the lift move to flying up and beating its
   wings into a thunderstorm (lightning)"): the stoop starts from a hover it draws off to (8 m out), eases off the
   hover, dives in a curve that is steep at first and flattens into a skim over the strike stretch, then pulls up 4 m

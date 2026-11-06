@@ -86,18 +86,25 @@ function paint(g, hex) {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   return g;
 }
-// the model without its shell: only the triangles of its claws, head and legs (all three corners skinned mostly to
-// neither the shell nor the body bone, which carries the shell's lower half), sharing the model's buffers
+// the model without its shell: only the triangles of its claws, head and legs (all three corners skinned for at least
+// a share to a leg, claw or head bone and little to the shell; the body bone carries the shell's lower half, so its
+// own triangles go, while a leg's root, skinned half to the body, stays on), sharing the model's buffers
 const BARE_GEO = new WeakMap();
-function bareGeometry(src, iShell, iBody) {
+function bareGeometry(src, iShell, iBody, front) {
   let g = BARE_GEO.get(src);
   if (g) return g;
   const si = src.attributes.skinIndex, sw = src.attributes.skinWeight, idx = src.index;
-  const shellW = (v) => { let w = 0; for (let k = 0; k < 4; k++) { const j = si.getComponent(v, k); if (j === iShell || j === iBody) w += sw.getComponent(v, k); } return w; };
+  // (above the legs' tops only the head and claws: what else is up there is the shell's rim, skinned part to a leg)
+  const pos = src.attributes.position;
+  const limb = (v) => {
+    let s = 0, o = 0, f = 0;
+    for (let k = 0; k < 4; k++) { const j = si.getComponent(v, k), w = sw.getComponent(v, k); if (j === iShell) s += w; else if (j !== iBody) o += w; if (front.includes(j)) f += w; }
+    return s < 0.3 && o >= 0.3 && (pos.getY(v) < 0.6 || f >= 0.5);
+  };
   const n = idx ? idx.count : src.attributes.position.count, keep = [];
   for (let t = 0; t < n; t += 3) {
     const a = idx ? idx.getX(t) : t, b = idx ? idx.getX(t + 1) : t + 1, c = idx ? idx.getX(t + 2) : t + 2;
-    if (shellW(a) < 0.25 && shellW(b) < 0.25 && shellW(c) < 0.25) keep.push(a, b, c);
+    if (limb(a) && limb(b) && limb(c)) keep.push(a, b, c);
   }
   g = new THREE.BufferGeometry();
   for (const k in src.attributes) g.setAttribute(k, src.attributes[k]);
@@ -142,8 +149,9 @@ export class HermitFx {
       rig.root.traverse((o) => { if (o.isSkinnedMesh && !o.userData.bare) full.push(o); });
       if (full.length) {
         const bones = full[0].skeleton.bones, iShell = bones.indexOf(rig.bones.shell), iBody = bones.indexOf(rig.bones.body);
+        const front = ['head', 'mandL', 'mandR'].map((n) => bones.indexOf(rig.bones[n]));
         const bare = full.map((o) => {
-          const m = new THREE.SkinnedMesh(bareGeometry(o.geometry, iShell, iBody), o.material);
+          const m = new THREE.SkinnedMesh(bareGeometry(o.geometry, iShell, iBody, front), o.material);
           m.bind(o.skeleton, o.bindMatrix);
           m.position.copy(o.position); m.quaternion.copy(o.quaternion); m.scale.copy(o.scale);
           m.frustumCulled = o.frustumCulled; m.castShadow = o.castShadow; m.renderOrder = o.renderOrder;

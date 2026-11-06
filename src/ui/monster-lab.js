@@ -247,7 +247,8 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
         for (const k in m.cd) if (k !== lab.attack) m.cd[k] = 99;
         // what an attack leaves on the ground (eggs, pools) is gone before it goes again, so a review is not cluttered
         const lingering = game.areas.some((a) => a.sourceId === m.id && a.attack === lab.attack) || game.monsters.some((o) => !o.dead && o.sprout?.of === m.id);
-        if ((m.state === 'chase' || m.state === 'idle') && !lingering) {
+        // (a hermit crab out of its shell is left to get back into it first: never moved or reset meanwhile)
+        if ((m.state === 'chase' || m.state === 'idle') && !lingering && !m.naked) {
           lab.cool -= dt;
           // (not ready yet: the chosen attack stays cooling a moment longer, so the monster circles out to its band)
           // an attack that answers what is done to it (no `use`: hit hard, brought low) is set off as if that happened

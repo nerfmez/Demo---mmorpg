@@ -368,7 +368,10 @@ for the normal one.
   wrong animal ("research the hermit crab first"). Out of its shell a hermit crab is a small hard front (cephalothorax),
   stalked eyes, two pairs of antennae, unequal claws, walking legs, and a soft, pale abdomen coiled to the right to
   fit a snail shell, with hooks at the tip that grip it. So the bare crab is its own model with the shell's triangles
-  left out, a small orange front shield, two thin antennae and that coiled abdomen.
+  left out, a small orange front shield, two thin antennae and that coiled abdomen. Then (owner: "its legs come
+  off; going back it must get into the shell where it was"): the leg roots, skinned half to the body, are kept, the
+  shell's rim scraps dropped, and giving up the fight no longer snaps it back into a shell: it always walks back to
+  the one it left (the sandbox waits for that too).
 - **Moss beetle, round 1** (2026-11-06, owner: "next"): its spit and shell guard became a bombardier beetle's rear spray
   (an attack made with its back turned: what looks like an opening is the danger), a dung beetle's moss ball (a
   rolling, growing shot that leaves a slowing patch) and a click beetle's play dead (a fake-out reaction whose leap is

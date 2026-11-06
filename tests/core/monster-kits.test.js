@@ -1032,4 +1032,16 @@ test('hermit crab shell shed: a coral burst round it, then it runs bare (fast, s
   until(() => g.events.some((e) => e.type === 'reshell'), 6);
   assert.ok(Math.hypot(m.x - shell.x, m.z - shell.z) < 0.5, 'back in the shell where it left it');
   assert.equal(m.naked, null);
+  // giving up the fight while out (its prey gone) does not put it back in a shell: it goes to the one it left first
+  const b = arena('hermit_crab', 11, { open: true });
+  b.only('shell_shed'); b.place(1);
+  b.until(() => b.m.naked, 4);
+  const at = { x: b.m.naked.x, z: b.m.naked.z };
+  b.m.x += 5; b.m.homeX = b.m.x + 3; // run off a way, its home elsewhere
+  Object.assign(b.g.player, { x: 200, z: 200 }); // the hero gone: it gives up
+  b.step(0.3);
+  assert.ok(b.m.naked, 'still out of its shell, not snapped back into one');
+  b.until(() => b.g.events.some((e) => e.type === 'reshell'), 16);
+  const ev = b.g.events.find((e) => e.type === 'reshell');
+  assert.ok(Math.hypot(ev.x - at.x, ev.z - at.z) < 0.5, 'climbed into the shell where it left it');
 });

@@ -1244,11 +1244,13 @@ wind-up angle is its facing + π and it does not turn; `use.behind`; at the end 
 take the hit and its poison inflict) and `shell_shed` (kind `shell_shed`: an area of kind `coral_burst` round it at
 wind-up start (`radius`, `delay` = wind-up); at the end `m.naked` {x, z, facing, until, phase loose/home/climb}, event
 `shellShed`: for `loose` s it fights at `nakedSpeed` x its speed and `hitMonster` multiplies blows by `nakedTaken`;
-then (phase `home`, in `kit()`) it walks back to the shell at that speed, and climbs in (state `act` for `climb` s,
-event `shellClimb`, then `reshell`); attacks marked `needsShell` are not taken while it is out; idle/return clears
-it). While it is out the View swaps the hermit's model for a copy without its shell (`rig.bareSet`: the same skinned
-buffers and skeleton, keeping only triangles whose corners are skinned under 0.25 to the `shell` and `body` bones,
-which carry the shell; the model has no body under it) plus its soft parts on the body bone, drawn on the rig's toon
+then, or as soon as it gives up the fight (aggro lost), phase `home` (`updateMonster` before its state switch, in
+chase, idle or return): it walks back to the shell at that speed, and climbs in (state `act` for `climb` s, event
+`shellClimb`, then `reshell`); it never gets a shell back anywhere else; attacks marked `needsShell` are not taken
+while it is out). While it is out the View swaps the hermit's model for a copy without its shell (`rig.bareSet`: the same skinned
+buffers and skeleton, keeping only triangles whose corners are each skinned under 0.3 to `shell` and at least 0.3
+to a leg, claw or head bone, and, above 0.6 m, at least 0.5 to the head or claws (the `body` bone carries the shell's
+lower half; the model has no body under it, and a leg's root, skinned half to the body, stays on)) plus its soft parts on the body bone, drawn on the rig's toon
 material: a small hard cephalothorax shield, two thin antennae, and the pale abdomen coiled to its right with hooks at
 the tip (a real hermit crab's anatomy); its anemones hide with the shell. The left shell is a pooled hermit rig with
 its head and legs shrunk (skillfx/hermit-fx.js).

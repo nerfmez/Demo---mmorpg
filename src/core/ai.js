@@ -57,6 +57,13 @@ export function updateMonster(game, m, dt) {
     if (m.state !== 'windup' && m.state !== 'act' && m.state !== 'return') return; // flinching
   }
 
+  // a hermit crab out of its shell goes back to that shell, wherever it is and whatever it was doing (its time up,
+  // or the fight given up), and climbs in before anything else
+  if (m.naked && m.naked.phase !== 'climb' && (m.state === 'chase' || m.state === 'idle' || m.state === 'return')) {
+    if (m.naked.phase === 'loose' && (game.time >= m.naked.until || !m.aggro)) m.naked.phase = 'home';
+    if (m.naked.phase === 'home') return nakedHome(game, m, dt, slowMult);
+  }
+
   switch (m.state) {
     case 'idle':
       return idle(game, m, dt, slowMult);
@@ -323,7 +330,6 @@ function setState(m, state, dur = 0) {
     m.bombard = null;
     m.lap = null;
     m.drag = null;
-    m.naked = null; // a hermit crab giving up the fight is back in its shell
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -1592,17 +1598,8 @@ function sentinel(game, m, dt, { t, gap, dToT, slowMult }) {
  */
 function kit(game, m, dt, { t, gap, dToT, slowMult }) {
   const def = m.def, names = kitOrder(def);
-  // the hermit crab out of its shell (shell_shed): loose, then home to the shell at a run and in again
+  // the hermit crab out of its shell (shell_shed) fights fast while loose (its way home: updateMonster nakedHome)
   const nk = m.naked, nakedAtk = nk && def.attacks[nk.name];
-  if (nk && nk.phase === 'loose' && game.time >= nk.until) nk.phase = 'home';
-  if (nk && nk.phase === 'home') {
-    if (walkTo(game, m, nk.x, nk.z, def.speed * nakedAtk.nakedSpeed * slowMult, dt, 10)) {
-      nk.phase = 'climb'; m.facing = nk.facing; m.moving = false;
-      game.emit({ type: 'shellClimb', id: m.id, x: nk.x, z: nk.z });
-      setState(m, 'act', nakedAtk.climb);
-    }
-    return;
-  }
   const speed = def.speed * slowMult * (nk ? nakedAtk.nakedSpeed : 1);
   // withdraw (the snail king): at each health share in `at` it pulls into its shell once (the shell's damageTaken),
   // a ring round it marked for the whole time, then bursts out as the ring goes off
@@ -1658,6 +1655,14 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     m.moving = false;
     turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, def.kit?.turn ?? 6);
   }
+}
+
+function nakedHome(game, m, dt, slowMult) {
+  const nk = m.naked, atk = m.def.attacks[nk.name];
+  if (!walkTo(game, m, nk.x, nk.z, m.def.speed * atk.nakedSpeed * slowMult, dt, 10)) return;
+  nk.phase = 'climb'; m.facing = nk.facing; m.moving = false;
+  game.emit({ type: 'shellClimb', id: m.id, x: nk.x, z: nk.z });
+  setState(m, 'act', atk.climb);
 }
 
 function sproutStep(game, m, dt) {

@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { advanceGait, poseLegs, wander, breath } from './monster-motion.js';
 import { RigBuilder, damp, clamp01, Spring } from './rig.js';
+import { buildViper, animViper } from './viper-anim.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
 const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
@@ -187,112 +188,6 @@ function animMantis(r, s, dt, time) {
     b[`arm${n}`].rotation.x = damp(b[`arm${n}`].rotation.x, arm, 18, dt);
     b[`arm${n}`].rotation.z = damp(b[`arm${n}`].rotation.z, -side * spread, 18, dt);
     b[`blade${n}`].rotation.x = damp(b[`blade${n}`].rotation.x, blade, 18, dt);
-  }
-}
-
-// ---------- reed viper: a long body that slithers in S curves ----------
-
-const VIPER_SEGS = 9;
-
-function buildViper() {
-  const C = { body: '#5d8a46', band: '#2f4a2a', belly: '#e2cf6a', reed: '#a9b45a', eye: '#ffd23a', fang: '#f6f1df', tongue: '#d8483a' };
-  const rb = new RigBuilder({ outline: 0.022, darkness: 0.3 });
-  rb.bone('head', 'root', [0, 0.3, 0.55]);
-  rb.bone('jaw', 'head', [0, -0.05, 0.02]);
-  // head: a broad arrowhead (a viper's), brow ridges, slit eyes, fangs
-  rb.add('head', new THREE.CylinderGeometry(0.0, 0.22, 0.42, 3).rotateX(Math.PI / 2).rotateZ(Math.PI).scale(1, 0.45, 1), C.body, { pos: [0, 0.03, 0.14] });
-  rb.add('head', sph(0.15, 10, 8).scale(1.15, 0.55, 1), C.body, { pos: [0, 0.02, -0.02] });
-  rb.add('jaw', new THREE.CylinderGeometry(0.0, 0.17, 0.36, 3).rotateX(Math.PI / 2).rotateZ(Math.PI).scale(1, 0.3, 1), C.belly, { pos: [0, -0.03, 0.13] });
-  for (const s of [1, -1]) {
-    rb.add('head', sph(0.045, 6, 5).scale(1, 0.8, 1.1), C.eye, { pos: [s * 0.12, 0.08, 0.04], glow: true });
-    rb.add('head', new THREE.BoxGeometry(0.12, 0.035, 0.13), C.band, { pos: [s * 0.11, 0.115, 0.04], rot: [0, 0, s * 0.3], plain: true });
-    rb.add('head', cone(0.018, 0.09, 4), C.fang, { pos: [s * 0.06, -0.06, 0.3], rot: [Math.PI, 0, 0], plain: true });
-  }
-  rb.add('jaw', new THREE.BoxGeometry(0.02, 0.01, 0.2).translate(0, 0, 0.1), C.tongue, { pos: [0, 0.02, 0.28], plain: true });
-  // body: tapered tubes that overlap at each joint, banded, reed spines along the back
-  let parent = 'head';
-  const radius = (i) => 0.15 * (1 - (i / VIPER_SEGS) * 0.8) + 0.025;
-  for (let i = 0; i < VIPER_SEGS; i++) {
-    const n = `seg${i}`, r0 = radius(i), r1 = radius(i + 1), len = 0.3;
-    rb.bone(n, parent, [0, i === 0 ? -0.1 : 0, i === 0 ? -0.1 : -len]);
-    rb.add(n, new THREE.CylinderGeometry(r0, r1, len + 0.12, 9).rotateX(Math.PI / 2).scale(1, 0.78, 1), i % 3 === 1 ? C.band : C.body, { pos: [0, 0, -len / 2] });
-    rb.add(n, new THREE.CylinderGeometry(r0 * 0.75, r1 * 0.75, len + 0.1, 7).rotateX(Math.PI / 2).scale(1, 0.4, 1), C.belly, { pos: [0, -r0 * 0.42, -len / 2], plain: true });
-    if (i < VIPER_SEGS - 2 && i % 2 === 0) rb.add(n, cone(0.028, 0.16 * (1 - i / VIPER_SEGS * 0.6), 4), C.reed, { pos: [0, r0 * 0.7, -len / 2], rot: [-0.5, 0, 0], plain: true });
-    parent = n;
-  }
-  rb.add(`seg${VIPER_SEGS - 1}`, cone(0.03, 0.22, 5).rotateX(-Math.PI / 2), C.band, { pos: [0, 0, -0.4] });
-  const rig = rb.build();
-  rig.height = 0.9;
-  return rig;
-}
-
-// The reed viper's kit (docs/MONSTER-ATTACKS.md), read from the view's state. The model hangs its whole body from
-// the head bone (head -> seg0 -> ... -> seg8, the tail), so the head is moved against the body by moving the head and
-// moving seg0 back the other way (in the head's frame): the neck between them stretches or folds.
-//   S-strike: it draws its head back and up into a tight S (held, the tail tip rattling), then the neck shoots out,
-//     jaws wide, and folds back into the coil;
-//   reed ambush: head down flat in its coil, still, only the leaf of its tail tip twitching (caudal luring, as real
-//     vipers do); noticed, the head snaps up into the S before it strikes;
-//   puff and hiss: it swells up, head reared back, jaws gaping, shaking; the hiss thrusts the head out, then it
-//     goes down again.
-function animViper(r, s, dt, time) {
-  const b = r.bones;
-  // the S-wave travels down the body as fast as the snake moves over the ground (each curve
-  // pushes against the same spot), plus a slow idle sway
-  const w = advanceGait(r, s, dt, r.motion);
-  const busy = !!(s.windup || s.ambush || (s.state === 'recover' && s.actT < 0.5));
-  r.wavePh = (r.wavePh || 0) + dt * (busy ? 1 : 1.6 + (r.speed || 0) * 5.5);
-  const k = windK(s);
-  let amp = busy ? 0.04 : 0.22 + 0.16 * w, fwd = 0, up = 0, pitch = 0, jaw = 0.05 + Math.max(0, Math.sin(time * 1.3 + r.seed)) ** 30 * 0.25, puff = 1, shake = 0, lure = 0;
-  const wave = r.modelCfg?.wave ?? 1; // a coiled model wriggles less than a long straight one (data/models.json wave)
-  const ease = (x) => x * x * (3 - 2 * x), coil = (q) => { fwd = -0.32 * q; up = 0.12 * q; pitch = -0.35 * q; };
-  if (s.windup === 'fang_strike') {
-    // drawn back into the S, held over the last part, the tail tip rattling; the jaws part at the very end
-    coil(ease(clamp01(k / 0.6))); shake = 0.4 * k; jaw = 0.15 + 0.5 * clamp01((k - 0.8) / 0.2);
-  } else if ((s.state === 'recover' && (s.lastAttack === 'fang_strike' || s.lastAttack === 'ambush') && s.actT < 0.7 && s.struck)) {
-    // the strike: out in a flash, jaws wide (the body itself slid forward, monster-views), then back into the coil
-    const t = s.actT, out = t < 0.06 ? t / 0.06 : 1 - ease(clamp01((t - 0.12) / 0.45));
-    fwd = 0.55 * out; up = -0.12 * out; pitch = 0.25 * out; jaw = t < 0.1 ? 1 : Math.max(0.05, 1 - (t - 0.1) * 4);
-  } else if (s.windup === 'ambush' || (s.ambush === 'wait')) {
-    // down flat in the coil, still; only its tail tip twitches, a lure
-    const q = s.windup ? ease(k) : 1;
-    fwd = -0.1 * q; up = -0.32 * q; pitch = 0.2 * q; jaw = 0.02; lure = q;
-  } else if (s.ambush === 'trig') {
-    // noticed: the head snaps up into the S
-    coil(ease(clamp01(s.ambushT / 0.15))); jaw = 0.5; shake = 0.3;
-  } else if (s.windup === 'hiss') {
-    // it swells, rears back, jaws gaping, shaking with the hiss building
-    const q = ease(clamp01(k / 0.7));
-    puff = 1 + 0.16 * q; fwd = -0.2 * q; up = 0.18 * q; pitch = -0.5 * q; jaw = 0.9 * q; shake = 0.5 * k;
-  } else if (s.state === 'recover' && s.lastAttack === 'hiss') {
-    // the hiss: the head thrusts out, jaws wide, and it goes down again
-    const t = s.actT, out = 1 - ease(clamp01((t - 0.15) / 0.5));
-    puff = 1 + 0.16 * (1 - ease(clamp01(t / 0.6))); fwd = 0.25 * out; pitch = 0.1 * out; jaw = 0.95 * out;
-  }
-  if (s.hurt > 0) up -= 0.1 * s.hurt;
-  const e = (r.vEase ||= { fwd: 0, up: 0, pitch: 0, puff: 1 }), rate = s.state === 'recover' && s.actT < 0.1 ? 40 : 14;
-  e.fwd = damp(e.fwd, fwd, rate, dt); e.up = damp(e.up, up, rate, dt); e.pitch = damp(e.pitch, pitch, rate, dt); e.puff = damp(e.puff, puff, 8, dt);
-  const sh = shake * 0.03 * Math.sin(time * 55);
-  const rest = b.head.userData.rest?.pos, seg0 = b.seg0, rest0 = seg0.userData.rest?.pos;
-  const model = !!r.model;
-  // the head moves and turns; seg0 takes the move and the turn back, so the body stays where it lies
-  b.head.position.set(rest.x + sh, rest.y + e.up * (model ? 1 : 0.8), rest.z + e.fwd);
-  b.head.rotation.x = e.pitch;
-  b.head.rotation.y = damp(b.head.rotation.y, (s.lookYaw || 0) * 0.6 + Math.sin(r.wavePh) * amp * 0.4, 10, dt);
-  b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 22, dt);
-  const c = Math.cos(e.pitch), sn = Math.sin(e.pitch), dy = -e.up * (model ? 1 : 0.8), dz = -e.fwd;
-  seg0.position.set(rest0.x - sh, rest0.y + c * dy - sn * dz, rest0.z + sn * dy + c * dz);
-  seg0.rotation.x = -e.pitch;
-  seg0.scale.setScalar(e.puff);
-  for (let i = 0; i < VIPER_SEGS; i++) {
-    const seg = b[`seg${i}`];
-    // the wave travels down the body
-    seg.rotation.y = damp(seg.rotation.y, Math.sin(r.wavePh - i * 0.85) * amp * wave * (i === 0 ? 0.5 : 1), 14, dt);
-    if (i >= VIPER_SEGS - 2) {
-      // the tail tip: a rattle through a wind-up, a slow beckoning twitch as a lure
-      const t = Math.sin(time * 38) * 0.18 * shake + Math.sin(time * 7 + i) * 0.35 * lure;
-      seg.rotation.x = damp(seg.rotation.x, t, 30, dt);
-    } else if (i > 0) seg.rotation.x = damp(seg.rotation.x, 0, 12, dt);
   }
 }
 

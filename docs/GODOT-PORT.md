@@ -1297,9 +1297,12 @@ over the move; event `viperStrike` {x0, z0, at}), `ambush` (kind `ambush`, `m.am
 unit within `radius` m is noticed (event `ambushTrigger`) and struck `react` s later by `viperStrike` along that line
 (reach `radius` + 0.6); nobody within it for `hold` s and it gives up, event `ambushEnd`) and `hiss` (kind `hiss`, tell
 sector: units in the cone `range` x `arc` take the hit; three `hiss_mist` areas along the cone (`MIST` shares of its
-reach) tick `mistMult` x its damage a second for `linger` s; event `hiss`). Render: monsters-midhigh.js `animViper`
-moves the head against the body (the model hangs its body from the head bone, so seg0 takes the move back),
-skillfx/viper-fx.js draws the reeds, ring, lure glint, bite and mist (the mist decal is vfx.js's venom mire).
+reach) tick `mistMult` x its damage a second for `linger` s; event `hiss`). Render: its model is the owner's straight Meshy snake
+(2026-11-06) on a straight chain of 13 bones directly under the root; render/viper-anim.js lays each bone on the head's
+recorded trail at its own distance behind the head (lateral undulation: the head swings side to side with distance
+travelled, the body flows along the same curves), then lifts and pushes the front joints for its poses, flicks a forked
+tongue (a kept procedural bone) and aims the head at its prey; in Godot, a Path3D of the head's trail and bones placed
+along it. skillfx/viper-fx.js draws the reeds, ring, lure glint, bite and mist (the mist decal is vfx.js's venom mire).
 Its body (render/greyfang-anim.js) gallops and attacks on the CC0 wolf clips (beast-clips.js `animBeast`) and walks
 with the older gait (monsters.js `animQuad`, blended in by weight while it only walks), its kit's beats on top
 (`s.pose`: one-frame clips of its own, `crouch`, the deeper `land` and the braced `skid`, and phases of the gallop-jump clip for leaps and skids; body roll/pitch, head and jaw nudges); the

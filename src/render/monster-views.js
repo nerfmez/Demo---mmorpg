@@ -154,7 +154,7 @@ export function syncMonsterViews(view, dt, time) {
     state.smoothSpeed = mv.sspeed;
     state.smoothFwd = mv.svFwd;
     // backing off (the rules' intent, so the walk turns backwards the moment it does, never a beat late)
-    state.backing = m.moving && m.strafeMode === 'back' && MOVING_STATES.has(m.state);
+    state.backing = (m.moving && m.strafeMode === 'back' && MOVING_STATES.has(m.state)) || !!m.drag; // the wolf hauls its prey backwards
     state.vFwd = mv.vFwd;
     state.vSide = mv.vSide;
     state.aggro = !!m.aggro;

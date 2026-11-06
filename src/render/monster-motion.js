@@ -47,7 +47,11 @@ export function advanceGait(r, s, dt, c) {
   r.accel = damp(r.accel || 0, dt > 0 ? (r.speed - before) / dt : 0, 6, dt);
   r.walkW = damp(r.walkW || 0, clamp01(v / 0.6), 9, dt);
   r.runK = damp(r.runK || 0, clamp01((r.speed - c.runFrom) / Math.max(0.1, c.runFull - c.runFrom)), 4, dt);
-  if (measured && s.vFwd !== undefined) r.dir = s.vFwd < -0.35 * v ? -1 : 1;
+  // which way the legs cycle: the rules' intent when the view gives it (s.backing), so a beast whose body is still
+  // turning round as it sets off the other way never paddles backwards for a few frames; otherwise the measured
+  // forward speed
+  if (s.backing !== undefined) r.dir = s.backing ? -1 : 1;
+  else if (measured && s.vFwd !== undefined) r.dir = s.vFwd < -0.35 * v ? -1 : 1;
   else r.dir = 1;
   const duty = c.duty + (c.runDuty - c.duty) * r.runK;
   const swing = c.swing + (c.runSwing - c.swing) * r.runK;
@@ -112,7 +116,10 @@ const _offs = [0, 0, 0, 0, 0, 0];
 export function poseLegs(r, c, legs, kneeOf = (n) => `${n}k`) {
   const b = r.bones, w = r.walkW, A = r.swingA * w;
   gaitOffsets(c, r.runK, _offs);
-  let drop = 0, planted = 0;
+  // the body sinks by the planted feet's spread; a foot's say fades out as it lifts and back in as it lands, so the
+  // body never jumps on the frame a foot leaves or meets the ground (a plain average over the planted feet did, by
+  // up to a tenth of a metre at a run), and with every foot in the air (a gallop's flight) it rises smoothly
+  let drop = 0, weight = 0;
   for (let i = 0; i < legs.length; i++) {
     legCycle(r.phase, _offs[i % c.walk.length], r.duty, _leg);
     const a = _leg.angle * A;
@@ -120,12 +127,12 @@ export function poseLegs(r, c, legs, kneeOf = (n) => `${n}k`) {
     const knee = b[kneeOf(legs[i])];
     if (knee) knee.rotation.x = (_leg.lift * c.knee * (1 + 0.4 * r.runK) + (_leg.planted ? 0.06 : 0)) * w;
     else b[legs[i]].scale.y = 1 - 0.16 * _leg.lift * w;
-    if (_leg.planted) {
-      drop += 1 - Math.cos(a);
-      planted++;
-    }
+    const k = 1 - _leg.lift;
+    const wt = _leg.planted ? 1 : k * k;
+    drop += wt * (1 - Math.cos(a));
+    weight += wt;
   }
-  return planted ? (drop / planted) * c.legLength : 0;
+  return (drop / Math.max(1, weight)) * c.legLength;
 }
 
 /** Pose splayed arthropod legs (beetle, crabs) that step by turning about Y and lift about Z. */

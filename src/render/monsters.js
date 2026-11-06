@@ -135,7 +135,7 @@ function animQuad(r, s, dt, time, cfg) {
   const w = advanceGait(r, s, dt, c);
   const ph = r.phase;
   const run = r.runK;
-  const drop = poseLegs(r, c, legs);
+  const drop = poseLegs(r, c, legs) * (c.dropK ?? 1); // (c.dropK: how far the body dips with the legs' spread)
   const P = r.pose || (r.pose = { bodyX: 0, bodyY: cfg.bodyY, bodyZ: 0, headX: 0, jaw: 0 });
   let bodyX = 0;
   let bodyY = cfg.bodyY;

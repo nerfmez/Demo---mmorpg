@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { data } from './helpers.js';
-import { motionConfig, motionStyle, advanceGait, legCycle, gaitOffsets } from '../../src/render/monster-motion.js';
+import { motionConfig, motionStyle, advanceGait, legCycle, gaitOffsets, poseLegs } from '../../src/render/monster-motion.js';
 
 const MOTION = JSON.parse(readFileSync(new URL('../../data/monster-motion.json', import.meta.url), 'utf8'));
 const MONSTERS = data.monsters.monsters;
@@ -67,6 +67,32 @@ test('standing still settles the gait; backing away runs the cycle backwards', (
   const lab = { baseScale: 1 };
   for (let i = 0; i < 60; i++) advanceGait(lab, { moving: true, speedFactor: 1 }, 1 / 60, c);
   assert.ok(lab.walkW > 0.9 && lab.phase > 0);
+});
+
+test('the body never jumps as feet land or lift, walking or running (owner, 2026-11-06: the run stuttered)', () => {
+  for (const type of ['tusk_boar', 'thornback_wolf', 'greyfang', 'ironhorn_ram', 'duskmane_stalker']) {
+    const c = motionConfig(MOTION, type), legs = ['a', 'b', 'c', 'd'], bones = {};
+    for (const l of legs) { bones[l] = { rotation: { x: 0 }, scale: { y: 1 } }; bones[`${l}k`] = { rotation: { x: 0 } }; }
+    for (const v of [c.runFrom * 0.6, c.runFull * 1.1]) {
+      const r = { bones, baseScale: 1 }, s = { speed: v, vFwd: v };
+      for (let i = 0; i < 300; i++) { advanceGait(r, s, 1 / 60, c); poseLegs(r, c, legs); }
+      let prev = poseLegs(r, c, legs), worst = 0;
+      for (let i = 0; i < 240; i++) { advanceGait(r, s, 1 / 60, c); const d = poseLegs(r, c, legs); worst = Math.max(worst, Math.abs(d - prev)); prev = d; }
+      // a 60 Hz frame moves the body at most a few centimetres (it jumped by up to 9 cm when a foot left the ground)
+      assert.ok(worst < 0.045, `${type} at ${v.toFixed(1)} m/s: body height jumps ${worst.toFixed(3)} in one frame`);
+    }
+  }
+});
+
+test('setting off the other way: the legs follow the rules\' intent, not the still-turning body', () => {
+  const c = motionConfig(MOTION, 'tusk_boar'), r = { baseScale: 1 };
+  for (let i = 0; i < 60; i++) advanceGait(r, { speed: 3.6, vFwd: 3.6, backing: false }, 1 / 60, c);
+  const p0 = r.phase;
+  // the body still faces the old way for a few frames, so the measured forward speed is negative
+  for (let i = 0; i < 6; i++) advanceGait(r, { speed: 3.6, vFwd: -3.6, backing: false }, 1 / 60, c);
+  assert.ok(r.phase > p0 && r.dir === 1, 'never paddles backwards');
+  for (let i = 0; i < 6; i++) advanceGait(r, { speed: 2, vFwd: -2, backing: true }, 1 / 60, c);
+  assert.equal(r.dir, -1, 'a beast that means to back away walks backwards');
 });
 
 test('walk styles (the monster sandbox walk choices) are named and keep the feet planted at the monster speed', () => {

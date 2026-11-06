@@ -409,7 +409,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -755,6 +755,18 @@ function windup(game, m, dt, t, gap) {
       // two shadow wolves run in from either side of the spot marked at wind-up start (beginAttack), crossing it:
       // projectiles that trample each unit once (`speed`, `range`)
       for (const [x, z, a] of w.lanes) game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: 'shadow_wolf', attack: w.name, trample: true, x, z, y: 0, angle: a, speed: atk.speed, radius: atk.projectileRadius ?? 0.5, range: atk.range, element: 'physical', damage: dmg });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'rally': {
+      // Greyfang's rally howl: its pack answers at the spots marked round its prey at wind-up start (beginAttack),
+      // wolves of `pack` (minions, `packOf` it) set on the prey: they close round it from every side
+      for (const [x, z] of w.spots) {
+        const wolf = game.spawnMinion(atk.pack, Math.max(1, m.level - 1), x, z);
+        wolf.packOf = m.id; wolf.facing = t ? angleTo(x, z, t.x, t.z) : 0;
+        setAggro(game, wolf, t || game.player);
+      }
+      game.emit({ type: 'rally', id: m.id, x: m.x, z: m.z, spots: w.spots });
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
@@ -1153,6 +1165,8 @@ function act(game, m, dt, t) {
       if (sw.hit.has(u.id) || dist(m.x, m.z, u.x, u.z) > atk.reach + u.r) continue;
       sw.hit.add(u.id);
       game.damageUnit(u, sw.dmg, m, { attack: sw.name });
+      // a swoop without `steal` only clips (Greyfang's hamstring, its inflict a hobble): event swoopHit
+      if (!atk.steal) { game.emit({ type: 'swoopHit', id: m.id, name: sw.name, x: u.x, z: u.z }); continue; }
       // only the hero carries gold
       const take = u === game.player ? Math.min(game.ch.gold || 0, atk.steal) : 0;
       if (take > 0) { game.ch.gold -= take; m.loot = (m.loot || 0) + take; }
@@ -1665,6 +1679,7 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     const atk = def.attacks[name], u = atk.use, max = u.max ?? atk.range;
     if ((u.hpBelow && m.hp > m.maxHp * u.hpBelow) || (u.once && m.used?.[name])) continue;
     if (nk && atk.needsShell) continue; // its anemones and its shell went with the shell
+    if ((atk.kind || name) === 'rally' && packAlive(game, m) >= atk.cap) continue; // its pack is already round its prey
     // behind: only for a target at its back (more than 100 degrees off its facing)
     if (u.behind && Math.abs(angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z))) < 1.75) continue;
     // a burrow (erupt) never comes up in a safe town
@@ -1685,6 +1700,13 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     m.moving = false;
     turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, def.kit?.turn ?? 6);
   }
+}
+
+/** How many of a monster's pack (wolves its rally called) still stand. */
+function packAlive(game, m) {
+  let n = 0;
+  for (const o of game.monsters) if (o.packOf === m.id && !o.dead) n++;
+  return n;
 }
 
 function nakedHome(game, m, dt, slowMult) {
@@ -1777,6 +1799,21 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'rally') {
+    // the spots its pack will come in at: on a ring `ring` m round its prey, evenly round it (as many as the pack has
+    // room for, under `cap` alive), marked for the whole howl
+    const n = Math.min((m.enraged ? atk.enragedSummon : atk.summon) || 2, atk.cap - packAlive(game, m)), spots = [];
+    const a0 = angleTo(t.x, t.z, m.x, m.z) + Math.PI / n;
+    for (let i = 0; i < n; i++) {
+      for (const shrink of [1, 0.75, 0.5]) {
+        const a = a0 + (i / n) * Math.PI * 2, x = t.x + Math.sin(a) * atk.ring * shrink, z = t.z + Math.cos(a) * atk.ring * shrink;
+        if (game.world.isFree(x, z, 0.6) && !game.isSafe(x, z)) { spots.push([x, z]); break; }
+      }
+    }
+    startWindup(game, m, name, t, { spots });
+    game.emit({ type: 'rallyMarks', id: m.id, spots, delay: m.windup.total });
+    return;
+  }
   if (kind === 'shell_shed') {
     // the coral shell bursts round where it stands, marked for the whole wind-up
     startWindup(game, m, name, t, { radius: atk.radius });

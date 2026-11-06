@@ -1267,6 +1267,14 @@ the line from it, unless that is safe ground; on landing it turns to face its pr
 `mantis_land`). The View fans painted wings (canvas textures: a forewing over a fanned hindwing with an eyespot;
 skillfx/mantis-fx.js, `rig.wingSpread` from the animator) for the display and the flight; its kit poses are set in
 the imported model's own arm and blade angles (`state.kit`, monsters-midhigh.js animMantis).
+
+Greyfang (a mini-boss: its whole kit, no elite roll) is a kit monster: `hamstring` (kind `snatch` without `steal`: a
+swoop along a curve past its prey's side (`past`, `bow`), clipping each unit within `reach` once, event `swoopHit`,
+its inflict `hobble`: a hero status with `slow` that multiplies walking like chill, ticked with chill/shock/root,
+cleansed by Cleanse), `rally` (kind `rally`: at wind-up start up to `summon` spots (`enragedSummon` once enraged), as
+many as `cap` minus its living pack, evenly round its prey `ring` m out (pulled in where blocked or safe), event
+`rallyMarks`; at the end a `pack` minion at each, `packOf` it, set on the prey, event `rally`; not taken while its
+pack is full) and `takedown` (kind `pounce`, `use.hpBelow`, area kind `takedown`, its inflict a root: the pin).
 Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.

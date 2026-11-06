@@ -285,21 +285,6 @@
   },
   "overrides": {
     "rootdigger_mole.swipe": { "halo": "#e8963c", "rim": "#fff2d8", "len": 0.85, "wid": 1.3 },
-    "greyfang.bite": {
-      "scale": 1.3,
-      "color": "#9a7cff",
-      "limbs": [
-        "head",
-        "jaw"
-      ]
-    },
-    "greyfang.rake": {
-      "scale": 1.2,
-      "limbs": [
-        "leg0k",
-        "leg1k"
-      ]
-    },
     "reef_crab.pinch": {
       "kind": "light",
       "scissor": true,

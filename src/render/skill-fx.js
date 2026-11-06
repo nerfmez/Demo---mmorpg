@@ -499,6 +499,8 @@ export class SkillFx {
       case 'clawGuard': case 'shellShed': case 'shellClimb': case 'reshell': return this.monster.hermit.event(e, g);
       // the thicket mantis (skillfx/mantis-fx.js)
       case 'mantisStrike': case 'startle': case 'wingLand': return this.monster.mantis.event(e, g);
+      // Greyfang (skillfx/greyfang-fx.js)
+      case 'swoopHit': case 'rallyMarks': case 'rally': return this.monster.greyfang.event(e, g);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);

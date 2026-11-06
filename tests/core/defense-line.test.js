@@ -11,7 +11,7 @@ import { updateMonster } from '../../src/core/ai.js';
 import { RESISTS, DOTS, monsterHit } from '../../src/core/defense.js';
 
 const M = data.monsters.monsters;
-const STATUSES = new Set([...DOTS, 'chill', 'shock', 'root']);
+const STATUSES = new Set([...DOTS, 'chill', 'hobble', 'shock', 'root']);
 
 const hero = () => {
   const g = new Game(data, { seed: 3 });
@@ -36,7 +36,7 @@ test('every monster element and status in the data is one the rules know', () =>
       assert.ok(STATUSES.has(a.inflict.status), `${id}.${name} ${a.inflict.status}`);
       assert.ok(a.inflict.duration > 0 && a.inflict.chance > 0 && a.inflict.chance <= 1, `${id}.${name}`);
       if (DOTS.includes(a.inflict.status)) assert.ok(a.inflict.dpsMult > 0, `${id}.${name} dps`);
-      if (a.inflict.status === 'chill') assert.ok(a.inflict.slow > 0 && a.inflict.slow < 1, `${id}.${name} slow`);
+      if (a.inflict.status === 'chill' || a.inflict.status === 'hobble') assert.ok(a.inflict.slow > 0 && a.inflict.slow < 1, `${id}.${name} slow`);
     }
   }
   assert.ok(inflicts >= 10, 'monsters put statuses on the hero');
@@ -108,7 +108,7 @@ test('dots hurt over time, never kill and end; chill slows, root stops walking; 
   g.derived.resistPoisonPct = 0;
   g.rng = { chance: () => true, range: (a) => a, next: () => 0 };
   g.damagePlayer(1000, foe('reed_viper'), { attack: 'lash' });
-  g.damagePlayer(1000, foe('greyfang'), { attack: 'rake' });
+  g.damagePlayer(1000, foe('thornback_wolf'), { attack: 'drag' }); // a bleed
   assert.ok(p.statuses.poison && p.statuses.bleed);
   p.hp = 5;
   for (let i = 0; i < 600; i++) g.tickPlayerStatuses(0.01);

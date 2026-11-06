@@ -1736,7 +1736,8 @@
         "burn",
         "poison",
         "bleed",
-        "chill"
+        "chill",
+        "hobble"
       ]
     },
     "battle_aura": {

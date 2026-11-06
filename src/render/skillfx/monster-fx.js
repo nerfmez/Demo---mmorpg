@@ -25,6 +25,7 @@ import { BeetleFx } from './beetle-fx.js';
 import { WolfFx } from './wolf-fx.js';
 import { HermitFx } from './hermit-fx.js';
 import { MantisFx } from './mantis-fx.js';
+import { GreyfangFx } from './greyfang-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -90,6 +91,8 @@ export class MonsterFx {
     this.hermit = new HermitFx(scene, host, this);
     // the thicket mantis's strike, startle wings and leap (skillfx/mantis-fx.js)
     this.mantis = new MantisFx(scene, host, this);
+    // Greyfang's hamstring, rally and takedown (skillfx/greyfang-fx.js)
+    this.greyfang = new GreyfangFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -236,6 +239,7 @@ export class MonsterFx {
     if (e.kind === 'click') return this.beetle.burst(e);
     if (e.kind === 'coral_burst') return this.hermit.burst(e);
     if (e.kind === 'mantis_land') return this.mantis.burst(e);
+    if (e.kind === 'takedown') return this.greyfang.burst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
     this.leaves.burst(e.x, y, e.z, 14, 3.6);
@@ -397,6 +401,7 @@ export class MonsterFx {
     this.wolf.update(dt, g);
     this.hermit.update(dt, g);
     this.mantis.update(dt, g);
+    this.greyfang.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

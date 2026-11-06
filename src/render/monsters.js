@@ -194,7 +194,14 @@ function animQuad(r, s, dt, time, cfg) {
     bodyY += 0.03 * k;
     jaw = 0.8 * k;
     lunge = -0.16 * k;
-  } else if (wu === 'leap') {
+  } else if (wu === 'hamstring') {
+    // Greyfang sizing up a leg: low and coiled, head down level with its prey's knees, jaws parted
+    headX = 0.5 * k; bodyX = 0.16 * k; bodyY -= 0.2 * k; squash = 1 - 0.08 * k; jaw = 0.35 * k;
+    b[legs[2]].rotation.x = 0.5 * k; b[legs[3]].rotation.x = 0.5 * k;
+  } else if (s.state === 'act' && s.lastAttack === 'hamstring') {
+    // the dart past: flat out and low, head down and jaws wide at leg height
+    headX = 0.55; bodyX = 0.18; bodyY -= 0.12; jaw = 0.85;
+  } else if (wu === 'leap' || wu === 'takedown') {
     // greyfang's leap: belly low, hind legs coiled, eyes on the marked spot
     headX = 0.3 * k;
     bodyX = 0.14 * k;
@@ -203,9 +210,9 @@ function animQuad(r, s, dt, time, cfg) {
     jaw = 0.3 * k;
     b[legs[2]].rotation.x = 0.6 * k;
     b[legs[3]].rotation.x = 0.6 * k;
-  } else if (s.state === 'act' && s.lastAttack === 'leap') {
-    // in the air: stretched out, forepaws reaching, jaws open, an arc over the 0.35 s flight
-    const f = clamp01(s.actT / 0.35);
+  } else if (s.state === 'act' && (s.lastAttack === 'leap' || s.lastAttack === 'takedown')) {
+    // in the air: stretched out, forepaws reaching, jaws open, an arc over its flight
+    const f = s.hop >= 0 ? s.hop : clamp01(s.actT / 0.35);
     bodyX = -0.2;
     bodyY += Math.sin(Math.PI * f) * 0.9;
     headX = -0.2;
@@ -253,6 +260,10 @@ function animQuad(r, s, dt, time, cfg) {
   } else if (s.state === 'act' && s.dragging) {
     // jaws clamped, head low, hauling backwards
     headX = 0.35; bodyX = -0.2; jaw = 0.05; bodyY -= 0.06;
+  } else if (wu === 'rally') {
+    // the alpha's rally: up on its haunches, chest out, muzzle thrown to the sky, howling
+    headX = -1.15 * k; jaw = 0.85 * k; bodyX = -0.38 * k; bodyY += 0.18 * k;
+    b[legs[0]].rotation.x = -0.5 * k; b[legs[1]].rotation.x = -0.5 * k;
   } else if (wu === 'howl' || wu === 'pincer') {
     headX = -0.9 * k;
     jaw = 0.7 * k;
@@ -262,6 +273,10 @@ function animQuad(r, s, dt, time, cfg) {
     bodyX = 0.1;
     squash = 1.06;
     jaw = 0.4;
+  } else if (s.state === 'recover' && s.lastAttack === 'takedown' && (s.actT || 0) < 0.8) {
+    // the pin: forequarters down on its prey, head low, jaws clamped, braced
+    headX = 0.6; bodyX = 0.3; bodyY -= 0.15; jaw = 0.15; lunge = 0.25;
+    b[legs[0]].rotation.x = -0.6; b[legs[1]].rotation.x = -0.6;
   } else if (s.state === 'recover' && s.lastAttack === 'bite') {
     // the snap: the body surges in, the head thrusts down and forward and the jaw slams
     // shut (its fangs leave the trail), then it eases back

@@ -53,7 +53,7 @@ export function inflictHero(game, spec, hit, element, rng) {
     // the stronger dot stays; a new one as strong or stronger takes over with its own length
     if (old && old.dps > dps) { old.t = Math.max(old.t, t); return old; }
     s = { dps, t, acc: old?.acc || 0 };
-  } else if (id === 'chill') s = { slow: Math.max(spec.slow || 0, old?.slow || 0), t: Math.max(t, old?.t || 0) };
+  } else if (id === 'chill' || id === 'hobble') s = { slow: Math.max(spec.slow || 0, old?.slow || 0), t: Math.max(t, old?.t || 0) }; // hobble: a hamstrung leg
   else s = { t: Math.max(t, old?.t || 0) };
   p.statuses[id] = s;
   game.emit({ type: 'heroStatus', status: id, element, duration: s.t, x: p.x, z: p.z });
@@ -69,5 +69,5 @@ export function statusTaken(game) {
 /** The hero's walking multiplier from their statuses (chill slows, root stops). */
 export function statusWalk(p) {
   if (p.statuses.root) return 0;
-  return p.statuses.chill ? 1 - p.statuses.chill.slow : 1;
+  return (p.statuses.chill ? 1 - p.statuses.chill.slow : 1) * (p.statuses.hobble ? 1 - p.statuses.hobble.slow : 1);
 }

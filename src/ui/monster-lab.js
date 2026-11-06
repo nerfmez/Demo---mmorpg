@@ -108,7 +108,7 @@ export function startMonsterLab({ game, view, root, input, data, type, bare = fa
     if (m.dead || m.hp < m.maxHp * 0.2) Object.assign(m, { dead: false, hp: m.maxHp });
     if (u.hpBelow) m.hp = Math.min(m.hp, m.maxHp * u.hpBelow * 0.8);
     m.used = null;
-    for (const o of game.monsters) if ((o.illusion || o.bud || o.sprout) && !o.dead) { if (o.sprout) o.illusion = { t: 0 }; game.killMonster(o); }
+    for (const o of game.monsters) if ((o.illusion || o.bud || o.sprout || o.packOf != null) && !o.dead) { if (o.sprout) o.illusion = { t: 0 }; game.killMonster(o); } // (packOf: wolves Greyfang's rally called)
     Object.assign(m, { aggro: true, targetUnit: p });
   };
   // Each new go: if the monster can get to where the attack starts on its own feet, it walks there - the sandbox

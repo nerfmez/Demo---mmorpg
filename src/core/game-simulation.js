@@ -1814,8 +1814,8 @@ export class Game {
       }
       if (st.t <= 0) delete p.statuses[id];
     }
-    // chill, shock and root only last
-    for (const id of ['chill', 'shock', 'root']) {
+    // chill, hobble, shock and root only last
+    for (const id of ['chill', 'hobble', 'shock', 'root']) {
       const st = p.statuses[id];
       if (st && (st.t -= dt) <= 0) delete p.statuses[id];
     }

@@ -169,29 +169,7 @@ test('moth wing glare: a lane of reflected light that hits once at the end of it
   }
 });
 
-test('greyfang leaps at the player only below half health, landing on the marked spot', () => {
-  const leap = M.greyfang.attacks.leap;
-  const a = arena('greyfang', 10);
-  for (const k of ['bite', 'rake', 'howl']) a.m.cd[k] = 99;
-  a.place(6);
-  a.m.hp = a.m.maxHp * 0.8;
-  a.step(0.3);
-  assert.notEqual(a.m.windup?.name, 'leap', 'healthy: no leap');
-  Object.assign(a.m, { x: 0, z: 0, state: 'chase', windup: null });
-  a.place(6);
-  a.m.hp = a.m.maxHp * 0.45;
-  a.step(0.01);
-  assert.equal(a.m.windup?.name, 'leap');
-  const mark = a.g.areas.find((x) => x.kind === 'pounce');
-  assert.ok(mark && mark.radius === leap.radius);
-  const spot = { x: mark.x, z: mark.z };
-  a.step(a.m.windup.total + 0.3);
-  assert.equal(a.hits.length, 0, 'no damage before it lands');
-  a.until(() => a.m.state === 'recover', 3);
-  assert.ok(Math.hypot(a.m.x - spot.x, a.m.z - spot.z) < 0.05, 'it lands on the mark');
-  a.step(0.5);
-  assert.equal(a.hits.length, 1, 'the landing hits once');
-});
+// Greyfang is a kit monster now (its takedown, hamstring and rally: monster-kits.test.js)
 
 test('mole digs toward a marked spot and bursts out of it; leaving the mark dodges, never into a town', () => {
   const a = arena('rootdigger_mole');

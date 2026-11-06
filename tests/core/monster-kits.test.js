@@ -1102,3 +1102,58 @@ test('mantis wing leap: it flies over the hero and lands behind them facing roun
   b.until(() => b.m.state === 'recover', 2); b.step(0.1);
   assert.equal(b.hits.length, 0, 'stepped toward its take-off: safe');
 });
+
+test('Greyfang hamstring: it darts past the hero along a curve, snapping at their legs once; the hero limps', () => {
+  const a = M.greyfang.attacks.hamstring;
+  const { m, g, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
+  only('hamstring'); place(4);
+  until(() => m.windup?.name === 'hamstring');
+  const hp = g.player.hp;
+  step(a.windup - 0.03);
+  assert.equal(g.player.hp, hp, 'nothing in the wind-up');
+  until(() => m.state === 'recover', 1);
+  assert.ok(g.player.hp < hp, 'snapped at as it passed');
+  assert.ok(g.player.statuses.hobble, 'hamstrung');
+  assert.ok(m.z > g.player.z, 'it ended up past the hero');
+  const before = g.player.statuses.hobble.slow;
+  assert.ok(before > 0 && before < 1);
+});
+
+test('Greyfang rally: it howls, spots light round the hero, and its pack comes in there; never more than its cap', () => {
+  const a = M.greyfang.attacks.rally;
+  const { m, g, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true });
+  only('rally'); place(4);
+  until(() => m.windup?.name === 'rally');
+  const spots = m.windup.spots;
+  assert.equal(spots.length, a.summon, 'a spot for each wolf');
+  for (const [x, z] of spots) assert.ok(Math.abs(Math.hypot(x - g.player.x, z - g.player.z) - a.ring) < 0.05, 'round the hero');
+  assert.equal(g.monsters.filter((o) => o.packOf === m.id).length, 0, 'nobody yet');
+  until(() => m.state === 'recover', 3);
+  const pack = g.monsters.filter((o) => o.packOf === m.id);
+  assert.equal(pack.length, a.summon, 'its pack came');
+  for (const w of pack) assert.ok(spots.some(([x, z]) => Math.hypot(w.x - x, w.z - z) < 0.01) && w.aggro, 'each at its spot, on the hero');
+  // with its pack full it does not rally again
+  for (let i = 0; i < a.cap; i++) { const w = g.spawnMinion(a.pack, 20, 9, 9); w.packOf = m.id; g.monsters.push(w); }
+  m.state = 'chase'; m.cd.rally = 0;
+  for (let t = 0; t < 0.3 && !m.windup; t += 0.01) step(0.01);
+  assert.notEqual(m.windup?.name, 'rally', 'its pack is round the hero already');
+});
+
+test('Greyfang takedown: only once it is hurt, it bounds onto a marked circle and pins what it lands on', () => {
+  const a = M.greyfang.attacks.takedown;
+  const { m, g, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
+  only('takedown'); place(5);
+  step(0.3);
+  assert.notEqual(m.windup?.name, 'takedown', 'not while it is hale');
+  m.hp = m.maxHp * 0.5; m.state = 'chase'; m.windup = null;
+  until(() => m.windup?.name === 'takedown', 1);
+  assert.ok(g.areas.some((x) => x.kind === 'takedown' && x.radius === a.radius), 'its landing is marked');
+  until(() => m.state === 'recover', 3); step(0.1);
+  assert.ok(g.player.statuses.root, 'pinned');
+  const b = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
+  b.only('takedown'); b.place(5); b.m.hp = b.m.maxHp * 0.5;
+  b.until(() => b.m.windup?.name === 'takedown', 1);
+  b.g.player.x += 3; // out of the circle
+  b.until(() => b.m.state === 'recover', 3); b.step(0.1);
+  assert.ok(!b.g.player.statuses.root, 'out of the circle: free');
+});

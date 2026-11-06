@@ -2,9 +2,10 @@
 // sitting still, swaying to judge the gap, then shooting out its spined forelegs; threatened, it rears up and fans its
 // wings to flash eyespots and hiss (a startle display); and it can fly a short way.
 // - Peer strike (core peer_strike): the lane is the View's warning; through the sway its eyes and blade edges catch
-//   the light, and it fixes its prey with a glint as the lane locks; the strike is two streaks of light (a soft green
-//   glow round a bright core) shot down the lane with a rush of wind along it; on a hit a burst star, spine marks and
-//   shredded leaves (core mantisStrike).
+//   the light, and it fixes its prey with a glint as the lane locks; the strike throws a pair of sword waves off its
+//   two scythes, crescents of green-gold light leaning opposite ways so they cross in an X, flying down the lane with
+//   a rush of wind; on a hit a crossed cut (an X slashed on the target), a burst star and shredded leaves (core
+//   mantisStrike).
 // - Startle (core startle): its wings (a narrow leafy forewing over a great fanned hindwing, rose at the root to gold
 //   and pale at the scalloped edge, veined, a ringed eyespot) snap open with a gust of leaves; the eyespots pulse and
 //   hiss rings roll off it; at the freeze each eyespot flares, a shock ring runs to the cone's reach and the frozen
@@ -14,10 +15,13 @@
 //   across the true circle, sparks and leaves.
 // Pools only; no allocation per frame.
 import * as THREE from 'three';
+import { Ribbon } from './fx-common.js';
+import { CORE_FS, GLOW_FS, W as RW, taperW, taperGlowW } from './light-kit.js';
 
 const HISS = new THREE.Color(0xf6ffd8), LAND = new THREE.Color(0xd8f0a0), GUST = new THREE.Color(0xe8f4c8), FLARE = new THREE.Color(0xffd860);
 const STAR = { core: [1, 1, 0.9], glow: [0.7, 0.95, 0.35] }, EYE_STAR = { core: [1, 0.98, 0.85], glow: [1, 0.75, 0.25] };
 const LEAF = [0x7fb14a, 0x5d8a3a, 0xa6c95a, 0x8a6a48];
+const WAVE = { edge: [0.95, 1.0, 0.78], glow: [0.5, 0.9, 0.18] };
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 
 // --- the wings, painted once on canvases (shared) ---
@@ -86,6 +90,15 @@ export class MantisFx {
     this.streaks = Array.from({ length: 4 }, () => ({ glow: make(strip, 0x9ad84a, 0.5, 8), core: make(strip, 0xfbffe0, 0.95, 9), t: 9, life: 0.3, w: 0.08 }));
     this.slashes = Array.from({ length: 2 }, () => ({ glow: make(mid, 0x9ad84a, 0.5, 8), core: make(mid, 0xf8ffe0, 0.95, 9), t: 9, life: 0.45, w: 0.14 }));
     this.streakI = 0;
+    // the twin sword waves: ribbons of light (the Spell Wave's language), green-gold
+    this.core = new Ribbon(scene, monster.camera, 900, CORE_FS, THREE.NormalBlending);
+    this.glow = new Ribbon(scene, monster.camera, 900, GLOW_FS, THREE.AdditiveBlending);
+    this.core.mesh.renderOrder = 9; this.glow.mesh.renderOrder = 8;
+    this.waves = Array.from({ length: 4 }, () => ({ t: 9, x: 0, y: 1, z: 0, dx: 0, dz: 1, reach: 3, roll: 0, hit: false }));
+    this.cuts = Array.from({ length: 2 }, () => ({ t: 9, x: 0, y: 1, z: 0, dx: 0, dz: 1 }));
+    this.waveI = 0; this.cutI = 0;
+    this.arc = Array.from({ length: 15 }, () => new THREE.Vector3());
+    this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.tick = new Map(); // monster id -> next cue time (hiss, eye pulse, glints)
     this.flew = new Set();
     this.fixed = new WeakSet(); this.gusted = new WeakSet(); // wind-ups already cued (the core's objects, only looked up)
@@ -123,16 +136,16 @@ export class MantisFx {
   event(e, g) {
     if (e.type === 'mantisStrike') {
       const s = Math.sin(e.angle), c = Math.cos(e.angle), y = this.gy(e.x, e.z), fx = this.fx;
-      for (const off of [0.15, -0.15]) this.streak(this.streaks[this.streakI++ % this.streaks.length], e.x + c * off + s * 0.3, y + 0.95, e.z - s * off + c * 0.3, e.angle, Math.max(0.6, e.reach), 0.32, 0.09);
+      // the twin waves, leaning opposite ways (they cross in an X), thrown off its two scythes
+      for (const roll of [0.75, -0.75]) Object.assign(this.waves[this.waveI++ % this.waves.length], { t: 0, x: e.x + s * 0.35, y: y + 1.0, z: e.z + c * 0.35, dx: s, dz: c, reach: Math.max(0.8, e.reach - 0.1), roll, hit: e.hit });
       // a rush of wind down the lane
       for (let i = 0; i < 6; i++) { const u = (i + Math.random()) / 6 * e.reach; this.monster.call?.dust(e.x + s * u, y + 0.15, e.z + c * u, s * 2.5, 0.3, c * 2.5, 0.55, 0.35); }
       if (fx) for (let i = 0; i < 10; i++) { const u = Math.random() * e.reach; fx.add(e.x + s * u, y + 0.9, e.z + c * u, s * 6, Math.random(), c * 6, { color: 0xeaffc0, size: 0.06, sizeEnd: 0.01, life: 0.2, drag: 3 }); }
       const px = e.x + s * (e.reach + 0.25), pz = e.z + c * (e.reach + 0.25), py = this.gy(px, pz) + 0.9;
       if (e.hit) {
+        // an X cut on the target as the waves arrive, a burst star
+        Object.assign(this.cuts[this.cutI++ % this.cuts.length], { t: -0.12, x: px, y: py, z: pz, dx: s, dz: c });
         this.monster.burstStar?.(px, py, pz, 0.6, STAR, 0xd8ff8a, 0xffffff);
-        this.monster.companion?.axes();
-        _v.set(px, py, pz);
-        this.monster.companion?.rake(_v, 1, 4, 0.45, 0.75, 0.13, new THREE.Color('#9fd84a'), new THREE.Color('#fbffe8'), 0.02);
         if (fx) for (let i = 0; i < 12; i++) { const a = Math.random() * 6.283, v = 1.5 + Math.random() * 2; fx.add(px, py, pz, Math.sin(a) * v + s * 2, 1 + Math.random() * 2, Math.cos(a) * v + c * 2, { color: LEAF[i % 4], size: 0.1, sizeEnd: 0.04, life: 0.6, gravity: 8, drag: 1 }); }
         this.monster.onShake?.(0.09, 0.09);
       } else this.monster.call?.dust(px, this.gy(px, pz) + 0.15, pz, s, 0.4, c, 0.7, 0.4);
@@ -202,7 +215,50 @@ export class MantisFx {
       for (let i = 0; i < 3; i++) { const a = this.time * 7 + (i / 3) * 6.283; this.fx.add(p.x + Math.sin(a) * 0.4, y, p.z + Math.cos(a) * 0.4, 0, 0, 0, { color: i % 2 ? 0xffe060 : 0xffffff, size: 0.09, sizeEnd: 0.02, life: 0.12 }); }
     }
     for (const S of this.streaks) this.fade(S, dt, true);
+    this.drawWaves(dt);
     for (const S of this.slashes) this.fade(S, dt, false);
+  }
+
+  // the twin sword waves: each a crescent of light bulging forward along the lane, its plane leaning `roll` off upright
+  // (the two lean opposite ways, so they read as an X), flying out to the reach in 0.16 s with an afterimage, then
+  // flaring wide and fading; the X cuts on what they struck
+  drawWaves(dt) {
+    this.core.begin(); this.glow.begin();
+    const LOOK = WAVE, three = this.three;
+    for (const w of this.waves) {
+      if (w.t >= 0.34) continue;
+      w.t += dt;
+      const u = Math.min(1, w.t / 0.16), fly = 1 - (1 - u) * (1 - u), die = Math.max(0, (w.t - 0.16) / 0.18), k = 1 - die;
+      const d = 0.2 + w.reach * fly, rad = 0.85 * (0.75 + 0.25 * fly) * (1 + 0.35 * die);
+      for (const [back, al, wd] of [[0.45, 0.35, 0.22], [0, 1, 0.42]]) {
+        if (back && d < back + 0.3) continue;
+        this.crescent(w, d - back, rad * (back ? 0.92 : 1), 1.05, wd * k, al * k, LOOK);
+      }
+    }
+    for (const q of this.cuts) {
+      if (q.t >= 0.3) continue;
+      q.t += dt;
+      if (q.t < 0) continue;
+      const kk = q.t / 0.3, grow = 1 - (1 - Math.min(1, kk * 4)) ** 2, L = 0.7 * grow, px = q.dz, pz = -q.dx;
+      for (const sg of [1, -1]) {
+        three[0].set(q.x - px * L * sg, q.y + L, q.z - pz * L * sg); three[2].set(q.x + px * L * sg, q.y - L, q.z + pz * L * sg); three[1].copy(three[0]).lerp(three[2], 0.5);
+        RW.v = 0.14 * (1 - kk * 0.7); this.glow.strip(three, taperGlowW, 0.9 * (1 - kk), LOOK.glow); this.core.strip(three, taperW, 1 - kk * kk, LOOK.edge);
+      }
+    }
+    this.core.end(); this.glow.end();
+  }
+  crescent(w, d, rad, span, wd, al, look) {
+    // its plane holds the lane's direction and an "up" leaned `roll` toward the screen's side (the camera's right, flat
+    // on the ground): the two lean opposite ways on screen, an X from any heading
+    let sx = this.monster.camRightX?.() ?? w.dz, sz = this.monster.camRightZ?.() ?? -w.dx;
+    const n = Math.hypot(sx, sz) || 1; sx /= n; sz /= n;
+    const cu = Math.cos(w.roll), su = Math.sin(w.roll);
+    const cx = w.x + w.dx * (d - rad), cz = w.z + w.dz * (d - rad);
+    for (let i = 0; i < this.arc.length; i++) {
+      const a = (i / (this.arc.length - 1) - 0.5) * 2 * span, f = Math.cos(a) * rad, h = Math.sin(a) * rad;
+      this.arc[i].set(cx + w.dx * f + sx * su * h, w.y + cu * h, cz + w.dz * f + sz * su * h);
+    }
+    RW.v = wd; this.glow.strip(this.arc, taperGlowW, 0.8 * al, look.glow); this.core.strip(this.arc, taperW, al, look.edge);
   }
 
   gust(x, z, R, n) {

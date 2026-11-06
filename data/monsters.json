@@ -661,11 +661,13 @@
       "exp": 180,
       "jobExp": 110,
       "attacks": {
+        "dread": {"nameTh": "หอนข่มขวัญ", "kind": "dread", "tell": "ring", "use": {"max": 5, "hpBelow": 0.5}, "range": 5, "radius": 6, "windup": 1.5, "recover": 0.8, "cooldown": 16, "damageMult": 0.5, "fear": 1.8},
+        "command": {"nameTh": "สั่งฝูงขย้ำ", "kind": "command", "use": {"max": 14, "hpBelow": 0.5}, "range": 14, "windup": 1.1, "recover": 0.6, "cooldown": 12, "lungeMult": 1.4},
         "rally": {"nameTh": "หอนเรียกฝูงล้อม", "kind": "rally", "use": {"max": 12}, "range": 12, "windup": 1.3, "recover": 0.5, "cooldown": 22, "summon": 2, "enragedSummon": 3, "ring": 4.5, "cap": 3, "pack": "thornback_wolf"},
-        "takedown": {"nameTh": "ขย้ำกดคอ", "kind": "pounce", "areaKind": "takedown", "use": {"min": 3, "max": 9, "hpBelow": 0.6}, "range": 9, "radius": 2.0, "air": 0.55, "windup": 0.9, "recover": 1.0, "cooldown": 9, "damageMult": 1.6, "inflict": {"status": "root", "chance": 1, "duration": 1.1}},
-        "hamstring": {"nameTh": "ตะครุบตัดขา", "kind": "snatch", "use": {"max": 7}, "range": 7, "past": 2.6, "bow": 1.8, "reach": 1.3, "windup": 0.6, "duration": 0.42, "recover": 0.45, "cooldown": 3.2, "damageMult": 1.0, "inflict": {"status": "hobble", "chance": 1, "duration": 3, "slow": 0.4}}
+        "crescent_rake": {"nameTh": "กรงเล็บจันทร์เสี้ยว", "kind": "rake", "tell": "sector", "use": {"max": 2.4}, "range": 3.1, "arc": 130, "windup": 0.6, "duration": 0.95, "hits": [{"at": 0.15, "off": -0.6, "step": 0.35}, {"at": 0.4, "off": 0.6, "step": 0.35}, {"at": 0.7, "off": 0, "step": 0.45, "knock": 5}], "recover": 0.5, "cooldown": 4.5, "damageMult": 0.85, "inflict": {"status": "bleed", "chance": 0.5, "duration": 4, "dpsMult": 0.12}},
+        "hamstring": {"nameTh": "ตะครุบตัดขา", "kind": "snatch", "use": {"min": 2.2, "max": 7}, "range": 7, "past": 2.6, "bow": 1.8, "reach": 1.3, "windup": 0.6, "duration": 0.42, "recover": 0.45, "cooldown": 3.2, "damageMult": 1.0, "inflict": {"status": "hobble", "chance": 1, "duration": 3, "slow": 0.4}}
       },
-      "enrageAt": 0.4,
+      "enrageAt": 0.5,
       "drops": [
         {
           "item": "skill_crystal_l",

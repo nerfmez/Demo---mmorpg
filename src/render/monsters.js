@@ -149,7 +149,7 @@ function animQuad(r, s, dt, time, cfg) {
   for (let i = 0; i < 2; i++) b[legs[i]].rotation.z = damp(b[legs[i]].rotation.z, 0, 18, dt);
   let lunge = 0;
   let hook = 0;
-  if (wu === 'rend' || wu === 'rake') {
+  if (wu === 'rend' || wu === 'rake' || wu === 'crescent_rake') {
     // rears back on the hind legs, head up, then claws down from alternating sides
     headX = -0.35 * k;
     bodyX = -0.28 * k;
@@ -158,7 +158,7 @@ function animQuad(r, s, dt, time, cfg) {
     lunge = -0.12 * k;
     b[legs[0]].rotation.x = -1.25 * k;
     b[`${legs[0]}k`].rotation.x = 0.75 * k;
-  } else if (s.state === 'act' && (s.lastAttack === 'rend' || s.lastAttack === 'rake')) {
+  } else if (s.state === 'act' && (s.lastAttack === 'rend' || s.lastAttack === 'rake' || s.lastAttack === 'crescent_rake')) {
     // The imported PR106 wolves use the same front-leg joints. Alternate paws
     // at the data's contact times: a high lift, a fast raking downstroke across
     // the body (its claws leave the trail) and a return, the body surging in.
@@ -260,6 +260,17 @@ function animQuad(r, s, dt, time, cfg) {
   } else if (s.state === 'act' && s.dragging) {
     // jaws clamped, head low, hauling backwards
     headX = 0.35; bodyX = -0.2; jaw = 0.05; bodyY -= 0.06;
+  } else if (wu === 'dread') {
+    // the dread howl gathering: pressed low, hackles up, head down and snarling, trembling with it
+    headX = 0.4 * k; bodyY -= 0.18 * k; bodyX = 0.12 * k; jaw = 0.6 * k; squash = 1 - 0.08 * k;
+    bodyZ = Math.sin(time * 30) * 0.04 * k; zK = 40;
+  } else if (s.state === 'recover' && s.lastAttack === 'dread' && (s.actT || 0) < 0.7) {
+    // let loose: head thrown up, jaws wide, howling
+    const f = 1 - clamp01((s.actT || 0) / 0.7);
+    headX = -1.1 * f; jaw = 0.9 * f; bodyX = -0.3 * f; bodyY += 0.12 * f;
+  } else if (wu === 'command') {
+    // the order: head up and barking, short sharp snaps of the jaws
+    headX = -0.45 * k; bodyX = -0.12 * k; jaw = Math.max(0, Math.sin(time * 16)) * 0.8 * k;
   } else if (wu === 'rally') {
     // the alpha's rally: up on its haunches, chest out, muzzle thrown to the sky, howling
     headX = -1.15 * k; jaw = 0.85 * k; bodyX = -0.38 * k; bodyY += 0.18 * k;

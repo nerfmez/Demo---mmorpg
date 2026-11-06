@@ -1274,7 +1274,14 @@ its inflict `hobble`: a hero status with `slow` that multiplies walking like chi
 cleansed by Cleanse), `rally` (kind `rally`: at wind-up start up to `summon` spots (`enragedSummon` once enraged), as
 many as `cap` minus its living pack, evenly round its prey `ring` m out (pulled in where blocked or safe), event
 `rallyMarks`; at the end a `pack` minion at each, `packOf` it, set on the prey, event `rally`; not taken while its
-pack is full) and `takedown` (kind `pounce`, `use.hpBelow`, area kind `takedown`, its inflict a root: the pin).
+pack is full), `crescent_rake` (kind `rake`: three timed claws on the `m.melee` path, the last with `knock`),
+and two that come once it is down to half (`use.hpBelow` 0.5, with `enrageAt` 0.5: a boss has five skills, its
+second phase from half health): `command` (kind `command`: at wind-up start every living wolf of its pack is put in
+`act` with its circle_lunge `m.lap` at phase aim, its aim clock started `windup` early so all dash as the bark ends,
+`lungeMult` x their bite; event `command` {pack}, then `commandGo`; not taken with no pack) and `dread` (kind `dread`,
+tell ring: units within `radius` take the hit; the hero gets `statuses.fear` {t, fromX, fromZ} for `fear` s less
+tenacity: `updatePlayer` walks it straight away from that point whatever is pressed and `castSlot` refuses (event fail
+`feared`); Cleanse lifts it).
 Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.

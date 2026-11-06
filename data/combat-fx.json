@@ -241,6 +241,15 @@
       "dust": 10,
       "dur": 0.36
     },
+    "crescent_rake": {
+      "kind": "light",
+      "halo": "#9fb8ff",
+      "rim": "#ffffff",
+      "len": 0.8,
+      "wid": 1.2,
+      "height": 0.8,
+      "shake": 0.06
+    },
     "claw_guard": {
       "kind": "light",
       "scissor": true,

@@ -1133,27 +1133,78 @@ test('Greyfang rally: it howls, spots light round the hero, and its pack comes i
   assert.equal(pack.length, a.summon, 'its pack came');
   for (const w of pack) assert.ok(spots.some(([x, z]) => Math.hypot(w.x - x, w.z - z) < 0.01) && w.aggro, 'each at its spot, on the hero');
   // with its pack full it does not rally again
-  for (let i = 0; i < a.cap; i++) { const w = g.spawnMinion(a.pack, 20, 9, 9); w.packOf = m.id; g.monsters.push(w); }
+  for (let i = 0; i < a.cap; i++) { const w = g.spawnMinion(a.pack, 20, 9, 9); w.packOf = m.id; }
   m.state = 'chase'; m.cd.rally = 0;
   for (let t = 0; t < 0.3 && !m.windup; t += 0.01) step(0.01);
   assert.notEqual(m.windup?.name, 'rally', 'its pack is round the hero already');
 });
 
-test('Greyfang takedown: only once it is hurt, it bounds onto a marked circle and pins what it lands on', () => {
-  const a = M.greyfang.attacks.takedown;
-  const { m, g, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
-  only('takedown'); place(5);
+test('Greyfang crescent rake: three claws stepping in, each once at its time, the last throwing the hero back', () => {
+  const a = M.greyfang.attacks.crescent_rake;
+  const { m, g, hits, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true });
+  only('crescent_rake'); place(1);
+  until(() => m.windup?.name === 'crescent_rake');
+  step(a.windup - 0.02);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.state === 'act', 0.1);
+  for (let i = 0; i < a.hits.length; i++) {
+    until(() => m.stateT >= a.hits[i].at - 0.015, 1);
+    assert.equal(hits.length, i, `no claw before claw ${i + 1}`);
+    step(0.03);
+    assert.equal(hits.length, i + 1, `claw ${i + 1} lands once`);
+  }
+  until(() => m.state === 'recover', 1);
+  assert.equal(hits.length, 3);
+});
+
+test('Greyfang phase two: its dread howl and pack command only come once it is down to half', () => {
+  const { m, place, step } = arena('greyfang', 22, { open: true, normal: true });
+  for (const k in m.cd) m.cd[k] = k === 'dread' || k === 'command' ? 0 : 99;
+  place(2); step(0.5);
+  assert.ok(!['dread', 'command'].includes(m.windup?.name), 'not while above half');
+  assert.ok(M.greyfang.attacks.dread.use.hpBelow === 0.5 && M.greyfang.attacks.command.use.hpBelow === 0.5 && M.greyfang.enrageAt === 0.5);
+  assert.equal(Object.keys(M.greyfang.attacks).length, 5, 'a boss has five skills (owner, 2026-11-06)');
+});
+
+test('Greyfang pack command: every wolf of its pack aims and lunges at once as its bark ends; with no pack, no command', () => {
+  const { m, g, hits, until, step, place, only } = arena('greyfang', 22, { open: true, normal: true });
+  m.hp = m.maxHp * 0.4;
+  only('command'); place(4);
   step(0.3);
-  assert.notEqual(m.windup?.name, 'takedown', 'not while it is hale');
-  m.hp = m.maxHp * 0.5; m.state = 'chase'; m.windup = null;
-  until(() => m.windup?.name === 'takedown', 1);
-  assert.ok(g.areas.some((x) => x.kind === 'takedown' && x.radius === a.radius), 'its landing is marked');
-  until(() => m.state === 'recover', 3); step(0.1);
-  assert.ok(g.player.statuses.root, 'pinned');
+  assert.notEqual(m.windup?.name, 'command', 'nobody to command');
+  for (const [x, z] of [[4, 4], [-4, 4]]) { const w = g.spawnMinion('thornback_wolf', 20, x, z); w.packOf = m.id; Object.assign(w, { aggro: true, state: 'chase' }); }
+  m.state = 'chase'; m.cd.command = 0;
+  until(() => m.windup?.name === 'command', 1);
+  const pack = g.monsters.filter((o) => o.packOf === m.id), total = m.windup.total; // (enraged: a shorter bark)
+  assert.ok(pack.every((o) => o.lap?.phase === 'aim'), 'every wolf aims');
+  const step2 = (sec) => { for (let t = 0; t < sec; t += 0.01) { g.time += 0.01; for (const o of g.monsters) if (!o.dead) updateMonster(g, o, 0.01); } };
+  step2(total - 0.05);
+  assert.equal(hits.length, 0, 'nothing through the bark');
+  assert.ok(pack.every((o) => o.lap?.phase === 'aim'), 'all still aiming');
+  step2(0.1);
+  assert.ok(pack.every((o) => o.lap?.phase === 'dash'), 'all go at once');
+  step2(0.4);
+  assert.equal(hits.length, 2, 'both lunges land');
+});
+
+test('Greyfang dread howl: within its circle the hero is terrified (runs away, casts nothing); outside is safe', () => {
+  const a = M.greyfang.attacks.dread;
+  const { m, g, until, place, only } = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
+  m.hp = m.maxHp * 0.4;
+  only('dread'); place(2);
+  until(() => m.windup?.name === 'dread', 1);
+  until(() => m.state === 'recover', 3);
+  assert.ok(g.player.statuses.fear, 'terrified');
+  assert.equal(g.castSlot(0), false, 'casts nothing');
+  const d0 = Math.hypot(g.player.x - m.x, g.player.z - m.z);
+  g.input.moveX = -1; g.input.moveZ = 0; // pushing the other way
+  for (let i = 0; i < 30; i++) g.updatePlayer ? g.updatePlayer(0.02) : g.update(0.02);
+  assert.ok(Math.hypot(g.player.x - m.x, g.player.z - m.z) > d0 + 0.5, 'it runs away from the howl whatever is pressed');
   const b = arena('greyfang', 22, { open: true, normal: true, realDamage: true });
-  b.only('takedown'); b.place(5); b.m.hp = b.m.maxHp * 0.5;
-  b.until(() => b.m.windup?.name === 'takedown', 1);
-  b.g.player.x += 3; // out of the circle
-  b.until(() => b.m.state === 'recover', 3); b.step(0.1);
-  assert.ok(!b.g.player.statuses.root, 'out of the circle: free');
+  b.m.hp = b.m.maxHp * 0.4;
+  b.only('dread'); b.place(2);
+  b.until(() => b.m.windup?.name === 'dread', 1);
+  Object.assign(b.g.player, { x: 0, z: a.radius + 2 });
+  b.until(() => b.m.state === 'recover', 3);
+  assert.ok(!b.g.player.statuses.fear, 'outside the circle: unafraid');
 });

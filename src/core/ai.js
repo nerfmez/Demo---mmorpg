@@ -409,7 +409,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'dread', 'command'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -767,6 +767,27 @@ function windup(game, m, dt, t, gap) {
         setAggro(game, wolf, t || game.player);
       }
       game.emit({ type: 'rally', id: m.id, x: m.x, z: m.z, spots: w.spots });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'dread': {
+      // Greyfang's dread howl: what stands within `radius` takes the hit, and the hero is terrified for `fear` s (less
+      // their tenacity): it runs straight away from where the howl was and can cast nothing (game updatePlayer,
+      // castSlot)
+      game.emit({ type: 'dread', id: m.id, x: m.x, z: m.z, radius: atk.radius });
+      for (const u of game.units()) {
+        if (dist(m.x, m.z, u.x, u.z) > atk.radius + u.r) continue;
+        game.damageUnit(u, dmg, m, { attack: w.name });
+        if (u !== game.player || u.dead) continue;
+        const t = atk.fear * (1 - Math.max(0, game.derived?.tenacityPct || 0) / 100);
+        if (t > 0) { u.statuses.fear = { t: Math.max(t, u.statuses.fear?.t || 0), fromX: m.x, fromZ: m.z }; game.emit({ type: 'heroStatus', status: 'fear', duration: t, x: u.x, z: u.z }); }
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'command': {
+      // the order given: its pack lunges at the end of the bark (each wolf was set aiming at beginAttack)
+      game.emit({ type: 'commandGo', id: m.id, x: m.x, z: m.z });
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
@@ -1680,6 +1701,7 @@ function kit(game, m, dt, { t, gap, dToT, slowMult }) {
     if ((u.hpBelow && m.hp > m.maxHp * u.hpBelow) || (u.once && m.used?.[name])) continue;
     if (nk && atk.needsShell) continue; // its anemones and its shell went with the shell
     if ((atk.kind || name) === 'rally' && packAlive(game, m) >= atk.cap) continue; // its pack is already round its prey
+    if ((atk.kind || name) === 'command' && packAlive(game, m) === 0) continue; // nobody to command
     // behind: only for a target at its back (more than 100 degrees off its facing)
     if (u.behind && Math.abs(angleDiff(m.facing, angleTo(m.x, m.z, t.x, t.z))) < 1.75) continue;
     // a burrow (erupt) never comes up in a safe town
@@ -1799,6 +1821,25 @@ export function beginAttack(game, m, name, t) {
     return;
   }
   if (kind === 'slam' || kind === 'stomp' || kind === 'shards') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'dread') return startWindup(game, m, name, t, { radius: atk.radius });
+  if (kind === 'command') {
+    // Greyfang barks an order: every wolf of its pack stops where it is and aims a lunge at its prey (their lanes lock
+    // late in the bark), all to go as the bark ends: a lunge from every side at once (the wolf's circle_lunge dash,
+    // `lungeMult` times its bite)
+    startWindup(game, m, name, t);
+    const ids = [];
+    for (const o of game.monsters) {
+      if (o.packOf !== m.id || o.dead) continue;
+      const la = o.def.attacks.circle_lunge;
+      if (!la) continue;
+      setState(o, 'act');
+      Object.assign(o, { charge: null, melee: null, drag: null, moving: false });
+      o.lap = { name: 'circle_lunge', phase: 'aim', t: la.aim - m.windup.total, a: 0, dir: 1, R: la.near, run: 0, angle: angleTo(o.x, o.z, t.x, t.z), hit: false, dmg: o.damage * (la.damageMult || 1) * atk.lungeMult };
+      ids.push(o.id);
+    }
+    game.emit({ type: 'command', id: m.id, x: m.x, z: m.z, pack: ids, delay: m.windup.total });
+    return;
+  }
   if (kind === 'rally') {
     // the spots its pack will come in at: on a ring `ring` m round its prey, evenly round it (as many as the pack has
     // room for, under `cap` alive), marked for the whole howl

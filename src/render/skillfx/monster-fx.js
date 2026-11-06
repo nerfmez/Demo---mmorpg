@@ -91,7 +91,7 @@ export class MonsterFx {
     this.hermit = new HermitFx(scene, host, this);
     // the thicket mantis's strike, startle wings and leap (skillfx/mantis-fx.js)
     this.mantis = new MantisFx(scene, host, this);
-    // Greyfang's hamstring, rally and takedown (skillfx/greyfang-fx.js)
+    // Greyfang's hamstring, crescent rake, rally, pack command and dread howl (skillfx/greyfang-fx.js)
     this.greyfang = new GreyfangFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
@@ -105,6 +105,7 @@ export class MonsterFx {
     if (this.grotto.swing(e, g)) return true;
     if (this.wolf.swing(e)) return true;
     if (this.hermit.swing(e, g)) return true;
+    if (this.greyfang.swing(e)) return true;
     // a strike whose look is 'light' (data/combat-fx.json monsters): claw marks of light raked across the prey
     const look = this.host.vfx?.monsterLook?.(e.type, e.name);
     if (look?.kind === 'light') {
@@ -239,7 +240,6 @@ export class MonsterFx {
     if (e.kind === 'click') return this.beetle.burst(e);
     if (e.kind === 'coral_burst') return this.hermit.burst(e);
     if (e.kind === 'mantis_land') return this.mantis.burst(e);
-    if (e.kind === 'takedown') return this.greyfang.burst(e);
     if (m?.type !== 'leaf_fox' || e.attack !== 'pounce') return;
     const y = this.host.groundAt?.(e.x, e.z) ?? 0;
     this.leaves.burst(e.x, y, e.z, 14, 3.6);

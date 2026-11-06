@@ -257,6 +257,55 @@ test('stone pangolin rebound roll: down its lane, back along it (a unit can be h
   void g;
 });
 
+test('tusk boar rampage: three legs, each hitting a unit once, skidding and turning to its prey between legs; a rock stops it stunned', () => {
+  const a = M.tusk_boar.attacks.rampage;
+  const { m, g, hits, until, step, place, only } = arena('tusk_boar', 5, { open: true });
+  only('rampage'); place(3);
+  until(() => m.state === 'windup');
+  step(a.windup - 0.03);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  until(() => m.state === 'act');
+  const legs = [];
+  for (let t = 0; t < 4 && m.state === 'act'; t += 0.01) {
+    if (m.rampage && m.rampage.phase === 'skid' && legs.at(-1) !== m.rampage.leg) {
+      legs.push(m.rampage.leg);
+      Object.assign(g.player, { x: m.x + 3, z: m.z }); // the hero dodges aside; it turns after them
+    }
+    step(0.01);
+  }
+  assert.deepEqual(legs, [1, 2], 'two skids between three legs');
+  assert.ok(hits.length >= 1 && hits.length <= a.legs, 'at most a hit a leg');
+  assert.equal(m.rampage, null);
+  const b = arena('tusk_boar', 5, { open: true });
+  b.only('rampage'); b.place(3);
+  b.g.moveEntity = (u, dx, dz) => { if (u === b.m && b.m.state === 'act') return { blockedHard: true }; u.x += dx; u.z += dz; return {}; };
+  b.until(() => b.m.state === 'stunned', 4);
+  assert.equal(b.m.rampage, null, 'a crash ends it');
+});
+
+test('tusk boar stampede: three piglets down three lanes, a gap apart, each trampling a unit once; the gap between lanes is safe', () => {
+  const a = M.tusk_boar.attacks.stampede;
+  const { m, g, hits, until, step, place, only } = arena('tusk_boar', 5, { open: true });
+  only('stampede'); place(5);
+  until(() => m.state === 'windup');
+  step(a.windup - 0.03);
+  assert.equal(g.projectiles.length, 0, 'none before the squeal ends');
+  until(() => m.state === 'recover', 3);
+  const piglets = g.projectiles.filter((p) => p.kind === 'piglet');
+  assert.equal(piglets.length, a.count);
+  const lanes = piglets.map((p) => Math.round(p.x * 10) / 10).sort((x, y) => x - y);
+  assert.ok(lanes[1] - lanes[0] > 1 && lanes[2] - lanes[1] > 1, 'three lanes apart');
+  for (let t = 0; t < 2; t += 0.01) { g.updateProjectiles(0.01); step(0.01); }
+  assert.equal(hits.length, 1, 'the middle piglet tramples the hero once, the others pass beside');
+  const b = arena('tusk_boar', 5, { open: true });
+  b.only('stampede'); b.place(5);
+  b.until(() => b.m.state === 'windup' && b.m.stateT > b.m.windup.total * 0.6);
+  Object.assign(b.g.player, { x: a.spacing / 2 }); // between two lanes
+  b.until(() => b.m.state === 'recover', 3);
+  for (let t = 0; t < 2; t += 0.01) { b.g.updateProjectiles(0.01); b.step(0.01); }
+  assert.equal(b.hits.length, 0, 'in the gap: safe');
+});
+
 test('shore gull snatch: swoops along a curve through the hero, clipping once and stealing gold it drops again when it dies', () => {
   const a = M.shore_gull.attacks.snatch;
   const { m, g, hits, until, step, place, only } = arena('shore_gull', 3, { open: true });

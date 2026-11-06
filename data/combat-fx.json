@@ -297,32 +297,6 @@
         "jaw"
       ]
     },
-    "tusk_boar.bite": {
-      "scale": 1.1,
-      "color": "#ff7a3a",
-      "height": 0.55,
-      "limbs": [
-        {
-          "bone": "head",
-          "at": [
-            0.02,
-            0.5,
-            0.92
-          ]
-        }
-      ],
-      "trail": {
-        "streaks": 2,
-        "spread": 0.24,
-        "width": 0.06,
-        "reach": 0.22,
-        "life": 0.36,
-        "minSpeed": 0.8,
-        "fullSpeed": 3,
-        "opacity": 1,
-        "core": 0.55
-      }
-    },
     "greyfang.rake": {
       "scale": 1.2,
       "limbs": [

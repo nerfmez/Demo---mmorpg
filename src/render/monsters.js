@@ -176,7 +176,7 @@ function animQuad(r, s, dt, time, cfg) {
       b[leg].rotation.z = (i % 2 ? -1 : 1) * (0.55 - 1.0 * stroke) * release;
       b[`${leg}k`].rotation.x = 0.75 * (1 - stroke) * release;
     }
-  } else if (wu === 'charge') {
+  } else if (wu === 'charge' || wu === 'rampage') {
     // crouch, head low, hind legs coiled; front paw scrapes on the boar
     headX = 0.35 * k;
     bodyX = 0.12 * k;
@@ -214,6 +214,27 @@ function animQuad(r, s, dt, time, cfg) {
     b[legs[1]].rotation.x = -1.1;
     b[legs[2]].rotation.x = 0.9;
     b[legs[3]].rotation.x = 0.9;
+  } else if (wu === 'stampede') {
+    // the boar rears up on its hind legs, head thrown back squealing, forelegs pawing the air
+    bodyX = -0.55 * k;
+    bodyY += 0.28 * k;
+    headX = -0.6 * k;
+    jaw = 0.85 * k;
+    b[legs[0]].rotation.x = -0.9 * k + Math.sin(time * 14) * 0.4 * k;
+    b[legs[1]].rotation.x = -0.9 * k + Math.sin(time * 14 + 1.6) * 0.4 * k;
+  } else if (s.state === 'act' && s.lastAttack === 'stampede') {
+    // down again, still squealing as the piglets burst out
+    bodyX = 0.1; headX = -0.35; jaw = 0.8;
+  } else if (s.state === 'act' && s.rampage === 1) {
+    // the rampage: a flat-out gallop, head down, tusks forward
+    headX = 0.35; bodyX = 0.14; bodyY -= 0.05; jaw = 0.3;
+    for (let i = 0; i < 4; i++) b[legs[i]].rotation.x = Math.sin(time * 24 + (i < 2 ? 0 : 2.4) + (i % 2) * 0.5) * 0.95;
+  } else if (s.state === 'act' && s.rampage === 2) {
+    // the skid: sitting back on its haunches, forelegs braced out ahead, swinging round
+    headX = 0.05; bodyX = -0.3; bodyY -= 0.08;
+    b[legs[0]].rotation.x = -0.8; b[legs[1]].rotation.x = -0.8;
+    b[legs[2]].rotation.x = 0.5; b[legs[3]].rotation.x = 0.5;
+    bodyZ = clampAbs(-s.turn * 0.12, 0.3); zK = 20;
   } else if (wu === 'howl') {
     headX = -0.9 * k;
     jaw = 0.7 * k;

@@ -284,6 +284,8 @@ function setState(m, state, dur = 0) {
     m.hold = null;
     m.swoop = null;
     m.drop = null;
+    m.rampage = null;
+    m.stampede = null;
     m.retreatPending = false;
     m.retreatTo = null;
     m.shell = false;
@@ -681,6 +683,20 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'rampage': {
+      // the boar charges in `legs` legs: each at `speed` m/s for `run` s along its aim, hitting each unit once a leg;
+      // between legs it skids to a stop over `skid` s, turning to its prey through the first part of the skid, then
+      // locked (act: m.rampage); a rock or wall in its way stops it stunned
+      m.rampage = { name: w.name, leg: 0, phase: 'run', t: 0, angle: w.angle, dmg, hit: new Set() };
+      m.facing = w.angle;
+      return setState(m, 'act');
+    }
+    case 'stampede': {
+      // the boar squeals and `count` piglets burst out beside it, `gap` s apart, each down its own lane (`spacing` m
+      // apart across the aim) at `speed` m/s for `range` m, trampling each unit once (core projectile `trample`)
+      m.stampede = { name: w.name, i: 0, t: 0, angle: w.angle, dmg };
+      return setState(m, 'act');
+    }
     case 'snatch': {
       // the shore gull swoops along a curve past its prey (the path fixed at wind-up start, beginAttack) over
       // `duration` s, clipping what it passes; the prey it clips loses up to `steal` gold, carried off in its beak
@@ -790,6 +806,55 @@ function act(game, m, dt, t) {
       if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) { sw.hit.add(u.id); game.damageUnit(u, sw.dmg, m, { attack: sw.name }); }
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
+    return;
+  }
+  if (m.rampage) {
+    const rp = m.rampage, atk = m.def.attacks[rp.name];
+    rp.t += dt;
+    if (rp.phase === 'run') {
+      const d = dirFromAngle(rp.angle), before = { x: m.x, z: m.z };
+      const res = game.moveEntity(m, d.x * atk.speed * dt, d.z * atk.speed * dt, { stopOnBlock: true });
+      m.facing = rp.angle; m.moving = false;
+      for (const u of game.units()) {
+        if (rp.hit.has(u.id) || dist(m.x, m.z, u.x, u.z) >= m.r + u.r + 0.35) continue;
+        rp.hit.add(u.id);
+        game.damageUnit(u, rp.dmg, m, { attack: rp.name, knock: { angle: rp.angle, force: atk.knock || 3 } });
+      }
+      const moved = dist(before.x, before.z, m.x, m.z);
+      if (res && res.blockedHard && moved < atk.speed * dt * 0.4 && rp.t > 0.08) {
+        // ran into a rock, tree or wall: stunned, its rampage over
+        m.rampage = null; m.cd[rp.name] = atk.cooldown;
+        game.emit({ type: 'stunned', id: m.id, x: m.x, z: m.z });
+        return setState(m, 'stunned', atk.crashStun ?? 1.6);
+      }
+      if (rp.t >= atk.run) {
+        rp.leg++; rp.t = 0;
+        if (rp.leg >= atk.legs) { m.rampage = null; m.cd[rp.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
+        rp.phase = 'skid';
+        game.emit({ type: 'skid', id: m.id, x: m.x, z: m.z, angle: rp.angle, leg: rp.leg });
+      }
+      return;
+    }
+    // skidding: it slides to a stop, swinging round to its prey, then the next leg (the hit list starts afresh)
+    const k = Math.min(1, rp.t / atk.skid), d = dirFromAngle(m.facing), slide = atk.speed * 0.35 * (1 - k);
+    game.moveEntity(m, d.x * slide * dt, d.z * slide * dt);
+    m.moving = false;
+    if (t && k < 0.6) rp.angle = angleTo(m.x, m.z, t.x, t.z);
+    if (k >= 1) { rp.phase = 'run'; rp.t = 0; rp.hit.clear(); m.facing = rp.angle; game.emit({ type: 'rampageLeg', id: m.id, angle: rp.angle, leg: rp.leg }); }
+    return;
+  }
+  if (m.stampede) {
+    const st = m.stampede, atk = m.def.attacks[st.name], d = dirFromAngle(st.angle), px = d.z, pz = -d.x;
+    m.moving = false;
+    st.t += dt;
+    while (st.i < atk.count && st.t >= st.i * atk.gap) {
+      // the lanes from the outside in: one side, the other, the middle last
+      const order = [-1, 1, 0, -2, 2], lane = order[st.i % order.length] * atk.spacing;
+      const x = m.x + px * lane + d.x * 0.4, z = m.z + pz * lane + d.z * 0.4;
+      game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: 'piglet', attack: st.name, trample: true, x, z, y: 0, angle: st.angle, speed: atk.speed, radius: atk.projectileRadius ?? 0.45, range: atk.range, element: 'physical', damage: st.dmg });
+      st.i++;
+    }
+    if (st.i >= atk.count) { m.stampede = null; m.cd[st.name] = atk.cooldown; return setState(m, 'recover', atk.recover); }
     return;
   }
   if (m.swoop) {

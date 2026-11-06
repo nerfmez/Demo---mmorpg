@@ -1171,6 +1171,14 @@ clipped loses up to `steal` gold into `m.loot`, which `killMonster` drops as gol
 (`m.drop`) it stays `air` s, then moves to the spot over `glide` s (event `glide`), then `stunned` for `feast` s with
 `m.exposed` = `exposedTaken`; event `feast`).
 
+The tusk boar is a kit monster (no longer `charger`): `rampage` (kind `rampage`: `m.rampage` {leg, phase, t, angle,
+hit}; a `run` phase moves it `speed` m/s along its angle for `run` s, hitting each unit once a leg with `knock`, a hard
+block stunning it for `crashStun` s; a `skid` phase of `skid` s slides it to a stop (35% of its speed, easing out) and
+turns its angle to its prey through the first 60%, then the next leg with a fresh hit list (events `skid`,
+`rampageLeg`); after `legs` legs it recovers) and `stampede` (kind `stampede`: `m.stampede`; projectiles of kind
+`piglet` with `trample` (they pass through units, hitting each once) spawned `gap` s apart down lanes `spacing` m apart
+across its aim, outer lanes first; the View draws each as a pooled boar rig at 0.42 scale).
+
 Translate `coastal_melee` and `coastal_skirmisher` in `ai.js`.
 `primaryAttack` selects a stationary frontal slap, peck or pinch; each attack has
 `arc`, `windup`, `hitTime` (after windup), `duration`, `recover` and `cooldown` in

@@ -63,7 +63,7 @@ must be creative". The kits so far lean on the same few families. Count before d
 
 | Family | Used by |
 |---|---|
-| Dash / leap at the prey (charge, pounce, skip, roll) | fox, pangolin, fish, hare |
+| Dash / leap at the prey (charge, pounce, skip, roll) | fox, pangolin, fish, hare, boar (three legs, re-aimed) |
 | Shot / spray / volley | mole, clam (valve), slug (homing stingers) |
 | Beam or lane | moth, snail king (beam, grind) |
 | Ring round itself | (moth's moonlight ring, replaced: its pattern was not its own) |
@@ -76,6 +76,7 @@ must be creative". The kits so far lean on the same few families. Count before d
 | Stealing | shore gull snatch |
 | An opening it gives itself | shore gull feast after its shell drop |
 | Splitting | salt slime bud |
+| Lanes with gaps to read | tusk boar piglet stampede |
 
 Then (owner, 2026-11-05): "It is not that they are not allowed, but the pattern must be creative, not the same
 pattern with a different effect." So a dash or a shot is fine; a dash that is another straight charge at the prey, or a
@@ -133,6 +134,7 @@ Rules for every new kit:
 | Rootdigger mole (Lv14-16) | ตะปบขุด Dig Scoop (rears with both claws raised and held, one snap down and across, claw marks and a fan of earth); สาดดิน Dirt Spray (churns the ground, then flings five clods in a fan); มุดดินโผล่ราก Burrow Burst (sinks, a mound runs underground to the marked spot, bursts up there and roots what it hits) |
 | Fern-ear hare | ต่อยรัว Box (rears up on its haunches, paws raised in a guard, a one-two of jabs with a burst star of light on each); กระทืบเตือนภัย Warning Thump (up on its haunches, trembling, ears up, a hop up, then slams down: a shock ring to the true edge, earth and fern leaves thrown out); กระโดดทับ Leap (crouch, rump wiggle, springs onto the marked spot, lands in earth and leaves) |
 | Mirrorwing moth | แสงสะท้อนปีก Wing Glare (turns its glass wings on the prey like a mirror, glints flare on the panes, then a beam of moonlight along the lane); ห่าเกล็ดกระจก Glass Rain (wings raised and held while a glass shard forms over each marked circle, then they drop one after another and shatter in stars of cold light); ร่างเงากระจก Mirror Decoy (too close: its wings flare as a glass image of it splits off, it flies back, and the image flickers faster and faster like a fuse and bursts) |
+| Tusk boar (Lv3-7) | วิ่งอาละวาด Rampage (backs off for a run; paws the ground, snorting; charges in three legs, skidding to a stop between them and swinging round to its prey, the next lane warned through the skid; a rock in the way stops it stunned); ลูกหมูแตกตื่น Piglet Stampede (rears and squeals; three piglets burst out beside it and run down three warned lanes, the outer ones first, the middle last; the gaps between lanes are safe) |
 | Shore gull (Lv2-4) | ฉกเหรียญ Snatch (crouches, eyes on the hero's purse; swoops low along a curve through the hero and on past, hooking away; clipped, the hero loses a few gold, carried off as a coin in its beak and dropped again when it dies); ทิ้งหอย Shell Drop (beats up into the air with a clam in its feet, drops it on the marked spot, then glides down and eats at the cracked shell for 2 s, open to blows at 1.5x) |
 | Salt slime (Lv1-3) | กลืนห่อ Engulf (flattens wide, quivering, bubbles welling round it; hops onto the marked spot and wraps over whoever is there, swollen and see-through with them inside, squeezing three times, then spits them out; a miss splats it flat); แอ่งเกลือ Brine Pool (spits a glob of brine where the hero stands: a puddle spreads to its true size and salt crystals grow in from the edge as it sets, holding fast who is still in it; a crust is left that crumbles); แตกตัว Split (under half health, once, a small bud of itself pinches off) |
 | Reef crab (Lv1-3) | หนีบ Pinch (claws raised and opened, a snap: two marks of light crossing shut on the prey); ส่ายก้ามกวาด Claw Sweep (crouches with claws thrown wide, swaying; then scuttles side to side twice in front of its prey, claws snapping: a step aside is caught, a step back is safe); ฟองทุ่นระเบิด Bubble Mines (foam wells at its mouth; three bubbles drift out and hang in the air over pale rings for 3.5 s, bursting on whatever walks into them) |
@@ -333,6 +335,9 @@ Rules for every new kit:
   slug's dark, toxic and bubbling; the king's a mother-of-pearl glaze with sliding colours and glints. The reactive
   moves (acid, nacre, the withdraw) and the slime never showed in the sandbox (they wait for hits or a health
   share): the sandbox now sets them off itself (`labTrigger`), and shows the slime by crawling past the hero.
+- **Tusk boar, round 1** (2026-11-06, owner: "next"): its bite and single charge became a three-leg rampage (a charge
+  that skids and re-aims, so each leg is a new sidestep) and a piglet stampede (a timed lane pattern with gaps to
+  read). The old rule that a charge into a rock stuns stays.
 - **Shore gull, round 1** (2026-11-06, owner: "next"): off the old peck-and-walk-away onto its own kit, from what a
   gull does: steals (a snatch along a curved swoop; the stolen gold comes back when it dies) and drops shellfish to
   crack them, then eats (a punish window it opens itself). Stealing and a self-made opening are new families.

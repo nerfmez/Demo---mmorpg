@@ -19,6 +19,7 @@ import { MothFx } from './moth-fx.js';
 import { GrottoFx } from './grotto-fx.js';
 import { SlimeFx } from './slime-fx.js';
 import { GullFx } from './gull-fx.js';
+import { BoarFx } from './boar-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -72,6 +73,8 @@ export class MonsterFx {
     this.slime = new SlimeFx(scene, host, this);
     // the shore gull's swoop and shell drop (skillfx/gull-fx.js)
     this.gull = new GullFx(scene, host, this);
+    // the tusk boar's rampage and piglet stampede (skillfx/boar-fx.js)
+    this.boar = new BoarFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -366,6 +369,7 @@ export class MonsterFx {
     this.grotto.update(dt, g);
     this.slime.update(dt, g);
     this.gull.update(dt, g);
+    this.boar.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

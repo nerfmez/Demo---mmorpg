@@ -2015,11 +2015,11 @@ export class Game {
       } else if (!dead && pr.owner === 'monster') {
         for (const u of this.units()) {
           if (dist(pr.x, pr.z, u.x, u.z) < u.r + pr.radius) {
-            if (pr.boomerang && pr.hit.has(u.id)) continue; // a boomerang cuts through: once per pass
+            if ((pr.boomerang || pr.trample) && pr.hit.has(u.id)) continue; // a boomerang cuts through: once per pass
             const src = this.monsterById(pr.sourceId);
             this.damageUnit(u, pr.damage, src, { poison: pr.poison, attack: pr.attack });
             this.emit({ type: 'impact', kind: pr.kind, element: pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane'), x: pr.x, z: pr.z, back: !!pr.back });
-            if (pr.boomerang) { pr.hit.add(u.id); continue; }
+            if (pr.boomerang || pr.trample) { pr.hit.add(u.id); continue; } // a piglet runs on through (the boar's stampede)
             dead = true;
             break;
           }

@@ -4,7 +4,11 @@
     "tusk_boar": {
       "name": "Boarbull",
       "nameTh": "หมูกระทิง",
-      "behavior": "charger",
+      "behavior": "kit",
+      "_kit": "docs/MONSTER-ATTACKS.md: a boar. It backs off to get a run at its prey; it paws the ground, snorting, then rampages in three legs, skidding to a stop between them and swinging round to charge again (a rock in its way stops it stunned); from further off it rears and squeals, and three piglets burst out beside it and stampede down three lanes one after another.",
+      "kit": {
+        "circle": [3.5, 7]
+      },
       "hp": 550,
       "damage": 90,
       "defense": 40,
@@ -15,22 +19,38 @@
       "exp": 12,
       "jobExp": 8,
       "attacks": {
-        "bite": {
-          "range": 1.7,
-          "windup": 0.4,
-          "recover": 0.6,
-          "cooldown": 1.4,
-          "damageMult": 1
-        },
-        "charge": {
-          "minRange": 3,
-          "maxRange": 8,
-          "windup": 0.75,
-          "speed": 13,
-          "duration": 0.65,
+        "rampage": {
+          "nameTh": "วิ่งอาละวาด",
+          "kind": "rampage",
+          "tell": "lane",
+          "use": {"min": 2.5, "max": 7.5},
+          "range": 5.4,
+          "width": 1.4,
+          "windup": 0.9,
+          "legs": 3,
+          "speed": 12,
+          "run": 0.45,
+          "skid": 0.45,
+          "knock": 3,
+          "crashStun": 1.8,
           "recover": 0.9,
-          "cooldown": 5,
-          "damageMult": 1.6
+          "cooldown": 6,
+          "damageMult": 1.1
+        },
+        "stampede": {
+          "nameTh": "ลูกหมูแตกตื่น",
+          "kind": "stampede",
+          "use": {"min": 3.5, "max": 10},
+          "range": 11,
+          "count": 3,
+          "spacing": 2.4,
+          "gap": 0.3,
+          "speed": 7.5,
+          "projectileRadius": 0.45,
+          "windup": 1.0,
+          "recover": 0.6,
+          "cooldown": 8,
+          "damageMult": 0.7
         }
       },
       "drops": [

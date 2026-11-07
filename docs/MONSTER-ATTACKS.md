@@ -433,11 +433,16 @@ for the normal one.
   searchlight over the ground; a ward is a circle of runes that seals what stands inside it; its own ring of rune-cut
   shards is its weapon). Its beam and shard burst became a shard volley (normal), a rune seal that holds whoever is
   still inside when it closes, and a searchlight that calls a bolt on whoever it holds in its light long enough.
-- **Rune sentinel, round 2** (owner: "the effects are not pretty yet, the concept is fine"): the seal is a drawn magic
-  circle (double outer ring, a rune band lit round like a clock, an inner ring and a turning hexagram) in a deep cyan
-  with normal blending, so it keeps its colour on bright sand instead of washing out to white; it flares as it closes.
-  Small rune sigils mark each shard's launch and impact and the bolt's strike; a fan of light runs from the eye to the
-  lit ground for the searchlight, with motes drifting in it; hits throw spark streaks.
+- **Rune sentinel, round 2** (owner: "the effects are not pretty yet, the concept is fine"): tried a drawn magic circle
+  for the seal and small circles at every launch and hit. Rejected (round 3): worse - the circles went on every skill,
+  the liked rune glyphs were cut, and the disliked pillars of light were kept.
+- **Rune sentinel, round 3** (owner: "take the magic circle out; the runes were good; play with runes, maybe
+  floating; the worst is the pillars of light at the damage - you can't tell what they are"): back to round 1 with
+  rune letters as the motif - real letter shapes (after the elder futhark) drawn facing the camera. The seal's
+  letters light round like a clock and rise off the ground as they light, floating; in its last moment they rush in
+  to the middle and the whole circle flashes (no pillars); whoever it holds has letters circling them. A rune letter
+  pops up where each shard strikes; round the hero in the searchlight letters appear one by one as it fills, then the
+  bolt. No circles, no light shaft.
 - **Crag golem, round 1** (2026-11-07, owner: "next"): researched first (a crag is not an animal: how rock behaves - a
   big impact sends an aftershock out through the ground, a falling boulder bursts and its fragments skid on, loose
   talus lifts and grinds in a slide). Its pound and throw became a two-beat hammer slam with an aftershock band

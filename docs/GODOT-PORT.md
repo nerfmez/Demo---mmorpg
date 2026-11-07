@@ -676,6 +676,21 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   boulder, a dome and an open cylinder ring; per fissure a curtain strip and a lava-lane strip rebuilt in place, its
   shader's numbers in uniforms; cover slabs from ground-kit and their shadows as quads, the reach as a warnDisc); its poses map the
   boulder roll onto the roll and the fissure onto the quake fist (monsters.js `WARDEN_AS`).
+- **The earthburrow leviathan's kit** (boss, `behavior: "kit"`, `kit.phaseRoar`, `enrageAt` 0.5, `awaiting`): a monster
+  height `m.headY` (m, under the ground below 0, in its leap above) the view follows; out of reach (`targetable`
+  false) under the ground and in the air. **`head_smash`**: an area `lev_smash` of `radius` m `reach` m before it at
+  wind-up start. **`burrow_hunt`** (`m.burrow`): it moves at its prey at `speed` m/s for up to `hunt` s; within `near`
+  m of the gap (or out of time) an area `lev_breach` (`radius`, `knock`) is marked under its prey (or where it is)
+  and goes off `tell` s later, it comes up there. **`coil_ring`** (`m.ring`): centred on its prey, it runs round at
+  `ring` m at `lap` m/s; units within `band` of the swept arc are pushed back to their side and hurt (`bandMult`,
+  every `every` s, attack `coil_band`); a full circle closes it: units inside are struck (its damage and inflict).
+  **`arc_leap`**: areas `lev_breach` at its spot (at the wind-up's end) and `lev_land` `past` m beyond its prey (`air`
+  s later, `landMult`); it moves along the line over `air` s, `headY` a sine of `height`, then is under the ground
+  for `resurface` s. **`tremor_sense`** (`m.tremor`): every `pulse` s for `duration` s, each unit that moved more than
+  `still` m since the last pulse gets a `lev_breach` (`radius`) under it `tell` s later; then it comes up 4 m from its
+  prey. Monster areas take an optional `knock` (m, out from their middle). Render: render/leviathan-anim.js (the reed
+  viper's trail-following body with the trail in three dimensions: it pours into the ground, rises out of it, arcs; a
+  cobra stance, the smash) and skillfx/leviathan-fx.js (ground-kit slabs, rocks, craters and dust; roots as ribbons).
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane (now its
   `boulder_roll`): an
   attack with `kind: 'charge'`, so it shares the charge path (one hit per unit, a rock in the way

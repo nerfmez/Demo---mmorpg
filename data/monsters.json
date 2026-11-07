@@ -673,6 +673,36 @@
         22
       ]
     },
+    "earthburrow_leviathan": {
+      "name": "Earthburrow Leviathan",
+      "nameTh": "อสรพิษปฐพีมุดดิน",
+      "behavior": "kit",
+      "kit": {"phaseRoar": 1.6, "turn": 2.5},
+      "awaiting": true,
+      "boss": true,
+      "miniBoss": true,
+      "hp": 6200,
+      "damage": 130,
+      "defense": 90,
+      "speed": 3.2,
+      "radius": 1.3,
+      "aggroRange": 12,
+      "leashRange": 24,
+      "exp": 150,
+      "jobExp": 95,
+      "attacks": {
+        "tremor_sense": {"nameTh": "ฟังแรงสั่นสะเทือน", "kind": "tremor_sense", "use": {"max": 16, "hpBelow": 0.5}, "range": 16, "windup": 0.9, "duration": 6, "pulse": 1.0, "still": 0.35, "tell": 0.8, "radius": 2.2, "recover": 1.2, "cooldown": 18, "damageMult": 1.3},
+        "arc_leap": {"nameTh": "กระโจนโค้งมุดดิน", "kind": "arc_leap", "use": {"min": 4, "max": 13, "hpBelow": 0.5}, "range": 13, "windup": 1.2, "past": 5, "air": 1.1, "height": 5, "radius": 2.4, "landRadius": 3, "resurface": 0.7, "knock": 4, "recover": 1.0, "cooldown": 12, "damageMult": 1.2, "landMult": 1.6},
+        "coil_ring": {"nameTh": "ขดรากวงล้อม", "kind": "coil_ring", "use": {"max": 7}, "range": 7, "windup": 0.8, "ring": 5.5, "lap": 7.5, "band": 0.9, "every": 0.5, "bandMult": 0.3, "recover": 1.2, "cooldown": 14, "damageMult": 1.6, "inflict": {"status": "root", "chance": 1, "duration": 1.5}},
+        "burrow_hunt": {"nameTh": "มุดดินไล่ล่า", "kind": "burrow_hunt", "use": {"min": 3, "max": 14}, "range": 14, "windup": 1.0, "speed": 5, "hunt": 3.5, "near": 1.2, "tell": 0.6, "radius": 2.4, "knock": 4, "recover": 1.0, "cooldown": 9, "damageMult": 1.5},
+        "head_smash": {"nameTh": "ฟาดหัวทุบดิน", "kind": "head_smash", "use": {"max": 4}, "range": 4, "windup": 1.0, "reach": 3.2, "radius": 2.6, "recover": 0.8, "cooldown": 3, "damageMult": 1.1}
+      },
+      "enrageAt": 0.5,
+      "drops": [
+        {"item": "gold", "chance": 1, "min": 50, "max": 80}
+      ],
+      "levels": [18, 18]
+    },
     "horned_warden": {
       "name": "Horned Warden",
       "nameTh": "ผู้พิทักษ์เขาเหล็ก",

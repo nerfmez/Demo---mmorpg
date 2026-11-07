@@ -2229,7 +2229,8 @@ export class Game {
             if (d > a.radius + u.r || (a.inner && d < a.inner)) continue;
             // a.once (a set shared by a run of areas, the marsh wisp's gas): each unit is caught by the run once
             if (a.once) { if (a.once.has(u.id)) continue; a.once.add(u.id); }
-            this.damageUnit(u, a.damage, src, { attack: a.attack });
+            // a.knock (m): flung out from its middle (the leviathan bursting out of the ground)
+            this.damageUnit(u, a.damage, src, { attack: a.attack, knock: a.knock ? { angle: Math.atan2(u.x - a.x, u.z - a.z), force: a.knock } : undefined });
           }
           this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner, source: a.sourceId, attack: a.attack });
           // a.shards (the crag golem's boulder): it shatters into fragments skidding out along the lanes it was marked with

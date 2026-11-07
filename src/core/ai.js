@@ -321,7 +321,7 @@ function setState(m, state, dur = 0) {
   if (state !== 'stunned') m.exposed = 0; // the eye clam's cracked shell closes again
   m.roaring = false; // the phase roar is its own recover (kit)
   // out of the act, nothing is left up in the air (Greyfang's moon leap) or mid-rush
-  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; m.stoop = null; m.storm = null; if (m.stalk) { m.stalk = null; m.stealth = false; m.targetable = true; } m.sprint = null; m.orbit = null; m.volley = null; m.search = null; if (state !== 'windup') m.altTo = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
+  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; m.stoop = null; m.storm = null; if (m.stalk) { m.stalk = null; m.stealth = false; m.targetable = true; } m.sprint = null; m.orbit = null; m.volley = null; m.search = null; if (m.burrow || m.tremor || m.arc) { m.targetable = true; m.headY = 0; } m.burrow = null; m.tremor = null; m.arc = null; m.ring = null; if (state !== 'windup') m.altTo = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
   m.state = state;
   m.stateT = 0;
   m.stateDur = dur;
@@ -419,7 +419,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook', 'dusk_stalk', 'hammer_fists', 'boulder_hurl', 'rock_orbit', 'rune_seal', 'shield_wall', 'lava_fissure', 'core_eruption'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook', 'dusk_stalk', 'hammer_fists', 'boulder_hurl', 'rock_orbit', 'rune_seal', 'shield_wall', 'lava_fissure', 'core_eruption', 'head_smash', 'arc_leap', 'burrow_hunt', 'tremor_sense', 'coil_ring'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -472,6 +472,52 @@ function windup(game, m, dt, t, gap) {
       }
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
+    }
+    // ---------- the earthburrow leviathan (docs/MONSTER-ATTACKS.md) ----------
+    case 'head_smash': {
+      // its head comes down where it marked at wind-up start (beginAttack): the area goes off on its own
+      game.emit({ type: 'levSmash', id: m.id, x: w.tx, z: w.tz, angle: w.angle });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'burrow_hunt': {
+      // it dives and hunts its prey under the ground at `speed` m/s (slower than a running hero) for up to `hunt` s,
+      // out of reach, a mound running over it; within `near` m (or out of time) it stops, the ground bulges for `tell`
+      // s over a marked circle, and it bursts out there (act: m.burrow)
+      m.burrow = { name: w.name, phase: 'hunt', t: 0, dmg };
+      m.targetable = false; m.headY = -3;
+      game.emit({ type: 'burrowDive', id: m.id, x: m.x, z: m.z });
+      return setState(m, 'act');
+    }
+    case 'tremor_sense': {
+      // it dives and listens: every `pulse` s a tremor runs out from it; whoever moved more than `still` m since the last
+      // pulse gives itself away and is struck from below `tell` s later (a marked circle); standing still is safe; after
+      // `duration` s it bursts up beside its prey (act: m.tremor)
+      m.tremor = { name: w.name, t: 0, n: 0, last: new Map(), dmg };
+      for (const u of game.units()) m.tremor.last.set(u.id, [u.x, u.z]);
+      m.targetable = false; m.headY = -3;
+      game.emit({ type: 'tremorDive', id: m.id, x: m.x, z: m.z });
+      return setState(m, 'act');
+    }
+    case 'arc_leap': {
+      // it bursts out of the ground and arcs over its prey in a leap `height` m high, diving back in `past` m beyond it
+      // after `air` s (the two marked circles at either end go off on their own); out of reach while in the air; it
+      // comes up again `resurface` s later (act: m.arc)
+      m.arc = { name: w.name, t: 0, fromX: m.x, fromZ: m.z, toX: w.tx, toZ: w.tz };
+      m.targetable = false;
+      game.emit({ type: 'arcLeap', id: m.id, x: m.x, z: m.z, tx: w.tx, tz: w.tz, air: atk.air });
+      return setState(m, 'act');
+    }
+    case 'coil_ring': {
+      // it races round its prey `ring` m out at `lap` m/s, its furrow behind it a wall of roots: touching the wall hurts
+      // (`bandMult` every `every` s, pushed back to its own side); when its head comes round to where it began the
+      // ring closes and the roots crush all inside (its damage and inflict); get out through the gap before then
+      // (act: m.ring)
+      const cx = t ? t.x : m.x, cz = t ? t.z : m.z, a0 = angleTo(cx, cz, m.x, m.z);
+      const dir = t && angleDiff(a0, angleTo(cx, cz, t.x + Math.sin(m.facing), t.z + Math.cos(m.facing))) > 0 ? -1 : 1;
+      m.ring = { name: w.name, t: 0, cx, cz, R: atk.ring, a0, a: a0, dir, tick: new Map(), dmg };
+      game.emit({ type: 'coilStart', id: m.id, x: cx, z: cz, ring: atk.ring, a0, dir });
+      return setState(m, 'act');
     }
     case 'shield_wall': {
       // the warden's guard ends in a bash of its shield across `arc` degrees, `range` m: harder by `perBlock` for each
@@ -1246,6 +1292,105 @@ function act(game, m, dt, t) {
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
     return;
+  }
+  if (m.burrow) {
+    const B = m.burrow, atk = m.def.attacks[B.name], prey = t || game.player;
+    B.t += dt;
+    if (B.phase === 'hunt') {
+      // the mound runs at its prey; a hero who keeps running outruns it
+      // (the gap between it and its prey: the mound runs right up under it)
+      const d = prey ? dist(m.x, m.z, prey.x, prey.z) - m.r - prey.r : 0;
+      if (prey && d > atk.near) {
+        const a = angleTo(m.x, m.z, prey.x, prey.z), step = Math.min(d, atk.speed * dt);
+        game.moveEntity(m, Math.sin(a) * step, Math.cos(a) * step); m.facing = a; m.moving = true;
+      }
+      if (d <= atk.near || B.t >= atk.hunt) {
+        // the ground bulges where it will burst out: under its prey if it caught up, else where it is
+        B.phase = 'tell'; B.t = 0; m.moving = false;
+        const near = prey && d <= atk.near;
+        B.x = near ? prey.x : m.x; B.z = near ? prey.z : m.z;
+        game.spawnArea({ owner: 'monster', sourceId: m.id, attack: B.name, kind: 'lev_breach', x: B.x, z: B.z, radius: atk.radius, delay: atk.tell, duration: 0.3, damage: B.dmg, knock: atk.knock });
+        game.emit({ type: 'burrowTell', id: m.id, x: B.x, z: B.z, radius: atk.radius, tell: atk.tell });
+      }
+      return;
+    }
+    if (B.phase === 'tell') {
+      if (B.t < atk.tell) return;
+      B.phase = 'out'; B.t = 0; m.targetable = true;
+      game.moveEntity(m, B.x - m.x, B.z - m.z);
+      game.emit({ type: 'levBreach', id: m.id, x: m.x, z: m.z, radius: atk.radius });
+    }
+    m.headY = Math.min(0, -3 + (B.t / 0.35) * 3);
+    if (B.t < 0.35) return;
+    m.burrow = null; m.headY = 0; m.cd[B.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
+  }
+  if (m.tremor) {
+    const T = m.tremor, atk = m.def.attacks[T.name], prey = t || game.player;
+    T.t += dt; m.moving = false;
+    while (T.t >= (T.n + 1) * atk.pulse && (T.n + 1) * atk.pulse <= atk.duration) {
+      T.n++;
+      game.emit({ type: 'tremorPulse', id: m.id, x: m.x, z: m.z, n: T.n });
+      for (const u of game.units()) {
+        const [lx, lz] = T.last.get(u.id) || [u.x, u.z];
+        if (dist(lx, lz, u.x, u.z) > atk.still && !game.isSafe(u.x, u.z)) {
+          game.spawnArea({ owner: 'monster', sourceId: m.id, attack: T.name, kind: 'lev_breach', x: u.x, z: u.z, radius: atk.radius, delay: atk.tell, duration: 0.3, damage: T.dmg });
+          game.emit({ type: 'tremorFound', id: m.id, x: u.x, z: u.z, radius: atk.radius, tell: atk.tell });
+        }
+        T.last.set(u.id, [u.x, u.z]);
+      }
+    }
+    if (T.t < atk.duration + atk.tell) return;
+    // it comes up beside its prey
+    if (prey) { const a = angleTo(prey.x, prey.z, m.x, m.z), x = prey.x + Math.sin(a) * 4, z = prey.z + Math.cos(a) * 4; const dx = x - m.x, dz = z - m.z; game.moveEntity(m, dx, dz); m.facing = angleTo(m.x, m.z, prey.x, prey.z); }
+    game.emit({ type: 'levBreach', id: m.id, x: m.x, z: m.z, radius: 1.5 });
+    m.tremor = null; m.targetable = true; m.headY = 0; m.cd[T.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
+  }
+  if (m.arc) {
+    const A = m.arc, atk = m.def.attacks[A.name];
+    A.t += dt; m.moving = false;
+    const u = Math.min(1, A.t / atk.air);
+    if (u < 1) {
+      const nx = A.fromX + (A.toX - A.fromX) * u, nz = A.fromZ + (A.toZ - A.fromZ) * u;
+      game.moveEntity(m, nx - m.x, nz - m.z);
+      m.facing = angleTo(A.fromX, A.fromZ, A.toX, A.toZ);
+      m.headY = Math.sin(Math.PI * u) * atk.height - (u > 0.85 ? (u - 0.85) * 12 : 0);
+      return;
+    }
+    // dived back in at the far end; it comes up again where it went in
+    if (!A.down) { A.down = true; game.moveEntity(m, A.toX - m.x, A.toZ - m.z); }
+    m.headY = -3;
+    if (A.t < atk.air + atk.resurface) return;
+    game.emit({ type: 'levBreach', id: m.id, x: m.x, z: m.z, radius: 1.5 });
+    m.arc = null; m.targetable = true; m.headY = 0; m.cd[A.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
+  }
+  if (m.ring) {
+    const R = m.ring, atk = m.def.attacks[R.name];
+    R.t += dt;
+    const total = Math.PI * 2, step = (atk.lap / R.R) * dt;
+    R.a += R.dir * step;
+    const done = Math.abs(R.a - R.a0) >= total;
+    const nx = R.cx + Math.sin(R.a) * R.R, nz = R.cz + Math.cos(R.a) * R.R;
+    game.moveEntity(m, nx - m.x, nz - m.z); m.moving = true;
+    m.facing = R.a + R.dir * Math.PI / 2;
+    // the wall of roots in its furrow (from where it began to its head): touching it hurts, and pushes back
+    const swept = Math.min(total, Math.abs(R.a - R.a0));
+    for (const u of game.units()) {
+      const d = dist(R.cx, R.cz, u.x, u.z), off = (angleTo(R.cx, R.cz, u.x, u.z) - R.a0) * R.dir;
+      const along = ((off % total) + total) % total;
+      if (Math.abs(d - R.R) > atk.band + u.r || along > swept) continue;
+      const side = d < R.R ? -1 : 1, a = angleTo(R.cx, R.cz, u.x, u.z), push = R.R + side * (atk.band + u.r + 0.05) - d;
+      game.moveEntity(u, Math.sin(a) * push, Math.cos(a) * push);
+      if (game.time - (R.tick.get(u.id) ?? -9) >= atk.every) { R.tick.set(u.id, game.time); game.damageUnit(u, R.dmg * atk.bandMult, m, { attack: 'coil_band' }); }
+    }
+    if (!done) return;
+    // the ring closes: the roots crush all inside
+    game.emit({ type: 'coilClose', id: m.id, x: R.cx, z: R.cz, ring: R.R });
+    for (const u of game.units()) if (dist(R.cx, R.cz, u.x, u.z) < R.R - 0.2) game.damageUnit(u, R.dmg, m, { attack: R.name });
+    m.ring = null; m.cd[R.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
   }
   if (m.volley) {
     const V = m.volley, atk = m.def.attacks[V.name], prey = t || game.player;
@@ -2352,6 +2497,25 @@ export function beginAttack(game, m, name, t) {
     // until the seal closes as the wind-up ends `seal` s later; whoever is still inside is struck and held (its inflict)
     startWindup(game, m, name, t, { tx: t.x, tz: t.z });
     if (!game.isSafe(t.x, t.z)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'rune_seal', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    return;
+  }
+  if (kind === 'head_smash') {
+    // it rears high and brings its head down `reach` m before it: a circle of `radius` m marked now
+    startWindup(game, m, name, t);
+    const d = dirFromAngle(m.windup.angle), x = m.x + d.x * atk.reach, z = m.z + d.z * atk.reach;
+    Object.assign(m.windup, { tx: x, tz: z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'lev_smash', x, z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
+    return;
+  }
+  if (kind === 'arc_leap') {
+    // it plunges its head into the ground; where it bursts out (here) and where it dives in again (`past` m beyond its
+    // prey) are marked now
+    const a = angleTo(m.x, m.z, t.x, t.z);
+    let tx = t.x + Math.sin(a) * atk.past, tz = t.z + Math.cos(a) * atk.past;
+    if (game.isSafe(tx, tz)) { tx = t.x; tz = t.z; }
+    startWindup(game, m, name, t, { tx, tz });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'lev_breach', x: m.x, z: m.z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1), knock: atk.knock });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'lev_land', x: tx, z: tz, radius: atk.landRadius, delay: m.windup.total + atk.air, duration: 0.3, damage: m.damage * (atk.landMult || 1), knock: atk.knock });
     return;
   }
   if (kind === 'shield_wall') {

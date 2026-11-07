@@ -497,6 +497,9 @@ export class SkillFx {
       // the masked wolf (skillfx/wolf-fx.js)
       case 'lunge': case 'lapAim': case 'dragStart': case 'dragFree': case 'dragEnd': return this.monster.greyfang.event(e, g) || this.monster.wolf.event(e);
       // the horned warden (skillfx/warden-fx.js)
+      // the earthburrow leviathan (skillfx/leviathan-fx.js)
+      case 'levSmash': return true; // (its area's burst draws it)
+      case 'burrowDive': case 'burrowTell': case 'levBreach': case 'tremorDive': case 'tremorPulse': case 'tremorFound': case 'arcLeap': case 'coilStart': case 'coilClose': return this.monster.leviathan.event(e, g);
       case 'weakHit': case 'shieldBash': case 'fissureFist': case 'slabsRise': case 'coreBlast': return this.monster.warden.event(e, g);
       case 'clawGuard': if (this.monster.warden.event(e, g)) return true; // falls through to the hermit crab's
       case 'shellShed': case 'shellClimb': case 'reshell': return this.monster.hermit.event(e, g);

@@ -16,6 +16,7 @@ import FX from '../../data/combat-fx.json';
 import { createRollFx } from './roll-fx.js';
 import { animBeast } from './beast-clips.js';
 import { animGreyfang } from './greyfang-anim.js';
+import { buildLeviathan, animLeviathan } from './leviathan-anim.js';
 import { motionConfig, advanceGait, poseLegs, poseSplayedLegs, legCycle, wander, breath } from './monster-motion.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
@@ -1494,13 +1495,14 @@ const BUILDERS = {
   crag_golem: [buildGolem, animGolem],
   gale_hawk: [buildHawk, animHawk],
   horned_warden: [buildWarden, animWarden],
+  earthburrow_leviathan: [buildLeviathan, animLeviathan],
   ...MIDHIGH_BUILDERS,
   ...GROVE_BUILDERS,
   ...FOREST_BUILDERS,
   ...GROTTO_BUILDERS,
 };
 
-export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, spirit_alpha: 1.6, spirit_wisp: 0.6, stone_guardian: 0.85, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.15, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE, ...FOREST_SCALE, ...GROTTO_SCALE };
+export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, spirit_alpha: 1.6, spirit_wisp: 0.6, stone_guardian: 0.85, hunt_hound: 1.05, pack_hound: 0.85, hunt_bear: 1.15, hunt_hawk: 0.8, crag_golem: 0.85, horned_warden: 1.6, earthburrow_leviathan: 5.5, ...MIDHIGH_SCALE, ...GROVE_SCALE, ...FOREST_SCALE, ...GROTTO_SCALE };
 
 const MOTION_LIKE = { spirit_wisp: 'marsh_wisp', spirit_wolf: 'thornback_wolf', spirit_alpha: 'thornback_wolf', hunt_hawk: 'gale_hawk', hunt_hound: 'thornback_wolf', pack_hound: 'thornback_wolf', hunt_bear: 'thornback_wolf' };
 export function buildMonster(type, level = 1, boss = false) {

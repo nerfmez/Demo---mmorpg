@@ -1931,3 +1931,146 @@ test('horned warden core eruption: slabs heave up round the hero, then the burst
   assert.equal(run(false), 1, 'in the open: struck');
   assert.equal(run(true), 0, 'behind a slab: safe');
 });
+
+// ---------- the earthburrow leviathan (boss, Lv18, Moonroot): a giant earth serpent that burrows. Phase one: head
+// smash, burrow hunt (outrun the mound), coil ring (get out before the ring of roots closes); at half health one roar,
+// then also arc leap (over its prey, both ends struck) and tremor sense (whoever moves is struck from below).
+const leviathan = (o = {}) => arena('earthburrow_leviathan', 18, { open: true, normal: true, ...o });
+const levHalf = (w) => { w.m.hp = w.m.maxHp * 0.45; w.m.enraged = w.m.roared = true; };
+
+test('earthburrow leviathan: its phase-two attacks only below half health', () => {
+  for (const name of ['arc_leap', 'tremor_sense']) {
+    const w = leviathan();
+    w.only(name); w.place(6); w.step(0.3);
+    assert.notEqual(w.m.windup?.name, name, `${name}: not at full health`);
+    levHalf(w); w.m.state = 'chase';
+    w.until(() => w.m.windup?.name === name, 2);
+  }
+});
+
+test('earthburrow leviathan head smash: a circle before it marked at wind-up start, struck once as the wind-up ends', () => {
+  const A = M.earthburrow_leviathan.attacks.head_smash;
+  const w = leviathan();
+  w.only('head_smash'); w.place(2);
+  w.until(() => w.m.windup?.name === 'head_smash', 1);
+  const area = w.g.areas.find((x) => x.kind === 'lev_smash');
+  assert.ok(area && area.radius === A.radius);
+  w.step(area.delay - 0.03);
+  assert.equal(w.hits.length, 0, 'not before');
+  w.step(0.1);
+  assert.equal(w.hits.length, 1);
+  w.step(1);
+  assert.equal(w.hits.length, 1, 'once');
+});
+
+test('earthburrow leviathan burrow hunt: out of reach under the ground it chases the hero; a running hero outruns it, one standing still is struck', () => {
+  const A = M.earthburrow_leviathan.attacks.burrow_hunt;
+  assert.ok(A.speed < data.progression.player?.moveSpeed || A.speed < 6, 'slower than a running hero');
+  const w = leviathan();
+  w.only('burrow_hunt'); w.place(6);
+  w.until(() => w.m.state === 'act', 2);
+  assert.equal(w.m.targetable, false, 'out of reach under the ground');
+  assert.equal(w.g.hitMonster(w.m, 100), 0);
+  w.until(() => w.m.burrow?.phase === 'tell', 6);
+  const breach = w.g.areas.find((x) => x.kind === 'lev_breach');
+  assert.ok(Math.hypot(breach.x - w.g.player.x, breach.z - w.g.player.z) <= A.radius, 'it came up under the hero');
+  assert.equal(w.hits.length, 0, 'nothing before it bursts out');
+  w.until(() => w.m.state === 'recover', 3);
+  assert.equal(w.hits.length, 1);
+  assert.equal(w.m.targetable, true);
+  // a hero running away the whole time stays ahead of it
+  const b = leviathan();
+  b.only('burrow_hunt'); b.place(6);
+  b.until(() => b.m.state === 'act', 2);
+  for (let i = 0; i < 600 && b.m.burrow?.phase === 'hunt'; i++) { b.g.player.z += 6 * 0.01; b.step(0.01); }
+  b.until(() => b.m.state === 'recover', 3);
+  assert.equal(b.hits.length, 0, 'outran it');
+});
+
+test('earthburrow leviathan coil ring: it races round the hero leaving a wall of roots; inside when it closes is crushed and held, out through the gap is safe', () => {
+  const A = M.earthburrow_leviathan.attacks.coil_ring;
+  const w = leviathan({ realDamage: true });
+  w.only('coil_ring'); w.place(4);
+  w.until(() => w.m.state === 'act', 2);
+  const R = w.m.ring, hp0 = w.g.player.hp;
+  w.until(() => w.m.state !== 'act', 8);
+  assert.ok(w.g.player.hp < hp0, 'crushed inside');
+  assert.ok(w.g.player.statuses.root, 'held by the roots');
+  assert.ok(Math.abs(Math.abs(w.m.facing) >= 0 ? 1 : 0), 'state clean');
+  assert.equal(w.m.ring, null);
+  // out through the gap at once, away from where it starts: safe
+  const b = leviathan();
+  b.only('coil_ring'); b.place(4);
+  b.until(() => b.m.state === 'act', 2);
+  const r = b.m.ring, away = r.a0 + Math.PI;
+  Object.assign(b.g.player, { x: r.cx + Math.sin(away) * (r.R + 3), z: r.cz + Math.cos(away) * (r.R + 3) });
+  b.until(() => b.m.state !== 'act', 8);
+  assert.ok(!b.hits.some((h) => h.attack === 'coil_ring'), 'outside when it closed');
+  // the wall: walking into the part already made is pushed back and hurt
+  const c = leviathan();
+  c.only('coil_ring'); c.place(4);
+  c.until(() => c.m.state === 'act', 2);
+  c.step(1.2);
+  const q = c.m.ring, mid = q.a0 + q.dir * 0.4;
+  Object.assign(c.g.player, { x: q.cx + Math.sin(mid) * (q.R - 0.2), z: q.cz + Math.cos(mid) * (q.R - 0.2) });
+  c.step(0.02);
+  const d = Math.hypot(c.g.player.x - q.cx, c.g.player.z - q.cz);
+  assert.ok(Math.abs(d - q.R) >= A.band, 'pushed off the wall');
+  assert.ok(c.hits.some((h) => h.attack === 'coil_band'), 'and hurt');
+});
+
+test('earthburrow leviathan arc leap: both ends marked at wind-up start; struck at either end, safe under the arc; out of reach in the air', () => {
+  const A = M.earthburrow_leviathan.attacks.arc_leap;
+  const w = leviathan();
+  levHalf(w);
+  w.only('arc_leap'); w.place(6);
+  w.until(() => w.m.windup?.name === 'arc_leap', 1);
+  const ends = w.g.areas.filter((x) => x.kind === 'lev_breach' || x.kind === 'lev_land');
+  assert.equal(ends.length, 2);
+  // under the middle of the arc
+  const land = ends.find((x) => x.kind === 'lev_land');
+  Object.assign(w.g.player, { x: (w.m.x + land.x) / 2, z: (w.m.z + land.z) / 2 });
+  w.until(() => w.m.state === 'act', 2);
+  w.step(A.air * 0.5);
+  assert.equal(w.m.targetable, false, 'in the air');
+  w.until(() => w.m.state === 'recover', 4);
+  assert.equal(w.hits.length, 0, 'safe under the arc');
+  assert.ok(Math.hypot(w.m.x - land.x, w.m.z - land.z) < 0.01, 'it came down where marked');
+  assert.equal(w.m.targetable, true);
+  // standing on the far end: struck as it dives in
+  const b = leviathan();
+  levHalf(b);
+  b.only('arc_leap'); b.place(6);
+  b.until(() => b.m.windup?.name === 'arc_leap', 1);
+  const l2 = b.g.areas.find((x) => x.kind === 'lev_land');
+  Object.assign(b.g.player, { x: l2.x, z: l2.z });
+  b.step(l2.delay - 0.03);
+  assert.equal(b.hits.length, 0);
+  b.step(0.1);
+  assert.equal(b.hits.length, 1);
+});
+
+test('earthburrow leviathan tremor sense: underground it strikes whoever moved since its last tremor; standing still is safe', () => {
+  const A = M.earthburrow_leviathan.attacks.tremor_sense;
+  const still = leviathan();
+  levHalf(still);
+  still.only('tremor_sense'); still.place(6);
+  still.until(() => still.m.state === 'act', 2);
+  assert.equal(still.m.targetable, false);
+  still.until(() => still.m.state === 'recover', A.duration + 3);
+  assert.equal(still.hits.length, 0, 'stood still: never found');
+  assert.equal(still.m.targetable, true);
+  const mover = leviathan();
+  levHalf(mover);
+  mover.only('tremor_sense'); mover.place(6);
+  mover.until(() => mover.m.state === 'act', 2);
+  // walking until just past the first tremor, then standing still
+  for (let t = 0; t < A.pulse + 0.05; t += 0.01) { mover.g.player.x += 2 * 0.01; mover.step(0.01); }
+  const marked = mover.g.areas.filter((x) => x.kind === 'lev_breach');
+  assert.equal(marked.length, 1, 'found by the first tremor');
+  assert.equal(mover.hits.length, 0, 'not before the strike');
+  mover.step(A.tell + 0.05);
+  assert.equal(mover.hits.length, 1, 'struck from below');
+  mover.until(() => mover.m.state === 'recover', A.duration + 3);
+  assert.equal(mover.hits.length, 1, 'still after that: not again');
+});

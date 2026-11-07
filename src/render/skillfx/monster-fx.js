@@ -34,6 +34,7 @@ import { StalkerFx } from './stalker-fx.js';
 import { GolemFx } from './golem-fx.js';
 import { SentinelFx } from './sentinel-fx.js';
 import { WardenFx } from './warden-fx.js';
+import { LeviathanFx } from './leviathan-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -117,6 +118,8 @@ export class MonsterFx {
     this.sentinel = new SentinelFx(scene, host, this);
     // the horned warden's shield, boulder roll, fissures and core eruption (skillfx/warden-fx.js)
     this.warden = new WardenFx(scene, host, this);
+    // the earthburrow leviathan's mound, breaches, root wall and tremors (skillfx/leviathan-fx.js)
+    this.leviathan = new LeviathanFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -256,6 +259,7 @@ export class MonsterFx {
   burst(e, g) {
     if (this.golem.burst(e)) return;
     if (this.sentinel.burst(e)) return;
+    if (this.leviathan.burst(e)) return;
     const m = e.source != null ? g.monsterById?.(e.source) : null;
     if (m?.type === 'rootdigger_mole' && e.attack === 'erupt') return this.mole.burst(e);
     if (m?.type === 'fern_ear_hare' && (e.attack === 'thump' || e.attack === 'hop')) return this.hareLand(e, e.attack === 'thump');
@@ -439,6 +443,7 @@ export class MonsterFx {
     this.golem.update(dt, g);
     this.sentinel.update(dt, g);
     this.warden.update(dt, g);
+    this.leviathan.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

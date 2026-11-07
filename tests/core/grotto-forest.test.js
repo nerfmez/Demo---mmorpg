@@ -54,5 +54,5 @@ test('the boss\'s set starts at its level; the grotto and forest gear can be mad
   }
   // the audit lists them as sources awaiting placement, never as missing
   assert.deepEqual(audit.summary.missingMaterials, []);
-  assert.deepEqual(audit.summary.awaitingPlacement.sort(), [...Object.keys(MONSTERS), 'pearl_snail_king'].sort());
+  assert.deepEqual(audit.summary.awaitingPlacement.sort(), [...Object.keys(MONSTERS), 'pearl_snail_king', 'earthburrow_leviathan'].sort()); // (the leviathan: Moonroot's boss, its den to come)
 });

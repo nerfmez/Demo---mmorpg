@@ -433,6 +433,11 @@ for the normal one.
   searchlight over the ground; a ward is a circle of runes that seals what stands inside it; its own ring of rune-cut
   shards is its weapon). Its beam and shard burst became a shard volley (normal), a rune seal that holds whoever is
   still inside when it closes, and a searchlight that calls a bolt on whoever it holds in its light long enough.
+- **Rune sentinel, round 2** (owner: "the effects are not pretty yet, the concept is fine"): the seal is a drawn magic
+  circle (double outer ring, a rune band lit round like a clock, an inner ring and a turning hexagram) in a deep cyan
+  with normal blending, so it keeps its colour on bright sand instead of washing out to white; it flares as it closes.
+  Small rune sigils mark each shard's launch and impact and the bolt's strike; a fan of light runs from the eye to the
+  lit ground for the searchlight, with motes drifting in it; hits throw spark streaks.
 - **Crag golem, round 1** (2026-11-07, owner: "next"): researched first (a crag is not an animal: how rock behaves - a
   big impact sends an aftershock out through the ground, a falling boulder bursts and its fragments skid on, loose
   talus lifts and grinds in a slide). Its pound and throw became a two-beat hammer slam with an aftershock band

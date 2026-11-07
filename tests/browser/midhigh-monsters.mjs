@@ -13,7 +13,7 @@ const port = 4215, base = `http://localhost:${port}/`;
 const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
 const CASES = [
   ['thicket_mantis', 'scythe', 0.6], ['thicket_mantis', 'whirl', 0.6], ['reed_viper', 'lash', 2.5], ['reed_viper', 'venom', 6],
-  ['ironhorn_ram', 'shove', 1.5], ['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.5], ['greyfang', 'leap', 6], ['horned_warden', 'quake', 7], ['ironhorn_ram', 'stomp', 0.3], ['duskmane_stalker', 'pounce', 5],
+  ['ironhorn_ram', 'shove', 1.5], ['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.5], ['greyfang', 'leap', 6], ['horned_warden', 'shield_bash', 1.5], ['ironhorn_ram', 'stomp', 0.3], ['duskmane_stalker', 'pounce', 5],
   ['duskmane_stalker', 'claw', 0.4], ['rune_sentinel', 'beam', 6], ['rune_sentinel', 'shards', 0.3],
 ];
 const report = { engine: engine.name(), sizes: {}, errors: [] };

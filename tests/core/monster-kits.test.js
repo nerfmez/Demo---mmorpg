@@ -1784,3 +1784,152 @@ test('rune sentinel searchlight: a cone of light follows the hero slowly; held i
   b.until(() => b.m.state !== 'act', 2);
   assert.ok(!b.m.search);
 });
+
+// ---------- the horned warden (boss, Lv40): a lava-seamed stone titan with a shield, curling into a horned boulder.
+// Phase one: shield bash, shield wall (turned blows, an open back, a bash harder for each blow turned), boulder ricochet;
+// at half health it roars once, and then also lava fissures and its core eruption (hide in a slab's shadow).
+const warden = (o = {}) => { const w = arena('horned_warden', 40, { open: true, normal: true, ...o }); w.m.dormant = false; return w; };
+const halfHealth = (w) => { w.m.hp = w.m.maxHp * 0.45; };
+
+test('horned warden: phase-two attacks only below half health, after one roar', () => {
+  const w = warden();
+  w.only('lava_fissure'); w.place(6);
+  w.step(0.3);
+  assert.notEqual(w.m.windup?.name, 'lava_fissure', 'not at full health');
+  halfHealth(w); w.m.state = 'chase';
+  const ev = []; const emit = w.g.emit.bind(w.g); w.g.emit = (e) => { ev.push(e); emit(e); };
+  w.step(0.05);
+  assert.ok(ev.some((e) => e.type === 'phaseRoar'), 'it roars first');
+  assert.equal(w.hits.length, 0);
+  w.until(() => w.m.windup?.name === 'lava_fissure', 4);
+  assert.equal(ev.filter((e) => e.type === 'phaseRoar').length, 1, 'once');
+});
+
+test('horned warden shield bash: one blow at the end of its wind-up, flinging what it strikes; out of reach, nothing', () => {
+  const w = warden();
+  w.only('shield_bash'); w.place(1.5);
+  w.until(() => w.m.windup?.name === 'shield_bash', 1);
+  w.step(w.m.windup.total - 0.03);
+  assert.equal(w.hits.length, 0, 'not before the wind-up ends');
+  w.until(() => w.m.state === 'recover', 1);
+  assert.equal(w.hits.length, 1);
+  w.step(1);
+  assert.equal(w.hits.length, 1, 'once');
+  const b = warden();
+  b.only('shield_bash'); b.place(1.5);
+  b.until(() => b.m.windup?.name === 'shield_bash', 1);
+  b.g.player.z = -8;
+  b.until(() => b.m.state === 'recover', 2);
+  assert.equal(b.hits.length, 0, 'stepped back out of reach');
+});
+
+test('horned warden shield wall: blows to its shield glance off, its back takes more, it turns slowly, and its bash grows with each blow turned', () => {
+  const A = M.horned_warden.attacks.shield_wall;
+  const hitFrom = (ang) => {
+    const w = warden();
+    w.only('shield_wall'); w.place(2);
+    w.until(() => w.m.windup?.name === 'shield_wall', 1);
+    const f = w.m.facing;
+    return w.g.hitMonster(w.m, 5000, { fromX: w.m.x + Math.sin(f + ang) * 3, fromZ: w.m.z + Math.cos(f + ang) * 3 });
+  };
+  const front = hitFrom(0), side = hitFrom(Math.PI / 2 + 0.1), back = hitFrom(Math.PI);
+  assert.ok(front < side * (A.guardTaken + 0.05), `front ${front} vs side ${side}`);
+  assert.ok(Math.abs(back / side - A.weakTaken) < 0.05, `back ${back} vs side ${side}`);
+  // it keeps its shield toward the hero, but only at guardTurn
+  const t = warden();
+  t.only('shield_wall'); t.place(2);
+  t.until(() => t.m.windup?.name === 'shield_wall', 1);
+  const f0 = t.m.facing;
+  Object.assign(t.g.player, { x: 0, z: -(t.m.r + 2) }); // jumped round to its back
+  t.step(0.5);
+  assert.ok(Math.abs(t.m.facing - f0) <= A.guardTurn * 0.5 + 1e-6, 'a slow turn');
+  // the bash: struck once, harder for the blows its shield turned
+  const plain = warden(), blocked = warden();
+  for (const [w, n] of [[plain, 0], [blocked, 3]]) {
+    w.only('shield_wall'); w.place(1.5);
+    w.until(() => w.m.windup?.name === 'shield_wall', 1);
+    for (let i = 0; i < n; i++) w.g.hitMonster(w.m, 10, { fromX: w.g.player.x, fromZ: w.g.player.z });
+    w.step(w.m.windup.total - w.m.stateT - 0.03);
+    assert.equal(w.hits.length, 0, 'no blow during the guard');
+    w.until(() => w.m.state === 'recover', 1);
+    assert.equal(w.hits.length, 1, 'one bash');
+  }
+  assert.ok(Math.abs(blocked.hits[0].amount / plain.hits[0].amount - (1 + 3 * A.perBlock)) < 1e-6, 'harder for each blow turned');
+  assert.equal(blocked.m.blocked, 0, 'its count clears');
+});
+
+test('horned warden boulder ricochet: a zigzag of legs caroming off at its turn, each leg able to hit once; dodged entirely, it is left dizzy', () => {
+  const A = M.horned_warden.attacks.boulder_ricochet;
+  const w = warden();
+  const ev = []; const emit = w.g.emit.bind(w.g); w.g.emit = (e) => { ev.push(e); emit(e); };
+  w.only('boulder_ricochet'); w.place(5);
+  w.until(() => w.m.windup?.name === 'boulder_ricochet', 1);
+  w.until(() => w.m.state === 'act', 3);
+  assert.equal(w.hits.length, 0, 'nothing in the wind-up');
+  const start = w.m.charge.angle;
+  w.until(() => w.m.state !== 'act', 6);
+  const caroms = ev.filter((e) => e.type === 'ricochet');
+  assert.equal(caroms.length, A.legs - 1, 'carom between legs');
+  assert.ok(Math.abs(Math.abs(caroms[0].angle - start) - A.turn * Math.PI / 180) < 1e-6, 'off at its turn');
+  assert.ok(Math.abs(caroms[1].angle - start) < 1e-6, 'then back the other way: a zigzag');
+  assert.equal(w.hits.length, 1, 'standing in its first lane: struck once');
+  assert.equal(w.m.charge, null);
+  assert.equal(w.m.state, 'recover');
+  const b = warden();
+  b.only('boulder_ricochet'); b.place(5);
+  b.until(() => b.m.state === 'act', 3);
+  Object.assign(b.g.player, { x: 40, z: 40 });
+  b.until(() => b.m.state !== 'act', 6);
+  assert.equal(b.hits.length, 0);
+  assert.equal(b.m.state, 'stunned', 'a ricochet that hits nothing leaves it dizzy');
+});
+
+test('horned warden lava fissures: cracks marked across the hero split open at once after the wind-up, then burn on at a fraction', () => {
+  const A = M.horned_warden.attacks.lava_fissure;
+  const w = warden();
+  halfHealth(w); w.m.enraged = w.m.roared = true;
+  w.only('lava_fissure'); w.place(6);
+  w.until(() => w.m.windup?.name === 'lava_fissure', 1);
+  const f = w.g.areas.filter((x) => x.kind === 'lava_fissure');
+  assert.equal(f.length, A.lines, 'every crack marked at wind-up start');
+  assert.ok(f.every((x) => x.delay === f[0].delay), 'all open at once');
+  w.step(f[0].delay - 0.05);
+  assert.equal(w.hits.length, 0, 'not before they open');
+  w.step(0.1);
+  assert.equal(w.hits.length, 1, 'the middle crack runs under the hero: the curtain');
+  w.step(A.every + 0.02);
+  assert.equal(w.hits.length, 2, 'then the burning lane');
+  assert.ok(Math.abs(w.hits[1].amount / w.hits[0].amount - A.laterMult) < 1e-6);
+  // between the cracks: nothing
+  const b = warden();
+  halfHealth(b); b.m.enraged = b.m.roared = true;
+  b.only('lava_fissure'); b.place(6);
+  b.until(() => b.m.windup?.name === 'lava_fissure', 1);
+  const d = b.g.player.z, gap = (A.spread / 2) * Math.PI / 180;
+  Object.assign(b.g.player, { x: Math.sin(gap) * (d + 2), z: Math.cos(gap) * (d + 2) });
+  b.step(A.windup + A.open + A.every * 3);
+  assert.equal(b.hits.length, 0, 'between two cracks');
+});
+
+test('horned warden core eruption: slabs heave up round the hero, then the burst strikes all in reach but those in a slab\'s shadow', () => {
+  const A = M.horned_warden.attacks.core_eruption;
+  const run = (hide) => {
+    const w = warden();
+    halfHealth(w); w.m.enraged = w.m.roared = true;
+    w.only('core_eruption'); w.place(6);
+    w.until(() => w.m.windup?.name === 'core_eruption', 1);
+    const slabs = w.m.windup.slabs;
+    assert.equal(slabs.length, A.slabs);
+    for (const s of slabs) assert.ok(Math.abs(Math.hypot(s.x - w.g.player.x, s.z - w.g.player.z) - A.slabRing) < 1e-6);
+    if (hide) {
+      const s = slabs[0], a = Math.atan2(s.x - w.m.x, s.z - w.m.z);
+      Object.assign(w.g.player, { x: s.x + Math.sin(a) * 1.2, z: s.z + Math.cos(a) * 1.2 });
+    }
+    w.step(w.m.windup.total - 0.03);
+    assert.equal(w.hits.length, 0, 'not before its core bursts');
+    w.until(() => w.m.state === 'recover', 1);
+    return w.hits.length;
+  };
+  assert.equal(run(false), 1, 'in the open: struck');
+  assert.equal(run(true), 0, 'behind a slab: safe');
+});

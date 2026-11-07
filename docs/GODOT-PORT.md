@@ -661,10 +661,27 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   Spark's bolt). Render: skillfx/ram-fx.js (light-kit spark streaks, ground-kit rocks and crater
   decals, partial-ring shock waves as ribbon strips; glow sprites on the horns). `charge` (boar) is the only straight rush left,
   besides the stalker `pounce` leap and the warden's `roll` (the gale hawk now stoops, below).
-- **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an
+- **The horned warden's kit** (boss, `behavior: "kit"`, `kit.phaseRoar`, `enrageAt` 0.5; docs/MONSTER-ATTACKS.md):
+  **`shield_bash`** is a `shove` (arc, `lunge`, `knock`). **`shield_wall`**: a long wind-up whose `guardTaken` and
+  `guardArc` turn blows from its front (game `hitMonster`, each counted in `m.blocked`, event `clawGuard`) and whose
+  `weakTaken` raises blows inside `weakArc` round its back (`weakHit`); through it the warden turns toward its prey at
+  only `guardTurn` rad/s; at its end a bash across `arc` within `range`, `damageMult` x (1 + `perBlock` x blocks, up to
+  `maxBlocks`), `knock` (`shieldBash`), and the count clears. **`boulder_ricochet`** is a `charge` with `legs`: at the
+  end of each leg (or off a rock) it caroms `turn` degrees, first toward the side its prey is on, then back (a zigzag;
+  `ricochet` events), each leg able to hit a unit once but never within 0.6 s of its last hit; `missStun` when no leg
+  hit anything. Below half health (`use.hpBelow`), after one roar: **`lava_fissure`** marks `lines` fence areas
+  (`lava_fissure`, polylines of 5 points `length` m long, `spread` degrees apart, kinks of up to `kink` m, seeded) at
+  wind-up start, all opening `open` s after it: the first pulse at full damage, the next `pulses` - 1 every `every` s at
+  `laterMult` (fence `later`); **`core_eruption`** raises `slabs` slabs `slabRing` m round its prey at wind-up start
+  (never on the side toward the warden; `slabsRise`), and as the wind-up ends strikes every unit within `radius` m
+  except one in a slab's shadow (behind it as seen from the warden, `along` 0.3..`shadow` m, within `slabWidth`/2 +
+  0.12 x along; `coreBlast`). Render: skillfx/warden-fx.js (a cylinder-part wall with its numbers in uniforms, cover
+  slabs from ground-kit and their shadows as quads, the reach as a warnDisc, fissures as ribbons); its poses map the
+  ricochet onto the roll and the fissure onto the quake fist (monsters.js `WARDEN_AS`).
+- **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane (now its
+  `boulder_ricochet`): an
   attack with `kind: 'charge'`, so it shares the charge path (one hit per unit, a rock in the way
-  stuns it) plus `missStun` when it hits nobody. It is chosen at `minRange`..`maxRange`, after the
-  quake. In the renderer the warden's model carries a second form (`data/models.json` monsters
+  stuns it) plus `missStun` when it hits nobody. In the renderer the warden's model carries a second form (`data/models.json` monsters
   `horned_warden.ball`, `prepareMonsterForm`): a rigid boulder shown at the end of the curl and while
   it rolls, spinning at speed / radius, with the skinned golem hidden. In Godot keep both meshes under
   the monster and toggle them the same way. The golem is skinned `rigid`: each separate stone (and
@@ -678,13 +695,11 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
   the warden's boulder while dormant; during `emerge` the boulder breaks into the golem's own stones,
   which fly up into place feet first, each tumbling along an arc; back home it folds into the boulder
-  again. Before a `roll` (1.5 s wind-up) it braces: the shield swings round in front with its foot
+  again. Before a roll (1.4 s wind-up) it braces: the shield swings round in front with its foot
   planted on the ground and the body crouched behind it (monsters.js `BRACE`), then it folds into the
   ball; the ball spins `ROLL_SPIN` (2.2) times its rolling rate, so it reads as fast and heavy. All of it is done per stone
   in the vertex shader after skinning (monsterSkin.js `ASSEMBLE`: each vertex carries its stone's
   middle and when it moves, `pieceC`), driven by monsters.js `wardenForm`.
-- **`quake`:** the warden marks `steps` `quake` areas along the locked line at wind-up start;
-  each erupts `stepDelay` after the previous one.
 - **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.
 - **`venom`:** a `venom_pool` area marked at the target for the whole wind-up plus flight, then
   ticking.

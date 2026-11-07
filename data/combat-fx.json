@@ -1042,7 +1042,8 @@
   "swingColors": {
     "whirl": "#9be04a",
     "rear_clash": "#ffc070",
-    "dusk_swat": "#c8a8ff"
+    "dusk_swat": "#c8a8ff",
+    "shield_bash": "#ffb050"
   },
   "roll": {
     "_doc": "The warden's boulder roll (src/render/roll-fx.js): afterimages (ghosts) trail the ball as a motion blur, speed lines streak back from its silhouette, a dust streak lies on the ground. Lengths are in ball radii.",

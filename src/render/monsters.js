@@ -1062,7 +1062,10 @@ const WARDEN_KNEE = (n) => n.replace('leg', 'knee');
 const BRACE = { armX: 0.9, armZ: 0.55, armZL: -0.4, elbow: -0.5, hips: 0.35 };
 const ROLL_SPIN = 2.2;
 
+// the warden's kit attacks posed as its earlier ones: the ricochet as its roll, the fissure as its quake fist
+const WARDEN_AS = { boulder_ricochet: 'roll', lava_fissure: 'quake' };
 function animWarden(r, s, dt, time) {
+  const wu = WARDEN_AS[s.windup] || s.windup, la = WARDEN_AS[s.lastAttack] || s.lastAttack;
   const b = r.bones;
   const c = r.motion;
   const w = advanceGait(r, s, dt, c);
@@ -1079,23 +1082,62 @@ function animWarden(r, s, dt, time) {
   let hipsY = 1.45 - drop - c.bob * thud;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   const T = wardenForm(r, s, k, dt);
-  if (s.windup === 'slam') {
+  if (wu === 'shield_wall') {
+    // behind its planted shield: the brace (the roll's), held for the whole guard
+    const e = clamp01(k / 0.12);
+    armX = [-0.55 * e, -BRACE.armX * e];
+    armZ = [0.25 + (BRACE.armZL - 0.25) * e, -0.25 + (BRACE.armZ + 0.25) * e];
+    torsoX = 0.2 + 0.35 * e;
+    hipsY -= BRACE.hips * e;
+    headX = -0.15 * e;
+    r.braceElbow = BRACE.elbow * e;
+  } else if (wu === 'shield_bash') {
+    // the shield drawn back across its body, the shoulder turned away, then (recover) driven forward
+    const e = k * k * (3 - 2 * k);
+    armX = [-0.3, -0.5 * e];
+    armZ = [0.3, -0.25 + 0.9 * e];
+    torsoY = -0.7 * e;
+    torsoX = 0.2 + 0.1 * e;
+    hipsY -= 0.12 * e;
+  } else if (s.state === 'recover' && (la === 'shield_bash' || la === 'shield_wall')) {
+    // the bash: shield thrust out at its prey, the body behind it, held a moment, then eased back
+    const hold = 1 - clamp01((s.actT - 0.25) / 0.5);
+    armX = [-0.4 * hold, -1.45 * hold];
+    armZ = [0.3, -0.35 * hold];
+    torsoY = 0.45 * hold;
+    torsoX = 0.2 + 0.4 * hold;
+    hipsY -= 0.15 * hold;
+  } else if (wu === 'core_eruption') {
+    // it drops to one knee and throws its arms wide, chest up: its core laid open to the sky
+    const e = clamp01(k / 0.25);
+    armX = [-0.5 * e, -0.5 * e];
+    armZ = [0.25 + 0.95 * e, -0.25 - 0.95 * e];
+    torsoX = 0.2 - 0.55 * e;
+    headX = -0.45 * e;
+    hipsY -= 0.55 * e;
+  } else if (s.state === 'recover' && la === 'core_eruption') {
+    const hold = 1 - clamp01((s.actT - 0.5) / 0.9);
+    armX = [-0.3 * hold, -0.3 * hold];
+    armZ = [0.25 + 0.7 * hold, -0.25 - 0.7 * hold];
+    torsoX = 0.2 - 0.3 * hold;
+    hipsY -= 0.45 * hold;
+  } else if (wu === 'slam') {
     armX = [-2.6 * k, -2.6 * k];
     armZ = [0.1, -0.1];
     torsoX = 0.2 - 0.35 * k;
     hipsY += 0.15 * k;
-  } else if (s.windup === 'sweep') {
+  } else if (wu === 'sweep') {
     armX = [-0.6, -1.2 * k];
     armZ = [0.3, -1.3 * k];
     torsoY = 0.8 * k;
-  } else if (s.windup === 'quake') {
+  } else if (wu === 'quake') {
     // one fist raised high, the other braced; the ground splits ahead
     armX = [-2.9 * k, 0.3];
     armZ = [0.2, -0.1];
     torsoX = -0.35 * k;
     hipsY += 0.2 * k;
     headX = -0.2 * k;
-  } else if (s.state === 'recover' && s.lastAttack === 'quake') {
+  } else if (s.state === 'recover' && la === 'quake') {
     // Quake enters recovery when the fist lands; hold the planted fist while
     // the four marked eruptions travel out, then straighten up.
     const hold = 1 - clamp01((s.actT - 0.4) / 0.6);
@@ -1103,7 +1145,7 @@ function animWarden(r, s, dt, time) {
     torsoX = 0.55 * hold;
     hipsY -= 0.2 * hold;
     headX = 0.2 * hold;
-  } else if (s.windup === 'roll') {
+  } else if (wu === 'roll') {
     // first it braces behind its shield: the shield swings round in front and its foot is planted on
     // the ground, the body crouched low behind it, the free fist pressed to its back; then it curls
     const p = clamp01(k / 0.35);
@@ -1120,11 +1162,11 @@ function animWarden(r, s, dt, time) {
     armX = [0.8, 0.8];
     b.legL.rotation.x = Math.sin(time * 18) * 0.8;
     b.legR.rotation.x = -Math.sin(time * 18) * 0.8;
-  } else if (s.state === 'recover' && s.lastAttack === 'slam') {
+  } else if (s.state === 'recover' && la === 'slam') {
     armX = [-0.9, -0.9];
     torsoX = 0.75;
     hipsY -= 0.25;
-  } else if (s.state === 'recover' && s.lastAttack === 'sweep') {
+  } else if (s.state === 'recover' && la === 'sweep') {
     torsoY = -0.7;
     armZ = [0.3, 0.2];
     armX = [-0.6, -1.2];
@@ -1150,9 +1192,9 @@ function animWarden(r, s, dt, time) {
     b[n].rotation.x = damp(b[n].rotation.x, armX[i], s.state === 'recover' ? 25 : 10, dt);
     b[n].rotation.z = damp(b[n].rotation.z, armZ[i], 10, dt);
   });
-  b.elbowL.rotation.x = damp(b.elbowL.rotation.x, s.windup === 'slam' ? -0.4 : -0.35, 10, dt);
-  b.elbowR.rotation.x = damp(b.elbowR.rotation.x, s.windup === 'slam' ? -0.4 : s.windup === 'roll' ? -0.35 + (r.braceElbow || 0) : -0.35, 10, dt);
-  if (s.windup !== 'roll') r.braceElbow = 0;
+  b.elbowL.rotation.x = damp(b.elbowL.rotation.x, wu === 'slam' ? -0.4 : -0.35, 10, dt);
+  b.elbowR.rotation.x = damp(b.elbowR.rotation.x, wu === 'slam' ? -0.4 : (wu === 'roll' || wu === 'shield_wall') ? -0.35 + (r.braceElbow || 0) : -0.35, 10, dt);
+  if (wu !== 'roll' && wu !== 'shield_wall') r.braceElbow = 0;
   r.hipsY = damp(r.hipsY ?? 1.45, hipsY + drop + c.bob * thud, 14, dt);
   b.hips.position.y = r.hipsY - drop - c.bob * thud;
   b.hips.rotation.z = Math.sin(ph) * c.roll * w;
@@ -1179,7 +1221,7 @@ function animWarden(r, s, dt, time) {
       // rolling fast it stretches a little along its path (anime motion blur), with its afterimages
       if (s.state === 'act') form.scale.set(pop * 0.96, pop * 0.96, pop * 1.1);
     } else r.rollAngle = 0;
-    r.rollFx?.update(form.visible && s.lastAttack === 'roll' && s.state === 'act', r.rollAngle, dt);
+    r.rollFx?.update(form.visible && la === 'roll' && s.state === 'act', r.rollAngle, dt);
   }
 }
 
@@ -1191,12 +1233,13 @@ function animWarden(r, s, dt, time) {
  * Returns {a: assembled 0..1, ball: boulder model 0..1, dormant}.
  */
 function wardenForm(r, s, k, dt) {
+  const wu = WARDEN_AS[s.windup] || s.windup, la = WARDEN_AS[s.lastAttack] || s.lastAttack;
   const A = r.assemble, form = r.ballForm;
   if (!A || !form) return null;
   const dormant = s.state === 'idle' && !s.aggro;
   if (!dormant) r.homeCurl = s.state === 'return';
   r.curlT = dormant ? (r.homeCurl ? (r.curlT || 0) + dt : 9) : 0;
-  if (s.state === 'act' && s.lastAttack === 'roll') r.rolled = true;
+  if (s.state === 'act' && la === 'roll') r.rolled = true;
   let a = 1, ball = 0;
   // fold c 0..1: the stones gather into a ball, then the boulder model takes over from them
   const fold = (c) => { a = 1 - c; ball = clamp01((c - 0.85) / 0.15); };
@@ -1205,8 +1248,8 @@ function wardenForm(r, s, k, dt) {
     const w = clamp01(s.actT / (s.actionTotal || 1.8));
     ball = 1 - clamp01(w / 0.1);
     a = clamp01((w - 0.1) / 0.9);
-  } else if (s.windup === 'roll') fold(clamp01((k - 0.55) / 0.4)); // braced behind the shield, then it curls
-  else if (s.state === 'act' && s.lastAttack === 'roll') { a = 0; ball = 1; }
+  } else if (wu === 'roll') fold(clamp01((k - 0.55) / 0.4)); // braced behind the shield, then it curls
+  else if (s.state === 'act' && la === 'roll') { a = 0; ball = 1; }
   else if (r.rolled && (s.state === 'recover' || s.state === 'stunned')) {
     const t = s.actT;
     ball = 1 - clamp01(t / 0.12);

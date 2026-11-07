@@ -1000,7 +1000,9 @@ export class Game {
       const fx = opts.fromX ?? this.player.x, fz = opts.fromZ ?? this.player.z;
       let d = Math.atan2(fx - m.x, fz - m.z) - m.facing;
       d = Math.atan2(Math.sin(d), Math.cos(d));
-      if (Math.abs(d) <= (ga.guardArc * Math.PI) / 360) { dmg *= ga.guardTaken; this.emit({ type: 'clawGuard', id: m.id, x: m.x, z: m.z, fromX: fx, fromZ: fz }); }
+      if (Math.abs(d) <= (ga.guardArc * Math.PI) / 360) { dmg *= ga.guardTaken; m.blocked = (m.blocked || 0) + 1; this.emit({ type: 'clawGuard', id: m.id, x: m.x, z: m.z, fromX: fx, fromZ: fz, blocked: m.blocked }); }
+      // the horned warden's back behind its planted shield (shield_wall): its lava seams lie open there (weakArc)
+      else if (ga.weakTaken && Math.abs(d) >= Math.PI - (ga.weakArc * Math.PI) / 360) { dmg *= ga.weakTaken; this.emit({ type: 'weakHit', id: m.id, x: m.x, z: m.z, fromX: fx, fromZ: fz }); }
     }
     if (m.naked) dmg *= m.def.attacks[m.naked.name].nakedTaken; // ... and out of its shell, soft
     if (m.nacre) {
@@ -2124,7 +2126,8 @@ export class Game {
           for (const u of this.units()) {
             let near = Infinity;
             for (let i = 0; i + 1 < F.pts.length; i++) near = Math.min(near, segDist(u.x, u.z, F.pts[i][0], F.pts[i][1], F.pts[i + 1][0], F.pts[i + 1][1]));
-            if (near <= F.width / 2 + u.r) this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { attack: a.attack });
+            // `later`: the pulses after the first hurt at that share (the warden's fissures: the curtain, then a burning lane)
+            if (near <= F.width / 2 + u.r) this.damageUnit(u, a.damage * (F.n > 1 && F.later ? F.later : 1), this.monsterById(a.sourceId), { attack: a.attack });
           }
         }
         if (F.n < F.pulses || live < a.duration) keep.push(a);

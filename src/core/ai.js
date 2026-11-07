@@ -419,7 +419,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook', 'dusk_stalk', 'hammer_fists', 'boulder_hurl', 'rock_orbit', 'rune_seal'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook', 'dusk_stalk', 'hammer_fists', 'boulder_hurl', 'rock_orbit', 'rune_seal', 'shield_wall', 'lava_fissure', 'core_eruption'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -431,6 +431,9 @@ function windup(game, m, dt, t, gap) {
     if (d < atk.standoff) { const step = Math.min(atk.standoff - d, atk.backSpeed * dt); game.moveEntity(m, Math.sin(a) * step, Math.cos(a) * step); }
     w.angle = angleTo(m.x, m.z, w.tx, w.tz); m.facing = w.angle;
   }
+  // the horned warden behind its shield (shield_wall): it turns to keep its shield on its prey, but only at `guardTurn`
+  // rad/s, so a prey circling fast gets round to its back
+  if (kind === 'shield_wall' && t) { turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, atk.guardTurn); w.angle = m.facing; }
   // `backoff` (m): it backs away from its prey through the first 60% of the wind-up, facing it (the ironhorn ram's
   // run-up before its charge)
   if (atk.backoff && m.stateT < w.total * 0.6) {
@@ -470,6 +473,41 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'shield_wall': {
+      // the warden's guard ends in a bash of its shield across `arc` degrees, `range` m: harder by `perBlock` for each
+      // blow its shield turned (up to `maxBlocks`, game hitMonster), and flinging what it strikes `knock` m
+      const n = Math.min(atk.maxBlocks, m.blocked || 0), arc = atk.arc * DEG, hard = dmg * (1 + atk.perBlock * n);
+      game.emit({ type: 'shieldBash', id: m.id, x: m.x, z: m.z, angle: w.angle, arc: atk.arc, range: atk.range + m.r, blocked: n });
+      for (const u of game.units()) {
+        if (dist(m.x, m.z, u.x, u.z) - m.r - u.r > atk.range || Math.abs(angleDiff(w.angle, angleTo(m.x, m.z, u.x, u.z))) > arc / 2) continue;
+        game.damageUnit(u, hard, m, { attack: w.name, knock: { angle: angleTo(m.x, m.z, u.x, u.z), force: atk.knock } });
+      }
+      m.blocked = 0;
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'lava_fissure': {
+      // its fist is in the ground: the cracks marked at wind-up start (beginAttack) split open on their own
+      game.emit({ type: 'fissureFist', id: m.id, x: m.x, z: m.z, angle: w.angle });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'core_eruption': {
+      // its core bursts: every unit within `radius` m is struck unless it stands in the shadow of a slab (behind it, seen
+      // from the warden, within half the slab's `slabWidth` widening a little with distance, at most `shadow` m back)
+      const covered = (u) => w.slabs.some((sl) => {
+        const a = angleTo(m.x, m.z, sl.x, sl.z), d = dirFromAngle(a), dx = u.x - sl.x, dz = u.z - sl.z;
+        const along = dx * d.x + dz * d.z, side = Math.abs(dx * d.z - dz * d.x);
+        return along > 0.3 && along <= atk.shadow && side <= atk.slabWidth / 2 + along * 0.12 - u.r * 0.5;
+      });
+      game.emit({ type: 'coreBlast', id: m.id, x: m.x, z: m.z, radius: atk.radius, slabs: w.slabs });
+      for (const u of game.units()) {
+        if (dist(m.x, m.z, u.x, u.z) > atk.radius + u.r || covered(u)) continue;
+        game.damageUnit(u, dmg, m, { attack: w.name, knock: { angle: angleTo(m.x, m.z, u.x, u.z), force: 3 } });
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'hook': {
       // the ironhorn ram hooks its horns to the side its prey stood on (w.side, fixed at wind-up start, its facing kept):
       // units within `range` m in the `arc` degrees centred `off` degrees round that side are struck and flung `knock`
@@ -484,7 +522,9 @@ function windup(game, m, dt, t, gap) {
       return setState(m, 'recover', atk.recover);
     }
     case 'charge': {
-      m.charge = { name: w.name, t: 0, dur: atk.duration, speed: atk.speed, angle: w.angle, hit: new Set(), dmg, left: 0 };
+      // the first carom (a ricochet) turns toward the side its prey is on as it sets off
+      const side = t && angleDiff(w.angle, angleTo(m.x, m.z, t.x, t.z)) < 0 ? -1 : 1;
+      m.charge = { name: w.name, t: 0, dur: atk.duration, speed: atk.speed, angle: w.angle, hit: new Set(), dmg, left: 0, leg: 0, any: false, side, struck: atk.legs ? new Map() : null };
       m.cd[w.name] = atk.cooldown;
       setState(m, 'act');
       m.windup = { ...w };
@@ -1832,6 +1872,9 @@ function act(game, m, dt, t) {
       if (c.hit.has(u.id)) continue;
       if (dist(m.x, m.z, u.x, u.z) < m.r + u.r + 0.35) {
         c.hit.add(u.id);
+        // a ricochet's next leg spares what its last leg struck for a moment (the carom right beside it)
+        if (c.struck && game.time - (c.struck.get(u.id) ?? -9) < 0.6) continue;
+        c.struck?.set(u.id, game.time); c.any = true;
         const ca = m.def.attacks[c.name];
         const dealt = game.damageUnit(u, c.dmg, m, { attack: c.name, knock: { angle: c.angle, force: ca?.knock ?? 4 } });
         // `stopOnHit`: it pulls up on what it struck (the ironhorn ram's clash: horns on its prey, the charge spent)
@@ -1853,6 +1896,14 @@ function act(game, m, dt, t) {
     }
   }
   const ratk = m.def.attacks[m.windup?.name];
+  if (!c.hop && ratk?.legs && c.leg < ratk.legs - 1 && ((res && res.blockedHard && moved < c.speed * dt * 0.4 && c.t > 0.08) || c.t >= c.dur)) {
+    // a ricochet (the horned warden's boulder): at the end of each leg, or off whatever it struck, it caroms off `turn`
+    // degrees, to one side then the other (the first toward its prey), a zigzag of `legs` legs, each able to hit a unit
+    c.leg++; c.angle += c.side * (c.leg % 2 ? 1 : -1) * ratk.turn * DEG; c.t = 0; m.facing = c.angle;
+    c.hit.clear();
+    game.emit({ type: 'ricochet', id: m.id, x: m.x, z: m.z, angle: c.angle, leg: c.leg, length: c.speed * c.dur });
+    return;
+  }
   if (!c.hop && ratk?.rebound && !c.back && ((res && res.blockedHard && moved < c.speed * dt * 0.4 && c.t > 0.08) || c.t >= c.dur)) {
     // a rebound roll (the pangolin): at the end of its lane, or off whatever it struck, it bounces back along
     // the same lane, able to hit each unit once more on the way
@@ -1879,7 +1930,7 @@ function act(game, m, dt, t) {
     m.charge = null;
     const atk = m.def.attacks[name];
     // a heavy charge that hit nobody leaves the monster off balance: the punish window
-    if (!c.hop && atk?.missStun && !c.hit.size) {
+    if (!c.hop && atk?.missStun && !(atk.legs ? c.any : c.hit.size)) {
       game.emit({ type: 'stunned', id: m.id, x: m.x, z: m.z });
       return setState(m, 'stunned', atk.missStun);
     }
@@ -2046,32 +2097,6 @@ function hawk(game, m, dt, { t, dToT, slowMult }) {
   }
   const [near, far] = m.def.circle;
   strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
-}
-
-function wardenBoss(game, m, dt, { t, gap, slowMult }) {
-  const a = m.def.attacks;
-  if (gap <= 1.5 && m.cd.slam <= 0) return startWindup(game, m, 'slam', t, { radius: a.slam.radius });
-  if (gap <= a.sweep.range && m.cd.sweep <= 0) return startWindup(game, m, 'sweep', t);
-  if (m.cd.quake <= 0 && gap >= a.quake.minRange && gap <= a.quake.maxRange) {
-    const q = a.quake;
-    startWindup(game, m, 'quake', t);
-    // eruptions are marked along the locked line now and go off one after another
-    const d = dirFromAngle(m.windup.angle), seg = q.length / q.steps;
-    for (let i = 0; i < q.steps; i++) {
-      const r = seg * (i + 0.5);
-      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: 'quake', kind: 'quake', x: m.x + d.x * r, z: m.z + d.z * r, radius: q.width / 2 + seg * 0.25, delay: m.windup.total + i * q.stepDelay, duration: 0.3, damage: m.damage * q.damageMult });
-    }
-    return;
-  }
-  // curls into a boulder and rolls along the locked lane: a rock in the way stuns it, and a roll
-  // that hits nobody leaves it dizzy (missStun), so stepping aside opens a punish window
-  if (a.roll && m.cd.roll <= 0 && gap >= a.roll.minRange && gap <= a.roll.maxRange) return startWindup(game, m, 'roll', t);
-  if (m.cd.slam <= 0 && gap <= a.slam.radius - 1) return startWindup(game, m, 'slam', t, { radius: a.slam.radius });
-  if (gap > a.sweep.range * 0.7) walkTo(game, m, t.x, t.z, m.def.speed * slowMult * (m.enraged ? 1.25 : 1), dt);
-  else {
-    m.moving = false;
-    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 5);
-  }
 }
 
 function mantis(game, m, dt, { t, gap, slowMult }) {
@@ -2342,6 +2367,50 @@ export function beginAttack(game, m, name, t) {
     if (!game.isSafe(t.x, t.z)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'rune_seal', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
     return;
   }
+  if (kind === 'shield_wall') {
+    // the warden plants its shield before it and crouches behind it (blows to its front turned, game hitMonster)
+    startWindup(game, m, name, t);
+    m.blocked = 0;
+    return;
+  }
+  if (kind === 'charge' && atk.legs) {
+    // the warden's ricochet: its first carom turns toward the side its prey is on
+    startWindup(game, m, name, t);
+    return;
+  }
+  if (kind === 'lava_fissure') {
+    // its fist goes into the ground and `lines` cracks run out from it across its prey (`spread` degrees apart, each
+    // `length` m with kinks of up to `kink` m, seeded), marked now; `open` s after the wind-up the whole length of each
+    // splits at once into a curtain of lava (a fissure eruption), then stays a burning lane: core area fence, its
+    // first pulse at full damage, the rest at `laterMult`
+    startWindup(game, m, name, t);
+    const lines = [];
+    for (let i = 0; i < atk.lines; i++) {
+      const a = m.windup.angle + (i - (atk.lines - 1) / 2) * atk.spread * DEG, d = dirFromAngle(a), px = d.z, pz = -d.x, pts = [];
+      for (let k = 0; k <= 4; k++) {
+        const r = m.r + 0.4 + (k / 4) * atk.length, off = k === 0 ? 0 : game.rng.range(-atk.kink, atk.kink);
+        pts.push([m.x + d.x * r + px * off, m.z + d.z * r + pz * off]);
+      }
+      lines.push(pts);
+      game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'lava_fissure', x: pts[2][0], z: pts[2][1], radius: atk.length / 2, delay: m.windup.total + atk.open, duration: atk.every * (atk.pulses - 1) + 0.05, damage: m.damage * (atk.damageMult || 1),
+        fence: { pts, width: atk.width, every: atk.every, pulses: atk.pulses, n: 0, later: atk.laterMult } });
+    }
+    m.windup.lines = lines;
+    return;
+  }
+  if (kind === 'core_eruption') {
+    // it kneels and its core opens; `slabs` stone slabs heave up `slabRing` m round its prey (seeded, never on the side
+    // toward the warden, so reaching cover means moving), and its core bursts as the wind-up ends (windup())
+    startWindup(game, m, name, t, { tx: t.x, tz: t.z });
+    const toward = angleTo(t.x, t.z, m.x, m.z), slabs = [];
+    for (let i = 0; i < atk.slabs; i++) {
+      const a = toward + Math.PI + (i - (atk.slabs - 1) / 2) * ((2 * Math.PI - 2.2) / atk.slabs) + game.rng.range(-0.25, 0.25);
+      slabs.push({ x: t.x + Math.sin(a) * atk.slabRing, z: t.z + Math.cos(a) * atk.slabRing });
+    }
+    m.windup.slabs = slabs;
+    game.emit({ type: 'slabsRise', id: m.id, x: m.x, z: m.z, slabs, width: atk.slabWidth, total: m.windup.total, radius: atk.radius });
+    return;
+  }
   if (kind === 'rock_orbit') {
     // the rubble round it lifts through the wind-up, its ring marked
     startWindup(game, m, name, t);
@@ -2551,4 +2620,4 @@ function swoopPath(m, t, atk, side) { // (m: anything with x, z: where it starts
   return [[m.x, m.z], p1, [ex, ez]];
 }
 
-const BEHAVIORS = { kit, mantis, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+const BEHAVIORS = { kit, mantis, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk };

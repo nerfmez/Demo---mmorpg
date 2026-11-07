@@ -33,6 +33,7 @@ import { RamFx } from './ram-fx.js';
 import { StalkerFx } from './stalker-fx.js';
 import { GolemFx } from './golem-fx.js';
 import { SentinelFx } from './sentinel-fx.js';
+import { WardenFx } from './warden-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -114,6 +115,8 @@ export class MonsterFx {
     this.golem = new GolemFx(scene, host, this);
     // the rune sentinel's shard volley, rune seal and searchlight (skillfx/sentinel-fx.js)
     this.sentinel = new SentinelFx(scene, host, this);
+    // the horned warden's shield, ricochet, fissures and core eruption (skillfx/warden-fx.js)
+    this.warden = new WardenFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -123,6 +126,7 @@ export class MonsterFx {
 
   /** A strike reached its contact (core monsterSwing); true when drawn here. */
   swing(e, g) {
+    if (this.warden.swing(e)) return true;
     if (this.ram.swing(e)) return true;
     if (this.stalker.swing(e)) return true;
     if (this.grotto.swing(e, g)) return true;
@@ -434,6 +438,7 @@ export class MonsterFx {
     this.stalker.update(dt, g);
     this.golem.update(dt, g);
     this.sentinel.update(dt, g);
+    this.warden.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

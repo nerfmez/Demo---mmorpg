@@ -496,7 +496,10 @@ export class SkillFx {
       case 'bombard': case 'feign': case 'click': return this.monster.beetle.event(e);
       // the masked wolf (skillfx/wolf-fx.js)
       case 'lunge': case 'lapAim': case 'dragStart': case 'dragFree': case 'dragEnd': return this.monster.greyfang.event(e, g) || this.monster.wolf.event(e);
-      case 'clawGuard': case 'shellShed': case 'shellClimb': case 'reshell': return this.monster.hermit.event(e, g);
+      // the horned warden (skillfx/warden-fx.js)
+      case 'weakHit': case 'shieldBash': case 'ricochet': case 'fissureFist': case 'slabsRise': case 'coreBlast': return this.monster.warden.event(e, g);
+      case 'clawGuard': if (this.monster.warden.event(e, g)) return true; // falls through to the hermit crab's
+      case 'shellShed': case 'shellClimb': case 'reshell': return this.monster.hermit.event(e, g);
       // the thicket mantis (skillfx/mantis-fx.js)
       case 'mantisStrike': case 'startle': case 'wingLand': return this.monster.mantis.event(e, g);
       // Greyfang (skillfx/greyfang-fx.js)
@@ -512,9 +515,10 @@ export class SkillFx {
       // the duskmane stalker (skillfx/stalker-fx.js)
       case 'duskVanish': case 'pawPrint': case 'duskReveal': case 'duskLunge': case 'duskRake': case 'sprintGo': case 'sprintHit': case 'sprintSkid': return this.monster.stalker.event(e, g);
       // the gale hawk (skillfx/hawk-fx.js)
-      case 'stoop': case 'stoopHit': case 'thunderWings': case 'stormBeat': case 'stormFeathers': case 'fencePulse': return this.monster.hawk.event(e, g);
+      case 'fencePulse': if (this.monster.warden.event(e, g)) return true; // falls through to the gale hawk's
+      case 'stoop': case 'stoopHit': case 'thunderWings': case 'stormBeat': case 'stormFeathers': return this.monster.hawk.event(e, g);
       case 'viperStrike': case 'coilDash': case 'coilGrab': case 'coilFree': case 'coilEnd': case 'tailLash': case 'tailCut': return this.monster.viper.event(e, g);
-      case 'swoopHit': case 'rallyMarks': case 'rally': case 'moonLeap': case 'moonLock': case 'moonCrash': case 'phantomMarks': case 'phantomGo': case 'phaseRoar': return this.monster.greyfang.event(e, g);
+      case 'swoopHit': case 'rallyMarks': case 'rally': case 'moonLeap': case 'moonLock': case 'moonCrash': case 'phantomMarks': case 'phantomGo': case 'phaseRoar': return this.monster.warden.event(e, g) || this.monster.greyfang.event(e, g);
       case 'stunned': {
         this.monster.stunned(e);
         const m = g.monsterById?.(e.id) || g.monsters.find((q) => q.id === e.id);

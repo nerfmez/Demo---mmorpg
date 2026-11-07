@@ -694,7 +694,7 @@
       "attacks": {
         "core_eruption": {"nameTh": "แกนลาวาปะทุ", "kind": "core_eruption", "use": {"max": 14, "hpBelow": 0.5}, "range": 14, "windup": 2.6, "slabs": 3, "slabRing": 3.4, "slabWidth": 1.8, "shadow": 4.5, "radius": 13, "recover": 1.6, "cooldown": 20, "damageMult": 2.6},
         "lava_fissure": {"nameTh": "ธารลาวาแยกพื้น", "kind": "lava_fissure", "use": {"max": 11, "hpBelow": 0.5}, "range": 11, "windup": 1.3, "lines": 3, "spread": 38, "length": 12, "kink": 0.9, "width": 1.5, "open": 0.45, "every": 0.5, "pulses": 11, "laterMult": 0.12, "recover": 1.0, "cooldown": 13, "damageMult": 1.5},
-        "boulder_ricochet": {"nameTh": "ศิลากลิ้งสะท้อน", "kind": "charge", "use": {"min": 3, "max": 15}, "range": 15, "windup": 1.4, "speed": 13, "duration": 0.7, "legs": 3, "turn": 115, "knock": 5, "recover": 1.0, "cooldown": 11, "damageMult": 1.7, "missStun": 2.4},
+        "boulder_roll": {"nameTh": "ศิลากลิ้ง", "kind": "charge", "use": {"min": 3, "max": 15}, "range": 15, "windup": 1.4, "speed": 13, "duration": 1.4, "knock": 5, "recover": 1.0, "cooldown": 11, "damageMult": 1.7, "missStun": 2.4},
         "shield_wall": {"nameTh": "ป้อมโล่ศิลา", "kind": "shield_wall", "use": {"max": 5}, "range": 3.6, "arc": 130, "windup": 2.6, "guardArc": 160, "guardTaken": 0.1, "weakArc": 110, "weakTaken": 1.6, "guardTurn": 1.1, "perBlock": 0.3, "maxBlocks": 4, "knock": 5, "recover": 0.9, "cooldown": 10, "damageMult": 1.1},
         "shield_bash": {"nameTh": "กระแทกโล่", "kind": "shove", "use": {"max": 3.2}, "range": 3.2, "arc": 100, "windup": 0.75, "lunge": 1.0, "knock": 4, "recover": 0.7, "cooldown": 2.4, "damageMult": 1.0}
       },

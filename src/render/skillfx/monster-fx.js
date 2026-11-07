@@ -115,7 +115,7 @@ export class MonsterFx {
     this.golem = new GolemFx(scene, host, this);
     // the rune sentinel's shard volley, rune seal and searchlight (skillfx/sentinel-fx.js)
     this.sentinel = new SentinelFx(scene, host, this);
-    // the horned warden's shield, ricochet, fissures and core eruption (skillfx/warden-fx.js)
+    // the horned warden's shield, boulder roll, fissures and core eruption (skillfx/warden-fx.js)
     this.warden = new WardenFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)

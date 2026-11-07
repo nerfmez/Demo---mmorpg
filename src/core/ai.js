@@ -522,9 +522,7 @@ function windup(game, m, dt, t, gap) {
       return setState(m, 'recover', atk.recover);
     }
     case 'charge': {
-      // the first carom (a ricochet) turns toward the side its prey is on as it sets off
-      const side = t && angleDiff(w.angle, angleTo(m.x, m.z, t.x, t.z)) < 0 ? -1 : 1;
-      m.charge = { name: w.name, t: 0, dur: atk.duration, speed: atk.speed, angle: w.angle, hit: new Set(), dmg, left: 0, leg: 0, any: false, side, struck: atk.legs ? new Map() : null };
+      m.charge = { name: w.name, t: 0, dur: atk.duration, speed: atk.speed, angle: w.angle, hit: new Set(), dmg, left: 0 };
       m.cd[w.name] = atk.cooldown;
       setState(m, 'act');
       m.windup = { ...w };
@@ -1872,9 +1870,6 @@ function act(game, m, dt, t) {
       if (c.hit.has(u.id)) continue;
       if (dist(m.x, m.z, u.x, u.z) < m.r + u.r + 0.35) {
         c.hit.add(u.id);
-        // a ricochet's next leg spares what its last leg struck for a moment (the carom right beside it)
-        if (c.struck && game.time - (c.struck.get(u.id) ?? -9) < 0.6) continue;
-        c.struck?.set(u.id, game.time); c.any = true;
         const ca = m.def.attacks[c.name];
         const dealt = game.damageUnit(u, c.dmg, m, { attack: c.name, knock: { angle: c.angle, force: ca?.knock ?? 4 } });
         // `stopOnHit`: it pulls up on what it struck (the ironhorn ram's clash: horns on its prey, the charge spent)
@@ -1896,14 +1891,6 @@ function act(game, m, dt, t) {
     }
   }
   const ratk = m.def.attacks[m.windup?.name];
-  if (!c.hop && ratk?.legs && c.leg < ratk.legs - 1 && ((res && res.blockedHard && moved < c.speed * dt * 0.4 && c.t > 0.08) || c.t >= c.dur)) {
-    // a ricochet (the horned warden's boulder): at the end of each leg, or off whatever it struck, it caroms off `turn`
-    // degrees, to one side then the other (the first toward its prey), a zigzag of `legs` legs, each able to hit a unit
-    c.leg++; c.angle += c.side * (c.leg % 2 ? 1 : -1) * ratk.turn * DEG; c.t = 0; m.facing = c.angle;
-    c.hit.clear();
-    game.emit({ type: 'ricochet', id: m.id, x: m.x, z: m.z, angle: c.angle, leg: c.leg, length: c.speed * c.dur });
-    return;
-  }
   if (!c.hop && ratk?.rebound && !c.back && ((res && res.blockedHard && moved < c.speed * dt * 0.4 && c.t > 0.08) || c.t >= c.dur)) {
     // a rebound roll (the pangolin): at the end of its lane, or off whatever it struck, it bounces back along
     // the same lane, able to hit each unit once more on the way
@@ -1930,7 +1917,7 @@ function act(game, m, dt, t) {
     m.charge = null;
     const atk = m.def.attacks[name];
     // a heavy charge that hit nobody leaves the monster off balance: the punish window
-    if (!c.hop && atk?.missStun && !(atk.legs ? c.any : c.hit.size)) {
+    if (!c.hop && atk?.missStun && !c.hit.size) {
       game.emit({ type: 'stunned', id: m.id, x: m.x, z: m.z });
       return setState(m, 'stunned', atk.missStun);
     }
@@ -2371,11 +2358,6 @@ export function beginAttack(game, m, name, t) {
     // the warden plants its shield before it and crouches behind it (blows to its front turned, game hitMonster)
     startWindup(game, m, name, t);
     m.blocked = 0;
-    return;
-  }
-  if (kind === 'charge' && atk.legs) {
-    // the warden's ricochet: its first carom turns toward the side its prey is on
-    startWindup(game, m, name, t);
     return;
   }
   if (kind === 'lava_fissure') {

@@ -1786,7 +1786,7 @@ test('rune sentinel searchlight: a cone of light follows the hero slowly; held i
 });
 
 // ---------- the horned warden (boss, Lv40): a lava-seamed stone titan with a shield, curling into a horned boulder.
-// Phase one: shield bash, shield wall (turned blows, an open back, a bash harder for each blow turned), boulder ricochet;
+// Phase one: shield bash, shield wall (turned blows, an open back, a bash harder for each blow turned), boulder roll;
 // at half health it roars once, and then also lava fissures and its core eruption (hide in a slab's shadow).
 const warden = (o = {}) => { const w = arena('horned_warden', 40, { open: true, normal: true, ...o }); w.m.dormant = false; return w; };
 const halfHealth = (w) => { w.m.hp = w.m.maxHp * 0.45; };
@@ -1858,30 +1858,28 @@ test('horned warden shield wall: blows to its shield glance off, its back takes 
   assert.equal(blocked.m.blocked, 0, 'its count clears');
 });
 
-test('horned warden boulder ricochet: a zigzag of legs caroming off at its turn, each leg able to hit once; dodged entirely, it is left dizzy', () => {
-  const A = M.horned_warden.attacks.boulder_ricochet;
+test('horned warden boulder roll: one long roll down its locked lane, a hit once, none in the wind-up; dodged, it is left dizzy', () => {
+  const A = M.horned_warden.attacks.boulder_roll;
+  assert.ok(A.speed * A.duration >= 16, 'a long roll (owner: one roll, not too short)');
   const w = warden();
-  const ev = []; const emit = w.g.emit.bind(w.g); w.g.emit = (e) => { ev.push(e); emit(e); };
-  w.only('boulder_ricochet'); w.place(5);
-  w.until(() => w.m.windup?.name === 'boulder_ricochet', 1);
+  w.only('boulder_roll'); w.place(5);
+  w.until(() => w.m.windup?.name === 'boulder_roll', 1);
   w.until(() => w.m.state === 'act', 3);
   assert.equal(w.hits.length, 0, 'nothing in the wind-up');
-  const start = w.m.charge.angle;
+  const x0 = w.m.x, z0 = w.m.z, a = w.m.charge.angle;
   w.until(() => w.m.state !== 'act', 6);
-  const caroms = ev.filter((e) => e.type === 'ricochet');
-  assert.equal(caroms.length, A.legs - 1, 'carom between legs');
-  assert.ok(Math.abs(Math.abs(caroms[0].angle - start) - A.turn * Math.PI / 180) < 1e-6, 'off at its turn');
-  assert.ok(Math.abs(caroms[1].angle - start) < 1e-6, 'then back the other way: a zigzag');
-  assert.equal(w.hits.length, 1, 'standing in its first lane: struck once');
+  assert.equal(w.hits.length, 1, 'struck once');
+  assert.ok(Math.abs(Math.hypot(w.m.x - x0, w.m.z - z0) - A.speed * A.duration) < 0.5, 'its whole length, straight');
+  assert.ok(Math.abs(Math.atan2(w.m.x - x0, w.m.z - z0) - a) < 1e-6);
   assert.equal(w.m.charge, null);
   assert.equal(w.m.state, 'recover');
   const b = warden();
-  b.only('boulder_ricochet'); b.place(5);
+  b.only('boulder_roll'); b.place(5);
   b.until(() => b.m.state === 'act', 3);
   Object.assign(b.g.player, { x: 40, z: 40 });
   b.until(() => b.m.state !== 'act', 6);
   assert.equal(b.hits.length, 0);
-  assert.equal(b.m.state, 'stunned', 'a ricochet that hits nothing leaves it dizzy');
+  assert.equal(b.m.state, 'stunned', 'a roll that hits nothing leaves it dizzy');
 });
 
 test('horned warden lava fissures: cracks marked across the hero split open at once after the wind-up, then burn on at a fraction', () => {

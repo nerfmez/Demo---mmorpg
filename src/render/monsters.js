@@ -1062,8 +1062,8 @@ const WARDEN_KNEE = (n) => n.replace('leg', 'knee');
 const BRACE = { armX: 0.9, armZ: 0.55, armZL: -0.4, elbow: -0.5, hips: 0.35 };
 const ROLL_SPIN = 1;
 
-// the warden's kit attacks posed as its earlier ones: the ricochet as its roll, the fissure as its quake fist
-const WARDEN_AS = { boulder_ricochet: 'roll', lava_fissure: 'quake' };
+// the warden's kit attacks posed as its earlier ones: the boulder roll as its roll, the fissure as its quake fist
+const WARDEN_AS = { boulder_roll: 'roll', lava_fissure: 'quake' };
 function animWarden(r, s, dt, time) {
   const wu = WARDEN_AS[s.windup] || s.windup, la = WARDEN_AS[s.lastAttack] || s.lastAttack;
   const b = r.bones;
@@ -1212,8 +1212,7 @@ function animWarden(r, s, dt, time) {
     if (form.visible) {
       const rad = form.userData.radius, rolling = s.state === 'act';
       // a true roll: it turns as far as it travels (owner, 2026-11-07: the faster spin read wrong), its facets
-      // lifting it a little as it goes over each; set off and at each carom (warden-fx sets hopT) it bounces up
-      // and lands with a squash
+      // lifting it a little as it goes over each; as it sets off it bounces up and lands with a squash
       if (rolling && !r.wasRolling) r.hopT = 0;
       r.wasRolling = rolling;
       const spin = rolling ? ROLL_SPIN * (s.attack?.speed || 10) / (rad * (r.baseScale || 1)) : 0;

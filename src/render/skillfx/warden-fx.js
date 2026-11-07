@@ -7,8 +7,8 @@
 // - Shield wall (shield_wall wind-up; core clawGuard, weakHit, shieldBash): a curved wall of amber light before its
 //   shield, flaring at each blow it turns (brighter for each); its lava seams glow at its back where it is open; the
 //   bash: a ragged flash, rays, dust and chips across its front, bigger for each blow turned.
-// - Boulder ricochet (core charge, ricochet): lava sparks and dust off the rolling boulder; each carom a burst of chips
-//   and a shock ring, the next leg's lane flashing ahead of it.
+// - Boulder roll (core charge): the boulder wrapped in a comet of fire streaming back along its roll, embers and dust
+//   off it (round 4, owner: "one roll is enough, it is too short": one long roll, no caroms).
 // - Lava fissures (area lava_fissure; core fissureFist): cracks glowing out from its fist across the true lane width
 //   through the wind-up; at once the whole length splits in a curtain of lava fountains, then a lane of lava that
 //   crusts over and fades.
@@ -189,16 +189,6 @@ export class WardenFx {
         this.monster.onShake?.(0.16 * k, 0.15);
         return true;
       }
-      case 'ricochet': {
-        // a carom: chips and a shock ring off the boulder, its next lane flashing ahead
-        this.chipsAt(e.x, e.z, 8, 3, 4); this.cloud(e.x, e.z, 0.6, 5, 1.3);
-        this.wave(e.x, e.z, 0.8, 3.6, 0.32); this.wave(e.x, e.z, 0.5, 2.4, 0.25, LAVA);
-        this.bang(e.x, y + 1.6, e.z, 3.2); this.fire.impact(e.x, y + 1.4, e.z, false, 2);
-        this.lane = { t: 0, x: e.x, z: e.z, a: e.angle, len: e.length };
-        const rig = this.monster.rig(e.id); if (rig) rig.hopT = 0; // the boulder bounces off (monsters.js)
-        this.monster.onShake?.(0.14, 0.12);
-        return true;
-      }
       case 'fissureFist': {
         const x = e.x + Math.sin(e.angle) * (m.r + 0.3), z = e.z + Math.cos(e.angle) * (m.r + 0.3);
         this.chipsAt(x, z, 8, 2.5, 4); this.cloud(x, z, 0.5, 5, 1.3); this.bang(x, this.gy(x, z) + 0.4, z, 1.8); this.fire.impact(x, this.gy(x, z) + 0.5, z, false, 1.5);
@@ -310,15 +300,14 @@ export class WardenFx {
         if (dust && this.fx) { const a = Math.random() * 6.283, r = 1 + Math.random() * 3; this.fx.add(m.x + Math.sin(a) * r, y0 + 0.2, m.z + Math.cos(a) * r, -Math.sin(a) * 1.5 * k, 1.5 + 2 * k, -Math.cos(a) * 1.5 * k, { color: Math.random() < 0.5 ? 0xff8a2a : 0xffd070, size: 0.14, sizeEnd: 0.03, life: 0.7, drag: 0.5 }); }
       }
       // the boulder rolling: lava sparks thrown off it and dust behind
-      if (m.state === 'act' && m.charge && m.def.attacks[m.windup?.name]?.legs) {
+      if (m.state === 'act' && m.charge && m.windup?.name === 'boulder_roll') {
         // the boulder wrapped in fire streaming back along its roll (Firebolt's comet)
         comet = true;
-        // its tail swings round after a carom rather than snapping (the shortest way, quickly)
         if (!this.comet.visible) this.cometA = m.charge.angle;
         this.cometA += Math.atan2(Math.sin(m.charge.angle - this.cometA), Math.cos(m.charge.angle - this.cometA)) * Math.min(1, dt * 9);
         const hopY = this.monster.rig(m.id)?.hopY || 0;
         this.comet.position.set(m.x, y0 + 1.9 + hopY, m.z); this.comet.rotation.set(0, this.cometA - Math.PI / 2, 0);
-        for (const q of this.comet.children) { q.material.uniforms.uTime.value = this.time; q.material.uniforms.uAlpha.value = Math.min(1, m.charge.t / 0.08 + (m.charge.leg ? 1 : 0)); }
+        for (const q of this.comet.children) { q.material.uniforms.uTime.value = this.time; q.material.uniforms.uAlpha.value = Math.min(1, m.charge.t / 0.08); }
         if (dust) { this.puff(m.x, y0 + 0.4, m.z, 0, 0.3, 0, 1.3, 0.7); this.fire.burst(m.x, y0 + 1.4, m.z, 2, 1.2, 1.5); }
       }
       if (m.state === 'windup' && w?.name === 'core_eruption') {
@@ -356,19 +345,6 @@ export class WardenFx {
     } else if (!reach) this.reach.visible = false;
     if (reach) this.reach.material.uniforms.uA.value = 1;
     for (let i = gi; i < GLOWS; i++) this.glows[i].visible = false;
-    // the next leg's lane after a carom, flashing as it goes
-    if (this.lane && this.lane.t < 0.5) {
-      const L = this.lane; L.t += dt;
-      const fade = 1 - L.t / 0.5, sx = Math.cos(L.a) * 1.3, sz = -Math.sin(L.a) * 1.3;
-      this.two[0].set(L.x, this.gy(L.x, L.z) + 0.05, L.z); const fx = L.x + Math.sin(L.a) * L.len, fz = L.z + Math.cos(L.a) * L.len; this.two[1].set(fx, this.gy(fx, fz) + 0.05, fz);
-      RW.v = 2.6; this.core.strip(this.two, lineW, 0.3 * fade, WARN.glow);
-      for (const s of [-1, 1]) {
-        this.two[0].set(L.x + sx * s, this.gy(L.x, L.z) + 0.06, L.z + sz * s);
-        const ex = L.x + Math.sin(L.a) * L.len + sx * s, ez = L.z + Math.cos(L.a) * L.len + sz * s;
-        this.two[1].set(ex, this.gy(ex, ez) + 0.06, ez);
-        RW.v = 0.08; this.glow.strip(this.two, lineGlowW, 0.4 * fade, WARN.glow); this.core.strip(this.two, lineW, 0.9 * fade, WARN.edge);
-      }
-    }
     // the fissures: glowing cracks across the true lane through the wind-up; the curtain; the lava lane crusting over
     for (const a of g.areas) {
       if (a.kind !== 'lava_fissure' || !a.fence) continue;

@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { RigBuilder, damp, clamp01 } from './rig.js';
 
 export const LEVIATHAN_SEGS = 16;
-const Y0 = 0.111, STEP = 0.1153, MAX = 260, LEAD = 1.0, BODY = 0.27; // (BODY: its girth in rig units)
+const Y0 = 0.111, STEP = 0.1153, MAX = 260, LEAD = 1.0, EMERGE = 3.2, RISE = 0.9;
 const _d = new THREE.Vector3(), _a = new THREE.Vector3();
 const ease = (x) => x * x * (3 - 2 * x);
 
@@ -73,13 +73,23 @@ export function animLeviathan(r, s, dt, time) {
   if (target > -0.5 && (B.hy ?? 0) < -1) B.riseT = 0;
   B.riseT = (B.riseT ?? 9) + dt;
   B.hy = target < (B.hy ?? 0) ? target : damp(B.hy ?? 0, target, 9, dt);
-  const headY = B.hy + (B.riseT < 0.6 ? Math.sin(Math.PI * Math.min(1, B.riseT / 0.6)) * 2.2 : 0), ground = Math.abs(target) < 0.05 && B.riseT >= 0.6;
+  // (round 5, owner: "moving, it warps": bursting straight up and dropping back on the same spot folded its body down
+  // onto itself in the hole, crushing it) it arcs up out of the hole and lays its head down EMERGE m on, so its body
+  // flows out of the hole and along the ground; that lead is given back only as it moves on, never faster than half
+  // its pace, so its head never runs back over its body
+  const ru = Math.min(1, B.riseT / RISE);
+  if (B.riseT < RISE) B.emOff = EMERGE * ease(ru);
+  else if (moving) B.emOff = Math.max(0, (B.emOff || 0) - md * 0.5);
+  const headY = B.hy + (B.riseT < RISE ? Math.sin(Math.PI * ru) * 2.4 : 0), ground = Math.abs(target) < 0.05 && B.riseT >= RISE;
   const amp = (ground ? 0.1 : 0) * L * B.moveW;
   // (the head leads the root by LEAD m, so turning on the spot swings the head round and the body follows it)
   // under the ground it keeps digging on, forward and down, so its whole body pours into the hole after it even
   // when it stays put (tremor sense, after its leap)
-  B.dig = target < -1 ? Math.min(L * 1.3, (B.dig || 0) + dt * L * 1.2) : 0;
-  const hx = rx + fx * (B.zh * sc + LEAD + B.dig * 0.35) + sx * amp * Math.sin(B.ph), hz = rz + fz * (B.zh * sc + LEAD + B.dig * 0.35) + sz * amp * Math.sin(B.ph), hy = B.y0 * sc + headY - B.dig * 0.9;
+  const dig0 = B.dig || 0;
+  B.dig = target < -1 ? Math.min(L * 1.3, dig0 + dt * L * 1.2) : 0;
+  if (B.dig > dig0) B.emOff = Math.max(0, (B.emOff || 0) - (B.dig - dig0) * 0.3); // (digging on, its head still goes forward)
+  const lead = B.zh * sc + LEAD + B.dig * 0.35 + (B.emOff || 0);
+  const hx = rx + fx * lead + sx * amp * Math.sin(B.ph), hz = rz + fz * lead + sz * amp * Math.sin(B.ph), hy = B.y0 * sc + headY - B.dig * 0.9;
   if (!B.init || md >= L * 0.5) {
     // laid out straight behind the head, at the head's height (under the ground it stays under)
     B.n = 0; for (let k = 50; k >= 1; k--) push(B, hx - fx * k * L / 44, hy, hz - fz * k * L / 44);
@@ -95,18 +105,11 @@ export function animLeviathan(r, s, dt, time) {
     P[i].set((dx * c - dz * sn) / sc, _a.y / sc, (dx * sn + dz * c) / sc);
   }
   // (owner, round 3: "parts of it lie over each other, and it twists and warps") the body is eased round its bends,
-  // so a sharp turn of the head never folds it into a kink, and where it would cross itself the part further back
-  // rises over the part in front, as a snake's does, instead of passing through it
+  // so a sharp turn of the head never folds it into a kink (round 5: lifting a part over another where it would cross
+  // tipped whole stretches of it onto their side in a tight curve, belly up, and is gone)
   for (let it = 0; it < 2; it++) for (let i = 2; i < LEVIATHAN_SEGS; i++) {
     const p = P[i], a0 = P[i - 1], a1 = P[i + 1];
     p.x += ((a0.x + a1.x) / 2 - p.x) * 0.3; p.y += ((a0.y + a1.y) / 2 - p.y) * 0.3; p.z += ((a0.z + a1.z) / 2 - p.z) * 0.3;
-  }
-  for (let i = 0; i <= LEVIATHAN_SEGS - 3; i++) for (let j = i + 3; j <= LEVIATHAN_SEGS; j++) {
-    const a0 = P[i], a1 = P[j], dx = a1.x - a0.x, dz = a1.z - a0.z, d = Math.hypot(dx, dz);
-    if (d >= BODY || Math.abs(a1.y - a0.y) > BODY) continue;
-    const k = 1 - d / BODY, nx = d > 1e-5 ? dx / d : 1, nz = d > 1e-5 ? dz / d : 0, push = (BODY - d) * 0.35;
-    a1.x += nx * push; a1.z += nz * push; a0.x -= nx * push; a0.z -= nz * push;
-    a1.y = Math.max(a1.y, a0.y + BODY * 0.8 * k);
   }
   // the poses (eased): rear (the cobra stance facing its prey; higher before the smash and as it roars), back (drawn
   // back before the smash), slam (the front thrown down onto the ground and held a moment), roar (its shake)

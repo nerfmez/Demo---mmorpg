@@ -471,6 +471,12 @@ for the normal one.
   where it runs. It rears like a cobra and turns its head to its prey only while it is settled; on the move its head
   goes where its body goes (reared and looking aside while running wrung its neck). Its coil's ring is never tighter
   than `ring` - 0.5 m.
+- **Earthburrow leviathan, round 5** (owner: "it warps even worse; did you really check?"): round 4 was not checked
+  close enough. Its lift for body parts that crossed (added in round 3) tipped stretches of the body belly-up: it is
+  gone. The real fold came from coming out of the ground straight up and dropping on the spot, which bent the body
+  back into the hole; it now comes out arcing forward `EMERGE` (3.2 m) over `RISE` (0.9 s), and the lead decays as it
+  moves. Checked with close game-camera frames of the coil, the breach and the arc leap and a dump of every bone's
+  height. Still weak: the coil's start makes one tight turn onto the ring.
 - **Horned warden, round 1** (2026-11-07, owner: "next"; the boss, five attacks and a second phase): researched first.
   It is the owner's lava-seamed stone titan with a shield that curls into a horned boulder, so the phenomena are lava
   and a shield wall: pahoehoe lava chills to a crust that cracks and glows where the molten inside breaks out

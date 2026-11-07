@@ -789,7 +789,27 @@ function animGolem(r, s, dt, time) {
   const hip0 = b.hips.userData.rest?.pos.y ?? 1.05; // the hips' rest height (a model may move them: the rune golem's)
   let hipsY = hip0 - drop - c.bob * thud;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
-  if (s.windup === 'throw') {
+  // the crag golem (docs/MONSTER-ATTACKS.md): hammer fists - both fists raised high and held, then down; boulder
+  // hurl - stooped to wrench a boulder up out of the ground, then raised overhead and hurled; rock orbit - arms spread
+  // wide as the rubble lifts, the body turning with the swing, then thrust out to fling it
+  if (s.windup === 'hammer_fists') {
+    const up = Math.min(1, k / 0.6);
+    armL = [-2.9 * up, 0, 0.45 * up]; armR = [-2.9 * up, 0, -0.45 * up];
+    torsoX = 0.1 - 0.35 * up; hipsY += 0.1 * up;
+  } else if (s.state === 'recover' && s.lastAttack === 'hammer_fists' && s.actT < 0.8) {
+    armL = [-0.4, 0, 0.35]; armR = [-0.4, 0, -0.35]; torsoX = 0.7; hipsY -= 0.25;
+  } else if (s.windup === 'boulder_hurl') {
+    const lift = Math.min(1, Math.max(0, (k - 0.3) / 0.45));
+    armL = [-0.5 - 2.4 * lift, 0, 0.25]; armR = [-0.5 - 2.4 * lift, 0, -0.25];
+    torsoX = 0.75 * (1 - lift) - 0.35 * lift; hipsY -= 0.25 * (1 - lift);
+  } else if (s.state === 'recover' && s.lastAttack === 'boulder_hurl' && s.actT < 0.5) {
+    armL = [-1.0, 0, 0.3]; armR = [-1.0, 0, -0.3]; torsoX = 0.45;
+  } else if (s.windup === 'rock_orbit' || s.orbit) {
+    const sp = s.orbit ? 1 : k;
+    armL = [-0.9 * sp, 0, 1.1 * sp]; armR = [-0.9 * sp, 0, -1.1 * sp]; torsoX = -0.1 * sp;
+  } else if (s.state === 'recover' && s.lastAttack === 'rock_orbit' && s.actT < 0.4) {
+    armL = [-1.4, 0, 0.6]; armR = [-1.4, 0, -0.6]; torsoX = 0.2;
+  } else if (s.windup === 'throw') {
     armL = [-2.8 * k, 0, 0.3];
     armR = [-2.8 * k, 0, -0.3];
     torsoX = 0.1 - 0.3 * k;
@@ -817,7 +837,7 @@ function animGolem(r, s, dt, time) {
   P.hipsY = damp(P.hipsY, hipsY + drop + c.bob * thud, 12, dt);
   b.torso.rotation.x = P.torsoX + thud * 0.04;
   b.torso.rotation.z = Math.sin(ph) * c.roll * w;
-  b.torso.rotation.y = -Math.sin(ph) * c.sway * w;
+  b.torso.rotation.y = -Math.sin(ph) * c.sway * w + (s.orbit ? Math.sin(time * 2.6) * 0.25 : 0); // (it turns with the swing of the rubble)
   const br = breath(time, r.seed, c) * (1 - w);
   b.torso.scale.set(1 + br, 1 + br * 0.5, 1 + br);
   b.hips.position.y = P.hipsY - drop - c.bob * thud;

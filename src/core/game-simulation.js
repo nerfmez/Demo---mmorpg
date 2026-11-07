@@ -2229,6 +2229,8 @@ export class Game {
             this.damageUnit(u, a.damage, src, { attack: a.attack });
           }
           this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner, source: a.sourceId, attack: a.attack });
+          // a.shards (the crag golem's boulder): it shatters into fragments skidding out along the lanes it was marked with
+          if (a.shards) for (const ang of a.shards.angles) this.spawnProjectile({ owner: 'monster', sourceId: a.sourceId, kind: 'rock_shard', attack: a.attack, x: a.x, z: a.z, y: 0.5, angle: ang, speed: a.shards.speed, radius: a.shards.radius, range: a.shards.range, damage: a.shards.damage });
         }
       }
       if (a.trap) tickTrap(this, a, dt);

@@ -1653,3 +1653,72 @@ test('duskmane stalker sprint chase: it bends after the hero but turns slowly: s
   assert.equal(b.m.state, 'recover');
   assert.equal(b.g.events.filter((e) => e.type === 'sprintSkid').length, 1);
 });
+
+test('crag golem hammer fists: a slam before it, then the aftershock through the band around it; standing just outside the slam is caught later', () => {
+  const a = M.crag_golem.attacks.hammer_fists;
+  assert.equal(M.crag_golem.normal, 'hammer_fists');
+  const { m, g, hits, until, step, place } = arena('crag_golem', 33, { open: true, normal: true });
+  place(1.5);
+  until(() => m.windup?.name === 'hammer_fists', 1);
+  const slam = g.areas.find((x) => x.kind === 'golem_slam'), after = g.areas.find((x) => x.kind === 'golem_aftershock');
+  assert.ok(slam && after && after.inner === a.radius && after.radius === a.ring, 'both marked at once');
+  assert.ok(Math.abs(after.delay - slam.delay - a.after) < 1e-9);
+  step(slam.delay - 0.05);
+  assert.equal(hits.length, 0);
+  step(0.1);
+  assert.equal(hits.length, 1, 'the slam');
+  step(a.after + 0.1);
+  assert.equal(hits.length, 1, 'inside the slam the aftershock passes over');
+  // stepped back out of the slam into the band: the aftershock catches it
+  const b = arena('crag_golem', 33, { open: true, normal: true });
+  b.place(1.5);
+  b.until(() => b.m.windup?.name === 'hammer_fists', 1);
+  const c = b.g.areas.find((x) => x.kind === 'golem_slam');
+  Object.assign(b.g.player, { x: c.x, z: c.z + (a.radius + a.ring) / 2 + 0.2 });
+  b.step(c.delay + a.after + 0.2);
+  assert.equal(b.hits.length, 1, 'the aftershock');
+});
+
+test('crag golem boulder hurl: the landing marked where the hero stood, then fragments skid out along the marked lanes', () => {
+  const a = M.crag_golem.attacks.boulder_hurl;
+  const { m, g, hits, until, step, only, place } = arena('crag_golem', 33, { open: true });
+  only('boulder_hurl'); place(7);
+  until(() => m.windup?.name === 'boulder_hurl', 1);
+  const land = g.areas.find((x) => x.kind === 'boulder');
+  assert.ok(Math.hypot(land.x - g.player.x, land.z - g.player.z) < 1e-9, 'where the hero stands');
+  assert.equal(land.shards.angles.length, a.shards);
+  // out of the landing but on a lane: a fragment
+  const ang = land.shards.angles[0];
+  Object.assign(g.player, { x: land.x + Math.sin(ang) * (a.radius + 1.2), z: land.z + Math.cos(ang) * (a.radius + 1.2) });
+  step(land.delay - 0.05);
+  assert.equal(hits.length, 0);
+  step(0.1);
+  assert.equal(hits.length, 0, 'out of the landing');
+  assert.equal(g.projectiles.filter((p) => p.kind === 'rock_shard').length, a.shards, 'shattered');
+  for (let t = 0; t < 1; t += 0.01) { g.time += 0.01; g.updateProjectiles(0.01); }
+  assert.equal(hits.length, 1, 'a fragment on its lane');
+});
+
+test('crag golem rock orbit: rubble swings round it striking what it passes, each rock once, then is flung straight out', () => {
+  assert.ok(M.crag_golem.attacks.rock_orbit.ring - M.crag_golem.attacks.rock_orbit.rockRadius - 0.4 > M.crag_golem.radius + 0.5, 'room to hug it inside the ring');
+  const a = M.crag_golem.attacks.rock_orbit;
+  const { m, g, hits, until, step, only, place } = arena('crag_golem', 33, { open: true });
+  only('rock_orbit');
+  // standing in the orbit's band
+  Object.assign(g.player, { x: 0, z: a.ring });
+  until(() => m.windup?.name === 'rock_orbit', 1);
+  until(() => m.state === 'act', 2);
+  step(a.spin - 0.05);
+  const turns = (a.turnSpeed * a.spin) / (Math.PI * 2);
+  assert.ok(hits.length >= a.rocks - 1 && hits.length <= a.rocks, `each rock passes once (${hits.length})`);
+  assert.ok(turns > 0.75, 'swung most of the way round');
+  step(0.1);
+  assert.equal(g.projectiles.filter((p) => p.kind === 'rock_shard').length, a.rocks, 'flung out');
+  assert.ok(!m.orbit && m.state === 'recover');
+  // hugging it, inside the ring: safe from the swing
+  const b = arena('crag_golem', 33, { open: true });
+  b.only('rock_orbit'); Object.assign(b.g.player, { x: 0, z: b.m.r + b.g.player.r + 0.1 });
+  b.until(() => b.m.state === 'act', 3);
+  b.step(a.spin + 1);
+  assert.equal(b.hits.length, 0, 'inside the ring');
+});

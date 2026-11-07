@@ -75,7 +75,7 @@ export const SKILL_FX = new Set(['slash', 'firebolt', 'chain_spark', 'frost_nova
 // the trapper's traps drawn by TrapFx (skillfx/trap-fx.js): their set, spring and end
 const TRAP_FX = new Set(['spike_trap', 'net_trap', 'blast_trap', 'trap_field', 'flame_geyser', 'frost_jaw', 'lightning_rod', 'spore_pod', 'gravity_rune']);
 // projectiles drawn here instead of by the old renderer
-export const OWN_PROJECTILES = new Set(['stingers', 'piglet', 'mossball', 'shadow_wolf', 'phantom_wolf', 'wisp_orb', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
+export const OWN_PROJECTILES = new Set(['stingers', 'piglet', 'mossball', 'shadow_wolf', 'phantom_wolf', 'wisp_orb', 'rock_shard', 'spray', 'boomerang', 'venom_mire', 'charged_shot', 'light_chain', 'spell_wave', 'frost_shatter_arrow', 'ice_ball']);
 // melee contacts that are not the Slash crescent (they draw their own effect on each 'slash')
 const OWN_STRIKE = new Set(['weakpoint', 'backstab', 'interrupt_slam', 'shield_bash', 'sky_shatter', 'flame_slash', 'thunder_slash']);
 const SWING_LEAD = 0.12;
@@ -505,6 +505,8 @@ export class SkillFx {
       case 'wispOrbs': case 'lure': return this.monster.wisp.event(e, g);
       // the ironhorn ram (skillfx/ram-fx.js)
       case 'hornHook': case 'clash': return this.monster.ram.event(e, g);
+      // the crag golem (skillfx/golem-fx.js)
+      case 'golemSlam': case 'golemHurl': case 'orbitStart': case 'orbitHit': case 'orbitFling': return this.monster.golem.event(e, g);
       // the duskmane stalker (skillfx/stalker-fx.js)
       case 'duskVanish': case 'pawPrint': case 'duskReveal': case 'duskLunge': case 'duskRake': case 'sprintGo': case 'sprintHit': case 'sprintSkid': return this.monster.stalker.event(e, g);
       // the gale hawk (skillfx/hawk-fx.js)
@@ -556,6 +558,7 @@ export class SkillFx {
       }
       case 'burst':
         if (e.source != null) this.monster.burst(e, g); // a kit monster's landing (the old dust still draws)
+        if (e.kind === 'golem_slam' || e.kind === 'golem_aftershock' || e.kind === 'boulder') return true; // (drawn in full by golem-fx)
         if (e.kind === 'storm_bolt') { this.monster.hawk.strike(e); return true; } // the gale hawk's thunder wings
         if (e.kind === 'marsh_gas') { this.monster.wisp.ignite(e); return true; } // the marsh wisp's gas catching fire
         if (e.kind === 'arrow_rain') { this.rain.burst(e); return true; }
@@ -592,7 +595,8 @@ export class SkillFx {
       }
       case 'impact': {
         if (e.kind === 'boomerang') { this.monster.leafCut(e, g); return true; }
-        if (e.kind === 'wisp_orb') { this.monster.wisp.impact(e); return true; } // the marsh wisp's lost light
+        if (e.kind === 'wisp_orb') { this.monster.wisp.impact(e); return true; }
+        if (e.kind === 'rock_shard') { this.monster.golem.impact(e); return true; } // the crag golem's flung stones // the marsh wisp's lost light
         if (e.kind === 'stingers') { this.monster.grotto.sting(e); return true; } // a pearl slug's stinger on what it touches
         if (e.kind === 'venom_mire') { this.venom.impact(e); return true; }
         if (e.kind === 'charged_shot') { this.power.impact(e, this.powerRatio); return true; }

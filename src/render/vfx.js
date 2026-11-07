@@ -1367,7 +1367,7 @@ export class Vfx {
 
   makeArea(a) {
     // the pearl grotto's trails, eggs and tail wave are drawn in skillfx/grotto-fx.js
-    if (a.kind === 'mucus' || a.kind === 'pearl_slime' || a.kind === 'pearl_egg' || a.look === 'wave' || a.kind === 'brine' || a.kind === 'fairy_ring' || a.kind === 'sleep_cloud' || a.kind === 'moss_patch' || a.kind === 'bog_pool' || a.kind === 'storm_fence') return null; // and the marsh wisp's bog (wisp-fx.js), the gale hawk's storm feathers (hawk-fx.js), the salt slime's brine (slime-fx.js), the sporecap's ring and cloud (spore-mon-fx.js)
+    if (a.kind === 'mucus' || a.kind === 'pearl_slime' || a.kind === 'pearl_egg' || a.look === 'wave' || a.kind === 'brine' || a.kind === 'fairy_ring' || a.kind === 'sleep_cloud' || a.kind === 'moss_patch' || a.kind === 'bog_pool' || a.kind === 'storm_fence' || a.kind === 'golem_slam' || a.kind === 'golem_aftershock' || a.kind === 'boulder') return null; // and the marsh wisp's bog (wisp-fx.js), the gale hawk's storm feathers (hawk-fx.js), the salt slime's brine (slime-fx.js), the sporecap's ring and cloud (spore-mon-fx.js)
     const fadeInOut = (ar) => {
       const live = ar.t - ar.delay;
       return Math.max(0, Math.min(1, live * 5) * Math.min(1, (ar.duration - live) * 2));

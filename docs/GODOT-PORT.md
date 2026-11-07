@@ -643,7 +643,15 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   `width`/2 of the path once (`duskRake`). **`sprint_chase`** (`m.sprint`): runs at `speed` m/s for up to `duration`
   s, its heading turning toward its prey at most `turn` rad/s; the first unit within reach is hit with `knock`
   (`sprintHit`, recover); passed its prey or out of time, it skids (`sprintSkid`, recover `skid`). Its normal
-  `dusk_swat` is a `rake` combo. Render: skillfx/stalker-fx.js. Render: skillfx/ram-fx.js (light-kit spark streaks, ground-kit rocks and crater
+  `dusk_swat` is a `rake` combo. Render: skillfx/stalker-fx.js. The crag golem: **`hammer_fists`** marks two areas at
+  wind-up start `reach` m before it: `golem_slam` (`radius`, at the wind-up's end) and `golem_aftershock` (a ring,
+  `inner` = `radius` to `ring`, `after` s later, `afterMult` x its damage); **`boulder_hurl`** marks an area `boulder`
+  where its prey stands (landing `flight` s after the wind-up) carrying `shards` {angles (seeded at wind-up start),
+  speed, range, radius, damage}: when it goes off, `updateAreas` spawns a `rock_shard` projectile along each angle;
+  **`rock_orbit`** (`m.orbit`): `rocks` rocks `ring` m round it turning at `turnSpeed` rad/s for `spin` s, each
+  striking a unit within `rockRadius` once (`orbitHit`), then each flung straight out as a `rock_shard` projectile
+  (`flingSpeed`, `flingRange`; `orbitFling`). Render: skillfx/golem-fx.js (warnDisc discs, a band shader with its
+  numbers in uniforms, ground-kit rocks and craters). Render: skillfx/ram-fx.js (light-kit spark streaks, ground-kit rocks and crater
   decals, partial-ring shock waves as ribbon strips; glow sprites on the horns). `charge` (boar) is the only straight rush left,
   besides the stalker `pounce` leap and the warden's `roll` (the gale hawk now stoops, below).
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an

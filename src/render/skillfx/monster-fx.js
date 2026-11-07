@@ -31,6 +31,7 @@ import { WispFx } from './wisp-fx.js';
 import { HawkFx } from './hawk-fx.js';
 import { RamFx } from './ram-fx.js';
 import { StalkerFx } from './stalker-fx.js';
+import { GolemFx } from './golem-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -108,6 +109,8 @@ export class MonsterFx {
     this.ram = new RamFx(scene, host, this);
     // the duskmane stalker's swat, dusk stalk and sprint (skillfx/stalker-fx.js)
     this.stalker = new StalkerFx(scene, host, this);
+    // the crag golem's slam, boulder and rubble orbit (skillfx/golem-fx.js)
+    this.golem = new GolemFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -244,6 +247,7 @@ export class MonsterFx {
 
   /** A marked area went off (core burst with its source monster). */
   burst(e, g) {
+    if (this.golem.burst(e)) return;
     const m = e.source != null ? g.monsterById?.(e.source) : null;
     if (m?.type === 'rootdigger_mole' && e.attack === 'erupt') return this.mole.burst(e);
     if (m?.type === 'fern_ear_hare' && (e.attack === 'thump' || e.attack === 'hop')) return this.hareLand(e, e.attack === 'thump');
@@ -424,6 +428,7 @@ export class MonsterFx {
     this.hawk.update(dt, g);
     this.ram.update(dt, g);
     this.stalker.update(dt, g);
+    this.golem.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

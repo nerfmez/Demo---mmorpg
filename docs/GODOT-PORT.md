@@ -635,7 +635,15 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   `stopOnHit` (it pulls up on the first unit it strikes, event `clash`). **`hook`** (the ram): `use.side` picks it only
   for a target 35 to 145 degrees off its facing; it keeps its facing, the wind-up's `angle` is the middle of the cone
   `off` degrees round that side (`w.side`, `w.face`), and units in `range`/`arc` there are flung `knock` out
-  sideways (event `hornHook`). Render: skillfx/ram-fx.js (light-kit spark streaks, ground-kit rocks and crater
+  sideways (event `hornHook`). **`dusk_stalk`** (the duskmane stalker; `m.stalk` {phase creep | aim | lunge}): at
+  the wind-up's end it goes unseen and out of reach (`m.stealth`, `targetable` false; data `kit.stealthy` lets the view
+  fade it) and creeps for `creep` s at `creepSpeed` m/s toward the point `ring` m behind its prey (by the prey's
+  facing), swinging round it rather than through it, emitting `pawPrint` {x, z, angle, foot} every `print` m; then
+  `duskReveal` (shown again, lane locked for `aim` s), and a lunge of `lunge` m at `speed` m/s hitting units within
+  `width`/2 of the path once (`duskRake`). **`sprint_chase`** (`m.sprint`): runs at `speed` m/s for up to `duration`
+  s, its heading turning toward its prey at most `turn` rad/s; the first unit within reach is hit with `knock`
+  (`sprintHit`, recover); passed its prey or out of time, it skids (`sprintSkid`, recover `skid`). Its normal
+  `dusk_swat` is a `rake` combo. Render: skillfx/stalker-fx.js. Render: skillfx/ram-fx.js (light-kit spark streaks, ground-kit rocks and crater
   decals, partial-ring shock waves as ribbon strips; glow sprites on the horns). `charge` (boar) is the only straight rush left,
   besides the stalker `pounce` leap and the warden's `roll` (the gale hawk now stoops, below).
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an

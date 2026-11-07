@@ -30,6 +30,7 @@ import { ViperFx } from './viper-fx.js';
 import { WispFx } from './wisp-fx.js';
 import { HawkFx } from './hawk-fx.js';
 import { RamFx } from './ram-fx.js';
+import { StalkerFx } from './stalker-fx.js';
 
 const LEAF_HALO = new THREE.Color('#ff5a1e'), LEAF_RIM = new THREE.Color('#ffe2b0');
 // the tanuki's own colours: the drum's warm gold sound, its green head-leaf, its transformation smoke
@@ -105,6 +106,8 @@ export class MonsterFx {
     this.hawk = new HawkFx(scene, host, this);
     // the ironhorn ram's clash, charge and hook (skillfx/ram-fx.js)
     this.ram = new RamFx(scene, host, this);
+    // the duskmane stalker's swat, dusk stalk and sprint (skillfx/stalker-fx.js)
+    this.stalker = new StalkerFx(scene, host, this);
     this.splashes = new Set(); // flop landings already drawn (area ids)
     this.rings = new Set(); // drum rings already drawn (area ids)
     this.spinLeaf = -1; // the leaf instance riding a boomerang
@@ -115,6 +118,7 @@ export class MonsterFx {
   /** A strike reached its contact (core monsterSwing); true when drawn here. */
   swing(e, g) {
     if (this.ram.swing(e)) return true;
+    if (this.stalker.swing(e)) return true;
     if (this.grotto.swing(e, g)) return true;
     if (this.wolf.swing(e)) return true;
     if (this.hermit.swing(e, g)) return true;
@@ -419,6 +423,7 @@ export class MonsterFx {
     this.wisp.update(dt, g);
     this.hawk.update(dt, g);
     this.ram.update(dt, g);
+    this.stalker.update(dt, g);
     this.mole.update(dt, g);
     this.moth.update(dt);
     this.crab(g, dt);

@@ -505,6 +505,8 @@ export class SkillFx {
       case 'wispOrbs': case 'lure': return this.monster.wisp.event(e, g);
       // the ironhorn ram (skillfx/ram-fx.js)
       case 'hornHook': case 'clash': return this.monster.ram.event(e, g);
+      // the duskmane stalker (skillfx/stalker-fx.js)
+      case 'duskVanish': case 'pawPrint': case 'duskReveal': case 'duskLunge': case 'duskRake': case 'sprintGo': case 'sprintHit': case 'sprintSkid': return this.monster.stalker.event(e, g);
       // the gale hawk (skillfx/hawk-fx.js)
       case 'stoop': case 'stoopHit': case 'thunderWings': case 'stormBeat': case 'stormFeathers': case 'fencePulse': return this.monster.hawk.event(e, g);
       case 'viperStrike': case 'coilDash': case 'coilGrab': case 'coilFree': case 'coilEnd': case 'tailLash': case 'tailCut': return this.monster.viper.event(e, g);

@@ -364,39 +364,48 @@ function buildStalker() {
 
 function animStalker(r, s, dt, time) {
   const b = r.bones, legs = r.legs, k = windK(s), cfg = r.motion;
-  const leaping = s.state === 'act' && s.lastAttack === 'pounce';
   // a cat's walk: long smooth strides, shoulder blades rolling, the head gliding level
   const w = advanceGait(r, s, dt, cfg);
   const ph = r.phase, run = r.runK;
   const drop = poseLegs(r, cfg, legs);
   // a stalker walks low
   let bodyY = 0.62, bodyX = 0, headX = 0.08, jaw = 0, paw = null, tailLash = 0;
-  if (s.windup === 'pounce') {
-    bodyY = 0.62 - 0.24 * k; // belly to the ground, hind legs coiled
-    bodyX = 0.1 * k;
-    headX = 0.2 * k;
-    tailLash = k;
-  } else if (s.windup === 'claw') {
-    bodyX = -0.25 * k;
-    paw = -1.4 * k; // a forepaw raised high
-    jaw = 0.4 * k;
-  } else if (leaping) {
-    bodyX = -0.15;
-    bodyY = 0.76;
-    for (const i of [0, 1]) b[legs[i]].rotation.x = -1.1;
-    for (const i of [2, 3]) b[legs[i]].rotation.x = 0.9;
-    jaw = 0.7;
-  } else if (s.state === 'act' && s.lastAttack === 'claw') {
-    const c = clamp01(s.actT / Math.max(0.01, s.hitTime || 0.1));
-    paw = -1.4 + 1.9 * c;
-    bodyX = -0.25 + 0.35 * c;
+  // (docs/MONSTER-ATTACKS.md) twin swat: up on its haunches a little, a forepaw cocked high, then one paw and the
+  // other slapping down and across; dusk stalk: belly to the ground while it fades, creeping low with its head level,
+  // frozen with its rump wiggling when it shows itself, then a long low spring; sprint chase: crouched, rump wiggling,
+  // then a flat-out run with its head low and forward
+  let paw2 = null, wiggle = 0;
+  const since = s.state === 'act' ? s.actT : 9;
+  if (s.windup === 'dusk_swat') {
+    bodyX = -0.3 * k; bodyY = 0.62 + 0.06 * k;
+    paw = -1.5 * k; jaw = 0.4 * k;
+  } else if (s.state === 'act' && s.lastAttack === 'dusk_swat') {
+    const h1 = clamp01(since / 0.08), h2 = clamp01((since - 0.2) / 0.1);
+    paw = -1.5 + 2.0 * h1 - 0.4 * h2;
+    paw2 = since < 0.2 ? -1.3 * clamp01((since - 0.06) / 0.12) : -1.3 + 1.8 * h2;
+    bodyX = -0.3 + 0.35 * h1 - 0.15 * (since > 0.12 && since < 0.24 ? 1 : 0) + 0.2 * h2;
     jaw = 0.5;
+  } else if (s.windup === 'dusk_stalk' || s.stalk === 'creep') {
+    bodyY = 0.42; headX = 0.02; bodyX = 0.04; tailLash = 0.2;
+  } else if (s.stalk === 'aim') {
+    bodyY = 0.4; headX = 0.12; wiggle = 1; tailLash = 1;
+  } else if (s.stalk === 'lunge') {
+    bodyX = -0.1; bodyY = 0.7; jaw = 0.8;
+    for (const i of [0, 1]) b[legs[i]].rotation.x = -1.15;
+    for (const i of [2, 3]) b[legs[i]].rotation.x = 0.95;
+  } else if (s.windup === 'sprint_chase') {
+    bodyY = 0.62 - 0.2 * k; bodyX = 0.08 * k; headX = 0.22 * k; wiggle = k; tailLash = k;
+  } else if (s.sprinting) {
+    headX = 0.25; bodyX = 0.06; jaw = 0.3;
   } else if (s.state === 'recover') {
     bodyX = 0.05;
   }
+  if (paw2 !== null) b[legs[1]].rotation.x = paw2;
   if (paw !== null) b[legs[0]].rotation.x = paw;
   // the swipe also comes across the body (seen from above, the claws carve a crescent)
-  b[legs[0]].rotation.z = s.windup === 'claw' ? 0.55 * k : s.state === 'act' && s.lastAttack === 'claw' ? 0.55 - 1.1 * clamp01(s.actT / Math.max(0.01, s.hitTime || 0.1)) : damp(b[legs[0]].rotation.z, 0, 14, dt);
+  const swat = s.state === 'act' && s.lastAttack === 'dusk_swat';
+  b[legs[0]].rotation.z = s.windup === 'dusk_swat' ? 0.55 * k : swat ? 0.55 - 1.1 * clamp01(since / 0.08) : damp(b[legs[0]].rotation.z, 0, 14, dt);
+  b[legs[1]].rotation.z = swat ? (since < 0.2 ? -0.55 * clamp01((since - 0.06) / 0.12) : -0.55 + 1.1 * clamp01((since - 0.2) / 0.1)) : damp(b[legs[1]].rotation.z, 0, 14, dt);
   if (s.hurt > 0) bodyX -= 0.2 * s.hurt;
   const P = r.pose || (r.pose = { x: 0, y: 0.62, z: 0, headX: 0 });
   P.y = damp(P.y, bodyY, 14, dt);
@@ -407,7 +416,7 @@ function animStalker(r, s, dt, time) {
   const roll = cfg.roll * w * Math.sin(ph) * (1 - 0.6 * run);
   b.body.position.y = P.y - drop + cfg.bob * w * (1 + run) * (0.5 + 0.5 * Math.cos(2 * ph));
   b.body.rotation.x = P.x + rock;
-  b.body.rotation.z = P.z + roll;
+  b.body.rotation.z = P.z + roll + wiggle * Math.sin(time * 18) * 0.09; // (a rump wiggle before it springs)
   b.chest.rotation.y = -cfg.sway * w * Math.sin(ph);
   b.chest.rotation.z = -roll * 1.4; // shoulder blades roll over each planted forepaw
   const br = breath(time, r.seed, cfg) * (1 - 0.6 * w);

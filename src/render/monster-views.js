@@ -121,7 +121,7 @@ export function syncMonsterViews(view, dt, time) {
       if (mv.halo) mv.halo.visible = false;
       // Keep hidden-state timers current, but do not emit off-camera transition
       // smoke, status particles, trail geometry or material updates.
-      if (m.def.behavior === 'stalker' || mv.fade < 1) {
+      if (m.def.behavior === 'stalker' || m.def.kit?.stealthy || mv.fade < 1) {
         mv.hidden = m.stealth && !m.dead;
         mv.fade = damp(mv.fade ?? 1, mv.hidden ? 0 : 1, 9, dt);
       }
@@ -181,6 +181,7 @@ export function syncMonsterViews(view, dt, time) {
     state.strikeT = since; state.fangAim = !!m.fangs; state.coil = m.coil ? m.coil.phase : null;
     // the gale hawk (monsters.js animHawk): how far down its stoop (and where the low stretch starts), its thunder wings (beats since they began)
     state.stoopK = m.stoop ? m.stoop.s / Math.max(0.01, m.stoop.len) : -1; state.stoopLow = m.stoop ? m.stoop.low / Math.max(0.01, m.stoop.len) : 1; state.stoopHigh = m.stoop ? m.stoop.high / Math.max(0.01, m.stoop.len) : 1;
+    state.stalk = m.stalk ? m.stalk.phase : null; state.sprinting = !!m.sprint; // the duskmane stalker
     state.hookSide = m.windup?.side ?? state.hookSide; // the ironhorn ram's hook
     state.storm = m.storm ? m.storm.t / m.def.attacks[m.storm.name].every : -1;
     state.blinkT = m.blinkedAt !== undefined ? (view.game?.time ?? 0) - m.blinkedAt : undefined; // the marsh wisp gathering again
@@ -220,7 +221,7 @@ export function syncMonsterViews(view, dt, time) {
     else if (m.statuses?.hex) setFlash(r.material, 0, 0, 0.12);
     else setFlash(r.material, 0, 0, 0);
     // a stalking monster is half-seen: the body fades, its eyes and outline stay readable
-    if (m.def.behavior === 'stalker' || mv.fade < 1) {
+    if (m.def.behavior === 'stalker' || m.def.kit?.stealthy || mv.fade < 1) {
       const hidden = m.stealth && !m.dead;
       if (mv.hidden !== undefined && mv.hidden !== hidden) {
         // vanishing or appearing: a puff of grey smoke hides the change

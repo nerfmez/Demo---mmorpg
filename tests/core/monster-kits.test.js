@@ -1584,3 +1584,72 @@ test('ironhorn ram horn hook: taken on a flank, its horns hook out to that side 
   assert.equal(hits[0].opts.knock.force, a.knock);
 });
 const angleOf = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+
+test('duskmane stalker twin swat: two paw strikes at their own times, stepping in; behind it is safe', () => {
+  const a = M.duskmane_stalker.attacks.dusk_swat;
+  assert.equal(M.duskmane_stalker.normal, 'dusk_swat');
+  const { m, g, hits, until, step, place } = arena('duskmane_stalker', 31, { open: true, normal: true });
+  place(0.6);
+  until(() => m.windup?.name === 'dusk_swat', 1);
+  until(() => m.state === 'act', 2);
+  assert.equal(hits.length, 0, 'nothing in the wind-up');
+  step(a.hits[0].at + 0.02);
+  assert.equal(hits.length, 1, 'the first paw');
+  step(a.hits[1].at - a.hits[0].at);
+  assert.equal(hits.length, 2, 'the second paw');
+  until(() => m.state !== 'act', 2);
+  assert.equal(hits.length, 2, 'never a third');
+  const b = arena('duskmane_stalker', 31, { open: true, normal: true });
+  b.place(0.6);
+  b.until(() => b.m.windup?.name === 'dusk_swat', 1);
+  b.step(b.m.windup.total * 0.7);
+  Object.assign(b.g.player, { x: 0, z: -(b.m.r + b.g.player.r + 0.5) });
+  b.until(() => b.m.state !== 'act' && b.m.state !== 'windup', 3);
+  assert.equal(b.hits.length, 0);
+});
+
+test('duskmane stalker dusk stalk: unseen and out of reach it creeps round to the hero\'s back leaving paw prints, shows itself, then lunges', () => {
+  const a = M.duskmane_stalker.attacks.dusk_stalk;
+  const { m, g, hits, until, step, only, place } = arena('duskmane_stalker', 31, { open: true });
+  only('dusk_stalk'); place(5);
+  g.player.facing = Math.PI; // the hero faces the stalker (toward -z): its back is at +z
+  until(() => m.windup?.name === 'dusk_stalk', 1);
+  until(() => m.state === 'act', 2);
+  assert.ok(m.stealth && m.targetable === false, 'gone into the dusk, out of reach');
+  assert.equal(g.hitMonster(m, 100, {}), 0, 'cannot be struck unseen');
+  until(() => m.stalk?.phase === 'aim', a.creep + 0.5);
+  assert.ok(g.events.filter((e) => e.type === 'pawPrint').length >= 5, 'paw prints left along the way');
+  assert.ok(m.z > g.player.z, 'round at the hero\'s back');
+  assert.ok(!m.stealth && m.targetable !== false, 'shown again to strike');
+  assert.equal(hits.length, 0, 'nothing before the lunge');
+  until(() => m.state === 'recover', 2);
+  assert.equal(hits.length, 1, 'raked once');
+  assert.ok(!m.stalk && !m.stealth && m.targetable !== false, 'clean afterwards');
+  // stepped out of the locked lane while it showed itself: missed
+  const b = arena('duskmane_stalker', 31, { open: true });
+  b.only('dusk_stalk'); b.place(5); b.g.player.facing = Math.PI;
+  b.until(() => b.m.stalk?.phase === 'aim', 5);
+  b.g.player.x += 2.5;
+  b.until(() => b.m.state === 'recover', 2);
+  assert.equal(b.hits.length, 0);
+});
+
+test('duskmane stalker sprint chase: it bends after the hero but turns slowly: standing still is bowled over, a late side-step makes it overrun', () => {
+  const a = M.duskmane_stalker.attacks.sprint_chase;
+  const { m, g, hits, until, only, place } = arena('duskmane_stalker', 31, { open: true });
+  only('sprint_chase'); place(8);
+  until(() => m.state === 'act', 2);
+  until(() => m.state !== 'act', a.duration + 0.5);
+  assert.equal(hits.length, 1, 'bowled over');
+  assert.equal(g.events.filter((e) => e.type === 'sprintHit').length, 1);
+  // a late step aside (2.5 m to the side when it is close): it cannot turn in time
+  const b = arena('duskmane_stalker', 31, { open: true });
+  b.only('sprint_chase'); b.place(8);
+  b.until(() => b.m.state === 'act', 2);
+  b.until(() => Math.hypot(b.m.x - b.g.player.x, b.m.z - b.g.player.z) < 3, 2);
+  b.g.player.x += 2.5;
+  b.until(() => b.m.state !== 'act', a.duration + 0.5);
+  assert.equal(b.hits.length, 0, 'overran');
+  assert.equal(b.m.state, 'recover');
+  assert.equal(b.g.events.filter((e) => e.type === 'sprintSkid').length, 1);
+});

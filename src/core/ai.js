@@ -321,7 +321,7 @@ function setState(m, state, dur = 0) {
   if (state !== 'stunned') m.exposed = 0; // the eye clam's cracked shell closes again
   m.roaring = false; // the phase roar is its own recover (kit)
   // out of the act, nothing is left up in the air (Greyfang's moon leap) or mid-rush
-  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; m.stoop = null; m.storm = null; if (state !== 'windup') m.altTo = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
+  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; m.stoop = null; m.storm = null; if (m.stalk) { m.stalk = null; m.stealth = false; m.targetable = true; } m.sprint = null; if (state !== 'windup') m.altTo = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
   m.state = state;
   m.stateT = 0;
   m.stateDur = dur;
@@ -419,7 +419,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook', 'dusk_stalk'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -846,6 +846,23 @@ function windup(game, m, dt, t, gap) {
       game.emit({ type: 'stoop', id: m.id, x: m.x, z: m.z, angle: a, len: m.stoop.len, low: m.stoop.low, air: atk.air });
       return setState(m, 'act');
     }
+    case 'dusk_stalk': {
+      // the duskmane stalker melts into the dusk (unseen, out of reach): it creeps round to its prey's back over `creep`
+      // s at `creepSpeed` m/s, `ring` m out, leaving only paw prints (event pawPrint every `print` m); then it shows
+      // itself (duskReveal), its lunge's lane through its prey locks for `aim` s, and it lunges `lunge` m at `speed`
+      // m/s, raking each unit in its way once (act: m.stalk)
+      m.stalk = { name: w.name, phase: 'creep', t: 0, dmg, walked: 0, hit: new Set(), angle: 0, left: 0 };
+      m.stealth = true; m.targetable = false;
+      game.emit({ type: 'duskVanish', id: m.id, x: m.x, z: m.z });
+      return setState(m, 'act');
+    }
+    case 'sprint_chase': {
+      // the stalker sprints at its prey at `speed` m/s for up to `duration` s, turning toward it at only `turn` rad/s,
+      // and bowls over the first unit it reaches; a late step aside and it overruns, skidding (act: m.sprint)
+      m.sprint = { name: w.name, t: 0, angle: w.angle, dmg };
+      game.emit({ type: 'sprintGo', id: m.id, x: m.x, z: m.z, angle: w.angle });
+      return setState(m, 'act');
+    }
     case 'thunder_wings': {
       // up in the air the gale hawk beats its wings into a thunderstorm: every `every` s a downstroke calls a bolt onto
       // where its prey stands then, marked and striking `delay` s later (areas storm_bolt), `strikes` in all (act: m.storm)
@@ -1155,6 +1172,70 @@ function act(game, m, dt, t) {
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
     return;
+  }
+  if (m.stalk) {
+    const S = m.stalk, atk = m.def.attacks[S.name], prey = t || game.player;
+    S.t += dt;
+    if (S.phase === 'creep') {
+      // round to its prey's back, low and unseen: toward the point `ring` m behind it, prints left as it goes
+      const back = prey ? prey.facing + Math.PI : m.facing, gx = prey.x + Math.sin(back) * atk.ring, gz = prey.z + Math.cos(back) * atk.ring;
+      const d = dist(m.x, m.z, gx, gz);
+      if (d > 0.2) {
+        // swing wide round its prey rather than through it: aim along the ring when the straight way passes too close
+        let a = angleTo(m.x, m.z, gx, gz);
+        const pr = dist(m.x, m.z, prey.x, prey.z);
+        if (pr < atk.ring * 1.2) { const around = angleTo(prey.x, prey.z, m.x, m.z), side = angleDiff(around, back) >= 0 ? 1 : -1; a = around + side * Math.PI / 2; }
+        const step = Math.min(d, atk.creepSpeed * dt);
+        game.moveEntity(m, Math.sin(a) * step, Math.cos(a) * step);
+        m.facing = a; m.moving = true;
+        S.walked += step;
+        if (S.walked >= atk.print) { S.walked = 0; S.foot = !S.foot; game.emit({ type: 'pawPrint', id: m.id, x: m.x, z: m.z, angle: a, foot: S.foot }); }
+      } else m.moving = false;
+      if (S.t < atk.creep) return;
+      // it shows itself, its lane through its prey locked for `aim` s
+      S.phase = 'aim'; S.t = 0; m.moving = false;
+      S.angle = angleTo(m.x, m.z, prey.x, prey.z); m.facing = S.angle;
+      S.left = atk.lunge;
+      m.stealth = false; m.targetable = true;
+      game.emit({ type: 'duskReveal', id: m.id, x: m.x, z: m.z, angle: S.angle, len: atk.lunge, width: atk.width, aim: atk.aim });
+      return;
+    }
+    if (S.phase === 'aim') { m.moving = false; if (S.t >= atk.aim) { S.phase = 'lunge'; S.t = 0; game.emit({ type: 'duskLunge', id: m.id, x: m.x, z: m.z, angle: S.angle }); } return; }
+    // the lunge: along the lane, each unit in its way raked once
+    const d = dirFromAngle(S.angle), step = Math.min(S.left, atk.speed * dt), ax = m.x, az = m.z;
+    game.moveEntity(m, d.x * step, d.z * step);
+    S.left -= step; m.moving = true;
+    for (const u of game.units()) {
+      if (S.hit.has(u.id) || segDist(u.x, u.z, ax, az, m.x, m.z) > atk.width / 2 + u.r) continue;
+      S.hit.add(u.id);
+      if (game.damageUnit(u, S.dmg, m, { attack: S.name, knock: { angle: S.angle, force: atk.knock || 0 } })) game.emit({ type: 'duskRake', id: m.id, x: u.x, z: u.z, angle: S.angle });
+    }
+    if (S.left > 0.01) return;
+    m.stalk = null; m.cd[S.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
+  }
+  if (m.sprint) {
+    // sprinting: it bends toward its prey no faster than `turn` rad/s; the first unit it reaches is bowled over
+    const S = m.sprint, atk = m.def.attacks[S.name], prey = t || game.player;
+    S.t += dt;
+    if (prey) S.angle += clamp(angleDiff(S.angle, angleTo(m.x, m.z, prey.x, prey.z)), -atk.turn * dt, atk.turn * dt);
+    const d = dirFromAngle(S.angle);
+    game.moveEntity(m, d.x * atk.speed * dt, d.z * atk.speed * dt);
+    m.facing = S.angle; m.moving = true;
+    for (const u of game.units()) {
+      if (dist(m.x, m.z, u.x, u.z) > m.r + u.r + 0.3) continue;
+      const dealt = game.damageUnit(u, S.dmg, m, { attack: S.name, knock: { angle: S.angle, force: atk.knock } });
+      if (!dealt && u === game.player) continue; // dodged through it
+      m.sprint = null; m.cd[S.name] = atk.cooldown;
+      game.emit({ type: 'sprintHit', id: m.id, x: u.x, z: u.z, angle: S.angle });
+      return setState(m, 'recover', atk.recover);
+    }
+    // gone past its prey (it is behind it and moving away) or out of time: it skids, overrun and open
+    const passed = prey && Math.abs(angleDiff(S.angle, angleTo(m.x, m.z, prey.x, prey.z))) > 1.9 && S.t > 0.3;
+    if (S.t < atk.duration && !passed) return;
+    m.sprint = null; m.cd[S.name] = atk.cooldown;
+    game.emit({ type: 'sprintSkid', id: m.id, x: m.x, z: m.z, angle: S.angle });
+    return setState(m, 'recover', atk.skid);
   }
   if (m.stoop) {
     // the gale hawk's stoop: slow off the hover, fast through the dive, braking as it pulls up; its height falls steeply

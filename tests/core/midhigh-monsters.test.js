@@ -89,7 +89,7 @@ test('high gear is crafted from monsters of its band; boss parts are a small key
 });
 
 test('melee strikes (stalker claw) land once at the authored time, miss outside the arc', () => {
-  for (const [type, name] of [['duskmane_stalker', 'claw']]) { // the mantis is a kit monster (monster-kits.test.js)
+  for (const [type, name] of []) { // the mantis and the stalker are kit monsters (monster-kits.test.js)
     const { m, hits, step, until, place } = arena(type);
     const atk = m.def.attacks[name];
     place(0.4);
@@ -114,15 +114,7 @@ test('melee strikes (stalker claw) land once at the authored time, miss outside 
   }
 });
 
-test('marked areas (pounce, shards) hurt only when they land, inside their circle (the ram is a kit monster now: monster-kits.test.js)', () => {
-  const s = arena('duskmane_stalker');
-  s.place(5); s.m.cd.claw = 99;
-  s.step(0.01);
-  assert.equal(s.m.windup?.name, 'pounce');
-  s.g.player.x = 4; // stepped out of the marked landing
-  s.until(() => s.m.state === 'recover', 5);
-  assert.equal(s.hits.length, 0, 'leaving the mark dodges the pounce');
-
+test('marked areas (shards) hurt only when they land, inside their circle (the ram and the stalker are kit monsters now: monster-kits.test.js)', () => {
   for (const [type, name] of [['rune_sentinel', 'shards']]) {
     const a = arena(type);
     a.place(0.3);
@@ -137,7 +129,7 @@ test('marked areas (pounce, shards) hurt only when they land, inside their circl
   }
 });
 
-test('sentinel beam hits along its line once and misses beside it; the stalker shows itself to attack', () => {
+test('sentinel beam hits along its line once and misses beside it', () => {
   for (const [side, expect] of [[0, 1], [2.2, 0]]) {
     const a = arena('rune_sentinel');
     a.place(6); a.m.cd.shards = 99;
@@ -148,16 +140,10 @@ test('sentinel beam hits along its line once and misses beside it; the stalker s
     a.until(() => a.m.state === 'recover');
     assert.equal(a.hits.length, expect, `beam at side ${side}`);
   }
-  const s = arena('duskmane_stalker');
-  s.place(5.5); s.m.cd.pounce = s.m.cd.claw = 3;
-  s.step(0.5);
-  assert.equal(s.m.stealth, true, 'circles half-seen');
-  s.until(() => s.m.state === 'windup', 6);
-  assert.equal(s.m.stealth, false, 'every wind-up is shown in full');
 });
 
 test('killing a monster during its wind-up cancels the area it marked', () => {
-  for (const [type, gap, block] of [['duskmane_stalker', 5, 'claw']]) {
+  for (const [type, gap, block] of [['leaf_fox', 5, 'snap']]) {
     const a = arena(type);
     a.place(gap); a.m.cd[block] = 99;
     a.step(0.01);

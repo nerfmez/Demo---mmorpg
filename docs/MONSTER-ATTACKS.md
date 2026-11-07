@@ -431,6 +431,11 @@ for the normal one.
   an explosive rush, melts into the dusk so prey sees only its tracks, swats with its forepaws, and sprints in on a
   line it cannot bend as sharply as dodging prey). Its claw, pounce and half-seen circling became a twin swat (normal),
   a dusk stalk round to the hero's back shown only by paw prints, and a sprint chase with a limited turn.
+- **Duskmane stalker, round 2** (owner: "apart from the vanishing one, the others have too few effects"): its eyes burn
+  through every wind-up and the sprint; the cocked paw gathers dusk light and glints before the swat; each claw strike
+  is crescents of dusk light, a star, a ring, falling spark streaks and three claw furrows raked into the ground; the
+  sprint leaves a wake of glowing prints, violet dusk mist and a pulse of light at each stride, and braking from an
+  overrun digs four long furrows with sparks off its claws.
 - **Ironhorn ram, round 2** (owner: "the effects are a bit plain"): its horns heat to a glow through every wind-up and
   glint just before the blow; strikes spray white-hot spark streaks that fall, run shock waves of steel light over the
   ground out to the true reach (fan-shaped for the clash and the hook, round for the charge's clash), sink a pit

@@ -13,11 +13,13 @@
 // Pools only; no allocation per frame.
 import * as THREE from 'three';
 import { Ribbon } from './fx-common.js';
-import { CORE_FS, GLOW_FS, W as RW, taperW, taperGlowW, lineW, lineGlowW, lightSprite, starTexture } from './light-kit.js';
+import { CORE_FS, GLOW_FS, W as RW, taperW, taperGlowW, lineW, lineGlowW, lightSprite, starTexture, glowTexture, drawSparks, spark } from './light-kit.js';
 
-const PRINTS = 28, SLASHES = 6, LANES = 4;
+const PRINTS = 40, SLASHES = 8, LANES = 4, FURROWS = 8, SPARKS = 120;
 const DUSK = { edge: [1, 0.95, 1], glow: [0.6, 0.35, 1] }, STAR = { core: [1, 0.97, 1], glow: [0.65, 0.4, 1] };
 const WARN = { edge: [1, 0.72, 0.42], glow: [1, 0.4, 0.15] }, MIST = new THREE.Color(0xb9a6e6);
+const SPARK = { edge: [1, 0.95, 1], glow: [0.55, 0.3, 1] }, RAKE = { edge: [0.95, 0.85, 1], glow: [0.45, 0.25, 0.9] };
+const _p = new THREE.Vector3(), _v = new THREE.Vector3();
 // a paw print: a lobed pad and four toes, soft-edged, glowing lilac (numbers in uniforms)
 const PRINT_VS = `varying vec2 vP; void main(){ vP = uv*2.0 - 1.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 const PRINT_FS = `varying vec2 vP; uniform float uA; uniform vec3 uC;
@@ -55,6 +57,38 @@ export class StalkerFx {
     this.eyes = Array.from({ length: 2 }, () => { const s = lightSprite(scene, starTexture('arcane'), true, 11); s.material.color.setRGB(0.9, 0.8, 1); return { s, t: 9 }; });
     this.eyeAt = new THREE.Vector3(); this.eyeA = 0;
     this.dustT = 0;
+    // round 2 (owner: "apart from the vanishing one, the others have too few effects"): glowing eyes and paws through the
+    // wind-ups, spark streaks, claw furrows raked into the ground, big claw crescents, a dusk wake behind the sprint
+    const glow = glowTexture('arcane');
+    this.gEyes = Array.from({ length: 2 }, () => { const s = lightSprite(scene, glow, true, 11); s.material.color.setRGB(0.75, 0.55, 1); return s; });
+    this.gPaw = lightSprite(scene, glow, true, 11); this.gPaw.material.color.setRGB(0.7, 0.5, 1);
+    this.pawStar = lightSprite(scene, starTexture('arcane'), true, 12); this.pawStar.material.color.setRGB(1, 0.95, 1);
+    this.sparks = []; this.free = []; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    this.furrows = Array.from({ length: FURROWS }, () => ({ t: 9, x: 0, z: 0, a: 0, len: 1, off: 0 }));
+    this.furrowI = 0;
+    this.fl = Array.from({ length: 6 }, () => new THREE.Vector3());
+    this.strideT = 0;
+  }
+  spray(x, y, z, a, spread, n, sp) {
+    for (let i = 0; i < n; i++) {
+      const d = a + (Math.random() - 0.5) * spread, v = sp * (0.5 + Math.random());
+      _p.set(x, y, z); _v.set(Math.sin(d) * v, 1.5 + Math.random() * 3, Math.cos(d) * v);
+      spark(this.sparks, this.free, SPARKS, _p, _v, 0.3 + Math.random() * 0.3, 0.05 + Math.random() * 0.03, SPARK);
+    }
+  }
+  /** Three claw furrows raked into the ground along `a` from (x, z), `len` m. */
+  furrow(x, z, a, len) {
+    for (let c = -1; c <= 1; c++) Object.assign(this.furrows[this.furrowI++ % FURROWS], { t: 0, x, z, a, len: len * (1 - Math.abs(c) * 0.15), off: c * 0.16 });
+  }
+  /** A claw strike's full look at (px, py, pz): crescents, a star, a ring, spark streaks, furrows, sparkles. */
+  strike(px, py, pz, a, dir, big) {
+    this.slash(px, py, pz, a, dir);
+    if (big) this.slash(px, py - 0.12, pz, a, -dir);
+    this.monster.burstStar?.(px, py, pz, big ? 0.75 : 0.5, STAR, 0xb89cff, 0xffffff);
+    this.monster.call?.ring(px, this.gy(px, pz) + 0.12, pz, big ? 1.6 : 1.1, MIST, 0.3);
+    this.spray(px, py, pz, a + dir * 0.6, 1.8, big ? 20 : 12, 4);
+    this.sparkle(px, py, pz, a, big ? 14 : 8);
+    this.furrow(px - Math.sin(a) * 0.5 + Math.cos(a) * 0.3 * dir, pz - Math.cos(a) * 0.5 - Math.sin(a) * 0.3 * dir, a - dir * 0.5, big ? 1.8 : 1.3);
   }
   gy(x, z) { return this.host.groundAt?.(x, z) ?? 0; }
   get fx() { return this.host.vfx?.fx; }
@@ -67,10 +101,8 @@ export class StalkerFx {
     if (e.type !== 'duskmane_stalker') return false;
     const y = this.gy(e.x, e.z), at = e.at, dir = e.hit === 2 ? -1 : 1;
     const px = at ? at[0] : e.x + Math.sin(e.angle) * e.range * 0.7, pz = at ? at[1] : e.z + Math.cos(e.angle) * e.range * 0.7;
-    this.slash(px, y + 0.85, pz, e.angle, dir);
-    this.sparkle(px, y + 0.8, pz, e.angle, at ? 10 : 4);
-    if (at) this.monster.burstStar?.(px, y + 0.85, pz, 0.4, STAR, 0xb89cff, 0xffffff);
-    this.monster.onShake?.(0.05, 0.06);
+    this.strike(px, y + 0.85, pz, e.angle, dir, e.hit === 2);
+    this.monster.onShake?.(e.hit === 2 ? 0.1 : 0.06, 0.08);
     return true;
   }
 
@@ -95,22 +127,22 @@ export class StalkerFx {
       }
       case 'duskLunge': for (let i = 0; i < 8; i++) { const a = e.angle + Math.PI + (Math.random() - 0.5) * 1.4; this.monster.call?.dust(e.x, y + 0.12, e.z, Math.sin(a) * 2.6, 0.5, Math.cos(a) * 2.6, 0.8, 0.45); } return true;
       case 'duskRake':
-        this.slash(e.x, y + 0.85, e.z, e.angle, 1); this.slash(e.x, y + 0.75, e.z, e.angle, -1);
-        this.monster.burstStar?.(e.x, y + 0.85, e.z, 0.6, STAR, 0xb89cff, 0xffffff);
-        this.sparkle(e.x, y + 0.8, e.z, e.angle, 14);
+        this.strike(e.x, y + 0.85, e.z, e.angle, 1, true);
         this.monster.onShake?.(0.1, 0.1);
         return true;
-      case 'sprintGo': for (let i = 0; i < 8; i++) { const a = e.angle + Math.PI + (Math.random() - 0.5) * 1.6; this.monster.call?.dust(e.x, y + 0.12, e.z, Math.sin(a) * 3, 0.5, Math.cos(a) * 3, 0.8, 0.5); } return true;
+      case 'sprintGo': this.monster.call?.ring(e.x, y + 0.12, e.z, 1.3, MIST, 0.3); this.mist(e.x, y, e.z, 4); for (let i = 0; i < 8; i++) { const a = e.angle + Math.PI + (Math.random() - 0.5) * 1.6; this.monster.call?.dust(e.x, y + 0.12, e.z, Math.sin(a) * 3, 0.5, Math.cos(a) * 3, 0.8, 0.5); } return true;
       case 'sprintHit':
-        this.monster.burstStar?.(e.x, y + 0.8, e.z, 0.7, STAR, 0xb89cff, 0xffffff);
-        this.monster.call?.ring(e.x, y + 0.15, e.z, 1.5, MIST, 0.35);
-        this.slash(e.x, y + 0.8, e.z, e.angle, 1);
-        this.sparkle(e.x, y + 0.8, e.z, e.angle, 12);
+        this.strike(e.x, y + 0.85, e.z, e.angle, 1, true);
+        this.monster.call?.ring(e.x, y + 0.15, e.z, 2.2, MIST, 0.4, 0.06);
+        this.mist(e.x, y, e.z, 5);
         for (let i = 0; i < 8; i++) { const a = e.angle + (Math.random() - 0.5) * 2; this.monster.call?.dust(e.x, y + 0.12, e.z, Math.sin(a) * 3, 0.5, Math.cos(a) * 3, 0.8, 0.5); }
         this.monster.onShake?.(0.12, 0.12);
         return true;
       case 'sprintSkid':
         for (let i = 0; i < 14; i++) { const a = e.angle + (Math.random() - 0.5) * 1.2, v = 1.5 + Math.random() * 3; this.monster.call?.dust(e.x - Math.sin(e.angle) * i * 0.12, y + 0.12, e.z - Math.cos(e.angle) * i * 0.12, Math.sin(a) * v, 0.4, Math.cos(a) * v, 0.9, 0.55); }
+        // its claws dug in to brake: four long furrows behind it, sparks off the claws
+        this.furrow(e.x - Math.sin(e.angle) * 2.2, e.z - Math.cos(e.angle) * 2.2, e.angle, 2.4);
+        this.spray(e.x, y + 0.15, e.z, e.angle, 1.4, 14, 3.5);
         return true;
     }
     return false;
@@ -122,9 +154,27 @@ export class StalkerFx {
     this.laneI = 0;
     const puff = (this.dustT -= dt) <= 0;
     if (puff) this.dustT = 0.08;
+    let eyeM = null, pawK = 0, eyeK = 0;
     for (const m of g.monsters) {
       if (m.type !== 'duskmane_stalker' || m.dead) continue;
-      const S = m.stalk;
+      const S = m.stalk, wk = m.state === 'windup' && m.windup ? Math.min(1, m.stateT / m.windup.total) : 0;
+      // its eyes burn through a wind-up and a sprint; a cocked paw gathers dusk light, glinting before the swat
+      if (!eyeM && (wk || m.sprint || S?.phase === 'aim' || S?.phase === 'lunge')) { eyeM = m; eyeK = m.sprint || S ? 1 : wk; pawK = m.windup?.name === 'dusk_swat' ? wk : 0; }
+      // the sprint's wake: glowing prints at every stride and a trail of dusk mist
+      if (m.sprint) {
+        this.strideT -= dt;
+        if (this.strideT <= 0) {
+          this.strideT = 0.11; this.foot = !this.foot;
+          const P = this.prints[this.printI++ % PRINTS], sd = this.foot ? 1 : -1, ox = Math.cos(m.facing) * 0.28 * sd, oz = -Math.sin(m.facing) * 0.28 * sd;
+          P.m.position.set(m.x + ox, this.gy(m.x + ox, m.z + oz) + 0.04, m.z + oz); P.m.rotation.set(0, m.facing, 0); P.m.scale.setScalar(0.55); P.t = 0.6; P.m.visible = true;
+          const bx = m.x - Math.sin(m.facing) * 0.8, bz = m.z - Math.cos(m.facing) * 0.8, by = this.gy(bx, bz);
+          this.monster.call?.dust(bx, by + 0.3, bz, 0, 0.3, 0, 1.2, 0.8);
+          // a wake of dusk mist, and a pulse of dusk light where each forepaw strikes the ground
+          this.host.vfx?.dust?.burst(bx, by + 0.6, bz, 3, { color: this.foot ? 0x7a5fb8 : 0x9a86d0, size: 0.9, sizeEnd: 1.9, speed: 0.6, life: 0.9, up: 0.4, drag: 2 });
+          this.monster.call?.ring(P.m.position.x, by + 0.06, P.m.position.z, 0.7, MIST, 0.25);
+          if (this.fx) for (let i = 0; i < 3; i++) this.fx.add(m.x + (Math.random() - 0.5) * 0.8, this.gy(m.x, m.z) + 0.4 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, -Math.sin(m.facing) * 2, 0.6, -Math.cos(m.facing) * 2, { color: i ? 0xb89cff : 0xffffff, size: 0.13, sizeEnd: 0.02, life: 0.5, drag: 1.5 });
+        }
+      }
       // shown again: its lunge's lane through the hero, filling to the spring
       if (S && S.phase === 'aim') { const atk = m.def.attacks[S.name]; this.band(m.x, m.z, S.angle, atk.width, atk.lunge, Math.min(1, S.t / atk.aim)); }
       // crouched to sprint: the first stretch of its run marked, filling to the start
@@ -139,6 +189,25 @@ export class StalkerFx {
       if (S && S.phase === 'creep' && puff && Math.random() < 0.35 && this.fx) this.fx.add(m.x + (Math.random() - 0.5), this.gy(m.x, m.z) + 0.3 + Math.random() * 0.5, m.z + (Math.random() - 0.5), 0, 0.4, 0, { color: 0xb89cff, size: 0.1, sizeEnd: 0.02, life: 0.6, drag: 1 });
     }
     for (let i = this.laneI; i < LANES; i++) this.lanes[i].visible = false;
+    if (eyeM) {
+      const f = eyeM.facing, hx = eyeM.x + Math.sin(f) * (eyeM.r + 0.25), hz = eyeM.z + Math.cos(f) * (eyeM.r + 0.25), hy = this.gy(hx, hz) + (eyeM.sprint ? 0.75 : 0.85);
+      for (let i = 0; i < 2; i++) { const sd = i ? 1 : -1, E = this.gEyes[i]; E.position.set(hx + Math.cos(f) * 0.11 * sd, hy, hz - Math.sin(f) * 0.11 * sd); E.scale.setScalar(0.35 * eyeK); E.material.opacity = eyeK * (0.85 + 0.15 * Math.sin(this.time * 25)); E.visible = true; }
+      // the cocked paw: up beside its head on its left
+      const px = hx + Math.cos(f) * 0.32, pz = hz - Math.sin(f) * 0.32, py = hy + 0.35 * pawK;
+      this.gPaw.position.set(px, py, pz); this.gPaw.scale.setScalar(0.9 * pawK); this.gPaw.material.opacity = 0.8 * pawK; this.gPaw.visible = pawK > 0.02;
+      const gl = Math.max(0, 1 - Math.abs(pawK - 0.9) / 0.1);
+      this.pawStar.position.set(px, py + 0.1, pz); this.pawStar.scale.setScalar(1.3 * gl); this.pawStar.material.opacity = gl; this.pawStar.material.rotation = this.time * 3; this.pawStar.visible = gl > 0.02;
+    } else { for (const E of this.gEyes) E.visible = false; this.gPaw.visible = false; this.pawStar.visible = false; }
+    drawSparks(this.sparks, this.free, dt, this.sCore, this.sGlow, this.three, 10);
+    // claw furrows raked into the ground: drawn in, then fading slowly
+    for (const F of this.furrows) {
+      if (F.t >= 1.6) continue;
+      F.t += dt;
+      const grow = Math.min(1, F.t / 0.08), fade = F.t < 0.6 ? 1 : Math.max(0, 1 - (F.t - 0.6) / 1);
+      const fx = Math.sin(F.a), fz = Math.cos(F.a), sx = Math.cos(F.a) * F.off, sz = -Math.sin(F.a) * F.off;
+      for (let j = 0; j < this.fl.length; j++) { const u = (j / (this.fl.length - 1)) * grow, x = F.x + sx + fx * F.len * u, z = F.z + sz + fz * F.len * u; this.fl[j].set(x, this.gy(x, z) + 0.05, z); }
+      RW.v = 0.07; this.glow.strip(this.fl, taperGlowW, 0.55 * fade, RAKE.glow); this.core.strip(this.fl, taperW, 0.8 * fade, RAKE.edge);
+    }
     // paw prints: in at once, glowing, fading slowly
     for (const P of this.prints) {
       if (P.t >= 3) continue;

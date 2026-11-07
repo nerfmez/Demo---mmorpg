@@ -682,7 +682,7 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   wind-up start. **`burrow_hunt`** (`m.burrow`): it moves at its prey at `speed` m/s for up to `hunt` s; within `near`
   m of the gap (or out of time) an area `lev_breach` (`radius`, `knock`) is marked under its prey (or where it is)
   and goes off `tell` s later, it comes up there. **`coil_ring`** (`m.ring`): centred on its prey, it runs round at
-  `ring` m at `lap` m/s; units within `band` of the swept arc are pushed back to their side and hurt (`bandMult`,
+  `ring` m (within 1.5 m of it, through where it stands) at `lap` m/s; units within `band` of the swept arc are pushed back to their side and hurt (`bandMult`,
   every `every` s, attack `coil_band`); a full circle closes it: units inside are struck (its damage and inflict).
   **`arc_leap`**: areas `lev_breach` at its spot (at the wind-up's end) and `lev_land` `past` m beyond its prey (`air`
   s later, `landMult`); it moves along the line over `air` s, `headY` a sine of `height`, then is under the ground

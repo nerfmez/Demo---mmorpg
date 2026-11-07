@@ -13,6 +13,7 @@ import * as THREE from 'three';
 import { Ribbon, conformPlane, place, BILLBOARD_VS } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W as RW, lineW, lineGlowW } from './light-kit.js';
 import { rockGeometry, slabGeometry, craterMesh, STONE_VS, DUST_FS } from './ground-kit.js';
+import { flameMaterial, domeShell } from './meteor-flame.js';
 
 const CHIPS = 20, PUFFS = 40, SLABS = 48, CRATERS = 3, WAVES = 8, ROOTS = 3, ARCHES = 44, LUNGES = 12, WRAPS = 2;
 const EARTH = { edge: [0.55, 0.4, 0.26], glow: [0.35, 0.24, 0.12] };
@@ -69,6 +70,25 @@ export class LeviathanFx {
     this.arches = Array.from({ length: ARCHES }, () => ({ t: 9, x: 0, z: 0, a: 0, s: 1, tilt: 0, end: 9 }));
     this.lunges = Array.from({ length: LUNGES }, () => ({ t: 9, x: 0, z: 0, a: 0, len: 4, end: 9 }));
     this.archI = 0; this.lungeI = 0;
+    // round 3 (owner: "the cracking ground is fine; can it be prettier?"): Firebolt's technique in earth - a dome of
+    // flung soil cut from flowing noise in see-through layers, bursting up and tearing apart as it falls; and the mound
+    // over it under the ground one rounded hump of earth instead of loose blocks
+    const dirtMat = (layer, filled) => {
+      const m = flameMaterial(1, layer, filled);
+      Object.assign(m.uniforms, { uRim: { value: new THREE.Color(0x2a1d12) }, uBody: { value: new THREE.Color(0x4a3524) }, uHot: { value: new THREE.Color(0x6e5a40) }, uCore: { value: new THREE.Color(0x8c7a5e) } });
+      return m;
+    };
+    this.dirt = Array.from({ length: 3 }, (_, i) => {
+      const g = new THREE.Group(), dome = domeShell();
+      for (const [layer, filled, order] of [[0, false, 7], [1, false, 6], [1, true, 5]]) { const mm = new THREE.Mesh(dome, dirtMat(layer, filled)); mm.renderOrder = order; mm.frustumCulled = false; mm.material.uniforms.uSeed.value = i * 2.7 + layer; g.add(mm); }
+      g.children[2].scale.setScalar(0.6); g.visible = false; scene.add(g);
+      return { g, t: 9, R: 2 };
+    });
+    this.dirtI = 0;
+    const hump = new THREE.SphereGeometry(1, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2); hump.userData.shared = true;
+    // (in the ground's own sand colours, so it reads as the ground bulging, not a hole)
+    this.hump = new THREE.Mesh(hump, new THREE.ShaderMaterial({ uniforms: { uA: { value: 1 }, uHi: { value: new THREE.Color(0xe2c894) }, uMid: { value: new THREE.Color(0xbf9f6c) }, uLo: { value: new THREE.Color(0x8c6c48) } }, vertexShader: STONE_VS, fragmentShader: EARTH_FS })); this.hump.visible = false; this.hump.frustumCulled = false; scene.add(this.hump);
+    this.humpK = 0;
     this.placed = new Map(); // a coil's id -> how far round its arches are placed
     this.trailT = 0; this.dustT = 0;
     this.lastX = new Map(); this.lastZ = new Map(); // where each burrowed one last dropped a cracked slab
@@ -89,14 +109,17 @@ export class LeviathanFx {
   ringOfSlabs(x, z, R, n, h, w = 0.4, life = 0.8) { const a0 = Math.random() * 6.283; for (let i = 0; i < n; i++) { const a = a0 + (i / n) * 6.283 + (Math.random() - 0.5) * 0.3; this.heave(x + Math.sin(a) * R, z + Math.cos(a) * R, a, i * 0.01, h * (0.75 + Math.random() * 0.5), w * (0.8 + Math.random() * 0.4), life); } }
   pit(x, z, R) { const C = this.craters[this.craterI++ % CRATERS], u = C.m.material.uniforms; u.uArc.value = 0; u.uBurn.value = 0; u.uGlow.value = 0; place(C.m, x, 0.05, z); C.m.scale.setScalar(R * 1.7 * 2); conformPlane(C.m); C.m.visible = true; C.t = 0; }
   wave(x, z, R0, R1, life, w = 0.2) { Object.assign(this.waves[this.waveI++ % WAVES], { t: 0, x, z, R0, R1, life, w }); }
+  /** A dome of flung soil bursting up over (x, z), `R` m across at its fullest. */
+  soil(x, z, R) { const D = this.dirt[this.dirtI++ % this.dirt.length]; D.t = 0; D.R = R; D.g.position.set(x, this.gy(x, z), z); }
   breach(x, z, R) {
+    this.soil(x, z, R * 0.85);
     this.chipsAt(x, z, 12, 4, 6); this.ringOfSlabs(x, z, R * 0.75, 10, 1.1, 0.5); this.cloud(x, z, R * 0.5, 10, 2.2);
     this.wave(x, z, 0.5, R + 0.6, 0.35); this.monster.onShake?.(0.22, 0.2);
   }
 
   /** The leviathan's marked areas going off (core burst); true when drawn here. */
   burst(e) {
-    if (e.kind === 'lev_smash') { this.pit(e.x, e.z, e.radius * 0.7); this.chipsAt(e.x, e.z, 10, 3.5, 5); this.ringOfSlabs(e.x, e.z, e.radius * 0.8, 9, 0.8); this.cloud(e.x, e.z, e.radius * 0.5, 8, 1.8); this.wave(e.x, e.z, 0.4, e.radius + 0.4, 0.3); this.monster.onShake?.(0.2, 0.18); return true; }
+    if (e.kind === 'lev_smash') { this.soil(e.x, e.z, e.radius * 0.6); this.pit(e.x, e.z, e.radius * 0.7); this.chipsAt(e.x, e.z, 10, 3.5, 5); this.ringOfSlabs(e.x, e.z, e.radius * 0.8, 9, 0.8); this.cloud(e.x, e.z, e.radius * 0.5, 8, 1.8); this.wave(e.x, e.z, 0.4, e.radius + 0.4, 0.3); this.monster.onShake?.(0.2, 0.18); return true; }
     if (e.kind === 'lev_breach') { this.breach(e.x, e.z, e.radius); return true; }
     if (e.kind === 'lev_land') { this.pit(e.x, e.z, e.radius * 0.8); this.breach(e.x, e.z, e.radius); this.wave(e.x, e.z, 0.5, e.radius + 1.5, 0.45, 0.3); return true; }
     return false;
@@ -107,7 +130,7 @@ export class LeviathanFx {
     const m = g?.monsterById?.(e.id);
     if (m?.type !== 'earthburrow_leviathan') return false;
     switch (e.type) {
-      case 'burrowDive': case 'tremorDive': this.chipsAt(e.x, e.z, 8, 2.5, 4); this.cloud(e.x, e.z, 0.8, 8, 1.8); this.ringOfSlabs(e.x, e.z, 1.2, 7, 0.7); this.monster.onShake?.(0.12, 0.12); return true;
+      case 'burrowDive': case 'tremorDive': this.soil(e.x, e.z, 1.6); this.chipsAt(e.x, e.z, 8, 2.5, 4); this.cloud(e.x, e.z, 0.8, 8, 1.8); this.ringOfSlabs(e.x, e.z, 1.2, 7, 0.7); this.monster.onShake?.(0.12, 0.12); return true;
       case 'burrowTell': this.ringOfSlabs(e.x, e.z, e.radius * 0.55, 8, 0.45, 0.35, e.tell + 0.3); this.cloud(e.x, e.z, 0.4, 5, 1.2); this.monster.onShake?.(0.06, e.tell); return true;
       case 'levBreach': this.breach(e.x, e.z, Math.max(2, e.radius)); return true;
       case 'arcLeap': this.cloud(e.x, e.z, 0.6, 6, 1.6); return true;
@@ -128,18 +151,25 @@ export class LeviathanFx {
     this.core.begin(); this.glow.begin();
     const dust = (this.dustT -= dt) <= 0;
     if (dust) this.dustT = 0.07;
-    let ri = 0;
+    let ri = 0, hump = false;
     for (const m of g.monsters) {
       if (m.type !== 'earthburrow_leviathan' || m.dead) continue;
       // the mound running over it under the ground, and the cracked line it leaves
       const under = (m.burrow && m.burrow.phase !== 'out') || m.tremor;
       if (under) {
         const lx = this.lastX.get(m.id) ?? m.x, lz = this.lastZ.get(m.id) ?? m.z;
-        if (Math.hypot(m.x - lx, m.z - lz) > 0.6 || !this.lastX.has(m.id)) {
+        if (Math.hypot(m.x - lx, m.z - lz) > 1.1 || !this.lastX.has(m.id)) {
           this.lastX.set(m.id, m.x); this.lastZ.set(m.id, m.z);
-          const a = Math.atan2(m.x - lx, m.z - lz);
-          for (const s of [-1, 1]) this.heave(m.x + Math.cos(a) * 0.7 * s, m.z - Math.sin(a) * 0.7 * s, a + s * 1.2, 0, 0.45 + Math.random() * 0.25, 0.32, 1.1);
+          const a = Math.atan2(m.x - lx, m.z - lz), s = Math.random() < 0.5 ? -1 : 1;
+          this.heave(m.x + Math.cos(a) * 0.9 * s, m.z - Math.sin(a) * 0.9 * s, a + s * 1.2, 0, 0.3 + Math.random() * 0.2, 0.26, 0.9);
+          this.humpA = a;
         }
+        // the hump of earth running over it, swelling as it goes, breathing while it lies still and listens
+        hump = true;
+        this.humpK = Math.min(1, this.humpK + dt * 4);
+        const sw = 1 + 0.06 * Math.sin(this.time * (m.moving ? 14 : 4));
+        this.hump.position.set(m.x, this.gy(m.x, m.z) - 0.15, m.z); this.hump.rotation.set(0, this.humpA || 0, 0);
+        this.hump.scale.set(1.3 * this.humpK * sw, (m.moving ? 0.65 : 0.45) * this.humpK * sw, 1.9 * this.humpK);
         if (dust && m.moving) { const y = this.gy(m.x, m.z); this.puff(m.x, y + 0.3, m.z, (Math.random() - 0.5) * 1.5, 0.6, (Math.random() - 0.5) * 1.5, 1.4, 0.8); if (Math.random() < 0.4) this.chipsAt(m.x, m.z, 1, 1.5, 3); }
       } else { this.lastX.delete(m.id); this.lastZ.delete(m.id); }
       // the coil: a wall of roots in its furrow, from where it began round to its head
@@ -159,6 +189,17 @@ export class LeviathanFx {
         RW.v = atk.band * 2; this.core.strip(this.strand.slice(0, n), lineW, 0.18, [1, 0.45, 0.2]);
         if (dust) { const x = m.x, z = m.z; this.heave(x, z, R.a + Math.PI / 2, 0, 0.6, 0.35, 1.2); this.puff(x, this.gy(x, z) + 0.3, z, 0, 0.5, 0, 1.2, 0.7); }
       }
+    }
+    if (!hump) this.humpK = Math.max(0, this.humpK - dt * 6);
+    this.hump.visible = this.humpK > 0.02;
+    if (!hump && this.hump.visible) this.hump.scale.multiplyScalar(0.9);
+    // the domes of soil: up in a few frames, then torn into clods and falling away
+    for (const D of this.dirt) {
+      if (D.t > 1) { D.g.visible = false; continue; }
+      const t = (D.t += dt), grow = 1 - Math.pow(1 - Math.min(1, t / 0.14), 3), size = D.R * (0.35 + 0.65 * grow), cut = Math.max(0, t - 0.18) / 0.7, fade = Math.max(0, Math.min(1, (1 - t) / 0.25));
+      D.g.visible = fade > 0; D.g.scale.set(size, size * (1.25 - 0.35 * cut), size);
+      for (const q of D.g.children) { const u = q.material.uniforms; u.uTime.value = this.time; u.uCut.value = 0.05 + 0.5 * cut * cut; u.uCool.value = 0.05 + 0.15 * Math.min(1, cut); u.uAlpha.value = fade; }
+      D.g.children[2].material.uniforms.uAlpha.value = Math.max(0, 1 - t / 0.3);
     }
     // the roots: erupting out of the ground with a little overshoot, held, withering back down
     for (let i = 0; i < ARCHES; i++) {

@@ -12,8 +12,8 @@ import * as THREE from 'three';
 import { RigBuilder, damp, clamp01 } from './rig.js';
 
 export const LEVIATHAN_SEGS = 16;
-const Y0 = 0.111, STEP = 0.1153, MAX = 260, LEAD = 1.0;
-const Z = new THREE.Vector3(0, 0, 1), _d = new THREE.Vector3(), _a = new THREE.Vector3();
+const Y0 = 0.111, STEP = 0.1153, MAX = 260, LEAD = 1.0, BODY = 0.27; // (BODY: its girth in rig units)
+const _d = new THREE.Vector3(), _a = new THREE.Vector3();
 const ease = (x) => x * x * (3 - 2 * x);
 
 /** The procedural stand-in (shown only if its model is missing): the same straight chain, a tapered tube. */
@@ -94,6 +94,20 @@ export function animLeviathan(r, s, dt, time) {
     const dx = _a.x - rx, dz = _a.z - rz;
     P[i].set((dx * c - dz * sn) / sc, _a.y / sc, (dx * sn + dz * c) / sc);
   }
+  // (owner, round 3: "parts of it lie over each other, and it twists and warps") the body is eased round its bends,
+  // so a sharp turn of the head never folds it into a kink, and where it would cross itself the part further back
+  // rises over the part in front, as a snake's does, instead of passing through it
+  for (let it = 0; it < 2; it++) for (let i = 2; i < LEVIATHAN_SEGS; i++) {
+    const p = P[i], a0 = P[i - 1], a1 = P[i + 1];
+    p.x += ((a0.x + a1.x) / 2 - p.x) * 0.3; p.y += ((a0.y + a1.y) / 2 - p.y) * 0.3; p.z += ((a0.z + a1.z) / 2 - p.z) * 0.3;
+  }
+  for (let i = 0; i <= LEVIATHAN_SEGS - 3; i++) for (let j = i + 3; j <= LEVIATHAN_SEGS; j++) {
+    const a0 = P[i], a1 = P[j], dx = a1.x - a0.x, dz = a1.z - a0.z, d = Math.hypot(dx, dz);
+    if (d >= BODY || Math.abs(a1.y - a0.y) > BODY) continue;
+    const k = 1 - d / BODY, nx = d > 1e-5 ? dx / d : 1, nz = d > 1e-5 ? dz / d : 0, push = (BODY - d) * 0.35;
+    a1.x += nx * push; a1.z += nz * push; a0.x -= nx * push; a0.z -= nz * push;
+    a1.y = Math.max(a1.y, a0.y + BODY * 0.8 * k);
+  }
   // the poses (eased): rear (the cobra stance facing its prey; higher before the smash and as it roars), back (drawn
   // back before the smash), slam (the front thrown down onto the ground and held a moment), roar (its shake)
   const E = B.E, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0, onGround = ground && !s.burrow;
@@ -118,12 +132,13 @@ export function animLeviathan(r, s, dt, time) {
       P[i].x += hxl * along + hzl * shake; P[i].z += hzl * along - hxl * shake; P[i].y = Math.max(-5, P[i].y + Math.max(-0.08, up));
     }
   }
-  // the bones: each at its point, turned along the body toward the head
+  // the bones: each at its point, turned along the body toward the head with its back kept up (no roll: the shortest
+  // turn from its rest let each joint roll its own way, wringing the skin between them)
   for (let i = 0; i < LEVIATHAN_SEGS; i++) {
     const bone = b[`seg${i}`];
     bone.position.copy(P[i]);
     _d.subVectors(P[i], P[i + 1]); if (_d.lengthSq() < 1e-8) _d.set(0, 0, 1);
-    bone.quaternion.setFromUnitVectors(Z, _d.normalize());
+    orient(bone.quaternion, _d.normalize(), B);
   }
   // the head: at the neck, along the neck; on the ground turned toward its prey and kept nearly level (reared, it
   // looks down at its prey); diving, rising or leaping it follows its path
@@ -135,7 +150,17 @@ export function animLeviathan(r, s, dt, time) {
   const pitch = onGround ? slope * 0.25 - 0.35 * E.rear * 0.5 - 0.5 * E.slam : slope;
   _a.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
   b.head.position.copy(P[0]);
-  b.head.quaternion.setFromUnitVectors(Z, _a);
+  orient(b.head.quaternion, _a.normalize(), B);
+}
+// a bone's turn: its +z along `dir`, its +x level (across the body), its +y up from its back; straight up or down,
+// the last side kept
+const _x = new THREE.Vector3(), _y = new THREE.Vector3(), _mb = new THREE.Matrix4(), UP = new THREE.Vector3(0, 1, 0);
+function orient(q, dir, B) {
+  _x.crossVectors(UP, dir);
+  if (_x.lengthSq() < 1e-4) _x.copy(B.side || _x.set(1, 0, 0)); else _x.normalize();
+  (B.side ||= new THREE.Vector3()).copy(_x);
+  _y.crossVectors(dir, _x);
+  q.setFromRotationMatrix(_mb.makeBasis(_x, _y, dir));
 }
 // how much of each pose each of the first joints takes (the head end most), how far each is drawn back in the S, and
 // how far each goes out in the slam

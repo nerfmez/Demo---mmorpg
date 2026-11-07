@@ -460,6 +460,12 @@ for the normal one.
   now real roots: tapered, knotted tubes drawn instanced, arches erupting one after another along its furrow into a
   fence; as the ring closes long roots lunge in from all round it and squeeze, roots coil round a held prey, and all
   wither back into the ground.
+- **Earthburrow leviathan, round 3** (owner: "the cracking ground is fine, but can it be prettier? And parts of its
+  body lie over each other, and it twists and warps"): its bursts of ground are Firebolt's technique in earth - a
+  dome of flung soil cut from flowing noise in see-through layers, tearing into clods as it falls - and the mound over
+  it under the ground one hump of sand instead of loose blocks. Its body is eased round its bends (no kinks), the part
+  further back rises over a part it would cross, and each bone keeps its back up (the shortest turn from rest had let
+  each joint roll its own way, wringing the skin). Its coil sets off round its prey from where it stands.
 - **Horned warden, round 1** (2026-11-07, owner: "next"; the boss, five attacks and a second phase): researched first.
   It is the owner's lava-seamed stone titan with a shield that curls into a horned boulder, so the phenomena are lava
   and a shield wall: pahoehoe lava chills to a crust that cracks and glows where the molten inside breaks out

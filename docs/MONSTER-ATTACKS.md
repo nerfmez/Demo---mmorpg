@@ -459,6 +459,10 @@ for the normal one.
   for each blow turned; the rolling boulder wrapped in a comet of fire; each fissure a curtain of fire up its whole
   length, then a flowing molten lane whose crust plates spread as it cools; the core burst a dome of fire and a ring of
   flame racing out to its reach.
+- **Horned warden, round 3** (owner: "the lines and the motion while rolling are not good"): the speed lines and the
+  ghost afterimages are gone (the fire comet carries the speed); the boulder turns as far as it travels instead of
+  2.2 times, lifts a little over its facets, bounces up and lands with a squash as it sets off and at each carom, and
+  its fire tail swings round after a carom instead of snapping.
 - **Crag golem, round 1** (2026-11-07, owner: "next"): researched first (a crag is not an animal: how rock behaves - a
   big impact sends an aftershock out through the ground, a falling boulder bursts and its fragments skid on, loose
   talus lifts and grinds in a slide). Its pound and throw became a two-beat hammer slam with an aftershock band

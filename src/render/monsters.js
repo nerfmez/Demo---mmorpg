@@ -1060,7 +1060,7 @@ const WARDEN_KNEE = (n) => n.replace('leg', 'knee');
 // the warden's brace before a roll (shield arm forward and across, elbow bent so the shield stands on
 // the ground in front of it, hips dropped behind it)
 const BRACE = { armX: 0.9, armZ: 0.55, armZL: -0.4, elbow: -0.5, hips: 0.35 };
-const ROLL_SPIN = 2.2;
+const ROLL_SPIN = 1;
 
 // the warden's kit attacks posed as its earlier ones: the ricochet as its roll, the fissure as its quake fist
 const WARDEN_AS = { boulder_ricochet: 'roll', lava_fissure: 'quake' };
@@ -1210,16 +1210,23 @@ function animWarden(r, s, dt, time) {
   if (form && T) {
     form.visible = T.ball > 0;
     if (form.visible) {
-      const rad = form.userData.radius;
-      form.position.set(0, rad, 0.2);
-      // spun faster than it travels (SPIN x the rolling rate), so it reads as a fast, heavy roll
-      const spin = s.state === 'act' ? ROLL_SPIN * (s.attack?.speed || 10) / (rad * (r.baseScale || 1)) : 0;
+      const rad = form.userData.radius, rolling = s.state === 'act';
+      // a true roll: it turns as far as it travels (owner, 2026-11-07: the faster spin read wrong), its facets
+      // lifting it a little as it goes over each; set off and at each carom (warden-fx sets hopT) it bounces up
+      // and lands with a squash
+      if (rolling && !r.wasRolling) r.hopT = 0;
+      r.wasRolling = rolling;
+      const spin = rolling ? ROLL_SPIN * (s.attack?.speed || 10) / (rad * (r.baseScale || 1)) : 0;
       r.rollAngle = T.dormant ? 0 : ((r.rollAngle || 0) + spin * dt) % (Math.PI * 2);
+      r.hopT = (r.hopT ?? 9) + dt;
+      const hop = r.hopT < 0.3 ? Math.sin((Math.PI * r.hopT) / 0.3) * rad * 0.35 : 0;
+      const land = r.hopT >= 0.3 && r.hopT < 0.42 ? Math.sin((Math.PI * (r.hopT - 0.3)) / 0.12) : 0;
+      const bob = rolling ? rad * 0.05 * Math.abs(Math.sin(r.rollAngle * 2.5)) : 0;
+      r.hopY = (hop + bob) * (r.baseScale || 1);
+      form.position.set(0, rad + hop + bob - land * rad * 0.06, 0.2);
       form.rotation.set(r.rollAngle, 0, 0);
       const pop = 0.9 + 0.1 * T.ball;
-      form.scale.setScalar(pop);
-      // rolling fast it stretches a little along its path (anime motion blur), with its afterimages
-      if (s.state === 'act') form.scale.set(pop * 0.96, pop * 0.96, pop * 1.1);
+      form.scale.set(pop * (1 + 0.07 * land), pop * (1 - 0.1 * land), pop * (1 + 0.07 * land));
     } else r.rollAngle = 0;
     r.rollFx?.update(form.visible && la === 'roll' && s.state === 'act', r.rollAngle, dt);
   }

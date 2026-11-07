@@ -195,6 +195,7 @@ export class WardenFx {
         this.wave(e.x, e.z, 0.8, 3.6, 0.32); this.wave(e.x, e.z, 0.5, 2.4, 0.25, LAVA);
         this.bang(e.x, y + 1.6, e.z, 3.2); this.fire.impact(e.x, y + 1.4, e.z, false, 2);
         this.lane = { t: 0, x: e.x, z: e.z, a: e.angle, len: e.length };
+        const rig = this.monster.rig(e.id); if (rig) rig.hopT = 0; // the boulder bounces off (monsters.js)
         this.monster.onShake?.(0.14, 0.12);
         return true;
       }
@@ -312,7 +313,11 @@ export class WardenFx {
       if (m.state === 'act' && m.charge && m.def.attacks[m.windup?.name]?.legs) {
         // the boulder wrapped in fire streaming back along its roll (Firebolt's comet)
         comet = true;
-        this.comet.position.set(m.x, y0 + 1.9, m.z); this.comet.rotation.set(0, m.charge.angle - Math.PI / 2, 0);
+        // its tail swings round after a carom rather than snapping (the shortest way, quickly)
+        if (!this.comet.visible) this.cometA = m.charge.angle;
+        this.cometA += Math.atan2(Math.sin(m.charge.angle - this.cometA), Math.cos(m.charge.angle - this.cometA)) * Math.min(1, dt * 9);
+        const hopY = this.monster.rig(m.id)?.hopY || 0;
+        this.comet.position.set(m.x, y0 + 1.9 + hopY, m.z); this.comet.rotation.set(0, this.cometA - Math.PI / 2, 0);
         for (const q of this.comet.children) { q.material.uniforms.uTime.value = this.time; q.material.uniforms.uAlpha.value = Math.min(1, m.charge.t / 0.08 + (m.charge.leg ? 1 : 0)); }
         if (dust) { this.puff(m.x, y0 + 0.4, m.z, 0, 0.3, 0, 1.3, 0.7); this.fire.burst(m.x, y0 + 1.4, m.z, 2, 1.2, 1.5); }
       }

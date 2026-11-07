@@ -688,17 +688,18 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   the monster and toggle them the same way. The golem is skinned `rigid`: each separate stone (and
   the shield) follows the bone whose segments lie nearest its middle, so a stone never follows another
   limb (a piece midway along two joined bones, an elbow or knee knot, is shared by those two only); its hollow stones draw both sides and its outline
-  hull is pushed back in depth so it never covers a thin piece seen from behind. While it rolls (`act`) the boulder stretches 10%
-  along its path and `src/render/roll-fx.js` draws its afterimages (copies of the ball, flat-shaded,
-  fading behind it), speed lines (a shader scrolling crossed strips back from the silhouette) and a
-  ground dust streak, all in the rig's space; tuning in `data/combat-fx.json` `roll`.
+  hull is pushed back in depth so it never covers a thin piece seen from behind. While it rolls (`act`) `src/render/roll-fx.js` draws a
+  ground dust streak in the rig's space (its afterimages and speed lines are set to none in `data/combat-fx.json`
+  `roll`: the owner turned them down), and skillfx/warden-fx.js wraps the ball in a fire comet whose tail swings
+  round after a carom.
 - **`dormant`** (`{wake}`, the warden): out of combat the monster lies still (no wandering); on aggro
   from idle it enters `emerge` for `wake` seconds (no attacks) before it chases. The renderer shows
   the warden's boulder while dormant; during `emerge` the boulder breaks into the golem's own stones,
   which fly up into place feet first, each tumbling along an arc; back home it folds into the boulder
   again. Before a roll (1.4 s wind-up) it braces: the shield swings round in front with its foot
   planted on the ground and the body crouched behind it (monsters.js `BRACE`), then it folds into the
-  ball; the ball spins `ROLL_SPIN` (2.2) times its rolling rate, so it reads as fast and heavy. All of it is done per stone
+  ball; the ball turns as far as it travels (`ROLL_SPIN` 1), lifted a little over its facets, and bounces up
+  and lands with a squash as it sets off and at each carom (`hopT`, set by the `ricochet` event). All of it is done per stone
   in the vertex shader after skinning (monsterSkin.js `ASSEMBLE`: each vertex carries its stone's
   middle and when it moves, `pieceC`), driven by monsters.js `wardenForm`.
 - **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.

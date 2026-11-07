@@ -1046,12 +1046,12 @@
     "shield_bash": "#ffb050"
   },
   "roll": {
-    "_doc": "The warden's boulder roll (src/render/roll-fx.js): afterimages (ghosts) trail the ball as a motion blur, speed lines streak back from its silhouette, a dust streak lies on the ground. Lengths are in ball radii.",
-    "afterimages": 3,
+    "_doc": "The warden's boulder roll (src/render/roll-fx.js): afterimages (ghosts) trail the ball as a motion blur, speed lines streak back from its silhouette, a dust streak lies on the ground. Lengths are in ball radii. The owner turned down the lines and the ghosts (2026-11-07: 'the lines and the rolling motion are not good'); its fire comet (skillfx/warden-fx.js) carries the speed now.",
+    "afterimages": 0,
     "ghostGap": 0.42,
     "ghostOpacity": 0.42,
     "ghostTint": "#ffe0c0",
-    "lines": 14,
+    "lines": 0,
     "lineLength": 3,
     "lineWidth": 0.05,
     "lineRate": 2.6,

@@ -675,8 +675,9 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   `laterMult` (fence `later`); **`core_eruption`** raises `slabs` slabs `slabRing` m round its prey at wind-up start
   (never on the side toward the warden; `slabsRise`), and as the wind-up ends strikes every unit within `radius` m
   except one in a slab's shadow (behind it as seen from the warden, `along` 0.3..`shadow` m, within `slabWidth`/2 +
-  0.12 x along; `coreBlast`). Render: skillfx/warden-fx.js (a cylinder-part wall with its numbers in uniforms, cover
-  slabs from ground-kit and their shadows as quads, the reach as a warnDisc, fissures as ribbons); its poses map the
+  0.12 x along; `coreBlast`). Render: skillfx/warden-fx.js (Firebolt's flame shells on a cylinder-part wall, a comet round the
+  boulder, a dome and an open cylinder ring; per fissure a curtain strip and a lava-lane strip rebuilt in place, its
+  shader's numbers in uniforms; cover slabs from ground-kit and their shadows as quads, the reach as a warnDisc); its poses map the
   ricochet onto the roll and the fissure onto the quake fist (monsters.js `WARDEN_AS`).
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane (now its
   `boulder_ricochet`): an

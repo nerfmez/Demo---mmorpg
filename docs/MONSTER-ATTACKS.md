@@ -454,6 +454,11 @@ for the normal one.
   sweep, slam, quake and straight roll became shield bash, shield wall (a guard: hitting its front is punished, go
   round), boulder ricochet (a zigzag of caroms), and below half lava fissures (ground lanes that stay) and core
   eruption (cover: hide in a slab's shadow), none a pattern another monster has.
+- **Horned warden, round 2** (owner: "the effects are not pretty yet"): rebuilt with Firebolt's fire (meteor-flame.js
+  shells cut from flowing noise, FireExtras embers and fire puffs): a wall of flame before its shield, flaring taller
+  for each blow turned; the rolling boulder wrapped in a comet of fire; each fissure a curtain of fire up its whole
+  length, then a flowing molten lane whose crust plates spread as it cools; the core burst a dome of fire and a ring of
+  flame racing out to its reach.
 - **Crag golem, round 1** (2026-11-07, owner: "next"): researched first (a crag is not an animal: how rock behaves - a
   big impact sends an aftershock out through the ground, a falling boulder bursts and its fragments skid on, loose
   talus lifts and grinds in a slide). Its pound and throw became a two-beat hammer slam with an aftershock band

@@ -18,7 +18,9 @@
 // - Phase roar (core phaseRoar): a ring of heat and embers off it; its seams glow hot from then on (monsters.js).
 // Pools only; no allocation per frame.
 import * as THREE from 'three';
-import { Ribbon, conformPlane, place, flashMaterial, tintFlash, BILLBOARD_VS } from './fx-common.js';
+import { Ribbon, conformPlane, place, flashMaterial, tintFlash, BILLBOARD_VS, NOISE } from './fx-common.js';
+import { flameMaterial, cometShell, domeShell } from './meteor-flame.js';
+import { FireExtras } from './fire-extras.js';
 import { CORE_FS, GLOW_FS, W as RW, lineW, lineGlowW, taperW, taperGlowW, lightSprite, glowTexture } from './light-kit.js';
 import { warnDisc } from './anime-kit.js';
 import { rockGeometry, slabGeometry, STONE_VS, STONE_FS, DUST_FS } from './ground-kit.js';
@@ -44,7 +46,23 @@ const WALL_FS = `varying vec2 vU; uniform float uA, uHit, uT; uniform vec3 uC;
 const COVER_FS = `varying vec2 vU; uniform float uA;
   void main(){ float rim = max(1.0 - smoothstep(0.0, 0.06, min(vU.x, 1.0 - vU.x)), 1.0 - smoothstep(0.0, 0.05, min(vU.y, 1.0 - vU.y)));
     gl_FragColor = vec4(mix(vec3(0.15, 0.55, 1.0), vec3(0.7, 0.95, 1.0), rim), (0.38 + 0.55*rim)*uA); }`;
-const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+// round 2 (owner: "the effects are not pretty yet"): Firebolt's fire (meteor-flame.js shells cut from flowing noise,
+// FireExtras embers and fire puffs) and a molten lava lane: flowing noise, hot threads between crust plates that
+// spread as it cools (numbers in uniforms)
+const LANE_VS = `varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const LANE_FS = `varying vec2 vU; uniform float uT, uCool, uA, uHot;` + NOISE + `
+  void main(){ float v = abs(vU.y), u = vU.x;
+    float edge = 1.0 - smoothstep(0.6, 1.0, v);
+    float flow = fbm(vec2(u*0.9 - uT*0.35, vU.y*1.4 + uT*0.1));
+    float plates = fbm(vec2(u*1.6 + 3.1, vU.y*2.2 - 1.7) + 0.6*vec2(flow, flow));
+    float crust = smoothstep(0.62 - 0.45*uCool, 0.7 - 0.45*uCool, plates) + smoothstep(0.55, 0.95, v);
+    float heat = clamp(flow*1.15 + uHot*0.5 - v*0.35, 0.0, 1.0);
+    vec3 molten = mix(vec3(0.85, 0.2, 0.04), mix(vec3(1.0, 0.55, 0.1), vec3(1.0, 0.92, 0.55), smoothstep(0.55, 0.85, heat)), smoothstep(0.25, 0.6, heat));
+    vec3 c = mix(molten, vec3(0.2, 0.09, 0.06), clamp(crust, 0.0, 1.0)*0.92);
+    float a = edge*uA;
+    if (a < 0.01) discard;
+    gl_FragColor = vec4(c, a); }`;
+const LANE_N = 32, _a = new THREE.Vector3(), _b = new THREE.Vector3(), _tip = new THREE.Vector3();
 
 export class WardenFx {
   constructor(scene, host, monster) {
@@ -84,7 +102,28 @@ export class WardenFx {
       return { m, sh, t: 9, x: 0, z: 0, a: 0, w: 1.8, end: 9, burst: false };
     });
     this.reach = warnDisc(scene, 'fire');
-    this.fissT = new Map(); // fissure area id -> drawn its curtain
+    // Firebolt's fire: embers and fire puffs; flame shells for the wall, the rolling boulder, the core's dome and the
+    // ring racing out, and per fissure a curtain and a lava lane (strips rebuilt in place when a fissure opens)
+    this.fire = new FireExtras(scene, monster.camera);
+    const shell = (geo, mode, layer, filled, order) => { const m = new THREE.Mesh(geo, flameMaterial(mode, layer, filled)); m.renderOrder = order; m.frustumCulled = false; return m; };
+    const group = (...ms) => { const g = new THREE.Group(); g.add(...ms); g.visible = false; scene.add(g); return g; };
+    this.flameWall = group(shell(wg, 1, 0, false, 7), shell(wg, 1, 1, false, 6));
+    this.comet = group(shell(cometShell(0, 2.5, 6.5), 0, 0, false, 7), shell(cometShell(1, 2.5, 6.5), 0, 1, false, 6));
+    for (const m of this.comet.children) { m.material.uniforms.uLen.value = 6.5; m.material.uniforms.uFront.value = 2.5; }
+    this.dome = group(shell(domeShell(), 1, 0, false, 7), shell(domeShell(), 1, 1, false, 6), shell(domeShell(), 1, 1, true, 5));
+    this.dome.children[2].scale.setScalar(0.62);
+    const rg = new THREE.CylinderGeometry(1, 1, 1, 64, 1, true); rg.translate(0, 0.5, 0); rg.userData.shared = true;
+    this.fireRing = group(shell(rg, 1, 0, false, 7), shell(rg, 1, 1, false, 6));
+    this.domeT = 9; this.ringT = 9; this.ringR = 13;
+    this.fiss = Array.from({ length: LANES }, () => {
+      const lane = new THREE.BufferGeometry(), curtain = new THREE.BufferGeometry(), n = LANE_N + 1, idx = [];
+      for (let i = 0; i < LANE_N; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+      for (const g of [lane, curtain]) { g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 6), 3)); g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 4), 2)); g.setIndex(idx); }
+      const lm = new THREE.Mesh(lane, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uCool: { value: 0 }, uA: { value: 0 }, uHot: { value: 1 } }, vertexShader: LANE_VS, fragmentShader: LANE_FS, transparent: true, depthWrite: false }));
+      lm.renderOrder = 3; lm.frustumCulled = false; lm.visible = false; scene.add(lm);
+      const cw = group(shell(curtain, 1, 0, false, 7), shell(curtain, 1, 1, false, 6));
+      return { id: -1, lane: lm, curtain: cw, gy: 0 };
+    });
     this.dustT = 0;
   }
   gy(x, z) { return this.host.groundAt?.(x, z) ?? 0; }
@@ -113,6 +152,7 @@ export class WardenFx {
     if (e.type !== 'horned_warden' || e.name !== 'shield_bash') return false;
     const d = 1.6 + 1.2, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d, y = this.gy(x, z);
     this.monster.burstStar?.(x, y + 0.9, z, 0.8, STAR, 0xffb050, 0xfff0c0);
+    this.fire.impact(x, y + 0.9, z, false, 1.3);
     this.chipsAt(x, z, 6, 3, 3); this.cloud(x, z, 0.4, 4, 1.1);
     this.wave(x, z, 0.3, 1.6, 0.28);
     this.monster.onShake?.(0.12, 0.12);
@@ -131,18 +171,18 @@ export class WardenFx {
         const a = Math.atan2(e.fromX - e.x, e.fromZ - e.z), r = m.r + 0.7, hx = e.x + Math.sin(a) * r, hz = e.z + Math.cos(a) * r;
         this.hit = 1;
         this.monster.burstStar?.(hx, y + 1.2, hz, 0.45, STAR, 0xffc060, 0xffffff);
-        this.embers(hx, y + 1.2, hz, 6, 2.5, 2);
+        this.fire.impact(hx, y + 1.2, hz, false, 0.7);
         return true;
       }
       case 'weakHit': {
         const a = Math.atan2(e.fromX - e.x, e.fromZ - e.z), r = m.r * 0.6, hx = e.x + Math.sin(a) * r, hz = e.z + Math.cos(a) * r;
         this.monster.burstStar?.(hx, y + 1.6, hz, 0.7, STAR, 0xff7a20, 0xffe0a0);
-        this.embers(hx, y + 1.6, hz, 10, 3, 3);
+        this.fire.impact(hx, y + 1.6, hz, false, 1.1);
         return true;
       }
       case 'shieldBash': {
         const d = m.r + 1.2, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d, k = 1 + 0.25 * (e.blocked || 0);
-        this.bang(x, this.gy(x, z) + 0.9, z, 2.6 * k);
+        this.bang(x, this.gy(x, z) + 0.9, z, 2.6 * k); this.fire.impact(x, this.gy(x, z) + 1, z, false, 1.6 * k);
         this.chipsAt(x, z, 6 + 2 * (e.blocked || 0), 3.5, 3.5); this.cloud(x, z, 0.8, 6, 1.4 * k);
         const arc = (e.arc * Math.PI) / 180;
         for (let i = 0; i < 7; i++) { const a = e.angle + ((i / 6) - 0.5) * arc, r = e.range * 0.8; this.puff(e.x + Math.sin(a) * r, this.gy(e.x, e.z) + 0.3, e.z + Math.cos(a) * r, Math.sin(a) * 2, 0.4, Math.cos(a) * 2, 1.1, 0.7); }
@@ -153,14 +193,14 @@ export class WardenFx {
         // a carom: chips and a shock ring off the boulder, its next lane flashing ahead
         this.chipsAt(e.x, e.z, 8, 3, 4); this.cloud(e.x, e.z, 0.6, 5, 1.3);
         this.wave(e.x, e.z, 0.8, 3.6, 0.32); this.wave(e.x, e.z, 0.5, 2.4, 0.25, LAVA);
-        this.bang(e.x, y + 1.6, e.z, 3.2); this.embers(e.x, y + 1, e.z, 10, 4, 3);
+        this.bang(e.x, y + 1.6, e.z, 3.2); this.fire.impact(e.x, y + 1.4, e.z, false, 2);
         this.lane = { t: 0, x: e.x, z: e.z, a: e.angle, len: e.length };
         this.monster.onShake?.(0.14, 0.12);
         return true;
       }
       case 'fissureFist': {
         const x = e.x + Math.sin(e.angle) * (m.r + 0.3), z = e.z + Math.cos(e.angle) * (m.r + 0.3);
-        this.chipsAt(x, z, 8, 2.5, 4); this.cloud(x, z, 0.5, 5, 1.3); this.bang(x, this.gy(x, z) + 0.4, z, 1.8);
+        this.chipsAt(x, z, 8, 2.5, 4); this.cloud(x, z, 0.5, 5, 1.3); this.bang(x, this.gy(x, z) + 0.4, z, 1.8); this.fire.impact(x, this.gy(x, z) + 0.5, z, false, 1.5);
         this.monster.onShake?.(0.14, 0.14);
         return true;
       }
@@ -172,6 +212,9 @@ export class WardenFx {
       case 'coreBlast': {
         const cy = y + 2.2;
         this.blast = { t: 0, x: e.x, z: e.z, R: e.radius };
+        // a dome of fire bursting out of its core, and a ring of flame racing out to its reach
+        this.domeT = 0; this.dome.position.set(e.x, y, e.z); this.ringT = 0; this.ringR = e.radius; this.fireRing.position.set(e.x, y, e.z);
+        this.fire.release(); this.fire.burst(e.x, cy, e.z, 40, 2.2, 2);
         this.bang(e.x, cy, e.z, 8);
         // the heat bursting up all over its reach
         if (this.fx) for (let i = 0; i < 46; i++) { const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * e.radius, x = e.x + Math.sin(a) * r, z = e.z + Math.cos(a) * r; if (e.slabs.some((s) => Math.hypot(s.x - x, s.z - z) < 1.6)) continue; this.fx.add(x, this.gy(x, z) + 0.2, z, Math.sin(a) * 1.5, 3 + Math.random() * 4, Math.cos(a) * 1.5, { color: Math.random() < 0.4 ? 0xffd070 : 0xff6a10, size: 0.3 + Math.random() * 0.2, sizeEnd: 0.06, life: 0.6, gravity: 8, drag: 0.5 }); }
@@ -184,13 +227,32 @@ export class WardenFx {
       }
       case 'phaseRoar': {
         this.wave(e.x, e.z, 1, 7, 0.5, LAVA); this.wave(e.x, e.z, 1, 4.5, 0.4, AMBER);
-        this.embers(e.x, y + 2.4, e.z, 26, 4, 5);
+        this.fire.impact(e.x, y + 2.2, e.z, false, 2.6);
         this.cloud(e.x, e.z, 1.6, 10, 1.6);
         this.monster.onShake?.(0.3, 0.4);
         return true;
       }
     }
     return false;
+  }
+
+  /** Lay a fissure's lava lane (`width` wide, flat on the ground) and its curtain (a wall 0..1 high in object space)
+   *  along the polyline `pts`, evenly sampled, into F's fixed buffers. */
+  strips(F, pts, width) {
+    const lens = [0]; for (let i = 0; i + 1 < pts.length; i++) lens.push(lens[i] + Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]));
+    const total = lens[lens.length - 1], LP = F.lane.geometry.attributes.position.array, LU = F.lane.geometry.attributes.uv.array;
+    const CP = F.curtain.children[0].geometry.attributes.position.array, CU = F.curtain.children[0].geometry.attributes.uv.array;
+    const at = (d, o) => { let i = 0; while (i < lens.length - 2 && lens[i + 1] < d) i++; const k = (d - lens[i]) / Math.max(1e-6, lens[i + 1] - lens[i]); o[0] = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * k; o[1] = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * k; return o; };
+    const p = [0, 0], q = [0, 0], r = [0, 0];
+    F.gy = this.gy(pts[2][0], pts[2][1]);
+    for (let j = 0; j <= LANE_N; j++) {
+      const d = (j / LANE_N) * total; at(d, p); at(Math.min(total, d + 0.3), q); at(Math.max(0, d - 0.3), r);
+      let tx = q[0] - r[0], tz = q[1] - r[1]; const tl = Math.hypot(tx, tz) || 1; tx /= tl; tz /= tl;
+      const sx = tz * width * 0.5, sz = -tx * width * 0.5, y = this.gy(p[0], p[1]) + 0.07;
+      LP.set([p[0] + sx, y, p[1] + sz, p[0] - sx, y, p[1] - sz], j * 6); LU.set([d, 1, d, -1], j * 4);
+      CP.set([p[0], 0, p[1], p[0], 1, p[1]], j * 6); CU.set([d / total, 0, d / total, 1], j * 4);
+    }
+    for (const g of [F.lane.geometry, F.curtain.children[0].geometry]) { g.attributes.position.needsUpdate = true; g.attributes.uv.needsUpdate = true; }
   }
 
   /** A fissure crack's polyline from `pts` to `p` of its length, lifted `h`. */
@@ -220,16 +282,17 @@ export class WardenFx {
     this.core.begin(); this.glow.begin();
     const dust = (this.dustT -= dt) <= 0;
     if (dust) this.dustT = 0.06;
-    let gi = 0, wall = false, reach = false;
+    let gi = 0, wall = false, reach = false, comet = false, gather = false;
     for (const m of g.monsters) {
       if (m.type !== 'horned_warden' || m.dead) continue;
       const w = m.windup, f = m.facing, y0 = this.gy(m.x, m.z), k = w ? Math.min(1, m.stateT / Math.max(0.01, w.total)) : 0;
       // the shield wall: its wall of light, flaring when it turns a blow; its open back glowing
       if (m.state === 'windup' && w?.name === 'shield_wall') {
         wall = true;
-        const U = this.wall.material.uniforms, open = Math.min(1, m.stateT / 0.2), blocks = Math.min(4, m.blocked || 0);
-        U.uA.value = open * (0.75 + 0.12 * blocks) * (0.9 + 0.1 * Math.sin(this.time * 12)); U.uHit.value = this.hit; U.uT.value = this.time;
-        this.wall.position.set(m.x, y0 + 0.05, m.z); this.wall.rotation.set(0, f, 0); this.wall.scale.set(m.r + 0.75, 2.6, m.r + 0.75);
+        // a wall of fire before its shield, rising as it plants it, flaring taller at each blow it turns
+        const open = Math.min(1, m.stateT / 0.25), blocks = Math.min(4, m.blocked || 0);
+        for (const q of this.flameWall.children) { const U = q.material.uniforms; U.uTime.value = this.time; U.uCut.value = 0.06 - 0.05 * this.hit - 0.012 * blocks; U.uCool.value = 0.04 - 0.06 * this.hit; U.uAlpha.value = open; }
+        this.flameWall.position.set(m.x, y0, m.z); this.flameWall.rotation.set(0, f, 0); this.flameWall.scale.set(m.r + 1.7, (1.8 + 0.25 * blocks + 0.7 * this.hit) * open, m.r + 1.7);
         for (let i = 0; i < 2 && gi < GLOWS; i++) {
           const a = f + Math.PI + (i ? 0.35 : -0.35), G = this.glows[gi++];
           G.position.set(m.x + Math.sin(a) * m.r * 0.6, y0 + 1.5 + i * 0.4, m.z + Math.cos(a) * m.r * 0.6);
@@ -247,13 +310,39 @@ export class WardenFx {
       }
       // the boulder rolling: lava sparks thrown off it and dust behind
       if (m.state === 'act' && m.charge && m.def.attacks[m.windup?.name]?.legs) {
-        if (dust) { this.puff(m.x, y0 + 0.4, m.z, 0, 0.3, 0, 1.3, 0.7); this.embers(m.x, y0 + 0.8, m.z, 2, 2, 2); }
+        // the boulder wrapped in fire streaming back along its roll (Firebolt's comet)
+        comet = true;
+        this.comet.position.set(m.x, y0 + 1.9, m.z); this.comet.rotation.set(0, m.charge.angle - Math.PI / 2, 0);
+        for (const q of this.comet.children) { q.material.uniforms.uTime.value = this.time; q.material.uniforms.uAlpha.value = Math.min(1, m.charge.t / 0.08 + (m.charge.leg ? 1 : 0)); }
+        if (dust) { this.puff(m.x, y0 + 0.4, m.z, 0, 0.3, 0, 1.3, 0.7); this.fire.burst(m.x, y0 + 1.4, m.z, 2, 1.2, 1.5); }
+      }
+      if (m.state === 'windup' && w?.name === 'core_eruption') {
+        gather = true;
+        if (this.gatherId !== m.id + ':' + w.total) { this.gatherId = m.id + ':' + w.total; this.fire.gather(w.total * 0.9); }
+        _tip.set(m.x + Math.sin(f) * 0.7, y0 + 2.1, m.z + Math.cos(f) * 0.7);
       }
       // its seams in the second phase: heat and embers rising off it now and then
       if (m.enraged && dust && Math.random() < 0.25 && this.fx) this.fx.add(m.x + (Math.random() - 0.5) * 2, y0 + 1 + Math.random() * 2, m.z + (Math.random() - 0.5) * 2, 0, 1.2, 0, { color: 0xff8a2a, size: 0.1, sizeEnd: 0.02, life: 0.8, drag: 0.5 });
     }
     this.hit = Math.max(0, this.hit - dt * 4);
-    this.wall.visible = wall;
+    this.flameWall.visible = wall;
+    this.comet.visible = comet;
+    if (!gather) { if (this.gatherId) { this.fire.release(); this.gatherId = null; } }
+    this.fire.update(dt, _tip);
+    // the dome of fire out of its core: bursts up in a few frames, tears into tongues and burns away
+    if (this.domeT < 1.1) {
+      const t = (this.domeT += dt), grow = 1 - Math.pow(1 - Math.min(1, t / 0.16), 3), size = 5.2 * (0.35 + 0.65 * grow) * (1 + 0.12 * Math.min(1, t / 0.9));
+      const cut = Math.max(0, t - 0.22) / 0.75, fade = Math.max(0, Math.min(1, (1.05 - t) / 0.2));
+      this.dome.visible = fade > 0; this.dome.scale.set(size, size * 1.3, size);
+      for (const q of this.dome.children) { const u = q.material.uniforms; u.uTime.value = this.time; u.uCut.value = 0.07 + 0.45 * cut * cut; u.uCool.value = 0.07 + 0.2 * Math.min(1, cut); u.uAlpha.value = fade; }
+      this.dome.children[2].material.uniforms.uAlpha.value = Math.max(0, 1 - t / 0.35);
+    } else this.dome.visible = false;
+    // the ring of flame racing out to its reach, low and tearing as it goes
+    if (this.ringT < 0.75) {
+      const t = (this.ringT += dt), u = Math.min(1, t / 0.55), R = 1.5 + (this.ringR - 1.5) * (1 - (1 - u) * (1 - u)), fade = Math.max(0, Math.min(1, (0.75 - t) / 0.25));
+      this.fireRing.visible = fade > 0; this.fireRing.scale.set(R, 3.6 * (1 - 0.55 * u) * Math.min(1, t / 0.06), R);
+      for (const q of this.fireRing.children) { const U = q.material.uniforms; U.uTime.value = this.time; U.uCut.value = -0.04 + 0.22 * u; U.uCool.value = 0.02 + 0.15 * u; U.uAlpha.value = fade; }
+    } else this.fireRing.visible = false;
     if (!reach && this.blast && this.blast.t < 0.45) {
       // the burst over its whole reach: the marked disc flashing full and fading
       const B = this.blast, U = this.reach.material.uniforms; B.t += dt;
@@ -288,26 +377,25 @@ export class WardenFx {
         RW.v = 0.06 + 0.08 * k; this.glow.strip(seg, lineGlowW, 0.3 + 0.4 * k, LAVA.glow); this.core.strip(seg, lineW, 0.4 + 0.6 * k, MOLTEN);
         continue;
       }
-      const live = a.t - a.delay, end = a.duration, n = this.crack(pts, 1, 0.08), seg = this.pts.slice(0, n);
-      if (!this.fissT.has(a.id)) {
-        this.fissT.set(a.id, true);
-        // the curtain: the whole length at once
-        for (let i = 0; i < n; i += 2) { const p = this.pts[i]; this.embers(p.x, p.y + 0.2, p.z, 3, 0.8, 7); }
-        const mid = this.pts[n >> 1]; this.bang(mid.x, mid.y + 1, mid.z, 2.4);
+      const live = a.t - a.delay, end = a.duration;
+      // its curtain and lava lane: a free pair taken when it opens, the strips rebuilt in place along its crack
+      let F = this.fiss.find((q) => q.id === a.id);
+      if (!F) {
+        F = this.fiss.find((q) => q.id === -1 || !g.areas.some((x) => x.id === q.id)) || this.fiss[0];
+        F.id = a.id; this.strips(F, pts, a.fence.width);
+        const mid = pts[2]; this.bang(mid[0], this.gy(mid[0], mid[1]) + 1, mid[1], 2.4);
+        for (let i = 0; i < pts.length; i++) this.fire.burst(pts[i][0], this.gy(pts[i][0], pts[i][1]) + 0.3, pts[i][1], 6, 1.6, 1);
       }
-      const curtain = Math.max(0, 1 - live / 0.5), cool = Math.min(1, Math.max(0, (live - (end - 1.2)) / 1.2));
-      // the curtain: lava fountains all along it, tall at first, sinking
-      if (curtain > 0 && this.fx) for (let i = 0; i < n; i++) { if (Math.random() > 0.6) continue; const p = this.pts[i]; this.fx.add(p.x + (Math.random() - 0.5) * 0.6, p.y + 0.1, p.z + (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 1.2, (4 + Math.random() * 6) * (0.4 + 0.6 * curtain), (Math.random() - 0.5) * 1.2, { color: Math.random() < 0.35 ? 0xffd070 : Math.random() < 0.6 ? 0xff6a10 : 0xd8380a, size: 0.32 + Math.random() * 0.12, sizeEnd: 0.08, life: 0.55, gravity: 14, drag: 0.3 }); }
-      const flick = 0.85 + 0.15 * Math.sin(this.time * 13 + a.id);
-      // the lava lane: a dark crust rim, molten orange, a hot yellow thread; crusting over at its end
-      const wd = a.fence.width;
-      RW.v = wd * 0.95; this.core.strip(seg, lineW, 0.85, CRUST.edge);
-      RW.v = wd * (0.7 + 0.15 * curtain) * (1 - 0.5 * cool); this.core.strip(seg, lineW, 0.95 * (1 - cool), MOLTEN);
-      RW.v = wd * 0.22 * (1 - cool); this.core.strip(seg, lineW, (0.9 + 0.1 * flick) * (1 - cool), HOT);
-      RW.v = wd * 0.5; this.glow.strip(seg, lineGlowW, (0.25 + 0.35 * curtain) * (1 - cool) * flick, LAVA.glow);
-      if (dust && this.fx && Math.random() < 0.3 * (1 - cool)) { const p = this.pts[Math.floor(Math.random() * n)]; this.fx.add(p.x, p.y + 0.1, p.z, 0, 1.5, 0, { color: 0xff8a2a, size: 0.12, sizeEnd: 0.03, life: 0.6, drag: 0.5 }); }
-      if (live >= end) this.fissT.delete(a.id);
+      F.seen = true;
+      const cool = Math.min(1, Math.max(0, (live - (end - 1.5)) / 1.5)), L = F.lane.material.uniforms;
+      L.uT.value = this.time; L.uCool.value = 0.15 + 0.85 * cool; L.uHot.value = Math.max(0, 1 - live / 0.8); L.uA.value = Math.min(1, live / 0.08) * (1 - Math.max(0, (live - end + 0.3) / 0.3)); F.lane.visible = true;
+      // the curtain of fire: up the whole length at once, then torn into tongues and sinking
+      const ct = live, rise = Math.min(1, ct / 0.1), cf = Math.max(0, Math.min(1, (0.95 - ct) / 0.3));
+      F.curtain.visible = cf > 0; F.curtain.position.y = F.gy; F.curtain.scale.y = 2.8 * rise * (1 - 0.45 * Math.max(0, ct - 0.25));
+      for (const q of F.curtain.children) { const U = q.material.uniforms; U.uTime.value = this.time; U.uCut.value = 0.03 + 0.4 * Math.max(0, ct - 0.25); U.uCool.value = 0.03 + 0.2 * Math.max(0, ct - 0.3); U.uAlpha.value = cf; }
+      if (dust && Math.random() < 0.5 * (1 - cool)) { const p = pts[1 + Math.floor(Math.random() * 3)]; this.fire.burst(p[0], this.gy(p[0], p[1]) + 0.2, p[1], 1, 0.8, 1.2); }
     }
+    for (const F of this.fiss) { if (!F.seen) { F.lane.visible = false; F.curtain.visible = false; if (F.id !== -1 && !g.areas.some((x) => x.id === F.id)) F.id = -1; } F.seen = false; }
     // the cover slabs: heaving up, standing, their shadows laid on the ground; cracking and sinking after the burst
     for (const C of this.covers) {
       if (C.t >= 9) { C.m.visible = false; C.sh.visible = false; continue; }

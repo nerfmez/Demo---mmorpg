@@ -97,6 +97,13 @@ export class GolemFx {
     place(C.m, x, 0.05, z); C.m.scale.setScalar(R * 1.7 * 2); conformPlane(C.m); C.m.visible = true; C.t = 0;
   }
   dustRing(x, z, R, n) { const y = this.gy(x, z); for (let i = 0; i < n; i++) { const a = (i / n) * 6.283; this.monster.call?.dust(x + Math.sin(a) * R, y + 0.15, z + Math.cos(a) * R, Math.sin(a) * 2.2, 0.6, Math.cos(a) * 2.2, 1, 0.55); } }
+  /** A small chevron of warm light on the ground `r` m out from (x, z) along `a`, pointing outward. */
+  chevron(x, z, a, r, size, alpha) {
+    const cx = x + Math.sin(a) * r, cz = z + Math.cos(a) * r, y = this.gy(cx, cz) + 0.06, sx = Math.cos(a) * size, sz = -Math.sin(a) * size, fx = Math.sin(a) * size, fz = Math.cos(a) * size;
+    this.chev ||= [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    this.chev[0].set(cx - fx * 0.6 + sx, y, cz - fz * 0.6 + sz); this.chev[1].set(cx + fx * 0.4, y, cz + fz * 0.4); this.chev[2].set(cx - fx * 0.6 - sx, y, cz - fz * 0.6 - sz);
+    RW.v = 0.07; this.glow.strip(this.chev, lineGlowW, 0.35 * alpha, WARN.glow); this.core.strip(this.chev, lineW, alpha, WARN.edge);
+  }
   /** A slab of ground heaved up at (x, z), tilted out along `out`, after `delay` s. */
   heave(x, z, out, delay, h, w) { Object.assign(this.slabs[this.slabI++ % SLABS], { x, z, out, t: -delay, h, w }); }
   ringOfSlabs(x, z, R, n, delay, h, step = 0) { const a0 = Math.random() * 6.283; for (let i = 0; i < n; i++) { const a = a0 + (i / n) * 6.283 + (Math.random() - 0.5) * 0.25; this.heave(x + Math.sin(a) * R, z + Math.cos(a) * R, a, delay + i * step, h * (0.75 + Math.random() * 0.5), 0.32 + Math.random() * 0.14); } }
@@ -180,10 +187,9 @@ export class GolemFx {
         U.uR.value = a.radius; U.uK.value = k; U.uOpen.value = Math.min(1, a.t / 0.15);
         place(D, a.x, 0.04, a.z); D.scale.setScalar(a.radius * 2 * 1.06); conformPlane(D); D.visible = true;
         if (a.shards) for (const ang of a.shards.angles) {
-          // the fragment lanes, from the landing's rim out to their reach
-          const y = this.gy(a.x, a.z) + 0.06, r0 = a.radius * 0.6, r1 = a.radius + a.shards.range * 0.85;
-          this.line[0].set(a.x + Math.sin(ang) * r0, y, a.z + Math.cos(ang) * r0); this.line[1].set(a.x + Math.sin(ang) * r1, y, a.z + Math.cos(ang) * r1);
-          RW.v = a.shards.radius * 2 * (0.4 + 0.6 * k); this.glow.strip(this.line, lineGlowW, 0.15, WARN.glow); this.core.strip(this.line, lineW, 0.35 + 0.3 * k, WARN.edge);
+          // which way each fragment will fly: a small chevron just outside the landing's rim (round 3, owner: the long
+          // lanes spoiled it)
+          this.chevron(a.x, a.z, ang, a.radius + 0.35, 0.3 + 0.1 * k, 0.5 + 0.45 * k);
         }
       }
       if (a.kind === 'golem_aftershock' && bi < BANDS) {
@@ -228,9 +234,8 @@ export class GolemFx {
           if (dust && (m.orbit || lift < 0.5)) this.monster.call?.dust(x, this.gy(x, z) + 0.12, z, (Math.random() - 0.5) * 1.5, 0.4, (Math.random() - 0.5) * 1.5, 0.8, 0.45);
           // the fling's lane out from each rock, warned through the last of the spin
           if (m.orbit && m.orbit.t > atk.spin - 0.7) {
-            const kk = Math.min(1, (m.orbit.t - (atk.spin - 0.7)) / 0.7), yy = this.gy(x, z) + 0.06;
-            this.line[0].set(x, yy, z); this.line[1].set(x + Math.sin(a) * atk.flingRange * kk, yy, z + Math.cos(a) * atk.flingRange * kk);
-            RW.v = atk.rockRadius * 2; this.glow.strip(this.line, lineGlowW, 0.15, WARN.glow); this.core.strip(this.line, lineW, 0.45, WARN.edge);
+            const kk = Math.min(1, (m.orbit.t - (atk.spin - 0.7)) / 0.7);
+            this.chevron(m.x, m.z, a, atk.ring + atk.rockRadius + 0.35, 0.3, 0.4 + 0.55 * kk);
           }
         }
         // the ring it swings round, marked at the true band

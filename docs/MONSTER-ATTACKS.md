@@ -466,6 +466,11 @@ for the normal one.
   it under the ground one hump of sand instead of loose blocks. Its body is eased round its bends (no kinks), the part
   further back rises over a part it would cross, and each bone keeps its back up (the shortest turn from rest had let
   each joint roll its own way, wringing the skin). Its coil sets off round its prey from where it stands.
+- **Earthburrow leviathan, round 4** (owner: "I don't like the hole when it burrows, take it out; moving, it warps"):
+  the hump over it under the ground (it read as a hole) is gone: the soil dome, a line of heaved slabs and dust show
+  where it runs. It rears like a cobra and turns its head to its prey only while it is settled; on the move its head
+  goes where its body goes (reared and looking aside while running wrung its neck). Its coil's ring is never tighter
+  than `ring` - 0.5 m.
 - **Horned warden, round 1** (2026-11-07, owner: "next"; the boss, five attacks and a second phase): researched first.
   It is the owner's lava-seamed stone titan with a shield that curls into a horned boulder, so the phenomena are lava
   and a shield wall: pahoehoe lava chills to a crust that cracks and glows where the molten inside breaks out

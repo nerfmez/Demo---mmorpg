@@ -515,8 +515,9 @@ function windup(game, m, dt, t, gap) {
       // (act: m.ring)
       const cx = t ? t.x : m.x, cz = t ? t.z : m.z, a0 = angleTo(cx, cz, m.x, m.z);
       const dir = t && angleDiff(a0, angleTo(cx, cz, t.x + Math.sin(m.facing), t.z + Math.cos(m.facing))) > 0 ? -1 : 1;
-      // (its ring passes through where it is, within 1.5 m of `ring`: it sets off round its prey without a jump)
-      const R0 = clamp(dist(cx, cz, m.x, m.z), atk.ring - 1.5, atk.ring + 1.5);
+      // (its ring passes through where it is, from `ring` - 0.5 to `ring` + 1.5 m: it sets off round its prey without a
+      // jump, never in a loop too tight for its body)
+      const R0 = clamp(dist(cx, cz, m.x, m.z), atk.ring - 0.5, atk.ring + 1.5);
       m.ring = { name: w.name, t: 0, cx, cz, R: R0, a0, a: a0, dir, tick: new Map(), dmg };
       game.emit({ type: 'coilStart', id: m.id, x: cx, z: cz, ring: R0, a0, dir });
       return setState(m, 'act');

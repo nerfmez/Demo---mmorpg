@@ -71,8 +71,8 @@ export class LeviathanFx {
     this.lunges = Array.from({ length: LUNGES }, () => ({ t: 9, x: 0, z: 0, a: 0, len: 4, end: 9 }));
     this.archI = 0; this.lungeI = 0;
     // round 3 (owner: "the cracking ground is fine; can it be prettier?"): Firebolt's technique in earth - a dome of
-    // flung soil cut from flowing noise in see-through layers, bursting up and tearing apart as it falls; and the mound
-    // over it under the ground one rounded hump of earth instead of loose blocks
+    // flung soil cut from flowing noise in see-through layers, bursting up and tearing apart as it falls (round 4: the
+    // hump over it under the ground read as a hole, and is gone)
     const dirtMat = (layer, filled) => {
       const m = flameMaterial(1, layer, filled);
       Object.assign(m.uniforms, { uRim: { value: new THREE.Color(0x2a1d12) }, uBody: { value: new THREE.Color(0x4a3524) }, uHot: { value: new THREE.Color(0x6e5a40) }, uCore: { value: new THREE.Color(0x8c7a5e) } });
@@ -85,10 +85,6 @@ export class LeviathanFx {
       return { g, t: 9, R: 2 };
     });
     this.dirtI = 0;
-    const hump = new THREE.SphereGeometry(1, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2); hump.userData.shared = true;
-    // (in the ground's own sand colours, so it reads as the ground bulging, not a hole)
-    this.hump = new THREE.Mesh(hump, new THREE.ShaderMaterial({ uniforms: { uA: { value: 1 }, uHi: { value: new THREE.Color(0xe2c894) }, uMid: { value: new THREE.Color(0xbf9f6c) }, uLo: { value: new THREE.Color(0x8c6c48) } }, vertexShader: STONE_VS, fragmentShader: EARTH_FS })); this.hump.visible = false; this.hump.frustumCulled = false; scene.add(this.hump);
-    this.humpK = 0;
     this.placed = new Map(); // a coil's id -> how far round its arches are placed
     this.trailT = 0; this.dustT = 0;
     this.lastX = new Map(); this.lastZ = new Map(); // where each burrowed one last dropped a cracked slab
@@ -151,25 +147,18 @@ export class LeviathanFx {
     this.core.begin(); this.glow.begin();
     const dust = (this.dustT -= dt) <= 0;
     if (dust) this.dustT = 0.07;
-    let ri = 0, hump = false;
+    let ri = 0;
     for (const m of g.monsters) {
       if (m.type !== 'earthburrow_leviathan' || m.dead) continue;
       // the mound running over it under the ground, and the cracked line it leaves
       const under = (m.burrow && m.burrow.phase !== 'out') || m.tremor;
       if (under) {
         const lx = this.lastX.get(m.id) ?? m.x, lz = this.lastZ.get(m.id) ?? m.z;
-        if (Math.hypot(m.x - lx, m.z - lz) > 1.1 || !this.lastX.has(m.id)) {
+        if (Math.hypot(m.x - lx, m.z - lz) > 0.8 || !this.lastX.has(m.id)) {
           this.lastX.set(m.id, m.x); this.lastZ.set(m.id, m.z);
           const a = Math.atan2(m.x - lx, m.z - lz), s = Math.random() < 0.5 ? -1 : 1;
           this.heave(m.x + Math.cos(a) * 0.9 * s, m.z - Math.sin(a) * 0.9 * s, a + s * 1.2, 0, 0.3 + Math.random() * 0.2, 0.26, 0.9);
-          this.humpA = a;
         }
-        // the hump of earth running over it, swelling as it goes, breathing while it lies still and listens
-        hump = true;
-        this.humpK = Math.min(1, this.humpK + dt * 4);
-        const sw = 1 + 0.06 * Math.sin(this.time * (m.moving ? 14 : 4));
-        this.hump.position.set(m.x, this.gy(m.x, m.z) - 0.15, m.z); this.hump.rotation.set(0, this.humpA || 0, 0);
-        this.hump.scale.set(1.3 * this.humpK * sw, (m.moving ? 0.65 : 0.45) * this.humpK * sw, 1.9 * this.humpK);
         if (dust && m.moving) { const y = this.gy(m.x, m.z); this.puff(m.x, y + 0.3, m.z, (Math.random() - 0.5) * 1.5, 0.6, (Math.random() - 0.5) * 1.5, 1.4, 0.8); if (Math.random() < 0.4) this.chipsAt(m.x, m.z, 1, 1.5, 3); }
       } else { this.lastX.delete(m.id); this.lastZ.delete(m.id); }
       // the coil: a wall of roots in its furrow, from where it began round to its head
@@ -190,9 +179,6 @@ export class LeviathanFx {
         if (dust) { const x = m.x, z = m.z; this.heave(x, z, R.a + Math.PI / 2, 0, 0.6, 0.35, 1.2); this.puff(x, this.gy(x, z) + 0.3, z, 0, 0.5, 0, 1.2, 0.7); }
       }
     }
-    if (!hump) this.humpK = Math.max(0, this.humpK - dt * 6);
-    this.hump.visible = this.humpK > 0.02;
-    if (!hump && this.hump.visible) this.hump.scale.multiplyScalar(0.9);
     // the domes of soil: up in a few frames, then torn into clods and falling away
     for (const D of this.dirt) {
       if (D.t > 1) { D.g.visible = false; continue; }

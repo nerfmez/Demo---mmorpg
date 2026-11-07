@@ -111,7 +111,10 @@ export function animLeviathan(r, s, dt, time) {
   // the poses (eased): rear (the cobra stance facing its prey; higher before the smash and as it roars), back (drawn
   // back before the smash), slam (the front thrown down onto the ground and held a moment), roar (its shake)
   const E = B.E, k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0, onGround = ground && !s.burrow;
-  let rear = s.aggro && onGround && !s.ring ? 0.55 : 0, back = 0, slam = 0, roar = 0;
+  // (round 4, owner: "moving it warps": reared, and its head turned to its prey, while its body ran on, wrung its neck;
+  // it rears and looks only while it is settled, and on the move its head goes where its body goes)
+  const settled = clamp01(1 - B.moveW * 2);
+  let rear = s.aggro && onGround && !s.ring ? 0.55 * settled : 0, back = 0, slam = 0, roar = 0;
   if (s.windup === 'head_smash') { rear = 0.55 + 0.6 * ease(clamp01(k / 0.7)); back = ease(clamp01(k / 0.7)); }
   else if (s.state === 'recover' && s.lastAttack === 'head_smash' && s.actT < 0.7) { const t = s.actT; slam = t < 0.07 ? t / 0.07 : t < 0.35 ? 1 : 1 - ease(clamp01((t - 0.35) / 0.35)); rear = 0; }
   else if (s.windup === 'burrow_hunt' || s.windup === 'tremor_sense' || s.windup === 'arc_leap') { rear = 0.55 + 0.4 * ease(clamp01(k / 0.5)) - 1.6 * ease(clamp01((k - 0.5) / 0.5)); }
@@ -143,7 +146,7 @@ export function animLeviathan(r, s, dt, time) {
   // the head: at the neck, along the neck; on the ground turned toward its prey and kept nearly level (reared, it
   // looks down at its prey); diving, rising or leaping it follows its path
   _d.subVectors(P[0], P[1]).normalize();
-  const yawN = Math.atan2(_d.x, _d.z), aim = (s.aggro || s.windup) && onGround ? 1 : 0;
+  const yawN = Math.atan2(_d.x, _d.z), aim = (s.aggro || s.windup) && onGround && !s.ring ? settled : 0;
   E.look = damp(E.look, aim, 6, dt);
   const off = Math.atan2(Math.sin((s.lookYaw || 0) - yawN), Math.cos((s.lookYaw || 0) - yawN)), yaw = yawN + off * 0.5 * E.look;
   const slope = Math.asin(Math.max(-1, Math.min(1, _d.y)));

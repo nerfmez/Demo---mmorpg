@@ -432,6 +432,11 @@ for the normal one.
   big impact sends an aftershock out through the ground, a falling boulder bursts and its fragments skid on, loose
   talus lifts and grinds in a slide). Its pound and throw became a two-beat hammer slam with an aftershock band
   (normal), a boulder hurl that shatters into fragment lanes, and a rubble orbit flung out at the end.
+- **Crag golem, round 2** (owner: "the effects are poor"): built with Earth Heave's techniques in its own colours -
+  its amber heart burns brighter through every wind-up; impacts throw a ragged amber flash and rays, heave a ring of
+  ground slabs up (overshoot, hold, sink) round a pit and roll big billowing dust clouds; the aftershock heaves slabs
+  one after another all round its band; the boulder and the rubble are its own dark stone glowing amber, shedding
+  pebbles and dust as they fly or swing; flung rocks burst in dust where they strike.
 - **Duskmane stalker, round 1** (2026-11-07, owner: "next"): researched first (a big cat stalks low and freezes before
   an explosive rush, melts into the dusk so prey sees only its tracks, swats with its forepaws, and sprints in on a
   line it cannot bend as sharply as dodging prey). Its claw, pounce and half-seen circling became a twin swat (normal),

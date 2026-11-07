@@ -114,34 +114,7 @@ test('melee strikes (stalker claw) land once at the authored time, miss outside 
   }
 });
 
-test('marked areas (shards) hurt only when they land, inside their circle (the ram and the stalker are kit monsters now: monster-kits.test.js)', () => {
-  for (const [type, name] of [['rune_sentinel', 'shards']]) {
-    const a = arena(type);
-    a.place(0.3);
-    a.m.cd.shove = a.m.cd.beam = 99;
-    a.step(0.01);
-    assert.equal(a.m.windup?.name, name);
-    a.step(a.m.windup.total - 0.03);
-    assert.equal(a.hits.length, 0, `${name}: nothing during the wind-up`);
-    a.until(() => a.m.state === 'recover');
-    a.step(0.05);
-    assert.equal(a.hits.length, 1, `${name}: one hit`);
-  }
-});
-
-test('sentinel beam hits along its line once and misses beside it', () => {
-  for (const [side, expect] of [[0, 1], [2.2, 0]]) {
-    const a = arena('rune_sentinel');
-    a.place(6); a.m.cd.shards = 99;
-    a.step(0.01);
-    assert.equal(a.m.windup?.name, 'beam');
-    a.step(a.m.windup.total * 0.7);
-    a.g.player.x = side;
-    a.until(() => a.m.state === 'recover');
-    assert.equal(a.hits.length, expect, `beam at side ${side}`);
-  }
-});
-
+// (the ram, the stalker and the rune sentinel are kit monsters now: their attacks are tested in monster-kits.test.js)
 test('killing a monster during its wind-up cancels the area it marked', () => {
   for (const [type, gap, block] of [['leaf_fox', 5, 'snap']]) {
     const a = arena(type);

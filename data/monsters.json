@@ -1180,7 +1180,9 @@
     "rune_sentinel": {
       "name": "Rune Sentinel",
       "nameTh": "ทหารยามศิลารูน",
-      "behavior": "sentinel",
+      "behavior": "kit",
+      "normal": "shard_volley",
+      "kit": {"circle": [5, 8], "turn": 2},
       "hp": 1300,
       "damage": 120,
       "defense": 180,
@@ -1191,24 +1193,9 @@
       "exp": 30,
       "jobExp": 21,
       "attacks": {
-        "beam": {
-          "element": "lightning",
-          "inflict": {"status": "shock", "chance": 1, "duration": 3},
-          "range": 12,
-          "width": 1.1,
-          "windup": 1.2,
-          "recover": 1,
-          "cooldown": 4.5,
-          "damageMult": 1.5
-        },
-        "shards": {
-          "range": 2.4,
-          "radius": 3.2,
-          "windup": 0.8,
-          "recover": 0.9,
-          "cooldown": 5,
-          "damageMult": 1.2
-        }
+        "rune_seal": {"nameTh": "ตรารูนผนึก", "kind": "rune_seal", "use": {"min": 2, "max": 10}, "range": 10, "windup": 2.0, "radius": 2.4, "glyphs": 8, "recover": 0.8, "cooldown": 11, "damageMult": 0.9, "element": "lightning", "inflict": {"status": "root", "chance": 1, "duration": 1.6}},
+        "searchlight": {"nameTh": "แสงตรวจการณ์", "kind": "searchlight", "use": {"min": 3, "max": 10}, "range": 10, "windup": 0.9, "arc": 34, "turn": 0.75, "duration": 4.5, "build": 0.9, "recover": 0.8, "cooldown": 13, "damageMult": 1.2, "element": "lightning", "inflict": {"status": "shock", "chance": 1, "duration": 2.5}},
+        "shard_volley": {"nameTh": "ศรศิลารูน", "kind": "shard_volley", "use": {"min": 1.5, "max": 11}, "range": 12, "windup": 0.8, "count": 6, "every": 0.2, "speed": 13, "shardRadius": 0.4, "recover": 0.8, "cooldown": 4, "damageMult": 0.45}
       },
       "drops": [
         {

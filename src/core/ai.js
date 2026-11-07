@@ -321,7 +321,7 @@ function setState(m, state, dur = 0) {
   if (state !== 'stunned') m.exposed = 0; // the eye clam's cracked shell closes again
   m.roaring = false; // the phase roar is its own recover (kit)
   // out of the act, nothing is left up in the air (Greyfang's moon leap) or mid-rush
-  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; m.stoop = null; m.storm = null; if (m.stalk) { m.stalk = null; m.stealth = false; m.targetable = true; } m.sprint = null; m.orbit = null; if (state !== 'windup') m.altTo = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
+  if (state !== 'act') { if (m.leap) { m.leap = null; m.targetable = true; } m.rush = null; m.fangs = null; m.stoop = null; m.storm = null; if (m.stalk) { m.stalk = null; m.stealth = false; m.targetable = true; } m.sprint = null; m.orbit = null; m.volley = null; m.search = null; if (state !== 'windup') m.altTo = null; if (m.coil?.unit?.statuses?.root) delete m.coil.unit.statuses.root; m.coil = null; }
   m.state = state;
   m.stateT = 0;
   m.stateDur = dur;
@@ -419,7 +419,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook', 'dusk_stalk', 'hammer_fists', 'boulder_hurl', 'rock_orbit'].includes(kind)) {
+  if (t && !atk.keepFacing && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'drum', 'doubles', 'skip', 'engulf', 'snatch', 'shell_drop', 'perch', 'fairy_ring', 'pincer', 'shell_shed', 'startle', 'rally', 'moon_leap', 'phantom_rush', 'marsh_gas', 'bog_lure', 'stoop', 'thunder_wings', 'storm_feathers', 'hook', 'dusk_stalk', 'hammer_fists', 'boulder_hurl', 'rock_orbit', 'rune_seal'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle + (atk.backward ? Math.PI : 0);
   }
@@ -853,6 +853,25 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'shard_volley': {
+      // the rune sentinel flings the shards of its ring at its prey one after another, `every` s apart, each aimed at
+      // where its prey stands as it goes (projectiles rune_shard) (act: m.volley)
+      m.volley = { name: w.name, t: 0, n: 0, dmg };
+      return setState(m, 'act');
+    }
+    case 'rune_seal': {
+      // the seal marked at wind-up start (beginAttack) closes on its own
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
+    case 'searchlight': {
+      // its eye casts a cone of light `range` m long, `arc` degrees wide, following its prey at `turn` rad/s for
+      // `duration` s; a unit held in the light for `build` s is spotted and struck by a rune bolt (event searchStrike),
+      // then must be spotted afresh; out of the light its being-spotted fades at half the rate (act: m.search)
+      m.search = { name: w.name, t: 0, angle: w.angle, spot: new Map(), dmg };
+      game.emit({ type: 'searchOn', id: m.id, x: m.x, z: m.z, angle: w.angle });
+      return setState(m, 'act');
+    }
     case 'rock_orbit': {
       // the rubble it raised swings round it `ring` m out for `spin` s at `turnSpeed` rad/s, striking what it passes
       // (each rock each unit once), then each is flung straight out from where it is (projectiles rock_shard) (act:
@@ -1189,6 +1208,44 @@ function act(game, m, dt, t) {
     }
     if (k >= 1) { m.sweep = null; m.cd[sw.name] = atk.cooldown; setState(m, 'recover', atk.recover); }
     return;
+  }
+  if (m.volley) {
+    const V = m.volley, atk = m.def.attacks[V.name], prey = t || game.player;
+    V.t += dt; m.moving = false;
+    if (prey) m.facing = angleTo(m.x, m.z, prey.x, prey.z);
+    while (V.n < atk.count && V.t >= V.n * atk.every) {
+      // from its place on the ring (round the side facing its prey), aimed at where its prey stands now
+      const side = (V.n % 2 ? 1 : -1) * (0.3 + 0.15 * Math.floor(V.n / 2)), a = m.facing + side, sx = m.x + Math.sin(a) * 0.9, sz = m.z + Math.cos(a) * 0.9;
+      const aim = prey ? angleTo(sx, sz, prey.x, prey.z) : m.facing;
+      game.spawnProjectile({ owner: 'monster', sourceId: m.id, kind: 'rune_shard', attack: V.name, x: sx, z: sz, y: 1.4, angle: aim, speed: atk.speed, radius: atk.shardRadius, range: atk.range, damage: V.dmg });
+      game.emit({ type: 'shardLaunch', id: m.id, x: sx, z: sz, angle: aim, n: V.n });
+      V.n++;
+    }
+    if (V.n < atk.count || V.t < (atk.count - 1) * atk.every + 0.15) return;
+    m.volley = null; m.cd[V.name] = atk.cooldown;
+    return setState(m, 'recover', atk.recover);
+  }
+  if (m.search) {
+    const S = m.search, atk = m.def.attacks[S.name], prey = t || game.player;
+    S.t += dt; m.moving = false;
+    if (prey) S.angle += clamp(angleDiff(S.angle, angleTo(m.x, m.z, prey.x, prey.z)), -atk.turn * dt, atk.turn * dt);
+    m.facing = S.angle;
+    const half = (atk.arc * DEG) / 2;
+    for (const u of game.units()) {
+      const d = dist(m.x, m.z, u.x, u.z), lit = d <= atk.range + u.r && d > 0.3 && Math.abs(angleDiff(S.angle, angleTo(m.x, m.z, u.x, u.z))) <= half;
+      let v = Math.max(0, (S.spot.get(u.id) || 0) + (lit ? dt : -0.5 * dt));
+      if (v >= atk.build) {
+        v = 0;
+        game.damageUnit(u, S.dmg, m, { attack: S.name });
+        game.emit({ type: 'searchStrike', id: m.id, x: u.x, z: u.z });
+      }
+      S.spot.set(u.id, v);
+      if (u === game.player) S.heroSpot = v / atk.build; // for the view: how near the hero is to being struck
+    }
+    if (S.t < atk.duration) return;
+    m.search = null; m.cd[S.name] = atk.cooldown;
+    game.emit({ type: 'searchOff', id: m.id, x: m.x, z: m.z });
+    return setState(m, 'recover', atk.recover);
   }
   if (m.orbit) {
     const O = m.orbit, atk = m.def.attacks[O.name];
@@ -2276,6 +2333,13 @@ export function beginAttack(game, m, name, t) {
     m.windup.angles = angles;
     game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'boulder', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total + atk.flight, duration: 0.3, damage: m.damage * (atk.damageMult || 1),
       shards: { angles, speed: atk.shardSpeed, range: atk.shardRange, radius: atk.shardRadius, damage: m.damage * (atk.shardMult || 0.5) } });
+    return;
+  }
+  if (kind === 'rune_seal') {
+    // a circle of runes inscribed round where its prey stands now: `glyphs` runes light one after another round it
+    // until the seal closes as the wind-up ends `seal` s later; whoever is still inside is struck and held (its inflict)
+    startWindup(game, m, name, t, { tx: t.x, tz: t.z });
+    if (!game.isSafe(t.x, t.z)) game.spawnArea({ owner: 'monster', sourceId: m.id, attack: name, kind: 'rune_seal', x: t.x, z: t.z, radius: atk.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * (atk.damageMult || 1) });
     return;
   }
   if (kind === 'rock_orbit') {

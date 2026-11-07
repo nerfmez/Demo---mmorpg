@@ -44,7 +44,7 @@ test('every monster element and status in the data is one the rules know', () =>
   assert.equal(monsterHit(foe('marsh_wisp'), 'orb').element, 'fire');
   assert.equal(monsterHit(foe('salt_slime'), 'brine').element, 'cold');
   assert.equal(monsterHit(foe('salt_slime'), 'engulf').element, 'physical');
-  assert.equal(monsterHit(foe('rune_sentinel'), 'beam').element, 'lightning');
+  assert.equal(monsterHit(foe('rune_sentinel'), 'searchlight').element, 'lightning');
   assert.equal(monsterHit(foe('reed_viper'), 'fang_strike').element, 'poison');
   assert.equal(monsterHit(null, 'slam').element, 'physical');
 });
@@ -71,10 +71,10 @@ test('element resistance takes its share off that element only, and is capped', 
 });
 
 test('a monster attack puts its status on the hero: resisted by element, shortened by tenacity', () => {
-  // the rune sentinel's beam always shocks; shock makes the hero take more damage
+  // the rune sentinel's searchlight bolt always shocks; shock makes the hero take more damage
   let g = hero();
-  g.damagePlayer(1000, foe('rune_sentinel'), { attack: 'beam' });
-  const full = M.rune_sentinel.attacks.beam.inflict.duration;
+  g.damagePlayer(1000, foe('rune_sentinel'), { attack: 'searchlight' });
+  const full = M.rune_sentinel.attacks.searchlight.inflict.duration;
   assert.equal(g.player.statuses.shock.t, full);
   assert.ok(g.drainEvents().some((e) => e.type === 'heroStatus' && e.status === 'shock'));
   const shocked = g.damagePlayer(1000, foe('tusk_boar'), { attack: 'bite' });
@@ -83,7 +83,7 @@ test('a monster attack puts its status on the hero: resisted by element, shorten
   assert.ok(shocked > calm * 1.1, `${shocked} vs ${calm}`);
   // tenacity shortens it
   g = hero(); g.derived.tenacityPct = 40;
-  g.damagePlayer(1000, foe('rune_sentinel'), { attack: 'beam' });
+  g.damagePlayer(1000, foe('rune_sentinel'), { attack: 'searchlight' });
   assert.ok(Math.abs(g.player.statuses.shock.t - full * 0.6) < 1e-9);
   // a full resistance never takes it (chance x (1 - resist)), and a lower one takes it less often
   g.derived.tenacityPct = 0;
@@ -92,7 +92,7 @@ test('a monster attack puts its status on the hero: resisted by element, shorten
     g.derived.resistLightningPct = resist;
     for (let i = 0; i < 200; i++) {
       delete g.player.statuses.shock; g.player.hp = g.player.maxHp;
-      g.damagePlayer(100, foe('rune_sentinel'), { attack: 'beam' });
+      g.damagePlayer(100, foe('rune_sentinel'), { attack: 'searchlight' });
       if (g.player.statuses.shock) n++;
     }
     return n / 200;
@@ -138,15 +138,15 @@ test('monster attacks reach the rules with their names (projectiles, areas, cont
   g.monsters = [m];
   g.isSafe = () => false;
   g.moveEntity = (u, dx, dz) => { u.x += dx; u.z += dz; return {}; };
-  Object.assign(m, { x: 0, z: 0, homeX: 0, homeZ: 0, facing: 0, state: 'chase', stateT: 0, aggro: true, damage: 1, cd: { beam: 0, shards: 99 } });
+  Object.assign(m, { x: 0, z: 0, homeX: 0, homeZ: 0, facing: 0, state: 'chase', stateT: 0, aggro: true, damage: 1, cd: { searchlight: 0, shard_volley: 99, rune_seal: 99 }, elite: true }); // (the searchlight is an elite's: a normal sentinel only throws its shards)
   Object.assign(g.player, { x: 0, z: 6, hp: 1e6, maxHp: 1e6 });
   g.derived.dodgeChancePct = 0;
   const seen = [];
   const real = g.damageUnit.bind(g);
   g.damageUnit = (u, amount, src, opts) => { seen.push(opts?.attack); return real(u, amount, src, opts); };
-  for (let t = 0; t < 4 && !seen.length; t += 0.01) { g.time += 0.01; updateMonster(g, m, 0.01); }
-  assert.deepEqual(seen.slice(0, 1), ['beam']);
-  assert.ok(g.player.statuses.shock, 'the beam shocked the hero');
+  for (let t = 0; t < 6 && !seen.length; t += 0.01) { g.time += 0.01; updateMonster(g, m, 0.01); }
+  assert.deepEqual(seen.slice(0, 1), ['searchlight']);
+  assert.ok(g.player.statuses.shock, 'the searchlight\'s bolt shocked the hero');
   // every monster area, projectile and contact in ai.js names its attack
   const ai = readFileSync(new URL('../../src/core/ai.js', import.meta.url), 'utf8');
   for (const line of ai.split('\n').filter((l) => /spawnArea\(\{ owner: 'monster'/.test(l))) assert.match(line, /attack: /, line.trim());

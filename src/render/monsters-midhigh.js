@@ -468,7 +468,20 @@ function buildSentinel() {
 function animSentinel(r, s, dt, time) {
   const b = r.bones, k = windK(s);
   let spin = 0.6, radius = 1, lean = 0, rise = 0, headX = 0;
-  if (s.windup === 'beam') {
+  // (docs/MONSTER-ATTACKS.md) shard volley: the ring winds up tight, then each shard it flings is gone from it until
+  // the volley ends; rune seal: it rises, its ring spread wide and turning slowly, head bowed over the seal;
+  // searchlight: leaning back as its eye charges, then turned on its light, head bowed to the ground it sweeps
+  if (s.windup === 'shard_volley') {
+    spin = 0.6 + 6 * k; radius = 1 - 0.3 * k; lean = -0.2 * k; headX = -0.1 * k;
+  } else if (s.volleyN >= 0) {
+    spin = 5; radius = 0.8; lean = 0.1;
+  } else if (s.windup === 'rune_seal') {
+    spin = 0.6 + 1.2 * k; radius = 1 + 0.9 * k; rise = 0.45 * k; headX = 0.35 * k;
+  } else if (s.windup === 'searchlight') {
+    spin = 0.6 + 3 * k; lean = -0.3 * k; headX = -0.2 * k;
+  } else if (s.search) {
+    spin = 2.5; lean = 0.08; headX = 0.4;
+  } else if (s.windup === 'beam') {
     spin = 0.6 + 7 * k; // the ring winds up, the body leans back to aim
     radius = 1 - 0.35 * k;
     lean = -0.25 * k;
@@ -494,6 +507,7 @@ function animSentinel(r, s, dt, time) {
   for (let i = 0; i < SHARDS; i++) {
     const a = (i / SHARDS) * Math.PI * 2, sh = b[`shard${i}`];
     sh.position.set(Math.sin(a) * 0.85 * r.radius, Math.sin(time * 2 + i) * 0.08 + rise, Math.cos(a) * 0.85 * r.radius);
+    sh.scale.setScalar(s.volleyN > i ? 0.001 : 1); // flung: gone from the ring until the volley ends
   }
   // a floating stone: it tips into its drift and rocks back when it stops
   advanceGait(r, s, dt, r.motion);

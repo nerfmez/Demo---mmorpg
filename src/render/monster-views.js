@@ -181,6 +181,7 @@ export function syncMonsterViews(view, dt, time) {
     state.strikeT = since; state.fangAim = !!m.fangs; state.coil = m.coil ? m.coil.phase : null;
     // the gale hawk (monsters.js animHawk): how far down its stoop (and where the low stretch starts), its thunder wings (beats since they began)
     state.stoopK = m.stoop ? m.stoop.s / Math.max(0.01, m.stoop.len) : -1; state.stoopLow = m.stoop ? m.stoop.low / Math.max(0.01, m.stoop.len) : 1; state.stoopHigh = m.stoop ? m.stoop.high / Math.max(0.01, m.stoop.len) : 1;
+    state.volleyN = m.volley ? m.volley.n : -1; state.search = !!m.search; // the rune sentinel
     state.orbit = !!m.orbit; // the crag golem's rubble swinging round it
     state.stalk = m.stalk ? m.stalk.phase : null; state.sprinting = !!m.sprint; // the duskmane stalker
     state.hookSide = m.windup?.side ?? state.hookSide; // the ironhorn ram's hook

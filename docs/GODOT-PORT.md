@@ -651,7 +651,14 @@ their own kits, below; `mantis` and `whirl` stay for any monster that lists them
   **`rock_orbit`** (`m.orbit`): `rocks` rocks `ring` m round it turning at `turnSpeed` rad/s for `spin` s, each
   striking a unit within `rockRadius` once (`orbitHit`), then each flung straight out as a `rock_shard` projectile
   (`flingSpeed`, `flingRange`; `orbitFling`). Render: skillfx/golem-fx.js (warnDisc discs, a band shader with its
-  numbers in uniforms, ground-kit rocks and craters). Render: skillfx/ram-fx.js (light-kit spark streaks, ground-kit rocks and crater
+  numbers in uniforms, ground-kit rocks and craters). The rune sentinel: **`shard_volley`** (`m.volley`): every `every` s,
+  `count` times, a `rune_shard` projectile from its ring aimed at where its prey stands then (`shardLaunch`);
+  **`rune_seal`**: an area `rune_seal` of `radius` m round its prey at wind-up start, going off as the wind-up ends,
+  its inflict a root; **`searchlight`** (`m.search`): a cone `range` m by `arc` degrees turning toward its prey at
+  `turn` rad/s for `duration` s; per unit a spotted time grows while lit and falls at half the rate while not; at
+  `build` s it is struck once and starts again (`searchStrike`; the hero's share in `m.search.heroSpot` for the view).
+  Render: skillfx/sentinel-fx.js (a cone mesh with a shader whose numbers are uniforms, glyph strokes as ribbons, Chain
+  Spark's bolt). Render: skillfx/ram-fx.js (light-kit spark streaks, ground-kit rocks and crater
   decals, partial-ring shock waves as ribbon strips; glow sprites on the horns). `charge` (boar) is the only straight rush left,
   besides the stalker `pounce` leap and the warden's `roll` (the gale hawk now stoops, below).
 - **`roll`:** the warden (now a stone golem) curls into a boulder and rolls along the locked lane: an

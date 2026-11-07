@@ -1722,3 +1722,65 @@ test('crag golem rock orbit: rubble swings round it striking what it passes, eac
   b.step(a.spin + 1);
   assert.equal(b.hits.length, 0, 'inside the ring');
 });
+
+test('rune sentinel shard volley: its ring shards fly at the hero one after another, each aimed as it goes', () => {
+  const a = M.rune_sentinel.attacks.shard_volley;
+  assert.equal(M.rune_sentinel.normal, 'shard_volley');
+  const { m, g, until, step, place } = arena('rune_sentinel', 35, { open: true, normal: true });
+  place(6);
+  until(() => m.state === 'act', 2);
+  step(0.01);
+  assert.equal(g.projectiles.filter((p) => p.kind === 'rune_shard').length, 1, 'one at a time');
+  g.player.x = 3; // moving: the later shards follow
+  step(a.every * (a.count - 1) + 0.05);
+  const shards = g.projectiles.filter((p) => p.kind === 'rune_shard');
+  assert.equal(g.events.filter((e) => e.type === 'shardLaunch').length, a.count);
+  assert.ok(shards.some((p) => p.vx > 1), 'later shards aimed at where the hero went');
+  until(() => m.state !== 'act', 2);
+  assert.ok(!m.volley);
+});
+
+test('rune sentinel rune seal: a circle round the hero closes after its glyphs light; still inside, struck and held', () => {
+  const a = M.rune_sentinel.attacks.rune_seal;
+  const { m, g, until, step, only, place } = arena('rune_sentinel', 35, { open: true, realDamage: true });
+  only('rune_seal'); place(5);
+  until(() => m.windup?.name === 'rune_seal', 1);
+  const seal = g.areas.find((x) => x.kind === 'rune_seal');
+  assert.ok(Math.hypot(seal.x - g.player.x, seal.z - g.player.z) < 1e-9 && seal.radius === a.radius);
+  step(seal.delay - 0.05);
+  assert.ok(!g.player.statuses.root, 'not before it closes');
+  step(0.1);
+  assert.ok(g.player.statuses.root, 'sealed in');
+  const b = arena('rune_sentinel', 35, { open: true, realDamage: true });
+  b.only('rune_seal'); b.place(5);
+  b.until(() => b.m.windup?.name === 'rune_seal', 1);
+  b.g.player.x += a.radius + 1;
+  b.step(a.windup + 0.2);
+  assert.ok(!b.g.player.statuses.root, 'stepped out before it closed');
+});
+
+test('rune sentinel searchlight: a cone of light follows the hero slowly; held in it long enough, a bolt strikes; out of it, nothing', () => {
+  const a = M.rune_sentinel.attacks.searchlight;
+  const { m, g, hits, until, step, only, place } = arena('rune_sentinel', 35, { open: true });
+  only('searchlight'); place(6);
+  until(() => m.state === 'act', 2);
+  step(a.build - 0.05);
+  assert.equal(hits.length, 0, 'not yet spotted');
+  step(0.1);
+  assert.equal(hits.length, 1, 'spotted and struck');
+  step(a.build - 0.1);
+  assert.equal(hits.length, 1, 'spotted afresh before the next');
+  // out of the light, and staying ahead of its slow turn: never struck
+  const b = arena('rune_sentinel', 35, { open: true });
+  b.only('searchlight'); b.place(6);
+  b.until(() => b.m.state === 'act', 2);
+  for (let t = 0; t < a.duration; t += 0.01) {
+    const ang = Math.atan2(b.g.player.x - b.m.x, b.g.player.z - b.m.z) + 1.2 * 0.01; // circling it faster than it turns
+    const d = Math.hypot(b.g.player.x - b.m.x, b.g.player.z - b.m.z);
+    b.g.player.x = b.m.x + Math.sin(ang) * d; b.g.player.z = b.m.z + Math.cos(ang) * d;
+    b.step(0.01);
+  }
+  assert.equal(b.hits.length, 0, 'outran the light');
+  b.until(() => b.m.state !== 'act', 2);
+  assert.ok(!b.m.search);
+});

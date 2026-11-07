@@ -454,6 +454,12 @@ for the normal one.
   coil round their prey. Its kit: a head smash, a burrow hunt you outrun (phase one: keep moving), a closing ring of
   roots you escape through its gap, and below half an arc leap over you and tremor sense (phase two: stand still), none
   a pattern another monster has. It waits for its place (`awaiting`) and its drops.
+- **Earthburrow leviathan, round 2** (owner: "the model is not detailed enough, use this one; the root move is not good
+  enough"): the owner's HD Meshy model (713,108 triangles) brought down to the 6,000-triangle boss budget with a 768
+  px map (the most that fits the 400 KB file budget; `prep-monster-glb.py --quality`). The coil's wall of roots is
+  now real roots: tapered, knotted tubes drawn instanced, arches erupting one after another along its furrow into a
+  fence; as the ring closes long roots lunge in from all round it and squeeze, roots coil round a held prey, and all
+  wither back into the ground.
 - **Horned warden, round 1** (2026-11-07, owner: "next"; the boss, five attacks and a second phase): researched first.
   It is the owner's lava-seamed stone titan with a shield that curls into a horned boulder, so the phenomena are lava
   and a shield wall: pahoehoe lava chills to a crust that cracks and glows where the molten inside breaks out

@@ -5,7 +5,7 @@
 //   cracked ground that sinks back; where it will burst out the ground bulges; bursting out: rocks flung, a ring of
 //   slabs, a dust cloud, a shock ring.
 // - Head smash, the arc leap's two ends: a crater, chips, slabs, dust, a shock ring.
-// - Coil ring: its furrow behind it a wall of roots (twisting strands rising out of the ground, slabs heaved along it);
+// - Coil ring: its furrow behind it a wall of roots (round 2: real roots, arches erupting one after another, a fence);
 //   when it closes, the roots squeeze in.
 // - Tremor sense: each tremor a ripple running out over the ground from it; the one it finds: dust jumping round them.
 // Pools only; no allocation per frame.
@@ -14,23 +14,35 @@ import { Ribbon, conformPlane, place, BILLBOARD_VS } from './fx-common.js';
 import { CORE_FS, GLOW_FS, W as RW, lineW, lineGlowW } from './light-kit.js';
 import { rockGeometry, slabGeometry, craterMesh, STONE_VS, DUST_FS } from './ground-kit.js';
 
-const CHIPS = 20, PUFFS = 40, SLABS = 48, CRATERS = 3, WAVES = 8, ROOTS = 3;
-const EARTH = { edge: [0.55, 0.4, 0.26], glow: [0.35, 0.24, 0.12] }, ROOT = [0.52, 0.34, 0.18], ROOT_DARK = [0.36, 0.22, 0.11], MOSS = [0.42, 0.52, 0.2];
-// a root: a plain strand in its own colour, lit along its middle, darker to its edges (not the light ribbons' white core)
-const ROOT_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
-  void main(){ float d = abs(vUv.y); if (d > 0.95) discard; vec3 c = mix(vT*1.25, vT*0.6, smoothstep(0.15, 0.95, d)); gl_FragColor = vec4(c, vA); }`;
+const CHIPS = 20, PUFFS = 40, SLABS = 48, CRATERS = 3, WAVES = 8, ROOTS = 3, ARCHES = 44, LUNGES = 12, WRAPS = 2;
+const EARTH = { edge: [0.55, 0.4, 0.26], glow: [0.35, 0.24, 0.12] };
 // its stone: earth browns in the game's three toon steps
 const EARTH_FS = `varying vec3 vN; uniform float uA; uniform vec3 uHi, uMid, uLo;
   void main(){ float l = dot(normalize(vN), normalize(vec3(-0.33, 0.82, 0.49))); gl_FragColor = vec4(l > 0.55 ? uHi : (l > 0.1 ? uMid : uLo), uA); }`;
-const _a = new THREE.Vector3();
+const _a = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _m = new THREE.Matrix4(), _e = new THREE.Euler(), ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
+// round 2 (owner: "the root move is not good enough"): real roots, tapered, gnarled tubes in the game's toon steps,
+// shared shapes drawn instanced. A root is a tube along a bent curve, thick where it leaves the ground and thinning to
+// its tip (`taper` 0..1 along it -> radius share); bumps along it make it knotted
+function rootTube(points, radius, taper, seed) {
+  const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p)));
+  const g = new THREE.TubeGeometry(curve, 28, radius, 7, false), P = g.attributes.position, c = new THREE.Vector3();
+  for (let i = 0; i <= 28; i++) {
+    const t = i / 28; curve.getPointAt(t, c);
+    const k = taper(t) * (1 + 0.18 * Math.sin(t * 23 + seed) * Math.sin(t * 7 + seed * 2));
+    for (let j = 0; j <= 7; j++) { const v = i * 8 + j; P.setXYZ(v, c.x + (P.getX(v) - c.x) * k, c.y + (P.getY(v) - c.y) * k, c.z + (P.getZ(v) - c.z) * k); }
+  }
+  g.computeVertexNormals(); g.userData.shared = true; return g;
+}
+const ROOT_TONE_FS = `varying vec3 vN; uniform vec3 uHi, uMid, uLo;
+  void main(){ float l = dot(normalize(vN), normalize(vec3(-0.33, 0.82, 0.49))); gl_FragColor = vec4(l > 0.5 ? uHi : (l > 0.05 ? uMid : uLo), 1.0); }`;
+const ROOT_VS = `varying vec3 vN; void main(){ vN = normalize(mat3(modelMatrix*instanceMatrix)*normal); gl_Position = projectionMatrix*viewMatrix*modelMatrix*instanceMatrix*vec4(position,1.0); }`;
 
 export class LeviathanFx {
   constructor(scene, host, monster) {
     this.scene = scene; this.host = host; this.monster = monster; this.time = 0;
     this.core = new Ribbon(scene, monster.camera, 1600, CORE_FS, THREE.NormalBlending);
     this.glow = new Ribbon(scene, monster.camera, 1000, GLOW_FS, THREE.AdditiveBlending);
-    this.roots = new Ribbon(scene, monster.camera, 1200, ROOT_FS, THREE.NormalBlending);
-    this.core.mesh.renderOrder = 4; this.glow.mesh.renderOrder = 3; this.roots.mesh.renderOrder = 5;
+    this.core.mesh.renderOrder = 4; this.glow.mesh.renderOrder = 3;
     const stone = new THREE.ShaderMaterial({ uniforms: { uA: { value: 1 }, uHi: { value: new THREE.Color(0xa88760) }, uMid: { value: new THREE.Color(0x7c5d3f) }, uLo: { value: new THREE.Color(0x4f3a27) } }, vertexShader: STONE_VS, fragmentShader: EARTH_FS });
     this.chips = Array.from({ length: CHIPS }, (_, i) => { const m = new THREE.Mesh(rockGeometry(2311 + i * 7), stone); m.visible = false; m.frustumCulled = false; scene.add(m); return { m, p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, size: 0.1, spin: 0 }; });
     this.chipI = 0;
@@ -45,6 +57,19 @@ export class LeviathanFx {
     this.waveI = 0;
     this.ring = Array.from({ length: 49 }, () => new THREE.Vector3());
     this.strand = Array.from({ length: 64 }, () => new THREE.Vector3());
+    // the roots: arches erupting along its furrow (a fence), long roots lunging in from the ring as it closes, coils
+    // round a held prey; each instanced, their state here
+    const rootMat = new THREE.ShaderMaterial({ uniforms: { uHi: { value: new THREE.Color(0x9a7650) }, uMid: { value: new THREE.Color(0x6a4b30) }, uLo: { value: new THREE.Color(0x3c2a1c) } }, vertexShader: ROOT_VS, fragmentShader: ROOT_TONE_FS });
+    const arch = rootTube([[-0.75, -0.2, 0], [-0.55, 0.55, 0.05], [-0.1, 1.05, -0.04], [0.35, 0.85, 0.06], [0.7, 0.2, 0], [0.8, -0.2, 0]], 0.17, (t) => 0.45 + 0.55 * Math.abs(1 - 2 * t) ** 0.6, 1);
+    const lunge = rootTube([[0, -0.3, 0], [0.05, 0.35, 0.18], [-0.08, 0.6, 0.45], [0.06, 0.55, 0.72], [0, 0.35, 0.95], [0.02, 0.15, 1.05]], 0.2, (t) => 1 - 0.85 * t, 2);
+    const wrapPts = []; for (let i = 0; i <= 16; i++) { const a = i * 0.85, y = -0.1 + i * 0.09; wrapPts.push([Math.sin(a) * 0.55, y, Math.cos(a) * 0.55]); }
+    const wrap = rootTube(wrapPts, 0.09, (t) => 1 - 0.7 * t, 3);
+    const inst = (geo, n) => { const m = new THREE.InstancedMesh(geo, rootMat, n); m.frustumCulled = false; m.renderOrder = 2; for (let i = 0; i < n; i++) m.setMatrixAt(i, ZERO); scene.add(m); return m; };
+    this.archIM = inst(arch, ARCHES); this.lungeIM = inst(lunge, LUNGES); this.wrapIM = inst(wrap, WRAPS);
+    this.arches = Array.from({ length: ARCHES }, () => ({ t: 9, x: 0, z: 0, a: 0, s: 1, tilt: 0, end: 9 }));
+    this.lunges = Array.from({ length: LUNGES }, () => ({ t: 9, x: 0, z: 0, a: 0, len: 4, end: 9 }));
+    this.archI = 0; this.lungeI = 0;
+    this.placed = new Map(); // a coil's id -> how far round its arches are placed
     this.trailT = 0; this.dustT = 0;
     this.lastX = new Map(); this.lastZ = new Map(); // where each burrowed one last dropped a cracked slab
   }
@@ -89,14 +114,18 @@ export class LeviathanFx {
       case 'tremorPulse': this.wave(e.x, e.z, 0.5, 16, 0.9, 0.12); this.monster.onShake?.(0.05, 0.1); return true;
       case 'tremorFound': { const y = this.gy(e.x, e.z); for (let i = 0; i < 8; i++) { const a = (i / 8) * 6.283; this.puff(e.x + Math.sin(a) * 0.8, y + 0.2, e.z + Math.cos(a) * 0.8, Math.sin(a), 1.2, Math.cos(a), 0.9, 0.6); } this.chipsAt(e.x, e.z, 4, 1, 3); return true; }
       case 'coilStart': return true;
-      case 'coilClose': { this.ringOfSlabs(e.x, e.z, e.ring * 0.6, 14, 1, 0.5); this.ringOfSlabs(e.x, e.z, e.ring * 0.3, 8, 1.2, 0.5); this.cloud(e.x, e.z, e.ring * 0.4, 12, 2); this.wave(e.x, e.z, e.ring, 0.5, 0.35, 0.3); this.monster.onShake?.(0.25, 0.25); return true; }
+      case 'coilClose': {
+        // the roots lunge in from all round the ring toward its middle and squeeze; then all wither back into the ground
+        for (let i = 0; i < LUNGES; i++) { const a = (i / LUNGES) * Math.PI * 2 + Math.random() * 0.2, L = this.lunges[this.lungeI++ % LUNGES]; Object.assign(L, { t: -i * 0.012, x: e.x + Math.sin(a) * e.ring, z: e.z + Math.cos(a) * e.ring, a: a + Math.PI, len: e.ring * (0.8 + Math.random() * 0.15), end: 1.1 }); }
+        for (const A of this.arches) if (A.t < A.end) A.end = Math.min(A.end, A.t + 1.3);
+        this.ringOfSlabs(e.x, e.z, e.ring * 0.6, 14, 1, 0.5); this.ringOfSlabs(e.x, e.z, e.ring * 0.3, 8, 1.2, 0.5); this.cloud(e.x, e.z, e.ring * 0.4, 12, 2); this.wave(e.x, e.z, e.ring, 0.5, 0.35, 0.3); this.monster.onShake?.(0.25, 0.25); return true; }
     }
     return false;
   }
 
   update(dt, g) {
     this.time += dt;
-    this.core.begin(); this.glow.begin(); this.roots.begin();
+    this.core.begin(); this.glow.begin();
     const dust = (this.dustT -= dt) <= 0;
     if (dust) this.dustT = 0.07;
     let ri = 0;
@@ -117,21 +146,52 @@ export class LeviathanFx {
       if (m.ring && ri < ROOTS) {
         ri++;
         const R = m.ring, atk = m.def.attacks[R.name], swept = Math.min(Math.PI * 2, Math.abs(R.a - R.a0)), n = Math.max(2, Math.min(this.strand.length, Math.ceil(swept / 0.12) + 1));
-        for (let k = 0; k < 3; k++) {
-          for (let j = 0; j < n; j++) {
-            const a = R.a0 + R.dir * swept * (j / (n - 1)), r = R.R + Math.sin(j * 0.9 + k * 2.1 + this.time * 2) * 0.25, x = R.cx + Math.sin(a) * r, z = R.cz + Math.cos(a) * r;
-            const grow = Math.min(1, (swept - swept * (j / (n - 1))) / 0.5);
-            this.strand[j].set(x, this.gy(x, z) + (0.25 + 0.55 * Math.abs(Math.sin(j * 0.7 + k * 1.3))) * grow, z);
-          }
-          const seg = this.strand.slice(0, n);
-          RW.v = 0.26 - k * 0.05; this.roots.strip(seg, lineW, 1, k === 2 ? MOSS : k ? ROOT_DARK : ROOT);
+        // arches of root erupt along the furrow behind its head, overlapping, one every 0.8 m round the ring
+        const key = m.id + ':' + R.a0.toFixed(4), done = this.placed.get(key) || 0, step = 0.8 / R.R;
+        let k = done;
+        for (; k * step <= swept - 0.3 / R.R; k++) {
+          const A = this.arches[this.archI++ % ARCHES], ang = R.a0 + R.dir * k * step, r = R.R + (k % 2 ? 0.25 : -0.2);
+          Object.assign(A, { t: 0, x: R.cx + Math.sin(ang) * r, z: R.cz + Math.cos(ang) * r, a: ang + Math.PI / 2 + (Math.random() - 0.5) * 0.9, s: 0.65 + Math.random() * 0.7, tilt: (Math.random() - 0.5) * 0.9, end: 9 });
         }
+        this.placed.set(key, k);
         // its true band, faint, so the gap reads
         for (let j = 0; j < n; j++) { const a = R.a0 + R.dir * swept * (j / (n - 1)), x = R.cx + Math.sin(a) * R.R, z = R.cz + Math.cos(a) * R.R; this.strand[j].set(x, this.gy(x, z) + 0.05, z); }
         RW.v = atk.band * 2; this.core.strip(this.strand.slice(0, n), lineW, 0.18, [1, 0.45, 0.2]);
         if (dust) { const x = m.x, z = m.z; this.heave(x, z, R.a + Math.PI / 2, 0, 0.6, 0.35, 1.2); this.puff(x, this.gy(x, z) + 0.3, z, 0, 0.5, 0, 1.2, 0.7); }
       }
     }
+    // the roots: erupting out of the ground with a little overshoot, held, withering back down
+    for (let i = 0; i < ARCHES; i++) {
+      const A = this.arches[i];
+      if (A.t > A.end + 0.6) { this.archIM.setMatrixAt(i, ZERO); continue; }
+      A.t += dt;
+      const up = Math.min(1, A.t / 0.22), grow = up < 1 ? 1 - (1 - up) ** 3 : 1 + 0.08 * Math.sin(Math.min(1, (A.t - 0.22) / 0.2) * Math.PI), wither = Math.max(0, Math.min(1, (A.t - A.end) / 0.6));
+      const h = A.s * grow * (1 - wither), sway = 0.04 * Math.sin(this.time * 3 + i);
+      _s.set(A.s * (1.1 + 0.5 * ((i * 7) % 5) / 4), 1.5 * h * (0.8 + 0.4 * ((i * 3) % 4) / 3), A.s * 1.2); _q.setFromEuler(_e.set(A.tilt + sway, A.a, 0));
+      _a.set(A.x, this.gy(A.x, A.z) - 0.3 * (1 - grow) - 0.6 * wither, A.z);
+      this.archIM.setMatrixAt(i, _m.compose(_a, _q, _s));
+    }
+    this.archIM.instanceMatrix.needsUpdate = true;
+    for (let i = 0; i < LUNGES; i++) {
+      const L = this.lunges[i];
+      if (L.t > L.end + 0.6) { this.lungeIM.setMatrixAt(i, ZERO); continue; }
+      L.t += dt;
+      if (L.t < 0) { this.lungeIM.setMatrixAt(i, ZERO); continue; }
+      const out = Math.min(1, L.t / 0.16), reach = 1 - (1 - out) ** 3, squeeze = L.t > 0.3 && L.t < 0.7 ? 1 + 0.06 * Math.sin((L.t - 0.3) * 40) : 1, wither = Math.max(0, Math.min(1, (L.t - L.end) / 0.6));
+      _s.set(1.6 * squeeze, 1.6 * (1 - wither), L.len * reach); _q.setFromEuler(_e.set(0, L.a, 0));
+      _a.set(L.x, this.gy(L.x, L.z) - 0.8 * wither, L.z);
+      this.lungeIM.setMatrixAt(i, _m.compose(_a, _q, _s));
+    }
+    this.lungeIM.instanceMatrix.needsUpdate = true;
+    // coils of root round a held prey (the hero, rooted by the ring's crush)
+    let wi = 0;
+    const p = g.player;
+    if (p && !p.dead && p.statuses?.root && this.lunges.some((L) => L.t >= 0 && L.t < L.end + 0.6)) {
+      _s.set(1, 1.2 + 0.1 * Math.sin(this.time * 9), 1); _q.setFromEuler(_e.set(0, this.time * 0.6, 0)); _a.set(p.x, this.gy(p.x, p.z), p.z);
+      this.wrapIM.setMatrixAt(wi++, _m.compose(_a, _q, _s));
+    }
+    for (; wi < WRAPS; wi++) this.wrapIM.setMatrixAt(wi, ZERO);
+    this.wrapIM.instanceMatrix.needsUpdate = true;
     // slabs heaved up, then sinking back
     for (const q of this.slabs) {
       if (q.t > q.life + 0.5) { q.m.visible = false; continue; }
@@ -167,6 +227,6 @@ export class LeviathanFx {
       for (let j = 0; j < this.ring.length; j++) { const a = (j / (this.ring.length - 1)) * Math.PI * 2; this.ring[j].set(W.x + Math.sin(a) * R, y, W.z + Math.cos(a) * R); }
       RW.v = W.w * (1 - u) + 0.03; this.glow.strip(this.ring, lineGlowW, 0.35 * (1 - u), EARTH.glow); this.core.strip(this.ring, lineW, 0.8 * (1 - u), EARTH.edge);
     }
-    this.core.end(); this.glow.end(); this.roots.end();
+    this.core.end(); this.glow.end();
   }
 }

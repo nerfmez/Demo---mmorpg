@@ -12,7 +12,7 @@ Usage: python3 scripts/prep-monster-glb.py in.glb out.glb [--keep N] [--tris N] 
 - --yaw DEG turns the model about Y (three.js convention) so its spine runs along +Z; a Meshy quadruped
   can stand a little turned. Check the joints with a rig dump or a side view.
 - The model is centred and scaled so its longest side is --size (1.9, the other monster models' convention).
-- Only the base colour map is kept, shrunk to --tex px (JPEG).
+- Only the base colour map is kept, shrunk to --tex px (JPEG, --quality 88).
 """
 import io, json, struct, sys
 import numpy as np
@@ -23,8 +23,10 @@ ap = argparse.ArgumentParser()
 ap.add_argument('src'); ap.add_argument('dst', nargs='?')
 ap.add_argument('--keep', type=int, default=0); ap.add_argument('--yaw', type=float, default=0); ap.add_argument('--tris', type=int, default=0)
 ap.add_argument('--size', type=float, default=1.9); ap.add_argument('--tex', type=int, default=512); ap.add_argument('--info', action='store_true')
+ap.add_argument('--quality', type=int, default=88)  # JPEG quality of the colour map (a big texture can trade some for the file budget)
 a = ap.parse_args()
 src, dst, keep, size, tex, tris, info = a.src, a.dst, a.keep, a.size, a.tex, a.tris, a.info
+quality = a.quality
 
 b = open(src, 'rb').read()
 assert b[:4] == b'glTF'
@@ -119,7 +121,7 @@ img = j['images'][j['textures'][mat['baseColorTexture']['index']]['source']]
 v = j['bufferViews'][img['bufferView']]
 im = Image.open(io.BytesIO(blob[v.get('byteOffset', 0):v.get('byteOffset', 0) + v['byteLength']])).convert('RGB')
 im = im.resize((tex, tex), Image.LANCZOS) if max(im.size) > tex else im
-out = io.BytesIO(); im.save(out, 'JPEG', quality=88, optimize=True); jpg = out.getvalue()
+out = io.BytesIO(); im.save(out, 'JPEG', quality=quality, optimize=True); jpg = out.getvalue()
 
 pos = P.astype('<f4').tobytes(); nor = N.astype('<f4').tobytes(); uvb = np.column_stack([T[:, 0], T[:, 1]]).astype('<f4').tobytes(); ind = I.reshape(-1).astype('<u4').tobytes()
 parts = [pos, nor, uvb, ind, jpg]; offs, buf = [], b''

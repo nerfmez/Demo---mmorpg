@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { RigBuilder, damp, clamp01 } from './rig.js';
 
 export const LEVIATHAN_SEGS = 16;
-const Y0 = 0.104, STEP = 0.1153, MAX = 260, LEAD = 1.0;
+const Y0 = 0.111, STEP = 0.1153, MAX = 260, LEAD = 1.0;
 const Z = new THREE.Vector3(0, 0, 1), _d = new THREE.Vector3(), _a = new THREE.Vector3();
 const ease = (x) => x * x * (3 - 2 * x);
 
